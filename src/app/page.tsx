@@ -68,12 +68,14 @@ const features = [
     title: 'Análise de Performance',
     description:
       'Receba diagnósticos do que funciona (ou não) no seu conteúdo e otimize sua estratégia.',
+    plan: 'pro',
   },
   {
     icon: Briefcase,
     title: 'Mídia Kit e Propostas',
     description:
       'Crie propostas comerciais e um mídia kit profissional para fechar parcerias com marcas.',
+    plan: 'premium',
   },
 ];
 
@@ -97,19 +99,19 @@ const whyTrendify = [
 
 const faqItems = [
   {
+    question: 'Qual a diferença entre os planos Pro e Premium?',
+    answer:
+      'O plano Pro oferece todas as ferramentas essenciais para crescimento, como ideias ilimitadas e planejamento semanal. O plano Premium inclui tudo do Pro, mais recursos avançados de monetização como o Assistente de Publis, Mídia Kit e acesso antecipado a novas funcionalidades.',
+  },
+   {
     question: 'A Trendify funciona para qualquer nicho?',
     answer:
       'Sim! Nossa IA é treinada para se adaptar a dezenas de nichos, de beleza e fitness a tecnologia e finanças. As sugestões são personalizadas para o seu público.',
   },
   {
-    question: 'Os ganhos estimados são garantidos?',
+    question: 'Posso cancelar minha assinatura a qualquer momento?',
     answer:
-      'As estimativas são baseadas em benchmarks de mercado para o seu nicho e audiência. Elas servem como um guia de potencial, mas os resultados reais dependem da qualidade do seu conteúdo e negociação.',
-  },
-  {
-    question: 'Posso cancelar o plano Pro a qualquer momento?',
-    answer:
-      'Sim, você pode cancelar sua assinatura a qualquer momento, sem burocracia. Você manterá o acesso aos recursos Pro até o final do período de faturamento.',
+      'Sim, você pode cancelar sua assinatura a qualquer momento, sem burocracia. Você manterá o acesso aos recursos do seu plano até o final do período de faturamento.',
   },
 ];
 
@@ -380,7 +382,7 @@ export default function LandingPage() {
                 className="mb-6 border-purple-300 bg-purple-50 text-purple-700 font-medium rounded-full px-4 py-1"
               >
                 <Sparkles className="h-3 w-3 mr-2 text-purple-500" />
-                Novo: Assinatura PRO com pagamento via PIX
+                Planos Pro e Premium com pagamento via PIX
               </Badge>
 
               <h1 className="text-5xl md:text-7xl font-black font-headline tracking-tighter mb-6 !leading-tight max-w-4xl mx-auto">
@@ -427,7 +429,7 @@ export default function LandingPage() {
                 </Link>
               </div>
               <div className="mt-6 text-xs text-muted-foreground">
-                <span>Teste grátis de 7 dias</span>
+                <span>Comece com a conta gratuita</span>
                 <span className="mx-2">•</span>
                 <span>Sem cartão de crédito</span>
               </div>
@@ -455,10 +457,15 @@ export default function LandingPage() {
                   viewport={{ once: true, amount: 0.3 }}
                 >
                   <Card className="text-left h-full bg-card/50 shadow-sm transition-all duration-300 rounded-2xl border border-border/20 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1">
-                    <CardHeader className="flex flex-row items-center gap-4">
-                      <div className="bg-primary/10 text-primary p-3 rounded-lg">
+                    <CardHeader className="flex flex-row items-center justify-between">
+                       <div className="bg-primary/10 text-primary p-3 rounded-lg">
                         <feature.icon className="h-6 w-6" />
                       </div>
+                      {feature.plan && (
+                        <Badge variant={feature.plan === 'premium' ? 'default' : 'secondary'} className={cn(feature.plan === 'premium' && 'bg-yellow-400/20 text-yellow-600 border-yellow-400/30')}>
+                           {feature.plan === 'premium' ? 'Premium' : 'Pro'}
+                        </Badge>
+                      )}
                     </CardHeader>
                     <CardContent>
                       <h3 className="font-bold text-lg mb-2 text-foreground">
@@ -846,7 +853,7 @@ export default function LandingPage() {
                           asChild
                         >
                           <Link href="/sign-up">
-                            Criar conta e seguir o plano
+                            Criar conta e acelerar
                           </Link>
                         </Button>
                         <Button
@@ -874,19 +881,19 @@ export default function LandingPage() {
           <div className="container">
             <div className="text-center max-w-2xl mx-auto mb-12">
               <h2 className="text-4xl md:text-5xl font-bold font-headline tracking-tight mb-4">
-                Um preço, tudo incluso.
+                Planos para cada fase da sua jornada
               </h2>
               <p className="text-lg text-muted-foreground">
-                Escolha o plano que se encaixa no seu momento. Sem taxas
-                escondidas, sem complicação.
+                Comece de graça e faça o upgrade quando estiver pronto para monetizar e profissionalizar.
               </p>
             </div>
-            <div className="grid lg:grid-cols-2 gap-8 max-w-4xl mx-auto items-center">
-              <Card className="rounded-2xl p-6">
+            <div className="grid lg:grid-cols-3 gap-8 max-w-6xl mx-auto items-start">
+               {/* Plano Grátis */}
+              <Card className="rounded-2xl p-6 flex flex-col h-full">
                 <h3 className="text-2xl font-bold font-headline mb-2">
                   Grátis
                 </h3>
-                <p className="text-muted-foreground mb-6">
+                <p className="text-muted-foreground mb-6 flex-grow">
                   Para quem está começando e quer testar a plataforma.
                 </p>
                 <p className="text-4xl font-bold mb-6">
@@ -895,21 +902,33 @@ export default function LandingPage() {
                     /para sempre
                   </span>
                 </p>
+                 <ul className="mb-8 space-y-3 text-sm text-muted-foreground">
+                   <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-primary" />
+                    <span>Gerador de ideias de vídeo</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-primary" />
+                    <span>Até 5 planejamentos semanais</span>
+                  </li>
+                </ul>
                 <Button
                   variant="outline"
-                  className="w-full h-11 text-base"
+                  className="w-full h-11 text-base mt-auto"
                   asChild
                 >
                   <Link href="/sign-up">Começar no Grátis</Link>
                 </Button>
               </Card>
-              <Card className="rounded-2xl p-6 border-2 border-primary shadow-2xl shadow-primary/20 relative">
+
+              {/* Plano Pro */}
+              <Card className="rounded-2xl p-6 border-2 border-primary shadow-2xl shadow-primary/20 relative flex flex-col h-full">
                 <Badge className="absolute -top-4 left-1/2 -translate-x-1/2">
                   Mais Popular
                 </Badge>
                 <h3 className="text-2xl font-bold font-headline mb-2">Pro</h3>
-                <p className="text-muted-foreground mb-6">
-                  Para criadores que levam o crescimento a sério.
+                <p className="text-muted-foreground mb-6 flex-grow">
+                  Para criadores que levam o crescimento a sério e querem otimizar seu conteúdo.
                 </p>
                 <p className="text-4xl font-bold mb-6">
                   R$49{' '}
@@ -917,27 +936,77 @@ export default function LandingPage() {
                     /mês
                   </span>
                 </p>
-                <Button className="w-full h-11 text-base font-bold" asChild>
-                  <Link href="/subscribe">Assinar o Pro</Link>
-                </Button>
-                <ul className="mt-8 space-y-3 text-sm text-muted-foreground">
-                  <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-primary" />
-                    <span>Diagnósticos e ideias **ilimitados**</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-primary" />
-                    <span>Mídia kit e propostas automáticas</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-primary" />
-                    <span>Análise de vídeos publicados</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-primary" />
-                    <span>Suporte prioritário</span>
-                  </li>
+                 <ul className="mb-8 space-y-3 text-sm text-foreground">
+                    <li className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-primary" />
+                        <span className='font-semibold'>Tudo do plano Grátis, e mais:</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-primary" />
+                        <span>Gerações de IA **ilimitadas**</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-primary" />
+                        <span>Planejamento de conteúdo semanal</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-primary" />
+                        <span>Calendário de publicações</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-primary" />
+                        <span>Análise de performance de vídeos</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-primary" />
+                        <span>Suporte via e-mail</span>
+                    </li>
                 </ul>
+                <Button className="w-full h-11 text-base font-bold mt-auto" asChild>
+                  <Link href="/subscribe?plan=pro">Assinar o Pro</Link>
+                </Button>
+              </Card>
+
+              {/* Plano Premium */}
+               <Card className="rounded-2xl p-6 border border-yellow-400/50 bg-yellow-400/5 flex flex-col h-full">
+                 <h3 className="text-2xl font-bold font-headline mb-2 flex items-center gap-2">
+                  Premium
+                  <Crown className="h-5 w-5 text-yellow-500 fill-yellow-500" />
+                </h3>
+                <p className="text-muted-foreground mb-6 flex-grow">
+                  Acesso total para criadores que querem monetizar e profissionalizar sua carreira.
+                </p>
+                <p className="text-4xl font-bold mb-6">
+                  R$99{' '}
+                  <span className="text-lg font-normal text-muted-foreground">
+                    /mês
+                  </span>
+                </p>
+                 <ul className="mb-8 space-y-3 text-sm text-foreground">
+                    <li className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-primary" />
+                        <span className='font-semibold'>Tudo do plano Pro, e mais:</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-primary" />
+                        <span>Assistente de propostas para Publis</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-primary" />
+                        <span>Gerador de Mídia Kit profissional</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-primary" />
+                        <span>Acesso antecipado a novas ferramentas</span>
+                    </li>
+                     <li className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-primary" />
+                        <span>Suporte prioritário via WhatsApp</span>
+                    </li>
+                </ul>
+                <Button className="w-full h-11 text-base font-bold bg-yellow-500 hover:bg-yellow-500/90 text-black mt-auto" asChild>
+                  <Link href="/subscribe?plan=premium">Assinar o Premium</Link>
+                </Button>
               </Card>
             </div>
           </div>
