@@ -152,7 +152,7 @@ export default function DashboardPage() {
   };
 
   const handleToggleRoteiro = async (item: ItemRoteiro) => {
-    if (!firestore || !roteiroData) return;
+    if (!firestore || !roteiroData?.[0]) return;
     const planoRef = doc(firestore, 'roteiro', roteiroData[0].id);
     const updatedItems = roteiro?.map((i) =>
       i.tarefa === item.tarefa ? { ...i, concluido: !i.concluido } : i
@@ -216,6 +216,7 @@ export default function DashboardPage() {
       </PageHeader>
 
       <div className="space-y-8">
+        {/* Métricas Principais */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {isLoadingMetrica
             ? Array.from({ length: 4 }).map((_, i) => (
@@ -263,8 +264,11 @@ export default function DashboardPage() {
               ))}
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-3">
-          <div className="lg:col-span-2 grid gap-8">
+        {/* Layout Principal do Dashboard */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+          
+          {/* Coluna Principal (Ações e Tarefas) */}
+          <div className="lg:col-span-2 space-y-8">
             <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card">
               <CardHeader>
                 <CardTitle className="font-headline text-xl">
@@ -407,7 +411,8 @@ export default function DashboardPage() {
             </Card>
           </div>
 
-          <div className="lg:col-span-1">
+          {/* Coluna Lateral (Informações Rápidas) */}
+          <div className="lg:col-span-1 space-y-8">
             <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card">
               <CardHeader>
                 <CardTitle className="font-headline text-xl">
@@ -472,91 +477,84 @@ export default function DashboardPage() {
                 )}
               </CardContent>
             </Card>
+
+             <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card">
+              <CardHeader>
+                <CardTitle className="font-headline text-xl">
+                  Desempenho Semanal (Simulado)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pl-2">
+                {isLoadingDadosGrafico ? (
+                  <div className="h-[300px] w-full flex items-center justify-center">
+                    <Skeleton className="h-full w-full rounded-xl" />
+                  </div>
+                ) : dadosGrafico && dadosGrafico.length > 0 ? (
+                  <ChartContainer
+                    config={chartConfig}
+                    className="h-[300px] w-full"
+                  >
+                    <BarChart accessibilityLayer data={dadosGrafico}>
+                      <CartesianGrid
+                        vertical={false}
+                        strokeDasharray="3 3"
+                        stroke="hsl(var(--border) / 0.5)"
+                      />
+                      <XAxis
+                        dataKey="data"
+                        tickLine={false}
+                        tickMargin={10}
+                        axisLine={false}
+                        tickFormatter={(value) => value.slice(0, 3)}
+                      />
+                      <YAxis
+                        tickLine={false}
+                        axisLine={false}
+                        tickMargin={10}
+                        tickFormatter={(value) =>
+                          typeof value === 'number' && value >= 1000
+                            ? `${value / 1000}k`
+                            : value
+                        }
+                      />
+                      <ChartTooltip
+                        cursor={false}
+                        content={<ChartTooltipContent indicator="dot" />}
+                      />
+                      <Bar
+                        dataKey="alcance"
+                        fill="var(--color-alcance)"
+                        radius={8}
+                        className="fill-primary"
+                      />
+                      <Bar
+                        dataKey="engajamento"
+                        fill="var(--color-engajamento)"
+                        radius={8}
+                        className="fill-pink-400"
+                      />
+                    </BarChart>
+                  </ChartContainer>
+                ) : (
+                  <div className="h-[300px] w-full flex items-center justify-center text-center p-4">
+                    <div>
+                      <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+                      <h3 className="font-semibold text-foreground">
+                        Sem dados de desempenho.
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        Gere um roteiro para ver uma simulação.
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
+
         </div>
 
-        <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card">
-          <CardHeader>
-            <CardTitle className="font-headline text-xl">
-              Desempenho Semanal (Simulado)
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pl-2">
-            {isLoadingDadosGrafico ? (
-              <div className="h-[300px] w-full flex items-center justify-center">
-                <Skeleton className="h-full w-full rounded-xl" />
-              </div>
-            ) : dadosGrafico && dadosGrafico.length > 0 ? (
-              <ChartContainer
-                config={chartConfig}
-                className="h-[300px] w-full"
-              >
-                <BarChart accessibilityLayer data={dadosGrafico}>
-                  <CartesianGrid
-                    vertical={false}
-                    strokeDasharray="3 3"
-                    stroke="hsl(var(--border) / 0.5)"
-                  />
-                  <XAxis
-                    dataKey="data"
-                    tickLine={false}
-                    tickMargin={10}
-                    axisLine={false}
-                    tickFormatter={(value) => value.slice(0, 3)}
-                  />
-                  <YAxis
-                    tickLine={false}
-                    axisLine={false}
-                    tickMargin={10}
-                    tickFormatter={(value) =>
-                      typeof value === 'number' && value >= 1000
-                        ? `${value / 1000}k`
-                        : value
-                    }
-                  />
-                  <ChartTooltip
-                    cursor={false}
-                    content={<ChartTooltipContent indicator="dot" />}
-                  />
-                  <Bar
-                    dataKey="alcance"
-                    fill="var(--color-alcance)"
-                    radius={8}
-                    className="fill-primary"
-                  />
-                  <Bar
-                    dataKey="engajamento"
-                    fill="var(--color-engajamento)"
-                    radius={8}
-                    className="fill-pink-400"
-                  />
-                </BarChart>
-              </ChartContainer>
-            ) : (
-              <div className="h-[300px] w-full flex items-center justify-center text-center">
-                <div>
-                  <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
-                  <h3 className="font-semibold text-foreground">
-                    Sem dados de desempenho.
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    Gere um roteiro no{' '}
-                    <Link
-                      href="/generate-weekly-plan"
-                      className="text-primary font-medium hover:underline"
-                    >
-                      Planejamento Semanal
-                    </Link>{' '}
-                    para ver uma simulação.
-                  </p>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
 }
-
-    
