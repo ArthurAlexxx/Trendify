@@ -33,7 +33,7 @@ import {
   Save,
   Sparkles,
 } from 'lucide-react';
-import { useEffect, useActionState, useTransition } from 'react';
+import { useEffect, useActionState, useTransition, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { generateVideoIdeasAction, GenerateVideoIdeasOutput } from './actions';
@@ -84,13 +84,21 @@ export default function VideoIdeasPage() {
     firestore && user
       ? query(
           collection(firestore, `users/${user.uid}/ideiasSalvas`),
-          where('concluido', '==', true),
-          orderBy('completedAt', 'desc')
+          where('concluido', '==', true)
         )
       : null
   ), [firestore, user]);
   
-  const { data: completedIdeas, isLoading: isLoadingCompleted } = useCollection<IdeiaSalva>(completedIdeasQuery);
+  const { data: completedIdeasData, isLoading: isLoadingCompleted } = useCollection<IdeiaSalva>(completedIdeasQuery);
+
+  const completedIdeas = useMemo(() => {
+    if (!completedIdeasData) return [];
+    return [...completedIdeasData].sort((a, b) => {
+      const timeA = a.completedAt?.toDate().getTime() || 0;
+      const timeB = b.completedAt?.toDate().getTime() || 0;
+      return timeB - timeA;
+    });
+  }, [completedIdeasData]);
 
 
   useEffect(() => {
