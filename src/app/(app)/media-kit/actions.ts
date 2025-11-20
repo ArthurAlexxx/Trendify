@@ -3,29 +3,56 @@
 import OpenAI from 'openai';
 import { z } from 'zod';
 
-// New, more professional output schema
 const AiCareerPackageOutputSchema = z.object({
-  executiveSummary: z.string().describe("Um parágrafo de apresentação curto e impactante, ideal para um e-mail inicial para uma marca, destacando o valor do criador."),
-  talkingPoints: z.array(z.string()).describe("Uma lista de 3-4 pontos fortes (bullet points) que o criador pode usar para se vender, focando em seu nicho, audiência e engajamento."),
+  executiveSummary: z
+    .string()
+    .describe(
+      'Um parágrafo de apresentação curto e impactante, ideal para um e-mail inicial para uma marca, destacando o valor do criador.'
+    ),
+  talkingPoints: z
+    .array(z.string())
+    .describe(
+      'Uma lista de 3-4 pontos fortes (bullet points) que o criador pode usar para se vender, focando em seu nicho, audiência e engajamento.'
+    ),
   pricingTiers: z.object({
-    reels: z.string().describe("Faixa de preço sugerida para um único vídeo no formato Reels (ex: 'R$ 800 - R$ 1.500')."),
-    storySequence: z.string().describe("Faixa de preço para uma sequência de 3-5 Stories (ex: 'R$ 500 - R$ 900')."),
-    staticPost: z.string().describe("Faixa de preço para um post estático no feed (foto única ou carrossel) (ex: 'R$ 600 - R$ 1.200')."),
-    monthlyPackage: z.string().describe("Faixa de preço para um pacote mensal (ex: 2 Reels, 4 sequências de Stories) (ex: 'R$ 3.000 - R$ 5.500')."),
+    reels: z
+      .string()
+      .describe(
+        "Faixa de preço sugerida para um único vídeo no formato Reels (ex: 'R$ 800 - R$ 1.500')."
+      ),
+    storySequence: z
+      .string()
+      .describe(
+        "Faixa de preço para uma sequência de 3-5 Stories (ex: 'R$ 500 - R$ 900')."
+      ),
+    staticPost: z
+      .string()
+      .describe(
+        "Faixa de preço para um post estático no feed (foto única ou carrossel) (ex: 'R$ 600 - R$ 1.200')."
+      ),
+    monthlyPackage: z
+      .string()
+      .describe(
+        "Faixa de preço para um pacote mensal (ex: 2 Reels, 4 sequências de Stories) (ex: 'R$ 3.000 - R$ 5.500')."
+      ),
   }),
-  sampleCollaborationIdeas: z.array(z.string()).describe("Uma lista de 2-3 ideias de colaboração criativas e de alto nível que se encaixam no nicho do criador e da marca alvo."),
+  sampleCollaborationIdeas: z
+    .array(z.string())
+    .describe(
+      'Uma lista de 2-3 ideias de colaboração criativas e de alto nível que se encaixam no nicho do criador e da marca alvo.'
+    ),
 });
 
+export type AiCareerPackageOutput = z.infer<typeof AiCareerPackageOutputSchema>;
 
-export type AiCareerPackageOutput = z.infer<
-  typeof AiCareerPackageOutputSchema
->;
-
-// New input schema focused on the creator's profile
 const formSchema = z.object({
   niche: z.string().min(10, 'Seu nicho deve ter pelo menos 10 caracteres.'),
-  keyMetrics: z.string().min(10, 'Suas métricas devem ter pelo menos 10 caracteres.'),
-  targetBrand: z.string().min(3, 'A marca alvo deve ter pelo menos 3 caracteres.'),
+  keyMetrics: z
+    .string()
+    .min(10, 'Suas métricas devem ter pelo menos 10 caracteres.'),
+  targetBrand: z
+    .string()
+    .min(3, 'A marca alvo deve ter pelo menos 3 caracteres.'),
 });
 
 type CareerPackageState = {
@@ -37,7 +64,6 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Helper function to extract JSON from a string
 function extractJson(text: string) {
   const match = text.match(/```json\n([\s\S]*?)\n```/);
   if (match && match[1]) {
@@ -72,7 +98,7 @@ Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON d
 
   Para cada campo do JSON, siga estas diretrizes:
 
-  - executiveSummary: Crie um parágrafo de apresentação conciso e profissional. Ele deve destacar a especialidade do criador, o perfil do seu público e o valor que ele pode agregar para uma marca como a marca alvo.
+  - executiveSummary: Crie um parágrafo de apresentação EM PRIMEIRA PESSOA (usando "Eu sou...", "Minha audiência..."), conciso e profissional, pronto para ser copiado e colado em um e-mail. Ele deve destacar minha especialidade, o perfil do meu público e o valor que posso agregar para uma marca como a marca alvo.
   
   - talkingPoints: Liste 3-4 pontos fortes em formato de bullet points. Foque em argumentos de venda, como a conexão com a audiência, a qualidade da produção, ou resultados passados (mesmo que hipotéticos, baseados nas métricas).
   
@@ -105,8 +131,11 @@ Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON d
     return AiCareerPackageOutputSchema.parse(parsedJson);
   } catch (error) {
     console.error('Error calling OpenAI or parsing response:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error.';
-    throw new Error(`Failed to generate career package from AI: ${errorMessage}`);
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error.';
+    throw new Error(
+      `Failed to generate career package from AI: ${errorMessage}`
+    );
   }
 }
 
