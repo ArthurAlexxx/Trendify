@@ -129,14 +129,6 @@ export default function PublisAssistantPage() {
     });
   };
   
-  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    form.handleSubmit(() => {
-        const formData = new FormData(e.currentTarget);
-        formAction(formData);
-    })(e);
-  };
-
   const result = state?.data;
 
   return (
@@ -158,7 +150,8 @@ export default function PublisAssistantPage() {
         <CardContent>
           <Form {...form}>
             <form
-              onSubmit={handleFormSubmit}
+              action={formAction}
+              onSubmit={form.handleSubmit(() => formAction(new FormData(form.control.formRef.current!)))}
               className="space-y-8"
             >
               <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-6">
