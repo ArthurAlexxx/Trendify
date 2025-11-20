@@ -48,10 +48,8 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  ChartTooltip,
-  ChartTooltipContent,
 } from 'recharts';
-import { ChartConfig, ChartContainer } from '@/components/ui/chart';
+import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import {
   AlertDialog,
   AlertDialogAction,
