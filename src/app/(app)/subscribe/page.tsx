@@ -11,7 +11,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useActionState, useEffect, useTransition, useState } from 'react';
+import { useActionState, useEffect, useTransition, useState, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { createPixChargeAction } from './actions';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -85,12 +85,16 @@ export default function SubscribePage() {
       }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [subscription, router]);
+  }, [subscription, router, toast]);
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    toast({ title: 'Copiado!', description: 'Código PIX copiado para a área de transferência.' });
-  };
+  const copyToClipboard = useCallback((text: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+        toast({ title: 'Copiado!', description: 'Código PIX copiado para a área de transferência.' });
+    }).catch(err => {
+        console.error('Failed to copy: ', err);
+        toast({ title: 'Erro ao Copiar', description: 'Não foi possível copiar o código.', variant: 'destructive' });
+    });
+  }, [toast]);
   
   const handleCheckStatus = () => {
     startCheckingTransition(() => {
