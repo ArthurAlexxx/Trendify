@@ -68,6 +68,7 @@ export default function SettingsPage() {
   const { toast } = useToast();
   const [deleteConfirmationText, setDeleteConfirmationText] = useState('');
   const [isPending, startTransition] = useTransition();
+  const [isCancelling, startCancellingTransition] = useTransition();
 
 
   const userProfileRef = useMemoFirebase(
@@ -150,6 +151,33 @@ export default function SettingsPage() {
       router.push('/login');
     });
   };
+  
+  const handleCancelSubscription = () => {
+    if (!userProfileRef) return;
+
+    startCancellingTransition(async () => {
+        try {
+            await updateDoc(userProfileRef, {
+                'subscription.status': 'inactive',
+                'subscription.plan': 'free',
+                'subscription.expiresAt': null,
+                'subscription.paymentId': null,
+            });
+            toast({
+                title: 'Assinatura Cancelada',
+                description: 'Seu plano foi revertido para o gratuito.',
+            });
+        } catch (error: any) {
+            console.error('Error cancelling subscription:', error);
+            toast({
+                title: 'Erro ao Cancelar',
+                description: 'Não foi possível cancelar sua assinatura. Tente novamente.',
+                variant: 'destructive',
+            });
+        }
+    });
+};
+
 
   const handleDeleteAccount = async () => {
     if (user) {
@@ -346,7 +374,7 @@ export default function SettingsPage() {
                             </h4>
                             {subscription.status === 'active' && userProfile?.subscription?.expiresAt && (
                                 <p className="text-sm text-muted-foreground">
-                                    Sua assinatura expira em {format(userProfile.subscription.expiresAt.toDate(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}.
+                                    Seu acesso PRO termina em {format(userProfile.subscription.expiresAt.toDate(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}.
                                 </p>
                             )}
                              {subscription.plan === 'free' && (
@@ -355,13 +383,32 @@ export default function SettingsPage() {
                                 </p>
                             )}
                         </div>
-                        {subscription.plan === 'free' ? (
-                            <Button asChild>
-                                <Link href="/subscribe">Virar PRO</Link>
-                            </Button>
+                         {subscription.plan === 'pro' && subscription.status === 'active' ? (
+                            <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button variant="destructive" disabled={isCancelling}>
+                                        {isCancelling && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                        Cancelar Assinatura
+                                    </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            Esta ação cancelará sua assinatura PRO. Você continuará com acesso aos recursos até o final do período de faturamento atual. Após isso, sua conta será revertida para o plano gratuito.
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Manter Assinatura</AlertDialogCancel>
+                                        <AlertDialogAction onClick={handleCancelSubscription}>
+                                            Sim, quero cancelar
+                                        </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
                         ) : (
-                            <Button variant="outline" disabled>
-                                Gerenciar Assinatura
+                             <Button asChild>
+                                <Link href="/subscribe">Virar PRO</Link>
                             </Button>
                         )}
                     </div>
@@ -495,5 +542,3 @@ export default function SettingsPage() {
     </div>
   );
 }
-
-    

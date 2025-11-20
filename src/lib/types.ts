@@ -19,8 +19,8 @@ export interface UserProfile {
   subscription?: {
     status: 'active' | 'inactive';
     plan: 'pro' | 'free';
-    expiresAt?: Timestamp;
-    paymentId?: string;
+    expiresAt?: Timestamp | null;
+    paymentId?: string | null;
   }
 }
 
