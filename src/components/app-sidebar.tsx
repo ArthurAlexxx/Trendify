@@ -58,7 +58,7 @@ export function AppSidebar() {
     router.push('/login');
   };
   
-  const isPro = subscription?.plan === 'pro' && subscription?.status === 'active';
+  const isPaidUser = subscription?.status === 'active' && (subscription?.plan === 'pro' || subscription?.plan === 'premium');
 
   return (
     <Sidebar
@@ -83,10 +83,13 @@ export function AppSidebar() {
          <div className="hidden group-data-[state=expanded]:block p-2 mb-2">
             {isSubscriptionLoading ? (
                 <Skeleton className="h-10 w-full" />
-            ) : isPro ? (
+            ) : isPaidUser ? (
                  <div className="flex items-center justify-center gap-2 h-10 rounded-lg bg-primary/10 border border-primary/20 text-primary font-semibold text-sm">
                     <Crown className="h-4 w-4 fill-current" />
-                    <span>Plano PRO</span>
+                    <span>
+                        {subscription?.plan === 'pro' && 'Plano PRO'}
+                        {subscription?.plan === 'premium' && 'Plano Premium'}
+                    </span>
                 </div>
             ) : (
                 <Button asChild className='w-full justify-start font-bold'>
@@ -159,4 +162,3 @@ export function AppSidebar() {
     </Sidebar>
   );
 }
-
