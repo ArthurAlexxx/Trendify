@@ -67,20 +67,19 @@ import Image from 'next/image';
 const features = [
   {
     icon: Lightbulb,
-    title: 'Ideias de Conteúdo com IA',
-    description:
-      'Roteiros e ganchos virais para seus vídeos, personalizados para o seu nicho.',
+    title: 'Roteiros e Ganchos Virais',
+    description: 'Use IA para gerar ideias de vídeo que capturam a atenção e engajam seu público.',
   },
   {
-    icon: Calendar,
-    title: 'Calendário de Conteúdo',
+    icon: Target,
+    title: 'Análise de Performance',
     description:
-      'Planeje e agende suas publicações de forma visual e inteligente.',
+      'Receba diagnósticos do que funciona (ou não) no seu conteúdo e otimize sua estratégia.',
   },
   {
     icon: Briefcase,
-    title: 'Propostas & Mídia Kit',
-    description: 'Gere propostas profissionais e seu mídia kit com um clique.',
+    title: 'Mídia Kit e Propostas',
+    description: 'Crie propostas comerciais e um mídia kit profissional para fechar parcerias com marcas.',
   },
 ];
 
@@ -154,6 +153,16 @@ const BENCHMARKS: Record<
   Viagem: { baseGrowth: 0.06, cpmRange: [22, 85], reelsMultiplier: 0.006 },
   Default: { baseGrowth: 0.05, cpmRange: [15, 60], reelsMultiplier: 0.005 },
 };
+
+const SocialIcon = ({ className, ...props }: React.ComponentProps<'svg'>) => (
+  <svg
+    {...props}
+    className={cn(
+      'h-7 w-7 text-muted-foreground/80 transition-all duration-300 hover:text-foreground hover:scale-110',
+      className
+    )}
+  />
+);
 
 export default function LandingPage() {
   const { user } = useUser();
@@ -337,19 +346,34 @@ export default function LandingPage() {
                 className="mb-6 border-purple-300 bg-purple-50 text-purple-700 font-medium rounded-full px-4 py-1"
               >
                 <Sparkles className="h-3 w-3 mr-2 text-purple-500" />
-                Seu futuro nas redes começa aqui
+                Novo: Análise de Vídeo com IA
               </Badge>
 
               <h1 className="text-5xl md:text-7xl font-black font-headline tracking-tighter mb-6 !leading-tight max-w-4xl mx-auto">
-                Estratégia, clareza e <br />
+                Seu futuro nas redes <br />
                 <span className="bg-gradient-to-r from-indigo-500 to-purple-600 text-gradient">
-                  crescimento para criadores
+                  começa aqui
                 </span>
               </h1>
-              <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
+              <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
                 A Trendify usa IA para transformar seus dados em um plano de
                 ação claro, ajudando você a crescer e monetizar seu conteúdo.
               </p>
+
+              <div className="flex justify-center items-center gap-6 mb-10">
+                <SocialIcon>
+                  <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 0C8.74 0 8.333.015 7.053.072 5.775.132 4.905.333 4.14.63c-.789.306-1.459.717-2.123 1.383S.936 3.35.63 4.14C.333 4.905.131 5.775.072 7.053.012 8.333 0 8.74 0 12s.015 3.667.072 4.947c.06 1.277.261 2.148.558 2.913.306.788.717 1.459 1.383 2.123.664.664 1.335 1.077 2.123 1.383.765.296 1.636.499 2.913.558C8.333 23.988 8.74 24 12 24s3.667-.015 4.947-.072c1.277-.06 2.148-.262 2.913-.558.788-.306 1.459-.717 2.123-1.383.664-.664 1.077-1.335 1.383-2.123.296-.765.499-1.636.558-2.913.06-1.28.072-1.687.072-4.947s-.015-3.667-.072-4.947c-.06-1.277-.262-2.148-.558-2.913-.306-.789-.717-1.459-1.383-2.123C20.647.936 19.976.525 19.188.22c-.765-.296-1.636-.499-2.913-.558C15.667.012 15.26 0 12 0zm0 2.16c3.203 0 3.585.016 4.85.07 1.17.055 1.805.248 2.227.415.562.217.96.477 1.382.896.419.42.679.819.896 1.381.164.422.36 1.057.413 2.227.057 1.266.07 1.646.07 4.85s-.015 3.585-.074 4.85c-.061 1.17-.256 1.805-.421 2.227-.224.562-.48 1.002-.899 1.422-.423.419-.867.678-1.433.895-.425.166-1.061.36-2.235.413-1.274.057-1.649.07-4.859.07-3.211 0-3.586-.015-4.859-.074-1.171-.061-1.816-.256-2.236-.421-.569-.224-.999-.48-1.422-.899-.421-.423-.679-.867-.896-1.433-.164-.425-.36-1.061-.413-2.235-.057-1.274-.07-1.649-.07-4.859 0-3.211.015-3.586.07-4.859.061-1.171.255-1.816.413-2.236.224-.569.48-1.002.896-1.422.42-.421.819-.679 1.381-.896.423-.164 1.057-.36 2.227-.413C8.415 2.172 8.796 2.16 12 2.16zm0 5.482c-2.49 0-4.508 2.019-4.508 4.508s2.019 4.508 4.508 4.508c2.49 0 4.508-2.019 4.508-4.508s-2.019-4.508-4.508-4.508zm0 7.352c-1.576 0-2.844-1.268-2.844-2.844s1.268-2.844 2.844-2.844c1.576 0 2.844 1.268 2.844 2.844s-1.268 2.844-2.844 2.844zm4.908-7.932c0 .622-.504 1.125-1.125 1.125s-1.125-.503-1.125-1.125.504-1.125 1.125-1.125 1.125.503 1.125 1.125z" fill="currentColor"/></svg>
+                </SocialIcon>
+                 <SocialIcon>
+                   <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M16.6 5.82s.01.45-1.9 2.03c-1.63 1.33-3.41 2.44-3.41 2.44s-2.11-1.1-2.11-2.44c0-1.33 1.18-2.3 1.18-2.3S12.18 3.5 13.92 3.5c1.73 0 2.68 2.32 2.68 2.32zM24 6.81c-1.78-3.4-6.18-3.9-6.18-3.9s-1.8-2.9-4.8-2.9-4.8 2.9-4.8 2.9-4.4 0.5-6.18 3.9C0.29 9.91 0 14.59 0 14.59s1.41 3.2 4.9 3.2c3.48 0 4.9-3.2 4.9-3.2s1.42 3.2 4.9 3.2c3.48 0 4.9-3.2 4.9-3.2S23.7 9.91 24 6.81zM9.4 14.59s-1.41 2.3-3.41 2.3c-2.01 0-3.41-2.3-3.41-2.3s-0.29-3.2 1.4-6.39c1.7-3.19 4.42-3.2 4.42-3.2s1.8 2.09 1.8 5.49-2.8 6.99-2.8 6.99z" fill="currentColor"/></svg>
+                </SocialIcon>
+                 <SocialIcon>
+                   <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" fill="currentColor"/></svg>
+                </SocialIcon>
+                <SocialIcon>
+                  <LineChart className="h-6 w-6" />
+                </SocialIcon>
+              </div>
 
               <div className="flex justify-center items-center gap-4">
                 <Link
@@ -362,13 +386,13 @@ export default function LandingPage() {
                   Se veja no futuro <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
                 <Link
-                  href="/login"
+                  href="#beneficios"
                   className={cn(
                     buttonVariants({ size: 'lg', variant: 'outline' }),
                     'font-manrope rounded-lg text-base h-12 px-8 bg-background/50'
                   )}
                 >
-                  Já tenho conta
+                  Ver como funciona
                 </Link>
               </div>
               <div className="mt-6 text-xs text-muted-foreground">
@@ -755,8 +779,8 @@ export default function LandingPage() {
                   conteúdo.
                 </p>
                 <div className="space-y-6">
-                  {whyTrendify.map((item, index) => (
-                    <div key={index} className="flex gap-4">
+                  {whyTrendify.map((item) => (
+                    <div key={item.title} className="flex gap-4">
                       <div className="h-10 w-10 flex-shrink-0 rounded-lg bg-primary text-primary-foreground flex items-center justify-center">
                         <ChevronRight />
                       </div>
@@ -954,5 +978,3 @@ export default function LandingPage() {
     </div>
   );
 }
-
-    
