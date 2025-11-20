@@ -4,11 +4,15 @@
 import { z } from 'zod';
 import { getApp, getApps, initializeApp, cert } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
+import { firebaseConfig } from '@/firebase/config';
+
+console.log('[actions.ts] File loaded.');
 
 const formSchema = z.object({
   name: z.string().min(3, 'O nome completo é obrigatório.'),
   email: z.string().email('O e-mail é inválido.'),
   taxId: z.string().min(11, 'O CPF/CNPJ é obrigatório.'),
+  cellphone: z.string().min(10, 'O celular é obrigatório.')
 });
 
 const PixChargeResponseSchema = z.object({
@@ -28,27 +32,28 @@ type ActionState = {
 
 // Initialize Firebase Admin SDK
 function initializeAdmin() {
-  if (getApps().length) {
-    console.log('[actions.ts] Firebase Admin já inicializado.');
+  // Check if running in Vercel and GOOGLE_APPLICATION_CREDENTIALS_JSON is set
+  if (process.env.VERCEL_ENV && process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
+    console.log('[actions.ts] Vercel environment detected. Initializing with service account.');
+    const serviceAccount = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
+    
+    if (getApps().length === 0) {
+      return initializeApp({ credential: cert(serviceAccount) });
+    }
     return getApp();
   }
-  
-  console.log('[actions.ts] Inicializando Firebase Admin...');
-  if (process.env.VERCEL_ENV === 'production' && process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
-      console.log('[actions.ts] Ambiente Vercel detectado. Inicializando com credenciais de serviço.');
-      const serviceAccount = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
-      return initializeApp({
-          credential: cert(serviceAccount)
-      });
-  } else {
-      console.log('[actions.ts] Ambiente local. Inicializando com credenciais padrão.');
-      // Para desenvolvimento local, ele usará as Credenciais Padrão da Aplicação
-      return initializeApp();
+
+  // Fallback for local development or other environments
+  if (getApps().length === 0) {
+    console.log('[actions.ts] Local environment detected. Initializing with config object.');
+    return initializeApp({
+      credential: cert(firebaseConfig), // Use default config for local
+    });
   }
+
+  return getApp();
 }
 
-const adminApp = initializeAdmin();
-const auth = getAuth(adminApp);
 
 async function createPixCharge(
   input: z.infer<typeof formSchema>,
@@ -73,7 +78,7 @@ async function createPixCharge(
       name: input.name,
       email: input.email,
       taxId: input.taxId,
-      cellphone: '(99) 99999-9999', // Placeholder as it is required but not collected
+      cellphone: input.cellphone,
     },
     metadata: {
       externalId: userId, // Passa o Firebase UID
@@ -135,9 +140,11 @@ export async function createPixChargeAction(
       console.error('[createPixChargeAction] Formato do token inválido.');
       return { error: 'Usuário não autenticado. Token mal formatado.' };
     }
-
+    
     let decodedToken;
     try {
+        const adminApp = initializeAdmin();
+        const auth = getAuth(adminApp);
         decodedToken = await auth.verifyIdToken(token);
         console.log(`[createPixChargeAction] Token verificado com sucesso para o UID: ${decodedToken.uid}`);
     } catch (e: any) {

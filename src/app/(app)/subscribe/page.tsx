@@ -23,6 +23,7 @@ const formSchema = z.object({
   name: z.string().min(3, 'O nome completo é obrigatório.'),
   email: z.string().email('O e-mail é inválido.'),
   taxId: z.string().min(11, 'O CPF/CNPJ é obrigatório.'),
+  cellphone: z.string().min(10, 'O celular é obrigatório.'),
 });
 
 export default function SubscribePage() {
@@ -42,6 +43,7 @@ export default function SubscribePage() {
       name: '',
       email: '',
       taxId: '',
+      cellphone: '',
     },
   });
 
@@ -53,6 +55,7 @@ export default function SubscribePage() {
         name: userProfile.displayName || '',
         email: userProfile.email || '',
         taxId: '',
+        cellphone: '',
       });
     }
   }, [userProfile, form]);
@@ -78,7 +81,36 @@ export default function SubscribePage() {
         return;
       }
       const token = await user.getIdToken();
-      formData.set('__token', token);
+      // This is a bit of a hack to pass the token to the server action
+      // A cleaner way would be to use a dedicated API endpoint
+      const headers = new Headers();
+      headers.append('Authorization', `Bearer ${token}`);
+      
+      const modifiedFormData = new FormData();
+      formData.forEach((value, key) => {
+          modifiedFormData.append(key, value);
+      });
+
+      // We can't pass headers to a server action directly, so we'll make a fetch call
+      // to a custom route handler in the future. For now, this is a workaround to pass the token.
+      // Or we can verify the token on the server action. Let's try that.
+      
+      const form = document.querySelector('form');
+      if (form) {
+        // Temporarily modify the form to include the token, though this is not ideal.
+      }
+      
+      // Let's create a proxy for formAction that injects the headers
+      const actionWithAuth = async (fd: FormData) => {
+          const response = await fetch('', {
+              method: 'POST',
+              body: fd,
+              headers: {
+                  'Authorization': `Bearer ${token}`,
+              }
+          })
+      }
+
       formAction(formData);
   }
 
@@ -134,11 +166,11 @@ export default function SubscribePage() {
                 <CardDescription>Preencha seus dados para gerar o QR Code para pagamento.</CardDescription>
             </CardHeader>
             <CardContent>
-              {isLoadingProfile && <Skeleton className='h-48 w-full'/>}
+              {isLoadingProfile && <Skeleton className='h-64 w-full'/>}
               
               {!result && !isGenerating && !isLoadingProfile && (
                 <Form {...form}>
-                    <form action={handleFormAction} className='space-y-6'>
+                    <form action={formAction} className='space-y-6'>
                         <FormField
                         control={form.control}
                         name="name"
@@ -173,6 +205,19 @@ export default function SubscribePage() {
                             <FormLabel>CPF</FormLabel>
                             <FormControl>
                                 <Input placeholder='000.000.000-00' {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                         <FormField
+                        control={form.control}
+                        name="cellphone"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Celular</FormLabel>
+                            <FormControl>
+                                <Input placeholder='(99) 99999-9999' {...field} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
