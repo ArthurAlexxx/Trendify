@@ -2,6 +2,13 @@
 
 import { Button } from '@/components/ui/button';
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
   Sheet,
   SheetContent,
   SheetDescription,
@@ -12,11 +19,13 @@ import {
 import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import { IdeiaSalva } from '@/lib/types';
 import { collection, orderBy, query } from 'firebase/firestore';
-import { BookMarked, Inbox, Loader2 } from 'lucide-react';
+import { BookMarked, Eye, Inbox, Loader2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Badge } from './ui/badge';
 import { ScrollArea } from './ui/scroll-area';
+import { Textarea } from './ui/textarea';
+import React from 'react';
 
 export function SavedIdeasSheet() {
   const { user } = useUser();
@@ -25,11 +34,15 @@ export function SavedIdeasSheet() {
   const ideiasSalvasQuery = useMemoFirebase(
     () =>
       firestore && user
-        ? query(collection(firestore, `users/${user.uid}/ideiasSalvas`), orderBy('createdAt', 'desc'))
+        ? query(
+            collection(firestore, `users/${user.uid}/ideiasSalvas`),
+            orderBy('createdAt', 'desc')
+          )
         : null,
     [firestore, user]
   );
-  const { data: ideiasSalvas, isLoading } = useCollection<IdeiaSalva>(ideiasSalvasQuery);
+  const { data: ideiasSalvas, isLoading } =
+    useCollection<IdeiaSalva>(ideiasSalvasQuery);
 
   return (
     <Sheet>
@@ -39,7 +52,7 @@ export function SavedIdeasSheet() {
           Salvos
         </Button>
       </SheetTrigger>
-      <SheetContent className="w-full sm:max-w-md">
+      <SheetContent className="w-full sm:max-w-lg">
         <SheetHeader>
           <SheetTitle className="font-headline text-xl">Ideias Salvas</SheetTitle>
           <SheetDescription>
@@ -59,18 +72,44 @@ export function SavedIdeasSheet() {
                 {ideiasSalvas.map((ideia) => (
                   <li key={ideia.id}>
                     <div className="border p-4 rounded-xl hover:border-primary/50 transition-colors">
-                      <div className="flex justify-between items-start">
-                         <Badge variant="secondary" className="mb-2">{ideia.origem}</Badge>
-                         {ideia.concluido && <Badge>Concluído</Badge>}
+                      <div className="flex justify-between items-start mb-2">
+                        <Badge variant="secondary">{ideia.origem}</Badge>
+                        {ideia.concluido && <Badge>Concluído</Badge>}
                       </div>
-                      <p className="font-semibold text-foreground break-words">{ideia.titulo}</p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {ideia.createdAt &&
-                          formatDistanceToNow(ideia.createdAt.toDate(), {
-                            addSuffix: true,
-                            locale: ptBR,
-                          })}
+                      <p className="font-semibold text-foreground break-words mb-2">
+                        {ideia.titulo}
                       </p>
+                       <div className='flex justify-between items-center'>
+                         <p className="text-xs text-muted-foreground">
+                          {ideia.createdAt &&
+                            formatDistanceToNow(ideia.createdAt.toDate(), {
+                              addSuffix: true,
+                              locale: ptBR,
+                            })}
+                        </p>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button variant="ghost" size="sm" className='h-8'>
+                              <Eye className="mr-2 h-4 w-4" />
+                              Ver Completo
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="sm:max-w-2xl">
+                            <DialogHeader>
+                              <DialogTitle className="font-headline text-2xl">
+                                {ideia.titulo}
+                              </DialogTitle>
+                            </DialogHeader>
+                            <div className="py-4">
+                              <Textarea
+                                readOnly
+                                value={ideia.conteudo}
+                                className="h-96 w-full text-base leading-relaxed resize-none rounded-xl bg-muted/50"
+                              />
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                       </div>
                     </div>
                   </li>
                 ))}

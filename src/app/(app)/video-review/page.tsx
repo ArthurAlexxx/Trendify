@@ -24,7 +24,6 @@ import {
   Sparkles,
   Link,
   Save,
-  Eye,
 } from 'lucide-react';
 import { useEffect, useActionState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
@@ -33,13 +32,6 @@ import { getVideoReviewAction, VideoReviewOutput } from './actions';
 import { Badge } from '@/components/ui/badge';
 import { useFirestore, useUser } from '@/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
 import { SavedIdeasSheet } from '@/components/saved-ideas-sheet';
 
 const formSchema = z.object({
@@ -144,9 +136,11 @@ export default function VideoReviewPage() {
         <CardContent>
           <Form {...form}>
             <form
-              onSubmit={form.handleSubmit(() =>
-                formAction(new FormData(form.control._formRef.current))
-              )}
+              onSubmit={form.handleSubmit(() => {
+                const formData = new FormData();
+                formData.append('videoLink', form.getValues('videoLink'));
+                formAction(formData);
+              })}
               className="flex flex-col sm:flex-row items-start gap-4"
             >
               <FormField
@@ -202,44 +196,6 @@ export default function VideoReviewPage() {
             </div>
             {result && (
               <div className="flex w-full sm:w-auto gap-2">
-                 <Sheet>
-                  <SheetTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-full sm:w-auto rounded-full font-manrope"
-                    >
-                      <Eye className="mr-2 h-4 w-4" />
-                      Ver Completo
-                    </Button>
-                  </SheetTrigger>
-                  <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
-                    <SheetHeader>
-                      <SheetTitle className='font-headline text-2xl'>Diagnóstico Completo</SheetTitle>
-                    </SheetHeader>
-                     <div className="space-y-6 py-6">
-                        <InfoList
-                          title="Sugestões de Gancho"
-                          icon={Lightbulb}
-                          items={result.hookSuggestions}
-                        />
-                        <InfoList
-                          title="Variações de Roteiro"
-                          icon={List}
-                          items={result.scriptVariations}
-                        />
-                      <InfoCard
-                        title="Sugestões de Ritmo"
-                        icon={Clapperboard}
-                        content={result.pacingSuggestions}
-                      />
-                      <InfoCard
-                        title="Legenda Otimizada"
-                        icon={Captions}
-                        content={result.caption}
-                      />
-                    </div>
-                  </SheetContent>
-                </Sheet>
                 <Button
                   onClick={() => handleSave(result)}
                   disabled={isSaving}

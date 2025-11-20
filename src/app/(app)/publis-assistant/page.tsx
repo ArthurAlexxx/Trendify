@@ -21,7 +21,6 @@ import {
   Loader2,
   Save,
   Sparkles,
-  Eye,
 } from 'lucide-react';
 import { useEffect, useActionState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
@@ -32,13 +31,6 @@ import {
 } from './actions';
 import { useFirestore, useUser } from '@/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
 import { SavedIdeasSheet } from '@/components/saved-ideas-sheet';
 
 const formSchema = z.object({
@@ -142,9 +134,14 @@ export default function PublisAssistantPage() {
         <CardContent>
           <Form {...form}>
             <form
-              onSubmit={form.handleSubmit(() =>
-                formAction(new FormData(form.control._formRef.current))
-              )}
+              onSubmit={form.handleSubmit(() => {
+                const formData = new FormData();
+                const values = form.getValues();
+                formData.append('productDescription', values.productDescription);
+                formData.append('brandDetails', values.brandDetails);
+                formData.append('trendingTopic', values.trendingTopic || '');
+                formAction(formData);
+              })}
               className="space-y-8"
             >
               <div className="grid md:grid-cols-2 gap-x-6 gap-y-6">
@@ -240,38 +237,6 @@ export default function PublisAssistantPage() {
             </div>
             {result && (
               <div className="flex w-full sm:w-auto gap-2">
-                <Sheet>
-                  <SheetTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-full sm:w-auto rounded-full font-manrope"
-                    >
-                      <Eye className="mr-2 h-4 w-4" />
-                      Ver Completo
-                    </Button>
-                  </SheetTrigger>
-                  <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
-                    <SheetHeader>
-                      <SheetTitle className='font-headline text-2xl'>Resultado Completo</SheetTitle>
-                    </SheetHeader>
-                    <div className="space-y-6 py-6">
-                      <InfoCard
-                          title="Roteiro de Vídeo Gerado"
-                          icon={Clapperboard}
-                          content={result.videoScript}
-                          className="h-auto"
-                          contentClassName="h-[300px]"
-                        />
-                        <InfoCard
-                          title="Rascunho da Proposta"
-                          icon={FileText}
-                          content={result.proposalDraft}
-                          className="h-auto"
-                           contentClassName="h-[300px]"
-                        />
-                    </div>
-                  </SheetContent>
-                </Sheet>
                 <Button
                   onClick={() => handleSave(result)}
                   disabled={isSaving}
