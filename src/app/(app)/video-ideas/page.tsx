@@ -143,17 +143,7 @@ export default function VideoIdeasPage() {
         <CardContent>
           <Form {...form}>
             <form
-              onSubmit={form.handleSubmit(() => {
-                const formData = new FormData();
-                const values = form.getValues();
-                formData.append('topic', values.topic);
-                formData.append('targetAudience', values.targetAudience);
-                formData.append('platform', values.platform);
-                formData.append('videoFormat', values.videoFormat);
-                formData.append('tone', values.tone);
-                formData.append('objective', values.objective);
-                formAction(formData);
-              })}
+              action={formAction}
               className="space-y-8"
             >
               <div className="grid md:grid-cols-2 gap-x-6 gap-y-6">
@@ -487,3 +477,5 @@ function InfoListCard({
     </Card>
   );
 }
+
+    

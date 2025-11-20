@@ -123,14 +123,7 @@ export async function generateVideoIdeasAction(
   prevState: VideoIdeasState,
   formData: FormData
 ): Promise<VideoIdeasState> {
-  const parsed = formSchema.safeParse({
-    topic: formData.get('topic'),
-    targetAudience: formData.get('targetAudience'),
-    platform: formData.get('platform'),
-    videoFormat: formData.get('videoFormat'),
-    tone: formData.get('tone'),
-    objective: formData.get('objective'),
-  });
+  const parsed = formSchema.safeParse(Object.fromEntries(formData));
 
   if (!parsed.success) {
     const issues = parsed.error.issues.map((i) => i.message).join(', ');
@@ -146,3 +139,5 @@ export async function generateVideoIdeasAction(
     return { error: `Failed to generate ideas: ${errorMessage}` };
   }
 }
+
+    

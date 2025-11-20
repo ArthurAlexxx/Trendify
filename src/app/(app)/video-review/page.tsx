@@ -136,11 +136,7 @@ export default function VideoReviewPage() {
         <CardContent>
           <Form {...form}>
             <form
-              onSubmit={form.handleSubmit(() => {
-                const formData = new FormData();
-                formData.append('videoLink', form.getValues('videoLink'));
-                formAction(formData);
-              })}
+              action={formAction}
               className="flex flex-col sm:flex-row items-start gap-4"
             >
               <FormField
@@ -334,3 +330,5 @@ function InfoList({
     </Card>
   );
 }
+
+    
