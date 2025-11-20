@@ -4,9 +4,9 @@ import OpenAI from 'openai';
 import { z } from 'zod';
 
 const ScriptSchema = z.object({
-  gancho: z.string().describe('Um gancho de 2-3 segundos, otimizado para parar a rolagem e gerar curiosidade imediata.'),
-  script: z.string().describe('Um roteiro detalhado e conciso, com indicações de cena e narração, estruturado para reter a atenção.'),
-  cta: z.string().describe('Uma chamada para ação clara, convincente e alinhada ao objetivo do vídeo.'),
+  gancho: z.string().describe('Um gancho de 2-3 segundos, otimizado para parar a rolagem e gerar curiosidade imediata.').optional(),
+  script: z.string().describe('Um roteiro detalhado e conciso, com indicações de cena e narração, estruturado para reter a atenção.').optional(),
+  cta: z.string().describe('Uma chamada para ação clara, convincente e alinhada ao objetivo do vídeo.').optional(),
 });
 
 const TrendVariationSchema = z.object({
@@ -47,10 +47,12 @@ function extractJson(text: string) {
   if (match && match[1]) {
     return match[1];
   }
+  // Fallback for cases where the AI might not use markdown
   try {
     JSON.parse(text);
     return text;
   } catch (e) {
+    // Look for the first '{' and the last '}'
     const startIndex = text.indexOf('{');
     const endIndex = text.lastIndexOf('}');
     if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
@@ -79,7 +81,7 @@ Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON d
 
   Para cada campo do JSON, siga estas diretrizes:
 
-  - scripts: Crie EXATAMENTE 5 roteiros de vídeo distintos, cada um explorando um ângulo diferente (ex: tutorial focado no diferencial, POV do cliente, unboxing estético, problema vs. solução, etc.). Cada roteiro deve ser prático e pronto para gravar, incluindo um gancho forte, um desenvolvimento rápido e uma chamada para ação clara (CTA) alinhada ao objetivo.
+  - scripts: Crie EXATAMENTE 5 roteiros de vídeo distintos, cada um explorando um ângulo diferente (ex: tutorial focado no diferencial, POV do cliente, unboxing estético, problema vs. solução, etc.). Cada roteiro deve ser prático e pronto para gravar, incluindo um gancho forte (gancho), um desenvolvimento rápido (script) e uma chamada para ação clara (cta) alinhada ao objetivo.
 
   - trendVariations: Crie 2-3 sugestões de como adaptar uma das ideias de roteiro para uma tendência (trend) de áudio ou vídeo que esteja em alta no Instagram/TikTok. Seja específico. Ex: "Adapte o roteiro 3 usando o áudio 'som do momento' com a trend de dublagem X." Para cada item no array, use a chave 'variacao' para a descrição.
 
