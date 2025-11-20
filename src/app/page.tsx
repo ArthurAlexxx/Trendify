@@ -308,7 +308,7 @@ export default function LandingPage() {
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Selecione seu país..." />
-                        </Trigger>
+                        </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="br">Brasil</SelectItem>
@@ -783,7 +783,7 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
               <motion.div
-                key={index}
+                key={feature.title}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0.5 }}
