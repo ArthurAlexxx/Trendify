@@ -33,8 +33,7 @@ const navItems = [
   { href: '/content-calendar', icon: Calendar, label: 'Calendário' },
   { href: '/video-ideas', icon: Lightbulb, label: 'Ideias de Vídeo' },
   { href: '/video-review', icon: Video, label: 'Análise de Vídeo' },
-  { href: '/publis-assistant', icon: Briefcase, label: 'Assistente Publis' },
-  { href: '/media-kit', icon: Newspaper, label: 'Kit de Mídia' },
+  { href: '/media-kit', icon: Briefcase, label: 'Propostas & Mídia Kit' },
 ];
 
 export function AppSidebar() {
