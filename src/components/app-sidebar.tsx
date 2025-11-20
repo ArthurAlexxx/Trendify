@@ -14,6 +14,7 @@ import {
   ArrowRight,
   ClipboardList,
   Crown,
+  User,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -157,6 +158,14 @@ export function AppSidebar() {
       <SidebarFooter className="p-2 flex flex-col gap-2">
         <SidebarMenu>
           <SidebarMenuItem>
+            <Link href="/profile">
+              <SidebarMenuButton tooltip="Meu Perfil" className="h-10 justify-start" isActive={pathname === '/profile'}>
+                <User className="h-5 w-5" />
+                <span className="text-sm font-medium">Meu Perfil</span>
+              </SidebarMenuButton>
+            </Link>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
             <Link href="/settings">
               <SidebarMenuButton tooltip="Configurações" className="h-10 justify-start" isActive={pathname === '/settings'}>
                 <Settings className="h-5 w-5" />
@@ -166,7 +175,7 @@ export function AppSidebar() {
           </SidebarMenuItem>
         </SidebarMenu>
          <div className="flex items-center justify-between p-2 mt-auto gap-2">
-            <Link href="/settings" className='flex-1 min-w-0'>
+            <Link href="/profile" className='flex-1 min-w-0'>
               <div className="flex items-center gap-3">
                 <Avatar className="h-8 w-8">
                   <AvatarImage
