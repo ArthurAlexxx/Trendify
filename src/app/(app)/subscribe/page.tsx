@@ -21,6 +21,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import type { UserProfile, Plan } from '@/lib/types';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { useSubscription } from '@/hooks/useSubscription';
 
 
 const formSchema = z.object({
@@ -42,8 +43,8 @@ export default function SubscribePage() {
   const [isCheckingStatus, startCheckingTransition] = useTransition();
   const [showSuccess, setShowSuccess] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<Plan | 'free'>('pro');
-  const [pageIsLoading, setPageIsLoading] = useState(true);
-  const [isSubscribed, setIsSubscribed] = useState(false);
+  
+  const { subscription, isLoading: isSubscriptionLoading } = useSubscription();
 
 
   const form = useForm<FormData>({
@@ -59,36 +60,6 @@ export default function SubscribePage() {
   });
 
   const [state, formAction, isGenerating] = useActionState(createPixChargeAction, null);
-
-  useEffect(() => {
-    // Check subscription status only once on mount
-    const checkInitialStatus = async () => {
-        if (user && firestore) {
-            const userRef = doc(firestore, `users/${user.uid}`);
-            const docSnap = await getDoc(userRef);
-            if (docSnap.exists()) {
-                const profile = docSnap.data() as UserProfile;
-                if (profile.subscription?.status === 'active') {
-                    setIsSubscribed(true);
-                    toast({
-                        title: 'Você já é Assinante!',
-                        description: 'Redirecionando para o seu painel de controle.',
-                    });
-                    router.push('/dashboard');
-                } else {
-                   setPageIsLoading(false);
-                }
-            } else {
-                 setPageIsLoading(false);
-            }
-        }
-        if (!user && !isUserLoading) {
-            setPageIsLoading(false);
-        }
-    };
-    checkInitialStatus();
-  }, [user, firestore, isUserLoading, router, toast]);
-
 
   useEffect(() => {
     if (user) {
@@ -174,7 +145,7 @@ export default function SubscribePage() {
      )
   }
 
-  const isLoading = isUserLoading || pageIsLoading;
+  const isLoading = isUserLoading || isSubscriptionLoading;
 
   if (isLoading) {
     return (
@@ -196,19 +167,6 @@ export default function SubscribePage() {
     )
   }
   
-  if (isSubscribed) {
-    return (
-      <div className="flex flex-col items-center justify-center h-96 text-center">
-          <Check className="h-12 w-12 text-primary mb-4" />
-          <h3 className="text-xl font-bold">Você já é um Assinante!</h3>
-          <p className="text-muted-foreground">Sua assinatura está ativa. Aproveite todos os benefícios.</p>
-          <Button asChild className="mt-6">
-              <Link href="/dashboard">Ir para o Painel</Link>
-          </Button>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-12">
       <PageHeader
@@ -269,7 +227,16 @@ export default function SubscribePage() {
                     <CardDescription>Preencha seus dados para gerar o QR Code para o plano <span className='font-bold text-primary'>{selectedPlan.toUpperCase()}</span>.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {!result && !isGenerating ? (
+                  {subscription?.status === 'active' ? (
+                     <div className="flex flex-col items-center justify-center h-96 text-center">
+                        <Check className="h-12 w-12 text-primary mb-4" />
+                        <h3 className="text-xl font-bold">Você já é um Assinante!</h3>
+                        <p className="text-muted-foreground">Sua assinatura do plano {subscription.plan?.toUpperCase()} está ativa.</p>
+                        <Button asChild className="mt-6">
+                            <Link href="/dashboard">Ir para o Painel</Link>
+                        </Button>
+                    </div>
+                  ) : !result && !isGenerating ? (
                     <Form {...form}>
                         <form action={formAction} className='space-y-6'>
                              <input type="hidden" {...form.register('plan')} value={selectedPlan !== 'free' ? selectedPlan : 'pro'} />
