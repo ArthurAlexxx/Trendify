@@ -7,7 +7,7 @@ import {
   DollarSign,
   Info,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -453,7 +453,7 @@ export default function LandingPage() {
             {user ? (
               <Link
                 href="/dashboard"
-                className={Button({
+                className={buttonVariants({
                   className: 'font-manrope rounded-full',
                 })}
               >
@@ -469,7 +469,7 @@ export default function LandingPage() {
                 </Link>
                 <Link
                   href="/sign-up"
-                  className={Button({
+                  className={buttonVariants({
                     className: 'font-manrope rounded-full',
                   })}
                 >
@@ -669,7 +669,7 @@ export default function LandingPage() {
                   >
                     <Link
                       href="/sign-up"
-                      className={Button({
+                      className={buttonVariants({
                         size: 'lg',
                         className: 'font-manrope rounded-full text-base h-12 px-8 shadow-lg shadow-primary/20 transition-transform hover:scale-105',
                       })}
