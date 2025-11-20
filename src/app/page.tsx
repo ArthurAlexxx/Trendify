@@ -14,10 +14,12 @@ import {
   Presentation,
   Radar,
   Star,
+  Menu
 } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 const featureCards = [
   {
@@ -75,41 +77,41 @@ export default function LandingPage() {
               Login
             </Link>
           </nav>
-          <Link href="/dashboard" className={buttonVariants({ className: "font-manrope hidden md:inline-flex" })}>
-            Comece grátis
-          </Link>
-          <Button variant="ghost" size="icon" className="md:hidden">
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M3 12H21"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M3 6H21"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M3 18H21"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            <span className="sr-only">Abrir menu</span>
-          </Button>
+          <div className='hidden md:flex items-center gap-2'>
+            <Link href="/dashboard" className={buttonVariants({ className: "font-manrope" })}>
+              Comece grátis
+            </Link>
+          </div>
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="md:hidden">
+                <Menu />
+                <span className="sr-only">Abrir menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right">
+              <nav className="flex flex-col gap-6 text-lg font-medium mt-10">
+                <Link href="/" className="text-2xl font-bold font-headline text-foreground mb-4">
+                  trendify
+                </Link>
+                <Link href="#features" className="text-muted-foreground hover:text-foreground">
+                  Recursos
+                </Link>
+                <Link href="#pricing" className="text-muted-foreground hover:text-foreground">
+                  Preços
+                </Link>
+                <Link href="#" className="text-muted-foreground hover:text-foreground">
+                  Blog
+                </Link>
+                <Link href="/dashboard" className="text-muted-foreground hover:text-foreground">
+                  Login
+                </Link>
+                <Link href="/dashboard" className={buttonVariants({ className: "font-manrope w-full mt-4" })}>
+                  Comece grátis
+                </Link>
+              </nav>
+            </SheetContent>
+          </Sheet>
         </div>
       </header>
 
@@ -118,7 +120,7 @@ export default function LandingPage() {
           <div className="absolute inset-0 bg-grid-slate-900/[0.04] bg-[bottom_1px_center] dark:bg-grid-slate-400/[0.05] dark:bg-bottom dark:border-b dark:border-slate-100/5 [mask-image:linear-gradient(to_bottom,transparent,black_30%,black)]"></div>
           <div className="container px-4 md:px-6 relative">
             <div className="max-w-3xl mx-auto">
-              <h1 className="text-4xl md:text-6xl font-black font-headline tracking-tighter mb-6">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-black font-headline tracking-tighter mb-6">
                 Transforme seus vídeos em tendências. Todos os dias.
               </h1>
               <p className="max-w-2xl mx-auto text-lg md:text-xl text-muted-foreground mb-8">
@@ -166,7 +168,7 @@ export default function LandingPage() {
                 Deixe a IA cuidar do trabalho pesado e foque no que você faz de melhor: criar.
               </p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
               {featureCards.map((feature, index) => (
                 <Card key={index} className="p-8 border-transparent shadow-sm hover:shadow-lg transition-shadow duration-300 bg-card/50 backdrop-blur-sm">
                   {feature.icon}
@@ -209,7 +211,7 @@ export default function LandingPage() {
                   </div>
                 </div>
               </div>
-              <div className="relative h-[500px] w-full">
+              <div className="relative h-[500px] w-full hidden lg:block">
                 <Image src="https://picsum.photos/seed/mediakit/600/800" alt="Media Kit Mockup" fill style={{ objectFit: 'contain' }} className="rounded-xl shadow-2xl" data-ai-hint="document dashboard" />
               </div>
             </div>
@@ -267,7 +269,7 @@ export default function LandingPage() {
         <section className="bg-primary/10">
           <div className="container px-4 md:px-6 py-20 md:py-32">
             <div className="text-center max-w-3xl mx-auto">
-              <h2 className="text-4xl md:text-5xl font-black font-headline tracking-tight mb-6">O seu conteúdo pode ir muito mais longe.</h2>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-black font-headline tracking-tight mb-6">O seu conteúdo pode ir muito mais longe.</h2>
               <p className="text-lg text-primary/80 mb-8">Junte-se a milhares de criadoras que estão transformando criatividade em carreira.</p>
               <Link href="/dashboard" className={buttonVariants({ size: 'lg', className: "font-manrope text-base h-12 px-8" })}>
                 Criar conta grátis

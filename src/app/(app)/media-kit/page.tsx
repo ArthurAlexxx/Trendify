@@ -67,7 +67,7 @@ export default function MediaKitPage() {
                 onChange={(e) => setBio(e.target.value)}
               />
             </div>
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="followers">Total de Seguidores</Label>
                 <Input
@@ -98,7 +98,7 @@ export default function MediaKitPage() {
       </div>
       <div>
         <div className="sticky top-8">
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex flex-wrap justify-between items-center gap-4 mb-4">
             <h2 className="text-xl font-headline font-bold">Prévia ao Vivo</h2>
             <div className="flex gap-2">
               <Button variant="outline">
@@ -112,9 +112,9 @@ export default function MediaKitPage() {
             </div>
           </div>
           <Card className="overflow-hidden shadow-2xl">
-            <div className="bg-primary/10 p-8">
-              <div className="flex flex-col md:flex-row items-center gap-6">
-                <div className="relative h-24 w-24 rounded-full overflow-hidden ring-4 ring-background">
+            <div className="bg-primary/10 p-6 sm:p-8">
+              <div className="flex flex-col sm:flex-row items-center gap-6">
+                <div className="relative h-24 w-24 shrink-0 rounded-full overflow-hidden ring-4 ring-background">
                   <Image
                     src={creatorProfileImage?.imageUrl ?? ''}
                     alt="Criador"
@@ -124,10 +124,10 @@ export default function MediaKitPage() {
                   />
                 </div>
                 <div>
-                  <h1 className="text-4xl font-headline font-black text-center md:text-left">
+                  <h1 className="text-3xl sm:text-4xl font-headline font-black text-center sm:text-left">
                     {name}
                   </h1>
-                  <div className="flex gap-4 mt-2 justify-center md:justify-start">
+                  <div className="flex gap-4 mt-2 justify-center sm:justify-start">
                     <span className="flex items-center gap-1 text-sm">
                       <Instagram className="h-4 w-4" />
                       @jessday
@@ -140,7 +140,7 @@ export default function MediaKitPage() {
                 </div>
               </div>
             </div>
-            <div className="p-8 grid gap-8">
+            <div className="p-6 sm:p-8 grid gap-8">
               <div>
                 <h3 className="font-headline font-bold text-lg mb-2">
                   Sobre Mim
@@ -148,7 +148,7 @@ export default function MediaKitPage() {
                 <p className="text-muted-foreground text-sm">{bio}</p>
               </div>
               <Separator />
-              <div className="grid grid-cols-2 gap-8">
+              <div className="grid sm:grid-cols-2 gap-8">
                 <div>
                   <h3 className="font-headline font-bold text-lg mb-2 flex items-center gap-2">
                     <BarChart2 className="h-5 w-5" /> Métricas Principais
@@ -174,7 +174,7 @@ export default function MediaKitPage() {
                 <h3 className="font-headline font-bold text-lg mb-4">
                   Estudos de Caso
                 </h3>
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid sm:grid-cols-2 gap-4">
                   <CaseStudyCard
                     image={caseStudyImage1?.imageUrl ?? ''}
                     hint={caseStudyImage1?.imageHint ?? ''}
