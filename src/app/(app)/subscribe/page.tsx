@@ -19,6 +19,8 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { doc, getDoc } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/types';
+import { useSubscription } from '@/hooks/useSubscription';
+import Link from 'next/link';
 
 
 const formSchema = z.object({
@@ -31,6 +33,7 @@ const formSchema = z.object({
 
 export default function SubscribePage() {
   const { user, isUserLoading } = useUser();
+  const { subscription, isLoading: isSubscriptionLoading } = useSubscription();
   const firestore = useFirestore();
   const { toast } = useToast();
   const router = useRouter();
@@ -49,6 +52,17 @@ export default function SubscribePage() {
   });
 
   const [state, formAction, isGenerating] = useActionState(createPixChargeAction, null);
+
+  useEffect(() => {
+    if (!isSubscriptionLoading && subscription?.status === 'active') {
+        toast({
+            title: 'Você já é PRO!',
+            description: 'Redirecionando para o seu painel de controle.',
+        });
+        router.push('/dashboard');
+    }
+  }, [subscription, isSubscriptionLoading, router, toast]);
+
 
   useEffect(() => {
     if (user && !isUserLoading) {
@@ -82,7 +96,7 @@ export default function SubscribePage() {
     });
   }, [toast]);
   
-  const checkSubscriptionStatus = async () => {
+  const checkSubscriptionStatus = useCallback(async () => {
     if (!user || !firestore) return;
   
     const userRef = doc(firestore, `users/${user.uid}`);
@@ -106,13 +120,13 @@ export default function SubscribePage() {
         });
       }
     }
-  };
+  }, [user, firestore, toast, router]);
 
-  const handleCheckStatus = () => {
+  const handleCheckStatus = useCallback(() => {
     startCheckingTransition(() => {
       checkSubscriptionStatus();
     });
-  }
+  }, [checkSubscriptionStatus]);
 
   const result = state?.data;
   
@@ -126,6 +140,23 @@ export default function SubscribePage() {
      )
   }
 
+  const isLoading = isUserLoading || isSubscriptionLoading;
+  const isSubscribed = subscription?.status === 'active';
+
+  if (isLoading) {
+    return (
+        <div className="space-y-12">
+            <PageHeader
+                title="Assinatura Pro"
+                description="Desbloqueie todo o potencial da IA para acelerar seu crescimento."
+            />
+            <div className="grid lg:grid-cols-2 gap-12 items-start">
+                <Skeleton className="h-72 w-full rounded-2xl" />
+                <Skeleton className="h-96 w-full rounded-2xl" />
+            </div>
+        </div>
+    )
+  }
 
   return (
     <div className="space-y-12">
@@ -177,9 +208,16 @@ export default function SubscribePage() {
                 <CardDescription>Preencha seus dados para gerar o QR Code para pagamento.</CardDescription>
             </CardHeader>
             <CardContent>
-              {isUserLoading && <Skeleton className='h-96 w-full'/>}
-              
-              {!result && !isGenerating && !isUserLoading && (
+              {isSubscribed ? (
+                <div className="flex flex-col items-center justify-center h-96 text-center">
+                    <Check className="h-12 w-12 text-primary mb-4" />
+                    <h3 className="text-xl font-bold">Você já é um Assinante PRO!</h3>
+                    <p className="text-muted-foreground">Sua assinatura está ativa. Aproveite todos os benefícios.</p>
+                    <Button asChild className="mt-6">
+                        <Link href="/dashboard">Ir para o Painel</Link>
+                    </Button>
+                </div>
+              ) : !result && !isGenerating ? (
                 <Form {...form}>
                     <form action={formAction} className='space-y-6'>
                         <input type="hidden" {...form.register('userId')} />
@@ -241,17 +279,13 @@ export default function SubscribePage() {
                         </Button>
                     </form>
                 </Form>
-              )}
-
-              {isGenerating && !result && (
+              ) : isGenerating && !result ? (
                 <div className='flex flex-col items-center justify-center h-96 text-center'>
                     <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
                     <p className="font-semibold">Gerando seu PIX...</p>
                     <p className="text-sm text-muted-foreground">Aguarde um momento.</p>
                 </div>
-              )}
-
-              {result && (
+              ) : result ? (
                 <div className="flex flex-col items-center text-center animate-fade-in">
                     <p className='text-muted-foreground mb-4'>Escaneie o QR Code abaixo com o app do seu banco para pagar.</p>
                     <div className='p-4 bg-white rounded-lg border'>
@@ -275,7 +309,7 @@ export default function SubscribePage() {
 
                     <p className='text-xs text-muted-foreground mt-8'>Após o pagamento, sua assinatura será ativada automaticamente. Você pode fechar esta tela.</p>
                 </div>
-              )}
+              ) : null}
 
             </CardContent>
         </Card>
