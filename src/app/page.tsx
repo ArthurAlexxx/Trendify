@@ -7,7 +7,7 @@ import {
   DollarSign,
   Info,
 } from 'lucide-react';
-import { Button, buttonVariants } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -406,12 +406,14 @@ export default function LandingPage() {
     value,
     description,
     delay,
+    children,
   }: {
     icon: React.ReactNode;
     title: string;
-    value: string;
+    value?: string;
     description?: string;
     delay: number;
+    children?: React.ReactNode;
   }) => (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -426,14 +428,17 @@ export default function LandingPage() {
           {icon}
         </CardHeader>
         <CardContent>
-          <div className="text-3xl font-bold font-headline text-foreground">
-            {value}
-          </div>
+          {value && (
+            <div className="text-3xl font-bold font-headline text-foreground">
+              {value}
+            </div>
+          )}
           {description && (
             <p className="text-xs text-muted-foreground mt-1">
               {description}
             </p>
           )}
+          {children}
         </CardContent>
       </Card>
     </motion.div>
@@ -502,25 +507,29 @@ export default function LandingPage() {
                       </AnimatePresence>
                       <div className="flex justify-between items-center mt-8">
                         {step > 1 && step < 4 && (
-                          <Button
+                          <button
                             type="button"
-                            variant="ghost"
+                            className={buttonVariants({variant: 'ghost'})}
                             onClick={() => setStep(step - 1)}
                           >
                             Voltar
-                          </Button>
+                          </button>
                         )}
                         <div className="flex-1" />
                         {step < 3 && (
-                          <Button type="button" onClick={() => setStep(step + 1)}>
+                          <button
+                            type="button"
+                            className={buttonVariants()}
+                            onClick={() => setStep(step + 1)}
+                          >
                             Próximo
-                          </Button>
+                          </button>
                         )}
                         {step === 3 && (
-                          <Button
+                          <button
                             type="submit"
                             disabled={isCalculating}
-                            className="w-full sm:w-auto"
+                            className={buttonVariants({className: "w-full sm:w-auto"})}
                           >
                             {isCalculating ? (
                               'Calculando...'
@@ -530,7 +539,7 @@ export default function LandingPage() {
                                 <ArrowRight className="ml-2 h-4 w-4" />
                               </>
                             )}
-                          </Button>
+                          </button>
                         )}
                       </div>
                     </form>
@@ -661,10 +670,32 @@ export default function LandingPage() {
                       </CardContent>
                     </Card>
                   </motion.div>
+                  
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.4 }}
+                  >
+                    <ResultCard
+                      icon={<TrendingUp className="h-4 w-4 text-muted-foreground" />}
+                      title="Sugestões para seu Nicho"
+                      delay={0.4}
+                    >
+                      <ul className="text-left text-sm text-muted-foreground mt-4 space-y-2">
+                        {results.trendSuggestions.map((suggestion: string, index: number) => (
+                          <li key={index} className="flex items-center gap-2">
+                            <ArrowRight className="h-3 w-3 text-primary" />
+                            <span>{suggestion}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </ResultCard>
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.5 }}
                     className="text-center pt-4"
                   >
                     <Link
