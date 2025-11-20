@@ -76,7 +76,7 @@ Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON d
   
   - talkingPoints: Liste 3-4 pontos fortes em formato de bullet points. Foque em argumentos de venda, como a conexão com a audiência, a qualidade da produção, ou resultados passados (mesmo que hipotéticos, baseados nas métricas).
   
-  - pricingTiers: Com base nas métricas fornecidas (seguidores, engajamento), calcule e sugira faixas de preço realistas para o mercado brasileiro. Crie uma faixa (min-max) para cada um dos seguintes formatos: 'reels', 'storySequence' (sequência de 3-5 stories), 'staticPost' (post no feed) e 'monthlyPackage' (um pacote combinado). Justifique mentalmente os valores com base em benchmarks de CPM, CPV e taxa de engajamento.
+  - pricingTiers: Com base nas métricas fornecidas (seguidores, engajamento), calcule e sugira faixas de preço realistas para o mercado brasileiro. Retorne uma STRING formatada para cada campo (ex: "R$ 800 - R$ 1.500"). Crie uma faixa para cada um dos seguintes formatos: 'reels', 'storySequence' (sequência de 3-5 stories), 'staticPost' (post no feed) e 'monthlyPackage' (um pacote combinado). Justifique mentalmente os valores com base em benchmarks de CPM, CPV e taxa de engajamento.
 
   - sampleCollaborationIdeas: Descreva 2-3 ideias de colaboração criativas e de alto nível que se alinham ao nicho do criador e à marca alvo. Ex: "Uma série de Reels 'Get Ready With Me' usando exclusivamente os produtos da marca para criar looks para diferentes ocasiões." ou "Um desafio de 30 dias no TikTok documentando a transformação da pele com a linha de skincare da marca."
   `;
