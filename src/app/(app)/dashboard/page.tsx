@@ -566,13 +566,11 @@ export default function DashboardPage() {
                         dataKey="alcance"
                         fill="var(--color-alcance)"
                         radius={8}
-                        className="fill-primary"
                       />
                       <Bar
                         dataKey="engajamento"
                         fill="var(--color-engajamento)"
                         radius={8}
-                        className="fill-pink-400"
                       />
                     </BarChart>
                   </ChartContainer>
