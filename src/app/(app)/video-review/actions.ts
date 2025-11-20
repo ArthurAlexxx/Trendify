@@ -1,3 +1,4 @@
+
 'use server';
 
 import OpenAI from 'openai';
@@ -50,11 +51,11 @@ function extractJson(text: string) {
 async function getVideoReview(input: z.infer<typeof formSchema>): Promise<VideoReviewOutput> {
   const systemPrompt = `Você é um "AI Video Coach", um especialista em análise de vídeos de redes sociais com o objetivo de ajudar criadores a viralizar.
   Sua análise deve ser construtiva, detalhada e acionável.
-  Você receberá um vídeo e deve gerar uma revisão completa e realista como se tivesse assistido. Baseie sua análise nas melhores práticas comuns para vídeos virais no TikTok e Instagram.
+  Você receberá uma notificação de que um vídeo foi enviado, e deve gerar uma revisão completa e realista como se tivesse assistido. Baseie sua análise nas melhores práticas comuns para vídeos virais no TikTok e Instagram (ganchos, retenção, CTA, etc).
   Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON deve se conformar estritamente ao schema fornecido. Não inclua nenhum texto ou formatação fora do objeto JSON.`;
   
   const userPrompt = `
-  Analise o vídeo fornecido e gere um diagnóstico completo.
+  Analise o vídeo que foi enviado e gere um diagnóstico completo.
 
   Forneça um diagnóstico completo, seguindo estritamente estas diretrizes para cada campo do JSON:
 
@@ -76,16 +77,7 @@ async function getVideoReview(input: z.infer<typeof formSchema>): Promise<VideoR
         { role: 'system', content: systemPrompt },
         { 
           role: 'user', 
-          content: [
-            { type: 'text', text: userPrompt },
-            {
-              type: 'image_url',
-              image_url: {
-                url: input.videoDataUri,
-                detail: 'low'
-              }
-            }
-          ]
+          content: userPrompt
         },
       ],
       temperature: 0.8,
