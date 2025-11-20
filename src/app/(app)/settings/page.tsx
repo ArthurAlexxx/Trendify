@@ -213,7 +213,7 @@ export default function SettingsPage() {
                       <AlertDialogAction
                         onClick={handleDeleteAccount}
                         disabled={isDeleteButtonDisabled}
-                        className={buttonVariants({ variant: 'destructive' })}
+                        variant="destructive"
                       >
                         Eu entendo, exclua minha conta
                       </AlertDialogAction>
