@@ -43,6 +43,7 @@ import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import Link from 'next/link';
+import { Skeleton } from '@/components/ui/skeleton';
 
 
 const profileFormSchema = z.object({
@@ -203,6 +204,14 @@ export default function SettingsPage() {
   
   const isDeleteButtonDisabled = deleteConfirmationText !== 'excluir minha conta';
 
+  const getPlanName = (plan: 'free' | 'pro' | 'premium') => {
+      switch(plan) {
+        case 'pro': return 'PRO';
+        case 'premium': return 'Premium';
+        default: return 'Gratuito';
+      }
+  }
+
   return (
     <div className="space-y-8">
       <PageHeader
@@ -361,20 +370,20 @@ export default function SettingsPage() {
               <CardContent className="space-y-6">
                 {isSubscriptionLoading ? (
                     <div className="space-y-4">
-                        <div className="h-24 w-full bg-muted animate-pulse rounded-lg"/>
+                        <Skeleton className="h-24 w-full rounded-lg" />
                     </div>
                 ) : subscription ? (
                     <div className="border rounded-lg p-6 flex flex-col sm:flex-row items-center justify-between gap-4 bg-muted/30">
                         <div>
                             <h4 className="text-lg font-bold flex items-center gap-2">
-                                Plano {subscription.plan === 'pro' ? 'PRO' : 'Gratuito'}
+                                Plano {subscription.plan && getPlanName(subscription.plan)}
                                 <Badge variant={subscription.status === 'active' ? 'default' : 'secondary'}>
                                     {subscription.status === 'active' ? 'Ativo' : 'Inativo'}
                                 </Badge>
                             </h4>
                             {subscription.status === 'active' && userProfile?.subscription?.expiresAt && (
                                 <p className="text-sm text-muted-foreground">
-                                    Seu acesso PRO termina em {format(userProfile.subscription.expiresAt.toDate(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}.
+                                    Seu acesso termina em {format(userProfile.subscription.expiresAt.toDate(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}.
                                 </p>
                             )}
                              {subscription.plan === 'free' && (
@@ -383,7 +392,7 @@ export default function SettingsPage() {
                                 </p>
                             )}
                         </div>
-                         {subscription.plan === 'pro' && subscription.status === 'active' ? (
+                         {subscription.plan !== 'free' && subscription.status === 'active' ? (
                             <AlertDialog>
                                 <AlertDialogTrigger asChild>
                                     <Button variant="destructive" disabled={isCancelling}>
@@ -395,7 +404,7 @@ export default function SettingsPage() {
                                     <AlertDialogHeader>
                                         <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
                                         <AlertDialogDescription>
-                                            Esta ação cancelará sua assinatura PRO. Você continuará com acesso aos recursos até o final do período de faturamento atual. Após isso, sua conta será revertida para o plano gratuito.
+                                            Esta ação cancelará sua assinatura. Você continuará com acesso aos recursos até o final do período de faturamento atual. Após isso, sua conta será revertida para o plano gratuito.
                                         </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>

@@ -72,7 +72,7 @@
             },
             "plan": {
               "type": "string",
-              "enum": ["pro", "free"],
+              "enum": ["pro", "free", "premium"],
               "description": "The subscribed plan."
             },
             "expiresAt": {

@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { getApp, getApps, initializeApp, cert } from 'firebase-admin/app';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
+import { Plan } from '@/lib/types';
 
 // Initialize Firebase Admin SDK
 function initializeAdmin() {
@@ -42,7 +43,7 @@ const firestore = getFirestore(adminApp);
 function verifyAbacateSignature(rawBody: string, signatureFromHeader: string): boolean {
   const ABACATE_PUBLIC_KEY = process.env.ABACATE_PUBLIC_KEY;
   if (!ABACATE_PUBLIC_KEY) {
-    console.error("[verifyAbacateSignature] ERRO CRÍTICO: ABACATE_PUBLIC_KEY não está definida nas variáveis de ambiente.");
+    console.error("[verifyAbacateSignature] ERRO CRÍTICO: ABACATE_PUBLIC_KEY não está definida.");
     return false;
   }
   console.log("[verifyAbacateSignature] Chave pública encontrada. Iniciando verificação.");
@@ -118,12 +119,13 @@ export async function POST(req: NextRequest) {
     const paymentData = event.data;
     const userId = paymentData?.pixQrCode?.metadata?.externalId;
     const paymentId = paymentData?.pixQrCode?.id;
+    const plan = paymentData?.pixQrCode?.metadata?.plan as Plan || 'pro'; // Default to 'pro' if not specified
 
     if (!userId) {
       console.warn(`[webhook-post] AVISO: Webhook 'billing.paid' recebido para paymentId ${paymentId || 'desconhecido'} sem userId nos metadados. Ignorando.`);
       return NextResponse.json({ success: true, message: 'Event received, but no userId found.' });
     }
-    console.log(`[webhook-post] userId "${userId}" encontrado nos metadados do pagamento ${paymentId}.`);
+    console.log(`[webhook-post] userId "${userId}" encontrado nos metadados do pagamento ${paymentId} para o plano "${plan}".`);
 
 
     try {
@@ -136,7 +138,7 @@ export async function POST(req: NextRequest) {
 
       const updatePayload = {
         'subscription.status': 'active',
-        'subscription.plan': 'pro',
+        'subscription.plan': plan,
         'subscription.expiresAt': Timestamp.fromDate(expiresAt),
         'subscription.paymentId': paymentId,
       };
@@ -145,7 +147,7 @@ export async function POST(req: NextRequest) {
       
       await userRef.update(updatePayload);
 
-      console.log(`[webhook-post] SUCESSO: Assinatura do usuário ${userId} ativada. Expira em: ${expiresAt.toISOString()}`);
+      console.log(`[webhook-post] SUCESSO: Assinatura do usuário ${userId} ativada. Plano: ${plan}. Expira em: ${expiresAt.toISOString()}`);
 
     } catch (error) {
       console.error(`[webhook-post] ERRO CRÍTICO: Falha ao atualizar a assinatura para o usuário ${userId} no Firestore:`, error);

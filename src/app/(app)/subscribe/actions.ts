@@ -2,6 +2,7 @@
 'use server';
 
 import { z } from 'zod';
+import { Plan } from '@/lib/types';
 
 console.log('[actions.ts] Módulo carregado.');
 
@@ -11,6 +12,7 @@ const formSchema = z.object({
   taxId: z.string().min(11, 'O CPF/CNPJ é obrigatório.'),
   cellphone: z.string().min(10, 'O celular é obrigatório.'),
   userId: z.string().min(1, 'O ID do usuário é obrigatório.'),
+  plan: z.enum(['pro', 'premium']),
 });
 
 const PixChargeResponseSchema = z.object({
@@ -28,11 +30,23 @@ type ActionState = {
 } | null;
 
 
+const planDetails: Record<Exclude<Plan, 'free'>, { amount: number; description: string }> = {
+    pro: {
+        amount: 4900, // R$49,00
+        description: 'Assinatura Trendify PRO - 1 Mês'
+    },
+    premium: {
+        amount: 9900, // R$99,00
+        description: 'Assinatura Trendify PREMIUM - 1 Mês'
+    }
+}
+
+
 async function createPixCharge(
   input: z.infer<typeof formSchema>
 ): Promise<PixChargeResponse> {
   const userId = input.userId;
-  console.log(`[createPixCharge] Iniciando para userId: ${userId}`);
+  console.log(`[createPixCharge] Iniciando para userId: ${userId} no plano ${input.plan}`);
   const ABACATE_API_KEY = process.env.ABACATE_API_KEY;
 
   if (!ABACATE_API_KEY) {
@@ -42,11 +56,13 @@ async function createPixCharge(
    console.log('[createPixCharge] Chave de API do Abacate Pay encontrada.');
 
   const url = 'https://api.abacatepay.com/v1/pixQrCode/create';
+  
+  const selectedPlan = planDetails[input.plan];
 
   const payload = {
-    amount: 4900, // R$49,00 em centavos
+    amount: selectedPlan.amount,
     expiresIn: 3600, // 1 hora
-    description: 'Assinatura Trendify PRO - 1 Mês',
+    description: selectedPlan.description,
     customer: {
       name: input.name,
       email: input.email,
@@ -55,7 +71,8 @@ async function createPixCharge(
     },
     metadata: {
       externalId: userId, // Passa o Firebase UID
-      product: 'trendify-pro-monthly',
+      product: `trendify-${input.plan}-monthly`,
+      plan: input.plan,
     },
   };
 

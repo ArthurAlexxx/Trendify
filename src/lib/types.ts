@@ -1,6 +1,8 @@
 
 import type { Timestamp } from 'firebase/firestore';
 
+export type Plan = 'pro' | 'free' | 'premium';
+
 export interface UserProfile {
   id: string;
   displayName: string;
@@ -18,7 +20,7 @@ export interface UserProfile {
   audience?: string;
   subscription?: {
     status: 'active' | 'inactive';
-    plan: 'pro' | 'free';
+    plan: Plan;
     expiresAt?: Timestamp | null;
     paymentId?: string | null;
   }
