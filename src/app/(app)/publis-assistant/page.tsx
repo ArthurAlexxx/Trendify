@@ -1,3 +1,4 @@
+
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -29,7 +30,7 @@ import {
   Sparkles,
   Zap,
 } from 'lucide-react';
-import { useEffect, useActionState, useTransition } from 'react';
+import { useEffect, useActionState, useTransition, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { generatePubliProposalsAction, GeneratePubliProposalsOutput } from './actions';
@@ -43,6 +44,9 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Textarea } from '@/components/ui/textarea';
+import { useSubscription } from '@/hooks/useSubscription';
+import { useRouter } from 'next/navigation';
+import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 
 const formSchema = z.object({
@@ -54,7 +58,61 @@ const formSchema = z.object({
   extraInfo: z.string().optional(),
 });
 
+
+function PremiumFeatureGuard({ children }: { children: React.ReactNode }) {
+    const { subscription, isLoading } = useSubscription();
+    const router = useRouter();
+    const [showAlert, setShowAlert] = useState(false);
+
+    useEffect(() => {
+        if (!isLoading && subscription?.plan !== 'premium') {
+            setShowAlert(true);
+        }
+    }, [isLoading, subscription, router]);
+    
+    if (isLoading) {
+        return (
+            <div className="w-full h-96 flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        )
+    }
+
+    if (showAlert) {
+        return (
+             <AlertDialog open={true} onOpenChange={(open) => !open && router.push('/subscribe')}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Funcionalidade Premium</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    O Assistente de Publis é um recurso exclusivo para assinantes do plano Premium. Faça o upgrade para ter acesso!
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogAction onClick={() => router.push('/subscribe')}>Ver Planos</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+        )
+    }
+    
+    if (subscription?.plan === 'premium') {
+        return <>{children}</>;
+    }
+
+    return null;
+}
+
 export default function PublisAssistantPage() {
+    return (
+        <PremiumFeatureGuard>
+            <PublisAssistantPageContent />
+        </PremiumFeatureGuard>
+    )
+}
+
+
+function PublisAssistantPageContent() {
   const { toast } = useToast();
   const [state, formAction, isGenerating] = useActionState(
     generatePubliProposalsAction,
