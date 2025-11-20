@@ -106,8 +106,10 @@ export default function ContentCalendarPage() {
     setIsModalOpen(true);
   };
   
-  const handleSelectDay = (day: Date) => {
-      setSelectedDay(day);
+  const handleSelectDay = (day: Date | undefined) => {
+      if (day) {
+        setSelectedDay(day);
+      }
   }
 
 
@@ -154,7 +156,7 @@ export default function ContentCalendarPage() {
       >
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
           <DialogTrigger asChild>
-            <Button size="lg" className="font-manrope rounded-full text-base">
+            <Button size="lg" className="font-manrope rounded-full text-base" onClick={() => handleNewEventForDay(selectedDay)}>
               <Plus className="mr-2 h-5 w-5" />
               Agendar Post
             </Button>
@@ -311,8 +313,7 @@ export default function ContentCalendarPage() {
                <Calendar
                 mode="single"
                 selected={selectedDay}
-                onSelect={(day) => day && handleSelectDay(day)}
-                onDayClick={(day) => handleNewEventForDay(day)}
+                onSelect={handleSelectDay}
                 className="w-full"
                 modifiers={{ scheduled: scheduledDays }}
                 modifiersClassNames={{
