@@ -118,7 +118,6 @@ export default function MediaKitPage() {
         const title = `Pacote de Prospecção para ${form.getValues('targetBrand')}`;
         
         let content = `**Apresentação:**\n${data.executiveSummary}\n\n`;
-        content += `**Pontos Fortes:**\n${data.talkingPoints.map(p => `- ${p}`).join('\n')}\n\n`;
         content += `**Tabela de Preços:**\n`;
         content += `- Reels: ${data.pricingTiers.reels}\n`;
         content += `- Stories: ${data.pricingTiers.storySequence}\n`;
@@ -276,10 +275,9 @@ export default function MediaKitPage() {
                  <div className="grid gap-8">
                   <InfoCard title="Apresentação para Marcas" icon={FileText} content={result.executiveSummary} isTextarea />
                   <div className="grid lg:grid-cols-2 gap-8 items-start">
-                    <InfoList title="Seus Pontos Fortes" icon={Target} items={result.talkingPoints} />
+                    <PricingCard title="Tabela de Preços Sugerida" icon={DollarSign} pricing={result.pricingTiers} />
                     <InfoList title="Ideias de Colaboração" icon={Lightbulb} items={result.sampleCollaborationIdeas} />
                   </div>
-                  <PricingCard title="Tabela de Preços Sugerida" icon={DollarSign} pricing={result.pricingTiers} />
                 </div>
               ) : null}
             </div>

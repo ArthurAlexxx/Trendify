@@ -9,11 +9,6 @@ const AiCareerPackageOutputSchema = z.object({
     .describe(
       'Um parágrafo de apresentação curto e impactante, ideal para um e-mail inicial para uma marca, destacando o valor do criador.'
     ),
-  talkingPoints: z
-    .array(z.string())
-    .describe(
-      'Uma lista de 3-4 pontos fortes (bullet points) que o criador pode usar para se vender, focando em seu nicho, audiência e engajamento.'
-    ),
   pricingTiers: z.object({
     reels: z
       .string()
@@ -99,8 +94,6 @@ Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON d
   Para cada campo do JSON, siga estas diretrizes:
 
   - executiveSummary: Crie um parágrafo de apresentação EM PRIMEIRA PESSOA (usando "Eu sou...", "Minha audiência..."), conciso e profissional, pronto para ser copiado e colado em um e-mail. Ele deve destacar minha especialidade, o perfil do meu público e o valor que posso agregar para uma marca como a marca alvo.
-  
-  - talkingPoints: Liste 3-4 pontos fortes em formato de bullet points. Foque em argumentos de venda, como a conexão com a audiência, a qualidade da produção, ou resultados passados (mesmo que hipotéticos, baseados nas métricas).
   
   - pricingTiers: Com base nas métricas fornecidas (seguidores, engajamento), calcule e sugira faixas de preço realistas para o mercado brasileiro. Retorne uma STRING formatada para cada campo (ex: "R$ 800 - R$ 1.500"). Crie uma faixa para cada um dos seguintes formatos: 'reels', 'storySequence' (sequência de 3-5 stories), 'staticPost' (post no feed) e 'monthlyPackage' (um pacote combinado). Justifique mentalmente os valores com base em benchmarks de CPM, CPV e taxa de engajamento.
 
