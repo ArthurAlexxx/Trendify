@@ -82,8 +82,8 @@ Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON d
   - Objetivo Principal: ${input.objective}
 
   Para cada campo do JSON, siga estas diretrizes:
-  - gancho: Crie uma frase ou cena de 2-3 segundos que seja impossível de ignorar. Deve gerar curiosidade, polêmica ou identificação imediata.
-  - script: Escreva um roteiro claro e conciso. Inclua sugestões de cenas (ex: "[CENA: Close-up no produto]"), narração e timing. Deve ter uma introdução (o gancho), um desenvolvimento (o valor) e uma conclusão (o CTA).
+  - gancho: Crie uma frase ou cena de 2-3 segundos que gere curiosidade, quebre uma crença comum ou apresente uma solução contraintuitiva. Evite clichês.
+  - script: Escreva um roteiro claro e conciso. Estruture-o em três partes: Introdução (o gancho), Desenvolvimento (a entrega de valor/o miolo do conteúdo) e Conclusão (o CTA). Inclua sugestões de cenas (ex: "[CENA: Close-up no produto]").
   - cta: A chamada para ação deve ser direta e incentivar o comportamento desejado (ex: "Comente 'EU QUERO' para receber o link", "Siga para mais dicas como esta").
   - takes: Descreva uma lista de tomadas simples e práticas que o criador precisa gravar. Ex: ["Take do seu rosto falando para a câmera.", "Take de unboxing do produto.", "Take mostrando o resultado final."]. Retorne um array de strings.
   - suggestedPostTime: Com base na plataforma, sugira um dia e horário de pico para postagem (ex: "Sexta-feira, 18:30h" ou "Domingo, 20:00h").
