@@ -38,7 +38,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { generateVideoIdeasAction, GenerateVideoIdeasOutput } from './actions';
 import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
-import { collection, addDoc, serverTimestamp, where, query } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, where, query, orderBy } from 'firebase/firestore';
 import { SavedIdeasSheet } from '@/components/saved-ideas-sheet';
 import type { IdeiaSalva } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
@@ -84,21 +84,13 @@ export default function VideoIdeasPage() {
     firestore && user
       ? query(
           collection(firestore, `users/${user.uid}/ideiasSalvas`),
-          where('concluido', '==', true)
+          where('concluido', '==', true),
+          orderBy('completedAt', 'desc')
         )
       : null
   ), [firestore, user]);
   
-  const { data: rawCompletedIdeas, isLoading: isLoadingCompleted } = useCollection<IdeiaSalva>(completedIdeasQuery);
-
-  const completedIdeas = useMemo(() => {
-    if (!rawCompletedIdeas) return [];
-    return [...rawCompletedIdeas].sort((a, b) => {
-      if (!a.completedAt) return 1;
-      if (!b.completedAt) return -1;
-      return b.completedAt.toMillis() - a.completedAt.toMillis();
-    });
-  }, [rawCompletedIdeas]);
+  const { data: completedIdeas, isLoading: isLoadingCompleted } = useCollection<IdeiaSalva>(completedIdeasQuery);
 
 
   useEffect(() => {
