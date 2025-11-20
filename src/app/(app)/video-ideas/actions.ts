@@ -1,3 +1,4 @@
+
 'use server';
 
 import OpenAI from 'openai';
@@ -6,7 +7,7 @@ import { z } from 'zod';
 // Esquema de saída esperado da IA
 const GenerateVideoIdeasOutputSchema = z.object({
   gancho: z.string().describe('Um gancho de 2-3 segundos, otimizado para parar a rolagem e gerar curiosidade imediata.'),
-  script: z.string().describe('Um roteiro detalhado e conciso, com indicações de cena e narração, estruturado para reter a atenção.'),
+  script: z.union([z.string(), z.object({})]).describe('Um roteiro detalhado e conciso, com indicações de cena e narração, estruturado para reter a atenção.'),
   cta: z.string().describe('Uma chamada para ação clara, convincente e alinhada ao objetivo do vídeo.'),
   takes: z.array(z.string()).describe('Uma lista de cenas ou tomadas específicas para gravar, facilitando a produção do conteúdo.'),
   suggestedPostTime: z

@@ -117,7 +117,10 @@ export default function VideoIdeasPage() {
     startSavingTransition(async () => {
       try {
         const title = `Ideia: ${form.getValues('topic').substring(0, 40)}...`;
-        const content = `**Gancho:**\n${data.gancho}\n\n**Roteiro:**\n${data.script}\n\n**CTA:**\n${data.cta}`;
+        const scriptContent = typeof data.script === 'string'
+          ? data.script
+          : JSON.stringify(data.script, null, 2);
+        const content = `**Gancho:**\n${data.gancho}\n\n**Roteiro:**\n${scriptContent}\n\n**CTA:**\n${data.cta}`;
 
         await addDoc(collection(firestore, `users/${user.uid}/ideiasSalvas`), {
           userId: user.uid,
@@ -400,7 +403,7 @@ export default function VideoIdeasPage() {
               <InfoCard
                 title="Roteiro do Vídeo"
                 icon={Pen}
-                content={result.script}
+                content={typeof result.script === 'string' ? result.script : JSON.stringify(result.script, null, 2)}
                 isTextarea
               />
               <InfoListCard
