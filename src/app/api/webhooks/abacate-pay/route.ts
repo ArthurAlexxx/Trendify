@@ -6,23 +6,28 @@ import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 
 // Initialize Firebase Admin SDK
 function initializeAdmin() {
+  console.log(`[webhook-init] Tentando inicializar Firebase Admin... Apps existentes: ${getApps().length}`);
   if (getApps().length) {
+    console.log('[webhook-init] Usando app Firebase Admin existente.');
     return getApp();
   }
 
-  // Vercel environment.
-  if (process.env.VERCEL_ENV && process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
-      console.log('[webhook] Vercel environment detected. Initializing with service account.');
-      const serviceAccount = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
-      return initializeApp({
-          credential: cert(serviceAccount)
-      });
+  const creds = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
+  if (process.env.VERCEL_ENV && creds) {
+    console.log('[webhook-init] Ambiente Vercel detectado. Inicializando com credenciais de serviço JSON.');
+     try {
+        const serviceAccount = JSON.parse(creds);
+         return initializeApp({
+            credential: cert(serviceAccount),
+        });
+    } catch (e) {
+        console.error('[webhook-init] Erro ao parsear GOOGLE_APPLICATION_CREDENTIALS_JSON:', e);
+        throw new Error('Falha ao inicializar Firebase Admin com JSON de credenciais.');
+    }
   }
   
-  // Local development
-  console.log('[webhook] Local environment detected or GOOGLE_APPLICATION_CREDENTIALS_JSON not set.');
-  // This will use Application Default Credentials if available.
-  return initializeApp();
+  console.error('[webhook-init] Falha na inicialização: Não é ambiente Vercel com credenciais ou já foi inicializado.');
+  throw new Error('Configuração do Firebase Admin está incompleta para este ambiente.');
 }
 
 const adminApp = initializeAdmin();
@@ -34,17 +39,21 @@ export async function POST(req: NextRequest) {
   const body = await req.text();
   const WEBHOOK_SECRET = process.env.ABACATE_WEBHOOK_SECRET;
 
-  console.log('[webhook] Received a request.');
+  console.log('[webhook-post] Recebida nova requisição de webhook.');
 
   if (!WEBHOOK_SECRET) {
-    console.error('[webhook] ABACATE_WEBHOOK_SECRET is not set.');
+    console.error('[webhook-post] ERRO CRÍTICO: ABACATE_WEBHOOK_SECRET não está definido nas variáveis de ambiente.');
     return NextResponse.json({ error: 'Webhook secret is not configured.' }, { status: 500 });
   }
+  console.log('[webhook-post] Webhook secret encontrado.');
+
 
   if (!abacateSignature) {
-    console.error('[webhook] Signature missing from the request.');
+    console.error('[webhook-post] ERRO: Assinatura "abacate-signature" ausente no cabeçalho.');
     return NextResponse.json({ error: 'Signature missing.' }, { status: 400 });
   }
+  console.log('[webhook-post] Assinatura "abacate-signature" encontrada no cabeçalho.');
+
 
   // Verify the signature
   try {
@@ -52,29 +61,39 @@ export async function POST(req: NextRequest) {
     const digest = hmac.update(body).digest('hex');
     
     if (digest !== abacateSignature) {
-      console.error('[webhook] Invalid signature.');
+      console.error('[webhook-post] ERRO: Assinatura inválida. A requisição pode não ser da Abacate Pay.');
        return NextResponse.json({ error: 'Invalid signature.' }, { status: 403 });
     }
   } catch (error) {
-    console.error('[webhook] Error verifying signature:', error);
+    console.error('[webhook-post] ERRO: Falha ao verificar a assinatura HMAC:', error);
     return NextResponse.json({ error: 'Could not verify signature.' }, { status: 500 });
   }
   
-  console.log('[webhook] Signature verified successfully.');
-  const event = JSON.parse(body);
+  console.log('[webhook-post] Assinatura verificada com sucesso.');
+  
+  let event;
+  try {
+    event = JSON.parse(body);
+    console.log(`[webhook-post] Evento JSON parseado. Evento: '${event.event}', Objeto: '${event.object}'.`);
+  } catch (error) {
+     console.error('[webhook-post] ERRO: Corpo da requisição não é um JSON válido.');
+     return NextResponse.json({ error: 'Invalid JSON body.' }, { status: 400 });
+  }
 
   // Process only successful PIX QR code payments
   if (event.object === 'pix_qr_code' && event.event === 'pix_qr_code.paid') {
-    console.log('[webhook] Processing pix_qr_code.paid event.');
+    console.log('[webhook-post] Processando evento "pix_qr_code.paid".');
     const paymentData = event.data;
     const userId = paymentData.metadata?.externalId;
     const paymentId = paymentData.id;
 
     if (!userId) {
-      console.warn('[webhook] Webhook received for payment without userId in metadata.', paymentId);
+      console.warn(`[webhook-post] AVISO: Webhook para paymentId ${paymentId} recebido sem userId nos metadados. Ignorando.`);
       // Return 200 to acknowledge receipt and prevent retries
       return NextResponse.json({ success: true, message: 'Event received, but no userId found.' });
     }
+    console.log(`[webhook-post] userId "${userId}" encontrado nos metadados do pagamento ${paymentId}.`);
+
 
     try {
       const userRef = firestore.collection('users').doc(userId);
@@ -83,7 +102,7 @@ export async function POST(req: NextRequest) {
       const now = new Date();
       const expiresAt = new Date(now.setDate(now.getDate() + 31));
 
-      // Update user document
+      console.log(`[webhook-post] Atualizando documento do usuário ${userId} no Firestore...`);
       await userRef.update({
         'subscription.status': 'active',
         'subscription.plan': 'pro',
@@ -91,15 +110,15 @@ export async function POST(req: NextRequest) {
         'subscription.paymentId': paymentId,
       });
 
-      console.log(`[webhook] User ${userId} subscription activated successfully.`);
+      console.log(`[webhook-post] SUCESSO: Assinatura do usuário ${userId} ativada. Expira em: ${expiresAt.toISOString()}`);
 
     } catch (error) {
-      console.error(`[webhook] Failed to update subscription for user ${userId}:`, error);
+      console.error(`[webhook-post] ERRO CRÍTICO: Falha ao atualizar a assinatura para o usuário ${userId} no Firestore:`, error);
       // Return 500 to indicate a server error, Abacate Pay might retry.
       return NextResponse.json({ error: 'Failed to process subscription update.' }, { status: 500 });
     }
   } else {
-    console.log(`[webhook] Received event of type '${event.event}' for object '${event.object}'. No action taken.`);
+    console.log(`[webhook-post] Evento do tipo '${event.event}' para o objeto '${event.object}' recebido. Nenhuma ação necessária.`);
   }
 
   // Acknowledge receipt of the webhook

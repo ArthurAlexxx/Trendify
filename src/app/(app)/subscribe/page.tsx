@@ -22,7 +22,7 @@ import Image from 'next/image';
 const formSchema = z.object({
   name: z.string().min(3, 'O nome completo é obrigatório.'),
   email: z.string().email('O e-mail é inválido.'),
-  taxId: z.string().min(11, 'O CPF/CNPJ é obrigatório.'),
+  taxId: z.string().min(11, 'O CPF é obrigatório.'),
   cellphone: z.string().min(10, 'O celular é obrigatório.'),
 });
 
@@ -127,7 +127,7 @@ export default function SubscribePage() {
                 <CardDescription>Preencha seus dados para gerar o QR Code para pagamento.</CardDescription>
             </CardHeader>
             <CardContent>
-              {isLoadingProfile && <Skeleton className='h-64 w-full'/>}
+              {isLoadingProfile && <Skeleton className='h-96 w-full'/>}
               
               {!result && !isGenerating && !isLoadingProfile && (
                 <Form {...form}>
@@ -176,7 +176,7 @@ export default function SubscribePage() {
                         name="cellphone"
                         render={({ field }) => (
                             <FormItem>
-                            <FormLabel>Celular</FormLabel>
+                            <FormLabel>Celular com DDD</FormLabel>
                             <FormControl>
                                 <Input placeholder='(99) 99999-9999' {...field} />
                             </FormControl>
@@ -193,7 +193,7 @@ export default function SubscribePage() {
               )}
 
               {isGenerating && !result && (
-                <div className='flex flex-col items-center justify-center h-64 text-center'>
+                <div className='flex flex-col items-center justify-center h-96 text-center'>
                     <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
                     <p className="font-semibold">Gerando seu PIX...</p>
                     <p className="text-sm text-muted-foreground">Aguarde um momento.</p>
@@ -201,7 +201,7 @@ export default function SubscribePage() {
               )}
 
               {result && (
-                <div className="flex flex-col items-center text-center">
+                <div className="flex flex-col items-center text-center animate-fade-in">
                     <p className='text-muted-foreground mb-4'>Escaneie o QR Code abaixo com o app do seu banco para pagar.</p>
                     <div className='p-4 bg-white rounded-lg border'>
                         <Image src={result.brCodeBase64} alt="PIX QR Code" width={256} height={256} />
@@ -228,5 +228,3 @@ export default function SubscribePage() {
     </div>
   );
 }
-
-    
