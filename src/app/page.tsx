@@ -17,7 +17,13 @@ import {
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import {
+  Sheet,
+  SheetContent,
+  SheetClose,
+  SheetTrigger,
+} from '@/components/ui/sheet';
+import { useUser } from '@/firebase';
 
 const featureCards = [
   {
@@ -59,6 +65,8 @@ const featureCards = [
 ];
 
 export default function LandingPage() {
+  const { user } = useUser();
+
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b border-white/10">
@@ -90,20 +98,41 @@ export default function LandingPage() {
             </Link>
           </nav>
           <div className="hidden md:flex items-center gap-4">
-            <Link
-              href="/dashboard"
-              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Login
-            </Link>
-            <Link
-              href="/dashboard"
-              className={buttonVariants({
-                className: 'font-manrope rounded-full',
-              })}
-            >
-              Comece grátis
-            </Link>
+            {user ? (
+              <>
+                <Link
+                  href="/dashboard"
+                  className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  Painel
+                </Link>
+                <Link
+                  href="/dashboard"
+                  className={buttonVariants({
+                    className: 'font-manrope rounded-full',
+                  })}
+                >
+                  Minha Conta
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  Login
+                </Link>
+                <Link
+                  href="/sign-up"
+                  className={buttonVariants({
+                    className: 'font-manrope rounded-full',
+                  })}
+                >
+                  Comece grátis
+                </Link>
+              </>
+            )}
           </div>
           <Sheet>
             <SheetTrigger asChild>
@@ -112,48 +141,84 @@ export default function LandingPage() {
                 <span className="sr-only">Abrir menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="bg-background">
-              <nav className="flex flex-col gap-6 text-lg font-medium mt-10">
-                <Link
-                  href="/"
-                  className="text-2xl font-bold font-headline text-foreground mb-4"
-                >
-                  trendify
-                </Link>
-                <Link
-                  href="#features"
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  Recursos
-                </Link>
-                <Link
-                  href="#pricing"
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  Preços
-                </Link>
-                <Link
-                  href="#"
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  Blog
-                </Link>
-                <Link
-                  href="/dashboard"
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  Login
-                </Link>
-                <Link
-                  href="/dashboard"
-                  className={buttonVariants({
-                    className: 'font-manrope w-full mt-4 rounded-full',
-                    size: 'lg',
-                  })}
-                >
-                  Comece grátis
-                </Link>
-              </nav>
+            <SheetContent side="right" className="bg-background w-full sm:max-w-xs p-0">
+              <div className="flex flex-col h-full">
+                <div className="p-6">
+                  <Link
+                    href="/"
+                    className="text-2xl font-bold font-headline text-foreground mb-4"
+                  >
+                    trendify
+                  </Link>
+                </div>
+                <nav className="flex flex-col gap-4 text-lg font-medium p-6">
+                  <SheetClose asChild>
+                    <Link
+                      href="#features"
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      Recursos
+                    </Link>
+                  </SheetClose>
+                  <SheetClose asChild>
+                    <Link
+                      href="#pricing"
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      Preços
+                    </Link>
+                  </SheetClose>
+                  <SheetClose asChild>
+                    <Link
+                      href="#"
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      Blog
+                    </Link>
+                  </SheetClose>
+                </nav>
+                <div className="mt-auto p-6 border-t border-border">
+                  {user ? (
+                    <SheetClose asChild>
+                      <Link
+                        href="/dashboard"
+                        className={buttonVariants({
+                          className: 'font-manrope w-full',
+                          size: 'lg',
+                        })}
+                      >
+                        Acessar Painel
+                      </Link>
+                    </SheetClose>
+                  ) : (
+                    <div className="flex flex-col gap-4">
+                      <SheetClose asChild>
+                        <Link
+                          href="/login"
+                          className={buttonVariants({
+                            variant: 'outline',
+                            className: 'font-manrope w-full',
+                            size: 'lg',
+                          })}
+                        >
+                          Login
+                        </Link>
+                      </SheetClose>
+                      <SheetClose asChild>
+                        <Link
+                          href="/sign-up"
+                          className={buttonVariants({
+                            className: 'font-manrope w-full',
+                            size: 'lg',
+                          })}
+                        >
+                          Comece grátis
+                        </Link>
+                      </SheetClose>
+                    </div>
+                  )}
+                </div>
+              </div>
             </SheetContent>
           </Sheet>
         </div>
@@ -177,7 +242,7 @@ export default function LandingPage() {
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link
-                  href="/dashboard"
+                  href={user ? '/dashboard' : '/sign-up'}
                   className={buttonVariants({
                     size: 'lg',
                     className:
@@ -469,7 +534,7 @@ export default function LandingPage() {
                 criatividade em carreira.
               </p>
               <Link
-                href="/dashboard"
+                href={user ? '/dashboard' : '/sign-up'}
                 className={buttonVariants({
                   size: 'lg',
                   className:

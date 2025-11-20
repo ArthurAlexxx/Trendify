@@ -8,9 +8,11 @@ import {
   PanelLeft,
   Video,
   Settings,
+  LogOut,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { getAuth } from 'firebase/auth';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -23,7 +25,7 @@ import {
   SidebarMenuItem,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
-import { cn } from '@/lib/utils';
+import { useUser } from '@/firebase';
 
 const navItems = [
   { href: '/dashboard', icon: LineChart, label: 'Painel' },
@@ -54,6 +56,12 @@ const TrendingIcon = () => (
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const { user } = useUser();
+  const auth = getAuth();
+
+  const handleSignOut = () => {
+    auth.signOut();
+  };
 
   return (
     <Sidebar
@@ -113,20 +121,28 @@ export function AppSidebar() {
               </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>
+           <SidebarMenuItem>
+            <SidebarMenuButton onClick={handleSignOut} tooltip="Sair" className="h-10 justify-start">
+              <LogOut className="h-5 w-5" />
+              <span className="text-sm font-medium">Sair</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <Link href="#">
               <div className="flex items-center gap-3 rounded-md p-2 hover:bg-sidebar-accent w-full">
                 <Avatar className="h-8 w-8">
                   <AvatarImage
-                    src="https://picsum.photos/seed/avatar/100/100"
+                    src={user?.photoURL ?? "https://picsum.photos/seed/avatar/100/100"}
                     alt="User Avatar"
                   />
-                  <AvatarFallback>U</AvatarFallback>
+                  <AvatarFallback>
+                    {user?.email?.[0].toUpperCase() ?? 'U'}
+                  </AvatarFallback>
                 </Avatar>
                 <div className="hidden group-data-[state=expanded]:block w-full overflow-hidden">
-                  <p className="text-sm font-semibold truncate">Jane Doe</p>
+                  <p className="text-sm font-semibold truncate">{user?.displayName ?? 'Usuário'}</p>
                   <p className="text-xs text-muted-foreground truncate">
-                    jane.doe@example.com
+                    {user?.email ?? ''}
                   </p>
                 </div>
               </div>

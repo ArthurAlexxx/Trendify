@@ -2,10 +2,9 @@
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
 import { FirebaseApp } from 'firebase/app';
-import { Firestore } from 'firebase/firestore';
+import { Firestore, doc, getDoc, setDoc } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
-import { initiateAnonymousSignIn } from './non-blocking-login';
 
 interface FirebaseProviderProps {
   children: ReactNode;
@@ -68,6 +67,29 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     userError: null,
   });
 
+  const handleUser = async (firebaseUser: User | null) => {
+    if (firebaseUser) {
+      // User is signed in. Create user profile if it doesn't exist.
+      const userRef = doc(firestore, `users/${firebaseUser.uid}`);
+      const docSnap = await getDoc(userRef);
+      if (!docSnap.exists()) {
+        const { displayName, email, photoURL } = firebaseUser;
+        const createdAt = new Date();
+        try {
+          await setDoc(userRef, {
+            displayName,
+            email,
+            photoURL,
+            createdAt,
+          });
+        } catch (error) {
+          console.error('Error creating user profile:', error);
+        }
+      }
+    }
+    setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
+  };
+
   // Effect to subscribe to Firebase auth state changes
   useEffect(() => {
     if (!auth) { // If no Auth service instance, cannot determine user state
@@ -79,19 +101,14 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
 
     const unsubscribe = onAuthStateChanged(
       auth,
-      (firebaseUser) => { // Auth state determined
-        if (!firebaseUser) {
-          initiateAnonymousSignIn(auth)
-        }
-        setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
-      },
+      handleUser,
       (error) => { // Auth listener error
         console.error("FirebaseProvider: onAuthStateChanged error:", error);
         setUserAuthState({ user: null, isUserLoading: false, userError: error });
       }
     );
     return () => unsubscribe(); // Cleanup
-  }, [auth]); // Depends on the auth instance
+  }, [auth, firestore]); // Depends on the auth instance
 
   // Memoize the context value
   const contextValue = useMemo((): FirebaseContextState => {
