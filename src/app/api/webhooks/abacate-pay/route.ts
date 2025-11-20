@@ -5,28 +5,25 @@ import { getApp, getApps, initializeApp, cert } from 'firebase-admin/app';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 
 // Initialize Firebase Admin SDK
-// This ensures it's only initialized once.
-if (!getApps().length) {
-    // Check if running in Vercel production environment
-    // and the JSON key is provided as a stringified environment variable.
-    if (process.env.VERCEL_ENV && process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
-        try {
-            const serviceAccount = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
-            initializeApp({
-                credential: cert(serviceAccount)
-            });
-        } catch (e) {
-            console.error('Error parsing GOOGLE_APPLICATION_CREDENTIALS_JSON:', e);
-            // Fallback for local development or if JSON parsing fails
-            initializeApp();
-        }
-    } else {
-        // Fallback for local development using Application Default Credentials
-        initializeApp();
-    }
+function initializeAdmin() {
+  if (getApps().length) {
+    return getApp();
+  }
+
+  if (process.env.VERCEL_ENV === 'production' && process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
+      const serviceAccount = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
+      return initializeApp({
+          credential: cert(serviceAccount)
+      });
+  } else {
+      // For local development, it will use Application Default Credentials
+      return initializeApp();
+  }
 }
 
-const firestore = getFirestore();
+const adminApp = initializeAdmin();
+const firestore = getFirestore(adminApp);
+
 
 export async function POST(req: NextRequest) {
   const abacateSignature = req.headers.get('abacate-signature');

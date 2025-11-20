@@ -2,10 +2,8 @@
 'use server';
 
 import { z } from 'zod';
-import { getApp, getApps, initializeApp } from 'firebase-admin/app';
+import { getApp, getApps, initializeApp, cert } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
-import { getFirestore } from 'firebase-admin/firestore';
-
 
 const formSchema = z.object({
   name: z.string().min(3, 'O nome completo é obrigatório.'),
@@ -29,12 +27,24 @@ type ActionState = {
 
 
 // Initialize Firebase Admin SDK
-if (!getApps().length) {
-  initializeApp();
-}
-const auth = getAuth();
-const firestore = getFirestore();
+function initializeAdmin() {
+  if (getApps().length) {
+    return getApp();
+  }
 
+  if (process.env.VERCEL_ENV === 'production' && process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
+      const serviceAccount = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
+      return initializeApp({
+          credential: cert(serviceAccount)
+      });
+  } else {
+      // For local development, it will use Application Default Credentials
+      return initializeApp();
+  }
+}
+
+const adminApp = initializeAdmin();
+const auth = getAuth(adminApp);
 
 async function createPixCharge(
   input: z.infer<typeof formSchema>,
