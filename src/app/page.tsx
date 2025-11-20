@@ -383,10 +383,10 @@ export default function LandingPage() {
               </Badge>
 
               <h1 className="text-5xl md:text-7xl font-black font-headline tracking-tighter mb-6 !leading-tight max-w-4xl mx-auto">
-                Estratégia de conteúdo,{' '}
+                Conteúdo inteligente,{' '}
                 <br className="hidden md:block" />
                 <span className="bg-gradient-to-r from-indigo-500 to-purple-600 text-gradient">
-                  sem achismos.
+                  crescimento real.
                 </span>
               </h1>
               <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
