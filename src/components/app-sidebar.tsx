@@ -161,19 +161,19 @@ export function AppSidebar() {
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className='w-full justify-start h-auto p-2'>
-                    <div className="flex items-center gap-3 w-full">
-                        <Avatar className="h-8 w-8">
-                        <AvatarFallback>
-                            {user?.displayName?.[0].toUpperCase() ?? user?.email?.[0].toUpperCase() ?? 'U'}
-                        </AvatarFallback>
-                        </Avatar>
-                        <div className="hidden group-data-[state=expanded]:block w-[120px] overflow-hidden text-left">
+                    <Avatar className="h-8 w-8">
+                    <AvatarFallback>
+                        {user?.displayName?.[0].toUpperCase() ?? user?.email?.[0].toUpperCase() ?? 'U'}
+                    </AvatarFallback>
+                    </Avatar>
+                    <div className="hidden group-data-[state=expanded]:flex items-center gap-3 w-full">
+                        <div className="w-[120px] overflow-hidden text-left ml-3">
                         <p className="text-sm font-semibold truncate">{user?.displayName ?? 'Usuário'}</p>
                         <p className="text-xs text-muted-foreground truncate">
                             {user?.email ?? ''}
                         </p>
                         </div>
-                        <MoreHorizontal className="h-4 w-4 ml-auto hidden group-data-[state=expanded]:inline-block" />
+                        <MoreHorizontal className="h-4 w-4 ml-auto" />
                     </div>
                 </Button>
             </DropdownMenuTrigger>
