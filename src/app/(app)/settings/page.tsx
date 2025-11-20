@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { LogOut, User as UserIcon, ShieldAlert, KeyRound, Building } from 'lucide-react';
+import { LogOut, User as UserIcon, ShieldAlert, KeyRound, Building, Crown } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
@@ -38,6 +38,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Loader2 } from 'lucide-react';
 import { updateProfile } from 'firebase/auth';
 import type { UserProfile } from '@/lib/types';
+import { useSubscription } from '@/hooks/useSubscription';
+import { Badge } from '@/components/ui/badge';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import Link from 'next/link';
 
 
 const profileFormSchema = z.object({
@@ -70,6 +75,8 @@ export default function SettingsPage() {
     [firestore, user]
   );
   const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userProfileRef);
+  const { subscription, isLoading: isSubscriptionLoading } = useSubscription();
+
 
   const form = useForm<z.infer<typeof profileFormSchema>>({
     resolver: zodResolver(profileFormSchema),
@@ -176,8 +183,9 @@ export default function SettingsPage() {
       />
 
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="grid w-full max-w-lg grid-cols-3">
+        <TabsList className="grid w-full max-w-lg grid-cols-4">
           <TabsTrigger value="profile">Perfil</TabsTrigger>
+          <TabsTrigger value="subscription">Assinatura</TabsTrigger>
           <TabsTrigger value="integrations">Integrações</TabsTrigger>
           <TabsTrigger value="account">Conta</TabsTrigger>
         </TabsList>
@@ -310,6 +318,57 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="subscription" className="mt-6">
+           <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3 font-headline text-xl">
+                    <Crown className="h-6 w-6 text-primary" />
+                    <span>Minha Assinatura</span>
+                </CardTitle>
+                <CardDescription>
+                    Veja os detalhes do seu plano atual e gerencie sua assinatura.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {isSubscriptionLoading ? (
+                    <div className="space-y-4">
+                        <div className="h-24 w-full bg-muted animate-pulse rounded-lg"/>
+                    </div>
+                ) : subscription ? (
+                    <div className="border rounded-lg p-6 flex flex-col sm:flex-row items-center justify-between gap-4 bg-muted/30">
+                        <div>
+                            <h4 className="text-lg font-bold flex items-center gap-2">
+                                Plano {subscription.plan === 'pro' ? 'PRO' : 'Gratuito'}
+                                <Badge variant={subscription.status === 'active' ? 'default' : 'secondary'}>
+                                    {subscription.status === 'active' ? 'Ativo' : 'Inativo'}
+                                </Badge>
+                            </h4>
+                            {subscription.status === 'active' && userProfile?.subscription?.expiresAt && (
+                                <p className="text-sm text-muted-foreground">
+                                    Sua assinatura expira em {format(userProfile.subscription.expiresAt.toDate(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}.
+                                </p>
+                            )}
+                             {subscription.plan === 'free' && (
+                                <p className="text-sm text-muted-foreground">
+                                    Faça o upgrade para desbloquear todas as funcionalidades.
+                                </p>
+                            )}
+                        </div>
+                        {subscription.plan === 'free' ? (
+                            <Button asChild>
+                                <Link href="/subscribe">Virar PRO</Link>
+                            </Button>
+                        ) : (
+                            <Button variant="outline" disabled>
+                                Gerenciar Assinatura
+                            </Button>
+                        )}
+                    </div>
+                ) : null}
+              </CardContent>
+           </Card>
+        </TabsContent>
         
         <TabsContent value="integrations" className="mt-6">
            <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
@@ -436,3 +495,5 @@ export default function SettingsPage() {
     </div>
   );
 }
+
+    

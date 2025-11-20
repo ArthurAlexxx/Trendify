@@ -4,6 +4,7 @@
 import { useDoc, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import type { UserProfile } from '@/lib/types';
 import { doc } from 'firebase/firestore';
+import type { Timestamp } from 'firebase/firestore';
 
 type SubscriptionStatus = 'active' | 'inactive';
 type Plan = 'pro' | 'free';
@@ -11,6 +12,7 @@ type Plan = 'pro' | 'free';
 interface SubscriptionData {
   status: SubscriptionStatus;
   plan: Plan;
+  expiresAt?: Timestamp;
 }
 
 interface UseSubscriptionResult {
@@ -47,7 +49,10 @@ export function useSubscription(): UseSubscriptionResult {
     subscription: {
       status: userProfile.subscription?.status || 'inactive',
       plan: userProfile.subscription?.plan || 'free',
+      expiresAt: userProfile.subscription?.expiresAt,
     },
     isLoading: false,
   };
 }
+
+    
