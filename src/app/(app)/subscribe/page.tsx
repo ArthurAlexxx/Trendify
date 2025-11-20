@@ -75,45 +75,6 @@ export default function SubscribePage() {
     toast({ title: 'Copiado!', description: 'Código PIX copiado para a área de transferência.' });
   };
   
-  const handleFormAction = async (formData: FormData) => {
-      if (!user) {
-        toast({ title: 'Erro de Autenticação', description: 'Por favor, faça login novamente.', variant: 'destructive'});
-        return;
-      }
-      const token = await user.getIdToken();
-      // This is a bit of a hack to pass the token to the server action
-      // A cleaner way would be to use a dedicated API endpoint
-      const headers = new Headers();
-      headers.append('Authorization', `Bearer ${token}`);
-      
-      const modifiedFormData = new FormData();
-      formData.forEach((value, key) => {
-          modifiedFormData.append(key, value);
-      });
-
-      // We can't pass headers to a server action directly, so we'll make a fetch call
-      // to a custom route handler in the future. For now, this is a workaround to pass the token.
-      // Or we can verify the token on the server action. Let's try that.
-      
-      const form = document.querySelector('form');
-      if (form) {
-        // Temporarily modify the form to include the token, though this is not ideal.
-      }
-      
-      // Let's create a proxy for formAction that injects the headers
-      const actionWithAuth = async (fd: FormData) => {
-          const response = await fetch('', {
-              method: 'POST',
-              body: fd,
-              headers: {
-                  'Authorization': `Bearer ${token}`,
-              }
-          })
-      }
-
-      formAction(formData);
-  }
-
   const result = state?.data;
 
   return (
@@ -267,3 +228,5 @@ export default function SubscribePage() {
     </div>
   );
 }
+
+    
