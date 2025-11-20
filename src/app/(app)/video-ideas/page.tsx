@@ -29,6 +29,11 @@ import {
   Mic,
   Clock,
   Loader2,
+  Sparkles,
+  Camera,
+  Heart,
+  Target,
+  Pen,
 } from 'lucide-react';
 import { useEffect, useActionState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -41,11 +46,17 @@ const formSchema = z.object({
     .string()
     .min(3, 'O público-alvo deve ter pelo menos 3 caracteres.'),
   platform: z.enum(['instagram', 'tiktok']),
+  videoFormat: z.string().min(1, 'O formato é obrigatório.'),
+  tone: z.string().min(1, 'O tom de voz é obrigatório.'),
+  objective: z.string().min(1, 'O objetivo é obrigatório.'),
 });
 
 export default function VideoIdeasPage() {
   const { toast } = useToast();
-  const [state, formAction, isPending] = useActionState(generateVideoIdeasAction, null);
+  const [state, formAction, isPending] = useActionState(
+    generateVideoIdeasAction,
+    null
+  );
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -53,13 +64,16 @@ export default function VideoIdeasPage() {
       topic: '',
       targetAudience: '',
       platform: 'tiktok',
+      videoFormat: 'Tutorial',
+      tone: 'Inspirador',
+      objective: 'Engajamento',
     },
   });
 
   useEffect(() => {
     if (state?.error) {
       toast({
-        title: 'Erro',
+        title: 'Erro ao Gerar Ideias',
         description: state.error,
         variant: 'destructive',
       });
@@ -69,39 +83,41 @@ export default function VideoIdeasPage() {
   const result = state?.data;
 
   return (
-    <div className="grid gap-8">
+    <div className="space-y-8">
       <PageHeader
-        title="Gerador de Ideias de Vídeo com IA"
-        description="Gere ideias de vídeos em alta com ganchos, roteiros e CTAs otimizados."
+        title="Gerador de Ideias de Vídeo"
+        description="Use a IA para criar conceitos de vídeo virais com roteiros e ganchos otimizados."
       />
 
-      <Card>
+      <Card className="shadow-none border-border/60">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Bot className="h-5 w-5" />
-            <span>Diga à IA o que você precisa</span>
+          <CardTitle className="flex items-center gap-2 font-headline text-lg">
+            <Sparkles className="h-5 w-5 text-primary" />
+            <span>Descreva sua necessidade</span>
           </CardTitle>
         </CardHeader>
         <CardContent>
           <Form {...form}>
             <form
-              onSubmit={form.handleSubmit(() => form.trigger().then(isValid => {
-                if(isValid) {
-                  formAction(new FormData(form.control._fields._form.current))
-                }
-              }))}
+              onSubmit={form.handleSubmit(() =>
+                form.trigger().then((isValid) => {
+                  if (isValid) {
+                    formAction(new FormData(form.control._fields._form.current));
+                  }
+                })
+              )}
               className="space-y-6"
             >
-              <div className="grid md:grid-cols-3 gap-4">
+              <div className="grid md:grid-cols-2 gap-6">
                 <FormField
                   control={form.control}
                   name="topic"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Tópico</FormLabel>
+                      <FormLabel>Tópico Principal</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="ex: 'rotina de skincare matinal'"
+                          placeholder="Ex: 'Rotina de skincare para pele oleosa'"
                           {...field}
                         />
                       </FormControl>
@@ -114,10 +130,10 @@ export default function VideoIdeasPage() {
                   name="targetAudience"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Público-alvo</FormLabel>
+                      <FormLabel>Público-Alvo</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="ex: 'Geração Z com pele oleosa'"
+                          placeholder="Ex: 'Mulheres de 25-35 anos interessadas em beleza'"
                           {...field}
                         />
                       </FormControl>
@@ -125,7 +141,10 @@ export default function VideoIdeasPage() {
                     </FormItem>
                   )}
                 />
-                <FormField
+              </div>
+
+              <div className="grid md:grid-cols-3 gap-6">
+                 <FormField
                   control={form.control}
                   name="platform"
                   render={({ field }) => (
@@ -149,19 +168,103 @@ export default function VideoIdeasPage() {
                     </FormItem>
                   )}
                 />
+                <FormField
+                  control={form.control}
+                  name="videoFormat"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Formato do Vídeo</FormLabel>
+                       <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione um formato" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Tutorial">Tutorial</SelectItem>
+                          <SelectItem value="Unboxing">Unboxing</SelectItem>
+                          <SelectItem value="Dança">Dança</SelectItem>
+                          <SelectItem value="Storytelling">Storytelling</SelectItem>
+                          <SelectItem value="Comédia">Comédia</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="tone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tom de Voz</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione um tom" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Inspirador">Inspirador</SelectItem>
+                          <SelectItem value="Engraçado">Engraçado</SelectItem>
+                          <SelectItem value="Educacional">Educacional</SelectItem>
+                          <SelectItem value="Luxuoso">Luxuoso</SelectItem>
+                           <SelectItem value="Polêmico">Polêmico</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="objective"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Objetivo</FormLabel>
+                       <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione um objetivo" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Engajamento">Engajamento</SelectItem>
+                          <SelectItem value="Alcance">Alcance</SelectItem>
+                          <SelectItem value="Vendas">Vendas</SelectItem>
+                          <SelectItem value="Educar">Educar</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
+
               <Button
                 type="submit"
                 disabled={isPending}
-                className="font-manrope w-full md:w-auto"
+                className="font-manrope w-full sm:w-auto h-11 px-8 rounded-full text-base"
               >
                 {isPending ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Gerando...
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Gerando Ideias...
                   </>
                 ) : (
-                  'Gerar Ideia'
+                  <>
+                    <Sparkles className="mr-2 h-5 w-5" />
+                    Gerar Ideia
+                  </>
                 )}
               </Button>
             </form>
@@ -170,57 +273,30 @@ export default function VideoIdeasPage() {
       </Card>
 
       {(isPending || result) && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Ideia de Vídeo Gerada</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {isPending && !result ? (
-              <div className="flex items-center justify-center p-8">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div className="space-y-6">
+           <h2 className="text-2xl font-bold font-headline tracking-tight">Resultado da IA</h2>
+          {isPending && !result ? (
+            <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border/80 bg-background h-96">
+              <Loader2 className="h-10 w-10 animate-spin text-primary" />
+              <p className="mt-4 text-muted-foreground">
+                A IA está criando algo incrível para você...
+              </p>
+            </div>
+          ) : result ? (
+            <div className="grid gap-8">
+              <div className="grid lg:grid-cols-2 gap-6">
+                <InfoCard title="O Gancho Perfeito" icon={Mic} content={result.gancho} />
+                <InfoCard title="Chamada para Ação (CTA)" icon={Heart} content={result.cta} />
               </div>
-            ) : result ? (
-              <div className="grid gap-6">
-                <div className="grid md:grid-cols-2 gap-6">
-                  <InfoCard
-                    title="O Gancho"
-                    icon={Mic}
-                    content={result.gancho}
-                  />
-                  <InfoCard
-                    title="Chamada para Ação (CTA)"
-                    icon={Clapperboard}
-                    content={result.cta}
-                  />
-                </div>
-                <InfoCard
-                  title="Roteiro do Vídeo"
-                  icon={List}
-                  content={result.script}
-                  isTextarea
-                />
-                <InfoCard
-                  title="Takes para Gravar"
-                  icon={Clapperboard}
-                  content={result.takes}
-                  isTextarea
-                />
-                <div className="grid md:grid-cols-2 gap-6">
-                  <InfoCard
-                    title="Horário Sugerido para Postagem"
-                    icon={Clock}
-                    content={result.suggestedPostTime}
-                  />
-                  <InfoCard
-                    title="Música em Alta"
-                    icon={Disc}
-                    content={result.trendingSong}
-                  />
-                </div>
+              <InfoCard title="Roteiro do Vídeo" icon={Pen} content={result.script} isTextarea />
+              <InfoCard title="Takes para Gravar" icon={Camera} content={result.takes} isTextarea />
+               <div className="grid lg:grid-cols-2 gap-6">
+                <InfoCard title="Horário Sugerido" icon={Clock} content={result.suggestedPostTime} />
+                <InfoCard title="Música em Alta" icon={Disc} content={result.trendingSong} />
               </div>
-            ) : null}
-          </CardContent>
-        </Card>
+            </div>
+          ) : null}
+        </div>
       )}
     </div>
   );
@@ -238,18 +314,26 @@ function InfoCard({
   isTextarea?: boolean;
 }) {
   return (
-    <div className="space-y-2">
-      <h3 className="text-sm font-semibold flex items-center gap-2 text-muted-foreground">
-        <Icon className="h-4 w-4" />
-        {title}
-      </h3>
+    <Card className="shadow-sm border-border/50">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base font-semibold text-muted-foreground">
+          <Icon className="h-5 w-5 text-primary/80" />
+          <span>{title}</span>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
       {isTextarea ? (
-        <Textarea readOnly value={content} className="h-32 bg-background" />
+        <Textarea
+          readOnly
+          value={content}
+          className="h-40 bg-background/50 text-base leading-relaxed"
+        />
       ) : (
-        <p className="p-3 rounded-md border bg-background text-sm">
+        <p className="p-4 rounded-lg border border-transparent bg-background/50 text-base text-foreground">
           {content}
         </p>
       )}
-    </div>
+      </CardContent>
+    </Card>
   );
 }
