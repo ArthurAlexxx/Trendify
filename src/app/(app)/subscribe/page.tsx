@@ -13,7 +13,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useActionState, useEffect, useState } from 'react';
+import { useActionState, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { createPixChargeAction } from './actions';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -29,8 +29,7 @@ export default function SubscribePage() {
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
-  const [state, formAction, isGenerating] = useActionState(createPixChargeAction, null);
-
+  
   const userProfileRef = useMemoFirebase(
     () => (firestore && user ? doc(firestore, `users/${user.uid}`) : null),
     [firestore, user]
@@ -45,6 +44,8 @@ export default function SubscribePage() {
       taxId: '',
     },
   });
+
+  const [state, formAction, isGenerating] = useActionState(createPixChargeAction, null);
 
   useEffect(() => {
     if (userProfile) {
@@ -71,6 +72,16 @@ export default function SubscribePage() {
     toast({ title: 'Copiado!', description: 'Código PIX copiado para a área de transferência.' });
   };
   
+  const handleFormAction = async (formData: FormData) => {
+      if (!user) {
+        toast({ title: 'Erro de Autenticação', description: 'Por favor, faça login novamente.', variant: 'destructive'});
+        return;
+      }
+      const token = await user.getIdToken();
+      formData.set('__token', token);
+      formAction(formData);
+  }
+
   const result = state?.data;
 
   return (
@@ -127,7 +138,7 @@ export default function SubscribePage() {
               
               {!result && !isGenerating && !isLoadingProfile && (
                 <Form {...form}>
-                    <form action={formAction} className='space-y-6'>
+                    <form action={handleFormAction} className='space-y-6'>
                         <FormField
                         control={form.control}
                         name="name"

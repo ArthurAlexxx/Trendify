@@ -4,8 +4,6 @@
 import { z } from 'zod';
 import { getApp, getApps, initializeApp, cert } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
-import { getFirestore } from 'firebase-admin/firestore';
-import { firebaseConfig } from '@/firebase/config';
 
 const formSchema = z.object({
   name: z.string().min(3, 'O nome completo é obrigatório.'),
@@ -29,44 +27,39 @@ type ActionState = {
 
 
 // Initialize Firebase Admin SDK
-if (!getApps().length) {
-  console.log('[actions.ts] Initializing Firebase Admin...');
-  try {
-    // When deployed to Vercel, GOOGLE_APPLICATION_CREDENTIALS_JSON is set
-    if (process.env.VERCEL_ENV === 'production' && process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
-        console.log('[actions.ts] Vercel environment detected. Initializing with service account.');
-        initializeApp({
-            credential: cert(JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON))
-        });
-    } else {
-        console.log('[actions.ts] Local or non-Vercel environment. Initializing with local credentials/config.');
-        // For local dev, it might use Application Default Credentials or the config object
-        initializeApp({
-            credential: {
-                projectId: firebaseConfig.projectId,
-                clientEmail: process.env.FIREBASE_CLIENT_EMAIL, // you might need to add this to env
-                privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'), // and this
-            }
-        });
-    }
-    console.log('[actions.ts] Firebase Admin initialized successfully.');
-  } catch (e) {
-    console.error('[actions.ts] Firebase Admin initialization error:', e);
+function initializeAdmin() {
+  if (getApps().length) {
+    console.log('[actions.ts] Firebase Admin já inicializado.');
+    return getApp();
+  }
+  
+  console.log('[actions.ts] Inicializando Firebase Admin...');
+  if (process.env.VERCEL_ENV === 'production' && process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
+      console.log('[actions.ts] Ambiente Vercel detectado. Inicializando com credenciais de serviço.');
+      const serviceAccount = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
+      return initializeApp({
+          credential: cert(serviceAccount)
+      });
+  } else {
+      console.log('[actions.ts] Ambiente local. Inicializando com credenciais padrão.');
+      // Para desenvolvimento local, ele usará as Credenciais Padrão da Aplicação
+      return initializeApp();
   }
 }
-const auth = getAuth();
-const firestore = getFirestore();
 
+const adminApp = initializeAdmin();
+const auth = getAuth(adminApp);
 
 async function createPixCharge(
   input: z.infer<typeof formSchema>,
   userId: string,
 ): Promise<PixChargeResponse> {
 
+  console.log('[createPixCharge] Iniciando criação de cobrança PIX...');
   const ABACATE_API_KEY = process.env.ABACATE_API_KEY;
 
   if (!ABACATE_API_KEY) {
-    console.error('[createPixCharge] Abacate Pay API key is not configured.');
+    console.error('[createPixCharge] Erro: Chave de API do Abacate Pay não configurada.');
     throw new Error('Abacate Pay API key is not configured.');
   }
 
@@ -88,7 +81,7 @@ async function createPixCharge(
     },
   };
 
-  console.log('[createPixCharge] Payload para Abacate Pay:', JSON.stringify(payload, null, 2));
+  console.log('[createPixCharge] Payload enviado para Abacate Pay:', JSON.stringify(payload, null, 2));
   
   const options = {
     method: 'POST',
@@ -106,17 +99,17 @@ async function createPixCharge(
     console.log('[createPixCharge] Resposta recebida da Abacate Pay:', JSON.stringify(result, null, 2));
     
     if (result.error) {
-        console.error('[createPixCharge] Abacate Pay Error:', result.error);
+        console.error('[createPixCharge] Erro da API Abacate Pay:', result.error);
         throw new Error(result.error.message || 'Ocorreu um erro ao se comunicar com o gateway de pagamento.');
     }
     
     // Validate response with Zod
     const validatedData = PixChargeResponseSchema.parse(result.data);
-    console.log('[createPixCharge] Cobrança PIX criada com sucesso. ID:', validatedData.id);
+    console.log('[createPixCharge] Cobrança PIX criada com sucesso.');
     return validatedData;
 
   } catch (error) {
-    console.error('[createPixCharge] Erro na chamada da API para criar cobrança PIX:', error);
+    console.error('[createPixCharge] Erro crítico ao criar cobrança PIX:', error);
     if (error instanceof Error) {
         throw new Error(`Falha ao criar cobrança PIX: ${error.message}`);
     }
@@ -128,48 +121,49 @@ export async function createPixChargeAction(
   prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
-  console.log('[createPixChargeAction] Ação iniciada.');
+    console.log('[createPixChargeAction] Ação iniciada.');
+    const headers = (await import('next/headers')).headers();
+    const authorization = headers.get('Authorization');
 
-  const headers = (await import('next/headers')).headers();
-  const authorization = headers.get('Authorization');
+    if (!authorization) {
+      console.error('[createPixChargeAction] Token de autorização não encontrado no header.');
+      return { error: 'Usuário não autenticado. Token ausente.' };
+    }
+    
+    const token = authorization.split('Bearer ')[1];
+    if (!token) {
+      console.error('[createPixChargeAction] Formato do token inválido.');
+      return { error: 'Usuário não autenticado. Token mal formatado.' };
+    }
 
-  if (!authorization) {
-    console.error('[createPixChargeAction] Token de autorização não encontrado no header.');
-    return { error: 'Usuário não autenticado. Token ausente.' };
-  }
-  
-  const token = authorization.split('Bearer ')[1];
-  if (!token) {
-    console.error('[createPixChargeAction] Formato do token inválido.');
-    return { error: 'Usuário não autenticado. Token mal formatado.' };
-  }
-
-  let decodedToken;
-  try {
-      decodedToken = await auth.verifyIdToken(token);
-      console.log(`[createPixChargeAction] Token verificado com sucesso para o UID: ${decodedToken.uid}`);
-  } catch (e: any) {
-      console.error('[createPixChargeAction] Falha na verificação do token:', e.message);
-      return { error: 'Sessão inválida. Por favor, faça login novamente.' };
-  }
-  const userId = decodedToken.uid;
+    let decodedToken;
+    try {
+        decodedToken = await auth.verifyIdToken(token);
+        console.log(`[createPixChargeAction] Token verificado com sucesso para o UID: ${decodedToken.uid}`);
+    } catch (e: any) {
+        console.error('[createPixChargeAction] Falha na verificação do token:', e.message);
+        return { error: 'Sessão inválida. Por favor, faça login novamente.' };
+    }
+    const userId = decodedToken.uid;
 
 
   const parsed = formSchema.safeParse(Object.fromEntries(formData));
 
   if (!parsed.success) {
-    console.error('[createPixChargeAction] Dados do formulário inválidos:', parsed.error.flatten());
+    console.error('[createPixChargeAction] Erro de validação do formulário:', parsed.error.issues);
     return { error: 'Dados do formulário inválidos. Verifique os campos e tente novamente.' };
   }
   
-  console.log('[createPixChargeAction] Dados do formulário validados com sucesso.');
+  console.log('[createPixChargeAction] Dados do formulário validados:', parsed.data);
 
   try {
     const result = await createPixCharge(parsed.data, userId);
+    console.log('[createPixChargeAction] Ação concluída com sucesso.');
     return { data: result };
   } catch (e) {
     const errorMessage = e instanceof Error ? e.message : 'Ocorreu um erro desconhecido.';
-    console.error('[createPixChargeAction] Erro ao executar createPixCharge:', errorMessage);
+    console.error(`[createPixChargeAction] Erro ao chamar createPixCharge: ${errorMessage}`);
     return { error: errorMessage };
   }
 }
+
