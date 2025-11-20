@@ -20,7 +20,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   Sidebar,
   SidebarContent,
@@ -77,7 +77,7 @@ export function AppSidebar() {
       variant="inset"
       className="bg-sidebar border-r border-sidebar-border"
     >
-      <SidebarHeader className="flex items-center justify-center p-4">
+      <SidebarHeader className="flex items-center p-4">
         <Link
           href="/"
           className="flex items-center gap-2 text-xl font-bold font-headline tracking-tighter text-foreground"
@@ -178,10 +178,6 @@ export function AppSidebar() {
             <Link href="/profile" className='flex-1 min-w-0'>
               <div className="flex items-center gap-3">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage
-                    src={undefined}
-                    alt="User Avatar"
-                  />
                   <AvatarFallback>
                     {user?.displayName?.[0].toUpperCase() ?? user?.email?.[0].toUpperCase() ?? 'U'}
                   </AvatarFallback>
