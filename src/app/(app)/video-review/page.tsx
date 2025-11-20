@@ -1,3 +1,4 @@
+
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -14,13 +15,19 @@ import {
 import { Sparkles, UploadCloud } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useRouter } from 'next/navigation';
 
 export default function VideoReviewPage() {
   const [isMounted, setIsMounted] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  const handleClosePopup = () => {
+    router.push('/dashboard');
+  }
 
   return (
     <div className="space-y-12">
@@ -64,7 +71,7 @@ export default function VideoReviewPage() {
         </Card>
 
       {isMounted && (
-        <AlertDialog open={true}>
+        <AlertDialog open={true} onOpenChange={(open) => !open && handleClosePopup()}>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Funcionalidade em Manutenção</AlertDialogTitle>
@@ -73,11 +80,7 @@ export default function VideoReviewPage() {
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogAction onClick={() => {
-                // This is a bit of a hack to "close" it visually, 
-                // but since it's controlled by `open={true}` it will just re-appear.
-                // For a temporary notice, this is acceptable.
-              }}>Entendido</AlertDialogAction>
+              <AlertDialogAction onClick={handleClosePopup}>Entendido</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
