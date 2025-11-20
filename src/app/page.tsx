@@ -1,71 +1,443 @@
 'use client';
 
-import Image from 'next/image';
-import Link from 'next/link';
 import {
   ArrowRight,
-  BarChart,
-  CheckCircle,
-  Clapperboard,
-  FileText,
-  Lightbulb,
-  MonitorPlay,
-  Presentation,
-  Radar,
-  Menu,
+  TrendingUp,
+  Target,
+  DollarSign,
+  Info,
 } from 'lucide-react';
-import { Button, buttonVariants } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
-  Sheet,
-  SheetContent,
-  SheetClose,
-  SheetTrigger,
-} from '@/components/ui/sheet';
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
 import { useUser } from '@/firebase';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { AnimatePresence, motion } from 'framer-motion';
+import Link from 'next/link';
+import { useState, useMemo, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from 'recharts';
+import {
+  Tooltip as ShadTooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { format } from 'date-fns';
+import { addMonths } from 'date-fns';
 
-const featureCards = [
-  {
-    icon: <BarChart className="w-8 h-8 mb-4 text-primary" />,
-    title: 'Diagnóstico da Conta',
-    description:
-      'Entenda seu perfil como o algoritmo e receba um plano de crescimento personalizado.',
-  },
-  {
-    icon: <Lightbulb className="w-8 h-8 mb-4 text-primary" />,
-    title: 'Ideias e Roteiros com IA',
-    description:
-      'Receba 10 ideias otimizadas por nicho, com ganchos, roteiros completos e CTAs.',
-  },
-  {
-    icon: <MonitorPlay className="w-8 h-8 mb-4 text-primary" />,
-    title: 'Revisão Automática',
-    description:
-      'Nossa IA analisa seu vídeo antes de postar, sugerindo melhorias no ritmo, cortes e áudio.',
-  },
-  {
-    icon: <Radar className="w-8 h-8 mb-4 text-primary" />,
-    title: 'Radar de Trends',
-    description:
-      'Acesse trends do seu nicho, atualizadas diariamente com áudio e guia de uso.',
-  },
-  {
-    icon: <Presentation className="w-8 h-8 mb-4 text-primary" />,
-    title: 'Mídia Kit Profissional',
-    description:
-      'Gere um mídia kit com design premium e informações atualizadas em um clique.',
-  },
-  {
-    icon: <FileText className="w-8 h-8 mb-4 text-primary" />,
-    title: 'Propostas Inteligentes',
-    description:
-      'Crie propostas para marcas com a ajuda da IA, incluindo escopo e calculadora de preço.',
-  },
-];
+const formSchema = z.object({
+  niche: z.string().min(1, 'Selecione um nicho.'),
+  country: z.string().min(1, 'Selecione um país.'),
+  currentFollowers: z.coerce
+    .number()
+    .min(1, 'Deve ser maior que zero.')
+    .default(10000),
+  targetFollowers: z.coerce
+    .number()
+    .min(1, 'Deve ser maior que zero.')
+    .default(100000),
+  reelsPerMonth: z.number().min(0).max(60).default(20),
+  priority: z
+    .enum(['alcance', 'conversao', 'autoridade'])
+    .default('alcance'),
+});
+
+type FormData = z.infer<typeof formSchema>;
+
+const nicheBenchmarks = {
+  moda: { baseGrowth: 0.06, cpm: [20, 80] },
+  beleza: { baseGrowth: 0.05, cpm: [25, 90] },
+  fitness: { baseGrowth: 0.07, cpm: [30, 100] },
+  culinaria: { baseGrowth: 0.055, cpm: [15, 70] },
+  lifestyle: { baseGrowth: 0.065, cpm: [18, 75] },
+  tecnologia: { baseGrowth: 0.04, cpm: [40, 150] },
+};
+
+const priorityWeights = {
+  alcance: 1.2,
+  conversao: 0.9,
+  autoridade: 1.0,
+};
 
 export default function LandingPage() {
   const { user } = useUser();
+  const [step, setStep] = useState(1);
+  const [results, setResults] = useState<any>(null);
+  const [isCalculating, setIsCalculating] = useState(false);
+
+  const form = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      niche: 'moda',
+      country: 'br',
+      currentFollowers: 10000,
+      targetFollowers: 100000,
+      reelsPerMonth: 20,
+      priority: 'alcance',
+    },
+  });
+
+  const onSubmit = (data: FormData) => {
+    setIsCalculating(true);
+    setTimeout(() => {
+      const benchmark =
+        nicheBenchmarks[data.niche as keyof typeof nicheBenchmarks];
+      const priorityWeight = priorityWeights[data.priority];
+
+      const reelsMultiplier = 1 + (data.reelsPerMonth - 10) * 0.02; // +2% for each reel above 10
+      const monthlyGrowthRate =
+        benchmark.baseGrowth * reelsMultiplier * priorityWeight;
+
+      let months = 0;
+      let followers = data.currentFollowers;
+      const growthData = [{ month: 0, followers: Math.round(followers) }];
+      while (followers < data.targetFollowers) {
+        followers *= 1 + monthlyGrowthRate;
+        months++;
+        growthData.push({ month: months, followers: Math.round(followers) });
+      }
+
+      const viewRate = [0.2, 0.5]; // 20-50%
+      const cpm = benchmark.cpm;
+      const publisPerMonth = Math.round(data.reelsPerMonth * 0.25); // 25% of reels are publis
+
+      const calculateEarnings = (followerCount: number) => {
+        const views = [
+          followerCount * viewRate[0],
+          followerCount * viewRate[1],
+        ];
+        const pricePerReel = [
+          (views[0] / 1000) * cpm[0],
+          (views[1] / 1000) * cpm[1],
+        ];
+        const monthlyEarnings = [
+          pricePerReel[0] * publisPerMonth,
+          pricePerReel[1] * publisPerMonth,
+        ];
+        return monthlyEarnings.map((v) => Math.round(v));
+      };
+
+      const currentEarnings = calculateEarnings(data.currentFollowers);
+      const targetEarnings = calculateEarnings(data.targetFollowers);
+
+      const targetDate = format(addMonths(new Date(), months), "MMMM 'de' yyyy");
+
+      const trendSuggestions = {
+        moda: [
+          '3 looks com uma peça só',
+          'GRWM para um evento X',
+          'Review honesto da marca Y',
+        ],
+        beleza: [
+          'Tutorial de make para iniciantes',
+          'Minha rotina de skincare noturna',
+          'Produtos que eu compraria de novo',
+        ],
+        fitness: [
+          'Meu treino de pernas completo',
+          'O que eu como em um dia',
+          '3 exercícios para fazer em casa',
+        ],
+        culinaria: [
+          'Receita fácil para o jantar',
+          'Como fazer o café perfeito',
+          'Review do restaurante da moda',
+        ],
+        lifestyle: [
+          'Um dia na minha vida',
+          'Tour pelo meu apartamento',
+          '5 hábitos que mudaram minha vida',
+        ],
+        tecnologia: [
+          'Unboxing do novo iPhone',
+          'Top 5 apps que você precisa ter',
+          'Como otimizar seu home office',
+        ],
+      };
+
+      setResults({
+        monthsToTarget: months,
+        targetDate,
+        currentEarnings,
+        targetEarnings,
+        growthData,
+        recommendedPlan: `Poste ${data.reelsPerMonth} Reels por mês para otimizar o crescimento.`,
+        trendSuggestions:
+          trendSuggestions[data.niche as keyof typeof trendSuggestions],
+      });
+      setIsCalculating(false);
+      setStep(4);
+    }, 1500); // Simulate calculation delay
+  };
+
+  const currentFollowers = form.watch('currentFollowers');
+  const targetFollowers = form.watch('targetFollowers');
+
+  useEffect(() => {
+    if (targetFollowers <= currentFollowers) {
+      form.setError('targetFollowers', {
+        type: 'manual',
+        message: 'A meta deve ser maior que os seguidores atuais.',
+      });
+    } else {
+      form.clearErrors('targetFollowers');
+    }
+  }, [currentFollowers, targetFollowers, form]);
+
+  const renderStep = () => {
+    const motionProps = {
+      initial: { opacity: 0, y: 20 },
+      animate: { opacity: 1, y: 0 },
+      exit: { opacity: 0, y: -20 },
+      transition: { duration: 0.4, ease: 'easeInOut' },
+    };
+
+    switch (step) {
+      case 1:
+        return (
+          <motion.div {...motionProps} key="step1">
+            <h3 className="font-semibold text-lg text-foreground mb-1">
+              Passo 1 de 3
+            </h3>
+            <p className="text-muted-foreground mb-6">
+              Nos conte sobre sua conta e nicho.
+            </p>
+            <div className="space-y-6">
+              <FormField
+                control={form.control}
+                name="niche"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Seu Nicho Principal</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione seu nicho..." />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="moda">Moda</SelectItem>
+                        <SelectItem value="beleza">Beleza</SelectItem>
+                        <SelectItem value="fitness">Fitness</SelectItem>
+                        <SelectItem value="culinaria">Culinária</SelectItem>
+                        <SelectItem value="lifestyle">Lifestyle</SelectItem>
+                        <SelectItem value="tecnologia">Tecnologia</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="country"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>País/Região</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione seu país..." />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="br">Brasil</SelectItem>
+                        <SelectItem value="us">Estados Unidos</SelectItem>
+                        <SelectItem value="pt">Portugal</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormItem>
+                )}
+              />
+            </div>
+          </motion.div>
+        );
+      case 2:
+        return (
+          <motion.div {...motionProps} key="step2">
+            <h3 className="font-semibold text-lg text-foreground mb-1">
+              Passo 2 de 3
+            </h3>
+            <p className="text-muted-foreground mb-6">
+              Qual seu ponto de partida?
+            </p>
+            <div className="space-y-6">
+              <FormField
+                control={form.control}
+                name="currentFollowers"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Seguidores Atuais</FormLabel>
+                    <FormControl>
+                      <Input type="number" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="targetFollowers"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Meta de Seguidores</FormLabel>
+                    <FormControl>
+                      <Input type="number" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </motion.div>
+        );
+      case 3:
+        return (
+          <motion.div {...motionProps} key="step3">
+            <h3 className="font-semibold text-lg text-foreground mb-1">
+              Passo 3 de 3
+            </h3>
+            <p className="text-muted-foreground mb-6">
+              Defina sua meta e cadência.
+            </p>
+            <div className="space-y-8">
+              <FormField
+                control={form.control}
+                name="reelsPerMonth"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="flex justify-between items-center">
+                      <FormLabel>Reels por Mês</FormLabel>
+                      <span className="text-sm font-semibold text-primary">
+                        {field.value}
+                      </span>
+                    </div>
+                    <FormControl>
+                      <Slider
+                        min={0}
+                        max={60}
+                        step={1}
+                        value={[field.value]}
+                        onValueChange={(vals) => field.onChange(vals[0])}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="priority"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Qual sua prioridade?</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione sua prioridade..." />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="alcance">
+                          Alcance (Crescer mais rápido)
+                        </SelectItem>
+                        <SelectItem value="conversao">
+                          Conversão (Vender mais)
+                        </SelectItem>
+                        <SelectItem value="autoridade">
+                          Autoridade (Construir marca)
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormItem>
+                )}
+              />
+            </div>
+          </motion.div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const ResultCard = ({
+    icon,
+    title,
+    value,
+    description,
+    delay,
+  }: {
+    icon: React.ReactNode;
+    title: string;
+    value: string;
+    description?: string;
+    delay: number;
+  }) => (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay }}
+    >
+      <Card className="h-full bg-card/50 backdrop-blur-sm border-border/20 shadow-lg shadow-primary/5">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-base font-medium text-muted-foreground">
+            {title}
+          </CardTitle>
+          {icon}
+        </CardHeader>
+        <CardContent>
+          <div className="text-3xl font-bold font-headline text-foreground">
+            {value}
+          </div>
+          {description && (
+            <p className="text-xs text-muted-foreground mt-1">
+              {description}
+            </p>
+          )}
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
@@ -77,505 +449,244 @@ export default function LandingPage() {
           >
             trendify
           </Link>
-          <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
-            <Link
-              href="#features"
-              className="text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Recursos
-            </Link>
-            <Link
-              href="#pricing"
-              className="text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Preços
-            </Link>
-            <Link
-              href="#"
-              className="text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Blog
-            </Link>
-          </nav>
-          <div className="hidden md:flex items-center gap-4">
+          <div className="flex items-center gap-4">
             {user ? (
-              <>
-                <Link
-                  href="/dashboard"
-                  className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                >
-                  Painel
-                </Link>
-                <Link
-                  href="/dashboard"
-                  className={buttonVariants({
-                    className: 'font-manrope rounded-full',
-                  })}
-                >
-                  Minha Conta
-                </Link>
-              </>
+              <Link
+                href="/dashboard"
+                className={Button({
+                  className: 'font-manrope rounded-full',
+                })}
+              >
+                Acessar Painel
+              </Link>
             ) : (
               <>
                 <Link
                   href="/login"
-                  className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                  className="text-sm text-muted-foreground transition-colors hover:text-foreground hidden sm:block"
                 >
                   Login
                 </Link>
                 <Link
                   href="/sign-up"
-                  className={buttonVariants({
+                  className={Button({
                     className: 'font-manrope rounded-full',
                   })}
                 >
-                  Comece grátis
+                  Comece Grátis
                 </Link>
               </>
             )}
           </div>
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden">
-                <Menu />
-                <span className="sr-only">Abrir menu</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right" className="bg-background w-full sm:max-w-xs p-0">
-              <div className="flex flex-col h-full">
-                <div className="p-6">
-                  <Link
-                    href="/"
-                    className="text-2xl font-bold font-headline text-foreground mb-4"
-                  >
-                    trendify
-                  </Link>
-                </div>
-                <nav className="flex flex-col gap-4 text-lg font-medium p-6">
-                  <SheetClose asChild>
-                    <Link
-                      href="#features"
-                      className="text-muted-foreground hover:text-foreground"
-                    >
-                      Recursos
-                    </Link>
-                  </SheetClose>
-                  <SheetClose asChild>
-                    <Link
-                      href="#pricing"
-                      className="text-muted-foreground hover:text-foreground"
-                    >
-                      Preços
-                    </Link>
-                  </SheetClose>
-                  <SheetClose asChild>
-                    <Link
-                      href="#"
-                      className="text-muted-foreground hover:text-foreground"
-                    >
-                      Blog
-                    </Link>
-                  </SheetClose>
-                </nav>
-                <div className="mt-auto p-6 border-t border-border">
-                  {user ? (
-                    <SheetClose asChild>
-                      <Link
-                        href="/dashboard"
-                        className={buttonVariants({
-                          className: 'font-manrope w-full',
-                          size: 'lg',
-                        })}
-                      >
-                        Acessar Painel
-                      </Link>
-                    </SheetClose>
-                  ) : (
-                    <div className="flex flex-col gap-4">
-                      <SheetClose asChild>
-                        <Link
-                          href="/login"
-                          className={buttonVariants({
-                            variant: 'outline',
-                            className: 'font-manrope w-full',
-                            size: 'lg',
-                          })}
-                        >
-                          Login
-                        </Link>
-                      </SheetClose>
-                      <SheetClose asChild>
-                        <Link
-                          href="/sign-up"
-                          className={buttonVariants({
-                            className: 'font-manrope w-full',
-                            size: 'lg',
-                          })}
-                        >
-                          Comece grátis
-                        </Link>
-                      </SheetClose>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </SheetContent>
-          </Sheet>
         </div>
       </header>
 
-      <main className="flex-1">
-        <section className="relative pt-40 pb-20 md:pt-56 md:pb-32 text-center overflow-hidden">
-          <div className="absolute inset-0 -z-10 bg-gradient-to-b from-background to-background/80">
-            <div className="absolute inset-0 bg-grid-pattern opacity-30 [mask-image:linear-gradient(to_bottom,white,transparent_80%)]" />
-            <div className="absolute inset-0 bg-gradient-radial from-primary/10 via-transparent to-transparent" />
-          </div>
-          <div className="container relative">
-            <div className="max-w-4xl mx-auto">
-              <h1 className="text-5xl sm:text-6xl md:text-7xl font-black font-headline tracking-tighter mb-6 !leading-tight">
-                Transforme seus vídeos <br /> em tendências. Todos os dias.
+      <main className="flex-1 pt-20">
+        <section className="container py-12 md:py-24">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            {/* Formulário */}
+            <div className="max-w-lg">
+              <h1 className="text-4xl sm:text-5xl font-black font-headline tracking-tighter mb-4 !leading-tight">
+                Se veja no futuro.
               </h1>
-              <p className="max-w-2xl mx-auto text-lg md:text-xl text-muted-foreground mb-10">
-                A Trendify usa IA para te ajudar a crescer no Instagram e TikTok:
-                ideias, roteiros, revisão de vídeo, trends, mídia kit e
-                propostas — tudo em um único lugar.
+              <p className="text-lg text-muted-foreground mb-8">
+                Responda 6 perguntas. Em 60 segundos mostramos seu plano, tempo
+                até a meta e potencial de ganhos no seu nicho.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link
-                  href={user ? '/dashboard' : '/sign-up'}
-                  className={buttonVariants({
-                    size: 'lg',
-                    className:
-                      'font-manrope rounded-full text-base h-12 px-8 shadow-lg shadow-primary/20 transition-transform hover:scale-105',
-                  })}
-                >
-                  Começar agora <ArrowRight className="ml-2" />
-                </Link>
-                <Link
-                  href="#"
-                  className={buttonVariants({
-                    size: 'lg',
-                    variant: 'ghost',
-                    className:
-                      'font-manrope rounded-full text-base h-12 px-8 text-muted-foreground transition-transform hover:scale-105 hover:text-foreground hover:bg-secondary',
-                  })}
-                >
-                  Ver demo
-                </Link>
-              </div>
+              <Card className="bg-card/30 backdrop-blur-lg border border-border/10 rounded-2xl shadow-2xl shadow-primary/5">
+                <CardContent className="p-8">
+                  <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)}>
+                      <AnimatePresence mode="wait">
+                        {renderStep()}
+                      </AnimatePresence>
+                      <div className="flex justify-between items-center mt-8">
+                        {step > 1 && step < 4 && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={() => setStep(step - 1)}
+                          >
+                            Voltar
+                          </Button>
+                        )}
+                        <div className="flex-1" />
+                        {step < 3 && (
+                          <Button type="button" onClick={() => setStep(step + 1)}>
+                            Próximo
+                          </Button>
+                        )}
+                        {step === 3 && (
+                          <Button
+                            type="submit"
+                            disabled={isCalculating}
+                            className="w-full sm:w-auto"
+                          >
+                            {isCalculating ? (
+                              'Calculando...'
+                            ) : (
+                              <>
+                                Ver minha projeção{' '}
+                                <ArrowRight className="ml-2 h-4 w-4" />
+                              </>
+                            )}
+                          </Button>
+                        )}
+                      </div>
+                    </form>
+                  </Form>
+                </CardContent>
+              </Card>
             </div>
-          </div>
-        </section>
 
-        <section className="py-16">
-          <div className="container">
-            <p className="text-center text-muted-foreground font-medium mb-12">
-              Criadoras que já descobriram o poder da clareza.
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center max-w-5xl mx-auto">
-              <div className="p-6 rounded-2xl">
-                <p className="text-5xl font-bold font-headline text-primary mb-2">
-                  +48%
-                </p>
-                <p className="text-muted-foreground">
-                  crescimento médio em 30 dias
-                </p>
-              </div>
-              <div className="p-6 rounded-2xl">
-                <p className="text-5xl font-bold font-headline text-primary mb-2">
-                  3x
-                </p>
-                <p className="text-muted-foreground">
-                  mais engajamento com ganchos otimizados
-                </p>
-              </div>
-              <div className="p-6 rounded-2xl">
-                <p className="text-5xl font-bold font-headline text-primary mb-2">
-                  +70%
-                </p>
-                <p className="text-muted-foreground">
-                  consistência de postagem semanal
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section id="features" className="py-20 md:py-32">
-          <div className="container">
-            <div className="text-center max-w-3xl mx-auto mb-16">
-              <h2 className="text-4xl md:text-5xl font-bold font-headline tracking-tight !leading-tight">
-                Uma plataforma, todas as ferramentas.
-              </h2>
-              <p className="text-lg text-muted-foreground mt-4">
-                Deixe a IA cuidar do trabalho pesado e foque no que você faz de
-                melhor: criar.
-              </p>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {featureCards.map((feature, index) => (
-                <Card
-                  key={index}
-                  className="p-8 border border-border bg-card/50 backdrop-blur-xl rounded-2xl transition-all duration-300 hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-1"
+            {/* Resultados */}
+            <div className="relative h-[600px] rounded-3xl p-8 flex flex-col justify-center items-center text-center bg-muted/20 border border-dashed border-border/30">
+              <AnimatePresence>
+                {!results && (
+                  <motion.div
+                    initial={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="text-center"
+                  >
+                    <TrendingUp className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                    <h3 className="text-xl font-bold font-headline text-foreground">
+                      Sua projeção aparecerá aqui
+                    </h3>
+                    <p className="text-muted-foreground">
+                      Preencha os dados ao lado para começar.
+                    </p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              {results && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5 }}
+                  className="w-full space-y-6"
                 >
-                  <div className="p-3 rounded-lg bg-primary/10 inline-block mb-4">
-                    {feature.icon}
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <ResultCard
+                      icon={<Target className="h-4 w-4 text-muted-foreground" />}
+                      title="Tempo até a Meta"
+                      value={`${results.monthsToTarget} meses`}
+                      description={`Data prevista: ${results.targetDate}`}
+                      delay={0.1}
+                    />
+                    <ResultCard
+                      icon={
+                        <DollarSign className="h-4 w-4 text-muted-foreground" />
+                      }
+                      title="Ganhos/mês (Meta)"
+                      value={`R$${(results.targetEarnings[0] / 1000).toFixed(
+                        1
+                      )}k - R$${(results.targetEarnings[1] / 1000).toFixed(
+                        1
+                      )}k`}
+                      description={`Agora: R$${results.currentEarnings[0]} - R$${results.currentEarnings[1]}`}
+                      delay={0.2}
+                    />
                   </div>
-                  <h3 className="text-xl font-bold font-headline mb-2">
-                    {feature.title}
-                  </h3>
-                  <p className="text-muted-foreground">{feature.description}</p>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section>
 
-        <section className="py-20 md:py-32">
-          <div className="container">
-            <div className="grid lg:grid-cols-2 gap-16 items-center">
-              <div>
-                <Badge className="mb-4 bg-primary/10 text-primary border-primary/20">
-                  Depoimentos
-                </Badge>
-                <h2 className="text-4xl md:text-5xl font-bold font-headline tracking-tight mb-8 !leading-tight">
-                  O que as criadoras estão dizendo
-                </h2>
-                <div className="space-y-6">
-                  <Card className="p-6 rounded-2xl bg-card/50 backdrop-blur-sm border border-border">
-                    <p className="text-foreground mb-4">
-                      &quot;A Trendify mudou meu jogo. Finalmente tenho um
-                      processo claro e minhas visualizações nunca foram tão
-                      altas.&quot;
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.3 }}
+                  >
+                    <Card className="bg-card/50 backdrop-blur-sm border-border/20 shadow-lg shadow-primary/5">
+                      <CardHeader>
+                        <CardTitle className="text-base font-medium flex items-center justify-between">
+                          <span>Curva de Crescimento</span>
+                          <TooltipProvider>
+                            <ShadTooltip>
+                              <TooltipTrigger>
+                                <Info className="h-4 w-4 text-muted-foreground" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Estimativa de crescimento de seguidores.</p>
+                              </TooltipContent>
+                            </ShadTooltip>
+                          </TooltipProvider>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="h-40">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart
+                            data={results.growthData}
+                            margin={{
+                              top: 5,
+                              right: 20,
+                              left: 0,
+                              bottom: 5,
+                            }}
+                          >
+                            <XAxis
+                              dataKey="month"
+                              stroke="hsl(var(--muted-foreground))"
+                              fontSize={12}
+                              tickLine={false}
+                              axisLine={false}
+                              tickFormatter={(value) => `Mês ${value}`}
+                            />
+                            <YAxis
+                              stroke="hsl(var(--muted-foreground))"
+                              fontSize={12}
+                              tickLine={false}
+                              axisLine={false}
+                              tickFormatter={(value) =>
+                                `${(value / 1000).toLocaleString()}k`
+                              }
+                            />
+                            <Tooltip
+                              contentStyle={{
+                                background: 'hsl(var(--background))',
+                                border: '1px solid hsl(var(--border))',
+                                borderRadius: 'var(--radius)',
+                              }}
+                              labelFormatter={(value) => `Mês ${value}`}
+                              formatter={(value) => [
+                                `${Number(value).toLocaleString()} seguidores`,
+                                'Projeção',
+                              ]}
+                            />
+                            <Line
+                              type="monotone"
+                              dataKey="followers"
+                              stroke="hsl(var(--primary))"
+                              strokeWidth={2}
+                              dot={false}
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.4 }}
+                    className="text-center pt-4"
+                  >
+                    <Link
+                      href="/sign-up"
+                      className={Button({
+                        size: 'lg',
+                        className: 'font-manrope rounded-full text-base h-12 px-8 shadow-lg shadow-primary/20 transition-transform hover:scale-105',
+                      })}
+                    >
+                      Criar conta e seguir o plano{' '}
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
+                     <p className="text-xs text-muted-foreground mt-3">
+                      Estimativas com base em benchmarks do nicho. Resultados variam.
                     </p>
-                    <div className="flex items-center gap-3">
-                      <Image
-                        src="https://picsum.photos/seed/person1/40/40"
-                        alt="Mariana S."
-                        width={40}
-                        height={40}
-                        className="rounded-full"
-                        data-ai-hint="woman portrait"
-                      />
-                      <div>
-                        <p className="font-semibold text-foreground">
-                          Mariana S.
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          @marisstyle
-                        </p>
-                      </div>
-                    </div>
-                  </Card>
-                  <Card className="p-6 rounded-2xl bg-card/50 backdrop-blur-sm border border-border">
-                    <p className="text-foreground mb-4">
-                      &quot;O assistente de propostas me economiza horas. Fechei
-                      duas novas parcerias na primeira semana!&quot;
-                    </p>
-                    <div className="flex items-center gap-3">
-                      <Image
-                        src="https://picsum.photos/seed/person2/40/40"
-                        alt="Julia F."
-                        width={40}
-                        height={40}
-                        className="rounded-full"
-                        data-ai-hint="woman smiling"
-                      />
-                      <div>
-                        <p className="font-semibold text-foreground">
-                          Julia F.
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          @juliacooks
-                        </p>
-                      </div>
-                    </div>
-                  </Card>
-                </div>
-              </div>
-              <div className="relative h-[600px] w-full hidden lg:block rounded-3xl overflow-hidden shadow-2xl shadow-primary/10">
-                <Image
-                  src="https://picsum.photos/seed/mediakit/600/800"
-                  alt="Media Kit Mockup"
-                  fill
-                  style={{ objectFit: 'cover' }}
-                  data-ai-hint="document dashboard"
-                />
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section id="pricing" className="py-20 md:py-32">
-          <div className="container">
-            <div className="text-center max-w-3xl mx-auto mb-16">
-              <h2 className="text-4xl md:text-5xl font-bold font-headline tracking-tight !leading-tight">
-                Comece grátis e cresça no seu ritmo.
-              </h2>
-              <p className="text-lg text-muted-foreground mt-4">
-                Planos simples e transparentes para cada estágio da sua carreira
-                de criadora.
-              </p>
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-5xl mx-auto items-start">
-              <Card className="p-8 flex flex-col rounded-2xl border border-border bg-card/50 backdrop-blur-sm">
-                <h3 className="text-2xl font-bold font-headline mb-2">Free</h3>
-                <p className="text-muted-foreground mb-6">
-                  Para começar a organizar suas ideias.
-                </p>
-                <p className="text-5xl font-black font-headline mb-6">
-                  R$0
-                  <span className="text-lg font-medium text-muted-foreground">
-                    /mês
-                  </span>
-                </p>
-                <ul className="space-y-3 text-muted-foreground flex-1 mb-8">
-                  <li className="flex items-center gap-3">
-                    <CheckCircle className="w-5 h-5 text-primary" /> 5 ideias de
-                    vídeo/mês
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <CheckCircle className="w-5 h-5 text-primary" /> Análise
-                    básica de perfil
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <CheckCircle className="w-5 h-5 text-primary" /> Radar de
-                    trends limitado
-                  </li>
-                </ul>
-                <Button
-                  variant="outline"
-                  className="w-full font-manrope rounded-full h-11"
-                >
-                  Comece agora
-                </Button>
-              </Card>
-              <Card className="p-8 flex flex-col rounded-2xl relative overflow-hidden border-2 border-primary shadow-2xl shadow-primary/20 bg-card/80 backdrop-blur-xl">
-                <Badge className="absolute top-0 right-0 -mr-1 -mt-1 bg-primary text-primary-foreground text-xs font-semibold rounded-full px-3 py-1 m-4">
-                  MAIS POPULAR
-                </Badge>
-                <h3 className="text-2xl font-bold font-headline mb-2 text-primary">
-                  Pro
-                </h3>
-                <p className="text-muted-foreground mb-6">
-                  Para criadoras que querem acelerar.
-                </p>
-                <p className="text-5xl font-black font-headline mb-6">
-                  R$49
-                  <span className="text-lg font-medium text-muted-foreground">
-                    /mês
-                  </span>
-                </p>
-                <ul className="space-y-3 text-muted-foreground flex-1 mb-8">
-                  <li className="flex items-center gap-3">
-                    <CheckCircle className="w-5 h-5 text-primary" /> Ideias e
-                    roteiros ilimitados
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <CheckCircle className="w-5 h-5 text-primary" /> Revisão de
-                    10 vídeos/mês
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <CheckCircle className="w-5 h-5 text-primary" /> Radar de
-                    trends completo
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <CheckCircle className="w-5 h-5 text-primary" /> Mídia kit
-                    e propostas com IA
-                  </li>
-                </ul>
-                <Button className="w-full font-manrope rounded-full h-11">
-                  Escolher Pro
-                </Button>
-              </Card>
-              <Card className="p-8 flex flex-col rounded-2xl border border-border bg-card/50 backdrop-blur-sm">
-                <h3 className="text-2xl font-bold font-headline mb-2">Elite</h3>
-                <p className="text-muted-foreground mb-6">
-                  Para agências e criadoras full-time.
-                </p>
-                <p className="text-5xl font-black font-headline mb-6">
-                  R$129
-                  <span className="text-lg font-medium text-muted-foreground">
-                    /mês
-                  </span>
-                </p>
-                <ul className="space-y-3 text-muted-foreground flex-1 mb-8">
-                  <li className="flex items-center gap-3">
-                    <CheckCircle className="w-5 h-5 text-primary" /> Tudo do Pro
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <CheckCircle className="w-5 h-5 text-primary" /> Análise de
-                    múltiplos perfis
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <CheckCircle className="w-5 h-5 text-primary" /> Suporte
-                    prioritário
-                  </li>
-                </ul>
-                <Button
-                  variant="outline"
-                  className="w-full font-manrope rounded-full h-11"
-                >
-                  Fale conosco
-                </Button>
-              </Card>
-            </div>
-          </div>
-        </section>
-
-        <section className="bg-primary/10">
-          <div className="container py-20 md:py-32">
-            <div className="text-center max-w-3xl mx-auto">
-              <h2 className="text-4xl sm:text-5xl md:text-6xl font-black font-headline tracking-tight mb-6 !leading-tight">
-                O seu conteúdo pode ir muito mais longe.
-              </h2>
-              <p className="text-primary/80 mb-8">
-                Junte-se a milhares de criadoras que estão transformando
-                criatividade em carreira.
-              </p>
-              <Link
-                href={user ? '/dashboard' : '/sign-up'}
-                className={buttonVariants({
-                  size: 'lg',
-                  className:
-                    'font-manrope text-base h-12 px-8 rounded-full shadow-lg shadow-primary/20 transition-transform hover:scale-105',
-                })}
-              >
-                Criar conta grátis
-              </Link>
+                  </motion.div>
+                </motion.div>
+              )}
             </div>
           </div>
         </section>
       </main>
-
-      <footer className="py-8 border-t border-border">
-        <div className="container flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} Trendify. Todos os direitos
-            reservados.
-          </p>
-          <div className="flex items-center gap-6 text-sm font-medium">
-            <Link
-              href="#"
-              className="text-muted-foreground hover:text-foreground"
-            >
-              Termos
-            </Link>
-            <Link
-              href="#"
-              className="text-muted-foreground hover:text-foreground"
-            >
-              Privacidade
-            </Link>
-            <Link
-              href="#"
-              className="text-muted-foreground hover:text-foreground"
-            >
-              Contato
-            </Link>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
