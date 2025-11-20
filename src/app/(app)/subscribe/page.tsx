@@ -13,7 +13,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useActionState, useEffect, useState } from 'react';
+import { useActionState, useEffect, useState, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { createPixChargeAction } from './actions';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -30,6 +30,8 @@ export default function SubscribePage() {
   const firestore = useFirestore();
   const { toast } = useToast();
   const [state, formAction, isGenerating] = useActionState(createPixChargeAction, null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const tokenRef = useRef<HTMLInputElement>(null);
 
   const userProfileRef = useMemoFirebase(
     () => (firestore && user ? doc(firestore, `users/${user.uid}`) : null),
@@ -69,6 +71,20 @@ export default function SubscribePage() {
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast({ title: 'Copiado!', description: 'Código PIX copiado para a área de transferência.' });
+  };
+
+  const handleFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!user) {
+        toast({ title: 'Erro', description: 'Usuário não autenticado.', variant: 'destructive' });
+        return;
+    }
+    const token = await user.getIdToken();
+    if (tokenRef.current) {
+        tokenRef.current.value = token;
+    }
+    const formData = new FormData(formRef.current!);
+    formAction(formData);
   };
   
   const result = state?.data;
@@ -127,7 +143,8 @@ export default function SubscribePage() {
               
               {!result && !isGenerating && !isLoadingProfile && (
                 <Form {...form}>
-                    <form action={formAction} className='space-y-6'>
+                    <form ref={formRef} onSubmit={handleFormSubmit} className='space-y-6'>
+                        <input type="hidden" name="__token" ref={tokenRef} />
                         <FormField
                         control={form.control}
                         name="name"
