@@ -23,8 +23,7 @@ import {
   Loader2,
   Star,
 } from 'lucide-react';
-import { useEffect } from 'react';
-import { useFormState } from 'react-dom';
+import { useEffect, useActionState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { getVideoReviewAction } from './actions';
@@ -35,7 +34,7 @@ const formSchema = z.object({
 
 export default function VideoReviewPage() {
   const { toast } = useToast();
-  const [state, formAction] = useFormState(getVideoReviewAction, null);
+  const [state, formAction] = useActionState(getVideoReviewAction, null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),

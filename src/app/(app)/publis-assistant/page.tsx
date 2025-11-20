@@ -15,8 +15,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Bot, Clapperboard, FileText, Loader2 } from 'lucide-react';
-import { useEffect } from 'react';
-import { useFormState } from 'react-dom';
+import { useEffect, useActionState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { getAiSuggestedVideoScriptsAction } from './actions';
@@ -33,7 +32,7 @@ const formSchema = z.object({
 
 export default function PublisAssistantPage() {
   const { toast } = useToast();
-  const [state, formAction] = useFormState(
+  const [state, formAction] = useActionState(
     getAiSuggestedVideoScriptsAction,
     null
   );
