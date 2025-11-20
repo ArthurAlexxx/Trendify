@@ -453,7 +453,7 @@ export default function LandingPage() {
                   transition={{ duration: 0.5 }}
                   viewport={{ once: true, amount: 0.3 }}
                 >
-                  <Card className="text-left h-full bg-card/50 shadow-sm hover:shadow-primary/10 transition-all duration-300 rounded-2xl border border-transparent hover:border-primary/30 hover:shadow-lg hover:-translate-y-1">
+                  <Card className="text-left h-full bg-card/50 shadow-sm transition-all duration-300 rounded-2xl border border-border/20 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1">
                     <CardHeader className="flex flex-row items-center gap-4">
                       <div className="bg-primary/10 text-primary p-3 rounded-lg">
                         <feature.icon className="h-6 w-6" />
