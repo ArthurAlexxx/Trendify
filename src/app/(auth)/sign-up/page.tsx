@@ -17,7 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, UserPlus, ArrowRight } from 'lucide-react';
+import { Loader2, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth, useFirestore } from '@/firebase';
@@ -107,11 +107,10 @@ export default function SignUpPage() {
             Crie sua conta e comece a crescer.
           </p>
         </div>
-        <Card>
+        <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 font-headline">
-              <UserPlus className="h-5 w-5" />
-              <span>Cadastro</span>
+            <CardTitle className="font-headline text-xl">
+              Cadastro gratuito
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -124,7 +123,7 @@ export default function SignUpPage() {
                     <FormItem>
                       <FormLabel>Nome Completo</FormLabel>
                       <FormControl>
-                        <Input placeholder="Seu nome" {...field} />
+                        <Input placeholder="Seu nome" {...field} className="h-11 bg-muted/30" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -141,6 +140,7 @@ export default function SignUpPage() {
                           placeholder="seu@email.com"
                           {...field}
                           type="email"
+                           className="h-11 bg-muted/30"
                         />
                       </FormControl>
                       <FormMessage />
@@ -158,6 +158,7 @@ export default function SignUpPage() {
                           placeholder="Crie uma senha forte"
                           {...field}
                           type="password"
+                           className="h-11 bg-muted/30"
                         />
                       </FormControl>
                       <FormMessage />
@@ -167,7 +168,7 @@ export default function SignUpPage() {
                 <Button
                   type="submit"
                   disabled={isPending}
-                  className="w-full font-manrope"
+                  className="w-full font-manrope h-11 text-base font-bold"
                 >
                   {isPending && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

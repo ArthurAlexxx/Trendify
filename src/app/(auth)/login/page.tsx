@@ -80,14 +80,13 @@ export default function LoginPage() {
             trendify
           </Link>
           <p className="text-muted-foreground mt-2">
-            Acesse sua conta para continuar.
+            Bem-vindo(a) de volta.
           </p>
         </div>
-        <Card className="rounded-2xl">
+        <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 font-headline">
-              <KeyRound className="h-5 w-5" />
-              <span>Login</span>
+            <CardTitle className="font-headline text-xl">
+              Acesse sua conta
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -104,7 +103,7 @@ export default function LoginPage() {
                           placeholder="seu@email.com"
                           {...field}
                           type="email"
-                          className="h-11"
+                          className="h-11 bg-muted/30"
                         />
                       </FormControl>
                       <FormMessage />
@@ -122,7 +121,7 @@ export default function LoginPage() {
                           placeholder="••••••••"
                           {...field}
                           type="password"
-                          className="h-11"
+                          className="h-11 bg-muted/30"
                         />
                       </FormControl>
                       <FormMessage />
@@ -132,7 +131,7 @@ export default function LoginPage() {
                 <Button
                   type="submit"
                   disabled={isPending}
-                  className="w-full font-manrope h-11"
+                  className="w-full font-manrope h-11 text-base font-bold"
                 >
                   {isPending && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
