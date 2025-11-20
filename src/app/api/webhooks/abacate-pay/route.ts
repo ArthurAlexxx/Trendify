@@ -62,37 +62,37 @@ function verifyAbacateSignature(rawBody: string, signatureFromHeader: string): b
 
 
 export async function POST(req: NextRequest) {
-  const abacateSignature = req.headers.get('x-webhook-signature');
   const body = await req.text();
-
   console.log('[webhook-post] Recebida nova requisição de webhook.');
 
-  if (!abacateSignature) {
-    console.error('[webhook-post] ERRO: Assinatura "x-webhook-signature" ausente no cabeçalho.');
-    return NextResponse.json({ error: 'Signature missing.' }, { status: 400 });
-  }
-  console.log('[webhook-post] Assinatura "x-webhook-signature" encontrada no cabeçalho.');
-
-
-  // Verify the signature
-  if (!verifyAbacateSignature(body, abacateSignature)) {
-    console.error('[webhook-post] ERRO: Assinatura inválida. A requisição pode não ser da Abacate Pay.');
-    return NextResponse.json({ error: 'Invalid signature.' }, { status: 403 });
-  }
-  
-  console.log('[webhook-post] Assinatura verificada com sucesso.');
-  
   let event;
   try {
     event = JSON.parse(body);
     console.log(`[webhook-post] Evento JSON parseado. Evento: '${event.event}'.`);
-    console.log('[webhook-post] Payload completo:', body);
   } catch (error) {
      console.error('[webhook-post] ERRO: Corpo da requisição não é um JSON válido.');
      return NextResponse.json({ error: 'Invalid JSON body.' }, { status: 400 });
   }
 
-  // Process only successful payment events
+  // --- Signature Verification ---
+  if (event.devMode === true) {
+    console.warn('[webhook-post] AVISO: Requisição em devMode. A verificação de assinatura foi pulada.');
+  } else {
+    const abacateSignature = req.headers.get('x-webhook-signature');
+    if (!abacateSignature) {
+      console.error('[webhook-post] ERRO: Assinatura "x-webhook-signature" ausente no cabeçalho.');
+      return NextResponse.json({ error: 'Signature missing.' }, { status: 400 });
+    }
+    console.log('[webhook-post] Assinatura "x-webhook-signature" encontrada no cabeçalho.');
+    
+    if (!verifyAbacateSignature(body, abacateSignature)) {
+      console.error('[webhook-post] ERRO: Assinatura inválida. A requisição pode não ser da Abacate Pay.');
+      return NextResponse.json({ error: 'Invalid signature.' }, { status: 403 });
+    }
+    console.log('[webhook-post] Assinatura verificada com sucesso.');
+  }
+  
+  // --- Event Processing ---
   if (event.event === 'billing.paid') {
     console.log('[webhook-post] Processando evento "billing.paid".');
     const paymentData = event.data;
