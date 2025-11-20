@@ -128,16 +128,6 @@ export default function PublisAssistantPage() {
       }
     });
   };
-
-  const onFormSubmit = (values: z.infer<typeof formSchema>) => {
-    const formData = new FormData();
-    Object.entries(values).forEach(([key, value]) => {
-        if(value) {
-            formData.append(key, value);
-        }
-    });
-    formAction(formData);
-  };
   
   const result = state?.data;
 
@@ -160,7 +150,8 @@ export default function PublisAssistantPage() {
         <CardContent>
           <Form {...form}>
             <form
-              onSubmit={form.handleSubmit(onFormSubmit)}
+              action={formAction}
+              onSubmit={form.handleSubmit(() => {})}
               className="space-y-8"
             >
               <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-6">
