@@ -85,7 +85,7 @@ export default function SubscribePage() {
       }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [subscription, router, toast]);
+  }, [subscription, router]);
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
