@@ -538,5 +538,3 @@ function InfoListCard({
     </Card>
   );
 }
-
-    
