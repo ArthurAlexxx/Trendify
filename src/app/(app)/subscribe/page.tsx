@@ -19,7 +19,6 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { doc, getDoc } from 'firebase/firestore';
 import type { UserProfile, Plan } from '@/lib/types';
-import { useSubscription } from '@/hooks/useSubscription';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
@@ -37,13 +36,14 @@ type FormData = z.infer<typeof formSchema>;
 
 export default function SubscribePage() {
   const { user, isUserLoading } = useUser();
-  const { subscription, isLoading: isSubscriptionLoading } = useSubscription();
   const firestore = useFirestore();
   const { toast } = useToast();
   const router = useRouter();
   const [isCheckingStatus, startCheckingTransition] = useTransition();
   const [showSuccess, setShowSuccess] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<Plan | 'free'>('pro');
+  const [pageIsLoading, setPageIsLoading] = useState(true);
+  const [isSubscribed, setIsSubscribed] = useState(false);
 
 
   const form = useForm<FormData>({
@@ -61,18 +61,37 @@ export default function SubscribePage() {
   const [state, formAction, isGenerating] = useActionState(createPixChargeAction, null);
 
   useEffect(() => {
-    if (!isSubscriptionLoading && subscription?.status === 'active') {
-        toast({
-            title: 'Você já é Assinante!',
-            description: 'Redirecionando para o seu painel de controle.',
-        });
-        router.push('/dashboard');
-    }
-  }, [subscription, isSubscriptionLoading, router, toast]);
+    // Check subscription status only once on mount
+    const checkInitialStatus = async () => {
+        if (user && firestore) {
+            const userRef = doc(firestore, `users/${user.uid}`);
+            const docSnap = await getDoc(userRef);
+            if (docSnap.exists()) {
+                const profile = docSnap.data() as UserProfile;
+                if (profile.subscription?.status === 'active') {
+                    setIsSubscribed(true);
+                    toast({
+                        title: 'Você já é Assinante!',
+                        description: 'Redirecionando para o seu painel de controle.',
+                    });
+                    router.push('/dashboard');
+                } else {
+                   setPageIsLoading(false);
+                }
+            } else {
+                 setPageIsLoading(false);
+            }
+        }
+        if (!user && !isUserLoading) {
+            setPageIsLoading(false);
+        }
+    };
+    checkInitialStatus();
+  }, [user, firestore, isUserLoading, router, toast]);
 
 
   useEffect(() => {
-    if (user && !isUserLoading) {
+    if (user) {
       form.reset({
         name: user.displayName || '',
         email: user.email || '',
@@ -82,7 +101,7 @@ export default function SubscribePage() {
         plan: selectedPlan !== 'free' ? selectedPlan : 'pro',
       });
     }
-  }, [user, isUserLoading, form, selectedPlan]);
+  }, [user, form, selectedPlan]);
 
   useEffect(() => {
     if (state?.error) {
@@ -155,19 +174,23 @@ export default function SubscribePage() {
      )
   }
 
-  const isLoading = isUserLoading || isSubscriptionLoading;
-  const isSubscribed = subscription?.status === 'active';
+  const isLoading = isUserLoading || pageIsLoading;
 
   if (isLoading) {
     return (
         <div className="space-y-12">
             <PageHeader
-                title="Assinatura Pro"
+                title="Nossos Planos"
                 description="Desbloqueie todo o potencial da IA para acelerar seu crescimento."
             />
-            <div className="grid lg:grid-cols-2 gap-12 items-start">
-                <Skeleton className="h-96 w-full rounded-2xl" />
-                <Skeleton className="h-96 w-full rounded-2xl" />
+            <div className="grid lg:grid-cols-5 gap-8 items-start">
+                <div className="lg:col-span-2 space-y-8">
+                  <Skeleton className="h-64 w-full rounded-2xl" />
+                  <Skeleton className="h-64 w-full rounded-2xl" />
+                </div>
+                 <div className="lg:col-span-3">
+                   <Skeleton className="h-[500px] w-full rounded-2xl" />
+                </div>
             </div>
         </div>
     )
