@@ -91,6 +91,24 @@
       },
       "required": ["dia", "tarefa", "detalhes", "concluido"]
     },
+    "PlanoSemanal": {
+      "title": "Plano Semanal",
+      "description": "Armazena o plano de conteúdo semanal completo gerado pela IA.",
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": { "$ref": "#/backend/entities/ItemRoteiro" },
+          "description": "A lista de tarefas do roteiro para a semana."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "O timestamp de quando o plano foi gerado."
+        }
+      },
+      "required": ["items", "createdAt"]
+    },
     "IdeiaSalva": {
       "title": "Ideia Salva",
       "description": "Armazena uma ideia ou conteúdo gerado pela IA que o usuário salvou.",
@@ -145,9 +163,9 @@
       "schema": { "$ref": "#/backend/entities/PontoDadosGrafico" },
       "description": "Coleção para armazenar os dados para o gráfico de desempenho semanal."
     },
-    "/roteiro/{itemRoteiroId}": {
-      "schema": { "$ref": "#/backend/entities/ItemRoteiro" },
-      "description": "Coleção para armazenar as tarefas do roteiro de conteúdo semanal."
+    "/roteiro/{planoId}": {
+      "schema": { "$ref": "#/backend/entities/PlanoSemanal" },
+      "description": "Coleção para armazenar os roteiros de conteúdo semanais gerados pela IA."
     }
   }
 }

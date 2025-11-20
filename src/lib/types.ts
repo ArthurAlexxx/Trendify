@@ -32,11 +32,16 @@ export interface PontoDadosGrafico {
 }
 
 export interface ItemRoteiro {
-  id: string;
   dia: string;
   tarefa: string;
   detalhes: string;
   concluido: boolean;
+}
+
+export interface PlanoSemanal {
+  id: string;
+  items: ItemRoteiro[];
+  createdAt: Timestamp;
 }
 
 export interface IdeiaSalva {
@@ -60,4 +65,5 @@ export interface ConteudoAgendado {
   createdAt: Timestamp;
 }
 
+    
     

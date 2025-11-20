@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   TrendingDown,
   TrendingUp,
-  CheckCircle,
   Plus,
   Rocket,
   Lightbulb,
@@ -14,6 +13,7 @@ import {
   Calendar,
   ChevronDown,
   Tag,
+  ClipboardList,
 } from 'lucide-react';
 import {
   ChartContainer,
@@ -48,7 +48,7 @@ import type {
 } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Checkbox } from '@/components/ui/checkbox';
-import { format, formatDistanceToNow, isFuture } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
   DropdownMenu,
@@ -82,18 +82,32 @@ export default function DashboardPage() {
     useCollection<Metrica>(metricaQuery);
 
   const dadosGraficoQuery = useMemoFirebase(
-    () => (firestore ? collection(firestore, 'dadosGrafico') : null),
+    () =>
+      firestore
+        ? query(collection(firestore, 'dadosGrafico'), limit(7))
+        : null,
     [firestore]
   );
   const { data: dadosGrafico, isLoading: isLoadingDadosGrafico } =
     useCollection<PontoDadosGrafico>(dadosGraficoQuery);
 
   const roteiroQuery = useMemoFirebase(
-    () => (firestore ? query(collection(firestore, 'roteiro'), orderBy('dia')) : null),
+    () =>
+      firestore
+        ? query(
+            collection(firestore, 'roteiro'),
+            orderBy('createdAt', 'desc'),
+            limit(1)
+          )
+        : null,
     [firestore]
   );
-  const { data: roteiro, isLoading: isLoadingRoteiro } =
-    useCollection<ItemRoteiro>(roteiroQuery);
+  const { data: roteiroData, isLoading: isLoadingRoteiro } = useCollection<{
+    items: ItemRoteiro[];
+    createdAt: any;
+  }>(roteiroQuery);
+
+  const roteiro = roteiroData?.[0]?.items;
 
   const ideiasSalvasQuery = useMemoFirebase(
     () =>
@@ -138,10 +152,13 @@ export default function DashboardPage() {
   };
 
   const handleToggleRoteiro = async (item: ItemRoteiro) => {
-    if (!firestore) return;
-    const itemRef = doc(firestore, 'roteiro', item.id);
+    if (!firestore || !roteiroData) return;
+    const planoRef = doc(firestore, 'roteiro', roteiroData[0].id);
+    const updatedItems = roteiro?.map((i) =>
+      i.tarefa === item.tarefa ? { ...i, concluido: !i.concluido } : i
+    );
     try {
-      await updateDoc(itemRef, { concluido: !item.concluido });
+      await updateDoc(planoRef, { items: updatedItems });
     } catch (error) {
       console.error('Failed to update roteiro status:', error);
     }
@@ -164,6 +181,12 @@ export default function DashboardPage() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuItem asChild>
+              <Link href="/generate-weekly-plan">
+                <ClipboardList className="mr-2 h-4 w-4" />
+                <span>Planejamento Semanal</span>
+              </Link>
+            </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <Link href="/video-ideas">
                 <Lightbulb className="mr-2 h-4 w-4" />
@@ -325,20 +348,20 @@ export default function DashboardPage() {
                       </div>
                     ))}
                   </div>
-                ) : (
+                ) : roteiro && roteiro.length > 0 ? (
                   <ul className="space-y-2">
-                    {roteiro?.map((item, index) => (
-                      <li key={item.id}>
+                    {roteiro.map((item, index) => (
+                      <li key={index}>
                         <div className="flex items-start gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50">
                           <Checkbox
-                            id={`roteiro-${item.id}`}
+                            id={`roteiro-${index}`}
                             checked={item.concluido}
                             onCheckedChange={() => handleToggleRoteiro(item)}
                             className="h-5 w-5 mt-1"
                           />
                           <div>
                             <label
-                              htmlFor={`roteiro-${item.id}`}
+                              htmlFor={`roteiro-${index}`}
                               className={cn(
                                 'font-medium text-base transition-colors cursor-pointer',
                                 item.concluido
@@ -362,6 +385,23 @@ export default function DashboardPage() {
                       </li>
                     ))}
                   </ul>
+                ) : (
+                  <div className="text-center py-8 px-4 rounded-xl bg-muted/50 border border-dashed">
+                    <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+                    <h3 className="font-semibold text-foreground">
+                      Sem roteiro para a semana.
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      Gere um novo no{' '}
+                      <Link
+                        href="/generate-weekly-plan"
+                        className="text-primary font-medium hover:underline"
+                      >
+                        Planejamento Semanal
+                      </Link>
+                      .
+                    </p>
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -397,19 +437,27 @@ export default function DashboardPage() {
                             </p>
                             <p className="text-xs text-muted-foreground">
                               {post.contentType} •{' '}
-                              {format(
-                                post.date.toDate(),
-                                "dd/MM 'às' HH:mm"
-                              )}
+                              {formatDistanceToNow(post.date.toDate(), {
+                                addSuffix: true,
+                                locale: ptBR,
+                              })}
                             </p>
                           </div>
                         </div>
-                        <Badge variant={post.status === 'Agendado' ? 'default' : 'outline'}>{post.status}</Badge>
+                        <Badge
+                          variant={
+                            post.status === 'Agendado' ? 'default' : 'outline'
+                          }
+                        >
+                          {post.status}
+                        </Badge>
                       </div>
                     ))}
-                     <Button variant="link" asChild className="w-full">
-                       <Link href="/content-calendar">Ver calendário completo</Link>
-                     </Button>
+                    <Button variant="link" asChild className="w-full">
+                      <Link href="/content-calendar">
+                        Ver calendário completo
+                      </Link>
+                    </Button>
                   </div>
                 ) : (
                   <div className="text-center py-8 px-4 rounded-xl bg-muted/50 border border-dashed">
@@ -430,7 +478,7 @@ export default function DashboardPage() {
         <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card">
           <CardHeader>
             <CardTitle className="font-headline text-xl">
-              Desempenho Semanal
+              Desempenho Semanal (Simulado)
             </CardTitle>
           </CardHeader>
           <CardContent className="pl-2">
@@ -438,7 +486,7 @@ export default function DashboardPage() {
               <div className="h-[300px] w-full flex items-center justify-center">
                 <Skeleton className="h-full w-full rounded-xl" />
               </div>
-            ) : (
+            ) : dadosGrafico && dadosGrafico.length > 0 ? (
               <ChartContainer
                 config={chartConfig}
                 className="h-[300px] w-full"
@@ -484,6 +532,25 @@ export default function DashboardPage() {
                   />
                 </BarChart>
               </ChartContainer>
+            ) : (
+              <div className="h-[300px] w-full flex items-center justify-center text-center">
+                <div>
+                  <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+                  <h3 className="font-semibold text-foreground">
+                    Sem dados de desempenho.
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Gere um roteiro no{' '}
+                    <Link
+                      href="/generate-weekly-plan"
+                      className="text-primary font-medium hover:underline"
+                    >
+                      Planejamento Semanal
+                    </Link>{' '}
+                    para ver uma simulação.
+                  </p>
+                </div>
+              </div>
             )}
           </CardContent>
         </Card>
@@ -491,3 +558,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    

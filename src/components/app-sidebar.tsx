@@ -12,6 +12,7 @@ import {
   LogOut,
   Calendar,
   ArrowRight,
+  ClipboardList,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -32,6 +33,7 @@ import { useUser, useAuth } from '@/firebase';
 
 const navItems = [
   { href: '/dashboard', icon: LineChart, label: 'Painel' },
+  { href: '/generate-weekly-plan', icon: ClipboardList, label: 'Planejamento' },
   { href: '/content-calendar', icon: Calendar, label: 'Calendário' },
   { href: '/video-ideas', icon: Lightbulb, label: 'Ideias de Vídeo' },
   { href: '/video-review', icon: Video, label: 'Análise de Vídeo' },
@@ -131,3 +133,5 @@ export function AppSidebar() {
     </Sidebar>
   );
 }
+
+    
