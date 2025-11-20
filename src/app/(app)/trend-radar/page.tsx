@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { useMemoFirebase, useFirestore } from '@/firebase/provider';
 import { collection } from 'firebase/firestore';
@@ -33,11 +33,17 @@ export default function TrendRadarPage() {
   );
   const { data: tendencias } = useCollection<Tendencia>(tendenciasQuery);
 
-  const [filteredTrends, setFilteredTrends] = useState<Tendencia[]>(
-    tendencias ?? []
+  const [filteredTrends, setFilteredTrends] = useState<Tendencia[] | null>(
+    tendencias
   );
   const [niche, setNiche] = useState('Todos');
   const [country, setCountry] = useState('Todos');
+
+  useEffect(() => {
+    if (tendencias) {
+      setFilteredTrends(tendencias);
+    }
+  }, [tendencias]);
 
   const allNiches = [
     'Todos',
@@ -104,53 +110,51 @@ export default function TrendRadarPage() {
       </Card>
 
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-        {(filteredTrends.length > 0 ? filteredTrends : tendencias)?.map(
-          (trend) => (
-            <Card key={trend.id} className="flex flex-col">
-              <CardHeader>
-                <div className="relative w-full h-48 rounded-lg overflow-hidden">
-                  <Image
-                    src={trend.exampleImageUrl}
-                    alt={trend.titulo}
-                    fill
-                    style={{ objectFit: 'cover' }}
-                    data-ai-hint={trend.exampleImageHint}
-                  />
-                </div>
-              </CardHeader>
-              <CardContent className="flex-grow space-y-3">
-                <div className="flex justify-between items-start">
-                  <CardTitle className="text-lg font-headline">
-                    {trend.titulo}
-                  </CardTitle>
-                  <Badge
-                    variant={trend.tipo === 'Som' ? 'default' : 'secondary'}
-                  >
-                    {trend.tipo}
-                  </Badge>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  {trend.explicacao}
-                </p>
-              </CardContent>
-              <CardFooter className="flex justify-between items-center text-sm">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Clock className="h-4 w-4 text-red-500" />
-                  <span>
-                    Use em:{' '}
-                    <span className="font-semibold text-red-500">
-                      {trend.contagemRegressiva} dias
-                    </span>
+        {(filteredTrends ?? tendencias)?.map((trend) => (
+          <Card key={trend.id} className="flex flex-col">
+            <CardHeader>
+              <div className="relative w-full h-48 rounded-lg overflow-hidden">
+                <Image
+                  src={trend.exampleImageUrl}
+                  alt={trend.titulo}
+                  fill
+                  style={{ objectFit: 'cover' }}
+                  data-ai-hint={trend.exampleImageHint}
+                />
+              </div>
+            </CardHeader>
+            <CardContent className="flex-grow space-y-3">
+              <div className="flex justify-between items-start">
+                <CardTitle className="text-lg font-headline">
+                  {trend.titulo}
+                </CardTitle>
+                <Badge
+                  variant={trend.tipo === 'Som' ? 'default' : 'secondary'}
+                >
+                  {trend.tipo}
+                </Badge>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {trend.explicacao}
+              </p>
+            </CardContent>
+            <CardFooter className="flex justify-between items-center text-sm">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Clock className="h-4 w-4 text-red-500" />
+                <span>
+                  Use em:{' '}
+                  <span className="font-semibold text-red-500">
+                    {trend.contagemRegressiva} dias
                   </span>
-                </div>
-                <Button variant="ghost" size="sm">
-                  <Copy className="h-4 w-4 mr-2" />
-                  Copiar {trend.tipo === 'Som' ? 'Som' : 'Ideia'}
-                </Button>
-              </CardFooter>
-            </Card>
-          )
-        )}
+                </span>
+              </div>
+              <Button variant="ghost" size="sm">
+                <Copy className="h-4 w-4 mr-2" />
+                Copiar {trend.tipo === 'Som' ? 'Som' : 'Ideia'}
+              </Button>
+            </CardFooter>
+          </Card>
+        ))}
       </div>
     </div>
   );
