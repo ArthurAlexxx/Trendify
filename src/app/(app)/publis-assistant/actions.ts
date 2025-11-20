@@ -4,8 +4,8 @@ import OpenAI from 'openai';
 import { z } from 'zod';
 
 const AiSuggestedVideoScriptsOutputSchema = z.object({
-  videoScript: z.string().describe('AI-generated video script tailored to the brand and product.'),
-  proposalDraft: z.string().describe('AI-generated proposal draft for the brand collaboration.'),
+  videoScript: z.string().describe('Roteiro de vídeo gerado pela IA, otimizado para a marca e o produto, incluindo gancho e CTA.'),
+  proposalDraft: z.string().describe('Minuta de proposta gerada pela IA para a colaboração com a marca.'),
 });
 export type AiSuggestedVideoScriptsOutput = z.infer<typeof AiSuggestedVideoScriptsOutputSchema>;
 
@@ -25,21 +25,32 @@ const openai = new OpenAI({
 });
 
 async function getAiSuggestedVideoScripts(input: z.infer<typeof formSchema>): Promise<AiSuggestedVideoScriptsOutput> {
-  const systemPrompt = `You are an AI assistant specialized in crafting engaging video scripts and proposals for social media creators.
-  You must respond in a valid JSON object that conforms to the provided schema. Do not include any extra text or formatting outside of the JSON object.`;
+  const systemPrompt = `Você é um assistente de IA especialista em criar parcerias de sucesso entre criadores de conteúdo e marcas.
+  Seu objetivo é gerar roteiros de vídeo autênticos e propostas comerciais persuasivas.
+  Você DEVE responder em um objeto JSON válido que se conforme estritamente ao schema fornecido. Não inclua nenhum texto ou formatação fora do objeto JSON.`;
   
   const userPrompt = `
-  Based on the following information, generate a compelling video script and a proposal draft.
+  Com base nas informações a seguir, gere um roteiro de vídeo e uma minuta de proposta comercial.
 
-  Product Description: ${input.productDescription}
-  Brand Details: ${input.brandDetails}
-  Trending Topic (Optional): ${input.trendingTopic}
+  - Descrição do Produto: ${input.productDescription}
+  - Detalhes da Marca: ${input.brandDetails}
+  - Tópico em Alta (Opcional): ${input.trendingTopic}
 
-  The video script should include a catchy hook, highlight the benefits of the product, and have a clear call to action.
-  The proposal draft should outline the key aspects of the collaboration, including content deliverables and potential impact.
+  Diretrizes para cada campo do JSON:
+  - videoScript:
+    - Crie um roteiro de vídeo que soe autêntico para um criador de conteúdo, não um anúncio forçado.
+    - Comece com um gancho forte que se conecte com a audiência do criador.
+    - Integre o produto de forma natural, mostrando seus benefícios na prática.
+    - Se um tópico em alta foi fornecido, incorpore-o de forma criativa.
+    - Finalize com uma chamada para ação (CTA) clara e genuína.
+    - Formate o roteiro com indicações de cena (ex: "[CENA: Unboxing do produto com luz natural]").
 
-  Make sure the script is concise and suitable for platforms like TikTok and Instagram.
-  The tone should be engaging, upbeat, and tailored to resonate with the target audience.
+  - proposalDraft:
+    - Escreva um rascunho de e-mail ou mensagem direta para a marca.
+    - O tom deve ser profissional, mas com personalidade.
+    - Apresente a ideia do vídeo de forma sucinta e empolgante.
+    - Destaque os benefícios para a marca (ex: alcance, engajamento, associação com autenticidade).
+    - Sugira os próximos passos, como "Adoraria discutir como podemos alinhar esta ideia à sua estratégia de marketing para o próximo trimestre."
   `;
   
   try {

@@ -5,16 +5,16 @@ import { z } from 'zod';
 
 // Esquema de saída esperado da IA
 const GenerateVideoIdeasOutputSchema = z.object({
-  gancho: z.string().describe('The optimized, attention-grabbing hook for the video.'),
-  script: z.string().describe('A detailed and concise script for the video.'),
-  cta: z.string().describe('A clear and compelling call to action for the video.'),
-  takes: z.string().describe('A list of specific shots or takes to record for the video.'),
+  gancho: z.string().describe('Um gancho de 2-3 segundos, otimizado para parar a rolagem e gerar curiosidade imediata.'),
+  script: z.string().describe('Um roteiro detalhado e conciso, com indicações de cena e narração, estruturado para reter a atenção.'),
+  cta: z.string().describe('Uma chamada para ação clara, convincente e alinhada ao objetivo do vídeo.'),
+  takes: z.string().describe('Uma lista de cenas ou tomadas específicas para gravar, facilitando a produção do conteúdo.'),
   suggestedPostTime: z
     .string()
-    .describe('The suggested best time to post the video on the given platform.'),
+    .describe('O melhor horário sugerido para postar o vídeo na plataforma indicada, visando máximo alcance.'),
   trendingSong: z
     .string()
-    .describe('A trending song that would fit the video well.'),
+    .describe('Uma música atualmente em alta que se encaixe perfeitamente no estilo do vídeo.'),
 });
 
 export type GenerateVideoIdeasOutput = z.infer<
@@ -45,27 +45,28 @@ const openai = new OpenAI({
 async function generateVideoIdeas(
   input: z.infer<typeof formSchema>
 ): Promise<GenerateVideoIdeasOutput> {
-  const systemPrompt = `You are a world-class AI content strategist for social media creators, specializing in viral video concepts for TikTok and Instagram.
-Your task is to generate a complete video idea based on the user's requirements.
-The response must be creative, strategic, and ready to be executed.
-You must respond in a valid JSON object that conforms to the provided schema. Do not include any extra text or formatting outside of the JSON object.`;
+  const systemPrompt = `Você é um estrategista de conteúdo de classe mundial e especialista em vídeos virais para criadores de conteúdo no Instagram e TikTok.
+Sua tarefa é gerar uma ideia de vídeo completa, criativa, estratégica e pronta para ser executada, baseada nos requisitos do usuário.
+Pense como um produtor de conteúdo que entende de algoritmos, retenção e engajamento.
+Você DEVE responder em um objeto JSON válido que se conforme estritamente ao schema fornecido. Não inclua nenhum texto ou formatação fora do objeto JSON.`;
 
   const userPrompt = `
-  User Requirements:
-  - Topic: ${input.topic}
-  - Target Audience: ${input.targetAudience}
-  - Platform: ${input.platform}
-  - Video Format: ${input.videoFormat}
-  - Tone of Voice: ${input.tone}
-  - Main Objective: ${input.objective}
+  Gere uma ideia de vídeo completa com base nos seguintes requisitos:
 
-  Output Structure (provide a JSON object with these exact keys):
-  - gancho: A short, powerful, and attention-grabbing hook (2-3 seconds max) designed to stop the scroll immediately.
-  - script: A detailed, clear, and concise script for the video, including visual cues and spoken lines.
-  - cta: A clear and effective call to action that aligns with the video's objective.
-  - takes: A simple, actionable list of shots/takes to record, making content creation fast and easy.
-  - suggestedPostTime: The optimal time to post the video on the specified platform for maximum impact.
-  - trendingSong: A currently trending song on the specified platform that perfectly matches the video's vibe and format. Ensure the song is genuinely popular right now.
+  - Tópico: ${input.topic}
+  - Público-alvo: ${input.targetAudience}
+  - Plataforma: ${input.platform}
+  - Formato do Vídeo: ${input.videoFormat}
+  - Tom de Voz: ${input.tone}
+  - Objetivo Principal: ${input.objective}
+
+  Para cada campo do JSON, siga estas diretrizes:
+  - gancho: Crie uma frase ou cena de 2-3 segundos que seja impossível de ignorar. Deve gerar curiosidade, polêmica ou identificação imediata.
+  - script: Escreva um roteiro claro e conciso. Inclua sugestões de cenas (ex: "[CENA: Close-up no produto]"), narração e timing. Deve ter uma introdução (o gancho), um desenvolvimento (o valor) e uma conclusão (o CTA).
+  - cta: A chamada para ação deve ser direta e incentivar o comportamento desejado (ex: "Comente 'EU QUERO' para receber o link", "Siga para mais dicas como esta").
+  - takes: Descreva uma lista de tomadas simples e práticas que o criador precisa gravar. Ex: "1. Take do seu rosto falando para a câmera. 2. Take de unboxing do produto. 3. Take mostrando o resultado final."
+  - suggestedPostTime: Com base na plataforma, sugira um dia e horário de pico para postagem (ex: "Sexta-feira, 18:30h" ou "Domingo, 20:00h").
+  - trendingSong: Pesquise e sugira uma música que esteja genuinamente em alta AGORA na plataforma especificada e que combine com a vibe do vídeo. Inclua o nome do artista.
   `;
 
   try {
