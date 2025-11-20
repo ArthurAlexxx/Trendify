@@ -42,9 +42,11 @@ async function createPixCharge(
   userId: string,
 ): Promise<PixChargeResponse> {
 
+  console.log('[createPixCharge] Iniciando criação de cobrança PIX...');
   const ABACATE_API_KEY = process.env.ABACATE_API_KEY;
 
   if (!ABACATE_API_KEY) {
+    console.error('[createPixCharge] Erro: Chave de API do Abacate Pay não configurada.');
     throw new Error('Abacate Pay API key is not configured.');
   }
 
@@ -65,6 +67,8 @@ async function createPixCharge(
       product: 'trendify-pro-monthly',
     },
   };
+
+  console.log('[createPixCharge] Payload enviado para Abacate Pay:', JSON.stringify(payload, null, 2));
   
   const options = {
     method: 'POST',
@@ -78,18 +82,21 @@ async function createPixCharge(
   try {
     const response = await fetch(url, options);
     const result = await response.json();
+
+    console.log('[createPixCharge] Resposta recebida da Abacate Pay:', JSON.stringify(result, null, 2));
     
     if (result.error) {
-        console.error('Abacate Pay Error:', result.error);
+        console.error('[createPixCharge] Erro da API Abacate Pay:', result.error);
         throw new Error(result.error.message || 'Ocorreu um erro ao se comunicar com o gateway de pagamento.');
     }
     
     // Validate response with Zod
     const validatedData = PixChargeResponseSchema.parse(result.data);
+    console.log('[createPixCharge] Cobrança PIX criada com sucesso.');
     return validatedData;
 
   } catch (error) {
-    console.error('Error creating PIX charge:', error);
+    console.error('[createPixCharge] Erro crítico ao criar cobrança PIX:', error);
     if (error instanceof Error) {
         throw new Error(`Falha ao criar cobrança PIX: ${error.message}`);
     }
@@ -102,19 +109,22 @@ export async function createPixChargeAction(
   formData: FormData
 ): Promise<ActionState> {
 
+    console.log('[createPixChargeAction] Ação iniciada.');
     const headersList = headers();
     const authorization = headersList.get('Authorization');
     const token = authorization?.split('Bearer ')[1];
 
     if (!token) {
+        console.error('[createPixChargeAction] Erro: Token de autorização não encontrado.');
         return { error: 'Sessão inválida. Por favor, faça login novamente.' };
     }
 
     let decodedToken;
     try {
         decodedToken = await auth.verifyIdToken(token);
+        console.log(`[createPixChargeAction] Token verificado com sucesso para o usuário: ${decodedToken.uid}`);
     } catch (e) {
-        console.error('Token verification failed:', e);
+        console.error('[createPixChargeAction] Falha na verificação do token:', e);
         return { error: 'Sessão inválida. Por favor, faça login novamente.' };
     }
     const userId = decodedToken.uid;
@@ -123,14 +133,19 @@ export async function createPixChargeAction(
   const parsed = formSchema.safeParse(Object.fromEntries(formData));
 
   if (!parsed.success) {
+    console.error('[createPixChargeAction] Erro de validação do formulário:', parsed.error.issues);
     return { error: 'Dados do formulário inválidos. Verifique os campos e tente novamente.' };
   }
+  
+  console.log('[createPixChargeAction] Dados do formulário validados:', parsed.data);
 
   try {
     const result = await createPixCharge(parsed.data, userId);
+    console.log('[createPixChargeAction] Ação concluída com sucesso.');
     return { data: result };
   } catch (e) {
     const errorMessage = e instanceof Error ? e.message : 'Ocorreu um erro desconhecido.';
+    console.error(`[createPixChargeAction] Erro ao chamar createPixCharge: ${errorMessage}`);
     return { error: errorMessage };
   }
 }
