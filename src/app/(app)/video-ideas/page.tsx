@@ -64,8 +64,8 @@ export default function VideoIdeasPage() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      topic: '',
-      targetAudience: '',
+      topic: 'Como fazer o melhor café coado',
+      targetAudience: 'Amantes de café que querem melhorar suas técnicas em casa',
       platform: 'tiktok',
       videoFormat: 'Tutorial',
       tone: 'Inspirador',

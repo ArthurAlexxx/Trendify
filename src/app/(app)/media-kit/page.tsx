@@ -89,9 +89,9 @@ export default function MediaKitPage() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      productDescription: '',
-      brandDetails: '',
-      trendingTopic: '',
+      productDescription: 'Um novo tênis de corrida feito com materiais reciclados, super leve e com design inovador.',
+      brandDetails: 'Marca de moda sustentável, focada no público jovem e consciente, que valoriza design e propósito.',
+      trendingTopic: 'Desafio de 30 dias de corrida',
     },
   });
   

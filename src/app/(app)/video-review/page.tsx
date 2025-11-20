@@ -51,7 +51,7 @@ export default function VideoReviewPage() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      videoLink: '',
+      videoLink: 'https://www.tiktok.com/@example/video/123456789',
     },
   });
 

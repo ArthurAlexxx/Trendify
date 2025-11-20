@@ -67,12 +67,12 @@ export default function PublisAssistantPage() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      product: '',
-      targetAudience: '',
-      differentiators: '',
+      product: 'Tênis de corrida "Velocity"',
+      targetAudience: 'Mulheres de 25-35 anos, interessadas em vida saudável e que já praticam corrida.',
+      differentiators: 'Feito com material reciclado, super leve, tecnologia de absorção de impacto, design moderno.',
       tone: 'Autêntico e Confiável',
       objective: 'Gerar Vendas',
-      extraInfo: '',
+      extraInfo: 'Evitar comparações diretas com outras marcas. Focar na sensação de liberdade ao correr.',
     },
   });
 
