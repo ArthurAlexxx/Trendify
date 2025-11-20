@@ -12,7 +12,9 @@ export interface UserProfile {
   niche?: string;
   bio?: string;
   followers?: string;
-  engagement?: string;
+  averageViews?: string;
+  averageLikes?: string;
+  averageComments?: string;
   audience?: string;
 }
 
@@ -65,10 +67,3 @@ export interface ConteudoAgendado {
   notes?: string;
   createdAt: Timestamp;
 }
-
-    
-    
-
-    
-
-    

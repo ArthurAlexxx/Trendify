@@ -45,9 +45,17 @@
             "type": "string",
             "description": "Total number of followers (e.g., '250K')."
         },
-        "engagement": {
+        "averageViews": {
             "type": "string",
-            "description": "Engagement rate (e.g., '4.7%')."
+            "description": "Average number of views per post (e.g., '15.5K')."
+        },
+        "averageLikes": {
+            "type": "string",
+            "description": "Average number of likes per post (e.g., '890')."
+        },
+        "averageComments": {
+            "type": "string",
+            "description": "Average number of comments per post (e.g., '120')."
         },
         "audience": {
             "type": "string",
@@ -170,5 +178,3 @@
     }
   }
 }
-
-    

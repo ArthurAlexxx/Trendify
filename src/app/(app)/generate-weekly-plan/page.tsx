@@ -48,8 +48,10 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
+  ChartTooltip,
+  ChartTooltipContent,
 } from 'recharts';
-import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { ChartConfig, ChartContainer } from '@/components/ui/chart';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -132,12 +134,15 @@ export default function GenerateWeeklyPlanPage() {
 
   useEffect(() => {
     if (userProfile) {
+       const stats = [
+        userProfile.followers ? `${userProfile.followers} seguidores` : '',
+        userProfile.averageViews ? `${userProfile.averageViews} de média de views` : '',
+      ].filter(Boolean).join(', ');
+
       form.reset({
         objective: 'Aumentar o engajamento em 15% com conteúdo de valor',
         niche: userProfile.niche || '',
-        currentStats: `${userProfile.followers || ''} seguidores, ${
-          userProfile.engagement || ''
-        } de engajamento`,
+        currentStats: stats,
       });
     }
   }, [userProfile, form]);

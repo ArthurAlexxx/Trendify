@@ -1,3 +1,4 @@
+
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -14,6 +15,7 @@ import {
   ChevronDown,
   Tag,
   ClipboardList,
+  AlertTriangle,
 } from 'lucide-react';
 import {
   ChartContainer,
@@ -29,6 +31,7 @@ import {
   useFirestore,
   useUser,
   useMemoFirebase,
+  useDoc,
 } from '@/firebase';
 import {
   collection,
@@ -46,6 +49,7 @@ import type {
   ItemRoteiro,
   IdeiaSalva,
   ConteudoAgendado,
+  UserProfile,
 } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -59,6 +63,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const chartConfig = {
   alcance: {
@@ -70,6 +75,45 @@ const chartConfig = {
     color: 'hsl(var(--chart-2))',
   },
 } satisfies ChartConfig;
+
+const ProfileCompletionAlert = () => {
+  const { user } = useUser();
+  const firestore = useFirestore();
+
+  const userProfileRef = useMemoFirebase(
+    () => (firestore && user ? doc(firestore, `users/${user.uid}`) : null),
+    [firestore, user]
+  );
+  const { data: userProfile, isLoading } = useDoc<UserProfile>(userProfileRef);
+
+  if (isLoading || !userProfile) {
+    return null; // Don't show anything while loading or if there's no profile
+  }
+
+  const isProfileIncomplete =
+    !userProfile.followers ||
+    !userProfile.audience ||
+    !userProfile.averageViews ||
+    !userProfile.bio;
+
+  if (!isProfileIncomplete) {
+    return null;
+  }
+
+  return (
+    <Alert className="mb-8 border-primary/30 bg-primary/5">
+      <AlertTriangle className="h-4 w-4 text-primary" />
+      <AlertTitle className='font-semibold text-primary'>Atualize seu Perfil!</AlertTitle>
+      <AlertDescription>
+        Métricas como seguidores, nicho e engajamento são essenciais para a IA gerar estratégias precisas.
+        <Button variant="link" asChild className="p-0 h-auto ml-1 font-semibold">
+          <Link href="/settings">Completar seu perfil agora.</Link>
+        </Button>
+      </AlertDescription>
+    </Alert>
+  );
+};
+
 
 export default function DashboardPage() {
   const firestore = useFirestore();
@@ -219,6 +263,8 @@ export default function DashboardPage() {
           </DropdownMenuContent>
         </DropdownMenu>
       </PageHeader>
+      
+      <ProfileCompletionAlert />
 
       <div className="space-y-8">
         {/* Métricas Principais */}
@@ -563,5 +609,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-    

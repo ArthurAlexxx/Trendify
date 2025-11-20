@@ -1,3 +1,4 @@
+
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -70,9 +71,15 @@ export default function MediaKitPage() {
 
    useEffect(() => {
     if (userProfile) {
+      const metrics = [
+        userProfile.followers ? `${userProfile.followers} seguidores` : '',
+        userProfile.averageViews ? `${userProfile.averageViews} de média de views` : '',
+        userProfile.audience ? `Público: ${userProfile.audience}` : '',
+      ].filter(Boolean).join(', ');
+
       form.reset({
         niche: userProfile.niche || '',
-        keyMetrics: `${userProfile.followers || ''} seguidores, ${userProfile.engagement || ''} de engajamento. ${userProfile.audience || ''}`,
+        keyMetrics: metrics,
         targetBrand: 'Sallve',
       });
     }

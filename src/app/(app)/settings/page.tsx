@@ -1,3 +1,4 @@
+
 'use client';
 
 import { PageHeader } from '@/components/page-header';
@@ -47,7 +48,9 @@ const profileFormSchema = z.object({
   niche: z.string().optional(),
   bio: z.string().optional(),
   followers: z.string().optional(),
-  engagement: z.string().optional(),
+  averageViews: z.string().optional(),
+  averageLikes: z.string().optional(),
+  averageComments: z.string().optional(),
   audience: z.string().optional(),
 });
 
@@ -78,7 +81,9 @@ export default function SettingsPage() {
       niche: '',
       bio: '',
       followers: '',
-      engagement: '',
+      averageViews: '',
+      averageLikes: '',
+      averageComments: '',
       audience: '',
     },
   });
@@ -93,7 +98,9 @@ export default function SettingsPage() {
         niche: userProfile.niche || '',
         bio: userProfile.bio || '',
         followers: userProfile.followers || '',
-        engagement: userProfile.engagement || '',
+        averageViews: userProfile.averageViews || '',
+        averageLikes: userProfile.averageLikes || '',
+        averageComments: userProfile.averageComments || '',
         audience: userProfile.audience || '',
       });
     }
@@ -265,20 +272,30 @@ export default function SettingsPage() {
                       <Label htmlFor="followers">Total de Seguidores</Label>
                       <Input id="followers" {...form.register('followers')} placeholder="Ex: 250K" className="h-11" />
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="engagement">Taxa de Engajamento</Label>
-                      <Input id="engagement" {...form.register('engagement')} placeholder="Ex: 4.7%" className="h-11" />
+                     <div className="space-y-2">
+                       <Label htmlFor="audience">Demografia do Público</Label>
+                       <Input
+                         id="audience"
+                         placeholder="Ex: 75% Mulheres, 18-24 anos"
+                         {...form.register('audience')}
+                         className="h-11"
+                       />
                     </div>
                 </div>
 
-                <div className="space-y-2">
-                    <Label htmlFor="audience">Demografia do Público</Label>
-                    <Textarea
-                      id="audience"
-                      placeholder="Ex: Idade 18-24, 75% Mulheres, Principais locais: EUA, Reino Unido"
-                      {...form.register('audience')}
-                      className="min-h-[100px] rounded-xl"
-                    />
+                 <div className="grid sm:grid-cols-3 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="averageViews">Média de Views</Label>
+                      <Input id="averageViews" {...form.register('averageViews')} placeholder="Ex: 15.5K" className="h-11" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="averageLikes">Média de Likes</Label>
+                      <Input id="averageLikes" {...form.register('averageLikes')} placeholder="Ex: 890" className="h-11" />
+                    </div>
+                     <div className="space-y-2">
+                      <Label htmlFor="averageComments">Média de Comentários</Label>
+                      <Input id="averageComments" {...form.register('averageComments')} placeholder="Ex: 120" className="h-11" />
+                    </div>
                 </div>
 
 
