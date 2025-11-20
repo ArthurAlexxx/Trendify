@@ -30,15 +30,14 @@ import { useDoc, useFirestore, useMemoFirebase, useUser, useCollection } from '@
 import type { UserProfile, ItemRoteiro, PlanoSemanal } from '@/lib/types';
 import {
   doc,
-  writeBatch,
   collection,
   serverTimestamp,
-  getDocs,
   query,
   orderBy,
   limit,
   updateDoc,
   addDoc,
+  deleteDoc,
 } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -178,6 +177,20 @@ export default function GenerateWeeklyPlanPage() {
     }
   };
 
+  const handleDeleteCurrentPlan = async () => {
+    if (!firestore || !currentPlan) {
+      toast({ title: 'Nenhum plano para deletar.', variant: 'destructive'});
+      return;
+    }
+
+    try {
+      await deleteDoc(doc(firestore, 'roteiro', currentPlan.id));
+      toast({ title: 'Plano atual deletado com sucesso!'});
+    } catch (error: any) {
+      toast({ title: 'Erro ao deletar plano', description: error.message, variant: 'destructive'});
+    }
+  }
+
 
   return (
     <div className="space-y-12">
@@ -289,6 +302,29 @@ export default function GenerateWeeklyPlanPage() {
                     </>
                   )}
                 </Button>
+                
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" type='button' disabled={!currentPlan || isGenerating || isSaving}>
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Limpar Plano Atual
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Esta ação irá deletar o plano semanal atual. Ele não poderá ser recuperado. 
+                        Planos anteriores no histórico não serão afetados.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleDeleteCurrentPlan} className={cn(buttonVariants({variant: 'destructive'}))}>Deletar Plano</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+
               </div>
             </form>
           </Form>
