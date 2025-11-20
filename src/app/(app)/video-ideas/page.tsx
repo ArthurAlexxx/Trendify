@@ -31,6 +31,7 @@ import {
   Pen,
   Save,
   Sparkles,
+  Eye,
 } from 'lucide-react';
 import { useEffect, useActionState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
@@ -38,6 +39,13 @@ import { z } from 'zod';
 import { generateVideoIdeasAction, GenerateVideoIdeasOutput } from './actions';
 import { useFirestore, useUser } from '@/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
 
 const formSchema = z.object({
   topic: z.string().min(3, 'O tópico deve ter pelo menos 3 caracteres.'),
@@ -84,7 +92,11 @@ export default function VideoIdeasPage() {
 
   const handleSave = (data: GenerateVideoIdeasOutput) => {
     if (!user || !firestore) {
-      toast({ title: 'Erro', description: 'Você precisa estar logado para salvar.', variant: 'destructive' });
+      toast({
+        title: 'Erro',
+        description: 'Você precisa estar logado para salvar.',
+        variant: 'destructive',
+      });
       return;
     }
 
@@ -92,7 +104,7 @@ export default function VideoIdeasPage() {
       try {
         const title = `Ideia: ${form.getValues('topic').substring(0, 40)}...`;
         const content = `**Gancho:**\n${data.gancho}\n\n**Roteiro:**\n${data.script}\n\n**CTA:**\n${data.cta}`;
-        
+
         await addDoc(collection(firestore, `users/${user.uid}/ideiasSalvas`), {
           userId: user.uid,
           titulo: title,
@@ -107,7 +119,7 @@ export default function VideoIdeasPage() {
           description: 'Sua ideia foi salva no painel.',
         });
       } catch (error) {
-        console.error("Failed to save idea:", error);
+        console.error('Failed to save idea:', error);
         toast({
           title: 'Erro ao Salvar',
           description: 'Não foi possível salvar a ideia. Tente novamente.',
@@ -135,10 +147,7 @@ export default function VideoIdeasPage() {
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form
-              action={formAction}
-              className="space-y-8"
-            >
+            <form action={formAction} className="space-y-8">
               <div className="grid md:grid-cols-2 gap-x-6 gap-y-6">
                 <FormField
                   control={form.control}
@@ -321,7 +330,7 @@ export default function VideoIdeasPage() {
       {(isGenerating || result) && (
         <div className="space-y-8 animate-fade-in">
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-            <div>
+            <div className="flex-1">
               <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">
                 Resultado da IA
               </h2>
@@ -330,18 +339,44 @@ export default function VideoIdeasPage() {
               </p>
             </div>
             {result && (
-              <Button
-                onClick={() => handleSave(result)}
-                disabled={isSaving}
-                className="w-full sm:w-auto rounded-full font-manrope"
-              >
-                {isSaving ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Save className="mr-2 h-4 w-4" />
-                )}
-                Salvar Ideia
-              </Button>
+              <div className="flex w-full sm:w-auto gap-2">
+                <Sheet>
+                  <SheetTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full sm:w-auto rounded-full font-manrope"
+                    >
+                      <Eye className="mr-2 h-4 w-4" />
+                      Ver Completo
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
+                    <SheetHeader>
+                      <SheetTitle className='font-headline text-2xl'>Resultado Completo</SheetTitle>
+                    </SheetHeader>
+                    <div className="space-y-6 py-6">
+                        <InfoCard title="O Gancho Perfeito" icon={Mic} content={result.gancho} />
+                        <InfoCard title="Roteiro do Vídeo" icon={Pen} content={result.script} isTextarea contentClassName='h-64'/>
+                        <InfoCard title="Chamada para Ação (CTA)" icon={Heart} content={result.cta} />
+                        <InfoListCard title="Takes para Gravar" icon={Camera} content={result.takes} contentClassName='h-48'/>
+                        <InfoCard title="Horário Sugerido" icon={Clock} content={result.suggestedPostTime} />
+                        <InfoCard title="Música em Alta" icon={Disc} content={result.trendingSong} />
+                    </div>
+                  </SheetContent>
+                </Sheet>
+                <Button
+                  onClick={() => handleSave(result)}
+                  disabled={isSaving}
+                  className="w-full sm:w-auto rounded-full font-manrope"
+                >
+                  {isSaving ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="mr-2 h-4 w-4" />
+                  )}
+                  Salvar Ideia
+                </Button>
+              </div>
             )}
           </div>
 
@@ -402,14 +437,20 @@ function InfoCard({
   icon: Icon,
   content,
   isTextarea = false,
+  className,
+  contentClassName,
 }: {
   title: string;
   icon: React.ElementType;
   content: string;
   isTextarea?: boolean;
+  className?: string;
+  contentClassName?: string;
 }) {
   return (
-    <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg rounded-2xl">
+    <Card
+      className={`shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg rounded-2xl ${className}`}
+    >
       <CardHeader>
         <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary/80" />
@@ -421,7 +462,7 @@ function InfoCard({
           <Textarea
             readOnly
             value={content}
-            className="h-48 bg-background/50 text-base leading-relaxed resize-none rounded-xl"
+            className={`h-48 bg-background/50 text-base leading-relaxed resize-none rounded-xl ${contentClassName}`}
           />
         ) : (
           <p className="p-4 rounded-xl border border-border/10 bg-background/50 text-base text-foreground">
@@ -437,10 +478,12 @@ function InfoListCard({
   title,
   icon: Icon,
   content,
+  contentClassName,
 }: {
   title: string;
   icon: React.ElementType;
   content: string[];
+  contentClassName?: string;
 }) {
   return (
     <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg rounded-2xl">
@@ -454,11 +497,9 @@ function InfoListCard({
         <Textarea
           readOnly
           value={content.map((take, index) => `${index + 1}. ${take}`).join('\n')}
-          className="h-48 bg-background/50 text-base leading-relaxed resize-none rounded-xl"
+          className={`h-48 bg-background/50 text-base leading-relaxed resize-none rounded-xl ${contentClassName}`}
         />
       </CardContent>
     </Card>
   );
 }
-
-    

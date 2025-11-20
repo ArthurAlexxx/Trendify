@@ -24,6 +24,7 @@ import {
   Sparkles,
   Link,
   Save,
+  Eye,
 } from 'lucide-react';
 import { useEffect, useActionState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
@@ -32,7 +33,13 @@ import { getVideoReviewAction, VideoReviewOutput } from './actions';
 import { Badge } from '@/components/ui/badge';
 import { useFirestore, useUser } from '@/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
 
 const formSchema = z.object({
   videoLink: z.string().url('Por favor, insira um URL de vídeo válido.'),
@@ -47,7 +54,6 @@ export default function VideoReviewPage() {
   const [isSaving, startSavingTransition] = useTransition();
   const { user } = useUser();
   const firestore = useFirestore();
-
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -68,15 +74,23 @@ export default function VideoReviewPage() {
 
   const handleSave = (data: VideoReviewOutput) => {
     if (!user || !firestore) {
-      toast({ title: 'Erro', description: 'Você precisa estar logado para salvar.', variant: 'destructive' });
+      toast({
+        title: 'Erro',
+        description: 'Você precisa estar logado para salvar.',
+        variant: 'destructive',
+      });
       return;
     }
 
     startSavingTransition(async () => {
       try {
         const title = `Análise de Vídeo: Score ${data.score}/100`;
-        const content = `**Sugestões de Gancho:**\n- ${data.hookSuggestions.join('\n- ')}\n\n**Ritmo:**\n${data.pacingSuggestions}\n\n**Legenda:**\n${data.caption}`;
-        
+        const content = `**Sugestões de Gancho:**\n- ${data.hookSuggestions.join(
+          '\n- '
+        )}\n\n**Ritmo:**\n${data.pacingSuggestions}\n\n**Legenda:**\n${
+          data.caption
+        }`;
+
         await addDoc(collection(firestore, `users/${user.uid}/ideiasSalvas`), {
           userId: user.uid,
           titulo: title,
@@ -91,7 +105,7 @@ export default function VideoReviewPage() {
           description: 'Sua análise foi salva no painel.',
         });
       } catch (error) {
-        console.error("Failed to save idea:", error);
+        console.error('Failed to save idea:', error);
         toast({
           title: 'Erro ao Salvar',
           description: 'Não foi possível salvar a análise. Tente novamente.',
@@ -127,7 +141,9 @@ export default function VideoReviewPage() {
         <CardContent>
           <Form {...form}>
             <form
-              onSubmit={form.handleSubmit(() => formAction(new FormData(form.control._formRef.current)))}
+              onSubmit={form.handleSubmit(() =>
+                formAction(new FormData(form.control._formRef.current))
+              )}
               className="flex flex-col sm:flex-row items-start gap-4"
             >
               <FormField
@@ -173,7 +189,7 @@ export default function VideoReviewPage() {
       {(isGenerating || result) && (
         <div className="space-y-8 animate-fade-in">
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-            <div>
+            <div className='flex-1'>
               <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">
                 Diagnóstico da IA
               </h2>
@@ -182,18 +198,58 @@ export default function VideoReviewPage() {
               </p>
             </div>
             {result && (
-              <Button
-                onClick={() => handleSave(result)}
-                disabled={isSaving}
-                className="w-full sm:w-auto rounded-full font-manrope"
-              >
-                {isSaving ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Save className="mr-2 h-4 w-4" />
-                )}
-                Salvar Análise
-              </Button>
+              <div className="flex w-full sm:w-auto gap-2">
+                 <Sheet>
+                  <SheetTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full sm:w-auto rounded-full font-manrope"
+                    >
+                      <Eye className="mr-2 h-4 w-4" />
+                      Ver Completo
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
+                    <SheetHeader>
+                      <SheetTitle className='font-headline text-2xl'>Diagnóstico Completo</SheetTitle>
+                    </SheetHeader>
+                     <div className="space-y-6 py-6">
+                        <InfoList
+                          title="Sugestões de Gancho"
+                          icon={Lightbulb}
+                          items={result.hookSuggestions}
+                        />
+                        <InfoList
+                          title="Variações de Roteiro"
+                          icon={List}
+                          items={result.scriptVariations}
+                        />
+                      <InfoCard
+                        title="Sugestões de Ritmo"
+                        icon={Clapperboard}
+                        content={result.pacingSuggestions}
+                      />
+                      <InfoCard
+                        title="Legenda Otimizada"
+                        icon={Captions}
+                        content={result.caption}
+                      />
+                    </div>
+                  </SheetContent>
+                </Sheet>
+                <Button
+                  onClick={() => handleSave(result)}
+                  disabled={isSaving}
+                  className="w-full sm:w-auto rounded-full font-manrope"
+                >
+                  {isSaving ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="mr-2 h-4 w-4" />
+                  )}
+                  Salvar Análise
+                </Button>
+              </div>
             )}
           </div>
 
