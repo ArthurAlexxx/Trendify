@@ -35,7 +35,7 @@ const firestore = getFirestore(adminApp);
 
 
 export async function POST(req: NextRequest) {
-  const abacateSignature = req.headers.get('abacate-signature');
+  const abacateSignature = req.headers.get('x-abacate-signature');
   const body = await req.text();
   const WEBHOOK_SECRET = process.env.ABACATE_WEBHOOK_SECRET;
 
@@ -49,10 +49,10 @@ export async function POST(req: NextRequest) {
 
 
   if (!abacateSignature) {
-    console.error('[webhook-post] ERRO: Assinatura "abacate-signature" ausente no cabeçalho.');
+    console.error('[webhook-post] ERRO: Assinatura "x-abacate-signature" ausente no cabeçalho.');
     return NextResponse.json({ error: 'Signature missing.' }, { status: 400 });
   }
-  console.log('[webhook-post] Assinatura "abacate-signature" encontrada no cabeçalho.');
+  console.log('[webhook-post] Assinatura "x-abacate-signature" encontrada no cabeçalho.');
 
 
   // Verify the signature
