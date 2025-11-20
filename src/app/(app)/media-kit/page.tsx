@@ -17,10 +17,11 @@ import {
   Bot,
   Sparkles,
   Loader2,
-  Clapperboard,
-  FileText,
   Save,
-  Eye,
+  DollarSign,
+  Target,
+  FileText,
+  Lightbulb,
 } from 'lucide-react';
 import Image from 'next/image';
 import { useState, useActionState, useTransition, useEffect } from 'react';
@@ -37,14 +38,15 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import {
-  getAiSuggestedVideoScriptsAction,
-  AiSuggestedVideoScriptsOutput,
+  getAiCareerPackageAction,
+  AiCareerPackageOutput,
 } from './actions';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore } from '@/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { SavedIdeasSheet } from '@/components/saved-ideas-sheet';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 const creatorProfileImage = PlaceHolderImages.find(
   (p) => p.id === 'creator-profile'
@@ -57,13 +59,9 @@ const caseStudyImage2 = PlaceHolderImages.find(
 );
 
 const formSchema = z.object({
-  productDescription: z
-    .string()
-    .min(10, 'A descrição do produto deve ter pelo menos 10 caracteres.'),
-  brandDetails: z
-    .string()
-    .min(10, 'Os detalhes da marca devem ter pelo menos 10 caracteres.'),
-  trendingTopic: z.string().optional(),
+  niche: z.string().min(10, 'Seu nicho deve ter pelo menos 10 caracteres.'),
+  keyMetrics: z.string().min(10, 'Suas métricas devem ter pelo menos 10 caracteres.'),
+  targetBrand: z.string().min(3, 'A marca alvo deve ter pelo menos 3 caracteres.'),
 });
 
 export default function MediaKitPage() {
@@ -79,7 +77,7 @@ export default function MediaKitPage() {
 
   const { toast } = useToast();
   const [state, formAction, isGenerating] = useActionState(
-    getAiSuggestedVideoScriptsAction,
+    getAiCareerPackageAction,
     null
   );
   const [isSaving, startSavingTransition] = useTransition();
@@ -89,9 +87,9 @@ export default function MediaKitPage() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      productDescription: 'Um novo tênis de corrida feito com materiais reciclados, super leve e com design inovador.',
-      brandDetails: 'Marca de moda sustentável, focada no público jovem e consciente, que valoriza design e propósito.',
-      trendingTopic: 'Desafio de 30 dias de corrida',
+      niche: 'Criadora de conteúdo de lifestyle, moda e beleza sustentável.',
+      keyMetrics: '250 mil seguidores no Instagram, 1.2M de alcance mensal, 4.7% de taxa de engajamento.',
+      targetBrand: 'Sallve',
     },
   });
   
@@ -105,7 +103,7 @@ export default function MediaKitPage() {
     }
   }, [state, toast]);
 
-  const handleSave = (data: AiSuggestedVideoScriptsOutput) => {
+  const handleSave = (data: AiCareerPackageOutput) => {
     if (!user || !firestore) {
       toast({
         title: 'Erro',
@@ -117,29 +115,35 @@ export default function MediaKitPage() {
 
     startSavingTransition(async () => {
       try {
-        const title = `Proposta: ${form
-          .getValues('brandDetails')
-          .substring(0, 30)}...`;
-        const content = `**Roteiro:**\n${data.videoScript}\n\n**Proposta:**\n${data.proposalDraft}`;
+        const title = `Pacote de Prospecção para ${form.getValues('targetBrand')}`;
+        
+        let content = `**Apresentação:**\n${data.executiveSummary}\n\n`;
+        content += `**Pontos Fortes:**\n${data.talkingPoints.map(p => `- ${p}`).join('\n')}\n\n`;
+        content += `**Tabela de Preços:**\n`;
+        content += `- Reels: ${data.pricingTiers.reels}\n`;
+        content += `- Stories: ${data.pricingTiers.storySequence}\n`;
+        content += `- Post: ${data.pricingTiers.staticPost}\n`;
+        content += `- Pacote: ${data.pricingTiers.monthlyPackage}\n\n`;
+        content += `**Ideias de Colaboração:**\n${data.sampleCollaborationIdeas.map(idea => `- ${idea}`).join('\n')}`;
 
         await addDoc(collection(firestore, `users/${user.uid}/ideiasSalvas`), {
           userId: user.uid,
           titulo: title,
           conteudo: content,
-          origem: 'Propostas & Mídia Kit',
+          origem: 'Mídia Kit & Prospecção',
           concluido: false,
           createdAt: serverTimestamp(),
         });
 
         toast({
           title: 'Sucesso!',
-          description: 'Sua proposta foi salva no painel.',
+          description: 'Seu pacote de prospecção foi salvo no painel.',
         });
       } catch (error) {
         console.error('Failed to save idea:', error);
         toast({
           title: 'Erro ao Salvar',
-          description: 'Não foi possível salvar a ideia. Tente novamente.',
+          description: 'Não foi possível salvar o pacote. Tente novamente.',
           variant: 'destructive',
         });
       }
@@ -152,7 +156,7 @@ export default function MediaKitPage() {
     <div className="space-y-12">
       <PageHeader
         title="Propostas & Mídia Kit"
-        description="Gere propostas com IA e seu mídia kit profissional em um só lugar."
+        description="Gere propostas, calcule preços e seu mídia kit profissional em um só lugar."
       >
         <SavedIdeasSheet />
       </PageHeader>
@@ -164,33 +168,26 @@ export default function MediaKitPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-3 font-headline text-xl">
                 <Bot className="h-6 w-6 text-primary" />
-                <span>Gerador de Propostas com IA</span>
+                <span>Assistente de Carreira</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
               <Form {...form}>
                 <form
-                  onSubmit={form.handleSubmit(() => {
-                    const formData = new FormData();
-                    const values = form.getValues();
-                    formData.append('productDescription', values.productDescription);
-                    formData.append('brandDetails', values.brandDetails);
-                    formData.append('trendingTopic', values.trendingTopic || '');
-                    formAction(formData);
-                  })}
+                  action={formAction}
                   className="space-y-8"
                 >
-                  <div className="grid md:grid-cols-2 gap-x-6 gap-y-6">
-                    <FormField
+                  <div className="space-y-6">
+                     <FormField
                       control={form.control}
-                      name="brandDetails"
+                      name="niche"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Para qual marca é a proposta?</FormLabel>
+                          <FormLabel>Seu Nicho de Atuação</FormLabel>
                           <FormControl>
-                            <Textarea
-                              placeholder="Ex: 'Marca de moda sustentável, focada no público jovem...'"
-                              className="min-h-[140px] rounded-xl"
+                            <Input
+                              placeholder="Ex: 'Lifestyle, moda e beleza sustentável'"
+                              className="h-11"
                               {...field}
                             />
                           </FormControl>
@@ -198,23 +195,42 @@ export default function MediaKitPage() {
                         </FormItem>
                       )}
                     />
-                    <FormField
-                      control={form.control}
-                      name="productDescription"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Qual produto será divulgado?</FormLabel>
-                          <FormControl>
-                            <Textarea
-                              placeholder="Ex: 'Um novo tênis de corrida feito com materiais reciclados, super leve...'"
-                              className="min-h-[140px] rounded-xl"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                     <div className="grid md:grid-cols-2 gap-x-6 gap-y-6">
+                       <FormField
+                        control={form.control}
+                        name="keyMetrics"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Suas Métricas Chave</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="Ex: '250K seguidores, 4.7% engajamento...'"
+                                className="h-11"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                       <FormField
+                        control={form.control}
+                        name="targetBrand"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Marca Alvo (para contexto)</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="Ex: 'Sallve', 'Natura', 'Nike'"
+                                className="h-11"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                     </div>
                   </div>
                   <div className="pt-2">
                     <Button
@@ -226,7 +242,7 @@ export default function MediaKitPage() {
                       {isGenerating ? (
                         <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Gerando...</>
                       ) : (
-                        <><Sparkles className="mr-2 h-5 w-5" />Gerar Proposta</>
+                        <><Sparkles className="mr-2 h-5 w-5" />Gerar Pacote de Prospecção</>
                       )}
                     </Button>
                   </div>
@@ -241,12 +257,12 @@ export default function MediaKitPage() {
               <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                 <div className='flex-1'>
                   <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Resultado da IA</h2>
-                  <p className="text-muted-foreground">Conteúdo gerado para sua próxima colaboração de sucesso.</p>
+                  <p className="text-muted-foreground">Um pacote completo para sua prospecção de marcas.</p>
                 </div>
                 {result && (
                   <Button onClick={() => handleSave(result)} disabled={isSaving} className="w-full sm:w-auto rounded-full font-manrope">
                     {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                    Salvar Proposta
+                    Salvar Pacote
                   </Button>
                 )}
               </div>
@@ -254,12 +270,16 @@ export default function MediaKitPage() {
               {isGenerating && !result ? (
                 <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-96">
                   <Loader2 className="h-10 w-10 animate-spin text-primary" />
-                  <p className="mt-4 text-muted-foreground">A IA está preparando sua proposta...</p>
+                  <p className="mt-4 text-muted-foreground">A IA está criando seu pacote de prospecção...</p>
                 </div>
               ) : result ? (
-                <div className="grid lg:grid-cols-2 gap-8 items-start">
-                  <InfoCard title="Roteiro de Vídeo Gerado" icon={Clapperboard} content={result.videoScript} />
-                  <InfoCard title="Rascunho da Proposta" icon={FileText} content={result.proposalDraft} />
+                 <div className="grid gap-8">
+                  <InfoCard title="Apresentação para Marcas" icon={FileText} content={result.executiveSummary} isTextarea />
+                  <div className="grid lg:grid-cols-2 gap-8 items-start">
+                    <InfoList title="Seus Pontos Fortes" icon={Target} items={result.talkingPoints} />
+                    <InfoList title="Ideias de Colaboração" icon={Lightbulb} items={result.sampleCollaborationIdeas} />
+                  </div>
+                  <PricingCard title="Tabela de Preços Sugerida" icon={DollarSign} pricing={result.pricingTiers} />
                 </div>
               ) : null}
             </div>
@@ -436,10 +456,12 @@ function InfoCard({
   title,
   icon: Icon,
   content,
+  isTextarea = false,
 }: {
   title: string;
   icon: React.ElementType;
   content: string;
+  isTextarea?: boolean;
 }) {
   return (
     <Card
@@ -452,14 +474,105 @@ function InfoCard({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <Textarea
-          readOnly
-          value={content}
-          className="h-96 bg-background/50 text-base leading-relaxed resize-none rounded-xl"
-        />
+         {isTextarea ? (
+          <Textarea
+            readOnly
+            value={content}
+            className="h-40 bg-background/50 text-base leading-relaxed resize-none rounded-xl"
+          />
+        ) : (
+          <p className="p-4 rounded-xl border border-border/10 bg-background/50 text-base text-foreground">
+            {content}
+          </p>
+        )}
       </CardContent>
     </Card>
   );
 }
 
-    
+
+function InfoList({
+  title,
+  icon: Icon,
+  items,
+}: {
+  title: string;
+  icon: React.ElementType;
+  items: string[];
+}) {
+  return (
+    <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg rounded-2xl h-full">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
+          <Icon className="h-5 w-5 text-primary" />
+          <span>{title}</span>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3">
+          {items.map((item, index) => (
+            <div
+              key={index}
+              className="text-sm p-3 rounded-xl bg-background/50 border border-border/20"
+            >
+              {item}
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+
+function PricingCard({
+  title,
+  icon: Icon,
+  pricing,
+}: {
+  title: string;
+  icon: React.ElementType;
+  pricing: AiCareerPackageOutput['pricingTiers'];
+}) {
+  return (
+    <Card
+      className="shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg rounded-2xl h-full"
+    >
+      <CardHeader>
+        <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
+          <Icon className="h-5 w-5 text-primary" />
+          <span>{title}</span>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p className='text-xs text-muted-foreground mb-4'>Valores baseados nas suas métricas. Use como ponto de partida para negociações.</p>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Formato</TableHead>
+              <TableHead className="text-right">Faixa de Preço</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow>
+              <TableCell className="font-medium">Reels</TableCell>
+              <TableCell className="text-right font-mono">{pricing.reels}</TableCell>
+            </TableRow>
+             <TableRow>
+              <TableCell className="font-medium">Sequência de Stories</TableCell>
+              <TableCell className="text-right font-mono">{pricing.storySequence}</TableCell>
+            </TableRow>
+             <TableRow>
+              <TableCell className="font-medium">Post Estático (Feed)</TableCell>
+              <TableCell className="text-right font-mono">{pricing.staticPost}</TableCell>
+            </TableRow>
+             <TableRow>
+              <TableCell className="font-medium text-primary">Pacote Mensal</TableCell>
+              <TableCell className="text-right font-mono text-primary font-bold">{pricing.monthlyPackage}</TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
+  );
+}
