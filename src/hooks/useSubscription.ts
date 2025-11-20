@@ -40,7 +40,7 @@ export function useSubscription(): UseSubscriptionResult {
   }
 
   if (!userProfile) {
-    return { subscription: null, isLoading: false };
+    return { subscription: { status: 'inactive', plan: 'free'}, isLoading: false };
   }
 
   return {

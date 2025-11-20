@@ -5,7 +5,7 @@ import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Check, Loader2, Sparkles, Copy, RefreshCw } from 'lucide-react';
-import { useUser } from '@/firebase';
+import { useUser, useFirestore } from '@/firebase';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -16,8 +16,10 @@ import { useToast } from '@/hooks/use-toast';
 import { createPixChargeAction } from './actions';
 import { Skeleton } from '@/components/ui/skeleton';
 import Image from 'next/image';
-import { useSubscription } from '@/hooks/useSubscription';
 import { useRouter } from 'next/navigation';
+import { doc, getDoc } from 'firebase/firestore';
+import type { UserProfile } from '@/lib/types';
+
 
 const formSchema = z.object({
   name: z.string().min(3, 'O nome completo é obrigatório.'),
@@ -29,12 +31,11 @@ const formSchema = z.object({
 
 export default function SubscribePage() {
   const { user, isUserLoading } = useUser();
+  const firestore = useFirestore();
   const { toast } = useToast();
   const router = useRouter();
   const [isCheckingStatus, startCheckingTransition] = useTransition();
   const [showSuccess, setShowSuccess] = useState(false);
-
-  const { subscription, isLoading: isLoadingSubscription } = useSubscription();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -71,21 +72,6 @@ export default function SubscribePage() {
     }
   }, [state, toast]);
 
-   useEffect(() => {
-    // This effect runs only on the client-side
-    if (subscription?.status === 'active') {
-       setShowSuccess(true); // Show success view
-       toast({
-        title: 'Plano Ativado!',
-        description: 'Sua assinatura PRO está ativa. Bem-vindo(a)!',
-      });
-      // Redirect after a short delay to allow user to see the message
-      const timer = setTimeout(() => {
-        router.push('/dashboard');
-      }, 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [subscription, router, toast]);
 
   const copyToClipboard = useCallback((text: string) => {
     navigator.clipboard.writeText(text).then(() => {
@@ -96,16 +82,36 @@ export default function SubscribePage() {
     });
   }, [toast]);
   
+  const checkSubscriptionStatus = async () => {
+    if (!user || !firestore) return;
+  
+    const userRef = doc(firestore, `users/${user.uid}`);
+    const docSnap = await getDoc(userRef);
+  
+    if (docSnap.exists()) {
+      const userProfile = docSnap.data() as UserProfile;
+      if (userProfile.subscription?.status === 'active') {
+        setShowSuccess(true);
+        toast({
+          title: 'Plano Ativado!',
+          description: 'Sua assinatura PRO está ativa. Redirecionando...',
+        });
+        setTimeout(() => {
+          router.push('/dashboard');
+        }, 2000);
+      } else {
+        toast({
+          title: 'Aguardando Pagamento',
+          description: 'Seu plano será ativado assim que o pagamento for confirmado.',
+        });
+      }
+    }
+  };
+
   const handleCheckStatus = () => {
     startCheckingTransition(() => {
-      // The useEffect above will handle redirection if the plan is active
-      if (subscription?.status === 'active') {
-        // Already handled by useEffect, but for immediate feedback
-        toast({ title: 'Plano Ativo!', description: 'Redirecionando para o dashboard...'});
-      } else {
-        toast({ title: 'Aguardando Pagamento', description: 'Seu plano será ativado assim que o pagamento for confirmado.'});
-      }
-    })
+      checkSubscriptionStatus();
+    });
   }
 
   const result = state?.data;
@@ -171,9 +177,9 @@ export default function SubscribePage() {
                 <CardDescription>Preencha seus dados para gerar o QR Code para pagamento.</CardDescription>
             </CardHeader>
             <CardContent>
-              {(isUserLoading || isLoadingSubscription) && <Skeleton className='h-96 w-full'/>}
+              {isUserLoading && <Skeleton className='h-96 w-full'/>}
               
-              {!result && !isGenerating && !isUserLoading && !isLoadingSubscription && (
+              {!result && !isGenerating && !isUserLoading && (
                 <Form {...form}>
                     <form action={formAction} className='space-y-6'>
                         <input type="hidden" {...form.register('userId')} />
