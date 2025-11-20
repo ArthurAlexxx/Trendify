@@ -20,6 +20,7 @@ import {
   Clapperboard,
   FileText,
   Save,
+  Eye,
 } from 'lucide-react';
 import Image from 'next/image';
 import { useState, useActionState, useTransition, useEffect } from 'react';
@@ -38,10 +39,12 @@ import { z } from 'zod';
 import {
   getAiSuggestedVideoScriptsAction,
   AiSuggestedVideoScriptsOutput,
-} from '../publis-assistant/actions';
+} from './actions';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore } from '@/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { SavedIdeasSheet } from '@/components/saved-ideas-sheet';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 const creatorProfileImage = PlaceHolderImages.find(
   (p) => p.id === 'creator-profile'
@@ -150,7 +153,9 @@ export default function MediaKitPage() {
       <PageHeader
         title="Propostas & Mídia Kit"
         description="Gere propostas com IA e seu mídia kit profissional em um só lugar."
-      />
+      >
+        <SavedIdeasSheet />
+      </PageHeader>
       <div className="grid lg:grid-cols-3 gap-12">
         <div className="lg:col-span-2 space-y-12">
           
@@ -457,3 +462,4 @@ function InfoCard({
   );
 }
 
+    
