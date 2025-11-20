@@ -22,9 +22,13 @@ export type GeneratePubliProposalsOutput = z.infer<
 
 const formSchema = z.object({
   product: z.string().min(3, 'O nome do produto/marca deve ter pelo menos 3 caracteres.'),
+  targetAudience: z.string().min(10, 'O público-alvo deve ter pelo menos 10 caracteres.'),
+  differentiators: z.string().min(10, 'Os diferenciais devem ter pelo menos 10 caracteres.'),
   tone: z.string().min(1, 'O tom de voz é obrigatório.'),
   objective: z.string().min(1, 'O objetivo é obrigatório.'),
+  extraInfo: z.string().optional(),
 });
+
 
 type PubliProposalsState = {
   data?: GeneratePubliProposalsOutput;
@@ -61,15 +65,18 @@ Sua tarefa é gerar um pacote de conteúdo completo para um criador de conteúdo
 Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON deve se conformar estritamente ao schema fornecido.`;
 
   const userPrompt = `
-  Gere um pacote de conteúdo para uma publicidade ("publi") com base nos seguintes requisitos:
+  Gere um pacote de conteúdo para uma publicidade ("publi") com base nos seguintes requisitos detalhados:
 
   - Produto/Marca a ser promovido: ${input.product}
+  - Público-alvo: ${input.targetAudience}
+  - Diferenciais do produto/marca: ${input.differentiators}
   - Tom de Voz da campanha: ${input.tone}
   - Objetivo Principal da campanha: ${input.objective}
+  - Informações Adicionais (restrições, links, etc.): ${input.extraInfo || 'Nenhuma'}
 
   Para cada campo do JSON, siga estas diretrizes:
 
-  - scripts: Crie EXATAMENTE 5 roteiros de vídeo distintos. Cada roteiro deve ser prático e pronto para gravar, incluindo um gancho forte, um desenvolvimento rápido e uma chamada para ação clara (CTA). Pense em formatos variados (ex: tutorial, unboxing, POV, antes e depois, etc.).
+  - scripts: Crie EXATAMENTE 5 roteiros de vídeo distintos, cada um explorando um ângulo diferente (ex: tutorial focado no diferencial, POV do cliente, unboxing estético, problema vs. solução, etc.). Cada roteiro deve ser prático e pronto para gravar, incluindo um gancho forte, um desenvolvimento rápido e uma chamada para ação clara (CTA) alinhada ao objetivo.
 
   - trendVariations: Crie 2-3 sugestões de como adaptar uma das ideias de roteiro para uma tendência (trend) de áudio ou vídeo que esteja em alta no Instagram/TikTok. Seja específico. Ex: "Adapte o roteiro 3 usando o áudio 'som do momento' com a trend de dublagem X."
 
@@ -109,11 +116,7 @@ export async function generatePubliProposalsAction(
   prevState: PubliProposalsState,
   formData: FormData
 ): Promise<PubliProposalsState> {
-  const parsed = formSchema.safeParse({
-    product: formData.get('product'),
-    tone: formData.get('tone'),
-    objective: formData.get('objective'),
-  });
+  const parsed = formSchema.safeParse(Object.fromEntries(formData));
 
   if (!parsed.success) {
     const issues = parsed.error.issues.map((i) => i.message).join(', ');

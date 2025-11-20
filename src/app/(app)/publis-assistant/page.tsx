@@ -43,12 +43,16 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import { Textarea } from '@/components/ui/textarea';
 
 
 const formSchema = z.object({
   product: z.string().min(3, 'O nome do produto/marca deve ter pelo menos 3 caracteres.'),
+  targetAudience: z.string().min(10, 'O público-alvo deve ter pelo menos 10 caracteres.'),
+  differentiators: z.string().min(10, 'Os diferenciais devem ter pelo menos 10 caracteres.'),
   tone: z.string().min(1, 'O tom de voz é obrigatório.'),
   objective: z.string().min(1, 'O objetivo é obrigatório.'),
+  extraInfo: z.string().optional(),
 });
 
 export default function PublisAssistantPage() {
@@ -65,8 +69,11 @@ export default function PublisAssistantPage() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       product: '',
+      targetAudience: '',
+      differentiators: '',
       tone: 'Autêntico e Confiável',
       objective: 'Gerar Vendas',
+      extraInfo: '',
     },
   });
 
@@ -151,27 +158,66 @@ export default function PublisAssistantPage() {
           <Form {...form}>
             <form
               action={formAction}
-              onSubmit={form.handleSubmit(() => {})}
               className="space-y-8"
             >
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-6">
-                <FormField
-                  control={form.control}
-                  name="product"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Produto ou Marca</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Ex: 'Tênis de corrida da Nike'"
-                          className="h-11"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-6">
+                 <div className="space-y-6">
+                    <FormField
+                      control={form.control}
+                      name="product"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Produto ou Marca</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Ex: 'Tênis de corrida da Nike'"
+                              className="h-11"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                     <FormField
+                      control={form.control}
+                      name="targetAudience"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Público-Alvo</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              placeholder="Ex: 'Mulheres de 25-35 anos, interessadas em vida saudável e que já praticam corrida.'"
+                              className="min-h-[120px]"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                 </div>
+                 <div className="space-y-6">
+                     <FormField
+                      control={form.control}
+                      name="differentiators"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Diferenciais do Produto/Marca</FormLabel>
+                          <FormControl>
+                           <Textarea
+                              placeholder="Ex: 'Feito com material reciclado, super leve, tecnologia de absorção de impacto, design moderno.'"
+                              className="min-h-[120px]"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                 </div>
+              </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-6">
                  <FormField
                   control={form.control}
                   name="tone"
@@ -218,6 +264,23 @@ export default function PublisAssistantPage() {
                     </FormItem>
                   )}
                 />
+                 <FormField
+                    control={form.control}
+                    name="extraInfo"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Informações Adicionais (Opcional)</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Ex: 'Evitar falar sobre X, link de referência...'"
+                            className="h-11"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
               </div>
 
               <div className="pt-4">
