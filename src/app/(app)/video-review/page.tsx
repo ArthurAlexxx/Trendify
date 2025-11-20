@@ -1,6 +1,5 @@
 
 'use client';
-import type { Metadata } from 'next';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { SavedIdeasSheet } from '@/components/saved-ideas-sheet';
@@ -9,10 +8,6 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-
-export const metadata: Metadata = {
-  title: 'Análise de Vídeo',
-};
 
 export default function VideoReviewPage() {
   const [videoLink, setVideoLink] = useState('');

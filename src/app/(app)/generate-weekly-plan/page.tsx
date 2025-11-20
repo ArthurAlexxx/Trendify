@@ -1,6 +1,5 @@
 
 'use client';
-import type { Metadata } from 'next';
 import { PageHeader } from '@/components/page-header';
 import { Button, buttonVariants } from '@/components/ui/button';
 import {
@@ -63,10 +62,6 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { PreviousPlansSheet } from '@/components/previous-plans-sheet';
-
-export const metadata: Metadata = {
-  title: 'Planejamento Semanal',
-};
 
 const formSchema = z.object({
   objective: z.string().min(10, 'O objetivo precisa ser mais detalhado.'),

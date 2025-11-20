@@ -1,7 +1,6 @@
 
 'use client';
 
-import type { Metadata } from 'next';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import {
@@ -39,10 +38,6 @@ import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-
-export const metadata: Metadata = {
-  title: 'Configurações',
-};
 
 export default function SettingsPage() {
   const { user, isUserLoading } = useUser();
