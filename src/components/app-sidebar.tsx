@@ -37,6 +37,7 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { Skeleton } from './ui/skeleton';
 import { Plan } from '@/lib/types';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
+import { cn } from '@/lib/utils';
 
 const navItems: { href: string; icon: React.ElementType; label: string, plan: 'pro' | 'premium' }[] = [
   { href: '/dashboard', icon: LineChart, label: 'Painel', plan: 'pro' },
@@ -93,11 +94,14 @@ export function AppSidebar() {
             {isSubscriptionLoading ? (
                 <Skeleton className="h-10 w-full" />
             ) : isUserActive && (userPlan === 'pro' || userPlan === 'premium') ? (
-                 <div className="flex items-center justify-center gap-2 h-10 rounded-lg bg-primary/10 border border-primary/20 text-primary font-semibold text-sm">
+                 <div className={cn(
+                    "flex items-center justify-center gap-2 h-10 rounded-lg border font-semibold text-sm",
+                    userPlan === 'premium' ? "bg-yellow-400/10 border-yellow-400/20 text-yellow-500" : "bg-primary/10 border-primary/20 text-primary"
+                 )}>
                     <Crown className="h-4 w-4 fill-current" />
                     <span>
-                        {subscription?.plan === 'pro' && 'Plano PRO'}
-                        {subscription?.plan === 'premium' && 'Plano Premium'}
+                        {userPlan === 'pro' && 'Plano PRO'}
+                        {userPlan === 'premium' && 'Plano Premium'}
                     </span>
                 </div>
             ) : (
@@ -122,8 +126,11 @@ export function AppSidebar() {
                 >
                   <item.icon className="h-5 w-5" />
                   <span className="text-sm font-medium">{item.label}</span>
-                  {!accessible && (
+                  {!accessible && item.plan === 'premium' && (
                      <Crown className="h-4 w-4 ml-auto text-yellow-400 fill-yellow-400 group-data-[state=collapsed]:hidden"/>
+                  )}
+                   {!accessible && item.plan === 'pro' && userPlan === 'free' && (
+                     <Crown className="h-4 w-4 ml-auto text-slate-400 fill-slate-400 group-data-[state=collapsed]:hidden"/>
                   )}
                 </SidebarMenuButton>
             );

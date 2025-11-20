@@ -62,7 +62,8 @@ export default function SubscribePage() {
       return (
         <Card className={cn(
             "rounded-2xl shadow-lg shadow-primary/5 flex flex-col h-full",
-            isCurrentPlan && 'border-primary ring-2 ring-primary'
+            isCurrentPlan && 'border-primary ring-2 ring-primary',
+            isPremium && 'border-yellow-400'
         )}>
           <CardHeader>
             <CardTitle className="font-headline text-xl flex items-center gap-2">
@@ -88,7 +89,7 @@ export default function SubscribePage() {
             </ul>
           </CardContent>
           <CardFooter>
-            <Button asChild className="w-full" disabled={isCurrentPlan}>
+            <Button asChild className={cn("w-full", isPremium && 'bg-yellow-500 hover:bg-yellow-500/90')} disabled={isCurrentPlan}>
                <Link href={`/checkout?plan=${plan}`}>{buttonText}</Link>
             </Button>
           </CardFooter>
