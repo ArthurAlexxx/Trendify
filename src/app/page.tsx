@@ -69,7 +69,7 @@ export default function LandingPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b border-white/10">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border">
         <div className="container mx-auto flex h-20 items-center justify-between px-4 md:px-6">
           <Link
             href="/"
@@ -316,7 +316,7 @@ export default function LandingPage() {
               {featureCards.map((feature, index) => (
                 <Card
                   key={index}
-                  className="p-8 border border-white/10 bg-white/5 backdrop-blur-xl rounded-2xl transition-all duration-300 hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-1"
+                  className="p-8 border border-border bg-card/50 backdrop-blur-xl rounded-2xl transition-all duration-300 hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-1"
                 >
                   <div className="p-3 rounded-lg bg-primary/10 inline-block mb-4">
                     {feature.icon}
@@ -342,7 +342,7 @@ export default function LandingPage() {
                   O que as criadoras estão dizendo
                 </h2>
                 <div className="space-y-6">
-                  <Card className="p-6 rounded-2xl bg-card/50 backdrop-blur-sm border border-white/10">
+                  <Card className="p-6 rounded-2xl bg-card/50 backdrop-blur-sm border border-border">
                     <p className="text-foreground mb-4">
                       &quot;A Trendify mudou meu jogo. Finalmente tenho um
                       processo claro e minhas visualizações nunca foram tão
@@ -367,7 +367,7 @@ export default function LandingPage() {
                       </div>
                     </div>
                   </Card>
-                  <Card className="p-6 rounded-2xl bg-card/50 backdrop-blur-sm border border-white/10">
+                  <Card className="p-6 rounded-2xl bg-card/50 backdrop-blur-sm border border-border">
                     <p className="text-foreground mb-4">
                       &quot;O assistente de propostas me economiza horas. Fechei
                       duas novas parcerias na primeira semana!&quot;
@@ -418,7 +418,7 @@ export default function LandingPage() {
               </p>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-5xl mx-auto items-start">
-              <Card className="p-8 flex flex-col rounded-2xl border border-white/10 bg-card/50 backdrop-blur-sm">
+              <Card className="p-8 flex flex-col rounded-2xl border border-border bg-card/50 backdrop-blur-sm">
                 <h3 className="text-2xl font-bold font-headline mb-2">Free</h3>
                 <p className="text-muted-foreground mb-6">
                   Para começar a organizar suas ideias.
@@ -488,7 +488,7 @@ export default function LandingPage() {
                   Escolher Pro
                 </Button>
               </Card>
-              <Card className="p-8 flex flex-col rounded-2xl border border-white/10 bg-card/50 backdrop-blur-sm">
+              <Card className="p-8 flex flex-col rounded-2xl border border-border bg-card/50 backdrop-blur-sm">
                 <h3 className="text-2xl font-bold font-headline mb-2">Elite</h3>
                 <p className="text-muted-foreground mb-6">
                   Para agências e criadoras full-time.
@@ -529,7 +529,7 @@ export default function LandingPage() {
               <h2 className="text-4xl sm:text-5xl md:text-6xl font-black font-headline tracking-tight mb-6 !leading-tight">
                 O seu conteúdo pode ir muito mais longe.
               </h2>
-              <p className="text-lg text-primary/80 mb-8">
+              <p className="text-primary/80 mb-8">
                 Junte-se a milhares de criadoras que estão transformando
                 criatividade em carreira.
               </p>
@@ -548,7 +548,7 @@ export default function LandingPage() {
         </section>
       </main>
 
-      <footer className="py-8 border-t border-white/10">
+      <footer className="py-8 border-t border-border">
         <div className="container px-4 md:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground">
             &copy; {new Date().getFullYear()} Trendify. Todos os direitos

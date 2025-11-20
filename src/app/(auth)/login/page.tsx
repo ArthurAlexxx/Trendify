@@ -79,7 +79,7 @@ export default function LoginPage() {
             Acesse sua conta para continuar.
           </p>
         </div>
-        <Card className="shadow-2xl shadow-primary/10">
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 font-headline">
               <KeyRound className="h-5 w-5" />

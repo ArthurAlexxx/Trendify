@@ -103,7 +103,7 @@ export default function SignUpPage() {
             Crie sua conta e comece a crescer.
           </p>
         </div>
-        <Card className="shadow-2xl shadow-primary/10">
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 font-headline">
               <UserPlus className="h-5 w-5" />
