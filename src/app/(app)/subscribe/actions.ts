@@ -2,10 +2,10 @@
 'use server';
 
 import { z } from 'zod';
-import { getApp, getApps, initializeApp } from 'firebase-admin/app';
+import { getApp, getApps, initializeApp, cert } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
-import { firebaseServerConfig } from '@/firebase/config';
+import { firebaseConfig } from '@/firebase/config';
 
 const formSchema = z.object({
   name: z.string().min(3, 'O nome completo é obrigatório.'),
@@ -30,14 +30,25 @@ type ActionState = {
 
 // Initialize Firebase Admin SDK
 if (!getApps().length) {
+  console.log('[actions.ts] Initializing Firebase Admin...');
   try {
-    initializeApp({
-      credential: {
-        projectId: firebaseServerConfig.projectId,
-        clientEmail: firebaseServerConfig.clientEmail,
-        privateKey: firebaseServerConfig.privateKey,
-      },
-    });
+    // When deployed to Vercel, GOOGLE_APPLICATION_CREDENTIALS_JSON is set
+    if (process.env.VERCEL_ENV === 'production' && process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
+        console.log('[actions.ts] Vercel environment detected. Initializing with service account.');
+        initializeApp({
+            credential: cert(JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON))
+        });
+    } else {
+        console.log('[actions.ts] Local or non-Vercel environment. Initializing with local credentials/config.');
+        // For local dev, it might use Application Default Credentials or the config object
+        initializeApp({
+            credential: {
+                projectId: firebaseConfig.projectId,
+                clientEmail: process.env.FIREBASE_CLIENT_EMAIL, // you might need to add this to env
+                privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'), // and this
+            }
+        });
+    }
     console.log('[actions.ts] Firebase Admin initialized successfully.');
   } catch (e) {
     console.error('[actions.ts] Firebase Admin initialization error:', e);
@@ -119,19 +130,26 @@ export async function createPixChargeAction(
 ): Promise<ActionState> {
   console.log('[createPixChargeAction] Ação iniciada.');
 
-  // Get current user from server-side context
-  const token = formData.get('__token') as string | null;
+  const headers = (await import('next/headers')).headers();
+  const authorization = headers.get('Authorization');
+
+  if (!authorization) {
+    console.error('[createPixChargeAction] Token de autorização não encontrado no header.');
+    return { error: 'Usuário não autenticado. Token ausente.' };
+  }
+  
+  const token = authorization.split('Bearer ')[1];
   if (!token) {
-      console.error('[createPixChargeAction] Token de autorização não encontrado.');
-      return { error: 'Usuário não autenticado.' };
+    console.error('[createPixChargeAction] Formato do token inválido.');
+    return { error: 'Usuário não autenticado. Token mal formatado.' };
   }
 
   let decodedToken;
   try {
       decodedToken = await auth.verifyIdToken(token);
       console.log(`[createPixChargeAction] Token verificado com sucesso para o UID: ${decodedToken.uid}`);
-  } catch (e) {
-      console.error('[createPixChargeAction] Falha na verificação do token:', e);
+  } catch (e: any) {
+      console.error('[createPixChargeAction] Falha na verificação do token:', e.message);
       return { error: 'Sessão inválida. Por favor, faça login novamente.' };
   }
   const userId = decodedToken.uid;

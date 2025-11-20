@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { getApp, getApps, initializeApp, cert } from 'firebase-admin/app';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
+import { firebaseConfig } from '@/firebase/config';
 
 // Initialize Firebase Admin SDK
 // This ensures it's only initialized once.
@@ -14,7 +15,14 @@ if (!getApps().length) {
         });
     } else {
         // Fallback for local development or other environments
-        initializeApp();
+        // This might require GOOGLE_APPLICATION_CREDENTIALS to be set in your local env
+        initializeApp({
+             credential: {
+                projectId: firebaseConfig.projectId,
+                clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+                privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+            }
+        });
     }
 }
 
@@ -37,8 +45,7 @@ export async function POST(req: NextRequest) {
   // Verify the signature
   const hmac = crypto.createHmac('sha256', WEBHOOK_SECRET);
   const digest = hmac.update(body).digest('hex');
-  const expectedSignature = `sha256=${digest}`;
-
+  
   if (digest !== abacateSignature) {
      return NextResponse.json({ error: 'Invalid signature.' }, { status: 403 });
   }
