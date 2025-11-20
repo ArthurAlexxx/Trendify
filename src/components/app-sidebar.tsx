@@ -33,6 +33,8 @@ import {
 import { useUser, useAuth } from '@/firebase';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
+import { useSubscription } from '@/hooks/useSubscription';
+import { Skeleton } from './ui/skeleton';
 
 const navItems = [
   { href: '/dashboard', icon: LineChart, label: 'Painel' },
@@ -49,11 +51,14 @@ export function AppSidebar() {
   const { user } = useUser();
   const auth = useAuth();
   const router = useRouter();
+  const { subscription, isLoading: isSubscriptionLoading } = useSubscription();
 
   const handleSignOut = () => {
     auth.signOut();
     router.push('/login');
   };
+  
+  const isPro = subscription?.plan === 'pro' && subscription?.status === 'active';
 
   return (
     <Sidebar
@@ -76,12 +81,21 @@ export function AppSidebar() {
       </SidebarHeader>
       <SidebarContent className="p-2">
          <div className="hidden group-data-[state=expanded]:block p-2 mb-2">
-            <Button asChild className='w-full justify-start font-bold'>
-                <Link href="/subscribe">
-                    <Crown className="mr-2 h-4 w-4 fill-current" />
-                    Virar PRO
-                </Link>
-            </Button>
+            {isSubscriptionLoading ? (
+                <Skeleton className="h-10 w-full" />
+            ) : isPro ? (
+                 <div className="flex items-center justify-center gap-2 h-10 rounded-lg bg-primary/10 border border-primary/20 text-primary font-semibold text-sm">
+                    <Crown className="h-4 w-4 fill-current" />
+                    <span>Plano PRO</span>
+                </div>
+            ) : (
+                <Button asChild className='w-full justify-start font-bold'>
+                    <Link href="/subscribe">
+                        <Crown className="mr-2 h-4 w-4 fill-current" />
+                        Virar PRO
+                    </Link>
+                </Button>
+            )}
          </div>
 
         <SidebarMenu>
@@ -145,3 +159,4 @@ export function AppSidebar() {
     </Sidebar>
   );
 }
+
