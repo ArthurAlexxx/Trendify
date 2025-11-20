@@ -12,7 +12,7 @@ import { useUser } from '@/firebase';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, PanelLeft } from 'lucide-react';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, isUserLoading } = useUser();
@@ -40,10 +40,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <SidebarInset className="bg-background/95 w-full">
           {isMobile && (
             <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background/95 px-4 sm:px-6">
-              <SidebarTrigger asChild>
-                <Button size="icon" variant="outline" className="sm:hidden">
-                  <span className="sr-only">Abrir menu</span>
-                </Button>
+              <SidebarTrigger variant="outline" size="icon" className="sm:hidden">
+                <PanelLeft />
+                <span className="sr-only">Abrir menu</span>
               </SidebarTrigger>
             </header>
           )}
