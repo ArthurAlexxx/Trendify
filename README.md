@@ -41,7 +41,7 @@ Chaves secretas para a integração de pagamentos PIX.
 
 ```
 ABACATE_API_KEY=
-ABACATE_WEBHOOK_SECRET=
+ABACATE_PUBLIC_KEY=
 ```
 
 ### Inteligência Artificial (OpenAI)
