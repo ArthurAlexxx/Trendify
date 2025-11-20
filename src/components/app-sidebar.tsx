@@ -12,7 +12,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
 import {
   Sidebar,
   SidebarContent,
@@ -23,6 +22,7 @@ import {
   SidebarMenuItem,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
+import { Button } from './ui/button';
 
 const navItems = [
   { href: '/dashboard', icon: LineChart, label: 'Dashboard' },
@@ -62,7 +62,7 @@ export function AppSidebar() {
           </span>
           <span className="hidden group-data-[state=expanded]:inline">Trendify</span>
         </Link>
-        <SidebarTrigger className="hidden md:flex" variant="ghost" size="icon">
+        <SidebarTrigger variant="ghost" size="icon">
            <PanelLeft />
         </SidebarTrigger>
       </SidebarHeader>
@@ -70,24 +70,22 @@ export function AppSidebar() {
         <SidebarMenu>
           {navItems.map((item) => (
             <SidebarMenuItem key={item.label}>
-              <Link href={item.href} passHref legacyBehavior>
-                <SidebarMenuButton
-                  isActive={pathname === item.href}
-                  tooltip={item.label}
-                  asChild
-                >
-                  <a>
-                    {item.icon === 'trending' ? <TrendingIcon /> : <item.icon />}
-                    <span>{item.label}</span>
-                  </a>
-                </SidebarMenuButton>
-              </Link>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname === item.href}
+                tooltip={item.label}
+              >
+                <Link href={item.href}>
+                  {item.icon === 'trending' ? <TrendingIcon /> : <item.icon />}
+                  <span>{item.label}</span>
+                </Link>
+              </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter className="p-2">
-        <Link href="#" className="w-full">
+        <Link href="#">
             <div className="flex items-center gap-3 rounded-md p-2 hover:bg-sidebar-accent">
                 <Avatar className="h-8 w-8">
                     <AvatarImage src="https://picsum.photos/seed/avatar/100/100" alt="User Avatar" />
