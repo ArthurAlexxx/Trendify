@@ -22,18 +22,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
-  List,
   Bot,
-  Clapperboard,
-  Disc,
-  Mic,
-  Clock,
-  Loader2,
-  Sparkles,
   Camera,
+  Clock,
+  Disc,
   Heart,
-  Target,
+  Loader2,
+  Mic,
   Pen,
+  Sparkles,
 } from 'lucide-react';
 import { useEffect, useActionState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -83,16 +80,16 @@ export default function VideoIdeasPage() {
   const result = state?.data;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-12">
       <PageHeader
         title="Gerador de Ideias de Vídeo"
         description="Use a IA para criar conceitos de vídeo virais com roteiros e ganchos otimizados."
       />
 
-      <Card className="shadow-none border-border/60">
+      <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 font-headline text-lg">
-            <Sparkles className="h-5 w-5 text-primary" />
+          <CardTitle className="flex items-center gap-3 font-headline text-xl">
+            <Sparkles className="h-6 w-6 text-primary" />
             <span>Descreva sua necessidade</span>
           </CardTitle>
         </CardHeader>
@@ -106,9 +103,9 @@ export default function VideoIdeasPage() {
                   }
                 })
               )}
-              className="space-y-6"
+              className="space-y-8"
             >
-              <div className="grid md:grid-cols-2 gap-6">
+              <div className="grid md:grid-cols-2 gap-x-6 gap-y-6">
                 <FormField
                   control={form.control}
                   name="topic"
@@ -118,6 +115,7 @@ export default function VideoIdeasPage() {
                       <FormControl>
                         <Input
                           placeholder="Ex: 'Rotina de skincare para pele oleosa'"
+                          className="h-11"
                           {...field}
                         />
                       </FormControl>
@@ -134,6 +132,7 @@ export default function VideoIdeasPage() {
                       <FormControl>
                         <Input
                           placeholder="Ex: 'Mulheres de 25-35 anos interessadas em beleza'"
+                          className="h-11"
                           {...field}
                         />
                       </FormControl>
@@ -143,7 +142,7 @@ export default function VideoIdeasPage() {
                 />
               </div>
 
-              <div className="grid md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-6">
                  <FormField
                   control={form.control}
                   name="platform"
@@ -155,8 +154,8 @@ export default function VideoIdeasPage() {
                         defaultValue={field.value}
                       >
                         <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione uma plataforma" />
+                          <SelectTrigger className="h-11">
+                            <SelectValue placeholder="Selecione" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -179,8 +178,8 @@ export default function VideoIdeasPage() {
                         defaultValue={field.value}
                       >
                         <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione um formato" />
+                          <SelectTrigger className="h-11">
+                            <SelectValue placeholder="Selecione" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -206,8 +205,8 @@ export default function VideoIdeasPage() {
                         defaultValue={field.value}
                       >
                         <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione um tom" />
+                          <SelectTrigger className="h-11">
+                            <SelectValue placeholder="Selecione" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -233,8 +232,8 @@ export default function VideoIdeasPage() {
                         defaultValue={field.value}
                       >
                         <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione um objetivo" />
+                          <SelectTrigger className="h-11">
+                            <SelectValue placeholder="Selecione" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -250,40 +249,47 @@ export default function VideoIdeasPage() {
                 />
               </div>
 
-              <Button
-                type="submit"
-                disabled={isPending}
-                className="font-manrope w-full sm:w-auto h-11 px-8 rounded-full text-base"
-              >
-                {isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Gerando Ideias...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="mr-2 h-5 w-5" />
-                    Gerar Ideia
-                  </>
-                )}
-              </Button>
+              <div className="pt-4">
+                <Button
+                  type="submit"
+                  disabled={isPending}
+                  size="lg"
+                  className="font-manrope w-full sm:w-auto h-12 px-10 rounded-full text-base font-bold shadow-lg shadow-primary/20 transition-transform hover:scale-[1.02]"
+                >
+                  {isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      Gerando Ideias...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="mr-2 h-5 w-5" />
+                      Gerar Ideia
+                    </>
+                  )}
+                </Button>
+              </div>
             </form>
           </Form>
         </CardContent>
       </Card>
 
       {(isPending || result) && (
-        <div className="space-y-6">
-           <h2 className="text-2xl font-bold font-headline tracking-tight">Resultado da IA</h2>
+        <div className="space-y-8 animate-fade-in">
+           <div className="space-y-2">
+            <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Resultado da IA</h2>
+            <p className="text-muted-foreground">Aqui está um plano de conteúdo completo para seu próximo vídeo.</p>
+           </div>
+
           {isPending && !result ? (
-            <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border/80 bg-background h-96">
+            <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-96">
               <Loader2 className="h-10 w-10 animate-spin text-primary" />
               <p className="mt-4 text-muted-foreground">
                 A IA está criando algo incrível para você...
               </p>
             </div>
           ) : result ? (
-            <div className="grid gap-8">
+            <div className="grid gap-6">
               <div className="grid lg:grid-cols-2 gap-6">
                 <InfoCard title="O Gancho Perfeito" icon={Mic} content={result.gancho} />
                 <InfoCard title="Chamada para Ação (CTA)" icon={Heart} content={result.cta} />
@@ -314,9 +320,9 @@ function InfoCard({
   isTextarea?: boolean;
 }) {
   return (
-    <Card className="shadow-sm border-border/50">
+    <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg rounded-2xl">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-base font-semibold text-muted-foreground">
+        <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary/80" />
           <span>{title}</span>
         </CardTitle>
@@ -326,10 +332,10 @@ function InfoCard({
         <Textarea
           readOnly
           value={content}
-          className="h-40 bg-background/50 text-base leading-relaxed"
+          className="h-48 bg-background/50 text-base leading-relaxed resize-none rounded-xl"
         />
       ) : (
-        <p className="p-4 rounded-lg border border-transparent bg-background/50 text-base text-foreground">
+        <p className="p-4 rounded-xl border border-border/10 bg-background/50 text-base text-foreground">
           {content}
         </p>
       )}
