@@ -14,7 +14,7 @@ export type VideoReviewOutput = z.infer<typeof VideoReviewOutputSchema>;
 
 
 const formSchema = z.object({
-  videoLink: z.string().url('Please enter a valid video URL.'),
+  videoDataUri: z.string().min(1, 'O upload do vídeo é obrigatório.')
 });
 
 type VideoReviewState = {
@@ -48,13 +48,13 @@ function extractJson(text: string) {
 }
 
 async function getVideoReview(input: z.infer<typeof formSchema>): Promise<VideoReviewOutput> {
-  const systemPrompt = `Você é um "IA Video Coach", um especialista em análise de vídeos de redes sociais com o objetivo de ajudar criadores a viralizar.
+  const systemPrompt = `Você é um "AI Video Coach", um especialista em análise de vídeos de redes sociais com o objetivo de ajudar criadores a viralizar.
   Sua análise deve ser construtiva, detalhada e acionável.
-  Embora você não possa acessar o link diretamente, sua tarefa é gerar uma revisão completa e realista como se tivesse assistido ao vídeo. Baseie sua análise nas melhores práticas comuns para vídeos virais no TikTok e Instagram.
+  Você receberá um vídeo e deve gerar uma revisão completa e realista como se tivesse assistido. Baseie sua análise nas melhores práticas comuns para vídeos virais no TikTok e Instagram.
   Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON deve se conformar estritamente ao schema fornecido. Não inclua nenhum texto ou formatação fora do objeto JSON.`;
   
   const userPrompt = `
-  Analise o vídeo do seguinte link como se você o tivesse assistido: ${input.videoLink}
+  Analise o vídeo fornecido e gere um diagnóstico completo.
 
   Forneça um diagnóstico completo, seguindo estritamente estas diretrizes para cada campo do JSON:
 
@@ -74,7 +74,19 @@ async function getVideoReview(input: z.infer<typeof formSchema>): Promise<VideoR
       model: 'gpt-4o',
       messages: [
         { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
+        { 
+          role: 'user', 
+          content: [
+            { type: 'text', text: userPrompt },
+            {
+              type: 'image_url',
+              image_url: {
+                url: input.videoDataUri,
+                detail: 'low'
+              }
+            }
+          ]
+        },
       ],
       temperature: 0.8,
     });
@@ -93,7 +105,7 @@ async function getVideoReview(input: z.infer<typeof formSchema>): Promise<VideoR
     return VideoReviewOutputSchema.parse(parsedJson);
   } catch (error) {
     console.error('Error calling OpenAI or parsing response:', error);
-    const baseMessage = 'Failed to generate AI review. Note: The AI generates a simulated review based on best practices, as it cannot access external video links directly.';
+    const baseMessage = 'Failed to generate AI review.';
     const errorMessage = error instanceof Error ? error.message : 'Unknown error.';
     throw new Error(`${baseMessage} Details: ${errorMessage}`);
   }
@@ -105,18 +117,19 @@ export async function getVideoReviewAction(
   formData: FormData
 ): Promise<VideoReviewState> {
   const parsed = formSchema.safeParse({
-    videoLink: formData.get('videoLink'),
+    videoDataUri: formData.get('videoDataUri'),
   });
 
   if (!parsed.success) {
-    return { error: parsed.error.flatten().fieldErrors.videoLink?.join(', ') || 'Invalid URL.' };
+    return { error: parsed.error.flatten().fieldErrors.videoDataUri?.join(', ') || 'Invalid URL.' };
   }
 
   try {
     const result = await getVideoReview(parsed.data);
     return { data: result };
   } catch (e) {
-    const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred.';
+    const errorMessage =
+      e instanceof Error ? e.message : 'An unknown error occurred.';
     return { error: `Failed to review video: ${errorMessage}` };
   }
 }
