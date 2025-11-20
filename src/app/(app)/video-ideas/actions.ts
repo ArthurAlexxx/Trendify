@@ -8,7 +8,7 @@ const GenerateVideoIdeasOutputSchema = z.object({
   gancho: z.string().describe('Um gancho de 2-3 segundos, otimizado para parar a rolagem e gerar curiosidade imediata.'),
   script: z.string().describe('Um roteiro detalhado e conciso, com indicações de cena e narração, estruturado para reter a atenção.'),
   cta: z.string().describe('Uma chamada para ação clara, convincente e alinhada ao objetivo do vídeo.'),
-  takes: z.string().describe('Uma lista de cenas ou tomadas específicas para gravar, facilitando a produção do conteúdo.'),
+  takes: z.array(z.string()).describe('Uma lista de cenas ou tomadas específicas para gravar, facilitando a produção do conteúdo.'),
   suggestedPostTime: z
     .string()
     .describe('O melhor horário sugerido para postar o vídeo na plataforma indicada, visando máximo alcance.'),
@@ -85,7 +85,7 @@ Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON d
   - gancho: Crie uma frase ou cena de 2-3 segundos que seja impossível de ignorar. Deve gerar curiosidade, polêmica ou identificação imediata.
   - script: Escreva um roteiro claro e conciso. Inclua sugestões de cenas (ex: "[CENA: Close-up no produto]"), narração e timing. Deve ter uma introdução (o gancho), um desenvolvimento (o valor) e uma conclusão (o CTA).
   - cta: A chamada para ação deve ser direta e incentivar o comportamento desejado (ex: "Comente 'EU QUERO' para receber o link", "Siga para mais dicas como esta").
-  - takes: Descreva uma lista de tomadas simples e práticas que o criador precisa gravar. Ex: "1. Take do seu rosto falando para a câmera. 2. Take de unboxing do produto. 3. Take mostrando o resultado final."
+  - takes: Descreva uma lista de tomadas simples e práticas que o criador precisa gravar. Ex: ["Take do seu rosto falando para a câmera.", "Take de unboxing do produto.", "Take mostrando o resultado final."]. Retorne um array de strings.
   - suggestedPostTime: Com base na plataforma, sugira um dia e horário de pico para postagem (ex: "Sexta-feira, 18:30h" ou "Domingo, 20:00h").
   - trendingSong: Pesquise e sugira uma música que esteja genuinamente em alta AGORA na plataforma especificada e que combine com a vibe do vídeo. Inclua o nome do artista.
   `;

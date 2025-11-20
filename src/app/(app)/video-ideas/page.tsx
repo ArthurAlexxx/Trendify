@@ -22,7 +22,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
-  Bot,
   Camera,
   Clock,
   Disc,
@@ -86,7 +85,7 @@ export default function VideoIdeasPage() {
         description="Use a IA para criar conceitos de vídeo virais com roteiros e ganchos otimizados."
       />
 
-      <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg">
+      <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg rounded-2xl">
         <CardHeader>
           <CardTitle className="flex items-center gap-3 font-headline text-xl">
             <Sparkles className="h-6 w-6 text-primary" />
@@ -290,7 +289,7 @@ export default function VideoIdeasPage() {
                 <InfoCard title="Chamada para Ação (CTA)" icon={Heart} content={result.cta} />
               </div>
               <InfoCard title="Roteiro do Vídeo" icon={Pen} content={result.script} isTextarea />
-              <InfoCard title="Takes para Gravar" icon={Camera} content={result.takes} isTextarea />
+              <InfoListCard title="Takes para Gravar" icon={Camera} content={result.takes} />
                <div className="grid lg:grid-cols-2 gap-6">
                 <InfoCard title="Horário Sugerido" icon={Clock} content={result.suggestedPostTime} />
                 <InfoCard title="Música em Alta" icon={Disc} content={result.trendingSong} />
@@ -334,6 +333,34 @@ function InfoCard({
           {content}
         </p>
       )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function InfoListCard({
+  title,
+  icon: Icon,
+  content,
+}: {
+  title: string;
+  icon: React.ElementType;
+  content: string[];
+}) {
+  return (
+    <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg rounded-2xl">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
+          <Icon className="h-5 w-5 text-primary/80" />
+          <span>{title}</span>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Textarea
+          readOnly
+          value={content.map((take, index) => `${index + 1}. ${take}`).join('\n')}
+          className="h-48 bg-background/50 text-base leading-relaxed resize-none rounded-xl"
+        />
       </CardContent>
     </Card>
   );
