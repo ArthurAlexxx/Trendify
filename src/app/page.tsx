@@ -70,7 +70,7 @@ export default function LandingPage() {
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border">
-        <div className="container mx-auto flex h-20 items-center justify-between px-4 md:px-6">
+        <div className="container flex h-20 items-center justify-between">
           <Link
             href="/"
             className="text-2xl font-bold font-headline tracking-tighter text-foreground"
@@ -230,7 +230,7 @@ export default function LandingPage() {
             <div className="absolute inset-0 bg-grid-pattern opacity-30 [mask-image:linear-gradient(to_bottom,white,transparent_80%)]" />
             <div className="absolute inset-0 bg-gradient-radial from-primary/10 via-transparent to-transparent" />
           </div>
-          <div className="container px-4 md:px-6 relative">
+          <div className="container relative">
             <div className="max-w-4xl mx-auto">
               <h1 className="text-5xl sm:text-6xl md:text-7xl font-black font-headline tracking-tighter mb-6 !leading-tight">
                 Transforme seus vídeos <br /> em tendências. Todos os dias.
@@ -268,7 +268,7 @@ export default function LandingPage() {
         </section>
 
         <section className="py-16">
-          <div className="container px-4 md:px-6">
+          <div className="container">
             <p className="text-center text-muted-foreground font-medium mb-12">
               Criadoras que já descobriram o poder da clareza.
             </p>
@@ -302,7 +302,7 @@ export default function LandingPage() {
         </section>
 
         <section id="features" className="py-20 md:py-32">
-          <div className="container px-4 md:px-6">
+          <div className="container">
             <div className="text-center max-w-3xl mx-auto mb-16">
               <h2 className="text-4xl md:text-5xl font-bold font-headline tracking-tight !leading-tight">
                 Uma plataforma, todas as ferramentas.
@@ -332,7 +332,7 @@ export default function LandingPage() {
         </section>
 
         <section className="py-20 md:py-32">
-          <div className="container px-4 md:px-6">
+          <div className="container">
             <div className="grid lg:grid-cols-2 gap-16 items-center">
               <div>
                 <Badge className="mb-4 bg-primary/10 text-primary border-primary/20">
@@ -407,7 +407,7 @@ export default function LandingPage() {
         </section>
 
         <section id="pricing" className="py-20 md:py-32">
-          <div className="container px-4 md:px-6">
+          <div className="container">
             <div className="text-center max-w-3xl mx-auto mb-16">
               <h2 className="text-4xl md:text-5xl font-bold font-headline tracking-tight !leading-tight">
                 Comece grátis e cresça no seu ritmo.
@@ -524,7 +524,7 @@ export default function LandingPage() {
         </section>
 
         <section className="bg-primary/10">
-          <div className="container px-4 md:px-6 py-20 md:py-32">
+          <div className="container py-20 md:py-32">
             <div className="text-center max-w-3xl mx-auto">
               <h2 className="text-4xl sm:text-5xl md:text-6xl font-black font-headline tracking-tight mb-6 !leading-tight">
                 O seu conteúdo pode ir muito mais longe.
@@ -549,7 +549,7 @@ export default function LandingPage() {
       </main>
 
       <footer className="py-8 border-t border-border">
-        <div className="container px-4 md:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="container flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground">
             &copy; {new Date().getFullYear()} Trendify. Todos os direitos
             reservados.
