@@ -93,15 +93,9 @@ export function AppSidebar() {
               </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>
-           <SidebarMenuItem>
-            <SidebarMenuButton onClick={handleSignOut} tooltip="Sair" className="h-10 justify-start">
-              <LogOut className="h-5 w-5" />
-              <span className="text-sm font-medium">Sair</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
         </SidebarMenu>
-         <div className="flex items-center justify-between p-2 mt-auto">
-            <Link href="#" className='w-full'>
+         <div className="flex items-center justify-between p-2 mt-auto gap-2">
+            <Link href="#" className='flex-1 min-w-0'>
               <div className="flex items-center gap-3">
                 <Avatar className="h-8 w-8">
                   <AvatarImage
@@ -120,14 +114,29 @@ export function AppSidebar() {
                 </div>
               </div>
             </Link>
+             <SidebarMenu className='hidden group-data-[state=expanded]:flex'>
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={handleSignOut} tooltip="Sair" variant="ghost" size="icon" className="h-8 w-8">
+                  <LogOut className="h-5 w-5" />
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+             </SidebarMenu>
              <SidebarTrigger
               variant="ghost"
               size="icon"
-              className="flex group-data-[state=expanded]:hidden h-8 w-8"
+              className="hidden group-data-[state=expanded]:hidden group-data-[state=collapsed]:flex h-8 w-8"
             >
               <PanelLeft />
             </SidebarTrigger>
           </div>
+          <SidebarMenu className='group-data-[state=expanded]:hidden'>
+             <SidebarMenuItem>
+                <SidebarMenuButton onClick={handleSignOut} tooltip="Sair" className="h-10 justify-start">
+                  <LogOut className="h-5 w-5" />
+                   <span className="text-sm font-medium">Sair</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+          </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
   );
