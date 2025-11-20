@@ -1,3 +1,4 @@
+
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -84,21 +85,13 @@ export default function VideoIdeasPage() {
     firestore && user
       ? query(
           collection(firestore, `users/${user.uid}/ideiasSalvas`),
-          where('concluido', '==', true)
+          where('concluido', '==', true),
+          orderBy('completedAt', 'desc')
         )
       : null
   ), [firestore, user]);
   
-  const { data: completedIdeasRaw, isLoading: isLoadingCompleted } = useCollection<IdeiaSalva>(completedIdeasQuery);
-
-  const completedIdeas = useMemo(() => {
-    if (!completedIdeasRaw) return [];
-    return [...completedIdeasRaw].sort((a, b) => {
-      const aTime = a.completedAt?.toDate().getTime() || 0;
-      const bTime = b.completedAt?.toDate().getTime() || 0;
-      return bTime - aTime;
-    });
-  }, [completedIdeasRaw]);
+  const { data: completedIdeas, isLoading: isLoadingCompleted } = useCollection<IdeiaSalva>(completedIdeasQuery);
 
 
   useEffect(() => {
