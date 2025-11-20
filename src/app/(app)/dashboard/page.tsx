@@ -89,7 +89,7 @@ export default function DashboardPage() {
     useCollection<PontoDadosGrafico>(dadosGraficoQuery);
 
   const roteiroQuery = useMemoFirebase(
-    () => (firestore ? collection(firestore, 'roteiro') : null),
+    () => (firestore ? query(collection(firestore, 'roteiro'), orderBy('dia')) : null),
     [firestore]
   );
   const { data: roteiro, isLoading: isLoadingRoteiro } =
@@ -98,7 +98,11 @@ export default function DashboardPage() {
   const ideiasSalvasQuery = useMemoFirebase(
     () =>
       firestore && user
-        ? collection(firestore, `users/${user.uid}/ideiasSalvas`)
+        ? query(
+            collection(firestore, `users/${user.uid}/ideiasSalvas`),
+            where('concluido', '==', false),
+            limit(5)
+          )
         : null,
     [firestore, user]
   );
@@ -130,6 +134,16 @@ export default function DashboardPage() {
       await updateDoc(ideiaRef, { concluido: !ideia.concluido });
     } catch (error) {
       console.error('Failed to update idea status:', error);
+    }
+  };
+
+  const handleToggleRoteiro = async (item: ItemRoteiro) => {
+    if (!firestore) return;
+    const itemRef = doc(firestore, 'roteiro', item.id);
+    try {
+      await updateDoc(itemRef, { concluido: !item.concluido });
+    } catch (error) {
+      console.error('Failed to update roteiro status:', error);
     }
   };
 
@@ -231,7 +245,7 @@ export default function DashboardPage() {
             <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card">
               <CardHeader>
                 <CardTitle className="font-headline text-xl">
-                  Ideias da Semana
+                  Ideias e Tarefas
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -258,7 +272,7 @@ export default function DashboardPage() {
                           <label
                             htmlFor={`ideia-${ideia.id}`}
                             className={cn(
-                              'font-medium transition-colors',
+                              'font-medium transition-colors cursor-pointer',
                               ideia.concluido
                                 ? 'line-through text-muted-foreground'
                                 : 'text-foreground'
@@ -285,7 +299,7 @@ export default function DashboardPage() {
                       Comece a Gerar Ideias!
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      Suas ideias salvas aparecerão aqui.
+                      Suas ideias e tarefas salvas aparecerão aqui.
                     </p>
                   </div>
                 )}
@@ -312,22 +326,31 @@ export default function DashboardPage() {
                     ))}
                   </div>
                 ) : (
-                  <ul className="space-y-4">
+                  <ul className="space-y-2">
                     {roteiro?.map((item, index) => (
                       <li key={item.id}>
                         <div className="flex items-start gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50">
-                          {item.concluido ? (
-                            <CheckCircle className="h-6 w-6 mt-0.5 text-primary" />
-                          ) : (
-                            <div className="h-6 w-6 mt-0.5 rounded-full border-2 border-muted-foreground/30 flex-shrink-0" />
-                          )}
+                          <Checkbox
+                            id={`roteiro-${item.id}`}
+                            checked={item.concluido}
+                            onCheckedChange={() => handleToggleRoteiro(item)}
+                            className="h-5 w-5 mt-1"
+                          />
                           <div>
-                            <p className="font-medium text-base">
+                            <label
+                              htmlFor={`roteiro-${item.id}`}
+                              className={cn(
+                                'font-medium text-base transition-colors cursor-pointer',
+                                item.concluido
+                                  ? 'line-through text-muted-foreground'
+                                  : 'text-foreground'
+                              )}
+                            >
                               <span className="font-semibold text-primary">
                                 {item.dia}:
                               </span>{' '}
                               {item.tarefa}
-                            </p>
+                            </label>
                             <p className="text-sm text-muted-foreground">
                               {item.detalhes}
                             </p>
