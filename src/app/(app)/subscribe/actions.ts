@@ -5,6 +5,8 @@ import { z } from 'zod';
 import { getApp, getApps, initializeApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
+import { headers } from 'next/headers';
+
 
 const formSchema = z.object({
   name: z.string().min(3, 'O nome completo é obrigatório.'),
@@ -100,16 +102,19 @@ export async function createPixChargeAction(
   formData: FormData
 ): Promise<ActionState> {
 
-    // Get current user from server-side context
-    const token = formData.get('__token') as string | null;
+    const headersList = headers();
+    const authorization = headersList.get('Authorization');
+    const token = authorization?.split('Bearer ')[1];
+
     if (!token) {
-        return { error: 'Usuário não autenticado.' };
+        return { error: 'Sessão inválida. Por favor, faça login novamente.' };
     }
 
     let decodedToken;
     try {
         decodedToken = await auth.verifyIdToken(token);
     } catch (e) {
+        console.error('Token verification failed:', e);
         return { error: 'Sessão inválida. Por favor, faça login novamente.' };
     }
     const userId = decodedToken.uid;

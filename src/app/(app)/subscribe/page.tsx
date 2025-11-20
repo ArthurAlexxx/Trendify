@@ -13,7 +13,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useActionState, useEffect, useState, useRef } from 'react';
+import { useActionState, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { createPixChargeAction } from './actions';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -25,13 +25,40 @@ const formSchema = z.object({
   taxId: z.string().min(11, 'O CPF/CNPJ é obrigatório.'),
 });
 
+// A custom action that wraps the server action with token handling
+const createPixChargeActionWithAuth = async (prevState: any, formData: FormData) => {
+    const { getAuth, getIdToken } = await import('firebase/auth');
+    const auth = getAuth();
+    if (!auth.currentUser) {
+        return { error: 'Usuário não autenticado.' };
+    }
+    const token = await getIdToken(auth.currentUser);
+
+    const headers = new Headers();
+    headers.append('Authorization', `Bearer ${token}`);
+    
+    // This is a workaround to pass formData to a fetch-based server action
+    const body = new URLSearchParams();
+    for (const [key, value] of formData.entries()) {
+        body.append(key, value as string);
+    }
+
+    const response = await fetch('/api/actions/create-pix-charge', {
+        method: 'POST',
+        headers,
+        body: formData,
+    });
+    
+    return response.json();
+}
+
+
 export default function SubscribePage() {
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
-  const [state, formAction, isGenerating] = useActionState(createPixChargeAction, null);
+  
   const formRef = useRef<HTMLFormElement>(null);
-  const tokenRef = useRef<HTMLInputElement>(null);
 
   const userProfileRef = useMemoFirebase(
     () => (firestore && user ? doc(firestore, `users/${user.uid}`) : null),
@@ -47,6 +74,8 @@ export default function SubscribePage() {
       taxId: '',
     },
   });
+
+  const [state, formAction, isGenerating] = useActionState(createPixChargeAction, null);
 
   useEffect(() => {
     if (userProfile) {
@@ -72,21 +101,23 @@ export default function SubscribePage() {
     navigator.clipboard.writeText(text);
     toast({ title: 'Copiado!', description: 'Código PIX copiado para a área de transferência.' });
   };
-
-  const handleFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!user) {
-        toast({ title: 'Erro', description: 'Usuário não autenticado.', variant: 'destructive' });
-        return;
-    }
-    const token = await user.getIdToken();
-    if (tokenRef.current) {
-        tokenRef.current.value = token;
-    }
-    const formData = new FormData(formRef.current!);
-    formAction(formData);
-  };
   
+  const handleFormAction = async (formData: FormData) => {
+      if (!user) {
+        toast({ title: 'Erro de Autenticação', description: 'Por favor, faça login novamente.', variant: 'destructive'});
+        return;
+      }
+      const token = await user.getIdToken();
+      
+      const customFormData = new FormData();
+      for (const [key, value] of formData.entries()) {
+          customFormData.append(key, value);
+      }
+      customFormData.append('__token', token);
+
+      formAction(customFormData);
+  }
+
   const result = state?.data;
 
   return (
@@ -143,8 +174,7 @@ export default function SubscribePage() {
               
               {!result && !isGenerating && !isLoadingProfile && (
                 <Form {...form}>
-                    <form ref={formRef} onSubmit={handleFormSubmit} className='space-y-6'>
-                        <input type="hidden" name="__token" ref={tokenRef} />
+                    <form action={formAction} className='space-y-6'>
                         <FormField
                         control={form.control}
                         name="name"
