@@ -74,12 +74,11 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       const userRef = doc(firestore, `users/${firebaseUser.uid}`);
       const docSnap = await getDoc(userRef);
       if (!docSnap.exists()) {
-        const { displayName, email, photoURL } = firebaseUser;
+        const { displayName, email } = firebaseUser;
         try {
           await setDoc(userRef, {
             displayName,
             email,
-            photoURL,
             createdAt: serverTimestamp(),
             subscription: {
               status: 'inactive',

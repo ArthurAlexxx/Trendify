@@ -1,0 +1,205 @@
+
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Stores user profile information, including data for the media kit.",
+      "type": "object",
+      "properties": {
+        "displayName": {
+          "type": "string",
+          "description": "The user's display name."
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "The user's email address."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp when the user profile was created."
+        },
+        "instagramHandle": {
+            "type": "string",
+            "description": "User's Instagram handle (e.g., @username)."
+        },
+        "youtubeHandle": {
+            "type": "string",
+            "description": "User's YouTube handle (e.g., @YourChannel)."
+        },
+        "niche": {
+            "type": "string",
+            "description": "The creator's content niche (e.g., 'Lifestyle and sustainable fashion')."
+        },
+        "bio": {
+            "type": "string",
+            "description": "A short, professional biography for the media kit."
+        },
+        "followers": {
+            "type": "string",
+            "description": "Total number of followers (e.g., '250K')."
+        },
+        "averageViews": {
+            "type": "string",
+            "description": "Average number of views per post (e.g., '15.5K')."
+        },
+        "averageLikes": {
+            "type": "string",
+            "description": "Average number of likes per post (e.g., '890')."
+        },
+        "averageComments": {
+            "type": "string",
+            "description": "Average number of comments per post (e.g., '120')."
+        },
+        "audience": {
+            "type": "string",
+            "description": "Description of the audience demographics."
+        },
+        "subscription": {
+          "type": "object",
+          "description": "User's subscription status.",
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": ["active", "inactive"],
+              "description": "Current status of the subscription."
+            },
+            "plan": {
+              "type": "string",
+              "enum": ["pro", "free", "premium"],
+              "description": "The subscribed plan."
+            },
+            "expiresAt": {
+              "type": "string",
+              "format": "date-time",
+              "description": "The timestamp when the subscription expires."
+            },
+            "paymentId": {
+              "type": "string",
+              "description": "The ID of the last payment or subscription from the payment provider."
+            }
+          }
+        }
+      },
+      "required": ["displayName", "email", "createdAt"]
+    },
+    "Metrica": {
+      "title": "Métrica",
+      "description": "Armazena as principais métricas de desempenho do criador.",
+      "type": "object",
+      "properties": {
+        "nome": { "type": "string", "description": "Nome da métrica (ex: 'Alcance Total')." },
+        "valor": { "type": "string", "description": "Valor atual da métrica (ex: '1.2M')." },
+        "alteracao": { "type": "string", "description": "Variação percentual desde a última semana." },
+        "tipoAlteracao": { "type": "string", "enum": ["aumento", "diminuicao"], "description": "Indica se a alteração foi um aumento ou uma diminuição." }
+      },
+      "required": ["nome", "valor", "alteracao", "tipoAlteracao"]
+    },
+    "PontoDadosGrafico": {
+      "title": "Ponto de Dados do Gráfico",
+      "description": "Representa um ponto de dados no gráfico de desempenho semanal.",
+      "type": "object",
+      "properties": {
+        "data": { "type": "string", "description": "O dia da semana (ex: 'Seg')." },
+        "alcance": { "type": "number", "description": "O alcance para aquele dia." },
+        "engajamento": { "type": "number", "description": "O engajamento para aquele dia." }
+      },
+      "required": ["data", "alcance", "engajamento"]
+    },
+    "ItemRoteiro": {
+      "title": "Item do Roteiro",
+      "description": "Uma tarefa no roteiro de conteúdo semanal do criador.",
+      "type": "object",
+      "properties": {
+        "dia": { "type": "string", "description": "O dia da semana para a tarefa." },
+        "tarefa": { "type": "string", "description": "A descrição da tarefa." },
+        "detalhes": { "type": "string", "description": "Detalhes adicionais sobre a tarefa." },
+        "concluido": { "type": "boolean", "description": "Se a tarefa foi concluída." }
+      },
+      "required": ["dia", "tarefa", "detalhes", "concluido"]
+    },
+    "PlanoSemanal": {
+      "title": "Plano Semanal",
+      "description": "Armazena o plano de conteúdo semanal completo gerado pela IA.",
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": { "$ref": "#/backend/entities/ItemRoteiro" },
+          "description": "A lista de tarefas do roteiro para a semana."
+        },
+        "desempenhoSimulado": {
+            "type": "array",
+            "items": { "$ref": "#/backend/entities/PontoDadosGrafico" },
+            "description": "Uma simulação do desempenho para o plano semanal."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "O timestamp de quando o plano foi gerado."
+        }
+      },
+      "required": ["items", "createdAt", "desempenhoSimulado"]
+    },
+    "IdeiaSalva": {
+      "title": "Ideia Salva",
+      "description": "Armazena uma ideia ou conteúdo gerado pela IA que o usuário salvou.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "O ID do usuário que salvou a ideia." },
+        "titulo": { "type": "string", "description": "Um título curto para a ideia salva." },
+        "conteudo": { "type": "string", "description": "O conteúdo principal da ideia salva (roteiro, proposta, etc.)." },
+        "origem": { "type": "string", "description": "A página onde a ideia foi gerada (ex: 'Ideias de Vídeo')." },
+        "concluido": { "type": "boolean", "description": "Indica se a tarefa relacionada à ideia foi concluída." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "O timestamp de quando a ideia foi salva." },
+        "completedAt": { "type": "string", "format": "date-time", "description": "O timestamp de quando a ideia foi marcada como concluída." }
+      },
+      "required": ["userId", "titulo", "conteudo", "origem", "concluido", "createdAt"]
+    },
+     "ConteudoAgendado": {
+      "title": "Conteúdo Agendado",
+      "description": "Representa um item de conteúdo agendado no calendário.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "O ID do usuário que agendou o conteúdo." },
+        "title": { "type": "string", "description": "Título do conteúdo." },
+        "date": { "type": "string", "format": "date-time", "description": "Data e hora agendada para postagem." },
+        "contentType": { "type": "string", "enum": ["Reels", "Story", "Post"], "description": "Tipo do conteúdo." },
+        "status": { "type": "string", "enum": ["Agendado", "Publicado", "Rascunho"], "description": "Status atual do conteúdo." },
+        "notes": { "type": "string", "description": "Anotações ou ideias para o conteúdo." },
+         "createdAt": { "type": "string", "format": "date-time", "description": "O timestamp de quando o agendamento foi criado." }
+      },
+      "required": ["userId", "title", "date", "contentType", "status", "createdAt"]
+    }
+  },
+  "auth": {
+    "providers": ["password"]
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/backend/entities/UserProfile" },
+      "description": "Stores user profile data."
+    },
+    "/users/{userId}/ideiasSalvas/{ideiaId}": {
+      "schema": { "$ref": "#/backend/entities/IdeiaSalva" },
+      "description": "Stores saved AI-generated ideas for a specific user."
+    },
+     "/users/{userId}/conteudoAgendado/{conteudoId}": {
+      "schema": { "$ref": "#/backend/entities/ConteudoAgendado" },
+      "description": "Stores scheduled content for a specific user."
+    },
+    "/metrica/{metricaId}": {
+      "schema": { "$ref": "#/backend/entities/Metrica" },
+      "description": "Coleção para armazenar as principais métricas de desempenho."
+    },
+    "/dadosGrafico/{pontoDadosGraficoId}": {
+      "schema": { "$ref": "#/backend/entities/PontoDadosGrafico" },
+      "description": "Coleção para armazenar os dados para o gráfico de desempenho semanal."
+    },
+    "/roteiro/{planoId}": {
+      "schema": { "$ref": "#/backend/entities/PlanoSemanal" },
+      "description": "Coleção para armazenar os roteiros de conteúdo semanais gerados pela IA."
+    }
+  }
+}

@@ -29,7 +29,6 @@ import type { UserProfile } from '@/lib/types';
 
 const profileFormSchema = z.object({
   displayName: z.string().min(2, 'O nome deve ter pelo menos 2 caracteres.'),
-  photoURL: z.string().url('URL da foto inválido.').optional().or(z.literal('')),
   instagramHandle: z.string().optional(),
   youtubeHandle: z.string().optional(),
   niche: z.string().optional(),
@@ -58,7 +57,6 @@ export default function ProfilePage() {
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
       displayName: '',
-      photoURL: '',
       instagramHandle: '',
       youtubeHandle: '',
       niche: '',
@@ -75,7 +73,6 @@ export default function ProfilePage() {
     if (userProfile) {
       form.reset({
         displayName: userProfile.displayName || '',
-        photoURL: userProfile.photoURL || '',
         instagramHandle: userProfile.instagramHandle || '',
         youtubeHandle: userProfile.youtubeHandle || '',
         niche: userProfile.niche || '',
@@ -98,10 +95,9 @@ export default function ProfilePage() {
         await updateDoc(userProfileRef, values);
         
         // Update Firebase Auth profile if necessary
-        if (user.displayName !== values.displayName || user.photoURL !== values.photoURL) {
+        if (user.displayName !== values.displayName) {
             await updateProfile(user, {
                 displayName: values.displayName,
-                photoURL: values.photoURL,
             });
         }
 
@@ -142,33 +138,23 @@ export default function ProfilePage() {
                 <div className="flex items-center gap-6">
                     <Avatar className="h-20 w-20">
                       <AvatarImage
-                        src={form.watch('photoURL') || user?.photoURL || 'https://picsum.photos/seed/avatar/200/200'}
+                        src={undefined}
                         alt="User Avatar"
                       />
                       <AvatarFallback>
-                        {user?.email?.[0].toUpperCase() ?? 'U'}
+                        {user?.displayName?.[0].toUpperCase() ?? user?.email?.[0].toUpperCase() ?? 'U'}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 space-y-2">
-                        <Label htmlFor="photoURL">URL da Foto</Label>
+                        <Label htmlFor="displayName">Nome de Exibição</Label>
                         <Input
-                          id="photoURL"
-                          placeholder="https://.../sua-foto.jpg"
-                          {...form.register('photoURL')}
+                          id="displayName"
+                          {...form.register('displayName')}
                           className="h-11"
                         />
+                        {form.formState.errors.displayName && <p className="text-sm font-medium text-destructive">{form.formState.errors.displayName.message}</p>}
                     </div>
                   </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="displayName">Nome de Exibição</Label>
-                  <Input
-                    id="displayName"
-                    {...form.register('displayName')}
-                    className="h-11"
-                  />
-                  {form.formState.errors.displayName && <p className="text-sm font-medium text-destructive">{form.formState.errors.displayName.message}</p>}
-                </div>
 
                  <div className="grid sm:grid-cols-2 gap-6">
                     <div className="space-y-2">

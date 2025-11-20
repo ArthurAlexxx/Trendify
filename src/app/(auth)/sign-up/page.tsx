@@ -67,7 +67,6 @@ export default function SignUpPage() {
         displayName: values.name,
         email: values.email,
         createdAt: serverTimestamp(),
-        photoURL: user.photoURL,
         subscription: {
             status: 'inactive',
             plan: 'free',

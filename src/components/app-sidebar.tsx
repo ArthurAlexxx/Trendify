@@ -179,11 +179,11 @@ export function AppSidebar() {
               <div className="flex items-center gap-3">
                 <Avatar className="h-8 w-8">
                   <AvatarImage
-                    src={user?.photoURL ?? "https://picsum.photos/seed/avatar/100/100"}
+                    src={undefined}
                     alt="User Avatar"
                   />
                   <AvatarFallback>
-                    {user?.email?.[0].toUpperCase() ?? 'U'}
+                    {user?.displayName?.[0].toUpperCase() ?? user?.email?.[0].toUpperCase() ?? 'U'}
                   </AvatarFallback>
                 </Avatar>
                 <div className="hidden group-data-[state=expanded]:block w-[120px] overflow-hidden">
