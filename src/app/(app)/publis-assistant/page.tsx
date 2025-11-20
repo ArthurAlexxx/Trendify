@@ -19,7 +19,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -151,7 +150,7 @@ export default function PublisAssistantPage() {
         <CardContent>
           <Form {...form}>
             <form
-              onSubmit={form.handleSubmit(formAction)}
+              action={form.handleSubmit(data => formAction(new FormData(document.querySelector('form')!)))}
               className="space-y-8"
             >
               <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-6">
