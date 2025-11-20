@@ -25,41 +25,11 @@ const formSchema = z.object({
   taxId: z.string().min(11, 'O CPF/CNPJ é obrigatório.'),
 });
 
-// A custom action that wraps the server action with token handling
-const createPixChargeActionWithAuth = async (prevState: any, formData: FormData) => {
-    const { getAuth, getIdToken } = await import('firebase/auth');
-    const auth = getAuth();
-    if (!auth.currentUser) {
-        return { error: 'Usuário não autenticado.' };
-    }
-    const token = await getIdToken(auth.currentUser);
-
-    const headers = new Headers();
-    headers.append('Authorization', `Bearer ${token}`);
-    
-    // This is a workaround to pass formData to a fetch-based server action
-    const body = new URLSearchParams();
-    for (const [key, value] of formData.entries()) {
-        body.append(key, value as string);
-    }
-
-    const response = await fetch('/api/actions/create-pix-charge', {
-        method: 'POST',
-        headers,
-        body: formData,
-    });
-    
-    return response.json();
-}
-
-
 export default function SubscribePage() {
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
   
-  const formRef = useRef<HTMLFormElement>(null);
-
   const userProfileRef = useMemoFirebase(
     () => (firestore && user ? doc(firestore, `users/${user.uid}`) : null),
     [firestore, user]
@@ -108,14 +78,8 @@ export default function SubscribePage() {
         return;
       }
       const token = await user.getIdToken();
-      
-      const customFormData = new FormData();
-      for (const [key, value] of formData.entries()) {
-          customFormData.append(key, value);
-      }
-      customFormData.append('__token', token);
-
-      formAction(customFormData);
+      formData.set('__token', token);
+      formAction(formData);
   }
 
   const result = state?.data;
@@ -174,7 +138,7 @@ export default function SubscribePage() {
               
               {!result && !isGenerating && !isLoadingProfile && (
                 <Form {...form}>
-                    <form action={formAction} className='space-y-6'>
+                    <form action={handleFormAction} className='space-y-6'>
                         <FormField
                         control={form.control}
                         name="name"

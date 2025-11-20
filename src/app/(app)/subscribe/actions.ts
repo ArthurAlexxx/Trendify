@@ -5,7 +5,6 @@ import { z } from 'zod';
 import { getApp, getApps, initializeApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
-import { headers } from 'next/headers';
 
 
 const formSchema = z.object({
@@ -110,9 +109,7 @@ export async function createPixChargeAction(
 ): Promise<ActionState> {
 
     console.log('[createPixChargeAction] Ação iniciada.');
-    const headersList = headers();
-    const authorization = headersList.get('Authorization');
-    const token = authorization?.split('Bearer ')[1];
+    const token = formData.get('__token') as string | null;
 
     if (!token) {
         console.error('[createPixChargeAction] Erro: Token de autorização não encontrado.');
