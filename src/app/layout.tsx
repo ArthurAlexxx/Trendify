@@ -5,8 +5,8 @@ import { cn } from '@/lib/utils';
 import { FirebaseClientProvider } from '@/firebase';
 
 export const metadata: Metadata = {
-  title: 'Trendify: Growth OS for Creators',
-  description: 'AI-powered tools to help creators grow and monetize.',
+  title: 'Trendify: SO de Crescimento para Criadores',
+  description: 'Ferramentas com IA para ajudar criadores a crescer e monetizar.',
 };
 
 export default function RootLayout({
