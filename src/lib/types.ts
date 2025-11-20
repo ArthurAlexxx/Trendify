@@ -27,7 +27,7 @@ export interface Metrica {
 }
 
 export interface PontoDadosGrafico {
-  id: string;
+  id?: string; // Optional as it might be nested
   data: string;
   alcance: number;
   engajamento: number;
@@ -43,6 +43,7 @@ export interface ItemRoteiro {
 export interface PlanoSemanal {
   id: string;
   items: ItemRoteiro[];
+  desempenhoSimulado: PontoDadosGrafico[];
   createdAt: Timestamp;
 }
 

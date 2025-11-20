@@ -20,14 +20,14 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Bot, Loader2, Sparkles, Trash2, Check } from 'lucide-react';
+import { Bot, Loader2, Sparkles, Trash2, Check, History } from 'lucide-react';
 import { useEffect, useActionState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { generateWeeklyPlanAction } from './actions';
 import { Separator } from '@/components/ui/separator';
 import { useDoc, useFirestore, useMemoFirebase, useUser, useCollection } from '@/firebase';
-import type { UserProfile, ItemRoteiro, PontoDadosGrafico, PlanoSemanal } from '@/lib/types';
+import type { UserProfile, ItemRoteiro, PlanoSemanal } from '@/lib/types';
 import {
   doc,
   writeBatch,
@@ -38,6 +38,7 @@ import {
   orderBy,
   limit,
   updateDoc,
+  addDoc,
 } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -63,6 +64,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { PreviousPlansSheet } from '@/components/previous-plans-sheet';
 
 
 const formSchema = z.object({
@@ -76,17 +78,6 @@ const chartConfig = {
   engajamento: { label: 'Engajamento', color: 'hsl(var(--chart-2))' },
 } satisfies ChartConfig;
 
-async function clearCollection(firestore: any, collectionPath: string) {
-  const q = query(collection(firestore, collectionPath));
-  const querySnapshot = await getDocs(q);
-  if (querySnapshot.empty) return;
-  const batch = writeBatch(firestore);
-  querySnapshot.forEach((doc) => {
-    batch.delete(doc.ref);
-  });
-  await batch.commit();
-}
-
 export default function GenerateWeeklyPlanPage() {
   const { toast } = useToast();
   const [state, formAction, isGenerating] = useActionState(
@@ -94,12 +85,10 @@ export default function GenerateWeeklyPlanPage() {
     null
   );
   const [isSaving, startSavingTransition] = useTransition();
-  const [isDeleting, startDeletingTransition] = useTransition();
 
   const { user } = useUser();
   const firestore = useFirestore();
 
-  // Fetch user profile
   const userProfileRef = useMemoFirebase(
     () => (firestore && user ? doc(firestore, `users/${user.uid}`) : null),
     [firestore, user]
@@ -107,20 +96,14 @@ export default function GenerateWeeklyPlanPage() {
   const { data: userProfile, isLoading: isLoadingProfile } =
     useDoc<UserProfile>(userProfileRef);
 
-  // Fetch current weekly plan
   const roteiroQuery = useMemoFirebase(
     () => (firestore ? query(collection(firestore, 'roteiro'), orderBy('createdAt', 'desc'), limit(1)) : null),
     [firestore]
   );
   const { data: roteiroData, isLoading: isLoadingRoteiro } = useCollection<PlanoSemanal>(roteiroQuery);
-  const currentRoteiroItems = roteiroData?.[0]?.items;
-
-  // Fetch current performance data
-  const dadosGraficoQuery = useMemoFirebase(
-    () => (firestore ? query(collection(firestore, 'dadosGrafico'), limit(7)) : null),
-    [firestore]
-  );
-  const { data: currentDesempenho, isLoading: isLoadingGrafico } = useCollection<PontoDadosGrafico>(dadosGraficoQuery);
+  const currentPlan = roteiroData?.[0];
+  const currentRoteiroItems = currentPlan?.items;
+  const currentDesempenho = currentPlan?.desempenhoSimulado;
 
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -160,23 +143,11 @@ export default function GenerateWeeklyPlanPage() {
     if (result && firestore) {
       startSavingTransition(async () => {
         try {
-          await clearCollection(firestore, 'roteiro');
-          await clearCollection(firestore, 'dadosGrafico');
-
-          const batch = writeBatch(firestore);
-
-          const roteiroRef = doc(collection(firestore, 'roteiro'));
-          batch.set(roteiroRef, {
+          await addDoc(collection(firestore, 'roteiro'), {
             items: result.roteiro,
+            desempenhoSimulado: result.desempenhoSimulado,
             createdAt: serverTimestamp(),
           });
-
-          result.desempenhoSimulado.forEach((ponto) => {
-            const pontoRef = doc(collection(firestore, 'dadosGrafico'));
-            batch.set(pontoRef, ponto);
-          });
-
-          await batch.commit();
 
           toast({
             title: 'Sucesso!',
@@ -194,31 +165,9 @@ export default function GenerateWeeklyPlanPage() {
     }
   }, [state, result, firestore, toast]);
 
-  const handleDeletePlan = () => {
-    if (!firestore) return;
-
-    startDeletingTransition(async () => {
-      try {
-        await clearCollection(firestore, 'roteiro');
-        await clearCollection(firestore, 'dadosGrafico');
-        toast({
-          title: 'Plano Excluído!',
-          description:
-            'O roteiro semanal e os dados de desempenho foram removidos.',
-        });
-      } catch (e: any) {
-        toast({
-          title: 'Erro ao Excluir',
-          description: `Não foi possível limpar os dados: ${e.message}`,
-          variant: 'destructive',
-        });
-      }
-    });
-  };
-
   const handleToggleRoteiro = async (item: ItemRoteiro) => {
-    if (!firestore || !roteiroData?.[0]) return;
-    const planoRef = doc(firestore, 'roteiro', roteiroData[0].id);
+    if (!firestore || !currentPlan) return;
+    const planoRef = doc(firestore, 'roteiro', currentPlan.id);
     const updatedItems = currentRoteiroItems?.map((i) =>
       i.tarefa === item.tarefa ? { ...i, concluido: !i.concluido } : i
     );
@@ -235,7 +184,9 @@ export default function GenerateWeeklyPlanPage() {
       <PageHeader
         title="Planejamento de Conteúdo Semanal"
         description="Defina um objetivo e deixe a IA criar um plano de ação completo para sua semana."
-      />
+      >
+        <PreviousPlansSheet />
+      </PageHeader>
 
       <Card className="shadow-lg shadow-primary/5 border-border/30 bg-card rounded-2xl">
         <CardHeader>
@@ -338,49 +289,13 @@ export default function GenerateWeeklyPlanPage() {
                     </>
                   )}
                 </Button>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      className="rounded-full font-manrope"
-                      disabled={isDeleting}
-                    >
-                      {isDeleting ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      ) : (
-                        <Trash2 className="mr-2 h-4 w-4" />
-                      )}
-                      Excluir Plano Atual
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>
-                        Tem certeza que quer excluir o plano?
-                      </AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Esta ação removerá o roteiro e os dados de desempenho
-                        do seu painel. Você poderá gerar um novo a qualquer
-                        momento.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                      <AlertDialogAction onClick={handleDeletePlan}>
-                        Sim, excluir
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
               </div>
             </form>
           </Form>
         </CardContent>
       </Card>
       
-      {/* Current Plan Section */}
-      {!result && (isLoadingRoteiro || isLoadingGrafico) && (
+      {!result && isLoadingRoteiro && (
          <div className="space-y-8">
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
               <Card className="rounded-2xl"><CardHeader><Skeleton className="h-6 w-40" /></CardHeader><CardContent><div className="space-y-4"><Skeleton className="h-12 w-full" /><Skeleton className="h-12 w-full" /><Skeleton className="h-12 w-full" /></div></CardContent></Card>
@@ -432,7 +347,7 @@ export default function GenerateWeeklyPlanPage() {
                 <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card">
                   <CardHeader><CardTitle className="font-headline text-xl">Desempenho Semanal (Simulado)</CardTitle></CardHeader>
                   <CardContent className="pl-2">
-                    {isLoadingGrafico ? <Skeleton className="h-[350px] w-full" /> : 
+                    {isLoadingRoteiro ? <Skeleton className="h-[350px] w-full" /> : 
                      <ChartContainer config={chartConfig} className="h-[350px] w-full">
                        <BarChart accessibilityLayer data={currentDesempenho || []} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                           <CartesianGrid vertical={false} />

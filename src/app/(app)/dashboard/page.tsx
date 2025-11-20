@@ -45,11 +45,11 @@ import {
 } from 'firebase/firestore';
 import type {
   Metrica,
-  PontoDadosGrafico,
   ItemRoteiro,
   IdeiaSalva,
   ConteudoAgendado,
   UserProfile,
+  PlanoSemanal,
 } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -126,16 +126,6 @@ export default function DashboardPage() {
   const { data: metrica, isLoading: isLoadingMetrica } =
     useCollection<Metrica>(metricaQuery);
 
-  const dadosGraficoQuery = useMemoFirebase(
-    () =>
-      firestore
-        ? query(collection(firestore, 'dadosGrafico'), limit(7))
-        : null,
-    [firestore]
-  );
-  const { data: dadosGrafico, isLoading: isLoadingDadosGrafico } =
-    useCollection<PontoDadosGrafico>(dadosGraficoQuery);
-
   const roteiroQuery = useMemoFirebase(
     () =>
       firestore
@@ -147,12 +137,12 @@ export default function DashboardPage() {
         : null,
     [firestore]
   );
-  const { data: roteiroData, isLoading: isLoadingRoteiro } = useCollection<{
-    items: ItemRoteiro[];
-    createdAt: any;
-  }>(roteiroQuery);
+  const { data: roteiroData, isLoading: isLoadingRoteiro } = useCollection<PlanoSemanal>(roteiroQuery);
 
-  const roteiro = roteiroData?.[0]?.items;
+  const roteiro = roteiroData?.[0];
+  const roteiroItems = roteiro?.items;
+  const dadosGrafico = roteiro?.desempenhoSimulado;
+
 
   const ideiasSalvasQuery = useMemoFirebase(
     () =>
@@ -201,9 +191,9 @@ export default function DashboardPage() {
   };
 
   const handleToggleRoteiro = async (item: ItemRoteiro) => {
-    if (!firestore || !roteiroData?.[0]) return;
-    const planoRef = doc(firestore, 'roteiro', roteiroData[0].id);
-    const updatedItems = roteiro?.map((i) =>
+    if (!firestore || !roteiro) return;
+    const planoRef = doc(firestore, 'roteiro', roteiro.id);
+    const updatedItems = roteiroItems?.map((i) =>
       i.tarefa === item.tarefa ? { ...i, concluido: !i.concluido } : i
     );
     try {
@@ -403,9 +393,9 @@ export default function DashboardPage() {
                       </div>
                     ))}
                   </div>
-                ) : roteiro && roteiro.length > 0 ? (
+                ) : roteiroItems && roteiroItems.length > 0 ? (
                   <ul className="space-y-2">
-                    {roteiro.map((item, index) => (
+                    {roteiroItems.map((item, index) => (
                       <li key={index}>
                         <div className="flex items-start gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50">
                           <Checkbox
@@ -434,7 +424,7 @@ export default function DashboardPage() {
                             </p>
                           </div>
                         </div>
-                        {roteiro && index < roteiro.length - 1 && (
+                        {roteiroItems && index < roteiroItems.length - 1 && (
                           <Separator className="my-2" />
                         )}
                       </li>
@@ -536,7 +526,7 @@ export default function DashboardPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="pl-2">
-                {isLoadingDadosGrafico ? (
+                {isLoadingRoteiro ? (
                   <div className="h-[300px] w-full flex items-center justify-center">
                     <Skeleton className="h-full w-full rounded-xl" />
                   </div>

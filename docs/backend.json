@@ -109,13 +109,18 @@
           "items": { "$ref": "#/backend/entities/ItemRoteiro" },
           "description": "A lista de tarefas do roteiro para a semana."
         },
+        "desempenhoSimulado": {
+            "type": "array",
+            "items": { "$ref": "#/backend/entities/PontoDadosGrafico" },
+            "description": "Uma simulação do desempenho para o plano semanal."
+        },
         "createdAt": {
           "type": "string",
           "format": "date-time",
           "description": "O timestamp de quando o plano foi gerado."
         }
       },
-      "required": ["items", "createdAt"]
+      "required": ["items", "createdAt", "desempenhoSimulado"]
     },
     "IdeiaSalva": {
       "title": "Ideia Salva",
