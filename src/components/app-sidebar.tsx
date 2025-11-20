@@ -41,6 +41,7 @@ const TrendingIcon = () => (
     strokeWidth="2"
     strokeLinecap="round"
     strokeLinejoin="round"
+    className="h-4 w-4"
   >
     <path d="M2.5 2.5h3l4 4 4-4 4 4 4-4h3" />
     <path d="M2.5 7.5h3l4 4 4-4 4 4 4-4h3" />
@@ -74,20 +75,13 @@ export function AppSidebar() {
         <SidebarMenu>
           {navItems.map((item) => (
             <SidebarMenuItem key={item.label}>
-              <Link href={item.href} passHref>
+              <Link href={item.href}>
                 <SidebarMenuButton
-                  asChild
                   isActive={pathname === item.href}
                   tooltip={item.label}
                 >
-                  <a>
-                    {item.icon === 'trending' ? (
-                      <TrendingIcon />
-                    ) : (
-                      <item.icon />
-                    )}
-                    <span>{item.label}</span>
-                  </a>
+                  {item.icon === 'trending' ? <TrendingIcon /> : <item.icon />}
+                  <span>{item.label}</span>
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
