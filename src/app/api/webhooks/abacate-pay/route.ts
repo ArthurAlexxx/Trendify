@@ -6,24 +6,27 @@ import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 
 // Initialize Firebase Admin SDK
 function initializeAdmin() {
+  console.log('[webhook-init] Tentando inicializar Firebase Admin... Apps existentes:', getApps().length);
   if (getApps().length) {
+    console.log('[webhook-init] Firebase Admin já inicializado.');
     return getApp();
   }
 
   const creds = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
   if (creds) {
+    console.log('[webhook-init] Ambiente Vercel detectado. Inicializando com credenciais de serviço JSON.');
     try {
       const serviceAccount = JSON.parse(creds);
       return initializeApp({
         credential: cert(serviceAccount),
       });
     } catch (e) {
-      console.error('[webhook-init] Erro ao parsear GOOGLE_APPLICATION_CREDENTIALS_JSON:', e);
+      console.error('[webhook-init] ERRO CRÍTICO: Erro ao parsear GOOGLE_APPLICATION_CREDENTIALS_JSON:', e);
       throw new Error('Falha ao inicializar Firebase Admin com JSON de credenciais.');
     }
   }
 
-  console.error('[webhook-init] Falha na inicialização: Credenciais de serviço não encontradas.');
+  console.error('[webhook-init] ERRO CRÍTICO: Credenciais de serviço não encontradas. Verifique a variável de ambiente GOOGLE_APPLICATION_CREDENTIALS_JSON.');
   throw new Error('Configuração do Firebase Admin está incompleta para este ambiente.');
 }
 
@@ -39,9 +42,11 @@ const firestore = getFirestore(adminApp);
 function verifyAbacateSignature(rawBody: string, signatureFromHeader: string): boolean {
   const ABACATE_PUBLIC_KEY = process.env.ABACATE_PUBLIC_KEY;
   if (!ABACATE_PUBLIC_KEY) {
-    console.error("[verifyAbacateSignature] ERRO CRÍTICO: ABACATE_PUBLIC_KEY não está definida.");
+    console.error("[verifyAbacateSignature] ERRO CRÍTICO: ABACATE_PUBLIC_KEY não está definida nas variáveis de ambiente.");
     return false;
   }
+  console.log("[verifyAbacateSignature] Chave pública encontrada. Iniciando verificação.");
+
 
   const bodyBuffer = Buffer.from(rawBody, "utf8");
 
@@ -51,24 +56,39 @@ function verifyAbacateSignature(rawBody: string, signatureFromHeader: string): b
     .digest("base64");
 
   try {
-    // Use crypto.timingSafeEqual to prevent timing attacks
-    const a = Buffer.from(expectedSig);
-    const b = Buffer.from(signatureFromHeader);
-    return a.length === b.length && crypto.timingSafeEqual(a, b);
-  } catch {
-    return false; // Return false if signatureFromHeader is not a valid base64 string
+    const receivedSigBuffer = Buffer.from(signatureFromHeader, "base64");
+    const expectedSigBuffer = Buffer.from(expectedSig, "base64");
+    
+    if (receivedSigBuffer.length !== expectedSigBuffer.length) {
+        console.warn(`[verifyAbacateSignature] Falha na verificação: tamanho das assinaturas não corresponde. Recebida: ${receivedSigBuffer.length}, Esperada: ${expectedSigBuffer.length}`);
+        return false;
+    }
+
+    const isSignatureValid = crypto.timingSafeEqual(receivedSigBuffer, expectedSigBuffer);
+    console.log(`[verifyAbacateSignature] Resultado da verificação (timingSafeEqual): ${isSignatureValid}`);
+
+    return isSignatureValid;
+  } catch (e) {
+    console.error('[verifyAbacateSignature] ERRO: Falha ao comparar assinaturas. A assinatura recebida pode não ser um base64 válido.', e);
+    return false;
   }
 }
 
 
 export async function POST(req: NextRequest) {
-  const body = await req.text();
-  console.log('[webhook-post] Recebida nova requisição de webhook.');
+  let body;
+  try {
+    body = await req.text();
+    console.log(`[webhook-post] Recebida nova requisição. Corpo: ${body}`);
+  } catch (error) {
+    console.error('[webhook-post] ERRO: Não foi possível ler o corpo da requisição.');
+    return NextResponse.json({ error: 'Failed to read request body.' }, { status: 400 });
+  }
 
   let event;
   try {
     event = JSON.parse(body);
-    console.log(`[webhook-post] Evento JSON parseado. Evento: '${event.event}'.`);
+    console.log(`[webhook-post] Evento JSON parseado com sucesso. Evento: '${event.event}'.`);
   } catch (error) {
      console.error('[webhook-post] ERRO: Corpo da requisição não é um JSON válido.');
      return NextResponse.json({ error: 'Invalid JSON body.' }, { status: 400 });
@@ -89,7 +109,7 @@ export async function POST(req: NextRequest) {
       console.error('[webhook-post] ERRO: Assinatura inválida. A requisição pode não ser da Abacate Pay.');
       return NextResponse.json({ error: 'Invalid signature.' }, { status: 403 });
     }
-    console.log('[webhook-post] Assinatura verificada com sucesso.');
+    console.log('[webhook-post] Assinatura HMAC verificada com sucesso.');
   }
   
   // --- Event Processing ---
@@ -110,15 +130,20 @@ export async function POST(req: NextRequest) {
       const userRef = firestore.collection('users').doc(userId);
       
       const now = new Date();
-      const expiresAt = new Date(now.setDate(now.getDate() + 31));
+      // Adiciona 31 dias para garantir que cobre o mês inteiro, independentemente do mês
+      const expiresAt = new Date(now.getTime());
+      expiresAt.setDate(expiresAt.getDate() + 31);
 
-      console.log(`[webhook-post] Atualizando documento do usuário ${userId} no Firestore...`);
-      await userRef.update({
+      const updatePayload = {
         'subscription.status': 'active',
         'subscription.plan': 'pro',
         'subscription.expiresAt': Timestamp.fromDate(expiresAt),
         'subscription.paymentId': paymentId,
-      });
+      };
+
+      console.log(`[webhook-post] Preparando para atualizar o documento do usuário ${userId} no Firestore com o payload:`, JSON.stringify(updatePayload));
+      
+      await userRef.update(updatePayload);
 
       console.log(`[webhook-post] SUCESSO: Assinatura do usuário ${userId} ativada. Expira em: ${expiresAt.toISOString()}`);
 
@@ -130,5 +155,6 @@ export async function POST(req: NextRequest) {
     console.log(`[webhook-post] Evento do tipo '${event.event}' recebido. Nenhuma ação configurada para este evento.`);
   }
 
+  console.log('[webhook-post] Processamento do webhook concluído com sucesso.');
   return NextResponse.json({ success: true, message: 'Webhook received and processed.' });
 }
