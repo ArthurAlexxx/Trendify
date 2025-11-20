@@ -1,4 +1,20 @@
+
 import type { Timestamp } from 'firebase/firestore';
+
+export interface UserProfile {
+  id: string;
+  displayName: string;
+  email: string;
+  photoURL?: string;
+  createdAt: Timestamp;
+  instagramHandle?: string;
+  youtubeHandle?: string;
+  niche?: string;
+  bio?: string;
+  followers?: string;
+  engagement?: string;
+  audience?: string;
+}
 
 export interface Metrica {
   id: string;
@@ -43,3 +59,5 @@ export interface ConteudoAgendado {
   notes?: string;
   createdAt: Timestamp;
 }
+
+    

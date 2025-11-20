@@ -4,8 +4,6 @@ import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import {
   Download,
@@ -19,7 +17,6 @@ import {
   Loader2,
   Save,
   DollarSign,
-  Target,
   FileText,
   Lightbulb,
 } from 'lucide-react';
@@ -42,11 +39,13 @@ import {
   AiCareerPackageOutput,
 } from './actions';
 import { useToast } from '@/hooks/use-toast';
-import { useUser, useFirestore } from '@/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { collection, addDoc, serverTimestamp, doc } from 'firebase/firestore';
 import { SavedIdeasSheet } from '@/components/saved-ideas-sheet';
-import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import type { UserProfile } from '@/lib/types';
+import { Skeleton } from '@/components/ui/skeleton';
+
 
 const creatorProfileImage = PlaceHolderImages.find(
   (p) => p.id === 'creator-profile'
@@ -65,16 +64,6 @@ const formSchema = z.object({
 });
 
 export default function MediaKitPage() {
-  const [name, setName] = useState('Jessica Day');
-  const [bio, setBio] = useState(
-    'Criadora de conteúdo de lifestyle e moda de LA. Apaixonada por marcas sustentáveis e narrativas autênticas. Vamos criar algo lindo juntos!'
-  );
-  const [followers, setFollowers] = useState('250K');
-  const [engagement, setEngagement] = useState('4.7%');
-  const [audience, setAudience] = useState(
-    'Idade 18-24, 75% Mulheres, Principais locais: EUA, Reino Unido, Canadá'
-  );
-
   const { toast } = useToast();
   const [state, formAction, isGenerating] = useActionState(
     getAiCareerPackageAction,
@@ -84,14 +73,30 @@ export default function MediaKitPage() {
   const { user } = useUser();
   const firestore = useFirestore();
 
+  const userProfileRef = useMemoFirebase(
+    () => (firestore && user ? doc(firestore, `users/${user.uid}`) : null),
+    [firestore, user]
+  );
+  const { data: userProfile, isLoading: isLoadingProfile } = useDoc<UserProfile>(userProfileRef);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      niche: 'Criadora de conteúdo de lifestyle, moda e beleza sustentável.',
-      keyMetrics: '250 mil seguidores no Instagram, 1.2M de alcance mensal, 4.7% de taxa de engajamento.',
+      niche: '',
+      keyMetrics: '',
       targetBrand: 'Sallve',
     },
   });
+
+   useEffect(() => {
+    if (userProfile) {
+      form.reset({
+        niche: userProfile.niche || '',
+        keyMetrics: `${userProfile.followers || ''} seguidores, ${userProfile.engagement || ''} de engajamento. ${userProfile.audience || ''}`,
+        targetBrand: 'Sallve',
+      });
+    }
+  }, [userProfile, form]);
   
   useEffect(() => {
     if (state?.error) {
@@ -162,7 +167,6 @@ export default function MediaKitPage() {
       <div className="grid lg:grid-cols-3 gap-12">
         <div className="lg:col-span-2 space-y-12">
           
-          {/* AI Proposal Generator */}
           <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg rounded-2xl">
             <CardHeader>
               <CardTitle className="flex items-center gap-3 font-headline text-xl">
@@ -184,11 +188,13 @@ export default function MediaKitPage() {
                         <FormItem>
                           <FormLabel>Seu Nicho de Atuação</FormLabel>
                           <FormControl>
-                            <Input
-                              placeholder="Ex: 'Lifestyle, moda e beleza sustentável'"
-                              className="h-11"
-                              {...field}
-                            />
+                             {isLoadingProfile ? <Skeleton className="h-11 w-full" /> : 
+                              <Input
+                                placeholder="Defina seu nicho em Configurações > Perfil"
+                                className="h-11"
+                                {...field}
+                              />
+                            }
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -202,11 +208,13 @@ export default function MediaKitPage() {
                           <FormItem>
                             <FormLabel>Suas Métricas Chave</FormLabel>
                             <FormControl>
-                              <Input
-                                placeholder="Ex: '250K seguidores, 4.7% engajamento...'"
-                                className="h-11"
-                                {...field}
-                              />
+                              {isLoadingProfile ? <Skeleton className="h-11 w-full" /> :
+                                <Input
+                                  placeholder="Defina suas métricas em Configurações > Perfil"
+                                  className="h-11"
+                                  {...field}
+                                />
+                              }
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -234,7 +242,7 @@ export default function MediaKitPage() {
                   <div className="pt-2">
                     <Button
                       type="submit"
-                      disabled={isGenerating}
+                      disabled={isGenerating || isLoadingProfile}
                       size="lg"
                       className="font-manrope sm:w-auto h-12 px-10 rounded-full text-base font-bold shadow-lg shadow-primary/20 transition-transform hover:scale-[1.02]"
                     >
@@ -250,7 +258,6 @@ export default function MediaKitPage() {
             </CardContent>
           </Card>
 
-          {/* AI Result */}
           {(isGenerating || result) && (
             <div className="space-y-8 animate-fade-in">
               <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
@@ -282,42 +289,8 @@ export default function MediaKitPage() {
               ) : null}
             </div>
           )}
-
-           <Separator className="my-12" />
-
-          {/* Media Kit Editor */}
-          <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg rounded-2xl">
-            <CardHeader>
-              <CardTitle className="font-headline text-xl">Informações do Mídia Kit</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="name">Nome Completo</Label>
-                <Input id="name" value={name} onChange={(e) => setName(e.target.value)} className="h-11"/>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="bio">Bio</Label>
-                <Textarea id="bio" value={bio} onChange={(e) => setBio(e.target.value)} className="min-h-[120px] rounded-xl" />
-              </div>
-              <div className="grid sm:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="followers">Total de Seguidores</Label>
-                  <Input id="followers" value={followers} onChange={(e) => setFollowers(e.target.value)} className="h-11" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="engagement">Taxa de Engajamento</Label>
-                  <Input id="engagement" value={engagement} onChange={(e) => setEngagement(e.target.value)} className="h-11" />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="audience">Demografia do Público</Label>
-                <Textarea id="audience" value={audience} onChange={(e) => setAudience(e.target.value)} className="min-h-[100px] rounded-xl" />
-              </div>
-            </CardContent>
-          </Card>
         </div>
 
-        {/* Live Preview */}
         <div className="lg:col-span-1">
           <div className="sticky top-8">
             <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
@@ -334,12 +307,28 @@ export default function MediaKitPage() {
               </div>
             </div>
             <Card className="overflow-hidden shadow-2xl rounded-2xl">
+            {isLoadingProfile ? (
+              <div className="p-8 space-y-6">
+                <div className="flex items-center gap-6">
+                  <Skeleton className="h-24 w-24 rounded-full" />
+                  <Skeleton className="h-10 w-40" />
+                </div>
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-16 w-full" />
+                <Separator />
+                <div className="grid grid-cols-2 gap-8">
+                   <Skeleton className="h-20 w-full" />
+                   <Skeleton className="h-20 w-full" />
+                </div>
+              </div>
+            ) : (
+              <>
               <div className="bg-primary/10 p-6 sm:p-8">
                 <div className="flex flex-col sm:flex-row items-center gap-6">
                   <div className="relative h-24 w-24 shrink-0 rounded-full overflow-hidden ring-4 ring-background">
                     <Image
-                      src={creatorProfileImage?.imageUrl ?? ''}
-                      alt="Criador"
+                      src={userProfile?.photoURL ?? creatorProfileImage?.imageUrl ?? ''}
+                      alt={userProfile?.displayName ?? 'Criador'}
                       fill
                       style={{ objectFit: 'cover' }}
                       data-ai-hint={creatorProfileImage?.imageHint}
@@ -347,16 +336,16 @@ export default function MediaKitPage() {
                   </div>
                   <div>
                     <h1 className="text-3xl sm:text-4xl font-headline font-black text-center sm:text-left">
-                      {name}
+                      {userProfile?.displayName ?? 'Seu Nome'}
                     </h1>
                     <div className="flex gap-4 mt-2 justify-center sm:justify-start text-muted-foreground">
                       <span className="flex items-center gap-1.5 text-sm">
                         <Instagram className="h-4 w-4" />
-                        @jessday
+                        {userProfile?.instagramHandle || '@seu_insta'}
                       </span>
                       <span className="flex items-center gap-1.5 text-sm">
                         <Youtube className="h-4 w-4" />
-                        JessicaDayVlogs
+                        {userProfile?.youtubeHandle || 'SeuCanal'}
                       </span>
                     </div>
                   </div>
@@ -367,7 +356,7 @@ export default function MediaKitPage() {
                   <h3 className="font-headline font-bold text-lg mb-2">
                     Sobre Mim
                   </h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed">{bio}</p>
+                  <p className="text-muted-foreground text-sm leading-relaxed">{userProfile?.bio || 'Sua bio profissional aparece aqui. Edite em Configurações.'}</p>
                 </div>
                 <Separator />
                 <div className="grid sm:grid-cols-2 gap-8">
@@ -377,10 +366,10 @@ export default function MediaKitPage() {
                     </h3>
                     <div className="space-y-2 text-sm">
                       <p>
-                        <strong className='text-foreground'>Seguidores:</strong> {followers}
+                        <strong className='text-foreground'>Seguidores:</strong> {userProfile?.followers || 'N/A'}
                       </p>
                       <p>
-                        <strong className='text-foreground'>Engajamento:</strong> {engagement}
+                        <strong className='text-foreground'>Engajamento:</strong> {userProfile?.engagement || 'N/A'}
                       </p>
                     </div>
                   </div>
@@ -388,7 +377,7 @@ export default function MediaKitPage() {
                     <h3 className="font-headline font-bold text-lg mb-4 flex items-center gap-2">
                       <User className="h-5 w-5 text-primary" /> Público
                     </h3>
-                    <p className="text-muted-foreground text-sm leading-relaxed">{audience}</p>
+                    <p className="text-muted-foreground text-sm leading-relaxed">{userProfile?.audience || 'Sua demografia do público aparece aqui.'}</p>
                   </div>
                 </div>
                 <Separator />
@@ -412,6 +401,8 @@ export default function MediaKitPage() {
                   </div>
                 </div>
               </div>
+              </>
+            )}
             </Card>
           </div>
         </div>
@@ -472,17 +463,9 @@ function InfoCard({
         </CardTitle>
       </CardHeader>
       <CardContent>
-         {isTextarea ? (
-          <Textarea
-            readOnly
-            value={content}
-            className="h-40 bg-background/50 text-base leading-relaxed resize-none rounded-xl"
-          />
-        ) : (
-          <p className="p-4 rounded-xl border border-border/10 bg-background/50 text-base text-foreground">
+         <div className="p-4 rounded-xl border border-border/10 bg-background/50 text-base text-foreground whitespace-pre-wrap">
             {content}
-          </p>
-        )}
+          </div>
       </CardContent>
     </Card>
   );
@@ -574,3 +557,5 @@ function PricingCard({
     </Card>
   );
 }
+
+    

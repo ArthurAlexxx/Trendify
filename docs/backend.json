@@ -1,8 +1,9 @@
+
 {
   "entities": {
     "UserProfile": {
       "title": "User Profile",
-      "description": "Stores user profile information.",
+      "description": "Stores user profile information, including data for the media kit.",
       "type": "object",
       "properties": {
         "displayName": {
@@ -23,6 +24,34 @@
           "type": "string",
           "format": "date-time",
           "description": "The timestamp when the user profile was created."
+        },
+        "instagramHandle": {
+            "type": "string",
+            "description": "User's Instagram handle (e.g., @username)."
+        },
+        "youtubeHandle": {
+            "type": "string",
+            "description": "User's YouTube handle (e.g., @YourChannel)."
+        },
+        "niche": {
+            "type": "string",
+            "description": "The creator's content niche (e.g., 'Lifestyle and sustainable fashion')."
+        },
+        "bio": {
+            "type": "string",
+            "description": "A short, professional biography for the media kit."
+        },
+        "followers": {
+            "type": "string",
+            "description": "Total number of followers (e.g., '250K')."
+        },
+        "engagement": {
+            "type": "string",
+            "description": "Engagement rate (e.g., '4.7%')."
+        },
+        "audience": {
+            "type": "string",
+            "description": "Description of the audience demographics."
         }
       },
       "required": ["displayName", "email", "createdAt"]
@@ -122,3 +151,5 @@
     }
   }
 }
+
+    
