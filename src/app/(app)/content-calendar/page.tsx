@@ -95,15 +95,20 @@ export default function ContentCalendarPage() {
     return scheduledContent.map(item => item.date.toDate());
   }, [scheduledContent]);
   
-  const handleDayClick = (day: Date) => {
-    setSelectedDay(day);
+  const handleNewEventForDay = (day: Date) => {
     form.reset({
       ...form.getValues(),
       date: day,
       time: format(new Date(), 'HH:mm'),
+      title: '',
+      notes: '',
     });
     setIsModalOpen(true);
   };
+  
+  const handleSelectDay = (day: Date) => {
+      setSelectedDay(day);
+  }
 
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -159,7 +164,7 @@ export default function ContentCalendarPage() {
               <DialogTitle className="font-headline text-xl">Novo Agendamento</DialogTitle>
             </DialogHeader>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-4">
                 <FormField
                   control={form.control}
                   name="title"
@@ -173,109 +178,110 @@ export default function ContentCalendarPage() {
                     </FormItem>
                   )}
                 />
-                <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="contentType"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tipo</FormLabel>
-                       <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione o tipo" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="Reels">Reels</SelectItem>
-                          <SelectItem value="Story">Story</SelectItem>
-                          <SelectItem value="Post">Post</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                 <FormField
-                  control={form.control}
-                  name="status"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Status</FormLabel>
-                       <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione o status" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="Agendado">Agendado</SelectItem>
-                          <SelectItem value="Publicado">Publicado</SelectItem>
-                          <SelectItem value="Rascunho">Rascunho</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                </div>
-                 <div className="grid grid-cols-2 gap-4">
-                     <FormField
-                      control={form.control}
-                      name="date"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-col">
-                          <FormLabel>Data</FormLabel>
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <FormControl>
-                                <Button
-                                  variant={"outline"}
-                                  className={cn(
-                                    "w-full pl-3 text-left font-normal",
-                                    !field.value && "text-muted-foreground"
-                                  )}
-                                >
-                                  {field.value ? (
-                                    format(field.value, "PPP", { locale: ptBR })
-                                  ) : (
-                                    <span>Escolha uma data</span>
-                                  )}
-                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                </Button>
-                              </FormControl>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                              <Calendar
-                                mode="single"
-                                selected={field.value}
-                                onSelect={(day) => day && field.onChange(day)}
-                                disabled={(date) =>
-                                  date < new Date("1900-01-01")
-                                }
-                                initialFocus
-                              />
-                            </PopoverContent>
-                          </Popover>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="time"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Horário</FormLabel>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="contentType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Tipo</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
-                            <Input type="time" {...field} />
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione o tipo" />
+                            </SelectTrigger>
                           </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                 </div>
-                 <FormField
+                          <SelectContent>
+                            <SelectItem value="Reels">Reels</SelectItem>
+                            <SelectItem value="Story">Story</SelectItem>
+                            <SelectItem value="Post">Post</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="status"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Status</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione o status" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="Agendado">Agendado</SelectItem>
+                            <SelectItem value="Publicado">Publicado</SelectItem>
+                            <SelectItem value="Rascunho">Rascunho</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="date"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col">
+                        <FormLabel>Data</FormLabel>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant={"outline"}
+                                className={cn(
+                                  "w-full pl-3 text-left font-normal",
+                                  !field.value && "text-muted-foreground"
+                                )}
+                              >
+                                {field.value ? (
+                                  format(field.value, "PPP", { locale: ptBR })
+                                ) : (
+                                  <span>Escolha uma data</span>
+                                )}
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={field.value}
+                              onSelect={(day) => day && field.onChange(day)}
+                              disabled={(date) => date < new Date("1900-01-01")}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="time"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Horário</FormLabel>
+                        <FormControl>
+                          <Input type="time" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
                   control={form.control}
                   name="notes"
                   render={({ field }) => (
@@ -289,7 +295,7 @@ export default function ContentCalendarPage() {
                   )}
                 />
 
-                <DialogFooter>
+                <DialogFooter className="pt-4">
                   <Button type="submit" className="w-full">Agendar</Button>
                 </DialogFooter>
               </form>
@@ -305,7 +311,8 @@ export default function ContentCalendarPage() {
                <Calendar
                 mode="single"
                 selected={selectedDay}
-                onSelect={(day) => day && handleDayClick(day)}
+                onSelect={(day) => day && handleSelectDay(day)}
+                onDayClick={(day) => handleNewEventForDay(day)}
                 className="w-full"
                 modifiers={{ scheduled: scheduledDays }}
                 modifiersClassNames={{
@@ -353,7 +360,7 @@ export default function ContentCalendarPage() {
                     Nenhum post para este dia.
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    Clique no calendário para adicionar um evento.
+                    Clique em um dia no calendário para agendar um post.
                   </p>
                 </div>
               )}
