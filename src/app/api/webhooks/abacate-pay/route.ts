@@ -8,12 +8,20 @@ import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 // This ensures it's only initialized once.
 if (!getApps().length) {
     // Check if running in Vercel production environment
-    if (process.env.VERCEL_ENV === 'production' && process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
-        initializeApp({
-            credential: cert(JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON))
-        });
+    // and the JSON key is provided as a stringified environment variable.
+    if (process.env.VERCEL_ENV && process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
+        try {
+            const serviceAccount = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
+            initializeApp({
+                credential: cert(serviceAccount)
+            });
+        } catch (e) {
+            console.error('Error parsing GOOGLE_APPLICATION_CREDENTIALS_JSON:', e);
+            // Fallback for local development or if JSON parsing fails
+            initializeApp();
+        }
     } else {
-        // Fallback for local development or other environments
+        // Fallback for local development using Application Default Credentials
         initializeApp();
     }
 }
@@ -37,8 +45,7 @@ export async function POST(req: NextRequest) {
   // Verify the signature
   const hmac = crypto.createHmac('sha256', WEBHOOK_SECRET);
   const digest = hmac.update(body).digest('hex');
-  const expectedSignature = `sha256=${digest}`;
-
+  
   if (digest !== abacateSignature) {
      return NextResponse.json({ error: 'Invalid signature.' }, { status: 403 });
   }

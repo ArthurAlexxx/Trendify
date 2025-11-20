@@ -39,6 +39,10 @@ O aplicativo usa o Firebase para autenticação e banco de dados. Você precisa 
 
 Esses valores podem ser encontrados nas configurações do seu projeto no Console do Firebase.
 
+Para a integração do lado do servidor (Server-Side), como nos webhooks, você também precisará das credenciais da sua conta de serviço do Firebase:
+
+- `GOOGLE_APPLICATION_CREDENTIALS_JSON`: O conteúdo do arquivo JSON da sua conta de serviço do Firebase. Você pode gerar este arquivo no Console do Firebase em `Configurações do Projeto > Contas de Serviço > Gerar nova chave privada`. Copie o conteúdo completo do arquivo JSON e cole como o valor desta variável.
+
 ### Chave da API da OpenAI
 
 As funcionalidades de IA são potencializadas pela OpenAI. Você precisa fornecer sua própria chave de API.
