@@ -122,7 +122,7 @@ export function AppSidebar() {
                 >
                   <item.icon className="h-5 w-5" />
                   <span className="text-sm font-medium">{item.label}</span>
-                  {!accessible && item.plan === 'premium' && (
+                  {!accessible && (
                      <Crown className="h-4 w-4 ml-auto text-yellow-400 fill-yellow-400 group-data-[state=collapsed]:hidden"/>
                   )}
                 </SidebarMenuButton>
