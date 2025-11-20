@@ -62,22 +62,6 @@
       },
       "required": ["dia", "tarefa", "detalhes", "concluido"]
     },
-    "Tendencia": {
-      "title": "Tendência",
-      "description": "Uma tendência de som ou estilo do Instagram ou TikTok.",
-      "type": "object",
-      "properties": {
-        "titulo": { "type": "string", "description": "O título da tendência." },
-        "tipo": { "type": "string", "enum": ["Som", "Estilo"], "description": "O tipo de tendência." },
-        "nicho": { "type": "string", "description": "O nicho ao qual a tendência se aplica." },
-        "pais": { "type": "string", "description": "O país onde a tendência é popular." },
-        "contagemRegressiva": { "type": "number", "description": "Dias restantes para usar a tendência." },
-        "explicacao": { "type": "string", "description": "Uma breve explicação de como usar a tendência." },
-        "exampleImageUrl": { "type": "string", "description": "URL de uma imagem de exemplo." },
-        "exampleImageHint": { "type": "string", "description": "Dica para a IA sobre a imagem de exemplo." }
-      },
-      "required": ["titulo", "tipo", "nicho", "pais", "contagemRegressiva", "explicacao", "exampleImageUrl", "exampleImageHint"]
-    },
     "IdeiaSalva": {
       "title": "Ideia Salva",
       "description": "Armazena uma ideia ou conteúdo gerado pela IA que o usuário salvou.",
@@ -91,6 +75,21 @@
         "createdAt": { "type": "string", "format": "date-time", "description": "O timestamp de quando a ideia foi salva." }
       },
       "required": ["userId", "titulo", "conteudo", "origem", "concluido", "createdAt"]
+    },
+     "ConteudoAgendado": {
+      "title": "Conteúdo Agendado",
+      "description": "Representa um item de conteúdo agendado no calendário.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "O ID do usuário que agendou o conteúdo." },
+        "title": { "type": "string", "description": "Título do conteúdo." },
+        "date": { "type": "string", "format": "date-time", "description": "Data e hora agendada para postagem." },
+        "contentType": { "type": "string", "enum": ["Reels", "Story", "Post"], "description": "Tipo do conteúdo." },
+        "status": { "type": "string", "enum": ["Agendado", "Publicado", "Rascunho"], "description": "Status atual do conteúdo." },
+        "notes": { "type": "string", "description": "Anotações ou ideias para o conteúdo." },
+         "createdAt": { "type": "string", "format": "date-time", "description": "O timestamp de quando o agendamento foi criado." }
+      },
+      "required": ["userId", "title", "date", "contentType", "status", "createdAt"]
     }
   },
   "auth": {
@@ -105,6 +104,10 @@
       "schema": { "$ref": "#/backend/entities/IdeiaSalva" },
       "description": "Stores saved AI-generated ideas for a specific user."
     },
+     "/users/{userId}/conteudoAgendado/{conteudoId}": {
+      "schema": { "$ref": "#/backend/entities/ConteudoAgendado" },
+      "description": "Stores scheduled content for a specific user."
+    },
     "/metrica/{metricaId}": {
       "schema": { "$ref": "#/backend/entities/Metrica" },
       "description": "Coleção para armazenar as principais métricas de desempenho."
@@ -116,10 +119,6 @@
     "/roteiro/{itemRoteiroId}": {
       "schema": { "$ref": "#/backend/entities/ItemRoteiro" },
       "description": "Coleção para armazenar as tarefas do roteiro de conteúdo semanal."
-    },
-    "/tendencia/{tendenciaId}": {
-      "schema": { "$ref": "#/backend/entities/Tendencia" },
-      "description": "Coleção para armazenar as tendências do Trend Radar."
     }
   }
 }

@@ -30,7 +30,7 @@ import type {
 } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Checkbox } from '@/components/ui/checkbox';
-import { format, formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 const chartConfig = {
@@ -190,10 +190,11 @@ export default function DashboardPage() {
                         </label>
                         <p className="text-xs text-muted-foreground">
                           Salvo de "{ideia.origem}"{' '}
-                          {formatDistanceToNow(ideia.createdAt.toDate(), {
-                            addSuffix: true,
-                            locale: ptBR,
-                          })}
+                          {ideia.createdAt &&
+                            formatDistanceToNow(ideia.createdAt.toDate(), {
+                              addSuffix: true,
+                              locale: ptBR,
+                            })}
                         </p>
                       </div>
                     </li>

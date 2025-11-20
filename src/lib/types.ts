@@ -1,3 +1,5 @@
+import type { Timestamp } from 'firebase/firestore';
+
 export interface Metrica {
   id: string;
   nome: string;
@@ -21,18 +23,6 @@ export interface ItemRoteiro {
   concluido: boolean;
 }
 
-export interface Tendencia {
-  id: string;
-  titulo: string;
-  tipo: 'Som' | 'Estilo';
-  nicho: string;
-  pais: string;
-  contagemRegressiva: number;
-  explicacao: string;
-  exampleImageUrl: string;
-  exampleImageHint: string;
-}
-
 export interface IdeiaSalva {
   id: string;
   userId: string;
@@ -40,5 +30,16 @@ export interface IdeiaSalva {
   conteudo: string;
   origem: string;
   concluido: boolean;
-  createdAt: any; // Using `any` for Firestore Timestamp flexibility
+  createdAt: Timestamp;
+}
+
+export interface ConteudoAgendado {
+  id: string;
+  userId: string;
+  title: string;
+  date: Timestamp;
+  contentType: 'Reels' | 'Story' | 'Post';
+  status: 'Agendado' | 'Publicado' | 'Rascunho';
+  notes?: string;
+  createdAt: Timestamp;
 }

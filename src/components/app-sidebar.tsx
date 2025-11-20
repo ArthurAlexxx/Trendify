@@ -9,6 +9,7 @@ import {
   Video,
   Settings,
   LogOut,
+  Calendar,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -29,30 +30,12 @@ import { useUser } from '@/firebase';
 
 const navItems = [
   { href: '/dashboard', icon: LineChart, label: 'Painel' },
+  { href: '/content-calendar', icon: Calendar, label: 'Calendário' },
   { href: '/video-ideas', icon: Lightbulb, label: 'Ideias de Vídeo' },
   { href: '/video-review', icon: Video, label: 'Análise de Vídeo' },
-  { href: '/trend-radar', icon: 'trending', label: 'Radar de Tendências' },
   { href: '/publis-assistant', icon: Briefcase, label: 'Assistente Publis' },
   { href: '/media-kit', icon: Newspaper, label: 'Kit de Mídia' },
 ];
-
-const TrendingIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className="h-5 w-5"
-  >
-    <path d="M2.5 2.5h3l4 4 4-4 4 4 4-4h3" />
-    <path d="M2.5 7.5h3l4 4 4-4 4 4 4-4h3" />
-    <path d="M2.5 12.5h3l4 4 4-4 4 4 4-4h3" />
-    <path d="M2.5 17.5h3l4 4 4-4 4 4 4-4h3" />
-  </svg>
-);
 
 export function AppSidebar() {
   const pathname = usePathname();
@@ -99,11 +82,7 @@ export function AppSidebar() {
                   tooltip={item.label}
                   className="h-10 justify-start"
                 >
-                  {item.icon === 'trending' ? (
-                    <TrendingIcon />
-                  ) : (
-                    <item.icon className="h-5 w-5" />
-                  )}
+                  <item.icon className="h-5 w-5" />
                   <span className="text-sm font-medium">{item.label}</span>
                 </SidebarMenuButton>
               </Link>
