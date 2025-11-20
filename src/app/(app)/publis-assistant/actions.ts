@@ -1,4 +1,3 @@
-
 'use server';
 
 import OpenAI from 'openai';
@@ -10,9 +9,13 @@ const ScriptSchema = z.object({
   cta: z.string().describe('Uma chamada para ação clara, convincente e alinhada ao objetivo do vídeo.'),
 });
 
+const TrendVariationSchema = z.object({
+  variacao: z.string().describe("A descrição da variação da ideia adaptada para uma tendência."),
+});
+
 const GeneratePubliProposalsOutputSchema = z.object({
   scripts: z.array(ScriptSchema).describe('Uma lista de 5 ideias de roteiros de vídeo prontos para gravar.'),
-  trendVariations: z.array(z.string()).describe('Uma lista de 2 a 3 variações das ideias de roteiro, adaptadas para tendências ou "dancinhas" atuais.'),
+  trendVariations: z.array(TrendVariationSchema).describe('Uma lista de 2 a 3 variações das ideias de roteiro, adaptadas para tendências ou "dancinhas" atuais.'),
   conversionChecklist: z.array(z.string()).describe('Um checklist com 4 a 5 pontos essenciais para garantir a conversão do vídeo, como prova social, urgência, oferta clara, etc.'),
 });
 
@@ -78,7 +81,7 @@ Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON d
 
   - scripts: Crie EXATAMENTE 5 roteiros de vídeo distintos, cada um explorando um ângulo diferente (ex: tutorial focado no diferencial, POV do cliente, unboxing estético, problema vs. solução, etc.). Cada roteiro deve ser prático e pronto para gravar, incluindo um gancho forte, um desenvolvimento rápido e uma chamada para ação clara (CTA) alinhada ao objetivo.
 
-  - trendVariations: Crie 2-3 sugestões de como adaptar uma das ideias de roteiro para uma tendência (trend) de áudio ou vídeo que esteja em alta no Instagram/TikTok. Seja específico. Ex: "Adapte o roteiro 3 usando o áudio 'som do momento' com a trend de dublagem X."
+  - trendVariations: Crie 2-3 sugestões de como adaptar uma das ideias de roteiro para uma tendência (trend) de áudio ou vídeo que esteja em alta no Instagram/TikTok. Seja específico. Ex: "Adapte o roteiro 3 usando o áudio 'som do momento' com a trend de dublagem X." Para cada item no array, use a chave 'variacao' para a descrição.
 
   - conversionChecklist: Crie um checklist com 4-5 itens acionáveis para maximizar a conversão do vídeo, baseado no objetivo principal. Se o objetivo é Vendas, inclua itens como 'Mostrar prova social (ex: comentários)' ou 'Criar senso de urgência (ex: 'últimas unidades')'. Se o objetivo é Reconhecimento, inclua 'Gancho que gere curiosidade sobre a marca' ou 'CTA para seguir o perfil'.
   `;
@@ -132,5 +135,3 @@ export async function generatePubliProposalsAction(
     return { error: `Failed to generate proposals: ${errorMessage}` };
   }
 }
-
-    

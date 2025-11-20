@@ -1,4 +1,3 @@
-
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -102,7 +101,7 @@ export default function PublisAssistantPage() {
         const title = `Campanha: ${form.getValues('product').substring(0, 40)}...`;
         
         let content = `**Checklist de Conversão:**\n${data.conversionChecklist.map(item => `- ${item}`).join('\n')}\n\n`;
-        content += `**Variações com Trends:**\n- ${data.trendVariations.join('\n- ')}\n\n`;
+        content += `**Variações com Trends:**\n- ${data.trendVariations.map(v => v.variacao).join('\n- ')}\n\n`;
         content += `**Roteiros:**\n`;
         data.scripts.forEach((script, index) => {
           content += `\n**Roteiro ${index + 1}**\n`;
@@ -372,7 +371,7 @@ export default function PublisAssistantPage() {
                  <InfoListCard
                     title="Variações com Trends"
                     icon={Zap}
-                    items={result.trendVariations}
+                    items={result.trendVariations.map(v => v.variacao)}
                  />
               </div>
 
@@ -417,5 +416,3 @@ function InfoListCard({
     </Card>
   );
 }
-
-    
