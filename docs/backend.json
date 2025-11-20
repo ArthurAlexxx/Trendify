@@ -119,7 +119,8 @@
         "conteudo": { "type": "string", "description": "O conteúdo principal da ideia salva (roteiro, proposta, etc.)." },
         "origem": { "type": "string", "description": "A página onde a ideia foi gerada (ex: 'Ideias de Vídeo')." },
         "concluido": { "type": "boolean", "description": "Indica se a tarefa relacionada à ideia foi concluída." },
-        "createdAt": { "type": "string", "format": "date-time", "description": "O timestamp de quando a ideia foi salva." }
+        "createdAt": { "type": "string", "format": "date-time", "description": "O timestamp de quando a ideia foi salva." },
+        "completedAt": { "type": "string", "format": "date-time", "description": "O timestamp de quando a ideia foi marcada como concluída." }
       },
       "required": ["userId", "titulo", "conteudo", "origem", "concluido", "createdAt"]
     },

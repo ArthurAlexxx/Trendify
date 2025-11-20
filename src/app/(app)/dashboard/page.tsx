@@ -36,6 +36,7 @@ import {
   limit,
   orderBy,
   query,
+  serverTimestamp,
   updateDoc,
   where,
 } from 'firebase/firestore';
@@ -145,7 +146,11 @@ export default function DashboardPage() {
       ideia.id
     );
     try {
-      await updateDoc(ideiaRef, { concluido: !ideia.concluido });
+      const isCompleting = !ideia.concluido;
+      await updateDoc(ideiaRef, { 
+        concluido: isCompleting,
+        completedAt: isCompleting ? serverTimestamp() : null,
+       });
     } catch (error) {
       console.error('Failed to update idea status:', error);
     }
@@ -558,3 +563,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    

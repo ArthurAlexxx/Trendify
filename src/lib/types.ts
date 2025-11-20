@@ -52,6 +52,7 @@ export interface IdeiaSalva {
   origem: string;
   concluido: boolean;
   createdAt: Timestamp;
+  completedAt?: Timestamp;
 }
 
 export interface ConteudoAgendado {
@@ -66,4 +67,6 @@ export interface ConteudoAgendado {
 }
 
     
+    
+
     

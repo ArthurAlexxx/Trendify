@@ -38,12 +38,14 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { generateVideoIdeasAction, GenerateVideoIdeasOutput } from './actions';
 import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
-import { collection, addDoc, serverTimestamp, where, query } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, where, query, orderBy } from 'firebase/firestore';
 import { SavedIdeasSheet } from '@/components/saved-ideas-sheet';
 import type { IdeiaSalva } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
+import { formatDistanceToNow } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 const formSchema = z.object({
   topic: z.string().min(3, 'O tópico deve ter pelo menos 3 caracteres.'),
@@ -82,7 +84,8 @@ export default function VideoIdeasPage() {
     firestore && user
       ? query(
           collection(firestore, `users/${user.uid}/ideiasSalvas`),
-          where('concluido', '==', true)
+          where('concluido', '==', true),
+          orderBy('completedAt', 'desc')
         )
       : null
   ), [firestore, user]);
@@ -122,6 +125,7 @@ export default function VideoIdeasPage() {
           origem: 'Ideias de Vídeo',
           concluido: false,
           createdAt: serverTimestamp(),
+          completedAt: null,
         });
 
         toast({
@@ -447,7 +451,9 @@ export default function VideoIdeasPage() {
                      </div>
                      <div className='flex-1'>
                         <p className="font-semibold text-foreground">{idea.titulo}</p>
-                        <p className="text-sm text-muted-foreground">Concluído de "{idea.origem}"</p>
+                        <p className="text-sm text-muted-foreground">
+                          Concluído {idea.completedAt ? formatDistanceToNow(idea.completedAt.toDate(), { addSuffix: true, locale: ptBR }) : ''}
+                        </p>
                      </div>
                   </li>
                 ))}
@@ -532,3 +538,5 @@ function InfoListCard({
     </Card>
   );
 }
+
+    
