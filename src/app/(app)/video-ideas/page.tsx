@@ -23,6 +23,7 @@ import { useToast } from '@/hooks/use-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Camera,
+  Check,
   Clock,
   Disc,
   Heart,
@@ -36,9 +37,13 @@ import { useEffect, useActionState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { generateVideoIdeasAction, GenerateVideoIdeasOutput } from './actions';
-import { useFirestore, useUser } from '@/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
+import { collection, addDoc, serverTimestamp, where, query } from 'firebase/firestore';
 import { SavedIdeasSheet } from '@/components/saved-ideas-sheet';
+import type { IdeiaSalva } from '@/lib/types';
+import { Separator } from '@/components/ui/separator';
+import { cn } from '@/lib/utils';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const formSchema = z.object({
   topic: z.string().min(3, 'O tópico deve ter pelo menos 3 caracteres.'),
@@ -72,6 +77,18 @@ export default function VideoIdeasPage() {
       objective: 'Engajamento',
     },
   });
+  
+  const completedIdeasQuery = useMemoFirebase(() => (
+    firestore && user
+      ? query(
+          collection(firestore, `users/${user.uid}/ideiasSalvas`),
+          where('concluido', '==', true)
+        )
+      : null
+  ), [firestore, user]);
+  
+  const { data: completedIdeas, isLoading: isLoadingCompleted } = useCollection<IdeiaSalva>(completedIdeasQuery);
+
 
   useEffect(() => {
     if (state?.error) {
@@ -402,6 +419,48 @@ export default function VideoIdeasPage() {
           ) : null}
         </div>
       )}
+
+      <Separator />
+
+      <div className="space-y-8">
+        <div>
+          <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">
+            Ideias Concluídas
+          </h2>
+          <p className="text-muted-foreground">
+            Aqui estão as ideias que você já marcou como concluídas.
+          </p>
+        </div>
+        <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card">
+          <CardContent className='pt-6'>
+            {isLoadingCompleted ? (
+              <div className="space-y-4">
+                <Skeleton className="h-16 w-full" />
+                <Skeleton className="h-16 w-full" />
+              </div>
+            ) : completedIdeas && completedIdeas.length > 0 ? (
+              <ul className="space-y-4">
+                {completedIdeas.map((idea) => (
+                  <li key={idea.id} className="flex items-center gap-4 p-4 rounded-xl border bg-muted/30">
+                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-500/10 text-green-500">
+                        <Check className="h-5 w-5" />
+                     </div>
+                     <div className='flex-1'>
+                        <p className="font-semibold text-foreground">{idea.titulo}</p>
+                        <p className="text-sm text-muted-foreground">Concluído de "{idea.origem}"</p>
+                     </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className="text-center py-12 px-4">
+                 <p className="text-muted-foreground">Nenhuma tarefa concluída ainda.</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
     </div>
   );
 }

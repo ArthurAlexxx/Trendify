@@ -19,7 +19,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Bot, Loader2, Sparkles } from 'lucide-react';
+import { Bot, Loader2, Sparkles, Trash2 } from 'lucide-react';
 import { useEffect, useActionState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -47,6 +47,17 @@ import {
   Tooltip,
 } from 'recharts';
 import { ChartConfig, ChartContainer } from '@/components/ui/chart';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 const formSchema = z.object({
   objective: z.string().min(10, 'O objetivo precisa ser mais detalhado.'),
@@ -70,7 +81,6 @@ async function clearCollection(firestore: any, collectionPath: string) {
   await batch.commit();
 }
 
-
 export default function GenerateWeeklyPlanPage() {
   const { toast } = useToast();
   const [state, formAction, isGenerating] = useActionState(
@@ -78,6 +88,7 @@ export default function GenerateWeeklyPlanPage() {
     null
   );
   const [isSaving, startSavingTransition] = useTransition();
+  const [isDeleting, startDeletingTransition] = useTransition();
 
   const { user } = useUser();
   const firestore = useFirestore();
@@ -109,7 +120,7 @@ export default function GenerateWeeklyPlanPage() {
       });
     }
   }, [userProfile, form]);
-  
+
   const result = state?.data;
 
   useEffect(() => {
@@ -122,42 +133,62 @@ export default function GenerateWeeklyPlanPage() {
     }
     if (result && firestore) {
       startSavingTransition(async () => {
-         try {
-            await clearCollection(firestore, 'roteiro');
-            await clearCollection(firestore, 'dadosGrafico');
-            
-            const batch = writeBatch(firestore);
+        try {
+          await clearCollection(firestore, 'roteiro');
+          await clearCollection(firestore, 'dadosGrafico');
 
-            const roteiroRef = doc(collection(firestore, 'roteiro'));
-            batch.set(roteiroRef, {
-              items: result.roteiro,
-              createdAt: serverTimestamp(),
-            });
+          const batch = writeBatch(firestore);
 
-            result.desempenhoSimulado.forEach((ponto) => {
-              const pontoRef = doc(collection(firestore, 'dadosGrafico'));
-              batch.set(pontoRef, ponto);
-            });
+          const roteiroRef = doc(collection(firestore, 'roteiro'));
+          batch.set(roteiroRef, {
+            items: result.roteiro,
+            createdAt: serverTimestamp(),
+          });
 
-            await batch.commit();
+          result.desempenhoSimulado.forEach((ponto) => {
+            const pontoRef = doc(collection(firestore, 'dadosGrafico'));
+            batch.set(pontoRef, ponto);
+          });
 
-            toast({
-                title: 'Sucesso!',
-                description:
-                'Seu novo roteiro e simulação de desempenho foram salvos e estão no dashboard.',
-            });
+          await batch.commit();
 
-          } catch (e: any) {
-              toast({
-                title: 'Erro ao Salvar Plano',
-                description: `Não foi possível salvar os dados no Firestore: ${e.message}`,
-                variant: 'destructive',
-              });
-          }
+          toast({
+            title: 'Sucesso!',
+            description:
+              'Seu novo roteiro e simulação de desempenho foram salvos e estão no dashboard.',
+          });
+        } catch (e: any) {
+          toast({
+            title: 'Erro ao Salvar Plano',
+            description: `Não foi possível salvar os dados no Firestore: ${e.message}`,
+            variant: 'destructive',
+          });
+        }
       });
     }
   }, [state, result, firestore, toast]);
 
+  const handleDeletePlan = () => {
+    if (!firestore) return;
+
+    startDeletingTransition(async () => {
+      try {
+        await clearCollection(firestore, 'roteiro');
+        await clearCollection(firestore, 'dadosGrafico');
+        toast({
+          title: 'Plano Excluído!',
+          description:
+            'O roteiro semanal e os dados de desempenho foram removidos.',
+        });
+      } catch (e: any) {
+        toast({
+          title: 'Erro ao Excluir',
+          description: `Não foi possível limpar os dados: ${e.message}`,
+          variant: 'destructive',
+        });
+      }
+    });
+  };
 
   return (
     <div className="space-y-12">
@@ -186,7 +217,9 @@ export default function GenerateWeeklyPlanPage() {
                   name="objective"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Qual seu principal objetivo para esta semana?</FormLabel>
+                      <FormLabel>
+                        Qual seu principal objetivo para esta semana?
+                      </FormLabel>
                       <FormControl>
                         <Input
                           placeholder="Ex: 'Aumentar o engajamento com Reels de humor'"
@@ -246,7 +279,7 @@ export default function GenerateWeeklyPlanPage() {
                 </div>
               </div>
 
-              <div className="pt-2">
+              <div className="pt-2 flex flex-wrap items-center gap-4">
                 <Button
                   type="submit"
                   disabled={isGenerating || isSaving || isLoadingProfile}
@@ -265,6 +298,41 @@ export default function GenerateWeeklyPlanPage() {
                     </>
                   )}
                 </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      className="rounded-full font-manrope"
+                      disabled={isDeleting}
+                    >
+                      {isDeleting ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="mr-2 h-4 w-4" />
+                      )}
+                      Excluir Plano Atual
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>
+                        Tem certeza que quer excluir o plano?
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Esta ação removerá o roteiro e os dados de desempenho
+                        do seu painel. Você poderá gerar um novo a qualquer
+                        momento.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleDeletePlan}>
+                        Sim, excluir
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             </form>
           </Form>
@@ -362,7 +430,9 @@ export default function GenerateWeeklyPlanPage() {
                         tickLine={false}
                         axisLine={false}
                         tickFormatter={(value) =>
-                          typeof value === 'number' && value >= 1000 ? `${value / 1000}k` : value
+                          typeof value === 'number' && value >= 1000
+                            ? `${value / 1000}k`
+                            : value
                         }
                       />
                       <Tooltip
