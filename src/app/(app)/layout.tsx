@@ -20,11 +20,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const isMobile = useIsMobile();
 
   useEffect(() => {
+    // Only redirect if loading is complete and there is definitively no user.
     if (!isUserLoading && !user) {
       router.push('/login');
     }
   }, [user, isUserLoading, router]);
 
+  // While loading, or if there's no user yet (and not finished loading), show a loader.
+  // This prevents a flash of the login page or protected content.
   if (isUserLoading || !user) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
@@ -33,6 +36,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     );
   }
 
+  // Once loading is complete and we have a user, render the app layout.
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full">
