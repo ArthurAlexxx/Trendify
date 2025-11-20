@@ -176,7 +176,7 @@ export default function SettingsPage() {
         </TabsList>
 
         <TabsContent value="profile" className="mt-6">
-          <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg rounded-2xl">
+          <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
             <CardHeader>
               <CardTitle className="flex items-center gap-3 font-headline text-xl">
                 <UserIcon className="h-6 w-6 text-primary" />
@@ -296,7 +296,7 @@ export default function SettingsPage() {
 
         <TabsContent value="account" className="mt-6">
           <div className="space-y-8">
-            <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg rounded-2xl">
+            <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
               <CardHeader>
                 <CardTitle className="flex items-center gap-3 font-headline text-xl">
                   <LogOut className="h-6 w-6" />
@@ -388,5 +388,3 @@ export default function SettingsPage() {
     </div>
   );
 }
-
-    

@@ -262,7 +262,7 @@ export default function ContentCalendarPage() {
 
       <div className="grid md:grid-cols-3 gap-8 items-start">
         <div className="md:col-span-1">
-          <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg">
+          <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card">
              <CardContent className="p-0">
                <Calendar
                 mode="single"
@@ -271,14 +271,15 @@ export default function ContentCalendarPage() {
                 className="w-full"
                 modifiers={{ scheduled: scheduledDays }}
                 modifiersClassNames={{
-                    scheduled: 'font-bold text-primary',
+                    scheduled: 'day-scheduled',
+                    selected: 'day-selected',
                 }}
               />
             </CardContent>
           </Card>
         </div>
         <div className="md:col-span-2">
-           <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg">
+           <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card">
              <CardHeader>
                 <CardTitle className="font-headline text-xl">
                   Posts para {format(selectedDay, "dd 'de' MMMM", { locale: ptBR })}

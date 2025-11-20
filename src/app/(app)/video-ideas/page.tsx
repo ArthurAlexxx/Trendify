@@ -133,7 +133,7 @@ export default function VideoIdeasPage() {
         <SavedIdeasSheet />
       </PageHeader>
 
-      <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg rounded-2xl">
+      <Card className="shadow-lg shadow-primary/5 border-border/30 bg-card rounded-2xl">
         <CardHeader>
           <CardTitle className="flex items-center gap-3 font-headline text-xl">
             <Sparkles className="h-6 w-6 text-primary" />
@@ -412,18 +412,16 @@ function InfoCard({
   content,
   isTextarea = false,
   className,
-  contentClassName,
 }: {
   title: string;
   icon: React.ElementType;
   content: string;
   isTextarea?: boolean;
   className?: string;
-  contentClassName?: string;
 }) {
   return (
     <Card
-      className={`shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg rounded-2xl ${className}`}
+      className={`shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl ${className}`}
     >
       <CardHeader>
         <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
@@ -436,10 +434,10 @@ function InfoCard({
           <Textarea
             readOnly
             value={content}
-            className={`h-48 bg-background/50 text-base leading-relaxed resize-none rounded-xl ${contentClassName}`}
+            className="h-48 bg-muted/30 text-base leading-relaxed resize-none rounded-xl"
           />
         ) : (
-          <p className="p-4 rounded-xl border border-border/10 bg-background/50 text-base text-foreground">
+          <p className="p-4 rounded-xl border bg-muted/30 text-base text-foreground">
             {content}
           </p>
         )}
@@ -452,15 +450,13 @@ function InfoListCard({
   title,
   icon: Icon,
   content,
-  contentClassName,
 }: {
   title: string;
   icon: React.ElementType;
   content: string[];
-  contentClassName?: string;
 }) {
   return (
-    <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg rounded-2xl">
+    <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
       <CardHeader>
         <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary/80" />
@@ -471,11 +467,9 @@ function InfoListCard({
         <Textarea
           readOnly
           value={content.map((take, index) => `${index + 1}. ${take}`).join('\n')}
-          className={`h-48 bg-background/50 text-base leading-relaxed resize-none rounded-xl ${contentClassName}`}
+          className="h-48 bg-muted/30 text-base leading-relaxed resize-none rounded-xl"
         />
       </CardContent>
     </Card>
   );
 }
-
-    

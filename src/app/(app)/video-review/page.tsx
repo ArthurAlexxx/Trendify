@@ -126,7 +126,7 @@ export default function VideoReviewPage() {
         <SavedIdeasSheet />
       </PageHeader>
 
-      <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg rounded-2xl">
+      <Card className="shadow-lg shadow-primary/5 border-border/30 bg-card rounded-2xl">
         <CardHeader>
           <CardTitle className="flex items-center gap-3 font-headline text-xl">
             <Link className="h-6 w-6 text-primary" />
@@ -217,7 +217,7 @@ export default function VideoReviewPage() {
             </div>
           ) : result ? (
             <div className="grid gap-8">
-              <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg rounded-2xl">
+              <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between text-lg font-semibold text-foreground">
                     <div className="flex items-center gap-3">
@@ -280,7 +280,7 @@ function InfoCard({
   content: string;
 }) {
   return (
-    <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg rounded-2xl">
+    <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
       <CardHeader>
         <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary" />
@@ -291,7 +291,7 @@ function InfoCard({
         <Textarea
           readOnly
           value={content}
-          className="h-40 bg-background/50 text-base leading-relaxed resize-none rounded-xl"
+          className="h-40 bg-muted/30 text-base leading-relaxed resize-none rounded-xl"
         />
       </CardContent>
     </Card>
@@ -308,7 +308,7 @@ function InfoList({
   items: string[];
 }) {
   return (
-    <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg rounded-2xl h-full">
+    <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl h-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary" />
@@ -320,7 +320,7 @@ function InfoList({
           {items.map((item, index) => (
             <div
               key={index}
-              className="text-sm p-4 rounded-xl bg-background/50 border border-border/20"
+              className="text-sm p-4 rounded-xl bg-muted/30 border"
             >
               {item}
             </div>
@@ -330,5 +330,3 @@ function InfoList({
     </Card>
   );
 }
-
-    

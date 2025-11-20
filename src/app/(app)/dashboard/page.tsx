@@ -120,7 +120,7 @@ export default function DashboardPage() {
             : metrica?.map((metric) => (
                 <Card
                   key={metric.id}
-                  className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg"
+                  className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card"
                 >
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-base font-medium text-muted-foreground">
@@ -152,7 +152,7 @@ export default function DashboardPage() {
         </div>
 
         <div className="grid gap-8 lg:grid-cols-2">
-          <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg">
+          <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card">
             <CardHeader>
               <CardTitle className="font-headline text-xl">
                 Ideias da Semana
@@ -215,7 +215,7 @@ export default function DashboardPage() {
               )}
             </CardContent>
           </Card>
-          <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg">
+          <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card">
             <CardHeader>
               <CardTitle className="font-headline text-xl">
                 Roteiro de Conteúdo Semanal
@@ -267,7 +267,7 @@ export default function DashboardPage() {
           </Card>
         </div>
 
-        <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg">
+        <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card">
           <CardHeader>
             <CardTitle className="font-headline text-xl">
               Desempenho Semanal

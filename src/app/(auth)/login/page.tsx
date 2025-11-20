@@ -79,7 +79,7 @@ export default function LoginPage() {
             Acesse sua conta para continuar.
           </p>
         </div>
-        <Card>
+        <Card className="rounded-2xl">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 font-headline">
               <KeyRound className="h-5 w-5" />
@@ -100,6 +100,7 @@ export default function LoginPage() {
                           placeholder="seu@email.com"
                           {...field}
                           type="email"
+                          className="h-11"
                         />
                       </FormControl>
                       <FormMessage />
@@ -117,6 +118,7 @@ export default function LoginPage() {
                           placeholder="••••••••"
                           {...field}
                           type="password"
+                          className="h-11"
                         />
                       </FormControl>
                       <FormMessage />
@@ -126,7 +128,7 @@ export default function LoginPage() {
                 <Button
                   type="submit"
                   disabled={isPending}
-                  className="w-full font-manrope"
+                  className="w-full font-manrope h-11"
                 >
                   {isPending && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

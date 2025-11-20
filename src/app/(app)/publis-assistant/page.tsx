@@ -146,7 +146,7 @@ export default function PublisAssistantPage() {
         <SavedIdeasSheet />
       </PageHeader>
 
-      <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg rounded-2xl">
+      <Card className="shadow-lg shadow-primary/5 border-border/30 bg-card rounded-2xl">
         <CardHeader>
           <CardTitle className="flex items-center gap-3 font-headline text-xl">
             <Bot className="h-6 w-6 text-primary" />
@@ -332,7 +332,7 @@ export default function PublisAssistantPage() {
 
               {/* Scripts */}
               <div className="lg:col-span-2 space-y-6">
-                <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg rounded-2xl">
+                <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
                             <Clapperboard className="h-5 w-5 text-primary" />
@@ -393,7 +393,7 @@ function InfoListCard({
   items: string[];
 }) {
   return (
-    <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg rounded-2xl h-full">
+    <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl h-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary" />
@@ -416,5 +416,3 @@ function InfoListCard({
     </Card>
   );
 }
-
-    
