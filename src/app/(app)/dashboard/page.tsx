@@ -6,7 +6,6 @@ import {
   TrendingDown,
   TrendingUp,
   CheckCircle,
-  Circle,
   Plus,
 } from 'lucide-react';
 import {
@@ -60,22 +59,22 @@ export default function DashboardPage() {
     useCollection<ItemRoteiro>(roteiroQuery);
 
   return (
-    <>
+    <div className="space-y-12">
       <PageHeader
         title="Bem-vindo de volta, Criador!"
         description="Aqui está um resumo do seu progresso e seu plano de conteúdo para a semana."
       >
-        <Button className="font-manrope">
-          <Plus className="mr-2 h-4 w-4" />
+        <Button size="lg" className="font-manrope rounded-full text-base">
+          <Plus className="mr-2 h-5 w-5" />
           Criar Novo
         </Button>
       </PageHeader>
 
-      <div className="grid gap-6">
+      <div className="space-y-8">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {isLoadingMetrica
             ? Array.from({ length: 4 }).map((_, i) => (
-                <Card key={i}>
+                <Card key={i} className="rounded-2xl">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <Skeleton className="h-4 w-2/3" />
                   </CardHeader>
@@ -86,9 +85,9 @@ export default function DashboardPage() {
                 </Card>
               ))
             : metrica?.map((metric) => (
-                <Card key={metric.id}>
+                <Card key={metric.id} className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">
+                    <CardTitle className="text-base font-medium text-muted-foreground">
                       {metric.nome}
                     </CardTitle>
                     {metric.tipoAlteracao === 'aumento' ? (
@@ -98,10 +97,10 @@ export default function DashboardPage() {
                     )}
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">{metric.valor}</div>
+                    <div className="text-3xl font-bold font-headline">{metric.valor}</div>
                     <p
                       className={cn(
-                        'text-xs text-muted-foreground',
+                        'text-xs',
                         metric.tipoAlteracao === 'aumento'
                           ? 'text-emerald-500'
                           : 'text-red-500'
@@ -114,23 +113,23 @@ export default function DashboardPage() {
               ))}
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-7">
-          <Card className="lg:col-span-4">
+        <div className="grid gap-8 lg:grid-cols-7">
+          <Card className="lg:col-span-4 rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg">
             <CardHeader>
-              <CardTitle>Desempenho Semanal</CardTitle>
+              <CardTitle className='font-headline text-xl'>Desempenho Semanal</CardTitle>
             </CardHeader>
             <CardContent className="pl-2">
               {isLoadingDadosGrafico ? (
-                <div className="h-[250px] w-full flex items-center justify-center">
-                  <Skeleton className="h-full w-full" />
+                <div className="h-[300px] w-full flex items-center justify-center">
+                  <Skeleton className="h-full w-full rounded-xl" />
                 </div>
               ) : (
                 <ChartContainer
                   config={chartConfig}
-                  className="h-[250px] w-full"
+                  className="h-[300px] w-full"
                 >
                   <BarChart accessibilityLayer data={dadosGrafico}>
-                    <CartesianGrid vertical={false} />
+                    <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="hsl(var(--border) / 0.5)" />
                     <XAxis
                       dataKey="data"
                       tickLine={false}
@@ -155,13 +154,13 @@ export default function DashboardPage() {
                     <Bar
                       dataKey="alcance"
                       fill="var(--color-alcance)"
-                      radius={4}
+                      radius={8}
                       className="fill-primary"
                     />
                     <Bar
                       dataKey="engajamento"
                       fill="var(--color-engajamento)"
-                      radius={4}
+                      radius={8}
                       className="fill-pink-400"
                     />
                   </BarChart>
@@ -170,19 +169,19 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="lg:col-span-3">
+          <Card className="lg:col-span-3 rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg">
             <CardHeader>
-              <CardTitle>Roteiro de Conteúdo Semanal</CardTitle>
+              <CardTitle className='font-headline text-xl'>Roteiro de Conteúdo Semanal</CardTitle>
             </CardHeader>
             <CardContent>
               {isLoadingRoteiro ? (
-                 <div className="space-y-4">
+                 <div className="space-y-6">
                   {Array.from({ length: 3 }).map((_, i) => (
                     <div key={i} className="flex items-start gap-4">
-                      <Skeleton className="h-5 w-5 rounded-full mt-0.5" />
+                      <Skeleton className="h-6 w-6 rounded-full mt-0.5" />
                       <div className="w-full space-y-2">
-                        <Skeleton className="h-4 w-3/4" />
-                        <Skeleton className="h-3 w-full" />
+                        <Skeleton className="h-5 w-3/4" />
+                        <Skeleton className="h-4 w-full" />
                       </div>
                     </div>
                   ))}
@@ -191,15 +190,15 @@ export default function DashboardPage() {
                 <ul className="space-y-4">
                   {roteiro?.map((item, index) => (
                     <li key={item.id}>
-                      <div className="flex items-start gap-4">
+                      <div className="flex items-start gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50">
                         {item.concluido ? (
-                          <CheckCircle className="h-5 w-5 mt-0.5 text-primary" />
+                          <CheckCircle className="h-6 w-6 mt-0.5 text-primary" />
                         ) : (
-                          <Circle className="h-5 w-5 mt-0.5 text-muted-foreground/50" />
+                          <div className="h-6 w-6 mt-0.5 rounded-full border-2 border-muted-foreground/30 flex-shrink-0" />
                         )}
                         <div>
-                          <p className="font-medium">
-                            <span className="font-semibold">{item.dia}:</span> {item.tarefa}
+                          <p className="font-medium text-base">
+                            <span className="font-semibold text-primary">{item.dia}:</span> {item.tarefa}
                           </p>
                           <p className="text-sm text-muted-foreground">
                             {item.detalhes}
@@ -207,7 +206,7 @@ export default function DashboardPage() {
                         </div>
                       </div>
                       {roteiro && index < roteiro.length - 1 && (
-                        <Separator className="mt-4" />
+                        <Separator className="my-2" />
                       )}
                     </li>
                   ))}
@@ -217,6 +216,6 @@ export default function DashboardPage() {
           </Card>
         </div>
       </div>
-    </>
+    </div>
   );
 }

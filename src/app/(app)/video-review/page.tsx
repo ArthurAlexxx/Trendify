@@ -15,9 +15,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
-  Bot,
-  Clapperboard,
   Captions,
+  Clapperboard,
   Lightbulb,
   List,
   Loader2,
@@ -63,22 +62,22 @@ export default function VideoReviewPage() {
 
   const scoreColor =
     result && result.score > 75
-      ? 'text-green-500'
+      ? 'text-green-500 bg-green-500/10 border-green-500/20'
       : result && result.score > 50
-      ? 'text-yellow-500'
-      : 'text-red-500';
+      ? 'text-yellow-500 bg-yellow-500/10 border-yellow-500/20'
+      : 'text-red-500 bg-red-500/10 border-red-500/20';
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-12">
       <PageHeader
         title="Análise de Vídeo com IA"
         description="Receba um diagnóstico completo e sugestões para viralizar seu vídeo."
       />
 
-      <Card className="shadow-none border-border/60">
+      <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg rounded-2xl">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 font-headline text-lg">
-            <Link className="h-5 w-5 text-primary" />
+          <CardTitle className="flex items-center gap-3 font-headline text-xl">
+            <Link className="h-6 w-6 text-primary" />
             <span>Cole o link do seu vídeo</span>
           </CardTitle>
         </CardHeader>
@@ -104,6 +103,7 @@ export default function VideoReviewPage() {
                       <Input
                         placeholder="https://www.tiktok.com/seu-video-incrivel"
                         {...field}
+                        className="h-12"
                       />
                     </FormControl>
                     <FormMessage className="mt-2" />
@@ -113,7 +113,8 @@ export default function VideoReviewPage() {
               <Button
                 type="submit"
                 disabled={isPending}
-                className="font-manrope w-full sm:w-auto h-10 px-6 text-base shrink-0"
+                size="lg"
+                className="font-manrope w-full sm:w-auto h-12 px-10 rounded-full text-base font-bold shadow-lg shadow-primary/20 transition-transform hover:scale-[1.02] shrink-0"
               >
                 {isPending ? (
                   <>
@@ -133,12 +134,14 @@ export default function VideoReviewPage() {
       </Card>
 
       {(isPending || result) && (
-        <div className="space-y-6">
-          <h2 className="text-2xl font-bold font-headline tracking-tight">
-            Diagnóstico da IA
-          </h2>
+        <div className="space-y-8 animate-fade-in">
+           <div className="space-y-2">
+            <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Diagnóstico da IA</h2>
+            <p className="text-muted-foreground">Um diagnóstico completo para otimizar seu conteúdo.</p>
+           </div>
+
           {isPending && !result ? (
-            <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border/80 bg-background h-96">
+            <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-96">
               <Loader2 className="h-10 w-10 animate-spin text-primary" />
               <p className="mt-4 text-muted-foreground">
                 Analisando gancho, ritmo, áudio e mais...
@@ -146,20 +149,20 @@ export default function VideoReviewPage() {
             </div>
           ) : result ? (
             <div className="grid gap-8">
-              <Card className="shadow-sm border-border/50">
+              <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg rounded-2xl">
                 <CardHeader>
-                  <CardTitle className="flex items-center justify-between text-base font-semibold text-muted-foreground">
-                    <div className="flex items-center gap-2">
-                      <Star className="h-5 w-5 text-primary/80" />
+                  <CardTitle className="flex items-center justify-between text-lg font-semibold text-foreground">
+                    <div className="flex items-center gap-3">
+                      <Star className="h-5 w-5 text-primary" />
                       <span>Pontuação de Viralização</span>
                     </div>
-                    <Badge variant="outline" className={`text-lg ${scoreColor}`}>
+                    <Badge className={`text-xl font-bold rounded-lg px-4 py-1 border ${scoreColor}`}>
                       {result.score}/100
                     </Badge>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground">
+                  <p className="text-muted-foreground max-w-2xl">
                     Esta pontuação reflete o potencial de engajamento do seu
                     vídeo com base em mais de 50 fatores de sucesso, incluindo
                     tendências e melhores práticas atuais.
@@ -167,7 +170,7 @@ export default function VideoReviewPage() {
                 </CardContent>
               </Card>
 
-              <div className="grid lg:grid-cols-2 gap-6 items-start">
+              <div className="grid lg:grid-cols-2 gap-8 items-start">
                 <InfoList
                   title="Sugestões de Gancho"
                   icon={Lightbulb}
@@ -207,10 +210,10 @@ function InfoCard({
   content: string;
 }) {
   return (
-    <Card className="shadow-sm border-border/50">
+    <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg rounded-2xl">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-base font-semibold text-muted-foreground">
-          <Icon className="h-5 w-5 text-primary/80" />
+        <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
+          <Icon className="h-5 w-5 text-primary" />
           <span>{title}</span>
         </CardTitle>
       </CardHeader>
@@ -218,7 +221,7 @@ function InfoCard({
         <Textarea
           readOnly
           value={content}
-          className="h-32 bg-background/50 text-base leading-relaxed"
+          className="h-40 bg-background/50 text-base leading-relaxed resize-none rounded-xl"
         />
       </CardContent>
     </Card>
@@ -235,10 +238,10 @@ function InfoList({
   items: string[];
 }) {
   return (
-    <Card className="shadow-sm border-border/50">
+     <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg rounded-2xl h-full">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-base font-semibold text-muted-foreground">
-          <Icon className="h-5 w-5 text-primary/80" />
+        <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
+          <Icon className="h-5 w-5 text-primary" />
           <span>{title}</span>
         </CardTitle>
       </CardHeader>
@@ -247,7 +250,7 @@ function InfoList({
           {items.map((item, index) => (
             <div
               key={index}
-              className="text-sm p-3 rounded-md bg-background/50 border border-border/50"
+              className="text-sm p-4 rounded-xl bg-background/50 border border-border/20"
             >
               {item}
             </div>

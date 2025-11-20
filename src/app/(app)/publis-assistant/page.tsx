@@ -59,16 +59,16 @@ export default function PublisAssistantPage() {
   const result = state?.data;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-12">
       <PageHeader
         title="Assistente Publis"
         description="Gere roteiros de vídeo e propostas para suas colaborações com marcas."
       />
 
-      <Card className="shadow-none border-border/60">
+      <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg rounded-2xl">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 font-headline text-lg">
-            <Bot className="h-5 w-5 text-primary" />
+          <CardTitle className="flex items-center gap-3 font-headline text-xl">
+            <Bot className="h-6 w-6 text-primary" />
             <span>Detalhes da Colaboração</span>
           </CardTitle>
         </CardHeader>
@@ -82,9 +82,9 @@ export default function PublisAssistantPage() {
                   }
                 })
               )}
-              className="space-y-6"
+              className="space-y-8"
             >
-              <div className="grid md:grid-cols-2 gap-6">
+              <div className="grid md:grid-cols-2 gap-x-6 gap-y-6">
                 <FormField
                   control={form.control}
                   name="productDescription"
@@ -94,7 +94,7 @@ export default function PublisAssistantPage() {
                       <FormControl>
                         <Textarea
                           placeholder="Ex: 'Um novo tênis de corrida feito com materiais reciclados, super leve e...'"
-                          className="min-h-[120px]"
+                          className="min-h-[140px] rounded-xl"
                           {...field}
                         />
                       </FormControl>
@@ -111,7 +111,7 @@ export default function PublisAssistantPage() {
                       <FormControl>
                         <Textarea
                           placeholder="Ex: 'Marca de moda sustentável, focada no público jovem e consciente...'"
-                          className="min-h-[120px]"
+                          className="min-h-[140px] rounded-xl"
                           {...field}
                         />
                       </FormControl>
@@ -130,6 +130,7 @@ export default function PublisAssistantPage() {
                     <FormControl>
                       <Input
                         placeholder="Ex: 'unboxing ASMR' ou 'trend da dança viral'"
+                        className="h-11"
                         {...field}
                       />
                     </FormControl>
@@ -138,42 +139,47 @@ export default function PublisAssistantPage() {
                 )}
               />
 
-              <Button
-                type="submit"
-                disabled={isPending}
-                className="font-manrope w-full sm:w-auto h-11 px-8 rounded-full text-base"
-              >
-                {isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Gerando...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="mr-2 h-5 w-5" />
-                    Gerar Ativos
-                  </>
-                )}
-              </Button>
+              <div className="pt-2">
+                <Button
+                  type="submit"
+                  disabled={isPending}
+                  size="lg"
+                  className="font-manrope w-full sm:w-auto h-12 px-10 rounded-full text-base font-bold shadow-lg shadow-primary/20 transition-transform hover:scale-[1.02]"
+                >
+                  {isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      Gerando...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="mr-2 h-5 w-5" />
+                      Gerar Ativos
+                    </>
+                  )}
+                </Button>
+              </div>
             </form>
           </Form>
         </CardContent>
       </Card>
 
       {(isPending || result) && (
-        <div className="space-y-6">
-          <h2 className="text-2xl font-bold font-headline tracking-tight">
-            Resultado da IA
-          </h2>
+        <div className="space-y-8 animate-fade-in">
+           <div className="space-y-2">
+            <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Resultado da IA</h2>
+            <p className="text-muted-foreground">Conteúdo gerado para sua próxima colaboração de sucesso.</p>
+           </div>
+           
           {isPending && !result ? (
-            <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border/80 bg-background h-96">
+            <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-96">
               <Loader2 className="h-10 w-10 animate-spin text-primary" />
               <p className="mt-4 text-muted-foreground">
                 A IA está preparando seus ativos...
               </p>
             </div>
           ) : result ? (
-            <div className="grid lg:grid-cols-2 gap-6 items-start">
+            <div className="grid lg:grid-cols-2 gap-8 items-start">
               <InfoCard
                 title="Roteiro de Vídeo Gerado"
                 icon={Clapperboard}
@@ -202,10 +208,10 @@ function InfoCard({
   content: string;
 }) {
   return (
-    <Card className="shadow-sm border-border/50">
+    <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg rounded-2xl h-full">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-base font-semibold text-muted-foreground">
-          <Icon className="h-5 w-5 text-primary/80" />
+        <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
+          <Icon className="h-5 w-5 text-primary" />
           <span>{title}</span>
         </CardTitle>
       </CardHeader>
@@ -213,7 +219,7 @@ function InfoCard({
         <Textarea
           readOnly
           value={content}
-          className="h-80 bg-background/50 text-base leading-relaxed"
+          className="h-96 bg-background/50 text-base leading-relaxed resize-none rounded-xl"
         />
       </CardContent>
     </Card>
