@@ -40,6 +40,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import { SavedIdeasSheet } from '@/components/saved-ideas-sheet';
 
 const formSchema = z.object({
   videoLink: z.string().url('Por favor, insira um URL de vídeo válido.'),
@@ -129,7 +130,9 @@ export default function VideoReviewPage() {
       <PageHeader
         title="Análise de Vídeo com IA"
         description="Receba um diagnóstico completo e sugestões para viralizar seu vídeo."
-      />
+      >
+        <SavedIdeasSheet />
+      </PageHeader>
 
       <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg rounded-2xl">
         <CardHeader>

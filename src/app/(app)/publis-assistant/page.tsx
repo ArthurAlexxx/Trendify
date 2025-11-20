@@ -39,6 +39,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import { SavedIdeasSheet } from '@/components/saved-ideas-sheet';
 
 const formSchema = z.object({
   productDescription: z
@@ -127,7 +128,9 @@ export default function PublisAssistantPage() {
       <PageHeader
         title="Assistente Publis"
         description="Gere roteiros de vídeo e propostas para suas colaborações com marcas."
-      />
+      >
+        <SavedIdeasSheet />
+      </PageHeader>
 
       <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg rounded-2xl">
         <CardHeader>

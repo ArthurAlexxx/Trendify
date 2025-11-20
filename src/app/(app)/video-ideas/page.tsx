@@ -46,6 +46,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import { SavedIdeasSheet } from '@/components/saved-ideas-sheet';
 
 const formSchema = z.object({
   topic: z.string().min(3, 'O tópico deve ter pelo menos 3 caracteres.'),
@@ -136,7 +137,9 @@ export default function VideoIdeasPage() {
       <PageHeader
         title="Gerador de Ideias de Vídeo"
         description="Use a IA para criar conceitos de vídeo virais com roteiros e ganchos otimizados."
-      />
+      >
+        <SavedIdeasSheet />
+      </PageHeader>
 
       <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg rounded-2xl">
         <CardHeader>
@@ -147,7 +150,12 @@ export default function VideoIdeasPage() {
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form action={formAction} className="space-y-8">
+            <form
+              onSubmit={form.handleSubmit(() =>
+                formAction(new FormData(form.control._formRef.current))
+              )}
+              className="space-y-8"
+            >
               <div className="grid md:grid-cols-2 gap-x-6 gap-y-6">
                 <FormField
                   control={form.control}
