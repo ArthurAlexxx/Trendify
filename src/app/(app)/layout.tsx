@@ -6,9 +6,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <FirebaseClientProvider>
       <SidebarProvider>
-        <div className="flex min-h-screen w-full">
+        <div className="flex min-h-screen w-full bg-background">
           <AppSidebar />
-          <SidebarInset className="bg-background w-full">
+          <SidebarInset>
             <div className="p-4 sm:p-6 md:p-8 w-full">{children}</div>
           </SidebarInset>
         </div>
