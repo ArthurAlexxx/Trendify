@@ -560,7 +560,7 @@ export default function LandingPage() {
               </p>
             </div>
 
-            <Card className="max-w-4xl mx-auto p-4 sm:p-6 rounded-2xl shadow-xl shadow-primary/5 bg-card">
+            <Card className="max-w-4xl mx-auto p-4 sm:p-6 rounded-2xl bg-muted/30">
               <CardContent className="p-2 sm:p-4">
                 <AnimatePresence mode="wait">
                   {step === 0 && (
@@ -584,7 +584,7 @@ export default function LandingPage() {
                                     defaultValue={field.value}
                                   >
                                     <FormControl>
-                                      <SelectTrigger className="h-12 text-base">
+                                      <SelectTrigger className="h-12 text-base bg-background">
                                         <SelectValue />
                                       </SelectTrigger>
                                     </FormControl>
@@ -617,7 +617,7 @@ export default function LandingPage() {
                                           parseInt(e.target.value, 10) || 0
                                         )
                                       }
-                                      className="h-12 text-base"
+                                      className="h-12 text-base bg-background"
                                     />
                                   </FormControl>
                                   <FormMessage />
@@ -641,7 +641,7 @@ export default function LandingPage() {
                                           parseInt(e.target.value, 10) || 0
                                         )
                                       }
-                                      className="h-12 text-base"
+                                      className="h-12 text-base bg-background"
                                     />
                                   </FormControl>
                                   <FormMessage />
@@ -676,7 +676,7 @@ export default function LandingPage() {
                           <Button
                             type="submit"
                             size="lg"
-                            className="w-full h-12 text-base font-bold"
+                            className="w-full h-12 text-base font-bold bg-gradient-to-r from-indigo-500 to-purple-600 text-primary-foreground shadow-lg"
                             disabled={isCalculating}
                           >
                             {isCalculating ? (
