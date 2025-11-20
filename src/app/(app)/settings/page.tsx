@@ -392,34 +392,35 @@ export default function SettingsPage() {
                                 </p>
                             )}
                         </div>
-                         {subscription.plan !== 'free' && subscription.status === 'active' ? (
-                            <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                    <Button variant="destructive" disabled={isCancelling}>
-                                        {isCancelling && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                        Cancelar Assinatura
-                                    </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                            Esta ação cancelará sua assinatura. Você continuará com acesso aos recursos até o final do período de faturamento atual. Após isso, sua conta será revertida para o plano gratuito.
-                                        </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                        <AlertDialogCancel>Manter Assinatura</AlertDialogCancel>
-                                        <AlertDialogAction onClick={handleCancelSubscription}>
-                                            Sim, quero cancelar
-                                        </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
-                        ) : (
-                             <Button asChild>
-                                <Link href="/subscribe">Virar PRO</Link>
+                        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                            <Button asChild variant="outline">
+                                <Link href="/subscribe">Ver Planos</Link>
                             </Button>
-                        )}
+                            {subscription.plan !== 'free' && subscription.status === 'active' ? (
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button variant="destructive" disabled={isCancelling}>
+                                            {isCancelling && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                            Cancelar Assinatura
+                                        </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                Esta ação cancelará sua assinatura. Você continuará com acesso aos recursos até o final do período de faturamento atual. Após isso, sua conta será revertida para o plano gratuito.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Manter Assinatura</AlertDialogCancel>
+                                            <AlertDialogAction onClick={handleCancelSubscription}>
+                                                Sim, quero cancelar
+                                            </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            ) : null}
+                        </div>
                     </div>
                 ) : null}
               </CardContent>
@@ -551,3 +552,5 @@ export default function SettingsPage() {
     </div>
   );
 }
+
+    
