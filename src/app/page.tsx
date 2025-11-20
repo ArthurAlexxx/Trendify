@@ -529,22 +529,19 @@ export default function LandingPage() {
                       <div>
                         <p className="text-sm font-bold">Gancho:</p>
                         <p className="text-muted-foreground">
-                          "Você está limpando seu rosto do jeito ERRADO. 😱"
+                          "Isso está arruinando sua pele (e não é o que você pensa)."
                         </p>
                       </div>
                       <div>
                         <p className="text-sm font-bold">Roteiro:</p>
                         <p className="text-muted-foreground">
-                          "[CENA RÁPIDA de alguém esfregando o rosto com força]
-                          Para tudo! A maioria das pessoas agride a pele. O
-                          segredo é..."
+                          "[Close-up no produto X]. Você investe em produtos caros, mas o erro pode estar na ordem de aplicação. A regra de ouro é: do mais leve ao mais denso..."
                         </p>
                       </div>
                       <div>
                         <p className="text-sm font-bold">CTA:</p>
                         <p className="text-muted-foreground">
-                          "Comente 'PELE' e eu te mando o passo a passo
-                          completo."
+                         "Quer minha rotina completa para pele oleosa? Comente 'ROTINA' que eu te envio."
                         </p>
                       </div>
                     </CardContent>
