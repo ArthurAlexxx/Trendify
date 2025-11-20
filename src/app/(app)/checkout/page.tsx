@@ -140,6 +140,14 @@ function CheckoutPageContent() {
 
   const copyToClipboard = useCallback(
     (text: string) => {
+      if (!navigator.clipboard) {
+        toast({
+          title: 'Cópia não suportada',
+          description: 'Seu navegador não suporta a cópia automática. Por favor, copie manualmente.',
+          variant: 'destructive',
+        });
+        return;
+      }
       navigator.clipboard
         .writeText(text)
         .then(() => {
@@ -152,7 +160,7 @@ function CheckoutPageContent() {
           console.error('Failed to copy: ', err);
           toast({
             title: 'Erro ao Copiar',
-            description: 'Não foi possível copiar o código.',
+            description: 'Não foi possível copiar o código. Verifique as permissões do seu navegador.',
             variant: 'destructive',
           });
         });
@@ -413,4 +421,5 @@ export default function CheckoutPage() {
     )
 }
 
+    
     
