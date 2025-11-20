@@ -35,7 +35,6 @@ O aplicativo usa o Firebase para autenticação e banco de dados. Você precisa 
 - `NEXT_PUBLIC_FIREBASE_PROJECT_ID`
 - `NEXT_PUBLIC_FIREBASE_APP_ID`
 - `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`
-- `NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID`
 
 Esses valores podem ser encontrados nas configurações do seu projeto no Console do Firebase.
 
