@@ -76,7 +76,7 @@ export function PreviousPlansSheet() {
 
             {!isLoading && previousPlans && previousPlans.length > 0 && (
               <ul className="space-y-4">
-                {previousPlans.map((plan) => (
+                {previousPlans.filter(p => p.createdAt).map((plan) => (
                   <li key={plan.id}>
                     <div className="border p-4 rounded-xl hover:border-primary/50 transition-colors">
                       <p className="font-semibold text-foreground break-words mb-2">
