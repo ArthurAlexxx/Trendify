@@ -151,14 +151,7 @@ export default function PublisAssistantPage() {
         <CardContent>
           <Form {...form}>
             <form
-              onSubmit={form.handleSubmit(() => {
-                const formData = new FormData();
-                const values = form.getValues();
-                formData.append('product', values.product);
-                formData.append('tone', values.tone);
-                formData.append('objective', values.objective);
-                formAction(formData);
-              })}
+              onSubmit={form.handleSubmit(formAction)}
               className="space-y-8"
             >
               <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-6">
@@ -362,3 +355,4 @@ function InfoListCard({
   );
 }
 
+    

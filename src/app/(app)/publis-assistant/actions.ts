@@ -129,3 +129,5 @@ export async function generatePubliProposalsAction(
     return { error: `Failed to generate proposals: ${errorMessage}` };
   }
 }
+
+    
