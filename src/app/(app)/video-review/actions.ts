@@ -26,11 +26,32 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// Helper function to extract JSON from a string
+function extractJson(text: string) {
+  const match = text.match(/```json\n([\s\S]*?)\n```/);
+  if (match && match[1]) {
+    return match[1];
+  }
+  // Fallback for cases where the AI might not use markdown
+  try {
+    JSON.parse(text);
+    return text;
+  } catch (e) {
+    // Look for the first '{' and the last '}'
+    const startIndex = text.indexOf('{');
+    const endIndex = text.lastIndexOf('}');
+    if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
+      return text.substring(startIndex, endIndex + 1);
+    }
+  }
+  return null;
+}
+
 async function getVideoReview(input: z.infer<typeof formSchema>): Promise<VideoReviewOutput> {
   const systemPrompt = `Você é um "IA Video Coach", um especialista em análise de vídeos de redes sociais com o objetivo de ajudar criadores a viralizar.
   Sua análise deve ser construtiva, detalhada e acionável.
   Embora você não possa acessar o link diretamente, sua tarefa é gerar uma revisão completa e realista como se tivesse assistido ao vídeo. Baseie sua análise nas melhores práticas comuns para vídeos virais no TikTok e Instagram.
-  Você DEVE responder em um objeto JSON válido que se conforme estritamente ao schema fornecido. Não inclua nenhum texto ou formatação fora do objeto JSON.`;
+  Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON deve se conformar estritamente ao schema fornecido. Não inclua nenhum texto ou formatação fora do objeto JSON.`;
   
   const userPrompt = `
   Analise o vídeo do seguinte link como se você o tivesse assistido: ${input.videoLink}
@@ -55,7 +76,6 @@ async function getVideoReview(input: z.infer<typeof formSchema>): Promise<VideoR
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
       ],
-      response_format: { type: 'json_object' },
       temperature: 0.8,
     });
 
@@ -64,12 +84,18 @@ async function getVideoReview(input: z.infer<typeof formSchema>): Promise<VideoR
       throw new Error('No content returned from OpenAI.');
     }
 
-    const parsedJson = JSON.parse(content);
+    const jsonString = extractJson(content);
+    if (!jsonString) {
+      throw new Error('No valid JSON block found in the AI response.');
+    }
+
+    const parsedJson = JSON.parse(jsonString);
     return VideoReviewOutputSchema.parse(parsedJson);
   } catch (error) {
-    console.error('Error calling OpenAI:', error);
-    // Add a user-friendly message about the limitation.
-    throw new Error('Failed to generate AI review. Note: The AI generates a simulated review based on best practices, as it cannot access external video links directly.');
+    console.error('Error calling OpenAI or parsing response:', error);
+    const baseMessage = 'Failed to generate AI review. Note: The AI generates a simulated review based on best practices, as it cannot access external video links directly.';
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error.';
+    throw new Error(`${baseMessage} Details: ${errorMessage}`);
   }
 }
 

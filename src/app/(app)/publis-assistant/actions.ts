@@ -24,10 +24,31 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// Helper function to extract JSON from a string
+function extractJson(text: string) {
+  const match = text.match(/```json\n([\s\S]*?)\n```/);
+  if (match && match[1]) {
+    return match[1];
+  }
+  // Fallback for cases where the AI might not use markdown
+  try {
+    JSON.parse(text);
+    return text;
+  } catch (e) {
+    // Look for the first '{' and the last '}'
+    const startIndex = text.indexOf('{');
+    const endIndex = text.lastIndexOf('}');
+    if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
+      return text.substring(startIndex, endIndex + 1);
+    }
+  }
+  return null;
+}
+
 async function getAiSuggestedVideoScripts(input: z.infer<typeof formSchema>): Promise<AiSuggestedVideoScriptsOutput> {
   const systemPrompt = `Você é um assistente de IA especialista em criar parcerias de sucesso entre criadores de conteúdo e marcas.
   Seu objetivo é gerar roteiros de vídeo autênticos e propostas comerciais persuasivas.
-  Você DEVE responder em um objeto JSON válido que se conforme estritamente ao schema fornecido. Não inclua nenhum texto ou formatação fora do objeto JSON.`;
+  Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON deve se conformar estritamente ao schema fornecido. Não inclua nenhum texto ou formatação fora do objeto JSON.`;
   
   const userPrompt = `
   Com base nas informações a seguir, gere um roteiro de vídeo e uma minuta de proposta comercial.
@@ -60,7 +81,6 @@ async function getAiSuggestedVideoScripts(input: z.infer<typeof formSchema>): Pr
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
       ],
-      response_format: { type: 'json_object' },
       temperature: 0.7,
     });
 
@@ -69,11 +89,17 @@ async function getAiSuggestedVideoScripts(input: z.infer<typeof formSchema>): Pr
       throw new Error('No content returned from OpenAI.');
     }
 
-    const parsedJson = JSON.parse(content);
+    const jsonString = extractJson(content);
+    if (!jsonString) {
+      throw new Error('No valid JSON block found in the AI response.');
+    }
+
+    const parsedJson = JSON.parse(jsonString);
     return AiSuggestedVideoScriptsOutputSchema.parse(parsedJson);
   } catch (error) {
-    console.error('Error calling OpenAI:', error);
-    throw new Error('Failed to generate AI assets.');
+    console.error('Error calling OpenAI or parsing response:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error.';
+    throw new Error(`Failed to generate AI assets: ${errorMessage}`);
   }
 }
 
