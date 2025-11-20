@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -10,6 +11,7 @@ import {
   Settings,
   LogOut,
   Calendar,
+  ArrowRight,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -59,9 +61,9 @@ export function AppSidebar() {
           href="/"
           className="flex items-center gap-2.5 font-headline font-bold text-xl"
         >
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-black">
-            T
-          </span>
+          <div className="bg-primary text-primary-foreground h-8 w-8 flex items-center justify-center rounded-lg">
+            <ArrowRight className="h-4 w-4" />
+          </div>
           <span className="hidden group-data-[state=expanded]:inline">
             trendify
           </span>
