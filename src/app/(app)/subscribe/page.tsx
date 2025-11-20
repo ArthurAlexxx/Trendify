@@ -4,20 +4,20 @@
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, Loader2, QrCode, Sparkles, Copy } from 'lucide-react';
-import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { doc } from 'firebase/firestore';
-import type { UserProfile } from '@/lib/types';
+import { Check, Loader2, Sparkles, Copy, RefreshCw } from 'lucide-react';
+import { useUser } from '@/firebase';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useActionState, useEffect, useRef } from 'react';
+import { useActionState, useEffect, useTransition } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { createPixChargeAction } from './actions';
 import { Skeleton } from '@/components/ui/skeleton';
 import Image from 'next/image';
+import { useSubscription } from '@/hooks/useSubscription';
+import { useRouter } from 'next/navigation';
 
 const formSchema = z.object({
   name: z.string().min(3, 'O nome completo é obrigatório.'),
@@ -28,15 +28,12 @@ const formSchema = z.object({
 });
 
 export default function SubscribePage() {
-  const { user } = useUser();
-  const firestore = useFirestore();
+  const { user, isUserLoading } = useUser();
   const { toast } = useToast();
-  
-  const userProfileRef = useMemoFirebase(
-    () => (firestore && user ? doc(firestore, `users/${user.uid}`) : null),
-    [firestore, user]
-  );
-  const { data: userProfile, isLoading: isLoadingProfile } = useDoc<UserProfile>(userProfileRef);
+  const router = useRouter();
+  const [isCheckingStatus, startCheckingTransition] = useTransition();
+
+  const { subscription, isLoading: isLoadingSubscription } = useSubscription();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -52,16 +49,16 @@ export default function SubscribePage() {
   const [state, formAction, isGenerating] = useActionState(createPixChargeAction, null);
 
   useEffect(() => {
-    if (userProfile && user) {
+    if (user && !isUserLoading) {
       form.reset({
-        name: userProfile.displayName || '',
-        email: userProfile.email || '',
+        name: user.displayName || '',
+        email: user.email || '',
         taxId: '',
         cellphone: '',
         userId: user.uid,
       });
     }
-  }, [userProfile, user, form]);
+  }, [user, isUserLoading, form]);
 
   useEffect(() => {
     if (state?.error) {
@@ -73,12 +70,45 @@ export default function SubscribePage() {
     }
   }, [state, toast]);
 
+   useEffect(() => {
+    if (subscription?.status === 'active') {
+       toast({
+        title: 'Plano Ativado!',
+        description: 'Sua assinatura PRO está ativa. Bem-vindo(a)!',
+      });
+      router.push('/dashboard');
+    }
+  }, [subscription, router, toast]);
+
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast({ title: 'Copiado!', description: 'Código PIX copiado para a área de transferência.' });
   };
   
+  const handleCheckStatus = () => {
+    startCheckingTransition(() => {
+      // The useEffect above will handle redirection if the plan is active
+      if (subscription?.status === 'active') {
+        // Already handled by useEffect, but for immediate feedback
+        toast({ title: 'Plano Ativo!', description: 'Redirecionando para o dashboard...'});
+      } else {
+        toast({ title: 'Aguardando Pagamento', description: 'Seu plano será ativado assim que o pagamento for confirmado.'});
+      }
+    })
+  }
+
   const result = state?.data;
+  
+  if (subscription?.status === 'active') {
+     return (
+       <div className="flex flex-col items-center justify-center text-center h-96">
+        <Check className="h-16 w-16 text-green-500 mb-4" />
+        <h2 className="text-2xl font-bold">Você já é PRO!</h2>
+        <p className="text-muted-foreground">Redirecionando para seu painel...</p>
+      </div>
+     )
+  }
+
 
   return (
     <div className="space-y-12">
@@ -130,9 +160,9 @@ export default function SubscribePage() {
                 <CardDescription>Preencha seus dados para gerar o QR Code para pagamento.</CardDescription>
             </CardHeader>
             <CardContent>
-              {isLoadingProfile && <Skeleton className='h-96 w-full'/>}
+              {(isUserLoading || isLoadingSubscription) && <Skeleton className='h-96 w-full'/>}
               
-              {!result && !isGenerating && !isLoadingProfile && (
+              {!result && !isGenerating && !isUserLoading && !isLoadingSubscription && (
                 <Form {...form}>
                     <form action={formAction} className='space-y-6'>
                         <input type="hidden" {...form.register('userId')} />
@@ -220,6 +250,10 @@ export default function SubscribePage() {
                                 <Copy className='h-4 w-4' />
                             </Button>
                         </div>
+                         <Button onClick={handleCheckStatus} className="w-full" variant="secondary" disabled={isCheckingStatus}>
+                            {isCheckingStatus ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+                            Já paguei, verificar status
+                        </Button>
                     </div>
 
                     <p className='text-xs text-muted-foreground mt-8'>Após o pagamento, sua assinatura será ativada automaticamente. Você pode fechar esta tela.</p>

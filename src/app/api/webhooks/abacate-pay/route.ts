@@ -74,21 +74,22 @@ export async function POST(req: NextRequest) {
   let event;
   try {
     event = JSON.parse(body);
-    console.log(`[webhook-post] Evento JSON parseado. Evento: '${event.event}', Objeto: '${event.object}'.`);
+    console.log(`[webhook-post] Evento JSON parseado. Evento: '${event.event}'.`);
+    console.log('[webhook-post] Payload completo:', body);
   } catch (error) {
      console.error('[webhook-post] ERRO: Corpo da requisição não é um JSON válido.');
      return NextResponse.json({ error: 'Invalid JSON body.' }, { status: 400 });
   }
 
-  // Process only successful PIX QR code payments
-  if (event.object === 'pix_qr_code' && event.event === 'pix_qr_code.paid') {
-    console.log('[webhook-post] Processando evento "pix_qr_code.paid".');
+  // Process only successful payment events
+  if (event.event === 'billing.paid') {
+    console.log('[webhook-post] Processando evento "billing.paid".');
     const paymentData = event.data;
-    const userId = paymentData.metadata?.externalId;
-    const paymentId = paymentData.id;
+    const userId = paymentData?.pixQrCode?.metadata?.externalId;
+    const paymentId = paymentData?.pixQrCode?.id;
 
     if (!userId) {
-      console.warn(`[webhook-post] AVISO: Webhook para paymentId ${paymentId} recebido sem userId nos metadados. Ignorando.`);
+      console.warn(`[webhook-post] AVISO: Webhook 'billing.paid' recebido para paymentId ${paymentId || 'desconhecido'} sem userId nos metadados. Ignorando.`);
       // Return 200 to acknowledge receipt and prevent retries
       return NextResponse.json({ success: true, message: 'Event received, but no userId found.' });
     }
@@ -118,7 +119,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to process subscription update.' }, { status: 500 });
     }
   } else {
-    console.log(`[webhook-post] Evento do tipo '${event.event}' para o objeto '${event.object}' recebido. Nenhuma ação necessária.`);
+    console.log(`[webhook-post] Evento do tipo '${event.event}' recebido. Nenhuma ação configurada para este evento.`);
   }
 
   // Acknowledge receipt of the webhook
