@@ -11,7 +11,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useActionState, useEffect, useTransition } from 'react';
+import { useActionState, useEffect, useTransition, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { createPixChargeAction } from './actions';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -32,6 +32,7 @@ export default function SubscribePage() {
   const { toast } = useToast();
   const router = useRouter();
   const [isCheckingStatus, startCheckingTransition] = useTransition();
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const { subscription, isLoading: isLoadingSubscription } = useSubscription();
 
@@ -71,12 +72,18 @@ export default function SubscribePage() {
   }, [state, toast]);
 
    useEffect(() => {
+    // This effect runs only on the client-side
     if (subscription?.status === 'active') {
+       setShowSuccess(true); // Show success view
        toast({
         title: 'Plano Ativado!',
         description: 'Sua assinatura PRO está ativa. Bem-vindo(a)!',
       });
-      router.push('/dashboard');
+      // Redirect after a short delay to allow user to see the message
+      const timer = setTimeout(() => {
+        router.push('/dashboard');
+      }, 2000);
+      return () => clearTimeout(timer);
     }
   }, [subscription, router, toast]);
 
@@ -99,11 +106,11 @@ export default function SubscribePage() {
 
   const result = state?.data;
   
-  if (subscription?.status === 'active') {
+  if (showSuccess) {
      return (
        <div className="flex flex-col items-center justify-center text-center h-96">
-        <Check className="h-16 w-16 text-green-500 mb-4" />
-        <h2 className="text-2xl font-bold">Você já é PRO!</h2>
+        <Check className="h-16 w-16 text-green-500 mb-4 animate-pulse" />
+        <h2 className="text-2xl font-bold">Você agora é PRO!</h2>
         <p className="text-muted-foreground">Redirecionando para seu painel...</p>
       </div>
      )
