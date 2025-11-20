@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { getAuth } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -26,7 +26,7 @@ import {
   SidebarMenuItem,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
-import { useUser } from '@/firebase';
+import { useUser, useAuth } from '@/firebase';
 
 const navItems = [
   { href: '/dashboard', icon: LineChart, label: 'Painel' },
@@ -40,10 +40,12 @@ const navItems = [
 export function AppSidebar() {
   const pathname = usePathname();
   const { user } = useUser();
-  const auth = getAuth();
+  const auth = useAuth();
+  const router = useRouter();
 
   const handleSignOut = () => {
     auth.signOut();
+    router.push('/login');
   };
 
   return (
@@ -86,8 +88,8 @@ export function AppSidebar() {
       <SidebarFooter className="p-2 flex flex-col gap-2">
         <SidebarMenu>
           <SidebarMenuItem>
-            <Link href="#">
-              <SidebarMenuButton tooltip="Configurações" className="h-10 justify-start">
+            <Link href="/settings">
+              <SidebarMenuButton tooltip="Configurações" className="h-10 justify-start" isActive={pathname === '/settings'}>
                 <Settings className="h-5 w-5" />
                 <span className="text-sm font-medium">Configurações</span>
               </SidebarMenuButton>
@@ -95,7 +97,7 @@ export function AppSidebar() {
           </SidebarMenuItem>
         </SidebarMenu>
          <div className="flex items-center justify-between p-2 mt-auto gap-2">
-            <Link href="#" className='flex-1 min-w-0'>
+            <Link href="/settings" className='flex-1 min-w-0'>
               <div className="flex items-center gap-3">
                 <Avatar className="h-8 w-8">
                   <AvatarImage
@@ -114,13 +116,7 @@ export function AppSidebar() {
                 </div>
               </div>
             </Link>
-             <SidebarMenu className='hidden group-data-[state=expanded]:flex'>
-              <SidebarMenuItem>
-                <SidebarMenuButton onClick={handleSignOut} tooltip="Sair" variant="ghost" size="icon" className="h-8 w-8">
-                  <LogOut className="h-5 w-5" />
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-             </SidebarMenu>
+            
              <SidebarTrigger
               variant="ghost"
               size="icon"
@@ -129,14 +125,6 @@ export function AppSidebar() {
               <PanelLeft />
             </SidebarTrigger>
           </div>
-          <SidebarMenu className='group-data-[state=expanded]:hidden'>
-             <SidebarMenuItem>
-                <SidebarMenuButton onClick={handleSignOut} tooltip="Sair" className="h-10 justify-start">
-                  <LogOut className="h-5 w-5" />
-                   <span className="text-sm font-medium">Sair</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-          </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
   );
