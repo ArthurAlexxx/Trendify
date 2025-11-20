@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/select';
 import { useState, useEffect } from 'react';
 import { useCollection } from '@/firebase/firestore/use-collection';
-import { useMemoFirebase, useFirestore } from '@/firebase/provider';
+import { useMemoFirebase, useFirestore } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import type { Tendencia } from '@/lib/types';
 
@@ -34,7 +34,7 @@ export default function TrendRadarPage() {
   const { data: tendencias } = useCollection<Tendencia>(tendenciasQuery);
 
   const [filteredTrends, setFilteredTrends] = useState<Tendencia[] | null>(
-    tendencias
+    null
   );
   const [niche, setNiche] = useState('Todos');
   const [country, setCountry] = useState('Todos');
@@ -54,8 +54,9 @@ export default function TrendRadarPage() {
     ...Array.from(new Set(tendencias?.map((t) => t.pais) ?? [])),
   ];
 
-  const handleFilter = () => {
-    let newTrends = tendencias ?? [];
+  useEffect(() => {
+    if (!tendencias) return;
+    let newTrends = tendencias;
     if (niche !== 'Todos') {
       newTrends = newTrends.filter((t) => t.nicho === niche);
     }
@@ -63,7 +64,7 @@ export default function TrendRadarPage() {
       newTrends = newTrends.filter((t) => t.pais === country);
     }
     setFilteredTrends(newTrends);
-  };
+  }, [niche, country, tendencias]);
 
   return (
     <div className="space-y-8">
@@ -76,9 +77,9 @@ export default function TrendRadarPage() {
         <CardHeader>
           <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
             <CardTitle>Filtros</CardTitle>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Select value={niche} onValueChange={setNiche}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-full sm:w-[180px]">
                   <SelectValue placeholder="Filtrar por nicho" />
                 </SelectTrigger>
                 <SelectContent>
@@ -90,7 +91,7 @@ export default function TrendRadarPage() {
                 </SelectContent>
               </Select>
               <Select value={country} onValueChange={setCountry}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-full sm:w-[180px]">
                   <SelectValue placeholder="Filtrar por país" />
                 </SelectTrigger>
                 <SelectContent>
@@ -101,9 +102,6 @@ export default function TrendRadarPage() {
                   ))}
                 </SelectContent>
               </Select>
-              <Button onClick={handleFilter} className="font-manrope">
-                Aplicar
-              </Button>
             </div>
           </div>
         </CardHeader>

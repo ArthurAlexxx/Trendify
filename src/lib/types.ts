@@ -1,17 +1,20 @@
 export interface Metrica {
+  id: string;
   nome: string;
   valor: string;
   alteracao: string;
   tipoAlteracao: 'aumento' | 'diminuicao';
 }
 
-export interface PontoDadosMetrica {
+export interface PontoDadosGrafico {
+  id: string;
   data: string;
   alcance: number;
   engajamento: number;
 }
 
 export interface ItemRoteiro {
+  id: string;
   dia: string;
   tarefa: string;
   detalhes: string;

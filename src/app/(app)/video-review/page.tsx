@@ -34,7 +34,7 @@ const formSchema = z.object({
 
 export default function VideoReviewPage() {
   const { toast } = useToast();
-  const [state, formAction] = useActionState(getVideoReviewAction, null);
+  const [state, formAction, isPending] = useActionState(getVideoReviewAction, null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -54,7 +54,6 @@ export default function VideoReviewPage() {
   }, [state, toast]);
 
   const result = state?.data;
-  const isPending = form.formState.isSubmitting;
 
   return (
     <div className="grid gap-8">
@@ -72,7 +71,14 @@ export default function VideoReviewPage() {
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form action={formAction} className="space-y-4">
+            <form
+              onSubmit={form.handleSubmit(() => form.trigger().then(isValid => {
+                if(isValid) {
+                  formAction(new FormData(form.control._fields._form.current))
+                }
+              }))}
+              className="space-y-4"
+            >
               <FormField
                 control={form.control}
                 name="videoLink"

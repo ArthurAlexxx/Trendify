@@ -19,7 +19,7 @@ import { ChartConfig } from '@/components/ui/chart';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { useCollection } from '@/firebase/firestore/use-collection';
-import { useMemoFirebase, useFirestore } from '@/firebase/provider';
+import { useMemoFirebase, useFirestore } from '@/firebase';
 import { collection } from 'firebase/firestore';
 
 const chartConfig = {
@@ -163,7 +163,7 @@ export default function DashboardPage() {
                         </p>
                       </div>
                     </div>
-                    {index < roteiro.length - 1 && (
+                    {roteiro && index < roteiro.length - 1 && (
                       <Separator className="mt-4" />
                     )}
                   </li>
