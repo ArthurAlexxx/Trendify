@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Bot, Clapperboard, FileText, Loader2 } from 'lucide-react';
+import { Bot, Clapperboard, FileText, Loader2, Sparkles } from 'lucide-react';
 import { useEffect, useActionState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -59,86 +59,100 @@ export default function PublisAssistantPage() {
   const result = state?.data;
 
   return (
-    <div className="grid gap-8">
+    <div className="space-y-8">
       <PageHeader
         title="Assistente Publis"
-        description="Gere roteiros de vídeo e rascunhos de propostas personalizados para colaborações com marcas."
+        description="Gere roteiros de vídeo e propostas para suas colaborações com marcas."
       />
 
-      <Card>
+      <Card className="shadow-none border-border/60">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Bot className="h-5 w-5" />
-            <span>Forneça detalhes da marca e do produto</span>
+          <CardTitle className="flex items-center gap-2 font-headline text-lg">
+            <Bot className="h-5 w-5 text-primary" />
+            <span>Detalhes da Colaboração</span>
           </CardTitle>
         </CardHeader>
         <CardContent>
           <Form {...form}>
             <form
-              onSubmit={form.handleSubmit(() => form.trigger().then(isValid => {
-                if(isValid) {
-                  formAction(new FormData(form.control._fields._form.current))
-                }
-              }))}
+              onSubmit={form.handleSubmit(() =>
+                form.trigger().then((isValid) => {
+                  if (isValid) {
+                    formAction(new FormData(form.control._fields._form.current));
+                  }
+                })
+              )}
               className="space-y-6"
             >
-              <FormField
-                control={form.control}
-                name="productDescription"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Descrição do Produto</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Descreva o produto da marca em detalhes..."
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="brandDetails"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Detalhes da Marca</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Informações sobre a marca, seus valores e público-alvo..."
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid md:grid-cols-2 gap-6">
+                <FormField
+                  control={form.control}
+                  name="productDescription"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Descrição do Produto</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Ex: 'Um novo tênis de corrida feito com materiais reciclados, super leve e...'"
+                          className="min-h-[120px]"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="brandDetails"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Detalhes da Marca</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Ex: 'Marca de moda sustentável, focada no público jovem e consciente...'"
+                          className="min-h-[120px]"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
               <FormField
                 control={form.control}
                 name="trendingTopic"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Tópico em Alta (Opcional)</FormLabel>
+                    <FormLabel>Integrar com Trend (Opcional)</FormLabel>
                     <FormControl>
-                      <Input placeholder="ex: 'unboxing ASMR'" {...field} />
+                      <Input
+                        placeholder="Ex: 'unboxing ASMR' ou 'trend da dança viral'"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
               <Button
                 type="submit"
                 disabled={isPending}
-                className="font-manrope"
+                className="font-manrope w-full sm:w-auto h-11 px-8 rounded-full text-base"
               >
                 {isPending ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                     Gerando...
                   </>
                 ) : (
-                  'Gerar Ativos da Proposta'
+                  <>
+                    <Sparkles className="mr-2 h-5 w-5" />
+                    Gerar Ativos
+                  </>
                 )}
               </Button>
             </form>
@@ -147,31 +161,32 @@ export default function PublisAssistantPage() {
       </Card>
 
       {(isPending || result) && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Ativos Gerados</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isPending && !result ? (
-              <div className="flex items-center justify-center p-8">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
-            ) : result ? (
-              <div className="grid md:grid-cols-2 gap-6">
-                <InfoCard
-                  title="Roteiro de Vídeo Gerado"
-                  icon={Clapperboard}
-                  content={result.videoScript}
-                />
-                <InfoCard
-                  title="Rascunho da Proposta Gerado"
-                  icon={FileText}
-                  content={result.proposalDraft}
-                />
-              </div>
-            ) : null}
-          </CardContent>
-        </Card>
+        <div className="space-y-6">
+          <h2 className="text-2xl font-bold font-headline tracking-tight">
+            Resultado da IA
+          </h2>
+          {isPending && !result ? (
+            <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border/80 bg-background h-96">
+              <Loader2 className="h-10 w-10 animate-spin text-primary" />
+              <p className="mt-4 text-muted-foreground">
+                A IA está preparando seus ativos...
+              </p>
+            </div>
+          ) : result ? (
+            <div className="grid lg:grid-cols-2 gap-6 items-start">
+              <InfoCard
+                title="Roteiro de Vídeo Gerado"
+                icon={Clapperboard}
+                content={result.videoScript}
+              />
+              <InfoCard
+                title="Rascunho da Proposta"
+                icon={FileText}
+                content={result.proposalDraft}
+              />
+            </div>
+          ) : null}
+        </div>
       )}
     </div>
   );
@@ -187,12 +202,20 @@ function InfoCard({
   content: string;
 }) {
   return (
-    <div className="space-y-2">
-      <h3 className="text-sm font-semibold flex items-center gap-2 text-muted-foreground">
-        <Icon className="h-4 w-4" />
-        {title}
-      </h3>
-      <Textarea readOnly value={content} className="h-64 bg-background" />
-    </div>
+    <Card className="shadow-sm border-border/50">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base font-semibold text-muted-foreground">
+          <Icon className="h-5 w-5 text-primary/80" />
+          <span>{title}</span>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Textarea
+          readOnly
+          value={content}
+          className="h-80 bg-background/50 text-base leading-relaxed"
+        />
+      </CardContent>
+    </Card>
   );
 }
