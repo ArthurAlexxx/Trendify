@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -676,21 +677,145 @@ export default function LandingPage() {
               Projete seu crescimento. Veja seu potencial.
             </h2>
             <p className="text-lg text-muted-foreground mt-2 max-w-3xl mx-auto">
-              Responda 6 perguntas. Em 60 segundos mostramos seu plano, tempo
+              Responda 3 perguntas. Em 60 segundos mostramos seu plano, tempo
               até a meta e potencial de ganhos no seu nicho.
             </p>
           </div>
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div className="max-w-lg mx-auto w-full">
-              <Card className="bg-card/30 backdrop-blur-lg border border-border/10 rounded-2xl shadow-2xl shadow-primary/5">
-                <CardContent className="p-8">
+          <div className="max-w-4xl mx-auto">
+              <Card className="bg-card/30 backdrop-blur-lg border border-border/10 rounded-2xl shadow-2xl shadow-primary/5 min-h-[500px] flex flex-col">
+                <CardContent className="p-8 flex-1 flex flex-col">
                   <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 flex flex-col">
                       <AnimatePresence mode="wait">
-                        {renderStep()}
+                         {step < 4 && (
+                           <motion.div
+                            key={`step-${step}`}
+                            initial={{ opacity: 0, x: -30 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: 30 }}
+                            transition={{ duration: 0.3 }}
+                            className="flex-1"
+                          >
+                           {renderStep()}
+                           </motion.div>
+                         )}
+                         {step === 4 && results && (
+                            <motion.div
+                                key="results"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.5 }}
+                                className="w-full space-y-6"
+                              >
+                                <div className="grid sm:grid-cols-2 gap-4">
+                                  <ResultCard
+                                    icon={<Target className="h-4 w-4 text-muted-foreground" />}
+                                    title="Tempo até a Meta"
+                                    value={`${results.monthsToTarget} meses`}
+                                    description={`Data prevista: ${results.targetDate}`}
+                                    delay={0.1}
+                                  />
+                                  <ResultCard
+                                    icon={
+                                      <DollarSign className="h-4 w-4 text-muted-foreground" />
+                                    }
+                                    title="Ganhos/mês (Meta)"
+                                    value={`R$${(results.targetEarnings[0] / 1000).toFixed(
+                                      1
+                                    )}k - R$${(results.targetEarnings[1] / 1000).toFixed(
+                                      1
+                                    )}k`}
+                                    description={`Agora: R$${results.currentEarnings[0]} - R$${results.currentEarnings[1]}`}
+                                    delay={0.2}
+                                  />
+                                </div>
+                                
+                                <ResultCard
+                                    icon={
+                                      <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                                    }
+                                    title="Curva de Crescimento"
+                                    delay={0.3}
+                                  >
+                                      <div className="h-40 -ml-4 mt-4">
+                                          <ResponsiveContainer width="100%" height="100%">
+                                            <LineChart
+                                              data={results.growthData}
+                                              margin={{
+                                                top: 5,
+                                                right: 20,
+                                                left: 10,
+                                                bottom: 5,
+                                              }}
+                                            >
+                                              <XAxis
+                                                dataKey="month"
+                                                stroke="hsl(var(--muted-foreground))"
+                                                fontSize={12}
+                                                tickLine={false}
+                                                axisLine={false}
+                                                tickFormatter={(value) => `M${value}`}
+                                              />
+                                              <YAxis
+                                                stroke="hsl(var(--muted-foreground))"
+                                                fontSize={12}
+                                                tickLine={false}
+                                                axisLine={false}
+                                                tickFormatter={(value) =>
+                                                  `${(value / 1000).toLocaleString()}k`
+                                                }
+                                              />
+                                              <RechartsTooltip
+                                                contentStyle={{
+                                                  background: 'hsl(var(--background))',
+                                                  border: '1px solid hsl(var(--border))',
+                                                  borderRadius: 'var(--radius)',
+                                                }}
+                                                labelFormatter={(value) => `Mês ${value}`}
+                                                formatter={(value: number) => [
+                                                  `${Number(value).toLocaleString()} seguidores`,
+                                                  'Projeção',
+                                                ]}
+                                              />
+                                              <Line
+                                                type="monotone"
+                                                dataKey="followers"
+                                                stroke="hsl(var(--primary))"
+                                                strokeWidth={2}
+                                                dot={false}
+                                              />
+                                            </LineChart>
+                                          </ResponsiveContainer>
+                                      </div>
+                                  </ResultCard>
+
+                                <motion.div
+                                  initial={{ opacity: 0, y: 20 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  transition={{ duration: 0.5, delay: 0.5 }}
+                                  className="text-center pt-4"
+                                >
+                                  <Link
+                                    href="/sign-up"
+                                    className={buttonVariants({
+                                      size: 'lg',
+                                      className:
+                                        'font-manrope rounded-full text-base h-12 px-8 shadow-lg shadow-primary/20 transition-transform hover:scale-105',
+                                    })}
+                                  >
+                                    Criar conta e seguir o plano{' '}
+                                    <ArrowRight className="ml-2 h-4 w-4" />
+                                  </Link>
+                                  <p className="text-xs text-muted-foreground mt-3">
+                                    Estimativas com base em benchmarks do nicho. Resultados
+                                    variam.
+                                  </p>
+                                </motion.div>
+                              </motion.div>
+                         )}
                       </AnimatePresence>
                       <div className="flex justify-between items-center mt-8">
-                        {step > 1 && step < 4 && (
+                        {step > 1 && step < 4 ? (
                           <Button
                             type="button"
                             variant="ghost"
@@ -698,8 +823,7 @@ export default function LandingPage() {
                           >
                             Voltar
                           </Button>
-                        )}
-                        <div className="flex-1" />
+                        ) : <div />}
                         {step < 3 && (
                           <Button
                             type="button"
@@ -724,185 +848,23 @@ export default function LandingPage() {
                             )}
                           </Button>
                         )}
+                         {step === 4 && (
+                           <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                              setStep(1);
+                              setResults(null);
+                            }}
+                          >
+                            Recalcular
+                          </Button>
+                         )}
                       </div>
                     </form>
                   </Form>
                 </CardContent>
               </Card>
-            </div>
-
-            <div className="relative min-h-[600px] rounded-3xl p-8 flex flex-col justify-center items-center text-center bg-muted/20 border border-dashed border-border/30">
-              <AnimatePresence>
-                {!results && (
-                  <motion.div
-                    initial={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="text-center"
-                  >
-                    <TrendingUp className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                    <h3 className="text-xl font-bold font-headline text-foreground">
-                      Sua projeção aparecerá aqui
-                    </h3>
-                    <p className="text-muted-foreground">
-                      Preencha os dados ao lado para começar.
-                    </p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-              {results && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.5 }}
-                  className="w-full space-y-6"
-                >
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <ResultCard
-                      icon={<Target className="h-4 w-4 text-muted-foreground" />}
-                      title="Tempo até a Meta"
-                      value={`${results.monthsToTarget} meses`}
-                      description={`Data prevista: ${results.targetDate}`}
-                      delay={0.1}
-                    />
-                    <ResultCard
-                      icon={
-                        <DollarSign className="h-4 w-4 text-muted-foreground" />
-                      }
-                      title="Ganhos/mês (Meta)"
-                      value={`R$${(results.targetEarnings[0] / 1000).toFixed(
-                        1
-                      )}k - R$${(results.targetEarnings[1] / 1000).toFixed(
-                        1
-                      )}k`}
-                      description={`Agora: R$${results.currentEarnings[0]} - R$${results.currentEarnings[1]}`}
-                      delay={0.2}
-                    />
-                  </div>
-
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.3 }}
-                  >
-                    <Card className="bg-card/50 backdrop-blur-sm border-border/20 shadow-lg shadow-primary/5">
-                      <CardHeader>
-                        <CardTitle className="text-base font-medium flex items-center justify-between">
-                          <span>Curva de Crescimento</span>
-                          <TooltipProvider>
-                            <ShadTooltip>
-                              <TooltipTrigger>
-                                <Info className="h-4 w-4 text-muted-foreground" />
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Estimativa de crescimento de seguidores.</p>
-                              </TooltipContent>
-                            </ShadTooltip>
-                          </TooltipProvider>
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="h-40">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <LineChart
-                            data={results.growthData}
-                            margin={{
-                              top: 5,
-                              right: 20,
-                              left: 0,
-                              bottom: 5,
-                            }}
-                          >
-                            <XAxis
-                              dataKey="month"
-                              stroke="hsl(var(--muted-foreground))"
-                              fontSize={12}
-                              tickLine={false}
-                              axisLine={false}
-                              tickFormatter={(value) => `Mês ${value}`}
-                            />
-                            <YAxis
-                              stroke="hsl(var(--muted-foreground))"
-                              fontSize={12}
-                              tickLine={false}
-                              axisLine={false}
-                              tickFormatter={(value) =>
-                                `${(value / 1000).toLocaleString()}k`
-                              }
-                            />
-                            <RechartsTooltip
-                              contentStyle={{
-                                background: 'hsl(var(--background))',
-                                border: '1px solid hsl(var(--border))',
-                                borderRadius: 'var(--radius)',
-                              }}
-                              labelFormatter={(value) => `Mês ${value}`}
-                              formatter={(value: number) => [
-                                `${Number(value).toLocaleString()} seguidores`,
-                                'Projeção',
-                              ]}
-                            />
-                            <Line
-                              type="monotone"
-                              dataKey="followers"
-                              stroke="hsl(var(--primary))"
-                              strokeWidth={2}
-                              dot={false}
-                            />
-                          </LineChart>
-                        </ResponsiveContainer>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.4 }}
-                  >
-                    <ResultCard
-                      icon={
-                        <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                      }
-                      title="Sugestões para seu Nicho"
-                      delay={0.4}
-                    >
-                      <ul className="text-left text-sm text-muted-foreground mt-4 space-y-2">
-                        {results.trendSuggestions.map(
-                          (suggestion: string, index: number) => (
-                            <li key={index} className="flex items-center gap-2">
-                              <ArrowRight className="h-3 w-3 text-primary" />
-                              <span>{suggestion}</span>
-                            </li>
-                          )
-                        )}
-                      </ul>
-                    </ResultCard>
-                  </motion.div>
-
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.5 }}
-                    className="text-center pt-4"
-                  >
-                    <Link
-                      href="/sign-up"
-                      className={buttonVariants({
-                        size: 'lg',
-                        className:
-                          'font-manrope rounded-full text-base h-12 px-8 shadow-lg shadow-primary/20 transition-transform hover:scale-105',
-                      })}
-                    >
-                      Criar conta e seguir o plano{' '}
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Link>
-                    <p className="text-xs text-muted-foreground mt-3">
-                      Estimativas com base em benchmarks do nicho. Resultados
-                      variam.
-                    </p>
-                  </motion.div>
-                </motion.div>
-              )}
-            </div>
           </div>
         </section>
 
