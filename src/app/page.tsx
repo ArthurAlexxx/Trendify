@@ -130,27 +130,6 @@ const benefits = [
   },
 ];
 
-const testimonials = [
-    {
-        name: 'Julia S.',
-        handle: '@juliastyle',
-        quote: 'A Trendify mudou meu jogo. Dobrei meu engajamento em 3 meses com as ideias da IA.',
-        avatar: 'https://picsum.photos/seed/1/100/100',
-    },
-    {
-        name: 'Marcos F.',
-        handle: '@fitmarcos',
-        quote: 'Finalmente consegui organizar meu conteúdo e fechei minha primeira grande parceria usando o gerador de propostas.',
-        avatar: 'https://picsum.photos/seed/2/100/100',
-    },
-    {
-        name: 'Ana C.',
-        handle: '@cozinhadaana',
-        quote: 'Deixei de perder horas pensando no que postar. A IA me dá roteiros prontos que funcionam.',
-        avatar: 'https://picsum.photos/seed/3/100/100',
-    }
-]
-
 const faqItems = [
   {
     question: 'Para quem é a Trendify?',
@@ -534,6 +513,11 @@ export default function LandingPage() {
           >
             trendify
           </Link>
+          <nav className="hidden md:flex items-center gap-6">
+             <Link href="#benefits" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Benefícios</Link>
+             <Link href="#calculator" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Calculadora</Link>
+             <Link href="#pricing" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Preços</Link>
+          </nav>
           <div className="flex items-center gap-4">
             {user ? (
               <Link
@@ -602,15 +586,26 @@ export default function LandingPage() {
                   Ver como funciona
                 </Link>
               </div>
-              <p className="text-xs text-muted-foreground mt-4">
-                Plano gratuito. Não precisa de cartão de crédito.
-              </p>
+               <div className="mt-8 flex justify-center items-center gap-x-6 gap-y-2 flex-wrap">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <span>Plano gratuito disponível</span>
+                  </div>
+                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <span>Não precisa de cartão</span>
+                  </div>
+              </div>
             </motion.div>
           </div>
         </section>
 
         {/* Benefits Section */}
-        <section className="container py-12 md:py-24">
+        <section id="benefits" className="container py-12 md:py-24">
+           <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-black font-headline tracking-tighter">Sua Estratégia de Conteúdo, Simplificada</h2>
+            <p className="text-lg text-muted-foreground mt-2 max-w-3xl mx-auto">Ferramentas inteligentes para você focar no que importa: criar.</p>
+          </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {benefits.map((benefit, index) => (
               <motion.div
@@ -635,51 +630,7 @@ export default function LandingPage() {
             ))}
           </div>
         </section>
-
-        {/* Product Section */}
-        <section className="py-12 md:py-24">
-            <div className="container text-center max-w-3xl mx-auto">
-                <h2 className="text-3xl sm:text-4xl font-black font-headline tracking-tighter">O fim do bloqueio criativo.</h2>
-                <p className="text-lg text-muted-foreground mt-4">A Trendify é sua parceira de estratégia. Nossa IA analisa o que funciona no seu nicho e entrega um plano de ação claro, de roteiros virais a propostas para marcas. É o seu foco na criação, e o nosso na inteligência.</p>
-            </div>
-        </section>
         
-        {/* Social Proof */}
-        <section className="py-12 md:py-24">
-            <div className="container">
-                 <div className="text-center mb-12">
-                    <h2 className="text-3xl sm:text-4xl font-black font-headline tracking-tighter">Junte-se a criadores que estão acelerando</h2>
-                    <p className="text-lg text-muted-foreground mt-2 max-w-3xl mx-auto">Resultados reais de quem usa a Trendify para crescer.</p>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    {testimonials.map((testimonial, index) => (
-                        <motion.div
-                            key={testimonial.name}
-                             initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true, amount: 0.5 }}
-                            transition={{ duration: 0.5, delay: index * 0.15 }}
-                        >
-                            <Card className="h-full flex flex-col justify-between bg-card/80 backdrop-blur-sm border-border/20 shadow-lg shadow-primary/5">
-                                <CardContent className="pt-6">
-                                    <p className="text-foreground">"{testimonial.quote}"</p>
-                                </CardContent>
-                                <CardHeader>
-                                    <div className="flex items-center gap-3">
-                                        <img src={testimonial.avatar} alt={testimonial.name} className="h-10 w-10 rounded-full" />
-                                        <div>
-                                            <p className="font-bold text-foreground">{testimonial.name}</p>
-                                            <p className="text-sm text-muted-foreground">{testimonial.handle}</p>
-                                        </div>
-                                    </div>
-                                </CardHeader>
-                            </Card>
-                        </motion.div>
-                    ))}
-                </div>
-            </div>
-        </section>
-
         {/* Why Trendify Section */}
          <section className="container py-12 md:py-24">
            <div className="text-center mb-12">
@@ -956,7 +907,7 @@ export default function LandingPage() {
         </section>
 
         {/* Pricing Section */}
-        <section className="container py-12 md:py-24">
+        <section id="pricing" className="container py-12 md:py-24">
             <div className="text-center mb-12">
                 <h2 className="text-3xl sm:text-4xl font-black font-headline tracking-tighter">Um plano para cada etapa</h2>
                 <p className="text-lg text-muted-foreground mt-2 max-w-2xl mx-auto">Comece de graça. Escale quando estiver pronto.</p>
@@ -971,7 +922,9 @@ export default function LandingPage() {
                         <li className="flex items-center gap-3"><CheckCircle className="h-5 w-5 text-primary" /> Calendário de Conteúdo</li>
                         <li className="flex items-center gap-3"><CheckCircle className="h-5 w-5 text-primary" /> Análise de vídeo (limitado)</li>
                     </ul>
-                    <Button variant="outline" className="w-full h-11 text-base font-manrope rounded-lg">Comece Agora</Button>
+                     <Link href="/sign-up" className={cn(buttonVariants({ variant: 'outline', className: "w-full h-11 text-base font-manrope rounded-lg" }))}>
+                        Comece Agora
+                    </Link>
                 </Card>
                 <Card className="p-8 flex flex-col bg-card/80 backdrop-blur-sm border-primary/50 border-2 shadow-2xl shadow-primary/10">
                      <div className="flex justify-between items-center">
@@ -990,13 +943,15 @@ export default function LandingPage() {
                         <li className="flex items-center gap-3"><CheckCircle className="h-5 w-5 text-primary" /> Projeção de Ganhos e Metas</li>
                         <li className="flex items-center gap-3"><CheckCircle className="h-5 w-5 text-primary" /> Suporte Prioritário</li>
                     </ul>
-                    <Button className="w-full h-11 text-base font-manrope rounded-lg shadow-lg shadow-primary/20">Quero o Plano Pro</Button>
+                     <Link href="/sign-up" className={cn(buttonVariants({ className: "w-full h-11 text-base font-manrope rounded-lg shadow-lg shadow-primary/20" }))}>
+                        Quero o Plano Pro
+                    </Link>
                 </Card>
             </div>
         </section>
 
         {/* FAQ Section */}
-        <section className="container py-12 md:py-24">
+        <section id="faq" className="container py-12 md:py-24">
              <div className="text-center mb-12">
                 <h2 className="text-3xl sm:text-4xl font-black font-headline tracking-tighter">Perguntas Frequentes</h2>
             </div>
