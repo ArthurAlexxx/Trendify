@@ -3,19 +3,6 @@
 
 import { z } from 'zod';
 import OpenAI from 'openai';
-import {
-  addDoc,
-  collection,
-  serverTimestamp,
-  writeBatch,
-  getDocs,
-  query,
-  getFirestore,
-} from 'firebase/firestore';
-import { initializeFirebase } from '@/firebase/server-init';
-
-
-const firestore = getFirestore(initializeFirebase());
 
 const ItemRoteiroSchema = z.object({
   dia: z.string().describe('O dia da semana para a tarefa (ex: "Segunda").'),
@@ -136,16 +123,6 @@ async function generateWeeklyPlan(
   }
 }
 
-async function clearCollection(collectionPath: string) {
-  const q = query(collection(firestore, collectionPath));
-  const querySnapshot = await getDocs(q);
-  const batch = writeBatch(firestore);
-  querySnapshot.forEach((doc) => {
-    batch.delete(doc.ref);
-  });
-  await batch.commit();
-}
-
 export async function generateWeeklyPlanAction(
   prevState: WeeklyPlanState,
   formData: FormData
@@ -158,28 +135,7 @@ export async function generateWeeklyPlanAction(
 
   try {
     const result = await generateWeeklyPlan(parsed.data);
-
-    // Limpa coleções antigas e adiciona novos dados
-    await clearCollection('roteiro');
-    await clearCollection('dadosGrafico');
-    
-    const batch = writeBatch(firestore);
-
-    // Adiciona o novo roteiro
-    const roteiroRef = doc(collection(firestore, 'roteiro'));
-    batch.set(roteiroRef, {
-      items: result.roteiro,
-      createdAt: serverTimestamp(),
-    });
-
-    // Adiciona os novos dados do gráfico
-    result.desempenhoSimulado.forEach((ponto) => {
-      const pontoRef = doc(collection(firestore, 'dadosGrafico'));
-      batch.set(pontoRef, ponto);
-    });
-
-    await batch.commit();
-
+    // Retorna os dados gerados pela IA, a escrita no banco será feita no cliente
     return { data: result };
   } catch (e) {
     const errorMessage =

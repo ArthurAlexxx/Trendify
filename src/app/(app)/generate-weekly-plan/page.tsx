@@ -19,7 +19,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Bot, ClipboardList, Loader2, Sparkles } from 'lucide-react';
+import { Bot, Loader2, Sparkles } from 'lucide-react';
 import { useEffect, useActionState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -27,7 +27,14 @@ import { generateWeeklyPlanAction, GenerateWeeklyPlanOutput } from './actions';
 import { Separator } from '@/components/ui/separator';
 import { useDoc, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import type { UserProfile } from '@/lib/types';
-import { doc } from 'firebase/firestore';
+import {
+  doc,
+  writeBatch,
+  collection,
+  serverTimestamp,
+  getDocs,
+  query,
+} from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
@@ -38,7 +45,6 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer,
 } from 'recharts';
 import { ChartConfig, ChartContainer } from '@/components/ui/chart';
 
@@ -53,12 +59,25 @@ const chartConfig = {
   engajamento: { label: 'Engajamento', color: 'hsl(var(--chart-2))' },
 } satisfies ChartConfig;
 
+async function clearCollection(firestore: any, collectionPath: string) {
+  const q = query(collection(firestore, collectionPath));
+  const querySnapshot = await getDocs(q);
+  if (querySnapshot.empty) return;
+  const batch = writeBatch(firestore);
+  querySnapshot.forEach((doc) => {
+    batch.delete(doc.ref);
+  });
+  await batch.commit();
+}
+
+
 export default function GenerateWeeklyPlanPage() {
   const { toast } = useToast();
   const [state, formAction, isGenerating] = useActionState(
     generateWeeklyPlanAction,
     null
   );
+  const [isSaving, startSavingTransition] = useTransition();
 
   const { user } = useUser();
   const firestore = useFirestore();
@@ -90,6 +109,8 @@ export default function GenerateWeeklyPlanPage() {
       });
     }
   }, [userProfile, form]);
+  
+  const result = state?.data;
 
   useEffect(() => {
     if (state?.error) {
@@ -99,16 +120,44 @@ export default function GenerateWeeklyPlanPage() {
         variant: 'destructive',
       });
     }
-    if (state?.data) {
-      toast({
-        title: 'Sucesso!',
-        description:
-          'Seu novo roteiro e simulação de desempenho foram salvos e estão no dashboard.',
+    if (result && firestore) {
+      startSavingTransition(async () => {
+         try {
+            await clearCollection(firestore, 'roteiro');
+            await clearCollection(firestore, 'dadosGrafico');
+            
+            const batch = writeBatch(firestore);
+
+            const roteiroRef = doc(collection(firestore, 'roteiro'));
+            batch.set(roteiroRef, {
+              items: result.roteiro,
+              createdAt: serverTimestamp(),
+            });
+
+            result.desempenhoSimulado.forEach((ponto) => {
+              const pontoRef = doc(collection(firestore, 'dadosGrafico'));
+              batch.set(pontoRef, ponto);
+            });
+
+            await batch.commit();
+
+            toast({
+                title: 'Sucesso!',
+                description:
+                'Seu novo roteiro e simulação de desempenho foram salvos e estão no dashboard.',
+            });
+
+          } catch (e: any) {
+              toast({
+                title: 'Erro ao Salvar Plano',
+                description: `Não foi possível salvar os dados no Firestore: ${e.message}`,
+                variant: 'destructive',
+              });
+          }
       });
     }
-  }, [state, toast]);
+  }, [state, result, firestore, toast]);
 
-  const result = state?.data;
 
   return (
     <div className="space-y-12">
@@ -200,14 +249,14 @@ export default function GenerateWeeklyPlanPage() {
               <div className="pt-2">
                 <Button
                   type="submit"
-                  disabled={isGenerating || isLoadingProfile}
+                  disabled={isGenerating || isSaving || isLoadingProfile}
                   size="lg"
                   className="font-manrope sm:w-auto h-12 px-10 rounded-full text-base font-bold shadow-lg shadow-primary/20 transition-transform hover:scale-[1.02]"
                 >
-                  {isGenerating ? (
+                  {isGenerating || isSaving ? (
                     <>
                       <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Gerando Plano...
+                      {isSaving ? 'Salvando...' : 'Gerando Plano...'}
                     </>
                   ) : (
                     <>
@@ -313,7 +362,7 @@ export default function GenerateWeeklyPlanPage() {
                         tickLine={false}
                         axisLine={false}
                         tickFormatter={(value) =>
-                          value >= 1000 ? `${value / 1000}k` : value
+                          typeof value === 'number' && value >= 1000 ? `${value / 1000}k` : value
                         }
                       />
                       <Tooltip
@@ -345,5 +394,3 @@ export default function GenerateWeeklyPlanPage() {
     </div>
   );
 }
-
-    
