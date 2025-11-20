@@ -15,7 +15,8 @@ import {
   PieChart,
   Sparkles,
   Target,
-  Video
+  Video,
+  Check,
 } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { useUser } from '@/firebase';
@@ -432,7 +433,7 @@ export default function LandingPage() {
                   transition={{ duration: 0.5 }}
                   viewport={{ once: true, amount: 0.3 }}
                 >
-                  <Card className="text-left h-full bg-card/50 shadow-sm hover:shadow-primary/10 transition-shadow duration-300 rounded-2xl">
+                  <Card className="text-left h-full bg-card/50 shadow-sm hover:shadow-primary/10 transition-shadow duration-300 rounded-2xl border border-transparent hover:border-primary">
                     <CardHeader className="flex flex-row items-center gap-4">
                       <div className="bg-primary/10 text-primary p-3 rounded-lg">
                         <feature.icon className="h-6 w-6" />
@@ -900,19 +901,19 @@ export default function LandingPage() {
                 </Button>
                 <ul className="mt-8 space-y-3 text-sm text-muted-foreground">
                   <li className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-primary" />
+                    <Check className="h-4 w-4 text-primary" />
                     <span>Diagnósticos e ideias **ilimitados**</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-primary" />
+                    <Check className="h-4 w-4 text-primary" />
                     <span>Mídia kit e propostas automáticas</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-primary" />
+                    <Check className="h-4 w-4 text-primary" />
                     <span>Análise de vídeos publicados</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-primary" />
+                    <Check className="h-4 w-4 text-primary" />
                     <span>Suporte prioritário</span>
                   </li>
                 </ul>
