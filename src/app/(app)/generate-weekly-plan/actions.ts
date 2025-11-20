@@ -1,3 +1,4 @@
+
 'use server';
 
 import { z } from 'zod';
@@ -9,11 +10,12 @@ import {
   writeBatch,
   getDocs,
   query,
+  getFirestore,
 } from 'firebase/firestore';
-import { getFirestore } from 'firebase/firestore';
-import { initializeFirebase } from '@/firebase';
+import { initializeFirebase } from '@/firebase/server-init';
 
-const firestore = getFirestore(initializeFirebase().firebaseApp);
+
+const firestore = getFirestore(initializeFirebase());
 
 const ItemRoteiroSchema = z.object({
   dia: z.string().describe('O dia da semana para a tarefa (ex: "Segunda").'),
@@ -185,5 +187,3 @@ export async function generateWeeklyPlanAction(
     return { error: `Failed to generate plan: ${errorMessage}` };
   }
 }
-
-    
