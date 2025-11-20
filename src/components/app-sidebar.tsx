@@ -52,7 +52,7 @@ export function AppSidebar() {
       variant="inset"
       className="bg-sidebar border-r border-sidebar-border"
     >
-      <SidebarHeader className="flex items-center justify-between p-4">
+      <SidebarHeader className="flex items-center justify-center p-4">
         <Link
           href="/"
           className="flex items-center gap-2.5 font-headline font-bold text-xl"
@@ -64,13 +64,6 @@ export function AppSidebar() {
             trendify
           </span>
         </Link>
-        <SidebarTrigger
-          variant="ghost"
-          size="icon"
-          className="hidden group-data-[state=expanded]:flex"
-        >
-          <PanelLeft />
-        </SidebarTrigger>
       </SidebarHeader>
       <SidebarContent className="p-2">
         <SidebarMenu>
@@ -90,7 +83,7 @@ export function AppSidebar() {
           ))}
         </SidebarMenu>
       </SidebarContent>
-      <SidebarFooter className="p-2">
+      <SidebarFooter className="p-2 flex flex-col gap-2">
         <SidebarMenu>
           <SidebarMenuItem>
             <Link href="#">
@@ -106,9 +99,10 @@ export function AppSidebar() {
               <span className="text-sm font-medium">Sair</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
-          <SidebarMenuItem>
-            <Link href="#">
-              <div className="flex items-center gap-3 rounded-md p-2 hover:bg-sidebar-accent w-full">
+        </SidebarMenu>
+         <div className="flex items-center justify-between p-2 mt-auto">
+            <Link href="#" className='w-full'>
+              <div className="flex items-center gap-3">
                 <Avatar className="h-8 w-8">
                   <AvatarImage
                     src={user?.photoURL ?? "https://picsum.photos/seed/avatar/100/100"}
@@ -118,7 +112,7 @@ export function AppSidebar() {
                     {user?.email?.[0].toUpperCase() ?? 'U'}
                   </AvatarFallback>
                 </Avatar>
-                <div className="hidden group-data-[state=expanded]:block w-full overflow-hidden">
+                <div className="hidden group-data-[state=expanded]:block w-[120px] overflow-hidden">
                   <p className="text-sm font-semibold truncate">{user?.displayName ?? 'Usuário'}</p>
                   <p className="text-xs text-muted-foreground truncate">
                     {user?.email ?? ''}
@@ -126,8 +120,14 @@ export function AppSidebar() {
                 </div>
               </div>
             </Link>
-          </SidebarMenuItem>
-        </SidebarMenu>
+             <SidebarTrigger
+              variant="ghost"
+              size="icon"
+              className="hidden group-data-[state=expanded]:flex h-8 w-8"
+            >
+              <PanelLeft />
+            </SidebarTrigger>
+          </div>
       </SidebarFooter>
     </Sidebar>
   );
