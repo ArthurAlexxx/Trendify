@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Loader2, Copy, RefreshCw, ArrowLeft, Check, Star } from 'lucide-react';
+import { Loader2, Copy, RefreshCw, ArrowLeft, Check, Star, ShieldAlert } from 'lucide-react';
 import { useUser } from '@/firebase';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -38,6 +38,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { useSubscription } from '@/hooks/useSubscription';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const formSchema = z.object({
   name: z.string().min(3, 'O nome completo é obrigatório.'),
@@ -74,6 +76,7 @@ const planDetails = {
 
 function CheckoutPageContent() {
   const { user, isUserLoading } = useUser();
+  const { subscription, isLoading: isSubscriptionLoading } = useSubscription();
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -167,8 +170,9 @@ function CheckoutPageContent() {
   };
 
   const result = state?.data;
+  const isAlreadySubscribedToThisPlan = subscription?.plan === plan && subscription?.status === 'active';
 
-  if (isUserLoading || !plan || !selectedPlanDetails) {
+  if (isUserLoading || !plan || !selectedPlanDetails || isSubscriptionLoading) {
     return (
       <div className="space-y-12">
         <Skeleton className="h-10 w-1/2" />
@@ -216,11 +220,27 @@ function CheckoutPageContent() {
                 Pagamento via PIX
               </CardTitle>
               <CardDescription>
-                Preencha seus dados para gerar o QR Code de pagamento.
+                {isAlreadySubscribedToThisPlan 
+                    ? 'Você já é assinante deste plano.'
+                    : 'Preencha seus dados para gerar o QR Code de pagamento.'
+                }
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {!result && !isGenerating ? (
+              {isAlreadySubscribedToThisPlan ? (
+                <div className="flex flex-col items-center text-center py-10">
+                    <ShieldAlert className="h-12 w-12 text-primary mb-4" />
+                    <h3 className="text-xl font-bold">Você já possui este plano</h3>
+                    <p className="text-muted-foreground max-w-sm mx-auto mt-2">
+                        Seu plano {selectedPlanDetails.name} já está ativo. Você pode gerenciar sua assinatura nas configurações.
+                    </p>
+                    <Button asChild className='mt-6'>
+                        <Link href="/dashboard">
+                            Ir para o Painel
+                        </Link>
+                    </Button>
+                </div>
+              ) : !result && !isGenerating ? (
                 <Form {...form}>
                   <form action={formAction} className="space-y-6">
                     <input type="hidden" {...form.register('plan')} value={plan} />
@@ -398,3 +418,5 @@ export default function CheckoutPage() {
         </Suspense>
     )
 }
+
+    
