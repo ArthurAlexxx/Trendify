@@ -383,9 +383,10 @@ export default function LandingPage() {
               </Badge>
 
               <h1 className="text-5xl md:text-7xl font-black font-headline tracking-tighter mb-6 !leading-tight max-w-4xl mx-auto">
-                Seu futuro nas redes <br />
+                Estratégia de conteúdo,{' '}
+                <br className="hidden md:block" />
                 <span className="bg-gradient-to-r from-indigo-500 to-purple-600 text-gradient">
-                  começa aqui
+                  sem achismos.
                 </span>
               </h1>
               <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
@@ -411,10 +412,11 @@ export default function LandingPage() {
                     'font-manrope rounded-lg text-base h-12 px-8 bg-gradient-to-r from-indigo-500 to-purple-600 text-primary-foreground shadow-lg'
                   )}
                 >
-                  Se veja no futuro <ArrowRight className="ml-2 h-4 w-4" />
+                  Calcular meu crescimento
+                  <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
                 <Link
-                  href="#beneficios"
+                  href="/dashboard"
                   className={cn(
                     buttonVariants({ size: 'lg', variant: 'outline' }),
                     'font-manrope rounded-lg text-base h-12 px-8 bg-background/50'
@@ -436,7 +438,7 @@ export default function LandingPage() {
         <section id="beneficios" className="py-20 sm:py-24">
           <div className="container text-center">
             <h2 className="text-3xl md:text-4xl font-bold font-headline tracking-tight mb-4">
-              Menos achismo, mais estratégia.
+              Menos esforço, mais inteligência.
             </h2>
             <p className="text-lg text-muted-foreground mb-12 max-w-2xl mx-auto">
               Tudo que você precisa para crescer de forma inteligente, em um só
@@ -451,7 +453,7 @@ export default function LandingPage() {
                   transition={{ duration: 0.5 }}
                   viewport={{ once: true, amount: 0.3 }}
                 >
-                  <Card className="text-left h-full bg-card/50 shadow-sm hover:shadow-primary/10 transition-shadow duration-300 rounded-2xl border border-transparent hover:border-primary">
+                  <Card className="text-left h-full bg-card/50 shadow-sm hover:shadow-primary/10 transition-all duration-300 rounded-2xl border border-transparent hover:border-primary/30 hover:shadow-lg hover:-translate-y-1">
                     <CardHeader className="flex flex-row items-center gap-4">
                       <div className="bg-primary/10 text-primary p-3 rounded-lg">
                         <feature.icon className="h-6 w-6" />
@@ -469,21 +471,6 @@ export default function LandingPage() {
                 </motion.div>
               ))}
             </div>
-          </div>
-        </section>
-
-        {/* Product Section */}
-        <section id="produto" className="py-20 sm:py-24">
-          <div className="container text-center">
-            <h2 className="text-3xl md:text-4xl font-bold font-headline tracking-tight mb-4">
-              Inteligência Artificial para Criadores
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-              A Trendify é sua parceira de estratégia. Nossa IA analisa o que
-              funciona no seu nicho e entrega um plano de ação claro, de
-              roteiros virais a propostas para marcas. É o seu foco na criação,
-              e o nosso na inteligência.
-            </p>
           </div>
         </section>
 
