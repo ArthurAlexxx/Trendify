@@ -33,7 +33,8 @@ const navItems = [
   { href: '/content-calendar', icon: Calendar, label: 'Calendário' },
   { href: '/video-ideas', icon: Lightbulb, label: 'Ideias de Vídeo' },
   { href: '/video-review', icon: Video, label: 'Análise de Vídeo' },
-  { href: '/media-kit', icon: Briefcase, label: 'Propostas & Mídia Kit' },
+  { href: '/publis-assistant', icon: Newspaper, label: 'Propostas & Publis' },
+  { href: '/media-kit', icon: Briefcase, label: 'Mídia Kit' },
 ];
 
 export function AppSidebar() {
@@ -72,7 +73,7 @@ export function AppSidebar() {
             <SidebarMenuItem key={item.label}>
               <Link href={item.href}>
                 <SidebarMenuButton
-                  isActive={pathname === item.href}
+                  isActive={pathname.startsWith(item.href)}
                   tooltip={item.label}
                   className="h-10 justify-start"
                 >
@@ -128,5 +129,3 @@ export function AppSidebar() {
     </Sidebar>
   );
 }
-
-    
