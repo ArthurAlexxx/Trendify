@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -6,6 +7,11 @@ import {
   Target,
   DollarSign,
   Info,
+  ChevronDown,
+  Sparkles,
+  Calendar,
+  Briefcase,
+  PenSquare,
 } from 'lucide-react';
 import { buttonVariants } from '@/components/ui/button';
 import {
@@ -45,9 +51,8 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
-  Legend,
 } from 'recharts';
 import {
   Tooltip as ShadTooltip,
@@ -57,6 +62,8 @@ import {
 } from '@/components/ui/tooltip';
 import { format } from 'date-fns';
 import { addMonths } from 'date-fns';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 const formSchema = z.object({
   niche: z.string().min(1, 'Selecione um nicho.'),
@@ -92,6 +99,30 @@ const priorityWeights = {
   autoridade: 1.0,
 };
 
+const features = [
+  {
+    icon: Sparkles,
+    title: 'Ideias de Vídeo com IA',
+    description: 'Receba roteiros, ganchos e músicas em alta para seus próximos vídeos virais.',
+  },
+  {
+    icon: Calendar,
+    title: 'Calendário de Conteúdo',
+    description: 'Planeje e agende todas as suas publicações em um só lugar, de forma visual e intuitiva.',
+  },
+   {
+    icon: Briefcase,
+    title: 'Propostas e Mídia Kit',
+    description: 'Gere propostas profissionais e calcule preços para fechar parcerias com grandes marcas.',
+  },
+  {
+    icon: PenSquare,
+    title: 'Assistente de Publis',
+    description: 'Crie pacotes de conteúdo completos para suas "publis", com foco em conversão e tendências.',
+  },
+];
+
+
 export default function LandingPage() {
   const { user } = useUser();
   const [step, setStep] = useState(1);
@@ -117,7 +148,7 @@ export default function LandingPage() {
         nicheBenchmarks[data.niche as keyof typeof nicheBenchmarks];
       const priorityWeight = priorityWeights[data.priority];
 
-      const reelsMultiplier = 1 + (data.reelsPerMonth - 10) * 0.02; // +2% for each reel above 10
+      const reelsMultiplier = 1 + (data.reelsPerMonth - 10) * 0.02;
       const monthlyGrowthRate =
         benchmark.baseGrowth * reelsMultiplier * priorityWeight;
 
@@ -128,11 +159,12 @@ export default function LandingPage() {
         followers *= 1 + monthlyGrowthRate;
         months++;
         growthData.push({ month: months, followers: Math.round(followers) });
+        if (months > 240) break; // safety break
       }
 
-      const viewRate = [0.2, 0.5]; // 20-50%
+      const viewRate = [0.2, 0.5];
       const cpm = benchmark.cpm;
-      const publisPerMonth = Math.round(data.reelsPerMonth * 0.25); // 25% of reels are publis
+      const publisPerMonth = Math.round(data.reelsPerMonth * 0.25);
 
       const calculateEarnings = (followerCount: number) => {
         const views = [
@@ -200,7 +232,7 @@ export default function LandingPage() {
       });
       setIsCalculating(false);
       setStep(4);
-    }, 1500); // Simulate calculation delay
+    }, 1500);
   };
 
   const currentFollowers = form.watch('currentFollowers');
@@ -276,7 +308,7 @@ export default function LandingPage() {
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Selecione seu país..." />
-                        </SelectTrigger>
+                        </Trigger>
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="br">Brasil</SelectItem>
@@ -468,7 +500,7 @@ export default function LandingPage() {
               <>
                 <Link
                   href="/login"
-                  className="text-sm text-muted-foreground transition-colors hover:text-foreground hidden sm:block"
+                  className="text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground hidden sm:block"
                 >
                   Login
                 </Link>
@@ -487,17 +519,42 @@ export default function LandingPage() {
       </header>
 
       <main className="flex-1 pt-20">
-        <section className="container py-12 md:py-24">
+        
+        {/* Hero Section */}
+        <section className="py-20 text-center">
+            <div className="container">
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.7, ease: 'easeOut' }}
+                >
+                    <h1 className="text-4xl md:text-6xl font-black font-headline tracking-tighter mb-4 !leading-tight max-w-4xl mx-auto">
+                        A plataforma de crescimento para <span className="text-primary">criadores de conteúdo</span>
+                    </h1>
+                    <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
+                        Use IA para gerar ideias, roteiros, propostas e acelerar seu crescimento. Comece de graça e veja seu potencial.
+                    </p>
+                    <div className="flex justify-center items-center gap-4">
+                        <Link href="#calculator" className={cn(buttonVariants({ size: 'lg' }), 'font-manrope rounded-full text-base h-12 px-8 shadow-lg shadow-primary/20')}>
+                            Calcular meu Potencial
+                            <ChevronDown className="ml-2 h-4 w-4" />
+                        </Link>
+                         <Link href="/sign-up" className={cn(buttonVariants({ size: 'lg', variant: 'outline' }), 'font-manrope rounded-full text-base h-12 px-8')}>
+                            Criar Conta Grátis
+                        </Link>
+                    </div>
+                </motion.div>
+            </div>
+        </section>
+
+        {/* Calculator Section */}
+        <section id="calculator" className="container py-12 md:py-24">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-black font-headline tracking-tighter">Projete seu crescimento. Veja seu potencial.</h2>
+            <p className="text-lg text-muted-foreground mt-2 max-w-3xl mx-auto">Responda 6 perguntas. Em 60 segundos mostramos seu plano, tempo até a meta e potencial de ganhos no seu nicho.</p>
+          </div>
           <div className="grid lg:grid-cols-2 gap-16 items-center">
-            {/* Formulário */}
-            <div className="max-w-lg">
-              <h1 className="text-4xl sm:text-5xl font-black font-headline tracking-tighter mb-4 !leading-tight">
-                Se veja no futuro.
-              </h1>
-              <p className="text-lg text-muted-foreground mb-8">
-                Responda 6 perguntas. Em 60 segundos mostramos seu plano, tempo
-                até a meta e potencial de ganhos no seu nicho.
-              </p>
+            <div className="max-w-lg mx-auto w-full">
               <Card className="bg-card/30 backdrop-blur-lg border border-border/10 rounded-2xl shadow-2xl shadow-primary/5">
                 <CardContent className="p-8">
                   <Form {...form}>
@@ -507,29 +564,28 @@ export default function LandingPage() {
                       </AnimatePresence>
                       <div className="flex justify-between items-center mt-8">
                         {step > 1 && step < 4 && (
-                          <button
+                          <Button
                             type="button"
-                            className={buttonVariants({variant: 'ghost'})}
+                            variant="ghost"
                             onClick={() => setStep(step - 1)}
                           >
                             Voltar
-                          </button>
+                          </Button>
                         )}
                         <div className="flex-1" />
                         {step < 3 && (
-                          <button
+                          <Button
                             type="button"
-                            className={buttonVariants()}
                             onClick={() => setStep(step + 1)}
                           >
                             Próximo
-                          </button>
+                          </Button>
                         )}
                         {step === 3 && (
-                          <button
+                          <Button
                             type="submit"
                             disabled={isCalculating}
-                            className={buttonVariants({className: "w-full sm:w-auto"})}
+                            className="w-full sm:w-auto"
                           >
                             {isCalculating ? (
                               'Calculando...'
@@ -539,7 +595,7 @@ export default function LandingPage() {
                                 <ArrowRight className="ml-2 h-4 w-4" />
                               </>
                             )}
-                          </button>
+                          </Button>
                         )}
                       </div>
                     </form>
@@ -548,8 +604,7 @@ export default function LandingPage() {
               </Card>
             </div>
 
-            {/* Resultados */}
-            <div className="relative h-[600px] rounded-3xl p-8 flex flex-col justify-center items-center text-center bg-muted/20 border border-dashed border-border/30">
+            <div className="relative min-h-[600px] rounded-3xl p-8 flex flex-col justify-center items-center text-center bg-muted/20 border border-dashed border-border/30">
               <AnimatePresence>
                 {!results && (
                   <motion.div
@@ -646,14 +701,14 @@ export default function LandingPage() {
                                 `${(value / 1000).toLocaleString()}k`
                               }
                             />
-                            <Tooltip
+                            <RechartsTooltip
                               contentStyle={{
                                 background: 'hsl(var(--background))',
                                 border: '1px solid hsl(var(--border))',
                                 borderRadius: 'var(--radius)',
                               }}
                               labelFormatter={(value) => `Mês ${value}`}
-                              formatter={(value) => [
+                              formatter={(value: number) => [
                                 `${Number(value).toLocaleString()} seguidores`,
                                 'Projeção',
                               ]}
@@ -717,7 +772,58 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
+
+        {/* Features Section */}
+        <section className="container py-12 md:py-24 bg-muted/20 rounded-3xl">
+           <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-black font-headline tracking-tighter">Uma plataforma, tudo que você precisa.</h2>
+            <p className="text-lg text-muted-foreground mt-2 max-w-3xl mx-auto">De roteiros virais a propostas para marcas, nossa IA e ferramentas trabalham para você.</p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {features.map((feature, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.5 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+              >
+                <Card className="h-full bg-card/80 backdrop-blur-sm border-border/20 shadow-lg shadow-primary/5 hover:border-primary/50 transition-colors">
+                  <CardHeader>
+                    <div className="bg-primary/10 text-primary h-12 w-12 rounded-lg flex items-center justify-center mb-4">
+                      <feature.icon className="h-6 w-6" />
+                    </div>
+                    <CardTitle className='font-headline text-xl'>{feature.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-muted-foreground">{feature.description}</p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+
+        {/* Final CTA Section */}
+        <section className="container py-20 md:py-32 text-center">
+             <h2 className="text-3xl sm:text-4xl font-black font-headline tracking-tighter">Pronto para acelerar seu crescimento?</h2>
+             <p className="text-lg text-muted-foreground mt-2 max-w-2xl mx-auto">Crie sua conta grátis e transforme seu potencial em resultados.</p>
+             <div className="mt-8">
+                <Link href="/sign-up" className={cn(buttonVariants({ size: 'lg' }), 'font-manrope rounded-full text-base h-12 px-8 shadow-lg shadow-primary/20 transition-transform hover:scale-105')}>
+                    Começar Gratuitamente
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+             </div>
+        </section>
       </main>
+      
+      {/* Footer */}
+      <footer className="border-t border-border">
+        <div className="container py-6 text-center text-sm text-muted-foreground">
+            <p>&copy; {new Date().getFullYear()} trendify. Todos os direitos reservados.</p>
+        </div>
+      </footer>
     </div>
   );
 }
