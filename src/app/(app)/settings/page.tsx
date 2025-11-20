@@ -86,15 +86,15 @@ export default function SettingsPage() {
   useEffect(() => {
     if (userProfile) {
       form.reset({
-        displayName: userProfile.displayName,
-        photoURL: userProfile.photoURL,
-        instagramHandle: userProfile.instagramHandle,
-        youtubeHandle: userProfile.youtubeHandle,
-        niche: userProfile.niche,
-        bio: userProfile.bio,
-        followers: userProfile.followers,
-        engagement: userProfile.engagement,
-        audience: userProfile.audience,
+        displayName: userProfile.displayName || '',
+        photoURL: userProfile.photoURL || '',
+        instagramHandle: userProfile.instagramHandle || '',
+        youtubeHandle: userProfile.youtubeHandle || '',
+        niche: userProfile.niche || '',
+        bio: userProfile.bio || '',
+        followers: userProfile.followers || '',
+        engagement: userProfile.engagement || '',
+        audience: userProfile.audience || '',
       });
     }
   }, [userProfile, form]);
