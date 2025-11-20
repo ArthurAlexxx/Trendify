@@ -59,9 +59,9 @@ export function AppSidebar() {
       <SidebarHeader className="flex items-center justify-center p-4">
         <Link
           href="/"
-          className="flex items-center gap-2.5 font-headline font-bold text-xl"
+          className="flex items-center gap-2 text-xl font-bold font-headline tracking-tighter text-foreground"
         >
-          <div className="bg-primary text-primary-foreground h-8 w-8 flex items-center justify-center rounded-lg">
+          <div className="bg-foreground text-background h-7 w-7 flex items-center justify-center rounded-full">
             <ArrowRight className="h-4 w-4" />
           </div>
           <span className="hidden group-data-[state=expanded]:inline">
