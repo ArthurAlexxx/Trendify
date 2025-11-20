@@ -11,6 +11,7 @@ import {
   Video,
   Check,
   Loader2,
+  Crown,
 } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { useUser } from '@/firebase';
@@ -379,7 +380,7 @@ export default function LandingPage() {
                 className="mb-6 border-purple-300 bg-purple-50 text-purple-700 font-medium rounded-full px-4 py-1"
               >
                 <Sparkles className="h-3 w-3 mr-2 text-purple-500" />
-                Novo: Análise de Vídeo com IA
+                Novo: Assinatura PRO com pagamento via PIX
               </Badge>
 
               <h1 className="text-5xl md:text-7xl font-black font-headline tracking-tighter mb-6 !leading-tight max-w-4xl mx-auto">
@@ -917,7 +918,7 @@ export default function LandingPage() {
                   </span>
                 </p>
                 <Button className="w-full h-11 text-base font-bold" asChild>
-                  <Link href="/sign-up">Começar com o Pro</Link>
+                  <Link href="/subscribe">Assinar o Pro</Link>
                 </Button>
                 <ul className="mt-8 space-y-3 text-sm text-muted-foreground">
                   <li className="flex items-center gap-2">

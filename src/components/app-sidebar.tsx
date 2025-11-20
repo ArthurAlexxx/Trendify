@@ -13,6 +13,7 @@ import {
   Calendar,
   ArrowRight,
   ClipboardList,
+  Crown,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -30,6 +31,8 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { useUser, useAuth } from '@/firebase';
+import { Button } from './ui/button';
+import { Badge } from './ui/badge';
 
 const navItems = [
   { href: '/dashboard', icon: LineChart, label: 'Painel' },
@@ -72,6 +75,15 @@ export function AppSidebar() {
         </Link>
       </SidebarHeader>
       <SidebarContent className="p-2">
+         <div className="hidden group-data-[state=expanded]:block p-2 mb-2">
+            <Button asChild className='w-full justify-start font-bold'>
+                <Link href="/subscribe">
+                    <Crown className="mr-2 h-4 w-4 fill-current" />
+                    Virar PRO
+                </Link>
+            </Button>
+         </div>
+
         <SidebarMenu>
           {navItems.map((item) => (
             <SidebarMenuItem key={item.label}>

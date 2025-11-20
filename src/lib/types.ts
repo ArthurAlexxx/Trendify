@@ -16,6 +16,12 @@ export interface UserProfile {
   averageLikes?: string;
   averageComments?: string;
   audience?: string;
+  subscription?: {
+    status: 'active' | 'inactive';
+    plan: 'pro' | 'free';
+    expiresAt?: Timestamp;
+    paymentId?: string;
+  }
 }
 
 export interface Metrica {

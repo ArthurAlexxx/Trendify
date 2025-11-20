@@ -1,8 +1,9 @@
+
 'use client';
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
 import { FirebaseApp } from 'firebase/app';
-import { Firestore, doc, getDoc, setDoc } from 'firebase/firestore';
+import { Firestore, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
 
@@ -74,13 +75,16 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       const docSnap = await getDoc(userRef);
       if (!docSnap.exists()) {
         const { displayName, email, photoURL } = firebaseUser;
-        const createdAt = new Date();
         try {
           await setDoc(userRef, {
             displayName,
             email,
             photoURL,
-            createdAt,
+            createdAt: serverTimestamp(),
+            subscription: {
+              status: 'inactive',
+              plan: 'free',
+            },
           });
         } catch (error) {
           console.error('Error creating user profile:', error);

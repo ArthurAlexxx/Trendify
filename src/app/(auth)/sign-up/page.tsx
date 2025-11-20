@@ -22,7 +22,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth, useFirestore } from '@/firebase';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
 
 const formSchema = z.object({
   name: z.string().min(2, 'O nome deve ter pelo menos 2 caracteres.'),
@@ -66,8 +66,12 @@ export default function SignUpPage() {
       await setDoc(userRef, {
         displayName: values.name,
         email: values.email,
-        createdAt: new Date(),
+        createdAt: serverTimestamp(),
         photoURL: user.photoURL,
+        subscription: {
+            status: 'inactive',
+            plan: 'free',
+        }
       });
       
       toast({

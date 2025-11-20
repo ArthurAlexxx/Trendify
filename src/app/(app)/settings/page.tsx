@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { LogOut, User as UserIcon, ShieldAlert } from 'lucide-react';
+import { LogOut, User as UserIcon, ShieldAlert, KeyRound, Building } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
@@ -176,8 +176,9 @@ export default function SettingsPage() {
       />
 
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="grid w-full max-w-md grid-cols-2">
+        <TabsList className="grid w-full max-w-lg grid-cols-3">
           <TabsTrigger value="profile">Perfil</TabsTrigger>
+          <TabsTrigger value="integrations">Integrações</TabsTrigger>
           <TabsTrigger value="account">Conta</TabsTrigger>
         </TabsList>
 
@@ -308,6 +309,37 @@ export default function SettingsPage() {
               </form>
             </CardContent>
           </Card>
+        </TabsContent>
+        
+        <TabsContent value="integrations" className="mt-6">
+           <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3 font-headline text-xl">
+                    <Building className="h-6 w-6 text-primary" />
+                    <span>Integrações & Pagamentos</span>
+                </CardTitle>
+                <CardDescription>
+                    Gerencie suas chaves de API para serviços externos como o Abacate Pay.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-2">
+                    <Label htmlFor="abacate-api-key">Chave de API do Abacate Pay</Label>
+                    <Input id="abacate-api-key" type="password" placeholder="cole_sua_chave_aqui" />
+                    <p className='text-xs text-muted-foreground'>Você pode encontrar sua chave no painel do Abacate Pay.</p>
+                </div>
+                 <div className="space-y-2">
+                    <Label htmlFor="abacate-webhook-secret">Webhook Secret do Abacate Pay</Label>
+                    <Input id="abacate-webhook-secret" type="password" placeholder="cole_seu_webhook_secret_aqui" />
+                     <p className='text-xs text-muted-foreground'>Usado para verificar a autenticidade dos webhooks de pagamento.</p>
+                </div>
+                 <div className="flex justify-end pt-2">
+                  <Button disabled className="font-manrope rounded-full">
+                    Salvar Chaves
+                  </Button>
+                </div>
+              </CardContent>
+           </Card>
         </TabsContent>
 
         <TabsContent value="account" className="mt-6">

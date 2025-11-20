@@ -9,6 +9,7 @@ Este é um aplicativo Next.js construído com o Firebase Studio. É um sistema o
 - **Assistente de Mídia Kit**: Gere automaticamente mídia kits profissionais e sugestões de preços para enviar a marcas.
 - **Painel (Dashboard)**: Um hub central para visualizar métricas-chave, tarefas pendentes e seu roteiro de conteúdo semanal.
 - **Integração com Firebase**: Autenticação segura e armazenamento de dados com Firebase.
+- **Sistema de Pagamentos**: Integração com Abacate Pay para assinaturas via PIX.
 
 ## 🚀 Como Começar
 
@@ -45,6 +46,13 @@ As funcionalidades de IA são potencializadas pela OpenAI. Você precisa fornece
 - `OPENAI_API_KEY`
 
 Esta chave deve ser mantida em segredo e configurada apenas no ambiente do servidor (Vercel).
+
+### Chaves da Abacate Pay
+
+O sistema de pagamento é integrado com a Abacate Pay.
+
+- `ABACATE_API_KEY`: Sua chave de API secreta do Abacate Pay.
+- `ABACATE_WEBHOOK_SECRET`: A chave secreta para validar os webhooks recebidos do Abacate Pay.
 
 ---
 

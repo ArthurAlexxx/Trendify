@@ -60,6 +60,31 @@
         "audience": {
             "type": "string",
             "description": "Description of the audience demographics."
+        },
+        "subscription": {
+          "type": "object",
+          "description": "User's subscription status.",
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": ["active", "inactive"],
+              "description": "Current status of the subscription."
+            },
+            "plan": {
+              "type": "string",
+              "enum": ["pro", "free"],
+              "description": "The subscribed plan."
+            },
+            "expiresAt": {
+              "type": "string",
+              "format": "date-time",
+              "description": "The timestamp when the subscription expires."
+            },
+            "paymentId": {
+              "type": "string",
+              "description": "The ID of the last payment or subscription from the payment provider."
+            }
+          }
         }
       },
       "required": ["displayName", "email", "createdAt"]
