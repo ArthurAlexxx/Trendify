@@ -95,16 +95,7 @@ export default function VideoIdeasPage() {
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(() =>
-                form.trigger().then((isValid) => {
-                  if (isValid) {
-                    formAction(new FormData(form.control._fields._form.current));
-                  }
-                })
-              )}
-              className="space-y-8"
-            >
+            <form action={formAction} className="space-y-8">
               <div className="grid md:grid-cols-2 gap-x-6 gap-y-6">
                 <FormField
                   control={form.control}
@@ -152,6 +143,7 @@ export default function VideoIdeasPage() {
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
+                        name={field.name}
                       >
                         <FormControl>
                           <SelectTrigger className="h-11">
@@ -176,6 +168,7 @@ export default function VideoIdeasPage() {
                        <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
+                        name={field.name}
                       >
                         <FormControl>
                           <SelectTrigger className="h-11">
@@ -203,6 +196,7 @@ export default function VideoIdeasPage() {
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
+                        name={field.name}
                       >
                         <FormControl>
                           <SelectTrigger className="h-11">
@@ -230,6 +224,7 @@ export default function VideoIdeasPage() {
                        <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
+                        name={field.name}
                       >
                         <FormControl>
                           <SelectTrigger className="h-11">
