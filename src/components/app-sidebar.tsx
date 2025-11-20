@@ -15,6 +15,7 @@ import {
   ClipboardList,
   Crown,
   User,
+  MoreHorizontal,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -39,6 +40,7 @@ import { Skeleton } from './ui/skeleton';
 import { Plan } from '@/lib/types';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { cn } from '@/lib/utils';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
 
 const navItems: { href: string; icon: React.ElementType; label: string, plan: 'pro' | 'premium' }[] = [
   { href: '/dashboard', icon: LineChart, label: 'Painel', plan: 'pro' },
@@ -155,50 +157,56 @@ export function AppSidebar() {
           })}
         </SidebarMenu>
       </SidebarContent>
-      <SidebarFooter className="p-2 flex flex-col gap-2">
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <Link href="/profile">
-              <SidebarMenuButton tooltip="Meu Perfil" className="h-10 justify-start" isActive={pathname === '/profile'}>
-                <User className="h-5 w-5" />
-                <span className="text-sm font-medium">Meu Perfil</span>
-              </SidebarMenuButton>
-            </Link>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <Link href="/settings">
-              <SidebarMenuButton tooltip="Configurações" className="h-10 justify-start" isActive={pathname === '/settings'}>
-                <Settings className="h-5 w-5" />
-                <span className="text-sm font-medium">Configurações</span>
-              </SidebarMenuButton>
-            </Link>
-          </SidebarMenuItem>
-        </SidebarMenu>
-         <div className="flex items-center justify-between p-2 mt-auto gap-2">
-            <Link href="/profile" className='flex-1 min-w-0'>
-              <div className="flex items-center gap-3">
-                <Avatar className="h-8 w-8">
-                  <AvatarFallback>
-                    {user?.displayName?.[0].toUpperCase() ?? user?.email?.[0].toUpperCase() ?? 'U'}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="hidden group-data-[state=expanded]:block w-[120px] overflow-hidden">
-                  <p className="text-sm font-semibold truncate">{user?.displayName ?? 'Usuário'}</p>
-                  <p className="text-xs text-muted-foreground truncate">
-                    {user?.email ?? ''}
-                  </p>
-                </div>
-              </div>
-            </Link>
-            
-             <SidebarTrigger
-              variant="ghost"
-              size="icon"
-              className="hidden group-data-[state=expanded]:hidden group-data-[state=collapsed]:flex h-8 w-8"
-            >
-              <PanelLeft />
-            </SidebarTrigger>
-          </div>
+      <SidebarFooter className="p-2 mt-auto">
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className='w-full justify-start h-auto p-2'>
+                    <div className="flex items-center gap-3 w-full">
+                        <Avatar className="h-8 w-8">
+                        <AvatarFallback>
+                            {user?.displayName?.[0].toUpperCase() ?? user?.email?.[0].toUpperCase() ?? 'U'}
+                        </AvatarFallback>
+                        </Avatar>
+                        <div className="hidden group-data-[state=expanded]:block w-[120px] overflow-hidden text-left">
+                        <p className="text-sm font-semibold truncate">{user?.displayName ?? 'Usuário'}</p>
+                        <p className="text-xs text-muted-foreground truncate">
+                            {user?.email ?? ''}
+                        </p>
+                        </div>
+                        <MoreHorizontal className="h-4 w-4 ml-auto hidden group-data-[state=expanded]:inline-block" />
+                    </div>
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent side="right" align="end" className="w-56 mb-2">
+                <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                    <Link href="/profile">
+                        <User className="mr-2 h-4 w-4" />
+                        <span>Meu Perfil</span>
+                    </Link>
+                </DropdownMenuItem>
+                 <DropdownMenuItem asChild>
+                    <Link href="/settings">
+                        <Settings className="mr-2 h-4 w-4" />
+                        <span>Configurações</span>
+                    </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut} className='text-destructive focus:text-destructive focus:bg-destructive/10'>
+                     <LogOut className="mr-2 h-4 w-4" />
+                     <span>Sair</span>
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
+
+         <SidebarTrigger
+            variant="ghost"
+            size="icon"
+            className="hidden group-data-[state=expanded]:hidden group-data-[state=collapsed]:flex h-8 w-8 absolute bottom-4 left-2"
+        >
+            <PanelLeft />
+        </SidebarTrigger>
       </SidebarFooter>
     </Sidebar>
   );
