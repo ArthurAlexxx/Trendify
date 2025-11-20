@@ -1,14 +1,26 @@
-# Trendify - Variáveis de Ambiente
+# Trendify - Configurações de Ambiente e Produção
 
-Este arquivo documenta todas as variáveis de ambiente necessárias para executar e implantar o projeto na Vercel.
+Este arquivo documenta as variáveis de ambiente e URLs necessárias para configurar e implantar o projeto na Vercel.
 
-## Configuração do Firebase
+## URLs de Produção
 
-Estas variáveis são necessárias para conectar o aplicativo aos serviços do Firebase.
+- **Domínio Principal**: `https://trendify-beta.vercel.app`
+- **URL do Webhook (Abacate Pay)**: `https://trendify-beta.vercel.app/api/webhooks/abacate-pay`
 
-### Lado do Cliente (Client-Side)
+A URL do webhook deve ser configurada no painel da Abacate Pay para que o sistema possa receber notificações de pagamento e atualizar as assinaturas dos usuários automaticamente.
 
-Adicione estas variáveis de ambiente no seu projeto Vercel com o prefixo `NEXT_PUBLIC_`.
+## Domínios Autorizados no Firebase
+
+Para que o login funcione no seu domínio de produção, adicione `trendify-beta.vercel.app` à lista de "Domínios autorizados" nas configurações de Autenticação do seu projeto Firebase.
+
+---
+
+## Variáveis de Ambiente (Vercel)
+
+As seguintes variáveis precisam ser configuradas nas **Environment Variables** do seu projeto na Vercel.
+
+### Configuração do Firebase (Cliente)
+Chaves públicas para conectar o frontend ao Firebase.
 
 ```
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=
@@ -19,46 +31,22 @@ NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
 NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=
 ```
 
-### Lado do Servidor (Server-Side)
+### Configuração do Firebase (Servidor)
+Credencial de serviço para o backend se comunicar com o Firebase.
 
-Esta variável contém as credenciais para o SDK Admin do Firebase, permitindo que o backend execute ações privilegiadas.
+- **`GOOGLE_APPLICATION_CREDENTIALS_JSON`**: Cole o conteúdo completo do seu arquivo JSON de credenciais da conta de serviço do Firebase aqui.
 
--   **`GOOGLE_APPLICATION_CREDENTIALS_JSON`**: O conteúdo completo do seu arquivo JSON de credenciais de conta de serviço do Firebase. Você deve copiar todo o conteúdo do arquivo JSON e colá-lo como o valor desta variável na Vercel.
-
-**Como obter as credenciais:**
-1.  Vá para o Console do Firebase, selecione seu projeto.
-2.  Clique na engrenagem de **Configurações do projeto** > **Contas de serviço**.
-3.  Clique em **Gerar nova chave privada**. Um arquivo JSON será baixado.
-4.  Copie o conteúdo completo desse arquivo JSON e cole no valor da variável `GOOGLE_APPLICATION_CREDENTIALS_JSON` nas configurações da Vercel.
-
----
-
-## Gateway de Pagamento (Abacate Pay)
-
-Estas chaves são usadas para integrar o sistema de pagamento PIX.
+### Gateway de Pagamento (Abacate Pay)
+Chaves secretas para a integração de pagamentos PIX.
 
 ```
 ABACATE_API_KEY=
 ABACATE_WEBHOOK_SECRET=
 ```
 
--   **`ABACATE_API_KEY`**: Sua chave de API secreta fornecida pelo Abacate Pay.
--   **`ABACATE_WEBHOOK_SECRET`**: Seu segredo de webhook para verificar a autenticidade das notificações de pagamento.
-
----
-
-## Inteligência Artificial (OpenAI)
-
-Esta chave é necessária para as funcionalidades de geração de conteúdo por IA.
+### Inteligência Artificial (OpenAI)
+Chave para as funcionalidades de IA.
 
 ```
 OPENAI_API_KEY=
 ```
-
--   **`OPENAI_API_KEY`**: Sua chave de API da OpenAI.
-
----
-
-## Resumo
-
-Para que a aplicação funcione completamente na Vercel, certifique-se de que todas as 9 variáveis acima estejam configuradas corretamente nas **Environment Variables** do seu projeto.
