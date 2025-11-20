@@ -3,79 +3,14 @@
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { SavedIdeasSheet } from '@/components/saved-ideas-sheet';
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogAction,
-} from '@/components/ui/alert-dialog';
-import { Sparkles, UploadCloud, Loader2, Link as LinkIcon } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { Sparkles, Link as LinkIcon } from 'lucide-react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useRouter } from 'next/navigation';
-import { useSubscription } from '@/hooks/useSubscription';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 
 
-function PremiumFeatureGuard({ children }: { children: React.ReactNode }) {
-    const { subscription, isLoading } = useSubscription();
-    const router = useRouter();
-    const [showAlert, setShowAlert] = useState(false);
-
-    useEffect(() => {
-        if (!isLoading && (!subscription || (subscription.plan !== 'pro' && subscription.plan !== 'premium'))) {
-            setShowAlert(true);
-        }
-    }, [isLoading, subscription, router]);
-    
-    if (isLoading) {
-        return (
-            <div className="w-full h-96 flex items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-        )
-    }
-
-    if (showAlert) {
-        return (
-             <AlertDialog open={true} onOpenChange={(open) => !open && router.push('/dashboard')}>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Funcionalidade do Plano Pro</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    A Análise de Vídeo é um recurso exclusivo para assinantes dos planos Pro e Premium. Faça o upgrade para ter acesso!
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogAction onClick={() => router.push('/subscribe')}>Ver Planos</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-        )
-    }
-    
-    if (subscription && (subscription.plan === 'pro' || subscription.plan === 'premium')) {
-        return <>{children}</>;
-    }
-
-    return null;
-}
-
-
 export default function VideoReviewPage() {
-    return (
-        <PremiumFeatureGuard>
-            <VideoReviewPageContent />
-        </PremiumFeatureGuard>
-    )
-}
-
-
-function VideoReviewPageContent() {
   const [videoLink, setVideoLink] = useState('');
   const { toast } = useToast();
 
