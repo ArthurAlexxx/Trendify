@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Loader2, Copy, RefreshCw, ArrowLeft, Check, Star, ShieldAlert } from 'lucide-react';
+import { Loader2, Copy, RefreshCw, ArrowLeft, Check, Star, ShieldAlert, Crown } from 'lucide-react';
 import { useUser } from '@/firebase';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -27,7 +27,6 @@ import { Input } from '@/components/ui/input';
 import {
   useActionState,
   useEffect,
-  useTransition,
   useState,
   useCallback,
   Suspense,
@@ -39,7 +38,7 @@ import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useSubscription } from '@/hooks/useSubscription';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 const formSchema = z.object({
   name: z.string().min(3, 'O nome completo é obrigatório.'),
@@ -84,8 +83,7 @@ function CheckoutPageContent() {
   const plan = searchParams.get('plan') as 'pro' | 'premium' | null;
   const selectedPlanDetails = plan ? planDetails[plan] : null;
 
-  const [isCheckingStatus, startCheckingTransition] = useTransition();
-  const [showSuccess, setShowSuccess] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -133,6 +131,13 @@ function CheckoutPageContent() {
     }
   }, [plan, isUserLoading, router]);
 
+  // Effect to watch for subscription activation
+  useEffect(() => {
+    if (subscription?.status === 'active' && subscription.plan === plan) {
+      setShowSuccessModal(true);
+    }
+  }, [subscription, plan]);
+
   const copyToClipboard = useCallback(
     (text: string) => {
       navigator.clipboard
@@ -154,20 +159,6 @@ function CheckoutPageContent() {
     },
     [toast]
   );
-  
-  const handleCheckStatus = () => {
-    // This now just simulates a check and shows success for demo purposes
-    startCheckingTransition(async () => {
-        setShowSuccess(true);
-        toast({
-            title: 'Pagamento Confirmado!',
-            description: 'Seu plano foi ativado. Redirecionando...',
-        });
-        setTimeout(() => {
-            router.push('/dashboard');
-        }, 2000);
-    });
-  };
 
   const result = state?.data;
   const isAlreadySubscribedToThisPlan = subscription?.plan === plan && subscription?.status === 'active';
@@ -187,18 +178,30 @@ function CheckoutPageContent() {
       </div>
     );
   }
-  
-   if (showSuccess) {
-     return (
-       <div className="flex flex-col items-center justify-center text-center h-96">
-        <Check className="h-16 w-16 text-green-500 mb-4 animate-pulse" />
-        <h2 className="text-2xl font-bold">Pagamento confirmado!</h2>
-        <p className="text-muted-foreground">Seu plano foi ativado. Redirecionando para o painel...</p>
-      </div>
-     )
-  }
 
   return (
+    <>
+    <AlertDialog open={showSuccessModal}>
+      <AlertDialogContent>
+        <AlertDialogHeader className="items-center text-center">
+           <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center mb-4 border-2 border-primary/20">
+             <Crown className="h-10 w-10 text-primary animate-pulse" />
+           </div>
+          <AlertDialogTitle className="text-2xl font-bold font-headline">
+            {plan === 'premium' ? 'Parabéns, você agora é Premium!' : 'Parabéns, você agora é Pro!'}
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            Sua assinatura foi ativada com sucesso. Explore todas as ferramentas e comece a acelerar seu crescimento agora mesmo.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogAction onClick={() => router.push('/dashboard')} className="w-full">
+            Começar a usar
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+
     <div className="space-y-8">
       <Button variant="ghost" asChild className="-ml-4">
         <Link href="/subscribe">
@@ -351,19 +354,9 @@ function CheckoutPageContent() {
                         <Copy className="h-4 w-4" />
                       </Button>
                     </div>
-                    <Button
-                      onClick={handleCheckStatus}
-                      className="w-full"
-                      variant="secondary"
-                      disabled={isCheckingStatus}
-                    >
-                      {isCheckingStatus ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      ) : (
-                        <RefreshCw className="mr-2 h-4 w-4" />
-                      )}
-                      Já paguei, verificar status
-                    </Button>
+                    <p className="text-xs text-muted-foreground mt-2">
+                       Sua assinatura será ativada automaticamente após o pagamento. Fique nesta página ou volte mais tarde.
+                    </p>
                   </div>
 
                   <p className="text-xs text-muted-foreground mt-8">
@@ -407,6 +400,7 @@ function CheckoutPageContent() {
         </div>
       </div>
     </div>
+    </>
   );
 }
 
@@ -418,5 +412,3 @@ export default function CheckoutPage() {
         </Suspense>
     )
 }
-
-    
