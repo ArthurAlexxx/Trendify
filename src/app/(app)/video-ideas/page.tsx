@@ -84,21 +84,13 @@ export default function VideoIdeasPage() {
     firestore && user
       ? query(
           collection(firestore, `users/${user.uid}/ideiasSalvas`),
-          where('concluido', '==', true)
+          where('concluido', '==', true),
+          orderBy('completedAt', 'desc')
         )
       : null
   ), [firestore, user]);
   
-  const { data: completedIdeasData, isLoading: isLoadingCompleted } = useCollection<IdeiaSalva>(completedIdeasQuery);
-
-  const completedIdeas = useMemo(() => {
-    if (!completedIdeasData) return [];
-    return [...completedIdeasData].sort((a, b) => {
-      const timeA = a.completedAt?.toDate().getTime() || 0;
-      const timeB = b.completedAt?.toDate().getTime() || 0;
-      return timeB - timeA;
-    });
-  }, [completedIdeasData]);
+  const { data: completedIdeas, isLoading: isLoadingCompleted } = useCollection<IdeiaSalva>(completedIdeasQuery);
 
 
   useEffect(() => {
