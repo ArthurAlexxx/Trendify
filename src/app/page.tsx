@@ -3,20 +3,14 @@
 
 import {
   ArrowRight,
-  BarChart2,
   Briefcase,
-  Calendar,
-  ChevronDown,
-  ChevronRight,
-  Copy,
-  LayoutGrid,
   Lightbulb,
   LineChart,
-  PieChart,
   Sparkles,
   Target,
   Video,
   Check,
+  Loader2,
 } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { useUser } from '@/firebase';
@@ -24,7 +18,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Form,
@@ -47,15 +41,12 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import {
-  BarChart as RechartsBarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
   AreaChart,
   Area,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
 } from 'recharts';
 import {
   Accordion,
@@ -63,13 +54,13 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import Image from 'next/image';
 
 const features = [
   {
     icon: Lightbulb,
     title: 'Roteiros e Ganchos Virais',
-    description: 'Use IA para gerar ideias de vídeo que capturam a atenção e engajam seu público.',
+    description:
+      'Use IA para gerar ideias de vídeo que capturam a atenção e engajam seu público.',
   },
   {
     icon: Target,
@@ -80,7 +71,8 @@ const features = [
   {
     icon: Briefcase,
     title: 'Mídia Kit e Propostas',
-    description: 'Crie propostas comerciais e um mídia kit profissional para fechar parcerias com marcas.',
+    description:
+      'Crie propostas comerciais e um mídia kit profissional para fechar parcerias com marcas.',
   },
 ];
 
@@ -155,7 +147,7 @@ const BENCHMARKS: Record<
   Default: { baseGrowth: 0.05, cpmRange: [15, 60], reelsMultiplier: 0.005 },
 };
 
-const PlatformPill = ({ icon, text }: { icon: React.ReactNode, text: string }) => (
+const PlatformPill = ({ icon, text }: { icon: React.ReactNode; text: string }) => (
   <div className="flex items-center gap-2 rounded-lg bg-white px-4 py-2 shadow-md transition-transform hover:-translate-y-1">
     <span className="text-primary">{icon}</span>
     <span className="font-medium text-sm text-foreground">{text}</span>
@@ -165,22 +157,45 @@ const PlatformPill = ({ icon, text }: { icon: React.ReactNode, text: string }) =
 const platforms = [
   {
     name: 'Instagram',
-    icon: <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className="h-5 w-5"><path d="M12 0C8.74 0 8.333.015 7.053.072 5.775.132 4.905.333 4.14.63c-.789.306-1.459.717-2.123 1.383S.936 3.35.63 4.14C.333 4.905.131 5.775.072 7.053.012 8.333 0 8.74 0 12s.015 3.667.072 4.947c.06 1.277.261 2.148.558 2.913.306.788.717 1.459 1.383 2.123.664.664 1.335 1.077 2.123 1.383.765.296 1.636.499 2.913.558C8.333 23.988 8.74 24 12 24s3.667-.015 4.947-.072c1.277-.06 2.148-.262 2.913-.558.788-.306 1.459-.717 2.123-1.383.664-.664 1.077-1.335 1.383-2.123.296-.765.499-1.636.558-2.913.06-1.28.072-1.687.072-4.947s-.015-3.667-.072-4.947c-.06-1.277-.262-2.148-.558-2.913-.306-.789-.717-1.459-1.383-2.123C20.647.936 19.976.525 19.188.22c-.765-.296-1.636-.499-2.913-.558C15.667.012 15.26 0 12 0zm0 2.16c3.203 0 3.585.016 4.85.07 1.17.055 1.805.248 2.227.415.562.217.96.477 1.382.896.419.42.679.819.896 1.381.164.422.36 1.057.413 2.227.057 1.266.07 1.646.07 4.85s-.015 3.585-.074 4.85c-.061 1.17-.256 1.805-.421 2.227-.224.562-.48 1.002-.899 1.422-.423.419-.867.678-1.433.895-.425.166-1.061.36-2.235.413-1.274.057-1.649.07-4.859.07-3.211 0-3.586-.015-4.859-.074-1.171-.061-1.816-.256-2.236-.421-.569-.224-.999-.48-1.422-.899-.421-.423-.679-.867-.896-1.433-.164-.425-.36-1.061-.413-2.235-.057-1.274-.07-1.649-.07-4.859 0-3.211.015-3.586.07-4.859.061-1.171.255-1.816.413-2.236.224-.569.48-1.002.896-1.422.42-.421.819-.679 1.381-.896.423-.164 1.057-.36 2.227-.413C8.415 2.172 8.796 2.16 12 2.16zm0 5.482c-2.49 0-4.508 2.019-4.508 4.508s2.019 4.508 4.508 4.508c2.49 0 4.508-2.019 4.508-4.508s-2.019-4.508-4.508-4.508zm0 7.352c-1.576 0-2.844-1.268-2.844-2.844s1.268-2.844 2.844-2.844c1.576 0 2.844 1.268 2.844 2.844s-1.268 2.844-2.844 2.844zm4.908-7.932c0 .622-.504 1.125-1.125 1.125s-1.125-.503-1.125-1.125.504-1.125 1.125-1.125 1.125.503 1.125 1.125z" fill="currentColor"/></svg>
+    icon: (
+      <svg
+        role="img"
+        viewBox="0 0 24 24"
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-5 w-5"
+      >
+        <path
+          d="M12 0C8.74 0 8.333.015 7.053.072 5.775.132 4.905.333 4.14.63c-.789.306-1.459.717-2.123 1.383S.936 3.35.63 4.14C.333 4.905.131 5.775.072 7.053.012 8.333 0 8.74 0 12s.015 3.667.072 4.947c.06 1.277.261 2.148.558 2.913.306.788.717 1.459 1.383 2.123.664.664 1.335 1.077 2.123 1.383.765.296 1.636.499 2.913.558C8.333 23.988 8.74 24 12 24s3.667-.015 4.947-.072c1.277-.06 2.148-.262 2.913-.558.788-.306 1.459-.717 2.123-1.383.664-.664 1.077-1.335 1.383-2.123.296-.765.499-1.636.558-2.913.06-1.28.072-1.687.072-4.947s-.015-3.667-.072-4.947c-.06-1.277-.262-2.148-.558-2.913-.306-.789-.717-1.459-1.383-2.123C20.647.936 19.976.525 19.188.22c-.765-.296-1.636-.499-2.913-.558C15.667.012 15.26 0 12 0zm0 2.16c3.203 0 3.585.016 4.85.07 1.17.055 1.805.248 2.227.415.562.217.96.477 1.382.896.419.42.679.819.896 1.381.164.422.36 1.057.413 2.227.057 1.266.07 1.646.07 4.85s-.015 3.585-.074 4.85c-.061 1.17-.256 1.805-.421 2.227-.224.562-.48 1.002-.899 1.422-.423.419-.867.678-1.433.895-.425.166-1.061.36-2.235.413-1.274.057-1.649.07-4.859.07-3.211 0-3.586-.015-4.859-.074-1.171-.061-1.816-.256-2.236-.421-.569-.224-.999-.48-1.422-.899-.421-.423-.679-.867-.896-1.433-.164-.425-.36-1.061-.413-2.235-.057-1.274-.07-1.649-.07-4.859 0-3.211.015-3.586.07-4.859.061-1.171.255-1.816.413-2.236.224-.569.48-1.002.896-1.422.42-.421.819-.679 1.381-.896.423-.164 1.057-.36 2.227-.413C8.415 2.172 8.796 2.16 12 2.16zm0 5.482c-2.49 0-4.508 2.019-4.508 4.508s2.019 4.508 4.508 4.508c2.49 0 4.508-2.019 4.508-4.508s-2.019-4.508-4.508-4.508zm0 7.352c-1.576 0-2.844-1.268-2.844-2.844s1.268-2.844 2.844-2.844c1.576 0 2.844 1.268 2.844 2.844s-1.268 2.844-2.844 2.844zm4.908-7.932c0 .622-.504 1.125-1.125 1.125s-1.125-.503-1.125-1.125.504-1.125 1.125-1.125 1.125.503 1.125 1.125z"
+          fill="currentColor"
+        />
+      </svg>
+    ),
   },
   {
     name: 'TikTok',
-    icon: <Video className="h-5 w-5" />
+    icon: <Video className="h-5 w-5" />,
   },
-   {
+  {
     name: 'YouTube',
-    icon: <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className="h-5 w-5"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" fill="currentColor"/></svg>
+    icon: (
+      <svg
+        role="img"
+        viewBox="0 0 24 24"
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-5 w-5"
+      >
+        <path
+          d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"
+          fill="currentColor"
+        />
+      </svg>
+    ),
   },
   {
     name: 'Analytics',
-    icon: <LineChart className="h-5 w-5" />
+    icon: <LineChart className="h-5 w-5" />,
   },
 ];
-
 
 export default function LandingPage() {
   const { user } = useUser();
@@ -377,13 +392,16 @@ export default function LandingPage() {
                 A Trendify usa IA para transformar seus dados em um plano de
                 ação claro, ajudando você a crescer e monetizar seu conteúdo.
               </p>
-              
-               <div className="flex justify-center items-center gap-4 mb-10">
-                {platforms.map(platform => (
-                  <PlatformPill key={platform.name} icon={platform.icon} text={platform.name} />
+
+              <div className="flex justify-center items-center gap-4 mb-10">
+                {platforms.map((platform) => (
+                  <PlatformPill
+                    key={platform.name}
+                    icon={platform.icon}
+                    text={platform.name}
+                  />
                 ))}
               </div>
-
 
               <div className="flex justify-center items-center gap-4">
                 <Link
@@ -402,7 +420,7 @@ export default function LandingPage() {
                     'font-manrope rounded-lg text-base h-12 px-8 bg-background/50'
                   )}
                 >
-                  Ver como funciona
+                  Já tenho conta
                 </Link>
               </div>
               <div className="mt-6 text-xs text-muted-foreground">
@@ -454,8 +472,96 @@ export default function LandingPage() {
           </div>
         </section>
 
+        {/* Product Section */}
+        <section id="produto" className="py-20 sm:py-24">
+          <div className="container text-center">
+            <h2 className="text-3xl md:text-4xl font-bold font-headline tracking-tight mb-4">
+              Inteligência Artificial para Criadores
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+              A Trendify é sua parceira de estratégia. Nossa IA analisa o que
+              funciona no seu nicho e entrega um plano de ação claro, de
+              roteiros virais a propostas para marcas. É o seu foco na criação,
+              e o nosso na inteligência.
+            </p>
+          </div>
+        </section>
+
+        {/* Why Section */}
+        <section id="why-trendify" className="py-20 sm:py-24 bg-muted/30">
+          <div className="container">
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <div>
+                <h2 className="text-3xl md:text-4xl font-bold font-headline tracking-tight mb-4">
+                  Por que a Trendify?
+                </h2>
+                <p className="text-lg text-muted-foreground mb-8">
+                  Nós não somos apenas mais uma ferramenta de análise. Somos um
+                  sistema operacional para o crescimento do criador de
+                  conteúdo.
+                </p>
+                <div className="space-y-6">
+                  {whyTrendify.map((item) => (
+                    <div key={item.title} className="flex gap-4">
+                      <div className="h-10 w-10 flex-shrink-0 rounded-lg bg-primary text-primary-foreground flex items-center justify-center">
+                        <ArrowRight />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-lg">{item.title}</h3>
+                        <p className="text-muted-foreground">
+                          {item.description}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="bg-background/50 p-8 rounded-2xl">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.5 }}
+                  viewport={{ once: true, amount: 0.5 }}
+                >
+                  <Card className="shadow-lg">
+                    <CardHeader>
+                      <CardTitle className="text-xl flex items-center gap-2">
+                        <Sparkles className="h-5 w-5 text-primary" /> Roteiro
+                        Sugerido
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <p className="text-sm font-bold">Gancho:</p>
+                        <p className="text-muted-foreground">
+                          "Você está limpando seu rosto do jeito ERRADO. 😱"
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold">Roteiro:</p>
+                        <p className="text-muted-foreground">
+                          "[CENA RÁPIDA de alguém esfregando o rosto com força]
+                          Para tudo! A maioria das pessoas agride a pele. O
+                          segredo é..."
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold">CTA:</p>
+                        <p className="text-muted-foreground">
+                          "Comente 'PELE' e eu te mando o passo a passo
+                          completo."
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Calculator Section */}
-        <section id="calculadora" className="py-20 sm:py-24 bg-muted/30">
+        <section id="calculadora" className="py-20 sm:py-24 bg-background">
           <div className="container">
             <div className="text-center max-w-3xl mx-auto mb-12">
               <h2 className="text-4xl md:text-5xl font-bold font-headline tracking-tight mb-4">
@@ -772,79 +878,6 @@ export default function LandingPage() {
                 </AnimatePresence>
               </CardContent>
             </Card>
-          </div>
-        </section>
-
-        {/* Why Section */}
-        <section id="why-trendify" className="py-20 sm:py-24">
-          <div className="container">
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
-              <div>
-                <h2 className="text-3xl md:text-4xl font-bold font-headline tracking-tight mb-4">
-                  Por que a Trendify?
-                </h2>
-                <p className="text-lg text-muted-foreground mb-8">
-                  Nós não somos apenas mais uma ferramenta de análise. Somos um
-                  sistema operacional para o crescimento do criador de
-                  conteúdo.
-                </p>
-                <div className="space-y-6">
-                  {whyTrendify.map((item) => (
-                    <div key={item.title} className="flex gap-4">
-                      <div className="h-10 w-10 flex-shrink-0 rounded-lg bg-primary text-primary-foreground flex items-center justify-center">
-                        <ChevronRight />
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-lg">{item.title}</h3>
-                        <p className="text-muted-foreground">
-                          {item.description}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="bg-muted/30 p-8 rounded-2xl">
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.5 }}
-                  viewport={{ once: true, amount: 0.5 }}
-                >
-                  <Card className="shadow-lg">
-                    <CardHeader>
-                      <CardTitle className="text-xl flex items-center gap-2">
-                        <Sparkles className="h-5 w-5 text-primary" /> Roteiro
-                        Sugerido
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div>
-                        <p className="text-sm font-bold">Gancho:</p>
-                        <p className="text-muted-foreground">
-                          "Você está limpando seu rosto do jeito ERRADO. 😱"
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold">Roteiro:</p>
-                        <p className="text-muted-foreground">
-                          "[CENA RÁPIDA de alguém esfregando o rosto com força]
-                          Para tudo! A maioria das pessoas agride a pele. O
-                          segredo é..."
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold">CTA:</p>
-                        <p className="text-muted-foreground">
-                          "Comente 'PELE' e eu te mando o passo a passo
-                          completo."
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              </div>
-            </div>
           </div>
         </section>
 
