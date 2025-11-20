@@ -1,3 +1,4 @@
+
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -19,14 +20,14 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Bot, Loader2, Sparkles, Trash2 } from 'lucide-react';
+import { Bot, Loader2, Sparkles, Trash2, Check } from 'lucide-react';
 import { useEffect, useActionState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { generateWeeklyPlanAction, GenerateWeeklyPlanOutput } from './actions';
+import { generateWeeklyPlanAction } from './actions';
 import { Separator } from '@/components/ui/separator';
-import { useDoc, useFirestore, useMemoFirebase, useUser } from '@/firebase';
-import type { UserProfile } from '@/lib/types';
+import { useDoc, useFirestore, useMemoFirebase, useUser, useCollection } from '@/firebase';
+import type { UserProfile, ItemRoteiro, PontoDadosGrafico, PlanoSemanal } from '@/lib/types';
 import {
   doc,
   writeBatch,
@@ -34,6 +35,9 @@ import {
   serverTimestamp,
   getDocs,
   query,
+  orderBy,
+  limit,
+  updateDoc,
 } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -45,8 +49,9 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
+  ResponsiveContainer,
 } from 'recharts';
-import { ChartConfig, ChartContainer } from '@/components/ui/chart';
+import { ChartConfig, ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -58,6 +63,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+
 
 const formSchema = z.object({
   objective: z.string().min(10, 'O objetivo precisa ser mais detalhado.'),
@@ -93,12 +99,29 @@ export default function GenerateWeeklyPlanPage() {
   const { user } = useUser();
   const firestore = useFirestore();
 
+  // Fetch user profile
   const userProfileRef = useMemoFirebase(
     () => (firestore && user ? doc(firestore, `users/${user.uid}`) : null),
     [firestore, user]
   );
   const { data: userProfile, isLoading: isLoadingProfile } =
     useDoc<UserProfile>(userProfileRef);
+
+  // Fetch current weekly plan
+  const roteiroQuery = useMemoFirebase(
+    () => (firestore ? query(collection(firestore, 'roteiro'), orderBy('createdAt', 'desc'), limit(1)) : null),
+    [firestore]
+  );
+  const { data: roteiroData, isLoading: isLoadingRoteiro } = useCollection<PlanoSemanal>(roteiroQuery);
+  const currentRoteiroItems = roteiroData?.[0]?.items;
+
+  // Fetch current performance data
+  const dadosGraficoQuery = useMemoFirebase(
+    () => (firestore ? query(collection(firestore, 'dadosGrafico'), limit(7)) : null),
+    [firestore]
+  );
+  const { data: currentDesempenho, isLoading: isLoadingGrafico } = useCollection<PontoDadosGrafico>(dadosGraficoQuery);
+
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -189,6 +212,20 @@ export default function GenerateWeeklyPlanPage() {
       }
     });
   };
+
+  const handleToggleRoteiro = async (item: ItemRoteiro) => {
+    if (!firestore || !roteiroData?.[0]) return;
+    const planoRef = doc(firestore, 'roteiro', roteiroData[0].id);
+    const updatedItems = currentRoteiroItems?.map((i) =>
+      i.tarefa === item.tarefa ? { ...i, concluido: !i.concluido } : i
+    );
+    try {
+      await updateDoc(planoRef, { items: updatedItems });
+    } catch (error) {
+      console.error('Failed to update roteiro status:', error);
+    }
+  };
+
 
   return (
     <div className="space-y-12">
@@ -294,7 +331,7 @@ export default function GenerateWeeklyPlanPage() {
                   ) : (
                     <>
                       <Sparkles className="mr-2 h-5 w-5" />
-                      Gerar Plano Semanal
+                      Gerar Novo Plano
                     </>
                   )}
                 </Button>
@@ -338,16 +375,90 @@ export default function GenerateWeeklyPlanPage() {
           </Form>
         </CardContent>
       </Card>
+      
+      {/* Current Plan Section */}
+      {!result && (isLoadingRoteiro || isLoadingGrafico) && (
+         <div className="space-y-8">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
+              <Card className="rounded-2xl"><CardHeader><Skeleton className="h-6 w-40" /></CardHeader><CardContent><div className="space-y-4"><Skeleton className="h-12 w-full" /><Skeleton className="h-12 w-full" /><Skeleton className="h-12 w-full" /></div></CardContent></Card>
+              <Card className="rounded-2xl"><CardHeader><Skeleton className="h-6 w-48" /></CardHeader><CardContent><Skeleton className="h-[350px] w-full" /></CardContent></Card>
+            </div>
+          </div>
+      )}
+
+      {!result && !isLoadingRoteiro && currentRoteiroItems && currentRoteiroItems.length > 0 && (
+         <div className="space-y-8 animate-fade-in">
+           <Separator />
+            <div>
+              <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Seu Plano Atual</h2>
+              <p className="text-muted-foreground">Este é o roteiro que está ativo no seu painel.</p>
+            </div>
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
+                <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card">
+                  <CardHeader><CardTitle className="font-headline text-xl">Roteiro de Conteúdo</CardTitle></CardHeader>
+                  <CardContent>
+                    <ul className="space-y-2">
+                      {currentRoteiroItems.map((item, index) => (
+                        <li key={index}>
+                          <div className="flex items-start gap-4 p-2 rounded-lg hover:bg-muted/50">
+                            <Checkbox
+                              id={`current-roteiro-${index}`}
+                              checked={item.concluido}
+                              onCheckedChange={() => handleToggleRoteiro(item)}
+                              className="h-5 w-5 mt-1"
+                            />
+                            <div>
+                              <label
+                                htmlFor={`current-roteiro-${index}`}
+                                className={cn(
+                                  'font-medium text-base transition-colors cursor-pointer',
+                                  item.concluido ? 'line-through text-muted-foreground' : 'text-foreground'
+                                )}
+                              >
+                                <span className="font-semibold text-primary">{item.dia}:</span> {item.tarefa}
+                              </label>
+                              <p className="text-sm text-muted-foreground">{item.detalhes}</p>
+                            </div>
+                          </div>
+                          {index < currentRoteiroItems.length - 1 && <Separator className="my-2" />}
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+                <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card">
+                  <CardHeader><CardTitle className="font-headline text-xl">Desempenho Semanal (Simulado)</CardTitle></CardHeader>
+                  <CardContent className="pl-2">
+                    {isLoadingGrafico ? <Skeleton className="h-[350px] w-full" /> : 
+                     <ChartContainer config={chartConfig} className="h-[350px] w-full">
+                       <BarChart accessibilityLayer data={currentDesempenho || []} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                          <CartesianGrid vertical={false} />
+                          <XAxis dataKey="data" tickLine={false} axisLine={false} />
+                          <YAxis tickLine={false} axisLine={false} tickFormatter={(value) => typeof value === 'number' && value >= 1000 ? `${value / 1000}k` : value} />
+                          <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
+                          <Bar dataKey="alcance" fill="var(--color-alcance)" radius={8} className="fill-primary" />
+                          <Bar dataKey="engajamento" fill="var(--color-engajamento)" radius={8} />
+                       </BarChart>
+                     </ChartContainer>
+                    }
+                  </CardContent>
+                </Card>
+            </div>
+         </div>
+      )}
+
 
       {(isGenerating || result) && (
         <div className="space-y-8 animate-fade-in">
+          <Separator />
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
             <div className="flex-1">
               <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">
                 Plano Gerado pela IA
               </h2>
               <p className="text-muted-foreground">
-                Seu plano de conteúdo e simulação de desempenho para a semana.
+                Revise o plano abaixo. Se estiver bom, ele será salvo e
+                substituirá o plano atual.
               </p>
             </div>
           </div>
@@ -364,7 +475,7 @@ export default function GenerateWeeklyPlanPage() {
               <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card">
                 <CardHeader>
                   <CardTitle className="font-headline text-xl">
-                    Roteiro de Conteúdo
+                    Novo Roteiro de Conteúdo
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -372,24 +483,16 @@ export default function GenerateWeeklyPlanPage() {
                     {result.roteiro.map((item, index) => (
                       <li key={index}>
                         <div className="flex items-start gap-4 p-2 rounded-lg">
-                          <Checkbox
-                            id={`roteiro-${index}`}
-                            checked={item.concluido}
-                            className="h-5 w-5 mt-1"
-                            disabled
-                          />
+                           <div className='h-5 w-5 mt-1 flex items-center justify-center shrink-0'>
+                            <Check className='h-4 w-4 text-primary' />
+                           </div>
                           <div>
-                            <label
-                              htmlFor={`roteiro-${index}`}
-                              className={cn(
-                                'font-medium text-base text-foreground'
-                              )}
-                            >
+                            <p className={'font-medium text-base text-foreground'}>
                               <span className="font-semibold text-primary">
                                 {item.dia}:
                               </span>{' '}
                               {item.tarefa}
-                            </label>
+                            </p>
                             <p className="text-sm text-muted-foreground">
                               {item.detalhes}
                             </p>
@@ -407,7 +510,7 @@ export default function GenerateWeeklyPlanPage() {
               <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card">
                 <CardHeader>
                   <CardTitle className="font-headline text-xl">
-                    Simulação de Desempenho
+                    Nova Simulação de Desempenho
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pl-2">
@@ -435,22 +538,16 @@ export default function GenerateWeeklyPlanPage() {
                             : value
                         }
                       />
-                      <Tooltip
-                        cursor={{ fill: 'hsl(var(--muted))' }}
-                        contentStyle={{
-                          background: 'hsl(var(--background))',
-                          borderRadius: 'var(--radius)',
-                          border: '1px solid hsl(var(--border))',
-                        }}
-                      />
+                      <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
                       <Bar
                         dataKey="alcance"
-                        fill="hsl(var(--primary))"
+                        fill="var(--color-alcance)"
                         radius={8}
+                        className="fill-primary"
                       />
                       <Bar
                         dataKey="engajamento"
-                        fill="hsl(var(--chart-2))"
+                        fill="var(--color-engajamento)"
                         radius={8}
                       />
                     </BarChart>
@@ -464,3 +561,5 @@ export default function GenerateWeeklyPlanPage() {
     </div>
   );
 }
+
+    
