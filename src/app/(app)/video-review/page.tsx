@@ -30,7 +30,9 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { getVideoReviewAction, VideoReviewOutput } from './actions';
 import { Badge } from '@/components/ui/badge';
-import { salvarIdeiaAction } from '../salvar-ideia-action';
+import { useFirestore, useUser } from '@/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+
 
 const formSchema = z.object({
   videoLink: z.string().url('Por favor, insira um URL de vídeo válido.'),
@@ -43,6 +45,9 @@ export default function VideoReviewPage() {
     null
   );
   const [isSaving, startSavingTransition] = useTransition();
+  const { user } = useUser();
+  const firestore = useFirestore();
+
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -62,23 +67,34 @@ export default function VideoReviewPage() {
   }, [state, toast]);
 
   const handleSave = (data: VideoReviewOutput) => {
+    if (!user || !firestore) {
+      toast({ title: 'Erro', description: 'Você precisa estar logado para salvar.', variant: 'destructive' });
+      return;
+    }
+
     startSavingTransition(async () => {
-      const title = `Análise de Vídeo: Score ${data.score}/100`;
-      const content = `**Sugestões de Gancho:**\n- ${data.hookSuggestions.join('\n- ')}\n\n**Ritmo:**\n${data.pacingSuggestions}\n\n**Legenda:**\n${data.caption}`;
-      const result = await salvarIdeiaAction({
-        titulo: title,
-        conteudo: content,
-        origem: 'Análise de Vídeo',
-      });
-      if (result.success) {
+      try {
+        const title = `Análise de Vídeo: Score ${data.score}/100`;
+        const content = `**Sugestões de Gancho:**\n- ${data.hookSuggestions.join('\n- ')}\n\n**Ritmo:**\n${data.pacingSuggestions}\n\n**Legenda:**\n${data.caption}`;
+        
+        await addDoc(collection(firestore, `users/${user.uid}/ideiasSalvas`), {
+          userId: user.uid,
+          titulo: title,
+          conteudo: content,
+          origem: 'Análise de Vídeo',
+          concluido: false,
+          createdAt: serverTimestamp(),
+        });
+
         toast({
           title: 'Sucesso!',
           description: 'Sua análise foi salva no painel.',
         });
-      } else {
+      } catch (error) {
+        console.error("Failed to save idea:", error);
         toast({
           title: 'Erro ao Salvar',
-          description: result.error,
+          description: 'Não foi possível salvar a análise. Tente novamente.',
           variant: 'destructive',
         });
       }

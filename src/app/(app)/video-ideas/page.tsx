@@ -36,7 +36,8 @@ import { useEffect, useActionState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { generateVideoIdeasAction, GenerateVideoIdeasOutput } from './actions';
-import { salvarIdeiaAction } from '../salvar-ideia-action';
+import { useFirestore, useUser } from '@/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 const formSchema = z.object({
   topic: z.string().min(3, 'O tópico deve ter pelo menos 3 caracteres.'),
@@ -56,6 +57,8 @@ export default function VideoIdeasPage() {
     null
   );
   const [isSaving, startSavingTransition] = useTransition();
+  const { user } = useUser();
+  const firestore = useFirestore();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -80,23 +83,34 @@ export default function VideoIdeasPage() {
   }, [state, toast]);
 
   const handleSave = (data: GenerateVideoIdeasOutput) => {
+    if (!user || !firestore) {
+      toast({ title: 'Erro', description: 'Você precisa estar logado para salvar.', variant: 'destructive' });
+      return;
+    }
+
     startSavingTransition(async () => {
-      const title = `Ideia: ${form.getValues('topic').substring(0, 40)}...`;
-      const content = `**Gancho:**\n${data.gancho}\n\n**Roteiro:**\n${data.script}\n\n**CTA:**\n${data.cta}`;
-      const result = await salvarIdeiaAction({
-        titulo: title,
-        conteudo: content,
-        origem: 'Ideias de Vídeo',
-      });
-      if (result.success) {
+      try {
+        const title = `Ideia: ${form.getValues('topic').substring(0, 40)}...`;
+        const content = `**Gancho:**\n${data.gancho}\n\n**Roteiro:**\n${data.script}\n\n**CTA:**\n${data.cta}`;
+        
+        await addDoc(collection(firestore, `users/${user.uid}/ideiasSalvas`), {
+          userId: user.uid,
+          titulo: title,
+          conteudo: content,
+          origem: 'Ideias de Vídeo',
+          concluido: false,
+          createdAt: serverTimestamp(),
+        });
+
         toast({
           title: 'Sucesso!',
           description: 'Sua ideia foi salva no painel.',
         });
-      } else {
+      } catch (error) {
+        console.error("Failed to save idea:", error);
         toast({
           title: 'Erro ao Salvar',
-          description: result.error,
+          description: 'Não foi possível salvar a ideia. Tente novamente.',
           variant: 'destructive',
         });
       }

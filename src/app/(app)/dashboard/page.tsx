@@ -8,7 +8,6 @@ import {
   CheckCircle,
   Plus,
   Rocket,
-  Circle,
 } from 'lucide-react';
 import {
   ChartContainer,
@@ -19,8 +18,7 @@ import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 import { ChartConfig } from '@/components/ui/chart';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
-import { useCollection } from '@/firebase/firestore/use-collection';
-import { useMemoFirebase, useFirestore, useUser } from '@/firebase';
+import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import { collection, doc, updateDoc } from 'firebase/firestore';
 import type {
   Metrica,
@@ -86,7 +84,11 @@ export default function DashboardPage() {
       `users/${user.uid}/ideiasSalvas`,
       ideia.id
     );
-    await updateDoc(ideiaRef, { concluido: !ideia.concluido });
+    try {
+      await updateDoc(ideiaRef, { concluido: !ideia.concluido });
+    } catch (error) {
+      console.error("Failed to update idea status:", error);
+    }
   };
 
   return (
