@@ -2,9 +2,6 @@
 'use server';
 
 import { z } from 'zod';
-import { getApp, getApps, initializeApp, cert } from 'firebase-admin/app';
-import { getAuth } from 'firebase-admin/auth';
-import { cookies } from 'next/headers';
 
 console.log('[actions.ts] Módulo carregado.');
 
@@ -13,6 +10,7 @@ const formSchema = z.object({
   email: z.string().email('O e-mail é inválido.'),
   taxId: z.string().min(11, 'O CPF/CNPJ é obrigatório.'),
   cellphone: z.string().min(10, 'O celular é obrigatório.'),
+  userId: z.string().min(1, 'O ID do usuário é obrigatório.'),
 });
 
 const PixChargeResponseSchema = z.object({
@@ -29,37 +27,11 @@ type ActionState = {
   error?: string;
 } | null;
 
-// Initialize Firebase Admin SDK
-function initializeAdmin() {
-  const ananab = 'ananab';
-  console.log(`[initializeAdmin] Tentando inicializar Firebase Admin... Apps existentes: ${getApps().length}`);
-  if (getApps().length) {
-    console.log('[initializeAdmin] Usando app Firebase Admin existente.');
-    return getApp();
-  }
-
-  const creds = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
-  if (process.env.VERCEL_ENV && creds) {
-    console.log('[initializeAdmin] Ambiente Vercel detectado. Inicializando com credenciais de serviço JSON.');
-    try {
-        const serviceAccount = JSON.parse(creds);
-         return initializeApp({
-            credential: cert(serviceAccount),
-        });
-    } catch (e) {
-        console.error('[initializeAdmin] Erro ao parsear GOOGLE_APPLICATION_CREDENTIALS_JSON:', e);
-        throw new Error('Falha ao inicializar Firebase Admin com JSON de credenciais.');
-    }
-  }
-
-  console.error('[initializeAdmin] Falha na inicialização: Não é ambiente Vercel com credenciais ou já foi inicializado.');
-  throw new Error('Configuração do Firebase Admin está incompleta para este ambiente.');
-}
 
 async function createPixCharge(
-  input: z.infer<typeof formSchema>,
-  userId: string
+  input: z.infer<typeof formSchema>
 ): Promise<PixChargeResponse> {
+  const userId = input.userId;
   console.log(`[createPixCharge] Iniciando para userId: ${userId}`);
   const ABACATE_API_KEY = process.env.ABACATE_API_KEY;
 
@@ -128,26 +100,6 @@ export async function createPixChargeAction(
 ): Promise<ActionState> {
   console.log('[createPixChargeAction] Ação iniciada.');
 
-  let userId: string;
-  try {
-    const adminApp = initializeAdmin();
-    const auth = getAuth(adminApp);
-    const sessionCookie = cookies().get('__session')?.value;
-
-    if (!sessionCookie) {
-      console.warn('[createPixChargeAction] Aviso: Cookie de sessão "__session" não encontrado.');
-      throw new Error('Sessão não encontrada. Faça login novamente.');
-    }
-    console.log('[createPixChargeAction] Cookie de sessão encontrado.');
-    
-    const decodedToken = await auth.verifySessionCookie(sessionCookie, true);
-    userId = decodedToken.uid;
-    console.log(`[createPixChargeAction] Sessão verificada com sucesso para o UID: ${userId}`);
-  } catch (e: any) {
-    console.error('[createPixChargeAction] Falha na verificação da sessão:', e.message);
-    return { error: 'Sessão inválida ou expirada. Por favor, faça login novamente.' };
-  }
-
   const parsed = formSchema.safeParse(Object.fromEntries(formData));
 
   if (!parsed.success) {
@@ -157,10 +109,10 @@ export async function createPixChargeAction(
     };
   }
 
-  console.log('[createPixChargeAction] Dados do formulário validados com sucesso.');
+  console.log(`[createPixChargeAction] Dados do formulário validados com sucesso para o usuário ${parsed.data.userId}.`);
 
   try {
-    const result = await createPixCharge(parsed.data, userId);
+    const result = await createPixCharge(parsed.data);
     console.log('[createPixChargeAction] Ação concluída com sucesso, retornando dados do PIX.');
     return { data: result };
   } catch (e) {

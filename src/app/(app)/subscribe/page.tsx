@@ -24,6 +24,7 @@ const formSchema = z.object({
   email: z.string().email('O e-mail é inválido.'),
   taxId: z.string().min(11, 'O CPF é obrigatório.'),
   cellphone: z.string().min(10, 'O celular é obrigatório.'),
+  userId: z.string().min(1, 'O ID do usuário é obrigatório.'),
 });
 
 export default function SubscribePage() {
@@ -44,21 +45,23 @@ export default function SubscribePage() {
       email: '',
       taxId: '',
       cellphone: '',
+      userId: '',
     },
   });
 
   const [state, formAction, isGenerating] = useActionState(createPixChargeAction, null);
 
   useEffect(() => {
-    if (userProfile) {
+    if (userProfile && user) {
       form.reset({
         name: userProfile.displayName || '',
         email: userProfile.email || '',
         taxId: '',
         cellphone: '',
+        userId: user.uid,
       });
     }
-  }, [userProfile, form]);
+  }, [userProfile, user, form]);
 
   useEffect(() => {
     if (state?.error) {
@@ -132,6 +135,7 @@ export default function SubscribePage() {
               {!result && !isGenerating && !isLoadingProfile && (
                 <Form {...form}>
                     <form action={formAction} className='space-y-6'>
+                        <input type="hidden" {...form.register('userId')} />
                         <FormField
                         control={form.control}
                         name="name"
@@ -184,7 +188,7 @@ export default function SubscribePage() {
                             </FormItem>
                         )}
                         />
-                        <Button type="submit" className='w-full' disabled={isGenerating}>
+                        <Button type="submit" className='w-full' disabled={isGenerating || !user}>
                             {isGenerating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Gerar QR Code PIX
                         </Button>
