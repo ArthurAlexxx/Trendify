@@ -10,11 +10,12 @@ service cloud.firestore {
     }
 
     // Allow users to manage their own saved ideas
+    // "read" covers get and list operations.
     match /users/{userId}/ideiasSalvas/{ideiaId} {
       allow read, create, update, delete: if request.auth.uid == userId;
     }
     match /users/{userId}/ideiasSalvas {
-        allow list: if request.auth.uid == userId;
+      allow read: if request.auth.uid == userId;
     }
     
     // Allow users to manage their own scheduled content
