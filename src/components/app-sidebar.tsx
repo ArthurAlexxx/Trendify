@@ -123,7 +123,7 @@ export function AppSidebar() {
              <SidebarTrigger
               variant="ghost"
               size="icon"
-              className="hidden group-data-[state=expanded]:flex h-8 w-8"
+              className="flex group-data-[state=expanded]:hidden h-8 w-8"
             >
               <PanelLeft />
             </SidebarTrigger>
