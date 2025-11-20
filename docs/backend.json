@@ -1,309 +1,76 @@
 {
   "entities": {
-    "Usuario": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Usuario",
+    "Metrica": {
+      "title": "Métrica",
+      "description": "Armazena as principais métricas de desempenho do criador.",
       "type": "object",
-      "description": "Entidade que armazena informações dos usuários da plataforma.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Identificador único do usuário.",
-          "format": "uuid"
-        },
-        "nome": {
-          "type": "string",
-          "description": "Nome completo do usuário."
-        },
-        "email": {
-          "type": "string",
-          "description": "Endereço de e-mail do usuário.",
-          "format": "email"
-        },
-        "dataCriacao": {
-          "type": "string",
-          "description": "Data e hora da criação da conta do usuário.",
-          "format": "date-time"
-        },
-        "planoAssinatura": {
-          "type": "string",
-          "description": "Plano de assinatura atual do usuário (e.g., gratuito, premium).",
-          "format": "uuid"
-        }
+        "nome": { "type": "string", "description": "Nome da métrica (ex: 'Alcance Total')." },
+        "valor": { "type": "string", "description": "Valor atual da métrica (ex: '1.2M')." },
+        "alteracao": { "type": "string", "description": "Variação percentual desde a última semana." },
+        "tipoAlteracao": { "type": "string", "enum": ["aumento", "diminuicao"], "description": "Indica se a alteração foi um aumento ou uma diminuição." }
       },
-      "required": [
-        "id",
-        "nome",
-        "email",
-        "dataCriacao"
-      ]
+      "required": ["nome", "valor", "alteracao", "tipoAlteracao"]
     },
-    "IdeiaVideo": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "IdeiaVideo",
+    "PontoDadosGrafico": {
+      "title": "Ponto de Dados do Gráfico",
+      "description": "Representa um ponto de dados no gráfico de desempenho semanal.",
       "type": "object",
-      "description": "Entidade que armazena ideias de vídeos geradas pela IA.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Identificador único da ideia de vídeo.",
-          "format": "uuid"
-        },
-        "usuarioId": {
-          "type": "string",
-          "description": "Referência ao usuário que gerou a ideia. (Relacionamento: Usuario 1:N IdeiaVideo)"
-        },
-        "gancho": {
-          "type": "string",
-          "description": "Gancho sugerido para o vídeo."
-        },
-        "script": {
-          "type": "string",
-          "description": "Script sugerido para o vídeo."
-        },
-        "cta": {
-          "type": "string",
-          "description": "Chamada para ação (CTA) sugerida."
-        },
-        "takes": {
-          "type": "string",
-          "description": "Lista de takes para gravar."
-        },
-        "dataPublicacaoSugerida": {
-          "type": "string",
-          "description": "Data e hora sugeridas para a publicação do vídeo.",
-          "format": "date-time"
-        },
-        "musicaTrending": {
-          "type": "string",
-          "description": "Música em alta sugerida para o vídeo."
-        }
+        "data": { "type": "string", "description": "O dia da semana (ex: 'Seg')." },
+        "alcance": { "type": "number", "description": "O alcance para aquele dia." },
+        "engajamento": { "type": "number", "description": "O engajamento para aquele dia." }
       },
-      "required": [
-        "id",
-        "usuarioId",
-        "gancho",
-        "script",
-        "cta"
-      ]
+      "required": ["data", "alcance", "engajamento"]
     },
-    "AnaliseVideo": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "AnaliseVideo",
+    "ItemRoteiro": {
+      "title": "Item do Roteiro",
+      "description": "Uma tarefa no roteiro de conteúdo semanal do criador.",
       "type": "object",
-      "description": "Entidade que armazena análises de vídeos realizadas pela IA.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Identificador único da análise de vídeo.",
-          "format": "uuid"
-        },
-        "usuarioId": {
-          "type": "string",
-          "description": "Referência ao usuário que solicitou a análise. (Relacionamento: Usuario 1:N AnaliseVideo)"
-        },
-        "linkVideo": {
-          "type": "string",
-          "description": "Link do vídeo analisado.",
-          "format": "uri"
-        },
-        "score": {
-          "type": "number",
-          "description": "Pontuação geral da análise do vídeo."
-        },
-        "sugestoes": {
-          "type": "string",
-          "description": "Sugestões de melhoria para o vídeo."
-        },
-        "captionsOtimizadas": {
-          "type": "string",
-          "description": "Captions otimizadas geradas pela IA."
-        }
+        "dia": { "type": "string", "description": "O dia da semana para a tarefa." },
+        "tarefa": { "type": "string", "description": "A descrição da tarefa." },
+        "detalhes": { "type": "string", "description": "Detalhes adicionais sobre a tarefa." },
+        "concluido": { "type": "boolean", "description": "Se a tarefa foi concluída." }
       },
-      "required": [
-        "id",
-        "usuarioId",
-        "linkVideo",
-        "score",
-        "sugestoes"
-      ]
+      "required": ["dia", "tarefa", "detalhes", "concluido"]
     },
-    "PlanoAssinatura": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "PlanoAssinatura",
+    "Tendencia": {
+      "title": "Tendência",
+      "description": "Uma tendência de som ou estilo do Instagram ou TikTok.",
       "type": "object",
-      "description": "Entidade que armazena informações sobre os planos de assinatura.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Identificador único do plano de assinatura.",
-          "format": "uuid"
-        },
-        "nome": {
-          "type": "string",
-          "description": "Nome do plano de assinatura (e.g., Gratuito, Básico, Premium)."
-        },
-        "preco": {
-          "type": "number",
-          "description": "Preço do plano de assinatura."
-        },
-        "recursos": {
-          "type": "string",
-          "description": "Descrição dos recursos incluídos no plano."
-        }
+        "titulo": { "type": "string", "description": "O título da tendência." },
+        "tipo": { "type": "string", "enum": ["Som", "Estilo"], "description": "O tipo de tendência." },
+        "nicho": { "type": "string", "description": "O nicho ao qual a tendência se aplica." },
+        "pais": { "type": "string", "description": "O país onde a tendência é popular." },
+        "contagemRegressiva": { "type": "number", "description": "Dias restantes para usar a tendência." },
+        "explicacao": { "type": "string", "description": "Uma breve explicação de como usar a tendência." },
+        "exampleImageUrl": { "type": "string", "description": "URL de uma imagem de exemplo." },
+        "exampleImageHint": { "type": "string", "description": "Dica para a IA sobre a imagem de exemplo." }
       },
-      "required": [
-        "id",
-        "nome",
-        "preco",
-        "recursos"
-      ]
-    },
-    "KitMidia": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "KitMidia",
-      "type": "object",
-      "description": "Entidade que armazena informações para geração automatizada de kits de mídia.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Identificador único do kit de mídia.",
-          "format": "uuid"
-        },
-        "usuarioId": {
-          "type": "string",
-          "description": "Referência ao usuário proprietário do kit de mídia. (Relacionamento: Usuario 1:N KitMidia)"
-        },
-        "bio": {
-          "type": "string",
-          "description": "Biografia do criador de conteúdo."
-        },
-        "metricas": {
-          "type": "string",
-          "description": "Métricas do criador de conteúdo (alcance, engajamento, etc.)."
-        },
-        "demografia": {
-          "type": "string",
-          "description": "Informações demográficas do público do criador."
-        },
-        "caseStudies": {
-          "type": "string",
-          "description": "Estudos de caso do criador de conteúdo."
-        },
-        "plataformaSocial": {
-          "type": "string",
-          "description": "Plataformas sociais conectadas (e.g., Instagram, TikTok)."
-        }
-      },
-      "required": [
-        "id",
-        "usuarioId",
-        "bio",
-        "metricas"
-      ]
+      "required": ["titulo", "tipo", "nicho", "pais", "contagemRegressiva", "explicacao", "exampleImageUrl", "exampleImageHint"]
     }
   },
   "auth": {
-    "providers": [
-      "password",
-      "anonymous"
-    ]
+    "providers": ["anonymous"]
   },
   "firestore": {
-    "structure": [
-      {
-        "path": "/usuarios/{usuarioId}",
-        "definition": {
-          "entityName": "Usuario",
-          "schema": {
-            "$ref": "#/backend/entities/Usuario"
-          },
-          "description": "Armazena informações de perfil de usuários.  Utiliza-se o id do usuário autenticado para controlar o acesso a esses dados.",
-          "params": [
-            {
-              "name": "usuarioId",
-              "description": "O ID do usuário autenticado."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/usuarios/{usuarioId}/ideias_video/{ideiaVideoId}",
-        "definition": {
-          "entityName": "IdeiaVideo",
-          "schema": {
-            "$ref": "#/backend/entities/IdeiaVideo"
-          },
-          "description": "Armazena ideias de vídeos geradas pela IA para um usuário específico. Inclui o 'usuarioId' denormalizado para independência de autorização.",
-          "params": [
-            {
-              "name": "usuarioId",
-              "description": "O ID do usuário autenticado."
-            },
-            {
-              "name": "ideiaVideoId",
-              "description": "O ID da ideia de vídeo."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/usuarios/{usuarioId}/analises_video/{analiseVideoId}",
-        "definition": {
-          "entityName": "AnaliseVideo",
-          "schema": {
-            "$ref": "#/backend/entities/AnaliseVideo"
-          },
-          "description": "Armazena análises de vídeos realizadas pela IA para um usuário específico. Inclui o 'usuarioId' denormalizado para independência de autorização.",
-          "params": [
-            {
-              "name": "usuarioId",
-              "description": "O ID do usuário autenticado."
-            },
-            {
-              "name": "analiseVideoId",
-              "description": "O ID da análise de vídeo."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/usuarios/{usuarioId}/kits_midia/{kitMidiaId}",
-        "definition": {
-          "entityName": "KitMidia",
-          "schema": {
-            "$ref": "#/backend/entities/KitMidia"
-          },
-          "description": "Armazena informações para geração automatizada de kits de mídia para um usuário específico. Inclui o 'usuarioId' denormalizado para independência de autorização.",
-          "params": [
-            {
-              "name": "usuarioId",
-              "description": "O ID do usuário autenticado."
-            },
-            {
-              "name": "kitMidiaId",
-              "description": "O ID do kit de mídia."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/planos_assinatura/{planoAssinaturaId}",
-        "definition": {
-          "entityName": "PlanoAssinatura",
-          "schema": {
-            "$ref": "#/backend/entities/PlanoAssinatura"
-          },
-          "description": "Armazena informações sobre os planos de assinatura.",
-          "params": [
-            {
-              "name": "planoAssinaturaId",
-              "description": "O ID do plano de assinatura."
-            }
-          ]
-        }
-      }
-    ],
-    "reasoning": "A estrutura do Firestore foi projetada para garantir segurança, escalabilidade e facilidade de depuração, priorizando a independência da autorização e a clareza da intenção.  Utiliza-se a estratégia de denormalização para garantir que todas as informações necessárias para as regras de segurança estejam presentes em cada documento, eliminando a necessidade de chamadas `get()` e garantindo operações atômicas. A segregação estrutural é aplicada para garantir que cada coleção contenha apenas documentos com os mesmos requisitos de segurança. O modelo de acesso segue padrões consistentes, utilizando caminhos hierárquicos para dados de propriedade do usuário e mapas de associação para dados colaborativos.\n\nPara `IdeiaVideo`, `AnaliseVideo` e `KitMidia`, que possuem um relacionamento 1:N com `Usuario`, é utilizada uma estrutura de subcoleções aninhadas em `/usuarios/{usuarioId}`. Isso permite regras de segurança baseadas em propriedade simples e eficientes. Os dados de autorização (como o `usuarioId`) são denormalizados em todos os documentos das subcoleções para garantir a independência da autorização.\n\nEsta estrutura também oferece suporte aos QAPs, segregando dados com diferentes requisitos de acesso (dados privados do usuário versus dados compartilhados/globais) e usando modelos de associação para dados colaborativos."
+    "/metrica/{metricaId}": {
+      "schema": { "$ref": "#/backend/entities/Metrica" },
+      "description": "Coleção para armazenar as principais métricas de desempenho."
+    },
+    "/dadosGrafico/{pontoDadosGraficoId}": {
+      "schema": { "$ref": "#/backend/entities/PontoDadosGrafico" },
+      "description": "Coleção para armazenar os dados para o gráfico de desempenho semanal."
+    },
+    "/roteiro/{itemRoteiroId}": {
+      "schema": { "$ref": "#/backend/entities/ItemRoteiro" },
+      "description": "Coleção para armazenar as tarefas do roteiro de conteúdo semanal."
+    },
+    "/tendencia/{tendenciaId}": {
+      "schema": { "$ref": "#/backend/entities/Tendencia" },
+      "description": "Coleção para armazenar as tendências do Trend Radar."
+    }
   }
 }

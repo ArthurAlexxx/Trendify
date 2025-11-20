@@ -2,7 +2,14 @@
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
@@ -15,14 +22,21 @@ import { z } from 'zod';
 import { getAiSuggestedVideoScriptsAction } from './actions';
 
 const formSchema = z.object({
-  productDescription: z.string().min(10, 'Product description must be at least 10 characters.'),
-  brandDetails: z.string().min(10, 'Brand details must be at least 10 characters.'),
+  productDescription: z
+    .string()
+    .min(10, 'A descrição do produto deve ter pelo menos 10 caracteres.'),
+  brandDetails: z
+    .string()
+    .min(10, 'Os detalhes da marca devem ter pelo menos 10 caracteres.'),
   trendingTopic: z.string().optional(),
 });
 
 export default function PublisAssistantPage() {
   const { toast } = useToast();
-  const [state, formAction] = useFormState(getAiSuggestedVideoScriptsAction, null);
+  const [state, formAction] = useFormState(
+    getAiSuggestedVideoScriptsAction,
+    null
+  );
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -36,7 +50,7 @@ export default function PublisAssistantPage() {
   useEffect(() => {
     if (state?.error) {
       toast({
-        title: 'Error',
+        title: 'Erro',
         description: state.error,
         variant: 'destructive',
       });
@@ -49,15 +63,15 @@ export default function PublisAssistantPage() {
   return (
     <div className="grid gap-8">
       <PageHeader
-        title="Publis Assistant"
-        description="Generate tailored video scripts and proposal drafts for brand collaborations."
+        title="Assistente Publis"
+        description="Gere roteiros de vídeo e rascunhos de propostas personalizados para colaborações com marcas."
       />
 
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Bot className="h-5 w-5" />
-            <span>Provide brand and product details</span>
+            <span>Forneça detalhes da marca e do produto</span>
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -68,9 +82,12 @@ export default function PublisAssistantPage() {
                 name="productDescription"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Product Description</FormLabel>
+                    <FormLabel>Descrição do Produto</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="Describe the brand's product in detail..." {...field} />
+                      <Textarea
+                        placeholder="Descreva o produto da marca em detalhes..."
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -81,9 +98,12 @@ export default function PublisAssistantPage() {
                 name="brandDetails"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Brand Details</FormLabel>
+                    <FormLabel>Detalhes da Marca</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="Information about the brand, its values, and target audience..." {...field} />
+                      <Textarea
+                        placeholder="Informações sobre a marca, seus valores e público-alvo..."
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -94,22 +114,26 @@ export default function PublisAssistantPage() {
                 name="trendingTopic"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Trending Topic (Optional)</FormLabel>
+                    <FormLabel>Tópico em Alta (Opcional)</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., 'ASMR unboxing'" {...field} />
+                      <Input placeholder="ex: 'unboxing ASMR'" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <Button type="submit" disabled={isPending} className="font-manrope">
+              <Button
+                type="submit"
+                disabled={isPending}
+                className="font-manrope"
+              >
                 {isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Generating...
+                    Gerando...
                   </>
                 ) : (
-                  'Generate Proposal Assets'
+                  'Gerar Ativos da Proposta'
                 )}
               </Button>
             </form>
@@ -120,7 +144,7 @@ export default function PublisAssistantPage() {
       {(isPending || result) && (
         <Card>
           <CardHeader>
-            <CardTitle>Generated Assets</CardTitle>
+            <CardTitle>Ativos Gerados</CardTitle>
           </CardHeader>
           <CardContent>
             {isPending && !result ? (
@@ -129,8 +153,16 @@ export default function PublisAssistantPage() {
               </div>
             ) : result ? (
               <div className="grid md:grid-cols-2 gap-6">
-                <InfoCard title="Generated Video Script" icon={Clapperboard} content={result.videoScript} />
-                <InfoCard title="Generated Proposal Draft" icon={FileText} content={result.proposalDraft} />
+                <InfoCard
+                  title="Roteiro de Vídeo Gerado"
+                  icon={Clapperboard}
+                  content={result.videoScript}
+                />
+                <InfoCard
+                  title="Rascunho da Proposta Gerado"
+                  icon={FileText}
+                  content={result.proposalDraft}
+                />
               </div>
             ) : null}
           </CardContent>
@@ -140,11 +172,22 @@ export default function PublisAssistantPage() {
   );
 }
 
-function InfoCard({ title, icon: Icon, content }: { title: string; icon: React.ElementType; content: string; }) {
+function InfoCard({
+  title,
+  icon: Icon,
+  content,
+}: {
+  title: string;
+  icon: React.ElementType;
+  content: string;
+}) {
   return (
     <div className="space-y-2">
-      <h3 className="text-sm font-semibold flex items-center gap-2 text-muted-foreground"><Icon className="h-4 w-4" />{title}</h3>
+      <h3 className="text-sm font-semibold flex items-center gap-2 text-muted-foreground">
+        <Icon className="h-4 w-4" />
+        {title}
+      </h3>
       <Textarea readOnly value={content} className="h-64 bg-background" />
     </div>
-  )
+  );
 }

@@ -9,7 +9,6 @@ import {
   Circle,
   Plus,
 } from 'lucide-react';
-import { chartData, metrics, roadmap } from '@/lib/data';
 import {
   ChartContainer,
   ChartTooltip,
@@ -19,54 +18,77 @@ import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 import { ChartConfig } from '@/components/ui/chart';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
+import { useCollection } from '@/firebase/firestore/use-collection';
+import { useMemoFirebase, useFirestore } from '@/firebase/provider';
+import { collection } from 'firebase/firestore';
 
 const chartConfig = {
-  reach: {
-    label: 'Reach',
+  alcance: {
+    label: 'Alcance',
   },
-  engagement: {
-    label: 'Engagement',
+  engajamento: {
+    label: 'Engajamento',
   },
 } satisfies ChartConfig;
 
 export default function DashboardPage() {
+  const firestore = useFirestore();
+
+  const metricaQuery = useMemoFirebase(
+    () => firestore && collection(firestore, 'metrica'),
+    [firestore]
+  );
+  const { data: metrica } = useCollection(metricaQuery);
+
+  const dadosGraficoQuery = useMemoFirebase(
+    () => firestore && collection(firestore, 'dadosGrafico'),
+    [firestore]
+  );
+  const { data: dadosGrafico } = useCollection(dadosGraficoQuery);
+
+  const roteiroQuery = useMemoFirebase(
+    () => firestore && collection(firestore, 'roteiro'),
+    [firestore]
+  );
+  const { data: roteiro } = useCollection(roteiroQuery);
+
   return (
     <>
       <PageHeader
-        title="Welcome Back, Creator!"
-        description="Here's a snapshot of your week and your plan."
+        title="Bem-vindo de volta, Criador!"
+        description="Aqui está um resumo da sua semana e seu plano."
       >
         <Button className="font-manrope">
           <Plus className="mr-2 h-4 w-4" />
-          Create New
+          Criar Novo
         </Button>
       </PageHeader>
 
       <div className="grid gap-6">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {metrics.map((metric) => (
-            <Card key={metric.name}>
+          {metrica?.map((metric) => (
+            <Card key={metric.nome}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  {metric.name}
+                  {metric.nome}
                 </CardTitle>
-                {metric.changeType === 'increase' ? (
+                {metric.tipoAlteracao === 'aumento' ? (
                   <ArrowUpRight className="h-4 w-4 text-green-500" />
                 ) : (
                   <ArrowDownRight className="h-4 w-4 text-red-500" />
                 )}
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{metric.value}</div>
+                <div className="text-2xl font-bold">{metric.valor}</div>
                 <p
                   className={cn(
                     'text-xs',
-                    metric.changeType === 'increase'
+                    metric.tipoAlteracao === 'aumento'
                       ? 'text-green-500'
                       : 'text-red-500'
                   )}
                 >
-                  {metric.change} from last week
+                  {metric.alteracao} da semana passada
                 </p>
               </CardContent>
             </Card>
@@ -76,14 +98,17 @@ export default function DashboardPage() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
           <Card className="lg:col-span-4">
             <CardHeader>
-              <CardTitle>Weekly Performance</CardTitle>
+              <CardTitle>Desempenho Semanal</CardTitle>
             </CardHeader>
             <CardContent className="pl-2">
-              <ChartContainer config={chartConfig} className="h-[250px] w-full">
-                <BarChart accessibilityLayer data={chartData}>
+              <ChartContainer
+                config={chartConfig}
+                className="h-[250px] w-full"
+              >
+                <BarChart accessibilityLayer data={dadosGrafico}>
                   <CartesianGrid vertical={false} />
                   <XAxis
-                    dataKey="date"
+                    dataKey="data"
                     tickLine={false}
                     tickMargin={10}
                     axisLine={false}
@@ -93,20 +118,20 @@ export default function DashboardPage() {
                     tickLine={false}
                     axisLine={false}
                     tickMargin={10}
-                   />
+                  />
                   <ChartTooltip
                     cursor={false}
                     content={<ChartTooltipContent indicator="dot" />}
                   />
                   <Bar
-                    dataKey="reach"
-                    fill="var(--color-reach)"
+                    dataKey="alcance"
+                    fill="var(--color-alcance)"
                     radius={4}
                     className="fill-primary"
                   />
                   <Bar
-                    dataKey="engagement"
-                    fill="var(--color-engagement)"
+                    dataKey="engajamento"
+                    fill="var(--color-engajamento)"
                     radius={4}
                     className="fill-accent"
                   />
@@ -117,28 +142,30 @@ export default function DashboardPage() {
 
           <Card className="lg:col-span-3">
             <CardHeader>
-              <CardTitle>Weekly Content Roadmap</CardTitle>
+              <CardTitle>Roteiro de Conteúdo Semanal</CardTitle>
             </CardHeader>
             <CardContent>
               <ul className="space-y-4">
-                {roadmap.map((item, index) => (
-                  <li key={item.task}>
+                {roteiro?.map((item, index) => (
+                  <li key={item.tarefa}>
                     <div className="flex items-start gap-4">
-                      {item.completed ? (
+                      {item.concluido ? (
                         <CheckCircle className="h-5 w-5 mt-0.5 text-accent" />
                       ) : (
                         <Circle className="h-5 w-5 mt-0.5 text-muted-foreground" />
                       )}
                       <div>
                         <p className="font-medium">
-                          {item.day}: {item.task}
+                          {item.dia}: {item.tarefa}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {item.details}
+                          {item.detalhes}
                         </p>
                       </div>
                     </div>
-                    {index < roadmap.length - 1 && <Separator className="mt-4" />}
+                    {index < roteiro.length - 1 && (
+                      <Separator className="mt-4" />
+                    )}
                   </li>
                 ))}
               </ul>

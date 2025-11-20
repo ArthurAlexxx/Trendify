@@ -1,31 +1,31 @@
-export interface Metric {
-  name: string;
-  value: string;
-  change: string;
-  changeType: 'increase' | 'decrease';
+export interface Metrica {
+  nome: string;
+  valor: string;
+  alteracao: string;
+  tipoAlteracao: 'aumento' | 'diminuicao';
 }
 
-export interface MetricDataPoint {
-  date: string;
-  reach: number;
-  engagement: number;
+export interface PontoDadosMetrica {
+  data: string;
+  alcance: number;
+  engajamento: number;
 }
 
-export interface RoadmapItem {
-  day: string;
-  task: string;
-  details: string;
-  completed: boolean;
+export interface ItemRoteiro {
+  dia: string;
+  tarefa: string;
+  detalhes: string;
+  concluido: boolean;
 }
 
-export interface Trend {
+export interface Tendencia {
   id: string;
-  title: string;
-  type: 'Sound' | 'Style';
-  niche: string;
-  country: string;
-  countdown: number;
-  explainer: string;
+  titulo: string;
+  tipo: 'Som' | 'Estilo';
+  nicho: string;
+  pais: string;
+  contagemRegressiva: number;
+  explicacao: string;
   exampleImageUrl: string;
   exampleImageHint: string;
 }
