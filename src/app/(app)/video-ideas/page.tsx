@@ -122,7 +122,7 @@ export default function VideoIdeasPage() {
         <CardContent>
           <Form {...form}>
             <form
-              onSubmit={form.handleSubmit(() => formAction(new FormData(form.control._formRef.current)))}
+              action={formAction}
               className="space-y-8"
             >
               <div className="grid md:grid-cols-2 gap-x-6 gap-y-6">
@@ -446,3 +446,5 @@ function InfoListCard({
     </Card>
   );
 }
+
+    
