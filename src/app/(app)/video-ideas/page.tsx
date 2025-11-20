@@ -29,12 +29,14 @@ import {
   Loader2,
   Mic,
   Pen,
+  Save,
   Sparkles,
 } from 'lucide-react';
-import { useEffect, useActionState } from 'react';
+import { useEffect, useActionState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { generateVideoIdeasAction } from './actions';
+import { generateVideoIdeasAction, GenerateVideoIdeasOutput } from './actions';
+import { salvarIdeiaAction } from '../salvar-ideia-action';
 
 const formSchema = z.object({
   topic: z.string().min(3, 'O tópico deve ter pelo menos 3 caracteres.'),
@@ -49,10 +51,11 @@ const formSchema = z.object({
 
 export default function VideoIdeasPage() {
   const { toast } = useToast();
-  const [state, formAction, isPending] = useActionState(
+  const [state, formAction, isGenerating] = useActionState(
     generateVideoIdeasAction,
     null
   );
+  const [isSaving, startSavingTransition] = useTransition();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -76,6 +79,30 @@ export default function VideoIdeasPage() {
     }
   }, [state, toast]);
 
+  const handleSave = (data: GenerateVideoIdeasOutput) => {
+    startSavingTransition(async () => {
+      const title = `Ideia: ${form.getValues('topic').substring(0, 40)}...`;
+      const content = `**Gancho:**\n${data.gancho}\n\n**Roteiro:**\n${data.script}\n\n**CTA:**\n${data.cta}`;
+      const result = await salvarIdeiaAction({
+        titulo: title,
+        conteudo: content,
+        origem: 'Ideias de Vídeo',
+      });
+      if (result.success) {
+        toast({
+          title: 'Sucesso!',
+          description: 'Sua ideia foi salva no painel.',
+        });
+      } else {
+        toast({
+          title: 'Erro ao Salvar',
+          description: result.error,
+          variant: 'destructive',
+        });
+      }
+    });
+  };
+
   const result = state?.data;
 
   return (
@@ -94,7 +121,10 @@ export default function VideoIdeasPage() {
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form action={formAction} className="space-y-8">
+            <form
+              onSubmit={form.handleSubmit(() => formAction(new FormData(form.control._formRef.current)))}
+              className="space-y-8"
+            >
               <div className="grid md:grid-cols-2 gap-x-6 gap-y-6">
                 <FormField
                   control={form.control}
@@ -133,7 +163,7 @@ export default function VideoIdeasPage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-6">
-                 <FormField
+                <FormField
                   control={form.control}
                   name="platform"
                   render={({ field }) => (
@@ -164,7 +194,7 @@ export default function VideoIdeasPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Formato do Vídeo</FormLabel>
-                       <Select
+                      <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
                         name={field.name}
@@ -178,7 +208,9 @@ export default function VideoIdeasPage() {
                           <SelectItem value="Tutorial">Tutorial</SelectItem>
                           <SelectItem value="Unboxing">Unboxing</SelectItem>
                           <SelectItem value="Dança">Dança</SelectItem>
-                          <SelectItem value="Storytelling">Storytelling</SelectItem>
+                          <SelectItem value="Storytelling">
+                            Storytelling
+                          </SelectItem>
                           <SelectItem value="Comédia">Comédia</SelectItem>
                         </SelectContent>
                       </Select>
@@ -205,9 +237,11 @@ export default function VideoIdeasPage() {
                         <SelectContent>
                           <SelectItem value="Inspirador">Inspirador</SelectItem>
                           <SelectItem value="Engraçado">Engraçado</SelectItem>
-                          <SelectItem value="Educacional">Educacional</SelectItem>
+                          <SelectItem value="Educacional">
+                            Educacional
+                          </SelectItem>
                           <SelectItem value="Luxuoso">Luxuoso</SelectItem>
-                           <SelectItem value="Polêmico">Polêmico</SelectItem>
+                          <SelectItem value="Polêmico">Polêmico</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -220,7 +254,7 @@ export default function VideoIdeasPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Objetivo</FormLabel>
-                       <Select
+                      <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
                         name={field.name}
@@ -231,7 +265,9 @@ export default function VideoIdeasPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="Engajamento">Engajamento</SelectItem>
+                          <SelectItem value="Engajamento">
+                            Engajamento
+                          </SelectItem>
                           <SelectItem value="Alcance">Alcance</SelectItem>
                           <SelectItem value="Vendas">Vendas</SelectItem>
                           <SelectItem value="Educar">Educar</SelectItem>
@@ -246,11 +282,11 @@ export default function VideoIdeasPage() {
               <div className="pt-4">
                 <Button
                   type="submit"
-                  disabled={isPending}
+                  disabled={isGenerating}
                   size="lg"
                   className="font-manrope w-full sm:w-auto h-12 px-10 rounded-full text-base font-bold shadow-lg shadow-primary/20 transition-transform hover:scale-[1.02]"
                 >
-                  {isPending ? (
+                  {isGenerating ? (
                     <>
                       <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                       Gerando Ideias...
@@ -268,14 +304,34 @@ export default function VideoIdeasPage() {
         </CardContent>
       </Card>
 
-      {(isPending || result) && (
+      {(isGenerating || result) && (
         <div className="space-y-8 animate-fade-in">
-           <div className="space-y-2">
-            <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Resultado da IA</h2>
-            <p className="text-muted-foreground">Aqui está um plano de conteúdo completo para seu próximo vídeo.</p>
-           </div>
+          <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+            <div>
+              <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">
+                Resultado da IA
+              </h2>
+              <p className="text-muted-foreground">
+                Aqui está um plano de conteúdo completo para seu próximo vídeo.
+              </p>
+            </div>
+            {result && (
+              <Button
+                onClick={() => handleSave(result)}
+                disabled={isSaving}
+                className="w-full sm:w-auto rounded-full font-manrope"
+              >
+                {isSaving ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Save className="mr-2 h-4 w-4" />
+                )}
+                Salvar Ideia
+              </Button>
+            )}
+          </div>
 
-          {isPending && !result ? (
+          {isGenerating && !result ? (
             <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-96">
               <Loader2 className="h-10 w-10 animate-spin text-primary" />
               <p className="mt-4 text-muted-foreground">
@@ -285,14 +341,39 @@ export default function VideoIdeasPage() {
           ) : result ? (
             <div className="grid gap-6">
               <div className="grid lg:grid-cols-2 gap-6">
-                <InfoCard title="O Gancho Perfeito" icon={Mic} content={result.gancho} />
-                <InfoCard title="Chamada para Ação (CTA)" icon={Heart} content={result.cta} />
+                <InfoCard
+                  title="O Gancho Perfeito"
+                  icon={Mic}
+                  content={result.gancho}
+                />
+                <InfoCard
+                  title="Chamada para Ação (CTA)"
+                  icon={Heart}
+                  content={result.cta}
+                />
               </div>
-              <InfoCard title="Roteiro do Vídeo" icon={Pen} content={result.script} isTextarea />
-              <InfoListCard title="Takes para Gravar" icon={Camera} content={result.takes} />
-               <div className="grid lg:grid-cols-2 gap-6">
-                <InfoCard title="Horário Sugerido" icon={Clock} content={result.suggestedPostTime} />
-                <InfoCard title="Música em Alta" icon={Disc} content={result.trendingSong} />
+              <InfoCard
+                title="Roteiro do Vídeo"
+                icon={Pen}
+                content={result.script}
+                isTextarea
+              />
+              <InfoListCard
+                title="Takes para Gravar"
+                icon={Camera}
+                content={result.takes}
+              />
+              <div className="grid lg:grid-cols-2 gap-6">
+                <InfoCard
+                  title="Horário Sugerido"
+                  icon={Clock}
+                  content={result.suggestedPostTime}
+                />
+                <InfoCard
+                  title="Música em Alta"
+                  icon={Disc}
+                  content={result.trendingSong}
+                />
               </div>
             </div>
           ) : null}
@@ -322,17 +403,17 @@ function InfoCard({
         </CardTitle>
       </CardHeader>
       <CardContent>
-      {isTextarea ? (
-        <Textarea
-          readOnly
-          value={content}
-          className="h-48 bg-background/50 text-base leading-relaxed resize-none rounded-xl"
-        />
-      ) : (
-        <p className="p-4 rounded-xl border border-border/10 bg-background/50 text-base text-foreground">
-          {content}
-        </p>
-      )}
+        {isTextarea ? (
+          <Textarea
+            readOnly
+            value={content}
+            className="h-48 bg-background/50 text-base leading-relaxed resize-none rounded-xl"
+          />
+        ) : (
+          <p className="p-4 rounded-xl border border-border/10 bg-background/50 text-base text-foreground">
+            {content}
+          </p>
+        )}
       </CardContent>
     </Card>
   );

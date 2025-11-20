@@ -32,3 +32,13 @@ export interface Tendencia {
   exampleImageUrl: string;
   exampleImageHint: string;
 }
+
+export interface IdeiaSalva {
+  id: string;
+  userId: string;
+  titulo: string;
+  conteudo: string;
+  origem: string;
+  concluido: boolean;
+  createdAt: any; // Using `any` for Firestore Timestamp flexibility
+}

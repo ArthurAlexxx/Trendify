@@ -7,6 +7,8 @@ import {
   TrendingUp,
   CheckCircle,
   Plus,
+  Rocket,
+  Circle,
 } from 'lucide-react';
 import {
   ChartContainer,
@@ -18,10 +20,18 @@ import { ChartConfig } from '@/components/ui/chart';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { useCollection } from '@/firebase/firestore/use-collection';
-import { useMemoFirebase, useFirestore } from '@/firebase';
-import { collection } from 'firebase/firestore';
-import type { Metrica, PontoDadosGrafico, ItemRoteiro } from '@/lib/types';
+import { useMemoFirebase, useFirestore, useUser } from '@/firebase';
+import { collection, doc, updateDoc } from 'firebase/firestore';
+import type {
+  Metrica,
+  PontoDadosGrafico,
+  ItemRoteiro,
+  IdeiaSalva,
+} from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Checkbox } from '@/components/ui/checkbox';
+import { format, formatDistanceToNow } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 const chartConfig = {
   alcance: {
@@ -36,6 +46,7 @@ const chartConfig = {
 
 export default function DashboardPage() {
   const firestore = useFirestore();
+  const { user } = useUser();
 
   const metricaQuery = useMemoFirebase(
     () => (firestore ? collection(firestore, 'metrica') : null),
@@ -58,10 +69,30 @@ export default function DashboardPage() {
   const { data: roteiro, isLoading: isLoadingRoteiro } =
     useCollection<ItemRoteiro>(roteiroQuery);
 
+  const ideiasSalvasQuery = useMemoFirebase(
+    () =>
+      firestore && user
+        ? collection(firestore, `users/${user.uid}/ideiasSalvas`)
+        : null,
+    [firestore, user]
+  );
+  const { data: ideiasSalvas, isLoading: isLoadingIdeias } =
+    useCollection<IdeiaSalva>(ideiasSalvasQuery);
+
+  const handleToggleIdeia = async (ideia: IdeiaSalva) => {
+    if (!firestore || !user) return;
+    const ideiaRef = doc(
+      firestore,
+      `users/${user.uid}/ideiasSalvas`,
+      ideia.id
+    );
+    await updateDoc(ideiaRef, { concluido: !ideia.concluido });
+  };
+
   return (
     <div className="space-y-12">
       <PageHeader
-        title="Bem-vindo de volta, Criador!"
+        title={`Bem-vindo(a) de volta, ${user?.displayName?.split(' ')[0] || 'Criador'}!`}
         description="Aqui está um resumo do seu progresso e seu plano de conteúdo para a semana."
       >
         <Button size="lg" className="font-manrope rounded-full text-base">
@@ -85,7 +116,10 @@ export default function DashboardPage() {
                 </Card>
               ))
             : metrica?.map((metric) => (
-                <Card key={metric.id} className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg">
+                <Card
+                  key={metric.id}
+                  className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg"
+                >
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-base font-medium text-muted-foreground">
                       {metric.nome}
@@ -97,7 +131,9 @@ export default function DashboardPage() {
                     )}
                   </CardHeader>
                   <CardContent>
-                    <div className="text-3xl font-bold font-headline">{metric.valor}</div>
+                    <div className="text-3xl font-bold font-headline">
+                      {metric.valor}
+                    </div>
                     <p
                       className={cn(
                         'text-xs',
@@ -113,69 +149,78 @@ export default function DashboardPage() {
               ))}
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-7">
-          <Card className="lg:col-span-4 rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg">
+        <div className="grid gap-8 lg:grid-cols-2">
+          <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg">
             <CardHeader>
-              <CardTitle className='font-headline text-xl'>Desempenho Semanal</CardTitle>
+              <CardTitle className="font-headline text-xl">
+                Ideias da Semana
+              </CardTitle>
             </CardHeader>
-            <CardContent className="pl-2">
-              {isLoadingDadosGrafico ? (
-                <div className="h-[300px] w-full flex items-center justify-center">
-                  <Skeleton className="h-full w-full rounded-xl" />
+            <CardContent>
+              {isLoadingIdeias ? (
+                <div className="space-y-4">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="flex items-center gap-3">
+                      <Skeleton className="h-5 w-5 rounded" />
+                      <Skeleton className="h-5 w-4/5" />
+                    </div>
+                  ))}
                 </div>
+              ) : ideiasSalvas && ideiasSalvas.length > 0 ? (
+                <ul className="space-y-3">
+                  {ideiasSalvas.map((ideia) => (
+                    <li key={ideia.id} className="flex items-start gap-3">
+                      <Checkbox
+                        id={`ideia-${ideia.id}`}
+                        checked={ideia.concluido}
+                        onCheckedChange={() => handleToggleIdeia(ideia)}
+                        className="h-5 w-5 mt-0.5"
+                      />
+                      <div className="grid gap-0.5">
+                        <label
+                          htmlFor={`ideia-${ideia.id}`}
+                          className={cn(
+                            'font-medium transition-colors',
+                            ideia.concluido
+                              ? 'line-through text-muted-foreground'
+                              : 'text-foreground'
+                          )}
+                        >
+                          {ideia.titulo}
+                        </label>
+                        <p className="text-xs text-muted-foreground">
+                          Salvo de "{ideia.origem}"{' '}
+                          {formatDistanceToNow(ideia.createdAt.toDate(), {
+                            addSuffix: true,
+                            locale: ptBR,
+                          })}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
               ) : (
-                <ChartContainer
-                  config={chartConfig}
-                  className="h-[300px] w-full"
-                >
-                  <BarChart accessibilityLayer data={dadosGrafico}>
-                    <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="hsl(var(--border) / 0.5)" />
-                    <XAxis
-                      dataKey="data"
-                      tickLine={false}
-                      tickMargin={10}
-                      axisLine={false}
-                      tickFormatter={(value) => value.slice(0, 3)}
-                    />
-                    <YAxis
-                      tickLine={false}
-                      axisLine={false}
-                      tickMargin={10}
-                      tickFormatter={(value) =>
-                        typeof value === 'number' && value >= 1000
-                          ? `${value / 1000}k`
-                          : value
-                      }
-                    />
-                    <ChartTooltip
-                      cursor={false}
-                      content={<ChartTooltipContent indicator="dot" />}
-                    />
-                    <Bar
-                      dataKey="alcance"
-                      fill="var(--color-alcance)"
-                      radius={8}
-                      className="fill-primary"
-                    />
-                    <Bar
-                      dataKey="engajamento"
-                      fill="var(--color-engajamento)"
-                      radius={8}
-                      className="fill-pink-400"
-                    />
-                  </BarChart>
-                </ChartContainer>
+                <div className="text-center py-8 px-4 rounded-xl bg-muted/50 border border-dashed">
+                  <Rocket className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+                  <h3 className="font-semibold text-foreground">
+                    Comece a Gerar Ideias!
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Suas ideias salvas aparecerão aqui.
+                  </p>
+                </div>
               )}
             </CardContent>
           </Card>
-
-          <Card className="lg:col-span-3 rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg">
+          <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg">
             <CardHeader>
-              <CardTitle className='font-headline text-xl'>Roteiro de Conteúdo Semanal</CardTitle>
+              <CardTitle className="font-headline text-xl">
+                Roteiro de Conteúdo Semanal
+              </CardTitle>
             </CardHeader>
             <CardContent>
               {isLoadingRoteiro ? (
-                 <div className="space-y-6">
+                <div className="space-y-6">
                   {Array.from({ length: 3 }).map((_, i) => (
                     <div key={i} className="flex items-start gap-4">
                       <Skeleton className="h-6 w-6 rounded-full mt-0.5" />
@@ -198,7 +243,10 @@ export default function DashboardPage() {
                         )}
                         <div>
                           <p className="font-medium text-base">
-                            <span className="font-semibold text-primary">{item.dia}:</span> {item.tarefa}
+                            <span className="font-semibold text-primary">
+                              {item.dia}:
+                            </span>{' '}
+                            {item.tarefa}
                           </p>
                           <p className="text-sm text-muted-foreground">
                             {item.detalhes}
@@ -215,6 +263,67 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </div>
+
+        <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card/60 backdrop-blur-lg">
+          <CardHeader>
+            <CardTitle className="font-headline text-xl">
+              Desempenho Semanal
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pl-2">
+            {isLoadingDadosGrafico ? (
+              <div className="h-[300px] w-full flex items-center justify-center">
+                <Skeleton className="h-full w-full rounded-xl" />
+              </div>
+            ) : (
+              <ChartContainer
+                config={chartConfig}
+                className="h-[300px] w-full"
+              >
+                <BarChart accessibilityLayer data={dadosGrafico}>
+                  <CartesianGrid
+                    vertical={false}
+                    strokeDasharray="3 3"
+                    stroke="hsl(var(--border) / 0.5)"
+                  />
+                  <XAxis
+                    dataKey="data"
+                    tickLine={false}
+                    tickMargin={10}
+                    axisLine={false}
+                    tickFormatter={(value) => value.slice(0, 3)}
+                  />
+                  <YAxis
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={10}
+                    tickFormatter={(value) =>
+                      typeof value === 'number' && value >= 1000
+                        ? `${value / 1000}k`
+                        : value
+                    }
+                  />
+                  <ChartTooltip
+                    cursor={false}
+                    content={<ChartTooltipContent indicator="dot" />}
+                  />
+                  <Bar
+                    dataKey="alcance"
+                    fill="var(--color-alcance)"
+                    radius={8}
+                    className="fill-primary"
+                  />
+                  <Bar
+                    dataKey="engajamento"
+                    fill="var(--color-engajamento)"
+                    radius={8}
+                    className="fill-pink-400"
+                  />
+                </BarChart>
+              </ChartContainer>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

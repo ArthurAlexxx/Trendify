@@ -14,11 +14,19 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Bot, Clapperboard, FileText, Loader2, Sparkles } from 'lucide-react';
-import { useEffect, useActionState } from 'react';
+import {
+  Bot,
+  Clapperboard,
+  FileText,
+  Loader2,
+  Save,
+  Sparkles,
+} from 'lucide-react';
+import { useEffect, useActionState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { getAiSuggestedVideoScriptsAction } from './actions';
+import { getAiSuggestedVideoScriptsAction, AiSuggestedVideoScriptsOutput } from './actions';
+import { salvarIdeiaAction } from '../salvar-ideia-action';
 
 const formSchema = z.object({
   productDescription: z
@@ -32,10 +40,11 @@ const formSchema = z.object({
 
 export default function PublisAssistantPage() {
   const { toast } = useToast();
-  const [state, formAction, isPending] = useActionState(
+  const [state, formAction, isGenerating] = useActionState(
     getAiSuggestedVideoScriptsAction,
     null
   );
+  const [isSaving, startSavingTransition] = useTransition();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -56,6 +65,30 @@ export default function PublisAssistantPage() {
     }
   }, [state, toast]);
 
+  const handleSave = (data: AiSuggestedVideoScriptsOutput) => {
+    startSavingTransition(async () => {
+      const title = `Proposta: ${form.getValues('brandDetails').substring(0, 30)}...`;
+      const content = `**Roteiro:**\n${data.videoScript}\n\n**Proposta:**\n${data.proposalDraft}`;
+      const result = await salvarIdeiaAction({
+        titulo: title,
+        conteudo: content,
+        origem: 'Assistente Publis',
+      });
+      if (result.success) {
+        toast({
+          title: 'Sucesso!',
+          description: 'Sua proposta foi salva no painel.',
+        });
+      } else {
+        toast({
+          title: 'Erro ao Salvar',
+          description: result.error,
+          variant: 'destructive',
+        });
+      }
+    });
+  };
+
   const result = state?.data;
 
   return (
@@ -74,7 +107,10 @@ export default function PublisAssistantPage() {
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form action={formAction} className="space-y-8">
+            <form
+              onSubmit={form.handleSubmit(() => formAction(new FormData(form.control._formRef.current)))}
+              className="space-y-8"
+            >
               <div className="grid md:grid-cols-2 gap-x-6 gap-y-6">
                 <FormField
                   control={form.control}
@@ -133,11 +169,11 @@ export default function PublisAssistantPage() {
               <div className="pt-2">
                 <Button
                   type="submit"
-                  disabled={isPending}
+                  disabled={isGenerating}
                   size="lg"
                   className="font-manrope w-full sm:w-auto h-12 px-10 rounded-full text-base font-bold shadow-lg shadow-primary/20 transition-transform hover:scale-[1.02]"
                 >
-                  {isPending ? (
+                  {isGenerating ? (
                     <>
                       <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                       Gerando...
@@ -155,14 +191,34 @@ export default function PublisAssistantPage() {
         </CardContent>
       </Card>
 
-      {(isPending || result) && (
+      {(isGenerating || result) && (
         <div className="space-y-8 animate-fade-in">
-           <div className="space-y-2">
-            <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Resultado da IA</h2>
-            <p className="text-muted-foreground">Conteúdo gerado para sua próxima colaboração de sucesso.</p>
-           </div>
-           
-          {isPending && !result ? (
+          <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+            <div>
+              <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">
+                Resultado da IA
+              </h2>
+              <p className="text-muted-foreground">
+                Conteúdo gerado para sua próxima colaboração de sucesso.
+              </p>
+            </div>
+            {result && (
+              <Button
+                onClick={() => handleSave(result)}
+                disabled={isSaving}
+                className="w-full sm:w-auto rounded-full font-manrope"
+              >
+                {isSaving ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Save className="mr-2 h-4 w-4" />
+                )}
+                Salvar Proposta
+              </Button>
+            )}
+          </div>
+
+          {isGenerating && !result ? (
             <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-96">
               <Loader2 className="h-10 w-10 animate-spin text-primary" />
               <p className="mt-4 text-muted-foreground">

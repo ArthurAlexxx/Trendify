@@ -77,6 +77,20 @@
         "exampleImageHint": { "type": "string", "description": "Dica para a IA sobre a imagem de exemplo." }
       },
       "required": ["titulo", "tipo", "nicho", "pais", "contagemRegressiva", "explicacao", "exampleImageUrl", "exampleImageHint"]
+    },
+    "IdeiaSalva": {
+      "title": "Ideia Salva",
+      "description": "Armazena uma ideia ou conteúdo gerado pela IA que o usuário salvou.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "O ID do usuário que salvou a ideia." },
+        "titulo": { "type": "string", "description": "Um título curto para a ideia salva." },
+        "conteudo": { "type": "string", "description": "O conteúdo principal da ideia salva (roteiro, proposta, etc.)." },
+        "origem": { "type": "string", "description": "A página onde a ideia foi gerada (ex: 'Ideias de Vídeo')." },
+        "concluido": { "type": "boolean", "description": "Indica se a tarefa relacionada à ideia foi concluída." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "O timestamp de quando a ideia foi salva." }
+      },
+      "required": ["userId", "titulo", "conteudo", "origem", "concluido", "createdAt"]
     }
   },
   "auth": {
@@ -86,6 +100,10 @@
     "/users/{userId}": {
       "schema": { "$ref": "#/backend/entities/UserProfile" },
       "description": "Stores user profile data."
+    },
+    "/users/{userId}/ideiasSalvas/{ideiaId}": {
+      "schema": { "$ref": "#/backend/entities/IdeiaSalva" },
+      "description": "Stores saved AI-generated ideas for a specific user."
     },
     "/metrica/{metricaId}": {
       "schema": { "$ref": "#/backend/entities/Metrica" },
