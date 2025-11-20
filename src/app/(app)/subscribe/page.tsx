@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Check, Loader2, Sparkles, Copy, RefreshCw, Star } from 'lucide-react';
 import { useUser, useFirestore } from '@/firebase';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -146,6 +146,13 @@ export default function SubscribePage() {
   }
 
   const isLoading = isUserLoading || isSubscriptionLoading;
+  const isButtonDisabled = isGenerating || !user || subscription?.plan === selectedPlan;
+  const buttonText = isGenerating 
+    ? 'Gerando...' 
+    : subscription?.plan === selectedPlan 
+      ? 'Plano Atual' 
+      : 'Gerar QR Code PIX';
+
 
   if (isLoading) {
     return (
@@ -224,19 +231,15 @@ export default function SubscribePage() {
              <Card className="rounded-2xl shadow-lg shadow-primary/5">
                 <CardHeader>
                     <CardTitle className='font-headline text-xl'>Pagamento via PIX</CardTitle>
-                    <CardDescription>Preencha seus dados para gerar o QR Code para o plano <span className='font-bold text-primary'>{selectedPlan.toUpperCase()}</span>.</CardDescription>
+                    <CardDescription>
+                      {subscription?.status === 'active' ? 
+                        `Você já é assinante do plano ${subscription.plan?.toUpperCase()}. Selecione um novo plano para fazer upgrade/downgrade.` :
+                        `Preencha seus dados para gerar o QR Code para o plano ${selectedPlan.toUpperCase()}.`
+                      }
+                    </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {subscription?.status === 'active' ? (
-                     <div className="flex flex-col items-center justify-center h-96 text-center">
-                        <Check className="h-12 w-12 text-primary mb-4" />
-                        <h3 className="text-xl font-bold">Você já é um Assinante!</h3>
-                        <p className="text-muted-foreground">Sua assinatura do plano {subscription.plan?.toUpperCase()} está ativa.</p>
-                        <Button asChild className="mt-6">
-                            <Link href="/dashboard">Ir para o Painel</Link>
-                        </Button>
-                    </div>
-                  ) : !result && !isGenerating ? (
+                  {!result && !isGenerating ? (
                     <Form {...form}>
                         <form action={formAction} className='space-y-6'>
                              <input type="hidden" {...form.register('plan')} value={selectedPlan !== 'free' ? selectedPlan : 'pro'} />
@@ -295,9 +298,9 @@ export default function SubscribePage() {
                                     )}
                                 />
                             </div>
-                            <Button type="submit" className='w-full' disabled={isGenerating || !user}>
+                            <Button type="submit" className='w-full' disabled={isButtonDisabled}>
                                 {isGenerating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                Gerar QR Code PIX
+                                {buttonText}
                             </Button>
                         </form>
                     </Form>
