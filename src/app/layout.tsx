@@ -5,7 +5,10 @@ import { cn } from '@/lib/utils';
 import { FirebaseClientProvider } from '@/firebase';
 
 export const metadata: Metadata = {
-  title: 'Trendify: SO de Crescimento para Criadores',
+  title: {
+    template: '%s | Trendify',
+    default: 'Trendify',
+  },
   description: 'Ferramentas com IA para ajudar criadores a crescer e monetizar.',
 };
 

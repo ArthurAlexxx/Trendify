@@ -1,5 +1,6 @@
 
 'use client';
+import type { Metadata } from 'next';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -40,6 +41,9 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { useRouter } from 'next/navigation';
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
+export const metadata: Metadata = {
+  title: 'Mídia Kit & Prospecção',
+};
 
 const formSchema = z.object({
   niche: z.string().min(10, 'Seu nicho deve ter pelo menos 10 caracteres.'),
