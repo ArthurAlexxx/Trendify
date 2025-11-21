@@ -58,6 +58,9 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { AnimatedHero } from '@/components/ui/animated-hero';
+import { useScroll } from '@/hooks/use-scroll';
+import { MenuToggleIcon } from '@/components/ui/menu-toggle-icon';
+
 
 const features = [
   {
@@ -153,6 +156,19 @@ const BENCHMARKS: Record<
   Default: { baseGrowth: 0.05, cpmRange: [15, 60], reelsMultiplier: 0.005 },
 };
 
+const WordmarkIcon = (props: React.ComponentProps<'div'>) => (
+  <Link
+    href="/"
+    className="flex items-center gap-2 text-xl font-bold font-headline tracking-tighter text-foreground"
+    {...props}
+  >
+    <div className="bg-foreground text-background h-7 w-7 flex items-center justify-center rounded-full">
+      <ArrowRight className="h-4 w-4" />
+    </div>
+    trendify
+  </Link>
+);
+
 
 export default function LandingPage() {
   const { user } = useUser();
@@ -160,6 +176,15 @@ export default function LandingPage() {
   const [results, setResults] = useState<any>(null);
   const [isCalculating, setIsCalculating] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const scrolled = useScroll(10);
+
+  const navLinks = [
+      { href: '#beneficios', text: 'Benefícios' },
+      { href: '#calculadora', text: 'Calculadora' },
+      { href: '#precos', text: 'Preços' },
+      { href: '#faq', text: 'FAQ' },
+  ];
+
 
   useEffect(() => {
     if (isMenuOpen) {
@@ -167,6 +192,9 @@ export default function LandingPage() {
     } else {
       document.body.style.overflow = 'auto';
     }
+    return () => {
+      document.body.style.overflow = '';
+    };
   }, [isMenuOpen]);
 
   const form = useForm<CalculatorInput>({
@@ -252,44 +280,39 @@ export default function LandingPage() {
     exit: { opacity: 0, y: -20 },
     transition: { duration: 0.4, ease: 'easeInOut' },
   };
-  
-  const navLinks = [
-      { href: '#beneficios', text: 'Benefícios' },
-      { href: '#calculadora', text: 'Calculadora' },
-      { href: '#precos', text: 'Preços' },
-      { href: '#faq', text: 'FAQ' },
-    ];
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm">
-        <div className="container flex h-20 items-center justify-between">
-          <Link
-            href="/"
-            className="flex items-center gap-2 text-xl font-bold font-headline tracking-tighter text-foreground"
-          >
-            <div className="bg-foreground text-background h-7 w-7 flex items-center justify-center rounded-full">
-              <ArrowRight className="h-4 w-4" />
-            </div>
-            trendify
-          </Link>
-          <nav className="hidden md:flex items-center gap-6">
-            {navLinks.map(link => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-              >
-                {link.text}
-              </Link>
-            ))}
-          </nav>
-          <div className="hidden md:flex items-center gap-2">
-            {user ? (
+      	<header
+			className={cn(
+				'sticky top-0 z-50 mx-auto w-full max-w-5xl border-b border-transparent md:rounded-full md:border md:transition-all md:ease-out',
+				{
+					'bg-background/95 supports-[backdrop-filter]:bg-background/50 border-border backdrop-blur-lg md:top-4 md:max-w-4xl md:shadow-lg md:shadow-primary/5':
+						scrolled && !isMenuOpen,
+					'bg-background/90': isMenuOpen,
+				},
+			)}
+		>
+			<nav
+				className={cn(
+					'flex h-16 w-full items-center justify-between px-4 md:h-14 md:transition-all md:ease-out',
+					{
+						'md:px-4': scrolled,
+					},
+				)}
+			>
+				<WordmarkIcon />
+				<div className="hidden items-center gap-2 md:flex">
+					{navLinks.map((link) => (
+						<a key={link.href} className={buttonVariants({ variant: 'ghost' })} href={link.href}>
+							{link.text}
+						</a>
+					))}
+          {user ? (
               <Link
                 href="/dashboard"
                 className={buttonVariants({
-                  variant: 'ghost',
+                  variant: 'outline',
                   className: 'font-manrope rounded-full',
                 })}
               >
@@ -299,7 +322,7 @@ export default function LandingPage() {
               <Link
                 href="/login"
                 className={buttonVariants({
-                  variant: 'ghost',
+                  variant: 'outline',
                   className: 'font-semibold rounded-lg',
                 })}
               >
@@ -310,100 +333,62 @@ export default function LandingPage() {
               href="/sign-up"
               className={cn(
                 buttonVariants({}),
-                'font-semibold rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 text-primary-foreground shadow-lg hover:opacity-90 transition-opacity'
+                'font-semibold rounded-lg'
               )}
             >
               Começar Grátis
             </Link>
-          </div>
-          <div className="md:hidden">
-            <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(true)}>
-              <Menu />
-              <span className="sr-only">Abrir menu</span>
-            </Button>
-          </div>
-        </div>
-      </header>
-      
-      {/* Mobile Menu */}
-      <AnimatePresence>
-        {isMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="fixed inset-0 z-50 bg-black/60 md:hidden"
-            onClick={() => setIsMenuOpen(false)}
-          >
-            <motion.div
-              initial={{ x: '100%' }}
-              animate={{ x: '0%' }}
-              exit={{ x: '100%' }}
-              transition={{ duration: 0.3, ease: 'easeInOut' }}
-              className="fixed top-0 right-0 h-full w-full max-w-sm bg-background p-6"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex justify-between items-center mb-10">
-                 <Link
-                    href="/"
-                    className="flex items-center gap-2 text-xl font-bold font-headline tracking-tighter text-foreground"
-                  >
-                    <div className="bg-foreground text-background h-7 w-7 flex items-center justify-center rounded-full">
-                      <ArrowRight className="h-4 w-4" />
-                    </div>
-                    trendify
-                  </Link>
-                <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(false)}>
-                  <X />
-                   <span className="sr-only">Fechar menu</span>
-                </Button>
-              </div>
-              <nav className="flex flex-col gap-6">
-                {navLinks.map(link => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className="text-lg font-medium text-foreground"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    {link.text}
-                  </Link>
-                ))}
-              </nav>
-               <div className="mt-10 pt-6 border-t border-border flex flex-col gap-4">
-                 {user ? (
-                  <Link
-                    href="/dashboard"
-                    className={cn(buttonVariants({ variant: 'outline', size: 'lg' }), 'w-full')}
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Painel
-                  </Link>
-                ) : (
-                  <Link
-                    href="/login"
-                    className={cn(buttonVariants({ variant: 'outline', size: 'lg' }), 'w-full')}
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Entrar
-                  </Link>
-                )}
-                 <Link
-                  href="/sign-up"
-                  className={cn(
-                    buttonVariants({ size: 'lg' }),
-                    'font-semibold w-full'
-                  )}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Começar Grátis
-                </Link>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+				</div>
+				<Button size="icon" variant="outline" onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden">
+					<MenuToggleIcon open={isMenuOpen} className="size-5" duration={300} />
+				</Button>
+			</nav>
+
+			<div
+				className={cn(
+					'bg-background/90 fixed top-16 right-0 bottom-0 left-0 z-50 flex flex-col overflow-hidden border-y md:hidden',
+					isMenuOpen ? 'block' : 'hidden',
+				)}
+			>
+				<div
+					data-slot={isMenuOpen ? 'open' : 'closed'}
+					className={cn(
+						'data-[slot=open]:animate-in data-[slot=open]:zoom-in-95 data-[slot=closed]:animate-out data-[slot=closed]:zoom-out-95 ease-out',
+						'flex h-full w-full flex-col justify-between gap-y-2 p-4',
+					)}
+				>
+					<div className="grid gap-y-2">
+						{navLinks.map((link) => (
+							<a
+								key={link.href}
+								className={buttonVariants({
+									variant: 'ghost',
+									className: 'justify-start text-lg h-12',
+								})}
+								href={link.href}
+                onClick={() => setIsMenuOpen(false)}
+							>
+								{link.text}
+							</a>
+						))}
+					</div>
+					<div className="flex flex-col gap-2">
+            {user ? (
+						<Button asChild variant="outline" size="lg" className="w-full">
+							<Link href="/dashboard">Painel</Link>
+						</Button>
+            ) : (
+            <Button asChild variant="outline" size="lg" className="w-full">
+							<Link href="/login">Entrar</Link>
+						</Button>
+            )}
+						<Button asChild size="lg" className="w-full">
+							<Link href="/sign-up">Começar Grátis</Link>
+						</Button>
+					</div>
+				</div>
+			</div>
+		</header>
 
       <main className="flex-1">
         {/* Hero Section */}
