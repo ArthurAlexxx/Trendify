@@ -3,7 +3,7 @@
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { SavedIdeasSheet } from '@/components/saved-ideas-sheet';
-import { Sparkles, Link as LinkIcon } from 'lucide-react';
+import { Sparkles, Link as LinkIcon, Video } from 'lucide-react';
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -23,6 +23,7 @@ export default function VideoReviewPage() {
   return (
     <div className="space-y-12">
       <PageHeader
+        icon={<Video />}
         title="Diagnóstico de Vídeo com IA"
         description="Receba uma análise completa e sugestões para otimizar e viralizar seu vídeo."
       >
@@ -30,7 +31,7 @@ export default function VideoReviewPage() {
       </PageHeader>
 
       <Card className="shadow-lg shadow-primary/5 border-border/30 bg-card rounded-2xl max-w-2xl mx-auto">
-          <CardHeader className="text-center sm:text-left">
+          <CardHeader className="text-center">
             <CardTitle className="flex items-center justify-center sm:justify-start gap-3 font-headline text-xl">
               <LinkIcon className="h-6 w-6 text-primary" />
               <span>Cole o link do seu vídeo</span>

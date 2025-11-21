@@ -16,6 +16,7 @@ import {
   Tag,
   ClipboardList,
   AlertTriangle,
+  LayoutGrid,
 } from 'lucide-react';
 import {
   ChartContainer,
@@ -206,6 +207,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-12">
       <PageHeader
+        icon={<LayoutGrid />}
         title={`Bem-vindo(a) de volta, ${
           user?.displayName?.split(' ')[0] || 'Criador'
         }!`}

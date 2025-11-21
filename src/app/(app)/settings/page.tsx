@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { LogOut, ShieldAlert, Building, Crown } from 'lucide-react';
+import { LogOut, ShieldAlert, Building, Crown, Settings as SettingsIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -125,6 +125,7 @@ export default function SettingsPage() {
   return (
     <div className="space-y-8">
       <PageHeader
+        icon={<SettingsIcon />}
         title="Configurações da Conta"
         description="Gerencie suas informações, assinatura e integrações."
       />
@@ -332,5 +333,3 @@ export default function SettingsPage() {
     </div>
   );
 }
-
-    

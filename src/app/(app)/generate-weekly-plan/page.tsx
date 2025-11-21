@@ -21,7 +21,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Bot, Loader2, Sparkles, Trash2, Check, History } from 'lucide-react';
+import { Bot, Loader2, Sparkles, Trash2, Check, History, ClipboardList } from 'lucide-react';
 import { useEffect, useActionState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -193,6 +193,7 @@ export default function GenerateWeeklyPlanPage() {
   return (
     <div className="space-y-12">
       <PageHeader
+        icon={<ClipboardList />}
         title="Crie seu Plano Semanal com IA"
         description="Transforme seu objetivo da semana em um roteiro de conteúdo acionável."
       >
@@ -342,7 +343,7 @@ export default function GenerateWeeklyPlanPage() {
       {!result && !isLoadingRoteiro && currentRoteiroItems && currentRoteiroItems.length > 0 && (
          <div className="space-y-8 animate-fade-in">
            <Separator />
-            <div className="text-center sm:text-left">
+            <div className="text-center">
               <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Seu Plano Atual</h2>
               <p className="text-muted-foreground">Este é o roteiro que está ativo no seu painel.</p>
             </div>
@@ -404,7 +405,7 @@ export default function GenerateWeeklyPlanPage() {
       {(isGenerating || result) && (
         <div className="space-y-8 animate-fade-in">
           <Separator />
-          <div className="flex flex-col sm:flex-row justify-between items-start gap-4 text-center sm:text-left">
+          <div className="flex flex-col sm:flex-row justify-between items-start gap-4 text-center">
             <div className="flex-1">
               <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">
                 Plano Gerado pela IA

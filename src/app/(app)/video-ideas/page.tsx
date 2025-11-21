@@ -34,6 +34,7 @@ import {
   Pen,
   Save,
   Sparkles,
+  Lightbulb
 } from 'lucide-react';
 import { useEffect, useActionState, useTransition, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
@@ -153,6 +154,7 @@ export default function VideoIdeasPage() {
   return (
     <div className="space-y-12">
       <PageHeader
+        icon={<Lightbulb />}
         title="Gerador de Vídeos Virais"
         description="Nunca mais fique sem ideias. Crie roteiros completos e otimizados para viralizar."
       >
@@ -356,7 +358,7 @@ export default function VideoIdeasPage() {
 
       {(isGenerating || result) && (
         <div className="space-y-8 animate-fade-in">
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-center">
             <div className="flex-1">
               <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">
                 Resultado da IA
@@ -435,7 +437,7 @@ export default function VideoIdeasPage() {
       <Separator />
 
       <div className="space-y-8">
-        <div className="text-center sm:text-left">
+        <div className="text-center">
           <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">
             Ideias Concluídas
           </h2>

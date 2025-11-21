@@ -151,6 +151,7 @@ export default function ContentCalendarPage() {
   return (
     <div className="space-y-12">
       <PageHeader
+        icon={<CalendarIcon />}
         title="Seu Calendário de Conteúdo Inteligente"
         description="Planeje, agende e visualize suas publicações em um só lugar."
       >
@@ -372,5 +373,3 @@ export default function ContentCalendarPage() {
     </div>
   );
 }
-
-    

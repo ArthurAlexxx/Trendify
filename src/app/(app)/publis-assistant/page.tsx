@@ -2,7 +2,7 @@
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Form,
   FormControl,
@@ -30,6 +30,7 @@ import {
   Save,
   Sparkles,
   Zap,
+  Newspaper,
 } from 'lucide-react';
 import { useEffect, useActionState, useTransition, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -190,6 +191,7 @@ function PublisAssistantPageContent() {
   return (
     <div className="space-y-12">
       <PageHeader
+        icon={<Newspaper />}
         title="Assistente de Publis & Parcerias"
         description="Crie pacotes de conteúdo para marcas com foco em conversão e tendências."
       >
@@ -358,7 +360,7 @@ function PublisAssistantPageContent() {
 
       {(isGenerating || result) && (
         <div className="space-y-8 animate-fade-in">
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-center">
             <div className="flex-1">
               <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">
                 Pacote de Conteúdo Gerado

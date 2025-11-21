@@ -2,7 +2,7 @@
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
   Bot,
@@ -12,6 +12,7 @@ import {
   DollarSign,
   FileText,
   Lightbulb,
+  Briefcase,
 } from 'lucide-react';
 import { useActionState, useTransition, useEffect, useState } from 'react';
 import {
@@ -194,6 +195,7 @@ function MediaKitPageContent() {
   return (
     <div className="space-y-12">
       <PageHeader
+        icon={<Briefcase />}
         title="Pacote de Prospecção para Marcas"
         description="Gere propostas, calcule preços e crie seu mídia kit profissional em um só lugar."
       >
@@ -303,7 +305,7 @@ function MediaKitPageContent() {
 
           {(isGenerating || result) && (
             <div className="space-y-8 animate-fade-in">
-              <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-center">
                 <div className='flex-1'>
                   <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Resultado da IA</h2>
                   <p className="text-muted-foreground">Um pacote completo para sua prospecção de marcas.</p>

@@ -118,6 +118,7 @@ export default function ProfilePage() {
   return (
     <div className="space-y-8">
       <PageHeader
+        icon={<UserIcon />}
         title="Gerencie seu Perfil"
         description="Mantenha suas informações atualizadas para a IA gerar estratégias mais precisas."
       />
@@ -240,5 +241,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
-    
