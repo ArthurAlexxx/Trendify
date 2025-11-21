@@ -65,9 +65,9 @@ export async function GET(req: NextRequest) {
     }
 
     // 2. Get the webhook URL with a fallback for testing
-    const webhookUrl = process.env.N8N_WEBHOOK_URL || 'https://n8n.srv1061126.hstgr.cloud/webhook-test/7ee16df9-0159-4651-bb64-72fa2aaa9a1b';
+    const webhookUrl = process.env.N8N_WEBHOOK_URL;
     if (!webhookUrl) {
-        console.error('N8N_WEBHOOK_URL is not set and no fallback is available.');
+        console.error('N8N_WEBHOOK_URL is not set.');
         return NextResponse.json({ error: 'Webhook URL not configured' }, { status: 500 });
     }
 
