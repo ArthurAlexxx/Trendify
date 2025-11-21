@@ -124,7 +124,7 @@ export default function ProfilePage() {
         setLocalPhotoUrl(userProfile?.photoURL || user?.photoURL || null);
         toast({
           title: 'Erro no Upload',
-          description: 'Não foi possível enviar sua foto. Verifique as regras de segurança e a configuração do bucket.',
+          description: `Não foi possível enviar sua foto. (${error.code})`,
           variant: 'destructive'
         });
       },
@@ -180,7 +180,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div class="space-y-8">
       <PageHeader
         icon={<UserIcon />}
         title="Gerencie seu Perfil"
@@ -316,3 +316,5 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+    
