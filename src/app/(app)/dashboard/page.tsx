@@ -491,6 +491,17 @@ export default function DashboardPage() {
                           </Button>
                        </div>
                     )}
+                    {isExpanded && (
+                       <div className='flex justify-center mt-2'>
+                          <Button 
+                            variant="ghost" 
+                            onClick={() => setIsExpanded(false)} 
+                            className="text-primary hover:text-primary"
+                          >
+                            Ver menos
+                          </Button>
+                       </div>
+                    )}
                    </div>
                 ) : (
                   <div className="text-center py-8 px-4 rounded-xl bg-muted/50 border border-dashed">
