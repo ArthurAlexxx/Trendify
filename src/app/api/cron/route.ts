@@ -99,42 +99,14 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({ message: 'No tasks scheduled for tomorrow.' });
         }
 
-        console.log(`[Cron Job] Found ${tasks.length} tasks for tomorrow.`);
-        const webhookPromises = [];
-
-        for (const task of tasks) {
-            const userId = task.userId;
-            const email = await getUserEmail(firestore, userId);
-
-            if (email) {
-                console.log(`[Cron Job] Preparing webhook for user ${userId}.`);
-                const payload = {
-                    email: email,
-                    taskTitle: task.title,
-                    taskDate: (task.date as Timestamp).toDate().toISOString(),
-                    contentType: task.contentType,
-                    notes: task.notes,
-                };
-                
-                // Fire and forget: We don't wait for the webhook to respond
-                const promise = fetch(webhookUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload),
-                }).catch(err => console.error(`[Cron Job] Failed to send webhook for task ${task.id}:`, err));
-                
-                webhookPromises.push(promise);
-            } else {
-                 console.warn(`[Cron Job] Could not find email for userId ${userId}. Skipping webhook.`);
-            }
-        }
+        console.log(`[Cron Job] TEST: Found ${tasks.length} tasks. Skipping n8n call.`);
         
-        // While we don't block the response for the webhooks, 
-        // we can log if they all initiated correctly.
-        await Promise.all(webhookPromises);
-
-        console.log(`[Cron Job] Successfully triggered ${webhookPromises.length} webhooks.`);
-        return NextResponse.json({ message: `Successfully triggered ${webhookPromises.length} webhooks.` });
+        // Retornar sucesso sem enviar para o n8n
+        return NextResponse.json({ 
+            message: 'TEST SUCCESS',
+            foundTasks: tasks.length,
+            tasks: tasks.map(t => ({ id: t.id, title: t.title }))
+        });
 
     } catch (error: any) {
         // Log the full error details to ensure the index creation link is visible.
