@@ -55,28 +55,51 @@ async function getUserEmail(userId: string) {
 
 
 export async function GET(req: NextRequest) {
+    console.log('[Cron Job] Received GET request.');
     // 1. Authenticate the request
     const cronSecret = process.env.CRON_SECRET;
     const authHeader = req.headers.get('authorization');
+    
+    console.log(`[Cron Job] Auth Header Received: ${authHeader ? 'Present' : 'Missing'}`);
+    if (authHeader) {
+        console.log(`[Cron Job] Auth Header Value: ${authHeader.substring(0, 15)}...`); // Log first few chars
+    }
+
+    if (!cronSecret) {
+        console.error('[Cron Job] CRITICAL: CRON_SECRET is not set in environment variables.');
+        // Don't leak info in production
+        if (process.env.VERCEL_ENV === 'production') {
+             return NextResponse.json({ error: 'Configuration error' }, { status: 500 });
+        }
+        return NextResponse.json({ error: 'CRON_SECRET environment variable is not set.' }, { status: 500 });
+    }
+    
+    console.log(`[Cron Job] VERCEL_ENV: ${process.env.VERCEL_ENV}`);
 
     // Allow testing in preview without secret, but enforce in production
-    if (process.env.VERCEL_ENV === 'production' && (!cronSecret || authHeader !== `Bearer ${cronSecret}`)) {
+    if (process.env.VERCEL_ENV === 'production' && authHeader !== `Bearer ${cronSecret}`) {
+        console.warn('[Cron Job] Unauthorized access attempt. Headers did not match.');
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    console.log('[Cron Job] Authorization successful.');
 
     // 2. Get the webhook URL with a fallback for testing
     const webhookUrl = process.env.N8N_WEBHOOK_URL;
     if (!webhookUrl) {
-        console.error('N8N_WEBHOOK_URL is not set.');
+        console.error('[Cron Job] N8N_WEBHOOK_URL is not set.');
         return NextResponse.json({ error: 'Webhook URL not configured' }, { status: 500 });
     }
+     console.log('[Cron Job] N8N Webhook URL found.');
 
     try {
         const tasks = await getScheduledContentForTomorrow();
         if (tasks.length === 0) {
+            console.log('[Cron Job] No tasks scheduled for tomorrow.');
             return NextResponse.json({ message: 'No tasks scheduled for tomorrow.' });
         }
 
+        console.log(`[Cron Job] Found ${tasks.length} tasks for tomorrow.`);
         const webhookPromises = [];
 
         for (const task of tasks) {
@@ -84,6 +107,7 @@ export async function GET(req: NextRequest) {
             const email = await getUserEmail(userId);
 
             if (email) {
+                console.log(`[Cron Job] Preparing webhook for user ${userId}.`);
                 const payload = {
                     email: email,
                     taskTitle: task.title,
@@ -97,9 +121,11 @@ export async function GET(req: NextRequest) {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload),
-                }).catch(err => console.error(`Failed to send webhook for task ${task.id}:`, err));
+                }).catch(err => console.error(`[Cron Job] Failed to send webhook for task ${task.id}:`, err));
                 
                 webhookPromises.push(promise);
+            } else {
+                 console.warn(`[Cron Job] Could not find email for userId ${userId}. Skipping webhook.`);
             }
         }
         
@@ -107,10 +133,11 @@ export async function GET(req: NextRequest) {
         // we can log if they all initiated correctly.
         await Promise.all(webhookPromises);
 
+        console.log(`[Cron Job] Successfully triggered ${webhookPromises.length} webhooks.`);
         return NextResponse.json({ message: `Successfully triggered ${webhookPromises.length} webhooks.` });
 
     } catch (error) {
-        console.error('Error in cron job:', error);
+        console.error('[Cron Job] Error during execution:', error);
         if (error instanceof Error) {
             return NextResponse.json({ error: 'Internal Server Error: ' + error.message }, { status: 500 });
         }
