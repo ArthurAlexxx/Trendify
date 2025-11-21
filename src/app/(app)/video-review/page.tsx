@@ -34,12 +34,13 @@ export default function VideoReviewPage() {
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [isSaving, startSavingTransition] = useTransition();
+  const [isAnalyzing, startAnalyzingTransition] = useTransition();
 
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
 
-  const [state, formAction, isAnalyzing] = useActionState(
+  const [state, formAction] = useActionState(
     analyzeVideoAction,
     null
   );
@@ -94,7 +95,9 @@ export default function VideoReviewPage() {
           setUploadProgress(100);
           const formData = new FormData();
           formData.append('videoUrl', downloadURL);
-          formAction(formData);
+          startAnalyzingTransition(() => {
+            formAction(formData);
+          });
         });
       }
     );
@@ -286,3 +289,5 @@ function AnalysisSection({ icon: Icon, title, content }: { icon: React.ElementTy
         </div>
     )
 }
+
+    
