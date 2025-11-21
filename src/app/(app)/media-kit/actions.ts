@@ -1,4 +1,3 @@
-
 'use server';
 
 import OpenAI from 'openai';
@@ -45,7 +44,7 @@ const formSchema = z.object({
   niche: z.string().min(1, 'O nicho não pode estar vazio.'),
   keyMetrics: z
     .string()
-    .min(10, 'Suas métricas devem ter pelo menos 10 caracteres.'),
+    .min(1, 'As métricas não podem estar vazias.'),
   targetBrand: z
     .string()
     .min(3, 'A marca alvo deve ter pelo menos 3 caracteres.'),
@@ -81,26 +80,29 @@ function extractJson(text: string) {
 async function getAiCareerPackage(
   input: z.infer<typeof formSchema>
 ): Promise<AiCareerPackageOutput> {
-  const systemPrompt = `Você é um "AI Talent Manager", um agente de talentos e estrategista de negócios especialista em monetização para criadores de conteúdo.
-Sua tarefa é gerar um pacote de prospecção profissional para um criador usar ao abordar marcas.
-Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON deve se conformar estritamente ao schema fornecido.`;
+  const systemPrompt = `Você é um "AI Talent Manager", um estrategista de negócios especialista em monetização para criadores de conteúdo.
+Sua única função é gerar um pacote de prospecção profissional para um criador usar ao abordar marcas, baseado ESTRITAMENTE no nicho fornecido.
+Você está PROIBIDO de usar informações, exemplos ou ideias de qualquer outro nicho que não seja o que o usuário informou.
+Sua resposta DEVE ser um bloco de código JSON válido, e NADA MAIS. O JSON deve se conformar estritamente ao schema fornecido.`;
 
   const userPrompt = `
-  Gere um pacote de prospecção profissional com base nos seguintes dados do criador:
+  Gere um pacote de prospecção profissional com base NOS SEGUINTES DADOS, e apenas neles:
 
-  - Nicho de Atuação: ${input.niche}
-  - Métricas Principais: ${input.keyMetrics}
-  - Marca Alvo (para contexto): ${input.targetBrand}
+  - Nicho de Atuação do Criador: ${input.niche}
+  - Métricas Principais do Criador: ${input.keyMetrics}
+  - Marca Alvo para a Proposta: ${input.targetBrand}
 
-  Para cada campo do JSON, siga estas diretrizes:
+  Para cada campo do JSON, siga estas diretrizes com MÁXIMA PRECISÃO:
 
-  - **Pense como um especialista**: Mergulhe no nicho fornecido. Se o nicho for um jogo como 'Valorant', não fale apenas sobre skins. Fale sobre jogabilidade, estratégias, agentes, humor da comunidade, etc. Se for 'skincare', fale sobre ingredientes, rotinas, problemas de pele específicos. Sua resposta deve provar que você entende o universo daquele nicho.
-
-  - executiveSummary: Crie um parágrafo de apresentação EM PRIMEIRA PESSOA (usando "Eu sou...", "Minha audiência..."), conciso e profissional, pronto para ser copiado e colado em um e-mail. Ele deve destacar a especialidade do criador dentro do nicho, o perfil do seu público e o valor que ele pode agregar para uma marca como a marca alvo.
+  - executiveSummary: Crie um parágrafo de apresentação em PRIMEIRA PESSOA (usando "Eu sou...", "Minha audiência..."). O texto deve ser profissional, conciso e focado 100% em como o criador agrega valor DENTRO do nicho de '${input.niche}'. Destaque a especialidade do criador e o perfil do público relacionado a este nicho.
   
-  - pricingTiers: Com base nas métricas fornecidas (seguidores, engajamento), calcule e sugira faixas de preço realistas para o mercado brasileiro. Retorne uma STRING formatada para cada campo (ex: "R$ 800 - R$ 1.500"). Crie uma faixa para cada um dos seguintes formatos: 'reels', 'storySequence' (sequência de 3-5 stories), 'staticPost' (post no feed) e 'monthlyPackage' (um pacote combinado). Justifique mentalmente os valores com base em benchmarks de CPM, CPV e taxa de engajamento.
+  - pricingTiers: Com base nas métricas fornecidas (${input.keyMetrics}), calcule faixas de preço realistas para o mercado brasileiro. Retorne uma STRING formatada para cada campo (ex: "R$ X - R$ Y"). Seja objetivo e baseie os valores nas métricas.
 
-  - sampleCollaborationIdeas: Descreva 2-3 ideias de colaboração criativas e autênticas que se alinham ao nicho e à marca alvo. Evite ideias genéricas. A ideia deve parecer que partiu de um criador que realmente entende seu público. Para um nicho de games, sugira coisas como "Série de vídeos com dicas para subir de ranking usando o mouse da marca". Para um nicho de beleza, "Desafio de 30 dias documentando a transformação da pele com a linha de skincare da marca".
+  - sampleCollaborationIdeas: Gere 3 ideias de colaboração. Cada ideia DEVE ser:
+    1.  Diretamente e exclusivamente relacionada ao nicho '${input.niche}'.
+    2.  Criativa e autêntica para o público deste nicho.
+    3.  Alinhada com a marca alvo '${input.targetBrand}'.
+    NÃO inclua nenhuma ideia, produto ou conceito de outros nichos. Por exemplo, se o nicho for sobre finanças, não sugira nada sobre beleza, e vice-versa. O foco é absoluto.
   `;
 
   try {
