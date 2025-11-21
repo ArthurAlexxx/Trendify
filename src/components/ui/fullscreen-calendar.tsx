@@ -24,6 +24,7 @@ import {
   PlusCircle,
   SearchIcon,
   Tag,
+  CalendarIcon,
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
