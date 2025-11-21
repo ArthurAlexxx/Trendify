@@ -17,6 +17,7 @@ import { useActionState, useTransition, useEffect, useState } from 'react';
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -229,6 +230,9 @@ function MediaKitPageContent() {
                               />
                             }
                           </FormControl>
+                          <FormDescription>
+                            Ex: "Moda sustentável", "Finanças para autônomos", "Receitas veganas".
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -249,6 +253,9 @@ function MediaKitPageContent() {
                                 />
                               }
                             </FormControl>
+                             <FormDescription>
+                                Os números que as marcas querem ver. Ex: "10 mil seguidores, 5k de views em média".
+                             </FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -266,6 +273,9 @@ function MediaKitPageContent() {
                                 {...field}
                               />
                             </FormControl>
+                             <FormDescription>
+                                A IA usará esta marca para criar ideias de colaboração mais relevantes.
+                             </FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}

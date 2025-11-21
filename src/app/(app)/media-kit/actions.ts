@@ -7,10 +7,11 @@ import { z } from 'zod';
 const CollaborationIdeaSchema = z.union([
   z.string(),
   z.object({
-    ideia: z.string().describe('A ideia de colaboração criativa e de alto nível.'),
-  })
+    ideia: z
+      .string()
+      .describe('A ideia de colaboração criativa e de alto nível.'),
+  }),
 ]);
-
 
 const AiCareerPackageOutputSchema = z.object({
   executiveSummary: z
@@ -55,9 +56,7 @@ export type AiCareerPackageOutput = z.infer<typeof AiCareerPackageOutputSchema>;
 
 const formSchema = z.object({
   niche: z.string().min(1, 'O nicho não pode estar vazio.'),
-  keyMetrics: z
-    .string()
-    .min(1, 'As métricas não podem estar vazias.'),
+  keyMetrics: z.string().min(1, 'As métricas não podem estar vazias.'),
   targetBrand: z
     .string()
     .min(3, 'A marca alvo deve ter pelo menos 3 caracteres.'),
@@ -109,7 +108,7 @@ Sua resposta DEVE ser um bloco de código JSON válido, e NADA MAIS. O JSON deve
 
   - executiveSummary: Crie um parágrafo de apresentação em PRIMEIRA PESSOA (usando "Eu sou...", "Minha audiência..."). O texto deve ser profissional, conciso e focado 100% em como o criador agrega valor DENTRO do nicho de '${input.niche}'. Demonstre autoridade e conhecimento profundo do público-alvo específico deste nicho.
   
-  - pricingTiers: Com base nas métricas fornecidas (${input.keyMetrics}), calcule faixas de preço realistas para o mercado brasileiro. É crucial que você retorne faixas de preço para todos os formatos solicitados em 'pricingTiers'. Retorne uma STRING formatada para cada campo (ex: "R$ X - R$ Y").
+  - pricingTiers: Com base nas métricas fornecidas (${input.keyMetrics}), calcule faixas de preço realistas para o mercado brasileiro. É OBRIGATÓRIO que você retorne uma STRING formatada para CADA um dos campos (reels, storySequence, staticPost, monthlyPackage), como "R$ X - R$ Y". Não deixe nenhum campo de preço em branco.
 
   - sampleCollaborationIdeas: Gere 3 ideias de colaboração. Cada ideia DEVE ser:
     1.  100% relacionada e exclusiva ao nicho '${input.niche}'.
@@ -142,18 +141,19 @@ Sua resposta DEVE ser um bloco de código JSON válido, e NADA MAIS. O JSON deve
     const validatedData = AiCareerPackageOutputSchema.parse(parsedJson);
 
     // Normalize the sampleCollaborationIdeas to always be an array of strings
-    const normalizedIdeas = validatedData.sampleCollaborationIdeas.map(idea => {
+    const normalizedIdeas = validatedData.sampleCollaborationIdeas.map(
+      (idea) => {
         if (typeof idea === 'string') {
-            return idea;
+          return idea;
         }
         return idea.ideia;
-    });
+      }
+    );
 
     return {
-        ...validatedData,
-        sampleCollaborationIdeas: normalizedIdeas,
+      ...validatedData,
+      sampleCollaborationIdeas: normalizedIdeas,
     };
-    
   } catch (error) {
     console.error('Error calling OpenAI or parsing response:', error);
     const errorMessage =
