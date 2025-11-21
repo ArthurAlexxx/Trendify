@@ -6,8 +6,8 @@ import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { ConteudoAgendado } from '@/lib/types';
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
-import { Plus, Tag, Calendar as CalendarIcon } from 'lucide-react';
+import { addDoc, collection, serverTimestamp, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { Plus, Tag, Calendar as CalendarIcon, MoreHorizontal, Trash2, CheckCircle } from 'lucide-react';
 import React, { useState, useMemo, useEffect } from 'react';
 import {
   Dialog,
@@ -18,6 +18,17 @@ import {
   DialogFooter,
   DialogClose,
 } from '@/components/ui/dialog';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import {
   Form,
   FormControl,
@@ -34,12 +45,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+  } from "@/components/ui/dropdown-menu"
 import { Textarea } from '@/components/ui/textarea';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { format, isSameDay, setHours, setMinutes, parse } from 'date-fns';
+import { format, isSameDay, setHours, setMinutes } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -123,7 +140,7 @@ export default function ContentCalendarPage() {
       await addDoc(collection(firestore, `users/${user.uid}/conteudoAgendado`), {
         title: values.title,
         contentType: values.contentType,
-        date: combinedDateTime, // Use a combined date-time object
+        date: combinedDateTime,
         status: values.status,
         notes: values.notes,
         userId: user.uid,
@@ -137,6 +154,30 @@ export default function ContentCalendarPage() {
       toast({ title: "Erro", description: "Não foi possível agendar o post.", variant: 'destructive'});
     }
   }
+
+   const handleMarkAsCompleted = async (postId: string) => {
+    if (!user || !firestore) return;
+    try {
+        const postRef = doc(firestore, `users/${user.uid}/conteudoAgendado`, postId);
+        await updateDoc(postRef, { status: 'Publicado' });
+        toast({ title: 'Sucesso!', description: 'Post marcado como publicado.' });
+    } catch (error) {
+        console.error('Error updating document:', error);
+        toast({ title: 'Erro', description: 'Não foi possível atualizar o post.', variant: 'destructive' });
+    }
+  };
+
+  const handleDeletePost = async (postId: string) => {
+    if (!user || !firestore) return;
+    try {
+        const postRef = doc(firestore, `users/${user.uid}/conteudoAgendado`, postId);
+        await deleteDoc(postRef);
+        toast({ title: 'Excluído!', description: 'O agendamento foi removido.' });
+    } catch (error) {
+        console.error('Error deleting document:', error);
+        toast({ title: 'Erro', description: 'Não foi possível excluir o post.', variant: 'destructive' });
+    }
+  };
   
   const getBadgeVariant = (status: 'Agendado' | 'Publicado' | 'Rascunho') => {
     switch(status) {
@@ -351,7 +392,48 @@ export default function ContentCalendarPage() {
                             <p className="text-sm text-muted-foreground">{post.contentType} • {format(post.date.toDate(), "HH:mm")}</p>
                          </div>
                        </div>
-                       <Badge variant={getBadgeVariant(post.status)}>{post.status}</Badge>
+                       <div className='flex items-center gap-2'>
+                        <Badge variant={getBadgeVariant(post.status)}>{post.status}</Badge>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                    <span className="sr-only">Abrir menu</span>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => handleMarkAsCompleted(post.id)} disabled={post.status === 'Publicado'}>
+                                    <CheckCircle className="mr-2 h-4 w-4" />
+                                    <span>Marcar como Publicado</span>
+                                </DropdownMenuItem>
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <DropdownMenuItem
+                                            onSelect={(e) => e.preventDefault()}
+                                            className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                                        >
+                                            <Trash2 className="mr-2 h-4 w-4" />
+                                            <span>Excluir</span>
+                                        </DropdownMenuItem>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                Esta ação não pode ser desfeita. Isso excluirá permanentemente o agendamento do post.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                            <AlertDialogAction onClick={() => handleDeletePost(post.id)}>
+                                                Sim, excluir
+                                            </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                       </div>
                     </div>
                   ))}
                 </div>
@@ -373,3 +455,5 @@ export default function ContentCalendarPage() {
     </div>
   );
 }
+
+    
