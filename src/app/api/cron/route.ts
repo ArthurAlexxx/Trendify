@@ -15,21 +15,25 @@ async function getScheduledContentForTomorrow(firestore: ReturnType<typeof getFi
     const tomorrowEnd = new Date(tomorrow.setHours(23, 59, 59, 999));
 
 
-    const snapshot = await firestore.collectionGroup('conteudoAgendado')
-        .where('date', '>=', tomorrowStart)
-        .where('date', '<=', tomorrowEnd)
-        .get();
+    const snapshot = await firestore.collectionGroup('conteudoAgendado').get();
     
     if (snapshot.empty) {
         return [];
     }
 
-    const tasks = snapshot.docs.map(doc => ({
+    const allTasks = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
     }));
 
-    return tasks;
+    // Filter in memory to avoid complex index requirements
+    const tomorrowTasks = allTasks.filter(task => {
+        if (!task.date || typeof task.date.toDate !== 'function') return false;
+        const taskDate = task.date.toDate();
+        return taskDate >= tomorrowStart && taskDate <= tomorrowEnd;
+    });
+
+    return tomorrowTasks;
 }
 
 async function getUserEmail(firestore: ReturnType<typeof getFirestore>, userId: string) {
