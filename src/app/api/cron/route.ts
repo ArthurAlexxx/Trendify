@@ -103,17 +103,38 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({ message: 'No tasks scheduled for tomorrow.' });
         }
 
-        console.log(`[Cron Job] TEST: Found ${tasks.length} tasks. Skipping n8n call.`);
+        console.log(`[Cron Job] Found ${tasks.length} tasks for tomorrow. Preparing to send to n8n.`);
         
-        // Retornar sucesso sem enviar para o n8n
+        const enrichedTasks = await Promise.all(tasks.map(async (task) => {
+            const email = await getUserEmail(firestore, task.userId);
+            return {
+                ...task,
+                // Ensure date is a serializable string format
+                date: task.date.toDate().toISOString(),
+                userEmail: email,
+            };
+        }));
+        
+        console.log('[Cron Job] Sending tasks to n8n webhook...');
+        const n8nResponse = await fetch(webhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(enrichedTasks),
+        });
+
+        if (!n8nResponse.ok) {
+            const errorBody = await n8nResponse.text();
+            console.error(`[Cron Job] Error sending data to n8n: Status ${n8nResponse.status}`, errorBody);
+            throw new Error(`n8n webhook failed with status ${n8nResponse.status}`);
+        }
+
+        console.log('[Cron Job] Successfully sent tasks to n8n webhook.');
+
         return NextResponse.json({ 
-            message: 'TEST SUCCESS',
-            foundTasks: tasks.length,
-            tasks: tasks.map(t => ({ id: t.id, title: t.title }))
+            message: `Successfully sent ${enrichedTasks.length} tasks to n8n.`,
         });
 
     } catch (error: any) {
-        // Log the full error details to ensure the index creation link is visible.
         const errorMessage = error.details || error.message || 'Unknown Firestore error.';
         console.error(`[Cron Job] Error during execution: ${errorMessage}`, error);
         
