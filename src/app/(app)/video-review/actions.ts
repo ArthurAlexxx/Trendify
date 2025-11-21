@@ -3,7 +3,7 @@
 
 import { z } from 'zod';
 import { ai } from '@/ai/genkit';
-import { geminiPro } from 'genkitx-googleai';
+import { geminiPro } from '@genkit-ai/google-genai';
 
 // Schema para a saída da análise de vídeo
 const VideoAnalysisOutputSchema = z.object({
