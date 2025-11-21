@@ -3,7 +3,7 @@
 
 import { z } from 'zod';
 import { ai } from '@/ai/genkit';
-import { geminiPro } from '@genkit-ai/google-genai';
+import { googleAI } from '@genkit-ai/google-genai';
 
 // Schema para a saída da análise de vídeo
 const VideoAnalysisOutputSchema = z.object({
@@ -67,7 +67,7 @@ Diretrizes para a análise:
 - improvementPoints: Dê dicas práticas. Ex: "Adicionar legendas dinâmicas nos primeiros 5s" ou "Encurtar a introdução para ir direto ao ponto".`,
   
   // Use um modelo que suporte vídeo, como o Gemini 1.5 Pro
-  model: geminiPro,
+  model: googleAI.model('gemini-1.5-pro-latest'),
   config: {
     temperature: 0.5,
   },
