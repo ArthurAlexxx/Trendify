@@ -171,7 +171,7 @@ export default function DashboardPage() {
     const now = new Date();
     return query(
       collection(firestore, `users/${user.uid}/conteudoAgendado`),
-      where('status', '!=', 'Publicado'),
+      where('status', '==', 'Agendado'),
       where('date', '>=', now),
       orderBy('date', 'asc'),
       limit(3)
@@ -707,5 +707,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-    
