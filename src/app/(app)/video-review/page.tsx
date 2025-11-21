@@ -29,9 +29,9 @@ export default function VideoReviewPage() {
         <SavedIdeasSheet />
       </PageHeader>
 
-      <Card className="shadow-lg shadow-primary/5 border-border/30 bg-card rounded-2xl">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-3 font-headline text-xl">
+      <Card className="shadow-lg shadow-primary/5 border-border/30 bg-card rounded-2xl max-w-2xl mx-auto">
+          <CardHeader className="text-center sm:text-left">
+            <CardTitle className="flex items-center justify-center sm:justify-start gap-3 font-headline text-xl">
               <LinkIcon className="h-6 w-6 text-primary" />
               <span>Cole o link do seu vídeo</span>
             </CardTitle>
@@ -39,8 +39,8 @@ export default function VideoReviewPage() {
                 Insira o link de um vídeo do Instagram (Reels) ou TikTok para análise.
             </CardDescription>
           </CardHeader>
-          <CardContent className='space-y-6'>
-             <div className="flex gap-2">
+          <CardContent className='space-y-6 flex flex-col items-center'>
+             <div className="flex gap-2 w-full">
                 <Input 
                     type="url"
                     placeholder="https://www.instagram.com/reels/..."

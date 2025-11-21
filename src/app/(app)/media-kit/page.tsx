@@ -202,8 +202,8 @@ function MediaKitPageContent() {
       <div className="space-y-12">
           
           <Card className="shadow-lg shadow-primary/5 border-border/30 bg-card rounded-2xl">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-3 font-headline text-xl">
+            <CardHeader className="text-center sm:text-left">
+              <CardTitle className="flex items-center justify-center sm:justify-start gap-3 font-headline text-xl">
                 <Bot className="h-6 w-6 text-primary" />
                 <span>Assistente de Carreira</span>
               </CardTitle>
@@ -212,7 +212,7 @@ function MediaKitPageContent() {
               <Form {...form}>
                 <form
                   action={formAction}
-                  className="space-y-8"
+                  className="space-y-8 text-left"
                 >
                   <div className="space-y-6">
                      <FormField
@@ -282,12 +282,12 @@ function MediaKitPageContent() {
                       />
                      </div>
                   </div>
-                  <div className="pt-2">
+                  <div className="pt-2 flex justify-center sm:justify-start">
                     <Button
                       type="submit"
                       disabled={isGenerating || isLoadingProfile}
                       size="lg"
-                      className="font-manrope sm:w-auto h-12 px-10 rounded-full text-base font-bold shadow-lg shadow-primary/20 transition-transform hover:scale-[1.02]"
+                      className="font-manrope w-full sm:w-auto h-12 px-10 rounded-full text-base font-bold shadow-lg shadow-primary/20 transition-transform hover:scale-[1.02]"
                     >
                       {isGenerating ? (
                         <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Gerando...</>
@@ -303,7 +303,7 @@ function MediaKitPageContent() {
 
           {(isGenerating || result) && (
             <div className="space-y-8 animate-fade-in">
-              <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
                 <div className='flex-1'>
                   <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Resultado da IA</h2>
                   <p className="text-muted-foreground">Um pacote completo para sua prospecção de marcas.</p>
@@ -350,14 +350,14 @@ function InfoCard({
     <Card
       className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl h-full"
     >
-      <CardHeader>
-        <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
+      <CardHeader className="text-center sm:text-left">
+        <CardTitle className="flex items-center justify-center sm:justify-start gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary" />
           <span>{title}</span>
         </CardTitle>
       </CardHeader>
       <CardContent>
-         <div className="p-4 rounded-xl border bg-muted/30 text-base text-foreground whitespace-pre-wrap">
+         <div className="p-4 rounded-xl border bg-muted/30 text-base text-foreground whitespace-pre-wrap text-left">
             {content}
           </div>
       </CardContent>
@@ -377,14 +377,14 @@ function InfoList({
 }) {
   return (
     <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl h-full">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
+      <CardHeader className="text-center sm:text-left">
+        <CardTitle className="flex items-center justify-center sm:justify-start gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary" />
           <span>{title}</span>
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-3">
+        <div className="space-y-3 text-left">
           {items.map((item, index) => (
             <div
               key={index}
@@ -413,14 +413,14 @@ function PricingCard({
     <Card
       className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl h-full"
     >
-      <CardHeader>
-        <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
+      <CardHeader className="text-center sm:text-left">
+        <CardTitle className="flex items-center justify-center sm:justify-start gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary" />
           <span>{title}</span>
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <p className='text-xs text-muted-foreground mb-4'>Valores baseados nas suas métricas. Use como ponto de partida para negociações.</p>
+        <p className='text-xs text-muted-foreground mb-4 text-center sm:text-left'>Valores baseados nas suas métricas. Use como ponto de partida para negociações.</p>
         <Table>
           <TableHeader>
             <TableRow>

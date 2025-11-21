@@ -211,7 +211,7 @@ function CheckoutPageContent() {
     </AlertDialog>
 
     <div className="space-y-8">
-      <Button variant="ghost" asChild className="-ml-4">
+      <Button variant="ghost" asChild className="-ml-4 self-center sm:self-start">
         <Link href="/subscribe">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Voltar para os planos
@@ -226,7 +226,7 @@ function CheckoutPageContent() {
       <div className="grid lg:grid-cols-5 gap-8 items-start">
         <div className="lg:col-span-3">
           <Card className="rounded-2xl shadow-lg shadow-primary/5">
-            <CardHeader>
+            <CardHeader className="text-center sm:text-left">
               <CardTitle className="font-headline text-xl">
                 Pagamento via PIX
               </CardTitle>
@@ -245,7 +245,7 @@ function CheckoutPageContent() {
                     <p className="text-muted-foreground max-w-sm mx-auto mt-2">
                         Seu plano {selectedPlanDetails.name} já está ativo. Você pode gerenciar sua assinatura nas configurações.
                     </p>
-                    <Button asChild className='mt-6'>
+                    <Button asChild className='mt-6 w-full sm:w-auto'>
                         <Link href="/dashboard">
                             Ir para o Painel
                         </Link>
@@ -253,7 +253,7 @@ function CheckoutPageContent() {
                 </div>
               ) : !result && !isGenerating ? (
                 <Form {...form}>
-                  <form action={formAction} className="space-y-6">
+                  <form action={formAction} className="space-y-6 text-left">
                     <input type="hidden" {...form.register('plan')} value={plan} />
                     <input type="hidden" {...form.register('userId')} />
                     <FormField
@@ -378,10 +378,10 @@ function CheckoutPageContent() {
         </div>
         <div className="lg:col-span-2">
             <Card className="rounded-2xl shadow-lg shadow-primary/5 sticky top-24">
-                 <CardHeader>
+                 <CardHeader className="text-center sm:text-left">
                     <CardTitle className='font-headline text-xl'>Resumo do Pedido</CardTitle>
                  </CardHeader>
-                 <CardContent>
+                 <CardContent className="text-center sm:text-left">
                     <div className="space-y-4">
                         <div className='flex justify-between items-center'>
                             <p className='text-muted-foreground'>Plano</p>
@@ -394,7 +394,7 @@ function CheckoutPageContent() {
                             <p className='text-muted-foreground'>Valor</p>
                             <p className='font-semibold'>{selectedPlanDetails.price}/mês</p>
                         </div>
-                        <ul className="space-y-2 text-sm text-muted-foreground pt-4 border-t">
+                        <ul className="space-y-2 text-sm text-muted-foreground pt-4 border-t text-left">
                             {selectedPlanDetails.features.map((feature, index) => (
                                 <li key={index} className="flex items-start gap-2">
                                     <Check className="h-4 w-4 text-primary mt-1 shrink-0" />

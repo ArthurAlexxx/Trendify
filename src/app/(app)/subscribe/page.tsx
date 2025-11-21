@@ -61,12 +61,12 @@ export default function SubscribePage() {
       
       return (
         <Card className={cn(
-            "rounded-2xl shadow-lg shadow-primary/5 flex flex-col h-full",
+            "rounded-2xl shadow-lg shadow-primary/5 flex flex-col h-full text-center sm:text-left",
             isCurrentPlan && 'border-primary ring-2 ring-primary',
             isPremium && 'border-yellow-400'
         )}>
           <CardHeader>
-            <CardTitle className="font-headline text-xl flex items-center gap-2">
+            <CardTitle className="font-headline text-xl flex items-center justify-center sm:justify-start gap-2">
               {title}
               {isPremium && <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />}
             </CardTitle>

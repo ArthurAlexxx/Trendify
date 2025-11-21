@@ -160,8 +160,8 @@ export default function VideoIdeasPage() {
       </PageHeader>
 
       <Card className="shadow-lg shadow-primary/5 border-border/30 bg-card rounded-2xl">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-3 font-headline text-xl">
+        <CardHeader className="text-center sm:text-left">
+          <CardTitle className="flex items-center justify-center sm:justify-start gap-3 font-headline text-xl">
             <Sparkles className="h-6 w-6 text-primary" />
             <span>Descreva sua necessidade</span>
           </CardTitle>
@@ -171,7 +171,7 @@ export default function VideoIdeasPage() {
           <Form {...form}>
             <form
               action={formAction}
-              className="space-y-8"
+              className="space-y-8 text-left"
             >
               <div className="grid md:grid-cols-2 gap-x-6 gap-y-6">
                 <FormField
@@ -329,7 +329,7 @@ export default function VideoIdeasPage() {
                 />
               </div>
 
-              <div className="pt-4">
+              <div className="pt-4 flex justify-center sm:justify-start">
                 <Button
                   type="submit"
                   disabled={isGenerating}
@@ -356,7 +356,7 @@ export default function VideoIdeasPage() {
 
       {(isGenerating || result) && (
         <div className="space-y-8 animate-fade-in">
-          <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
             <div className="flex-1">
               <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">
                 Resultado da IA
@@ -435,7 +435,7 @@ export default function VideoIdeasPage() {
       <Separator />
 
       <div className="space-y-8">
-        <div>
+        <div className="text-center sm:text-left">
           <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">
             Ideias Concluídas
           </h2>
@@ -453,7 +453,7 @@ export default function VideoIdeasPage() {
             ) : completedIdeas && completedIdeas.length > 0 ? (
               <ul className="space-y-4">
                 {completedIdeas.map((idea) => (
-                  <li key={idea.id} className="flex items-center gap-4 p-4 rounded-xl border bg-muted/30">
+                  <li key={idea.id} className="flex items-center gap-4 p-4 rounded-xl border bg-muted/30 text-left">
                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-500/10 text-green-500">
                         <Check className="h-5 w-5" />
                      </div>
@@ -496,8 +496,8 @@ function InfoCard({
     <Card
       className={`shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl ${className}`}
     >
-      <CardHeader>
-        <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
+      <CardHeader className="text-center sm:text-left">
+        <CardTitle className="flex items-center justify-center sm:justify-start gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary/80" />
           <span>{title}</span>
         </CardTitle>
@@ -507,10 +507,10 @@ function InfoCard({
           <Textarea
             readOnly
             value={content}
-            className="h-48 bg-muted/30 text-base leading-relaxed resize-none rounded-xl"
+            className="h-48 bg-muted/30 text-base leading-relaxed resize-none rounded-xl text-left"
           />
         ) : (
-          <p className="p-4 rounded-xl border bg-muted/30 text-base text-foreground">
+          <p className="p-4 rounded-xl border bg-muted/30 text-base text-foreground text-left">
             {content}
           </p>
         )}
@@ -530,8 +530,8 @@ function InfoListCard({
 }) {
   return (
     <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
+      <CardHeader className="text-center sm:text-left">
+        <CardTitle className="flex items-center justify-center sm:justify-start gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary/80" />
           <span>{title}</span>
         </CardTitle>
@@ -540,7 +540,7 @@ function InfoListCard({
         <Textarea
           readOnly
           value={content.map((take, index) => `${index + 1}. ${take}`).join('\n')}
-          className="h-48 bg-muted/30 text-base leading-relaxed resize-none rounded-xl"
+          className="h-48 bg-muted/30 text-base leading-relaxed resize-none rounded-xl text-left"
         />
       </CardContent>
     </Card>

@@ -130,7 +130,7 @@ export default function SettingsPage() {
       />
 
       <Tabs defaultValue="subscription" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 sm:max-w-lg">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 sm:max-w-lg mx-auto sm:mx-0">
           <TabsTrigger value="subscription">Assinatura</TabsTrigger>
           <TabsTrigger value="integrations" className="hidden sm:inline-flex">Integrações</TabsTrigger>
           <TabsTrigger value="account">Conta</TabsTrigger>
@@ -138,8 +138,8 @@ export default function SettingsPage() {
 
         <TabsContent value="subscription" className="mt-6">
            <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3 font-headline text-xl">
+              <CardHeader className="text-center sm:text-left">
+                <CardTitle className="flex items-center justify-center sm:justify-start gap-3 font-headline text-xl">
                     <Crown className="h-6 w-6 text-primary" />
                     <span>Seu Plano e Assinatura</span>
                 </CardTitle>
@@ -153,9 +153,9 @@ export default function SettingsPage() {
                         <Skeleton className="h-24 w-full rounded-lg" />
                     </div>
                 ) : subscription ? (
-                    <div className="border rounded-lg p-6 flex flex-col sm:flex-row items-center justify-between gap-4 bg-muted/30">
+                    <div className="border rounded-lg p-6 flex flex-col items-center justify-between gap-4 bg-muted/30 text-center sm:flex-row sm:text-left">
                         <div>
-                            <h4 className="text-lg font-bold flex items-center gap-2">
+                            <h4 className="text-lg font-bold flex items-center justify-center sm:justify-start gap-2">
                                 Plano {subscription.plan && getPlanName(subscription.plan)}
                                 <Badge variant={subscription.status === 'active' ? 'default' : 'secondary'}>
                                     {subscription.status === 'active' ? 'Ativo' : 'Inativo'}
@@ -173,13 +173,13 @@ export default function SettingsPage() {
                             )}
                         </div>
                         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                            <Button asChild variant="outline">
+                            <Button asChild variant="outline" className="w-full sm:w-auto">
                                 <Link href="/subscribe">Ver Planos</Link>
                             </Button>
                             {subscription.plan !== 'free' && subscription.status === 'active' ? (
                                 <AlertDialog>
                                     <AlertDialogTrigger asChild>
-                                        <Button variant="destructive" disabled={isCancelling}>
+                                        <Button variant="destructive" disabled={isCancelling} className="w-full sm:w-auto">
                                             {isCancelling && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                             Cancelar Assinatura
                                         </Button>
@@ -209,8 +209,8 @@ export default function SettingsPage() {
         
         <TabsContent value="integrations" className="mt-6">
            <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3 font-headline text-xl">
+              <CardHeader className="text-center sm:text-left">
+                <CardTitle className="flex items-center justify-center sm:justify-start gap-3 font-headline text-xl">
                     <Building className="h-6 w-6 text-primary" />
                     <span>Integrações & Pagamentos</span>
                 </CardTitle>
@@ -218,7 +218,7 @@ export default function SettingsPage() {
                     Gerencie suas chaves de API para serviços externos como o Abacate Pay.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-6 text-left">
                 <div className="space-y-2">
                     <Label htmlFor="abacate-api-key">Chave de API do Abacate Pay</Label>
                     <Input id="abacate-api-key" type="password" placeholder="cole_sua_chave_aqui" />
@@ -229,8 +229,8 @@ export default function SettingsPage() {
                     <Input id="abacate-webhook-secret" type="password" placeholder="cole_seu_webhook_secret_aqui" />
                      <p className='text-xs text-muted-foreground'>Usado para verificar a autenticidade dos webhooks de pagamento.</p>
                 </div>
-                 <div className="flex justify-end pt-2">
-                  <Button disabled className="font-manrope rounded-full">
+                 <div className="flex justify-center sm:justify-end pt-2">
+                  <Button disabled className="font-manrope rounded-full w-full sm:w-auto">
                     Salvar Chaves
                   </Button>
                 </div>
@@ -241,14 +241,14 @@ export default function SettingsPage() {
         <TabsContent value="account" className="mt-6">
           <div className="space-y-8">
             <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3 font-headline text-xl">
+              <CardHeader className="text-center sm:text-left">
+                <CardTitle className="flex items-center justify-center sm:justify-start gap-3 font-headline text-xl">
                   <LogOut className="h-6 w-6" />
                   <span>Sessão</span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="flex flex-col sm:flex-row items-center justify-between">
-                <p className="text-muted-foreground mb-4 sm:mb-0">
+                <p className="text-muted-foreground mb-4 sm:mb-0 text-center sm:text-left">
                   Deseja encerrar sua sessão atual neste dispositivo?
                 </p>
                 <Button
@@ -262,8 +262,8 @@ export default function SettingsPage() {
             </Card>
 
             <Card className="border-destructive/50 bg-destructive/5 shadow-lg shadow-destructive/5 rounded-2xl">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3 font-headline text-xl text-destructive">
+              <CardHeader className="text-center sm:text-left">
+                <CardTitle className="flex items-center justify-center sm:justify-start gap-3 font-headline text-xl text-destructive">
                   <ShieldAlert className="h-6 w-6" />
                   <span>Zona de Perigo</span>
                 </CardTitle>
@@ -272,7 +272,7 @@ export default function SettingsPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col sm:flex-row items-center justify-between">
-                <div>
+                <div className="text-center sm:text-left">
                   <p className="font-semibold text-foreground">Excluir Conta</p>
                   <p className="text-muted-foreground">
                     Isto irá apagar permanentemente sua conta e todos os dados.

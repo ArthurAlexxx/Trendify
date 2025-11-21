@@ -101,7 +101,7 @@ const ProfileCompletionAlert = () => {
   }
 
   return (
-    <Alert className="mb-8 border-primary/30 bg-primary/5">
+    <Alert className="mb-8 border-primary/30 bg-primary/5 text-center sm:text-left">
       <AlertTriangle className="h-4 w-4 text-primary" />
       <AlertTitle className='font-semibold text-primary'>Atualize seu Perfil!</AlertTitle>
       <AlertDescription>
@@ -213,7 +213,7 @@ export default function DashboardPage() {
       >
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button size="lg" className="font-manrope rounded-full text-base">
+            <Button size="lg" className="font-manrope rounded-full text-base w-full sm:w-auto">
               <Plus className="mr-2 h-5 w-5" />
               Criar Novo
               <ChevronDown className="ml-2 h-4 w-4" />
@@ -261,20 +261,20 @@ export default function DashboardPage() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {isLoadingMetrica
             ? Array.from({ length: 4 }).map((_, i) => (
-                <Card key={i} className="rounded-2xl">
+                <Card key={i} className="rounded-2xl text-center sm:text-left">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <Skeleton className="h-4 w-2/3" />
                   </CardHeader>
                   <CardContent>
-                    <Skeleton className="h-7 w-1/3 mb-2" />
-                    <Skeleton className="h-3 w-1/2" />
+                    <Skeleton className="h-7 w-1/3 mb-2 mx-auto sm:mx-0" />
+                    <Skeleton className="h-3 w-1/2 mx-auto sm:mx-0" />
                   </CardContent>
                 </Card>
               ))
             : metrica?.map((metric) => (
                 <Card
                   key={metric.id}
-                  className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card"
+                  className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card text-center sm:text-left"
                 >
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-base font-medium text-muted-foreground">
@@ -311,7 +311,7 @@ export default function DashboardPage() {
           {/* Coluna Principal (Ações e Tarefas) */}
           <div className="lg:col-span-2 space-y-8">
             <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card">
-              <CardHeader>
+              <CardHeader className="text-center sm:text-left">
                 <CardTitle className="font-headline text-xl">
                   Ideias e Tarefas
                 </CardTitle>
@@ -329,7 +329,7 @@ export default function DashboardPage() {
                 ) : ideiasSalvas && ideiasSalvas.length > 0 ? (
                   <ul className="space-y-3">
                     {ideiasSalvas.map((ideia) => (
-                      <li key={ideia.id} className="flex items-start gap-3">
+                      <li key={ideia.id} className="flex items-start gap-3 text-left">
                         <Checkbox
                           id={`ideia-${ideia.id}`}
                           checked={ideia.concluido}
@@ -375,7 +375,7 @@ export default function DashboardPage() {
             </Card>
 
             <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card">
-              <CardHeader>
+              <CardHeader className="text-center sm:text-left">
                 <CardTitle className="font-headline text-xl">
                   Roteiro de Conteúdo Semanal
                 </CardTitle>
@@ -397,7 +397,7 @@ export default function DashboardPage() {
                   <ul className="space-y-2">
                     {roteiroItems.map((item, index) => (
                       <li key={index}>
-                        <div className="flex items-start gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50">
+                        <div className="flex items-start gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50 text-left">
                           <Checkbox
                             id={`roteiro-${index}`}
                             checked={item.concluido}
@@ -455,7 +455,7 @@ export default function DashboardPage() {
           {/* Coluna Lateral (Informações Rápidas) */}
           <div className="lg:col-span-1 space-y-8">
             <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card">
-              <CardHeader>
+              <CardHeader className="text-center sm:text-left">
                 <CardTitle className="font-headline text-xl">
                   Próximos Posts Agendados
                 </CardTitle>
@@ -471,7 +471,7 @@ export default function DashboardPage() {
                     {upcomingContent.map((post) => (
                       <div
                         key={post.id}
-                        className="p-3 rounded-lg border bg-background/50 flex items-start justify-between gap-4"
+                        className="p-3 rounded-lg border bg-background/50 flex items-start justify-between gap-4 text-left"
                       >
                         <div className="flex items-start gap-3">
                           <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
@@ -520,7 +520,7 @@ export default function DashboardPage() {
             </Card>
 
              <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card">
-              <CardHeader>
+              <CardHeader className="text-center sm:text-left">
                 <CardTitle className="font-headline text-xl">
                   Desempenho Semanal (Simulado)
                 </CardTitle>

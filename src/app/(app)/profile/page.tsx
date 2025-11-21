@@ -122,8 +122,8 @@ export default function ProfilePage() {
         description="Mantenha suas informações atualizadas para a IA gerar estratégias mais precisas."
       />
           <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-3 font-headline text-xl">
+            <CardHeader className="text-center sm:text-left">
+              <CardTitle className="flex items-center justify-center sm:justify-start gap-3 font-headline text-xl">
                 <UserIcon className="h-6 w-6 text-primary" />
                 <span>Perfil & Mídia Kit</span>
               </CardTitle>
@@ -132,7 +132,7 @@ export default function ProfilePage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={form.handleSubmit(onProfileSubmit)} className="space-y-8">
+              <form onSubmit={form.handleSubmit(onProfileSubmit)} className="space-y-8 text-left">
                 
                 <div className="flex flex-col sm:flex-row items-center gap-6">
                     <Avatar className="h-20 w-20">
@@ -228,8 +228,8 @@ export default function ProfilePage() {
                 </div>
 
 
-                <div className="flex justify-end pt-2">
-                  <Button type="submit" disabled={isPending || isProfileLoading} className="font-manrope rounded-full">
+                <div className="flex justify-center sm:justify-end pt-2">
+                  <Button type="submit" disabled={isPending || isProfileLoading} className="font-manrope rounded-full w-full sm:w-auto">
                      {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Salvar Alterações
                   </Button>

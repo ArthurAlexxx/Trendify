@@ -156,7 +156,7 @@ export default function ContentCalendarPage() {
       >
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
           <DialogTrigger asChild>
-            <Button size="lg" className="font-manrope rounded-full text-base" onClick={() => handleNewEventForDay(selectedDay)}>
+            <Button size="lg" className="font-manrope rounded-full text-base w-full sm:w-auto" onClick={() => handleNewEventForDay(selectedDay)}>
               <Plus className="mr-2 h-5 w-5" />
               Agendar Post
             </Button>
@@ -166,7 +166,7 @@ export default function ContentCalendarPage() {
               <DialogTitle className="font-headline text-xl">Novo Agendamento</DialogTitle>
             </DialogHeader>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-4">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-4 text-left">
                 <FormField
                   control={form.control}
                   name="title"
@@ -307,8 +307,8 @@ export default function ContentCalendarPage() {
       </PageHeader>
 
       <div className="grid md:grid-cols-3 gap-8 items-start">
-        <div className="md:col-span-1">
-          <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card">
+        <div className="md:col-span-1 flex justify-center">
+          <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card inline-block">
              <CardContent className="p-0 flex justify-center">
                <Calendar
                 mode="single"
@@ -326,7 +326,7 @@ export default function ContentCalendarPage() {
         </div>
         <div className="md:col-span-2">
            <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card">
-             <CardHeader>
+             <CardHeader className="text-center sm:text-left">
                 <CardTitle className="font-headline text-xl">
                   Posts para {format(selectedDay, "dd 'de' MMMM", { locale: ptBR })}
                 </CardTitle>
@@ -338,7 +338,7 @@ export default function ContentCalendarPage() {
                   <Skeleton className="h-20 w-full rounded-lg" />
                 </div>
               ) : postsForSelectedDay.length > 0 ? (
-                <div className="space-y-4">
+                <div className="space-y-4 text-left">
                   {postsForSelectedDay.map(post => (
                     <div key={post.id} className="p-4 rounded-lg border bg-background/50 flex items-start justify-between gap-4">
                        <div className="flex items-start gap-4">

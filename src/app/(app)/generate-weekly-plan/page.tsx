@@ -200,8 +200,8 @@ export default function GenerateWeeklyPlanPage() {
       </PageHeader>
 
       <Card className="shadow-lg shadow-primary/5 border-border/30 bg-card rounded-2xl">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-3 font-headline text-xl">
+        <CardHeader className="text-center sm:text-left">
+          <CardTitle className="flex items-center justify-center sm:justify-start gap-3 font-headline text-xl">
             <Bot className="h-6 w-6 text-primary" />
             <span>Briefing da Semana</span>
           </CardTitle>
@@ -212,7 +212,7 @@ export default function GenerateWeeklyPlanPage() {
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form action={formAction} className="space-y-8">
+            <form action={formAction} className="space-y-8 text-left">
               <div className="space-y-6">
                 <FormField
                   control={form.control}
@@ -282,12 +282,12 @@ export default function GenerateWeeklyPlanPage() {
                 </div>
               </div>
 
-              <div className="pt-2 flex flex-wrap items-center gap-4">
+              <div className="pt-2 flex flex-col sm:flex-row items-center gap-4">
                 <Button
                   type="submit"
                   disabled={isGenerating || isSaving || isLoadingProfile}
                   size="lg"
-                  className="font-manrope sm:w-auto h-12 px-10 rounded-full text-base font-bold shadow-lg shadow-primary/20 transition-transform hover:scale-[1.02]"
+                  className="font-manrope w-full sm:w-auto h-12 px-10 rounded-full text-base font-bold shadow-lg shadow-primary/20 transition-transform hover:scale-[1.02]"
                 >
                   {isGenerating || isSaving ? (
                     <>
@@ -304,7 +304,7 @@ export default function GenerateWeeklyPlanPage() {
                 
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button variant="destructive" type='button' disabled={!currentPlan || isGenerating || isSaving}>
+                    <Button variant="destructive" type='button' disabled={!currentPlan || isGenerating || isSaving} className="w-full sm:w-auto">
                       <Trash2 className="mr-2 h-4 w-4" />
                       Limpar Plano Atual
                     </Button>
@@ -342,14 +342,14 @@ export default function GenerateWeeklyPlanPage() {
       {!result && !isLoadingRoteiro && currentRoteiroItems && currentRoteiroItems.length > 0 && (
          <div className="space-y-8 animate-fade-in">
            <Separator />
-            <div>
+            <div className="text-center sm:text-left">
               <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Seu Plano Atual</h2>
               <p className="text-muted-foreground">Este é o roteiro que está ativo no seu painel.</p>
             </div>
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
                 <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card">
-                  <CardHeader><CardTitle className="font-headline text-xl">Roteiro de Conteúdo</CardTitle></CardHeader>
-                  <CardContent>
+                  <CardHeader><CardTitle className="font-headline text-xl text-center sm:text-left">Roteiro de Conteúdo</CardTitle></CardHeader>
+                  <CardContent className="text-left">
                     <ul className="space-y-2">
                       {currentRoteiroItems.map((item, index) => (
                         <li key={index}>
@@ -380,7 +380,7 @@ export default function GenerateWeeklyPlanPage() {
                   </CardContent>
                 </Card>
                 <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card">
-                  <CardHeader><CardTitle className="font-headline text-xl">Desempenho Semanal (Simulado)</CardTitle></CardHeader>
+                  <CardHeader><CardTitle className="font-headline text-xl text-center sm:text-left">Desempenho Semanal (Simulado)</CardTitle></CardHeader>
                   <CardContent className="pl-2">
                     {isLoadingRoteiro ? <Skeleton className="h-[350px] w-full" /> : 
                      <ChartContainer config={chartConfig} className="h-[350px] w-full">
@@ -404,7 +404,7 @@ export default function GenerateWeeklyPlanPage() {
       {(isGenerating || result) && (
         <div className="space-y-8 animate-fade-in">
           <Separator />
-          <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start gap-4 text-center sm:text-left">
             <div className="flex-1">
               <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">
                 Plano Gerado pela IA
@@ -427,11 +427,11 @@ export default function GenerateWeeklyPlanPage() {
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
               <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card">
                 <CardHeader>
-                  <CardTitle className="font-headline text-xl">
+                  <CardTitle className="font-headline text-xl text-center sm:text-left">
                     Novo Roteiro de Conteúdo
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="text-left">
                   <ul className="space-y-2">
                     {result.roteiro.map((item, index) => (
                       <li key={index}>
@@ -462,7 +462,7 @@ export default function GenerateWeeklyPlanPage() {
 
               <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card">
                 <CardHeader>
-                  <CardTitle className="font-headline text-xl">
+                  <CardTitle className="font-headline text-xl text-center sm:text-left">
                     Nova Simulação de Desempenho
                   </CardTitle>
                 </CardHeader>

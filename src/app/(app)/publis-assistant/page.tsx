@@ -197,8 +197,8 @@ function PublisAssistantPageContent() {
       </PageHeader>
 
       <Card className="shadow-lg shadow-primary/5 border-border/30 bg-card rounded-2xl">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-3 font-headline text-xl">
+        <CardHeader className="text-center sm:text-left">
+          <CardTitle className="flex items-center justify-center sm:justify-start gap-3 font-headline text-xl">
             <Bot className="h-6 w-6 text-primary" />
             <span>Briefing da Campanha</span>
           </CardTitle>
@@ -208,7 +208,7 @@ function PublisAssistantPageContent() {
           <Form {...form}>
             <form
               action={formAction}
-              className="space-y-8"
+              className="space-y-8 text-left"
             >
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-6">
                  <div className="space-y-6">
@@ -337,7 +337,7 @@ function PublisAssistantPageContent() {
                   />
               </div>
 
-              <div className="pt-4">
+              <div className="pt-4 flex justify-center sm:justify-start">
                 <Button
                   type="submit"
                   disabled={isGenerating}
@@ -358,7 +358,7 @@ function PublisAssistantPageContent() {
 
       {(isGenerating || result) && (
         <div className="space-y-8 animate-fade-in">
-          <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
             <div className="flex-1">
               <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">
                 Pacote de Conteúdo Gerado
@@ -388,17 +388,17 @@ function PublisAssistantPageContent() {
               {/* Scripts */}
               <div className="lg:col-span-2 space-y-6">
                 <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
+                    <CardHeader className="text-center sm:text-left">
+                        <CardTitle className="flex items-center justify-center sm:justify-start gap-3 text-lg font-semibold text-foreground">
                             <Clapperboard className="h-5 w-5 text-primary" />
                             <span>5 Roteiros Prontos para Gravar</span>
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <Accordion type="single" collapsible className="w-full">
+                        <Accordion type="single" collapsible className="w-full text-left">
                             {result.scripts.map((script, index) => (
                                 <AccordionItem value={`item-${index}`} key={index}>
-                                <AccordionTrigger className="font-semibold text-base hover:no-underline">Roteiro {index + 1}: {script.gancho}</AccordionTrigger>
+                                <AccordionTrigger className="font-semibold text-base hover:no-underline text-left">Roteiro {index + 1}: {script.gancho}</AccordionTrigger>
                                 <AccordionContent className="space-y-4 pt-2">
                                      <div>
                                         <h4 className='font-semibold text-foreground mb-1'>Roteiro:</h4>
@@ -449,14 +449,14 @@ function InfoListCard({
 }) {
   return (
     <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl h-full">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
+      <CardHeader className="text-center sm:text-left">
+        <CardTitle className="flex items-center justify-center sm:justify-start gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary" />
           <span>{title}</span>
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <ul className="space-y-3">
+        <ul className="space-y-3 text-left">
           {items.map((item, index) => (
             <li
               key={index}
