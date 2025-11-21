@@ -61,27 +61,27 @@ async function getUserEmail(firestore: ReturnType<typeof getFirestore>, userId: 
 // --- Rota da API ---
 
 export async function GET(req: NextRequest) {
+    // 1. Verificação de Segurança
+    const authHeader = req.headers.get('authorization');
+    const cronSecret = process.env.CRON_SECRET;
+
+    if (!cronSecret) {
+        console.error('[Cron Job] CRÍTICO: CRON_SECRET não está definida nas variáveis de ambiente.');
+        return NextResponse.json({ error: 'Erro de configuração interna.' }, { status: 500 });
+    }
+
+    if (authHeader !== `Bearer ${cronSecret}`) {
+        console.warn('[Cron Job] Tentativa de acesso não autorizada.');
+        return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+    }
+
+    // 2. Lógica do Cron Job
     let firestore: ReturnType<typeof getFirestore>;
     try {
         firestore = initializeFirebaseAdmin().firestore;
     } catch (e: any) {
         console.error('CRÍTICO: Falha ao inicializar o Firebase Admin na rota do cron.', e.message);
         return NextResponse.json({ error: 'Erro Interno do Servidor: Não foi possível conectar ao banco de dados.' }, { status: 500 });
-    }
-
-    const cronSecret = process.env.CRON_SECRET;
-    const authHeader = req.headers.get('authorization');
-    
-    // Verificação de segurança para o cron job em produção
-    if (process.env.VERCEL_ENV === 'production') {
-        if (!cronSecret) {
-            console.error('[Cron Job] CRÍTICO: CRON_SECRET não está definida nas variáveis de ambiente.');
-            return NextResponse.json({ error: 'Erro de configuração' }, { status: 500 });
-        }
-        if (authHeader !== `Bearer ${cronSecret}`) {
-            console.warn('[Cron Job] Tentativa de acesso não autorizada.');
-            return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
-        }
     }
 
     const webhookUrl = process.env.N8N_WEBHOOK_URL;
@@ -97,9 +97,17 @@ export async function GET(req: NextRequest) {
         }
         
         const enrichedTasks = (await Promise.all(tasks.map(async (task) => {
+            if (!task.userId) return null;
             const userEmail = await getUserEmail(firestore, task.userId);
             if (!userEmail) return null;
-            return { ...task, userEmail };
+
+            // Formata os dados para o n8n
+            return {
+                title: task.title,
+                contentType: task.contentType,
+                date: task.date.toDate().toISOString(),
+                userEmail: userEmail,
+            };
         }))).filter(job => job !== null);
         
 
