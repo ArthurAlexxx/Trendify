@@ -16,6 +16,7 @@ import {
   Crown,
   User,
   MoreHorizontal,
+  Hammer,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -158,6 +159,16 @@ export function AppSidebar() {
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter className="p-2 mt-auto">
+         {/* Temporary Test Link */}
+        <SidebarMenuItem>
+            <Link href="/storage-test">
+                <SidebarMenuButton tooltip="Teste de Storage" className="h-10 justify-start">
+                    <Hammer className="h-5 w-5" />
+                    <span className="text-sm font-medium">Teste de Storage</span>
+                </SidebarMenuButton>
+            </Link>
+        </SidebarMenuItem>
+
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className='w-full justify-start h-auto p-2'>
