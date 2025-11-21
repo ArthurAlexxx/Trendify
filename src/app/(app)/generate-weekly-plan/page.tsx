@@ -12,6 +12,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -228,6 +229,7 @@ export default function GenerateWeeklyPlanPage() {
                           {...field}
                         />
                       </FormControl>
+                      <FormDescription>Seja específico. Ex: "ganhar 500 seguidores", "aumentar o alcance em 20%", "divulgar meu e-book".</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}

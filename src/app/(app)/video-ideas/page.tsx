@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -164,6 +165,7 @@ export default function VideoIdeasPage() {
             <Sparkles className="h-6 w-6 text-primary" />
             <span>Descreva sua necessidade</span>
           </CardTitle>
+          <CardDescription>Quanto mais detalhes você fornecer, mais criativa e precisa será a ideia gerada.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -185,6 +187,7 @@ export default function VideoIdeasPage() {
                           {...field}
                         />
                       </FormControl>
+                       <FormDescription>Sobre o que será o vídeo?</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -202,6 +205,7 @@ export default function VideoIdeasPage() {
                           {...field}
                         />
                       </FormControl>
+                      <FormDescription>Para quem você está criando este conteúdo?</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}

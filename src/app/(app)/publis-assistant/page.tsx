@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -62,8 +63,6 @@ function PremiumFeatureGuard({ children }: { children: React.ReactNode }) {
     const { subscription, isLoading } = useSubscription();
     const router = useRouter();
 
-    const isPremiumActive = subscription?.plan === 'premium' && subscription.status === 'active';
-
     if (isLoading) {
         return (
             <div className="w-full h-96 flex items-center justify-center">
@@ -72,6 +71,8 @@ function PremiumFeatureGuard({ children }: { children: React.ReactNode }) {
         );
     }
     
+    const isPremiumActive = subscription?.plan === 'premium' && subscription.status === 'active';
+
     if (!isPremiumActive) {
         return (
              <AlertDialog open={true} onOpenChange={(open) => !open && router.push('/subscribe')}>
@@ -201,6 +202,7 @@ function PublisAssistantPageContent() {
             <Bot className="h-6 w-6 text-primary" />
             <span>Briefing da Campanha</span>
           </CardTitle>
+          <CardDescription>Quanto mais informações, mais alinhados à sua marca serão os roteiros e estratégias.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -223,6 +225,7 @@ function PublisAssistantPageContent() {
                               {...field}
                             />
                           </FormControl>
+                          <FormDescription>Qual o foco principal da campanha?</FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -240,6 +243,7 @@ function PublisAssistantPageContent() {
                               {...field}
                             />
                           </FormControl>
+                          <FormDescription>Com quem você quer falar? Seja específico.</FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -259,6 +263,7 @@ function PublisAssistantPageContent() {
                               {...field}
                             />
                           </FormControl>
+                          <FormDescription>O que torna este produto/marca único?</FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -325,6 +330,7 @@ function PublisAssistantPageContent() {
                             {...field}
                           />
                         </FormControl>
+                        <FormDescription>Restrições, cupons, links, etc.</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -465,5 +471,3 @@ function InfoListCard({
     </Card>
   );
 }
-
-    
