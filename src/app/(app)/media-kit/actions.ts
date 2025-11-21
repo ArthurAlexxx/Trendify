@@ -1,3 +1,4 @@
+
 'use server';
 
 import OpenAI from 'openai';
@@ -20,21 +21,25 @@ const AiCareerPackageOutputSchema = z.object({
   pricingTiers: z.object({
     reels: z
       .string()
+      .optional()
       .describe(
         "Faixa de preço sugerida para um único vídeo no formato Reels (ex: 'R$ 800 - R$ 1.500')."
       ),
     storySequence: z
       .string()
+      .optional()
       .describe(
         "Faixa de preço para uma sequência de 3-5 Stories (ex: 'R$ 500 - R$ 900')."
       ),
     staticPost: z
       .string()
+      .optional()
       .describe(
         "Faixa de preço para um post estático no feed (foto única ou carrossel) (ex: 'R$ 600 - R$ 1.200')."
       ),
     monthlyPackage: z
       .string()
+      .optional()
       .describe(
         "Faixa de preço para um pacote mensal (ex: 2 Reels, 4 sequências de Stories) (ex: 'R$ 3.000 - R$ 5.500')."
       ),
@@ -93,23 +98,24 @@ Sua única função é gerar um pacote de prospecção profissional para um cria
 Sua resposta DEVE ser um bloco de código JSON válido, e NADA MAIS. O JSON deve se conformar estritamente ao schema fornecido.`;
 
   const userPrompt = `
-  Gere um pacote de prospecção profissional com base NOS SEGUINTES DADOS. Seja criativo e estratégico.
+  Gere um pacote de prospecção profissional com base NOS SEGUINTES DADOS. Seja criativo, estratégico e siga as regras com MÁXIMA PRECISÃO.
+  Você está estritamente proibido de mencionar, sugerir ou fazer alusão a qualquer tópico, produto ou ideia que não pertença diretamente ao nicho fornecido. O foco é absoluto.
 
   - Nicho de Atuação do Criador: ${input.niche}
   - Métricas Principais do Criador: ${input.keyMetrics}
   - Marca Alvo para a Proposta: ${input.targetBrand}
 
-  Para cada campo do JSON, siga estas diretrizes com MÁXIMA PRECISÃO:
+  Para cada campo do JSON, siga estas diretrizes:
 
-  - executiveSummary: Crie um parágrafo de apresentação em PRIMEIRA PESSOA (usando "Eu sou...", "Minha audiência..."). O texto deve ser profissional, conciso e focado 100% em como o criador agrega valor DENTRO do nicho de '${input.niche}'. Destaque a especialidade do criador e o perfil do público relacionado a este nicho.
+  - executiveSummary: Crie um parágrafo de apresentação em PRIMEIRA PESSOA (usando "Eu sou...", "Minha audiência..."). O texto deve ser profissional, conciso e focado 100% em como o criador agrega valor DENTRO do nicho de '${input.niche}'. Demonstre autoridade e conhecimento profundo do público-alvo específico deste nicho.
   
-  - pricingTiers: Com base nas métricas fornecidas (${input.keyMetrics}), calcule faixas de preço realistas para o mercado brasileiro. Retorne uma STRING formatada para cada campo (ex: "R$ X - R$ Y"). Seja objetivo e baseie os valores nas métricas.
+  - pricingTiers: Com base nas métricas fornecidas (${input.keyMetrics}), calcule faixas de preço realistas para o mercado brasileiro. É crucial que você retorne faixas de preço para todos os formatos solicitados em 'pricingTiers'. Retorne uma STRING formatada para cada campo (ex: "R$ X - R$ Y").
 
   - sampleCollaborationIdeas: Gere 3 ideias de colaboração. Cada ideia DEVE ser:
-    1.  Diretamente e exclusivamente relacionada ao nicho '${input.niche}'.
-    2.  Criativa e autêntica para o público deste nicho.
-    3.  Alinhada com a marca alvo '${input.targetBrand}'.
-    NÃO inclua nenhuma ideia, produto ou conceito de outros nichos. O foco é absoluto. Para cada ideia, use a chave 'ideia' no JSON.
+    1.  100% relacionada e exclusiva ao nicho '${input.niche}'.
+    2.  Criativa, autêntica e que gere valor real para o público deste nicho.
+    3.  Alinhada com os produtos ou o posicionamento da marca alvo '${input.targetBrand}'.
+    NÃO inclua nenhuma ideia de outros nichos. O foco é absoluto. Para cada ideia, use a chave 'ideia' no JSON.
   `;
 
   try {

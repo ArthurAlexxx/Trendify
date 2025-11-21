@@ -42,7 +42,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescript
 
 const formSchema = z.object({
   niche: z.string().min(1, 'O nicho não pode estar vazio.'),
-  keyMetrics: z.string().min(10, 'Suas métricas devem ter pelo menos 10 caracteres.'),
+  keyMetrics: z.string().min(1, 'As métricas não podem estar vazias.'),
   targetBrand: z.string().min(3, 'A marca alvo deve ter pelo menos 3 caracteres.'),
 });
 
@@ -59,7 +59,7 @@ function PremiumFeatureGuard({ children }: { children: React.ReactNode }) {
     }
 
     const isPremiumActive = subscription?.plan === 'premium' && subscription.status === 'active';
-
+    
     if (!isPremiumActive) {
         return (
              <AlertDialog open={true} onOpenChange={(open) => !open && router.push('/subscribe')}>
@@ -158,10 +158,10 @@ function MediaKitPageContent() {
         
         let content = `**Apresentação:**\n${data.executiveSummary}\n\n`;
         content += `**Tabela de Preços:**\n`;
-        content += `- Reels: ${data.pricingTiers.reels}\n`;
-        content += `- Stories: ${data.pricingTiers.storySequence}\n`;
-        content += `- Post: ${data.pricingTiers.staticPost}\n`;
-        content += `- Pacote: ${data.pricingTiers.monthlyPackage}\n\n`;
+        content += `- Reels: ${data.pricingTiers.reels || 'N/A'}\n`;
+        content += `- Stories: ${data.pricingTiers.storySequence || 'N/A'}\n`;
+        content += `- Post: ${data.pricingTiers.staticPost || 'N/A'}\n`;
+        content += `- Pacote: ${data.pricingTiers.monthlyPackage || 'N/A'}\n\n`;
         content += `**Ideias de Colaboração:**\n${data.sampleCollaborationIdeas.map(idea => `- ${idea}`).join('\n')}`;
 
         await addDoc(collection(firestore, `users/${user.uid}/ideiasSalvas`), {
@@ -421,19 +421,19 @@ function PricingCard({
           <TableBody>
             <TableRow>
               <TableCell className="font-medium">Reels</TableCell>
-              <TableCell className="text-right font-mono">{pricing.reels}</TableCell>
+              <TableCell className="text-right font-mono">{pricing.reels || 'A calcular'}</TableCell>
             </TableRow>
              <TableRow>
               <TableCell className="font-medium">Sequência de Stories</TableCell>
-              <TableCell className="text-right font-mono">{pricing.storySequence}</TableCell>
+              <TableCell className="text-right font-mono">{pricing.storySequence || 'A calcular'}</TableCell>
             </TableRow>
              <TableRow>
               <TableCell className="font-medium">Post Estático (Feed)</TableCell>
-              <TableCell className="text-right font-mono">{pricing.staticPost}</TableCell>
+              <TableCell className="text-right font-mono">{pricing.staticPost || 'A calcular'}</TableCell>
             </TableRow>
              <TableRow>
               <TableCell className="font-medium text-primary">Pacote Mensal</TableCell>
-              <TableCell className="text-right font-mono text-primary font-bold">{pricing.monthlyPackage}</TableCell>
+              <TableCell className="text-right font-mono text-primary font-bold">{pricing.monthlyPackage || 'A calcular'}</TableCell>
             </TableRow>
           </TableBody>
         </Table>
@@ -441,5 +441,3 @@ function PricingCard({
     </Card>
   );
 }
-
-    
