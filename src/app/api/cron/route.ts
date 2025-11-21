@@ -18,7 +18,6 @@ async function getScheduledContentForTomorrow(firestore: ReturnType<typeof getFi
     const snapshot = await firestore.collectionGroup('conteudoAgendado')
         .where('date', '>=', tomorrowStart)
         .where('date', '<=', tomorrowEnd)
-        .orderBy('date', 'asc')
         .get();
     
     if (snapshot.empty) {
