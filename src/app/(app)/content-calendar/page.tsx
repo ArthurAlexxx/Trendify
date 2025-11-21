@@ -83,6 +83,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { FullScreenCalendar } from '@/components/ui/fullscreen-calendar';
+import { Calendar } from '@/components/ui/calendar';
 
 const formSchema = z.object({
   title: z.string().min(3, 'O título deve ter pelo menos 3 caracteres.'),
@@ -259,7 +260,13 @@ export default function ContentCalendarPage() {
   }
 
   return (
-    <>
+    <div className="space-y-8">
+      <PageHeader
+        icon={<CalendarIcon />}
+        title="Calendário de Conteúdo"
+        description="Visualize, organize e agende suas publicações em um só lugar."
+      />
+
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="sm:max-w-[480px]">
           <DialogHeader>
@@ -472,6 +479,6 @@ export default function ContentCalendarPage() {
              <Badge variant={getBadgeVariant(event.status)}>{event.status}</Badge>
         )}
       />
-    </>
+    </div>
   );
 }
