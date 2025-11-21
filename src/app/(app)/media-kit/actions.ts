@@ -3,6 +3,14 @@
 import OpenAI from 'openai';
 import { z } from 'zod';
 
+const CollaborationIdeaSchema = z.union([
+  z.string(),
+  z.object({
+    ideia: z.string().describe('A ideia de colaboração criativa e de alto nível.'),
+  })
+]);
+
+
 const AiCareerPackageOutputSchema = z.object({
   executiveSummary: z
     .string()
@@ -32,7 +40,7 @@ const AiCareerPackageOutputSchema = z.object({
       ),
   }),
   sampleCollaborationIdeas: z
-    .array(z.string())
+    .array(CollaborationIdeaSchema)
     .describe(
       'Uma lista de 2-3 ideias de colaboração criativas e de alto nível que se encaixam no nicho do criador e da marca alvo.'
     ),
@@ -81,12 +89,11 @@ async function getAiCareerPackage(
   input: z.infer<typeof formSchema>
 ): Promise<AiCareerPackageOutput> {
   const systemPrompt = `Você é um "AI Talent Manager", um estrategista de negócios especialista em monetização para criadores de conteúdo.
-Sua única função é gerar um pacote de prospecção profissional para um criador usar ao abordar marcas, baseado ESTRITAMENTE no nicho fornecido.
-Você está PROIBIDO de usar informações, exemplos ou ideias de qualquer outro nicho que não seja o que o usuário informou.
+Sua única função é gerar um pacote de prospecção profissional para um criador usar ao abordar marcas.
 Sua resposta DEVE ser um bloco de código JSON válido, e NADA MAIS. O JSON deve se conformar estritamente ao schema fornecido.`;
 
   const userPrompt = `
-  Gere um pacote de prospecção profissional com base NOS SEGUINTES DADOS, e apenas neles:
+  Gere um pacote de prospecção profissional com base NOS SEGUINTES DADOS. Seja criativo e estratégico.
 
   - Nicho de Atuação do Criador: ${input.niche}
   - Métricas Principais do Criador: ${input.keyMetrics}
@@ -102,7 +109,7 @@ Sua resposta DEVE ser um bloco de código JSON válido, e NADA MAIS. O JSON deve
     1.  Diretamente e exclusivamente relacionada ao nicho '${input.niche}'.
     2.  Criativa e autêntica para o público deste nicho.
     3.  Alinhada com a marca alvo '${input.targetBrand}'.
-    NÃO inclua nenhuma ideia, produto ou conceito de outros nichos. Por exemplo, se o nicho for sobre finanças, não sugira nada sobre beleza, e vice-versa. O foco é absoluto.
+    NÃO inclua nenhuma ideia, produto ou conceito de outros nichos. O foco é absoluto. Para cada ideia, use a chave 'ideia' no JSON.
   `;
 
   try {
@@ -126,7 +133,21 @@ Sua resposta DEVE ser um bloco de código JSON válido, e NADA MAIS. O JSON deve
     }
 
     const parsedJson = JSON.parse(jsonString);
-    return AiCareerPackageOutputSchema.parse(parsedJson);
+    const validatedData = AiCareerPackageOutputSchema.parse(parsedJson);
+
+    // Normalize the sampleCollaborationIdeas to always be an array of strings
+    const normalizedIdeas = validatedData.sampleCollaborationIdeas.map(idea => {
+        if (typeof idea === 'string') {
+            return idea;
+        }
+        return idea.ideia;
+    });
+
+    return {
+        ...validatedData,
+        sampleCollaborationIdeas: normalizedIdeas,
+    };
+    
   } catch (error) {
     console.error('Error calling OpenAI or parsing response:', error);
     const errorMessage =
@@ -161,5 +182,3 @@ export async function getAiCareerPackageAction(
     return { error: `Failed to generate package: ${errorMessage}` };
   }
 }
-
-    
