@@ -35,12 +35,16 @@ export default function VideoReviewPage() {
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, startSavingTransition] = useTransition();
+  
+  // This transition will handle the pending state for the AI analysis
+  const [isAnalyzing, startAnalyzing] = useTransition();
+
 
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
 
-  const [state, formAction, isAnalyzing] = useActionState(
+  const [state, formAction] = useActionState(
     analyzeVideoAction,
     null
   );
@@ -97,9 +101,11 @@ export default function VideoReviewPage() {
       () => {
         getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
           setIsUploading(false);
-          const formData = new FormData();
-          formData.append('videoUrl', downloadURL);
-          formAction(formData);
+          startAnalyzing(() => {
+            const formData = new FormData();
+            formData.append('videoUrl', downloadURL);
+            formAction(formData);
+          });
         });
       }
     );
