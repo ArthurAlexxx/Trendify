@@ -358,7 +358,7 @@ export default function LandingPage() {
               href="/sign-up"
               className={cn(
                 buttonVariants({}),
-                'font-semibold rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 text-primary-foreground shadow-lg'
+                'font-semibold rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 text-primary-foreground shadow-lg hover:opacity-90 transition-opacity'
               )}
             >
               Começar Grátis
@@ -457,7 +457,7 @@ export default function LandingPage() {
         {/* Hero Section */}
         <section className="py-16 sm:py-24 text-center relative overflow-hidden">
           <div
-            className="absolute top-0 left-0 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] sm:w-[1500px] sm:h-[1500px] bg-gradient-radial from-purple-100/50 via-background to-background -z-10"
+            className="absolute top-0 left-0 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] sm:w-[1500px] sm:h-[1500px] bg-gradient-radial from-primary/10 via-background to-background -z-10"
             aria-hidden="true"
           />
           <div className="container">
@@ -468,16 +468,16 @@ export default function LandingPage() {
             >
               <Badge
                 variant="outline"
-                className="mb-6 border-purple-300 bg-purple-50 text-purple-700 font-medium rounded-full px-4 py-1"
+                className="mb-6 border-primary/20 bg-primary/10 text-primary font-medium rounded-full px-4 py-1"
               >
-                <Sparkles className="h-3 w-3 mr-2 text-purple-500" />
+                <Sparkles className="h-3 w-3 mr-2" />
                 Planos Pro e Premium com pagamento via PIX
               </Badge>
 
               <h1 className="text-4xl sm:text-5xl md:text-7xl font-black font-headline tracking-tighter mb-6 !leading-tight max-w-4xl mx-auto">
                 Conteúdo inteligente,{' '}
                 <br className="hidden md:block" />
-                <span className="bg-gradient-to-r from-indigo-500 to-purple-600 text-gradient">
+                <span className="bg-gradient-to-r from-purple-600 via-indigo-500 to-purple-600 text-gradient">
                   crescimento real.
                 </span>
               </h1>
@@ -501,7 +501,7 @@ export default function LandingPage() {
                   href="#calculadora"
                   className={cn(
                     buttonVariants({ size: 'lg' }),
-                    'font-manrope rounded-lg text-base h-12 px-8 w-full sm:w-auto bg-gradient-to-r from-indigo-500 to-purple-600 text-primary-foreground shadow-lg'
+                    'font-manrope rounded-lg text-base h-12 px-8 w-full sm:w-auto bg-gradient-to-r from-purple-600 to-indigo-600 text-primary-foreground shadow-lg hover:opacity-90 transition-opacity'
                   )}
                 >
                   Calcular meu crescimento
@@ -770,7 +770,7 @@ export default function LandingPage() {
                           <Button
                             type="submit"
                             size="lg"
-                            className="w-full h-12 text-base font-bold bg-gradient-to-r from-indigo-500 to-purple-600 text-primary-foreground shadow-lg"
+                            className="w-full h-12 text-base font-bold bg-gradient-to-r from-purple-600 to-indigo-600 text-primary-foreground shadow-lg hover:opacity-90 transition-opacity"
                             disabled={isCalculating}
                           >
                             {isCalculating ? (
