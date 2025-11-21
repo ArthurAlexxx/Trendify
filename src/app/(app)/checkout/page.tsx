@@ -223,8 +223,8 @@ function CheckoutPageContent() {
         description={`Você está a um passo de desbloquear o ${selectedPlanDetails.name}.`}
       />
 
-      <div className="grid md:grid-cols-5 gap-8 items-start">
-        <div className="md:col-span-3">
+      <div className="grid lg:grid-cols-5 gap-8 items-start">
+        <div className="lg:col-span-3">
           <Card className="rounded-2xl shadow-lg shadow-primary/5">
             <CardHeader>
               <CardTitle className="font-headline text-xl">
@@ -282,7 +282,7 @@ function CheckoutPageContent() {
                         </FormItem>
                       )}
                     />
-                    <div className="grid md:grid-cols-2 gap-4">
+                    <div className="grid sm:grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
                         name="taxId"
@@ -376,7 +376,7 @@ function CheckoutPageContent() {
             </CardContent>
           </Card>
         </div>
-        <div className="md:col-span-2">
+        <div className="lg:col-span-2">
             <Card className="rounded-2xl shadow-lg shadow-primary/5 sticky top-24">
                  <CardHeader>
                     <CardTitle className='font-headline text-xl'>Resumo do Pedido</CardTitle>
@@ -420,3 +420,5 @@ export default function CheckoutPage() {
         </Suspense>
     )
 }
+
+    

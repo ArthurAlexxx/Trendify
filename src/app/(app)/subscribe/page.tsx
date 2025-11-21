@@ -104,7 +104,7 @@ export default function SubscribePage() {
         description="Escolha o plano ideal para o seu momento e acelere seu crescimento."
       />
 
-      <div className="grid lg:grid-cols-2 gap-8 items-start max-w-4xl mx-auto">
+      <div className="grid md:grid-cols-2 gap-8 items-start max-w-4xl mx-auto">
         <PlanCard
           plan="pro"
           title="Plano Pro"
@@ -136,3 +136,5 @@ export default function SubscribePage() {
     </div>
   );
 }
+
+    

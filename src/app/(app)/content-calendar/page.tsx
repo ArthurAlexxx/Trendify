@@ -309,7 +309,7 @@ export default function ContentCalendarPage() {
       <div className="grid md:grid-cols-3 gap-8 items-start">
         <div className="md:col-span-1">
           <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card">
-             <CardContent className="p-0">
+             <CardContent className="p-0 flex justify-center">
                <Calendar
                 mode="single"
                 selected={selectedDay}
@@ -372,3 +372,5 @@ export default function ContentCalendarPage() {
     </div>
   );
 }
+
+    

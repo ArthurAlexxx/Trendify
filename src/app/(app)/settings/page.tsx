@@ -130,9 +130,9 @@ export default function SettingsPage() {
       />
 
       <Tabs defaultValue="subscription" className="w-full">
-        <TabsList className="grid w-full max-w-lg grid-cols-3">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 sm:max-w-lg">
           <TabsTrigger value="subscription">Assinatura</TabsTrigger>
-          <TabsTrigger value="integrations">Integrações</TabsTrigger>
+          <TabsTrigger value="integrations" className="hidden sm:inline-flex">Integrações</TabsTrigger>
           <TabsTrigger value="account">Conta</TabsTrigger>
         </TabsList>
 
@@ -332,3 +332,5 @@ export default function SettingsPage() {
     </div>
   );
 }
+
+    

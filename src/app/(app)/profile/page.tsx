@@ -134,7 +134,7 @@ export default function ProfilePage() {
             <CardContent>
               <form onSubmit={form.handleSubmit(onProfileSubmit)} className="space-y-8">
                 
-                <div className="flex items-center gap-6">
+                <div className="flex flex-col sm:flex-row items-center gap-6">
                     <Avatar className="h-20 w-20">
                       <AvatarImage
                         src={undefined}
@@ -144,7 +144,7 @@ export default function ProfilePage() {
                         {user?.displayName?.[0].toUpperCase() ?? user?.email?.[0].toUpperCase() ?? 'U'}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="flex-1 space-y-2">
+                    <div className="flex-1 w-full space-y-2">
                         <Label htmlFor="displayName">Nome de Exibição</Label>
                         <Input
                           id="displayName"
@@ -240,3 +240,5 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+    
