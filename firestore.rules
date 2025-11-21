@@ -22,6 +22,7 @@ service cloud.firestore {
     match /users/{userId}/conteudoAgendado/{conteudoId} {
       allow read, create, update, delete: if request.auth.uid == userId;
     }
+    // Allow users to list their own scheduled content
     match /users/{userId}/conteudoAgendado {
       allow list: if request.auth.uid == userId;
     }
