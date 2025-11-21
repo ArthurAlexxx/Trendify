@@ -21,7 +21,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Sidebar,
   SidebarContent,
@@ -162,9 +162,10 @@ export function AppSidebar() {
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className='w-full justify-start h-auto p-2'>
                     <Avatar className="h-8 w-8">
-                    <AvatarFallback>
-                        {user?.displayName?.[0].toUpperCase() ?? user?.email?.[0].toUpperCase() ?? 'U'}
-                    </AvatarFallback>
+                      <AvatarImage src={user?.photoURL ?? undefined} alt="User avatar" />
+                      <AvatarFallback>
+                          {user?.displayName?.[0].toUpperCase() ?? user?.email?.[0].toUpperCase() ?? 'U'}
+                      </AvatarFallback>
                     </Avatar>
                     <div className="hidden group-data-[state=expanded]:flex items-center gap-3 w-full">
                         <div className="w-[120px] overflow-hidden text-left ml-3">

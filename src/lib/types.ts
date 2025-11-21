@@ -7,6 +7,7 @@ export interface UserProfile {
   id: string;
   displayName: string;
   email: string;
+  photoURL?: string;
   createdAt: Timestamp;
   instagramHandle?: string;
   youtubeHandle?: string;

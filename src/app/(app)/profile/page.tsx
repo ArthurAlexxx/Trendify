@@ -15,7 +15,7 @@ import { User as UserIcon } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useState, useEffect, useTransition } from 'react';
+import { useState, useEffect, useTransition, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -25,9 +25,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Loader2 } from 'lucide-react';
 import { updateProfile } from 'firebase/auth';
 import type { UserProfile } from '@/lib/types';
+import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { Progress } from '@/components/ui/progress';
+
 
 const profileFormSchema = z.object({
   displayName: z.string().min(2, 'O nome deve ter pelo menos 2 caracteres.'),
+  photoURL: z.string().url().optional().nullable(),
   instagramHandle: z.string().optional(),
   youtubeHandle: z.string().optional(),
   niche: z.string().optional(),
@@ -46,6 +50,10 @@ export default function ProfilePage() {
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
 
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const [localPhotoUrl, setLocalPhotoUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const userProfileRef = useMemoFirebase(
     () => (firestore && user ? doc(firestore, 'users', user.uid) : null),
     [firestore, user]
@@ -56,6 +64,7 @@ export default function ProfilePage() {
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
       displayName: '',
+      photoURL: null,
       instagramHandle: '',
       youtubeHandle: '',
       niche: '',
@@ -72,6 +81,7 @@ export default function ProfilePage() {
     if (userProfile) {
       form.reset({
         displayName: userProfile.displayName || '',
+        photoURL: userProfile.photoURL || null,
         instagramHandle: userProfile.instagramHandle || '',
         youtubeHandle: userProfile.youtubeHandle || '',
         niche: userProfile.niche || '',
@@ -82,16 +92,63 @@ export default function ProfilePage() {
         averageComments: userProfile.averageComments || '',
         audience: userProfile.audience || '',
       });
+      if (userProfile.photoURL) {
+        setLocalPhotoUrl(userProfile.photoURL);
+      }
     }
   }, [userProfile, form]);
+  
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+    
+    setLocalPhotoUrl(URL.createObjectURL(file));
+    
+    const storage = getStorage();
+    const storageRef = ref(storage, `profile-pictures/${user.uid}/${file.name}`);
+    const uploadTask = uploadBytesResumable(storageRef, file);
+
+    uploadTask.on('state_changed',
+      (snapshot) => {
+        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        setUploadProgress(progress);
+      },
+      (error) => {
+        console.error("Upload error:", error);
+        setUploadProgress(null);
+        setLocalPhotoUrl(userProfile?.photoURL || null);
+        toast({
+          title: 'Erro no Upload',
+          description: 'Não foi possível enviar sua foto. Tente novamente.',
+          variant: 'destructive'
+        });
+      },
+      () => {
+        getDownloadURL(uploadTask.snapshot.ref).then(async (downloadURL) => {
+          await updateDoc(userProfileRef!, { photoURL: downloadURL });
+          if (auth.currentUser) {
+            await updateProfile(auth.currentUser, { photoURL: downloadURL });
+          }
+          form.setValue('photoURL', downloadURL);
+          setLocalPhotoUrl(downloadURL);
+          setUploadProgress(null);
+          toast({
+            title: 'Sucesso!',
+            description: 'Sua foto de perfil foi atualizada.',
+          });
+        });
+      }
+    );
+  };
 
   const onProfileSubmit = (values: z.infer<typeof profileFormSchema>) => {
     if (!user || !userProfileRef) return;
     
     startTransition(async () => {
       try {
+        const { photoURL, ...firestoreData } = values;
         // Update Firestore document
-        await updateDoc(userProfileRef, values);
+        await updateDoc(userProfileRef, firestoreData);
         
         // Update Firebase Auth profile if necessary
         if (user.displayName !== values.displayName) {
@@ -136,15 +193,23 @@ export default function ProfilePage() {
               <form onSubmit={form.handleSubmit(onProfileSubmit)} className="space-y-8 text-left">
                 
                 <div className="flex flex-col sm:flex-row items-center gap-6">
-                    <Avatar className="h-20 w-20">
-                      <AvatarImage
-                        src={undefined}
-                        alt="User Avatar"
-                      />
-                      <AvatarFallback>
-                        {user?.displayName?.[0].toUpperCase() ?? user?.email?.[0].toUpperCase() ?? 'U'}
-                      </AvatarFallback>
-                    </Avatar>
+                    <div className="relative">
+                      <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
+                      <Avatar className="h-24 w-24 cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                        <AvatarImage
+                          src={localPhotoUrl ?? userProfile?.photoURL}
+                          alt="User Avatar"
+                        />
+                        <AvatarFallback>
+                          {user?.displayName?.[0].toUpperCase() ?? user?.email?.[0].toUpperCase() ?? 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                      {uploadProgress !== null && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full">
+                           <p className="text-white text-sm font-bold">{Math.round(uploadProgress)}%</p>
+                        </div>
+                      )}
+                    </div>
                     <div className="flex-1 w-full space-y-2">
                         <Label htmlFor="displayName">Nome de Exibição</Label>
                         <Input
@@ -230,8 +295,8 @@ export default function ProfilePage() {
 
 
                 <div className="flex justify-center sm:justify-end pt-2">
-                  <Button type="submit" disabled={isPending || isProfileLoading} className="font-manrope rounded-full w-full sm:w-auto">
-                     {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  <Button type="submit" disabled={isPending || isProfileLoading || uploadProgress !== null} className="font-manrope rounded-full w-full sm:w-auto">
+                     {(isPending || uploadProgress !== null) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Salvar Alterações
                   </Button>
                 </div>
