@@ -2,8 +2,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { initializeFirebaseAdmin } from '@/firebase/admin';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 
 // --- Funções Auxiliares ---
 
@@ -60,72 +58,6 @@ async function getUserEmail(firestore: ReturnType<typeof getFirestore>, userId: 
     return userDoc.data()?.email;
 }
 
-/**
- * Gera o corpo do e-mail em HTML com o estilo do Trendify.
- */
-function createStyledEmailHtml(task: any): string {
-    const postDate = task.date.toDate();
-    const formattedTime = format(postDate, "HH:mm", { locale: ptBR });
-    const formattedDate = format(postDate, "dd 'de' MMMM", { locale: ptBR });
-
-    const primaryColor = '#7C3AED'; // Cor principal do Trendify (roxo)
-
-    return `
-        <!DOCTYPE html>
-        <html lang="pt-BR">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Lembrete de Postagem</title>
-        </head>
-        <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Ubuntu, sans-serif; background-color: #f8fafc;">
-            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f8fafc;">
-                <tr>
-                    <td align="center">
-                        <table width="600" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0;">
-                            <!-- Header -->
-                            <tr>
-                                <td style="background-color: ${primaryColor}; padding: 24px; color: #ffffff; text-align: center;">
-                                    <h1 style="margin: 0; font-size: 28px; font-weight: bold;">trendify</h1>
-                                </td>
-                            </tr>
-                            <!-- Content -->
-                            <tr>
-                                <td style="padding: 32px 24px; color: #0f172a;">
-                                    <h2 style="margin-top: 0; margin-bottom: 16px; font-size: 22px; font-weight: 600;">Seu post está quase pronto!</h2>
-                                    <p style="margin: 0 0 24px; font-size: 16px; line-height: 1.5; color: #475569;">
-                                        Olá! Este é um lembrete amigável sobre o seu conteúdo agendado para amanhã. Prepare-se para engajar sua audiência!
-                                    </p>
-                                    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f1f5f9; border-radius: 8px; padding: 20px;">
-                                        <tr>
-                                            <td>
-                                                <p style="margin: 0 0 4px; font-size: 14px; color: #64748b;">Título</p>
-                                                <h3 style="margin: 0 0 16px; font-size: 18px; font-weight: 600;">${task.title}</h3>
-                                                <p style="margin: 0 0 4px; font-size: 14px; color: #64748b;">Formato</p>
-                                                <p style="margin: 0 0 16px; font-size: 16px; font-weight: 500;">${task.contentType}</p>
-                                                <p style="margin: 0 0 4px; font-size: 14px; color: #64748b;">Agendado para</p>
-                                                <p style="margin: 0; font-size: 16px; font-weight: 500;">${formattedDate} às ${formattedTime}</p>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                </td>
-                            </tr>
-                            <!-- Footer -->
-                            <tr>
-                                <td style="text-align: center; padding: 24px; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0;">
-                                    <p style="margin: 0;">&copy; ${new Date().getFullYear()} Trendify. Todos os direitos reservados.</p>
-                                    <p style="margin: 4px 0 0;">Este é um e-mail automático. Por favor, não responda.</p>
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr>
-            </table>
-        </body>
-        </html>
-    `;
-}
-
 // --- Rota da API ---
 
 export async function GET(req: NextRequest) {
@@ -164,27 +96,21 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({ message: 'Nenhuma tarefa agendada para amanhã.' });
         }
         
-        // Mapeia as tarefas para o formato de payload do e-mail
-        const emailJobs = (await Promise.all(tasks.map(async (task) => {
+        const enrichedTasks = (await Promise.all(tasks.map(async (task) => {
             const userEmail = await getUserEmail(firestore, task.userId);
-            if (!userEmail) return null; // Ignora se o e-mail não for encontrado
-
-            return {
-                userEmail: userEmail,
-                subject: `🔔 Lembrete de Postagem: "${task.title}"`,
-                htmlBody: createStyledEmailHtml(task),
-            };
-        }))).filter(job => job !== null); // Remove jobs nulos
+            if (!userEmail) return null;
+            return { ...task, userEmail };
+        }))).filter(job => job !== null);
         
 
-        if (emailJobs.length === 0) {
+        if (enrichedTasks.length === 0) {
             return NextResponse.json({ message: 'Nenhuma tarefa com usuário válido encontrada para amanhã.' });
         }
 
         const n8nResponse = await fetch(webhookUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(emailJobs),
+            body: JSON.stringify(enrichedTasks),
         });
 
         if (!n8nResponse.ok) {
@@ -194,7 +120,7 @@ export async function GET(req: NextRequest) {
         }
 
         return NextResponse.json({ 
-            message: `Enviados ${emailJobs.length} jobs de e-mail para o n8n com sucesso.`,
+            message: `Enviados ${enrichedTasks.length} jobs de e-mail para o n8n com sucesso.`,
         });
 
     } catch (error: any) {
