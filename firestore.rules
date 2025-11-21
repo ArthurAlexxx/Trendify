@@ -15,7 +15,7 @@ service cloud.firestore {
       allow read, create, update, delete: if request.auth.uid == userId;
     }
     match /users/{userId}/ideiasSalvas {
-      allow read: if request.auth.uid == userId;
+      allow list: if request.auth.uid == userId;
     }
     
     // Allow users to manage their own scheduled content
