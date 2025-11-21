@@ -13,8 +13,9 @@ import {
   Target,
   Check,
   Save,
+  FileVideo,
 } from 'lucide-react';
-import { useState, useActionState, useTransition, useCallback } from 'react';
+import { useState, useActionState, useTransition, useCallback, useEffect, use } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useDropzone } from 'react-dropzone';
@@ -26,34 +27,98 @@ import {
   getDownloadURL,
 } from 'firebase/storage';
 import { initializeFirebase, useUser } from '@/firebase';
-import { analyzeVideoAction, VideoAnalysisOutput } from './actions';
+import { analyzeVideoAction, checkAnalysisStatus, VideoAnalysisOutput } from './actions';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
+import { useSearchParams, useRouter } from 'next/navigation';
+
+function usePollAnalysis(operationId: string | null) {
+    const [result, setResult] = useState<{ done: boolean; result?: VideoAnalysisOutput; error?: any } | null>(null);
+
+    useEffect(() => {
+        if (!operationId) {
+            setResult(null);
+            return;
+        }
+
+        let isCancelled = false;
+        const poll = async () => {
+            while (!isCancelled) {
+                try {
+                    const status = await checkAnalysisStatus(operationId);
+                    if (status.done) {
+                        setResult(status);
+                        isCancelled = true;
+                        break;
+                    }
+                } catch (e) {
+                    console.error("Polling failed", e);
+                    setResult({ done: true, error: e });
+                    isCancelled = true;
+                }
+                await new Promise(resolve => setTimeout(resolve, 3000));
+            }
+        };
+
+        poll();
+
+        return () => {
+            isCancelled = true;
+        };
+    }, [operationId]);
+
+    return result;
+}
+
 
 export default function VideoReviewPage() {
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, startSavingTransition] = useTransition();
-  
-  // This transition will handle the pending state for the AI analysis
-  const [isAnalyzing, startAnalyzing] = useTransition();
-
 
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
-  const [state, formAction] = useActionState(
-    analyzeVideoAction,
-    null
-  );
+  const operationId = searchParams.get('operationId');
+  const analysisResult = usePollAnalysis(operationId);
+
+  const [state, formAction] = useActionState(analyzeVideoAction, null);
+
+  useEffect(() => {
+    if (state?.operationId && !operationId) {
+        const newParams = new URLSearchParams(searchParams.toString());
+        newParams.set('operationId', state.operationId);
+        router.push(`?${newParams.toString()}`);
+    }
+     if (state?.error) {
+      toast({
+        title: 'Erro na Análise',
+        description: state.error,
+        variant: 'destructive',
+      });
+    }
+  }, [state, operationId, router, searchParams, toast]);
+  
+  useEffect(() => {
+    if (analysisResult?.error) {
+       toast({
+        title: 'Erro ao Processar Análise',
+        description: analysisResult.error.message || 'Falha ao obter o resultado da análise.',
+        variant: 'destructive',
+      });
+    }
+  }, [analysisResult, toast]);
+
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     if (file && file.type.startsWith('video/')) {
       setVideoFile(file);
-      // Reset state when a new file is dropped
+      router.push('/video-review'); // Reset URL if a new file is dropped
       setUploadProgress(null);
     } else {
       toast({
@@ -62,7 +127,7 @@ export default function VideoReviewPage() {
         variant: 'destructive',
       });
     }
-  }, [toast]);
+  }, [toast, router]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -84,8 +149,7 @@ export default function VideoReviewPage() {
     uploadTask.on(
       'state_changed',
       (snapshot) => {
-        const progress =
-          (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
         setUploadProgress(progress);
       },
       (error) => {
@@ -101,18 +165,16 @@ export default function VideoReviewPage() {
       () => {
         getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
           setIsUploading(false);
-          startAnalyzing(() => {
-            const formData = new FormData();
-            formData.append('videoUrl', downloadURL);
-            formAction(formData);
-          });
+          const formData = new FormData();
+          formData.append('videoUrl', downloadURL);
+          formAction(formData);
         });
       }
     );
   };
   
-  const handleSave = () => {
-    if (!user || !firestore || !state?.data || !videoFile) {
+  const handleSave = (result: VideoAnalysisOutput) => {
+    if (!user || !firestore || !result || !videoFile) {
       toast({
         title: 'Erro',
         description: 'Não foi possível salvar a análise.',
@@ -124,7 +186,7 @@ export default function VideoReviewPage() {
     startSavingTransition(async () => {
       try {
         const title = `Análise do vídeo: ${videoFile.name.substring(0, 40)}`;
-        const { overallScore, hookAnalysis, contentAnalysis, ctaAnalysis, improvementPoints } = state.data;
+        const { overallScore, hookAnalysis, contentAnalysis, ctaAnalysis, improvementPoints } = result;
         
         let content = `**Nota Geral:** ${overallScore}/10\n\n`;
         content += `**Análise do Gancho:**\n${hookAnalysis}\n\n`;
@@ -156,115 +218,8 @@ export default function VideoReviewPage() {
     });
   };
 
-  const result = state?.data;
-
-  const renderInitialState = () => (
-    <Card
-      {...getRootProps()}
-      className="shadow-lg shadow-primary/5 border-dashed border-border/50 bg-card rounded-2xl max-w-2xl mx-auto cursor-pointer hover:border-primary transition-colors"
-    >
-      <input {...getInputProps()} />
-      <CardContent className="p-8 text-center">
-        <UploadCloud className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-        <h3 className="font-semibold text-lg">
-          {isDragActive
-            ? 'Pode soltar o vídeo!'
-            : 'Arraste e solte seu vídeo aqui'}
-        </h3>
-        <p className="text-muted-foreground">ou clique para selecionar o arquivo</p>
-        <p className="text-xs text-muted-foreground mt-4">
-          MP4, MOV, WEBM - até 100MB
-        </p>
-      </CardContent>
-    </Card>
-  );
-
-  const renderPreviewAndUpload = () => (
-    videoFile && (
-      <Card className="shadow-lg shadow-primary/5 border-border/30 bg-card rounded-2xl max-w-2xl mx-auto">
-        <CardContent className="p-6 space-y-6 flex flex-col items-center">
-          <video
-            src={URL.createObjectURL(videoFile)}
-            controls
-            className="w-full max-h-80 rounded-lg"
-          />
-          <p className="font-semibold text-sm text-muted-foreground">
-            {videoFile.name}
-          </p>
-          {isUploading && uploadProgress !== null && (
-            <div className="w-full space-y-2 text-center">
-              <Progress value={uploadProgress} />
-              <p className="text-sm text-primary">
-                Enviando... {Math.round(uploadProgress)}%
-              </p>
-            </div>
-          )}
-
-          {isAnalyzing && (
-            <div className="flex items-center gap-2 text-primary font-semibold">
-              <Loader2 className="h-5 w-5 animate-spin" />
-              <span>Analisando seu vídeo com IA...</span>
-            </div>
-          )}
-
-          <Button
-            onClick={handleAnalyze}
-            disabled={isUploading || isAnalyzing || !videoFile}
-            size="lg"
-            className="font-manrope w-full sm:w-auto h-12 px-10 rounded-full text-base font-bold shadow-lg shadow-primary/20 transition-transform hover:scale-[1.02]"
-          >
-            <Sparkles className="mr-2 h-5 w-5" />
-            Analisar Vídeo
-          </Button>
-        </CardContent>
-      </Card>
-    )
-  );
-    
-  const renderAnalysisResult = () => (
-    result && (
-        <div className="space-y-8 animate-fade-in">
-           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-center">
-                <div className='flex-1'>
-                  <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Resultado da Análise</h2>
-                  <p className="text-muted-foreground">Aqui está o diagnóstico do seu vídeo.</p>
-                </div>
-                <Button onClick={handleSave} disabled={isSaving} className="w-full sm:w-auto rounded-full font-manrope">
-                    {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                    Salvar Análise
-                </Button>
-              </div>
-            <div className="grid lg:grid-cols-3 gap-6 items-start">
-                <Card className="lg:col-span-2 shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl p-6 space-y-6">
-                    <AnalysisSection title="Análise do Gancho (Hook)" content={result.hookAnalysis} icon={Target}/>
-                    <AnalysisSection title="Análise do Conteúdo" content={result.contentAnalysis} icon={Video}/>
-                    <AnalysisSection title="Análise do CTA (Call to Action)" content={result.ctaAnalysis} icon={ThumbsUp}/>
-                </Card>
-                <div className="space-y-6">
-                    <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
-                        <CardContent className="p-6 text-center">
-                            <h3 className="font-semibold text-muted-foreground mb-2">Nota Geral</h3>
-                            <p className="text-6xl font-bold font-headline text-primary">{result.overallScore}<span className="text-2xl text-muted-foreground">/10</span></p>
-                        </CardContent>
-                    </Card>
-                     <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
-                        <CardContent className="p-6 space-y-3">
-                            <h3 className="font-semibold text-center flex items-center justify-center gap-2"><Lightbulb className="h-5 w-5 text-primary"/> Pontos de Melhoria</h3>
-                            <ul className="space-y-2 text-sm text-left">
-                                {result.improvementPoints.map((point, i) => (
-                                    <li key={i} className="flex items-start gap-2">
-                                        <Check className="h-4 w-4 text-primary mt-1 shrink-0" />
-                                        <span>{point}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </CardContent>
-                    </Card>
-                </div>
-            </div>
-        </div>
-    )
-  );
+  const finalResult = analysisResult?.result;
+  const isCurrentlyAnalyzing = operationId && !analysisResult?.done;
 
   return (
     <div className="space-y-12">
@@ -276,9 +231,111 @@ export default function VideoReviewPage() {
         <SavedIdeasSheet />
       </PageHeader>
 
-      {!videoFile && !result && renderInitialState()}
-      {videoFile && !result && renderPreviewAndUpload()}
-      {result && renderAnalysisResult()}
+      {/* Initial State: No file, no operation */}
+      {!videoFile && !operationId && (
+         <Card
+          {...getRootProps()}
+          className="shadow-lg shadow-primary/5 border-dashed border-border/50 bg-card rounded-2xl max-w-2xl mx-auto cursor-pointer hover:border-primary transition-colors"
+        >
+          <input {...getInputProps()} />
+          <CardContent className="p-8 text-center">
+            <UploadCloud className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <h3 className="font-semibold text-lg">
+              {isDragActive
+                ? 'Pode soltar o vídeo!'
+                : 'Arraste e solte seu vídeo aqui'}
+            </h3>
+            <p className="text-muted-foreground">ou clique para selecionar o arquivo</p>
+            <p className="text-xs text-muted-foreground mt-4">
+              MP4, MOV, WEBM - até 100MB
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Uploading or Ready to Analyze State */}
+      {videoFile && !finalResult && (
+         <Card className="shadow-lg shadow-primary/5 border-border/30 bg-card rounded-2xl max-w-2xl mx-auto">
+            <CardContent className="p-6 space-y-6 flex flex-col items-center">
+                <div className='flex items-center gap-4 bg-muted/50 p-3 rounded-lg w-full'>
+                    <FileVideo className='h-8 w-8 text-muted-foreground' />
+                    <p className="font-semibold text-sm text-muted-foreground truncate">{videoFile.name}</p>
+                </div>
+
+                {isUploading && uploadProgress !== null && (
+                    <div className="w-full space-y-2 text-center">
+                    <Progress value={uploadProgress} />
+                    <p className="text-sm text-primary">
+                        Enviando... {Math.round(uploadProgress)}%
+                    </p>
+                    </div>
+                )}
+
+                {isCurrentlyAnalyzing && (
+                    <div className="flex items-center gap-2 text-primary font-semibold animate-pulse">
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        <span>Analisando seu vídeo com IA... (Isso pode levar um minuto)</span>
+                    </div>
+                )}
+
+                {!operationId && (
+                    <Button
+                        onClick={handleAnalyze}
+                        disabled={isUploading}
+                        size="lg"
+                        className="font-manrope w-full sm:w-auto h-12 px-10 rounded-full text-base font-bold shadow-lg shadow-primary/20 transition-transform hover:scale-[1.02]"
+                    >
+                        <Sparkles className="mr-2 h-5 w-5" />
+                        Analisar Vídeo
+                    </Button>
+                )}
+            </CardContent>
+         </Card>
+      )}
+      
+      {/* Analysis Result State */}
+      {finalResult && (
+         <div className="space-y-8 animate-fade-in">
+           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-center">
+                <div className='flex-1'>
+                  <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Resultado da Análise</h2>
+                  <p className="text-muted-foreground">Aqui está o diagnóstico do seu vídeo.</p>
+                </div>
+                <Button onClick={() => handleSave(finalResult)} disabled={isSaving} className="w-full sm:w-auto rounded-full font-manrope">
+                    {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                    Salvar Análise
+                </Button>
+              </div>
+            <div className="grid lg:grid-cols-3 gap-6 items-start">
+                <Card className="lg:col-span-2 shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl p-6 space-y-6">
+                    <AnalysisSection title="Análise do Gancho (Hook)" content={finalResult.hookAnalysis} icon={Target}/>
+                    <AnalysisSection title="Análise do Conteúdo" content={finalResult.contentAnalysis} icon={Video}/>
+                    <AnalysisSection title="Análise do CTA (Call to Action)" content={finalResult.ctaAnalysis} icon={ThumbsUp}/>
+                </Card>
+                <div className="space-y-6">
+                    <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
+                        <CardContent className="p-6 text-center">
+                            <h3 className="font-semibold text-muted-foreground mb-2">Nota Geral</h3>
+                            <p className="text-6xl font-bold font-headline text-primary">{finalResult.overallScore}<span className="text-2xl text-muted-foreground">/10</span></p>
+                        </CardContent>
+                    </Card>
+                     <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
+                        <CardContent className="p-6 space-y-3">
+                            <h3 className="font-semibold text-center flex items-center justify-center gap-2"><Lightbulb className="h-5 w-5 text-primary"/> Pontos de Melhoria</h3>
+                            <ul className="space-y-2 text-sm text-left">
+                                {finalResult.improvementPoints.map((point, i) => (
+                                    <li key={i} className="flex items-start gap-2">
+                                        <Check className="h-4 w-4 text-primary mt-1 shrink-0" />
+                                        <span>{point}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
+        </div>
+      )}
 
     </div>
   );
