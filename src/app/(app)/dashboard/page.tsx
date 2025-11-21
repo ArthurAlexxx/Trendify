@@ -65,12 +65,8 @@ import {
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
+import { useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 
 const chartConfig = {
   alcance: {
@@ -125,6 +121,7 @@ const ProfileCompletionAlert = () => {
 export default function DashboardPage() {
   const firestore = useFirestore();
   const { user } = useUser();
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const metricaQuery = useMemoFirebase(
     () => (firestore ? collection(firestore, 'metrica') : null),
@@ -441,51 +438,58 @@ export default function DashboardPage() {
                             )}
                         </li>
                         ))}
+                         <AnimatePresence>
+                          {isExpanded && collapsibleItems?.map((item, index) => (
+                            <motion.li 
+                              key={`collapsible-${index}`}
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: 'auto' }}
+                              exit={{ opacity: 0, height: 0 }}
+                              transition={{ duration: 0.3, ease: "easeInOut" }}
+                              className="overflow-hidden"
+                            >
+                                <Separator className="my-2" />
+                                <div className="flex items-start gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50 text-left">
+                                <Checkbox
+                                    id={`roteiro-collapsible-${index}`}
+                                    checked={item.concluido}
+                                    onCheckedChange={() => handleToggleRoteiro(item)}
+                                    className="h-5 w-5 mt-1"
+                                />
+                                <div>
+                                    <label
+                                    htmlFor={`roteiro-collapsible-${index}`}
+                                    className={cn(
+                                        'font-medium text-base transition-colors cursor-pointer',
+                                        item.concluido
+                                        ? 'line-through text-muted-foreground'
+                                        : 'text-foreground'
+                                    )}
+                                    >
+                                    <span className="font-semibold text-primary">
+                                        {item.dia}:
+                                    </span>{' '}
+                                    {item.tarefa}
+                                    </label>
+                                    <p className="text-sm text-muted-foreground">
+                                    {item.detalhes}
+                                    </p>
+                                </div>
+                                </div>
+                            </motion.li>
+                          ))}
+                        </AnimatePresence>
                     </ul>
-                    {collapsibleItems && collapsibleItems.length > 0 && (
-                        <Accordion type="single" collapsible className="w-full">
-                            <AccordionItem value="item-1" className="border-b-0">
-                                <AccordionTrigger className="justify-center py-2 text-sm font-medium text-primary hover:no-underline">
-                                    Ver restante da semana
-                                </AccordionTrigger>
-                                <AccordionContent>
-                                     <ul className="space-y-2 pt-2">
-                                        {collapsibleItems.map((item, index) => (
-                                        <li key={index}>
-                                            <Separator className="my-2" />
-                                            <div className="flex items-start gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50 text-left">
-                                            <Checkbox
-                                                id={`roteiro-collapsible-${index}`}
-                                                checked={item.concluido}
-                                                onCheckedChange={() => handleToggleRoteiro(item)}
-                                                className="h-5 w-5 mt-1"
-                                            />
-                                            <div>
-                                                <label
-                                                htmlFor={`roteiro-collapsible-${index}`}
-                                                className={cn(
-                                                    'font-medium text-base transition-colors cursor-pointer',
-                                                    item.concluido
-                                                    ? 'line-through text-muted-foreground'
-                                                    : 'text-foreground'
-                                                )}
-                                                >
-                                                <span className="font-semibold text-primary">
-                                                    {item.dia}:
-                                                </span>{' '}
-                                                {item.tarefa}
-                                                </label>
-                                                <p className="text-sm text-muted-foreground">
-                                                {item.detalhes}
-                                                </p>
-                                            </div>
-                                            </div>
-                                        </li>
-                                        ))}
-                                    </ul>
-                                </AccordionContent>
-                            </AccordionItem>
-                        </Accordion>
+                    {collapsibleItems && collapsibleItems.length > 0 && !isExpanded && (
+                       <div className='flex justify-center mt-2'>
+                          <Button 
+                            variant="ghost" 
+                            onClick={() => setIsExpanded(true)} 
+                            className="text-primary hover:text-primary"
+                          >
+                            Ver restante da semana
+                          </Button>
+                       </div>
                     )}
                    </div>
                 ) : (
