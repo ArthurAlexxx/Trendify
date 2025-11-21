@@ -49,23 +49,18 @@ const formSchema = z.object({
 function PremiumFeatureGuard({ children }: { children: React.ReactNode }) {
     const { subscription, isLoading } = useSubscription();
     const router = useRouter();
-    const [showAlert, setShowAlert] = useState(false);
 
-    useEffect(() => {
-        if (!isLoading && subscription?.plan !== 'premium') {
-            setShowAlert(true);
-        }
-    }, [isLoading, subscription, router]);
-    
+    const isPremiumActive = subscription?.plan === 'premium' && subscription.status === 'active';
+
     if (isLoading) {
         return (
             <div className="w-full h-96 flex items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
-        )
+        );
     }
 
-    if (showAlert) {
+    if (!isPremiumActive) {
         return (
              <AlertDialog open={true} onOpenChange={(open) => !open && router.push('/subscribe')}>
               <AlertDialogContent>
@@ -80,15 +75,12 @@ function PremiumFeatureGuard({ children }: { children: React.ReactNode }) {
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
-        )
+        );
     }
     
-    if (subscription?.plan === 'premium') {
-        return <>{children}</>;
-    }
-
-    return null;
+    return <>{children}</>;
 }
+
 
 export default function MediaKitPage() {
     return (
@@ -449,3 +441,5 @@ function PricingCard({
     </Card>
   );
 }
+
+    
