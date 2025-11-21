@@ -3,17 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { initializeFirebaseAdmin } from '@/firebase/admin';
 
-// Initialize Firebase Admin
-let firestore: ReturnType<typeof getFirestore>;
-try {
-    const { firestore: fs } = initializeFirebaseAdmin();
-    firestore = fs;
-} catch (e: any) {
-    console.error('CRITICAL: Failed to initialize Firebase Admin in cron route.', e.message);
-}
-
-
-async function getScheduledContentForTomorrow() {
+// This function is moved inside GET to ensure it runs on each invocation
+async function getScheduledContentForTomorrow(firestore: ReturnType<typeof getFirestore>) {
     if (!firestore) {
         throw new Error("Firestore is not initialized.");
     }
@@ -41,7 +32,7 @@ async function getScheduledContentForTomorrow() {
     return tasks;
 }
 
-async function getUserEmail(userId: string) {
+async function getUserEmail(firestore: ReturnType<typeof getFirestore>, userId: string) {
     if (!firestore) {
         throw new Error("Firestore is not initialized.");
     }
@@ -55,6 +46,15 @@ async function getUserEmail(userId: string) {
 
 
 export async function GET(req: NextRequest) {
+    // Moved Firebase Admin initialization inside the handler
+    let firestore: ReturnType<typeof getFirestore>;
+    try {
+        firestore = initializeFirebaseAdmin().firestore;
+    } catch (e: any) {
+        console.error('CRITICAL: Failed to initialize Firebase Admin in cron route.', e.message);
+        return NextResponse.json({ error: 'Internal Server Error: Could not connect to database.' }, { status: 500 });
+    }
+
     console.log('[Cron Job] Received GET request.');
     // 1. Authenticate the request
     const cronSecret = process.env.CRON_SECRET;
@@ -93,7 +93,7 @@ export async function GET(req: NextRequest) {
      console.log('[Cron Job] N8N Webhook URL found.');
 
     try {
-        const tasks = await getScheduledContentForTomorrow();
+        const tasks = await getScheduledContentForTomorrow(firestore);
         if (tasks.length === 0) {
             console.log('[Cron Job] No tasks scheduled for tomorrow.');
             return NextResponse.json({ message: 'No tasks scheduled for tomorrow.' });
@@ -104,7 +104,7 @@ export async function GET(req: NextRequest) {
 
         for (const task of tasks) {
             const userId = task.userId;
-            const email = await getUserEmail(userId);
+            const email = await getUserEmail(firestore, userId);
 
             if (email) {
                 console.log(`[Cron Job] Preparing webhook for user ${userId}.`);
