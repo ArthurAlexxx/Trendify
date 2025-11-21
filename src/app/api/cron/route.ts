@@ -55,14 +55,9 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: 'Internal Server Error: Could not connect to database.' }, { status: 500 });
     }
 
-    console.log('[Cron Job] Received GET request.');
     const cronSecret = process.env.CRON_SECRET;
     const authHeader = req.headers.get('authorization');
     
-    console.log(`[Cron Job] Auth Header Received: ${authHeader ? 'Present' : 'Missing'}`);
-    if (authHeader) {
-        console.log(`[Cron Job] Auth Header Value: ${authHeader.substring(0, 15)}...`);
-    }
 
     if (!cronSecret) {
         console.error('[Cron Job] CRITICAL: CRON_SECRET is not set in environment variables.');
@@ -72,30 +67,22 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: 'CRON_SECRET environment variable is not set.' }, { status: 500 });
     }
     
-    console.log(`[Cron Job] VERCEL_ENV: ${process.env.VERCEL_ENV}`);
-
     if (process.env.VERCEL_ENV === 'production' && authHeader !== `Bearer ${cronSecret}`) {
         console.warn('[Cron Job] Unauthorized access attempt. Headers did not match.');
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
-    console.log('[Cron Job] Authorization successful.');
 
     const webhookUrl = process.env.N8N_WEBHOOK_URL;
     if (!webhookUrl) {
         console.error('[Cron Job] N8N_WEBHOOK_URL is not set.');
         return NextResponse.json({ error: 'Webhook URL not configured' }, { status: 500 });
     }
-     console.log('[Cron Job] N8N Webhook URL found.');
 
     try {
         const tasks = await getScheduledContentForTomorrow(firestore);
         if (tasks.length === 0) {
-            console.log('[Cron Job] No tasks scheduled for tomorrow.');
             return NextResponse.json({ message: 'No tasks scheduled for tomorrow.' });
         }
-
-        console.log(`[Cron Job] Found ${tasks.length} tasks for tomorrow. Preparing to send to n8n.`);
         
         const enrichedTasks = await Promise.all(tasks.map(async (task) => {
             const email = await getUserEmail(firestore, task.userId);
@@ -106,11 +93,10 @@ export async function GET(req: NextRequest) {
             };
         }));
         
-        console.log('[Cron Job] Sending tasks to n8n webhook...');
         const n8nResponse = await fetch(webhookUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(enrichedTasks), // Sending the array directly
+            body: JSON.stringify(enrichedTasks),
         });
 
         if (!n8nResponse.ok) {
@@ -118,8 +104,6 @@ export async function GET(req: NextRequest) {
             console.error(`[Cron Job] Error sending data to n8n: Status ${n8nResponse.status}`, errorBody);
             throw new Error(`n8n webhook failed with status ${n8nResponse.status}`);
         }
-
-        console.log('[Cron Job] Successfully sent tasks to n8n webhook.');
 
         return NextResponse.json({ 
             message: `Successfully sent ${enrichedTasks.length} tasks to n8n.`,
