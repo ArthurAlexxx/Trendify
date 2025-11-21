@@ -12,6 +12,8 @@ import {
   Check,
   Loader2,
   Crown,
+  Menu,
+  X,
 } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { useUser } from '@/firebase';
@@ -19,7 +21,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Form,
@@ -205,6 +207,15 @@ export default function LandingPage() {
   const [step, setStep] = useState(0);
   const [results, setResults] = useState<any>(null);
   const [isCalculating, setIsCalculating] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (isMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+  }, [isMenuOpen]);
 
   const form = useForm<CalculatorInput>({
     resolver: zodResolver(calculatorSchema),
@@ -289,6 +300,13 @@ export default function LandingPage() {
     exit: { opacity: 0, y: -20 },
     transition: { duration: 0.4, ease: 'easeInOut' },
   };
+  
+  const navLinks = [
+      { href: '#beneficios', text: 'Benefícios' },
+      { href: '#calculadora', text: 'Calculadora' },
+      { href: '#precos', text: 'Preços' },
+      { href: '#faq', text: 'FAQ' },
+    ];
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
@@ -304,32 +322,17 @@ export default function LandingPage() {
             trendify
           </Link>
           <nav className="hidden md:flex items-center gap-6">
-            <Link
-              href="#beneficios"
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Benefícios
-            </Link>
-            <Link
-              href="#calculadora"
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Calculadora
-            </Link>
-            <Link
-              href="#precos"
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Preços
-            </Link>
-            <Link
-              href="#faq"
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              FAQ
-            </Link>
+            {navLinks.map(link => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              >
+                {link.text}
+              </Link>
+            ))}
           </nav>
-          <div className="flex items-center gap-2">
+          <div className="hidden md:flex items-center gap-2">
             {user ? (
               <Link
                 href="/dashboard"
@@ -361,14 +364,100 @@ export default function LandingPage() {
               Começar Grátis
             </Link>
           </div>
+          <div className="md:hidden">
+            <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(true)}>
+              <Menu />
+              <span className="sr-only">Abrir menu</span>
+            </Button>
+          </div>
         </div>
       </header>
+      
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 z-50 bg-black/60 md:hidden"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: '0%' }}
+              exit={{ x: '100%' }}
+              transition={{ duration: 0.3, ease: 'easeInOut' }}
+              className="fixed top-0 right-0 h-full w-full max-w-sm bg-background p-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex justify-between items-center mb-10">
+                 <Link
+                    href="/"
+                    className="flex items-center gap-2 text-xl font-bold font-headline tracking-tighter text-foreground"
+                  >
+                    <div className="bg-foreground text-background h-7 w-7 flex items-center justify-center rounded-full">
+                      <ArrowRight className="h-4 w-4" />
+                    </div>
+                    trendify
+                  </Link>
+                <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(false)}>
+                  <X />
+                   <span className="sr-only">Fechar menu</span>
+                </Button>
+              </div>
+              <nav className="flex flex-col gap-6">
+                {navLinks.map(link => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="text-lg font-medium text-foreground"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {link.text}
+                  </Link>
+                ))}
+              </nav>
+               <div className="mt-10 pt-6 border-t border-border flex flex-col gap-4">
+                 {user ? (
+                  <Link
+                    href="/dashboard"
+                    className={cn(buttonVariants({ variant: 'outline', size: 'lg' }), 'w-full')}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Painel
+                  </Link>
+                ) : (
+                  <Link
+                    href="/login"
+                    className={cn(buttonVariants({ variant: 'outline', size: 'lg' }), 'w-full')}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Entrar
+                  </Link>
+                )}
+                 <Link
+                  href="/sign-up"
+                  className={cn(
+                    buttonVariants({ size: 'lg' }),
+                    'font-semibold w-full'
+                  )}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Começar Grátis
+                </Link>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      <main className="flex-1">
+      <main className="flex-1 pt-20">
         {/* Hero Section */}
-        <section className="py-24 sm:py-32 text-center relative overflow-hidden">
+        <section className="py-16 sm:py-24 text-center relative overflow-hidden">
           <div
-            className="absolute top-0 left-0 -translate-x-1/2 -translate-y-1/2 w-[1500px] h-[1500px] bg-gradient-radial from-purple-100/50 via-background to-background -z-10"
+            className="absolute top-0 left-0 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] sm:w-[1500px] sm:h-[1500px] bg-gradient-radial from-purple-100/50 via-background to-background -z-10"
             aria-hidden="true"
           />
           <div className="container">
@@ -385,19 +474,19 @@ export default function LandingPage() {
                 Planos Pro e Premium com pagamento via PIX
               </Badge>
 
-              <h1 className="text-5xl md:text-7xl font-black font-headline tracking-tighter mb-6 !leading-tight max-w-4xl mx-auto">
+              <h1 className="text-4xl sm:text-5xl md:text-7xl font-black font-headline tracking-tighter mb-6 !leading-tight max-w-4xl mx-auto">
                 Conteúdo inteligente,{' '}
                 <br className="hidden md:block" />
                 <span className="bg-gradient-to-r from-indigo-500 to-purple-600 text-gradient">
                   crescimento real.
                 </span>
               </h1>
-              <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
+              <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
                 A Trendify usa IA para transformar seus dados em um plano de
                 ação claro, ajudando você a crescer e monetizar seu conteúdo.
               </p>
 
-              <div className="flex justify-center items-center gap-4 mb-10">
+              <div className="flex justify-center items-center gap-2 sm:gap-4 mb-10 flex-wrap">
                 {platforms.map((platform) => (
                   <PlatformPill
                     key={platform.name}
@@ -407,12 +496,12 @@ export default function LandingPage() {
                 ))}
               </div>
 
-              <div className="flex justify-center items-center gap-4">
+              <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
                 <Link
                   href="#calculadora"
                   className={cn(
                     buttonVariants({ size: 'lg' }),
-                    'font-manrope rounded-lg text-base h-12 px-8 bg-gradient-to-r from-indigo-500 to-purple-600 text-primary-foreground shadow-lg'
+                    'font-manrope rounded-lg text-base h-12 px-8 w-full sm:w-auto bg-gradient-to-r from-indigo-500 to-purple-600 text-primary-foreground shadow-lg'
                   )}
                 >
                   Calcular meu crescimento
@@ -422,7 +511,7 @@ export default function LandingPage() {
                   href="/dashboard"
                   className={cn(
                     buttonVariants({ size: 'lg', variant: 'outline' }),
-                    'font-manrope rounded-lg text-base h-12 px-8 bg-background/50'
+                    'font-manrope rounded-lg text-base h-12 px-8 w-full sm:w-auto bg-background/50'
                   )}
                 >
                   Já tenho conta
@@ -511,7 +600,7 @@ export default function LandingPage() {
                   ))}
                 </div>
               </div>
-              <div className="bg-background/50 p-8 rounded-2xl">
+              <div className="bg-background/50 p-4 sm:p-8 rounded-2xl">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
                   whileInView={{ opacity: 1, scale: 1 }}
