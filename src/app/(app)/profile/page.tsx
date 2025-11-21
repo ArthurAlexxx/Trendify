@@ -180,7 +180,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div class="space-y-8">
+    <div className="space-y-8">
       <PageHeader
         icon={<UserIcon />}
         title="Gerencie seu Perfil"
