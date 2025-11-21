@@ -118,8 +118,8 @@ export default function ProfilePage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Meu Perfil"
-        description="Gerencie as informações públicas e que são usadas pela IA."
+        title="Gerencie seu Perfil"
+        description="Mantenha suas informações atualizadas para a IA gerar estratégias mais precisas."
       />
           <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
             <CardHeader>

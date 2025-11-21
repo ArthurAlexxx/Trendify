@@ -190,8 +190,8 @@ function PublisAssistantPageContent() {
   return (
     <div className="space-y-12">
       <PageHeader
-        title="Assistente de Publis"
-        description="Gere pacotes de conteúdo para suas parcerias com base em tendências e foco em conversão."
+        title="Assistente de Publis & Parcerias"
+        description="Crie pacotes de conteúdo para marcas com foco em conversão e tendências."
       >
         <SavedIdeasSheet />
       </PageHeader>

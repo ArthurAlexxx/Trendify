@@ -153,8 +153,8 @@ export default function VideoIdeasPage() {
   return (
     <div className="space-y-12">
       <PageHeader
-        title="Gerador de Ideias de Vídeo"
-        description="Use a IA para criar conceitos de vídeo virais com roteiros e ganchos otimizados."
+        title="Gerador de Vídeos Virais"
+        description="Nunca mais fique sem ideias. Crie roteiros completos e otimizados para viralizar."
       >
         <SavedIdeasSheet />
       </PageHeader>
@@ -546,5 +546,3 @@ function InfoListCard({
     </Card>
   );
 }
-
-    

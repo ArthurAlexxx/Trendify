@@ -125,8 +125,8 @@ export default function SettingsPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Configurações"
-        description="Gerencie as informações da sua conta e preferências."
+        title="Configurações da Conta"
+        description="Gerencie suas informações, assinatura e integrações."
       />
 
       <Tabs defaultValue="subscription" className="w-full">
@@ -141,7 +141,7 @@ export default function SettingsPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-3 font-headline text-xl">
                     <Crown className="h-6 w-6 text-primary" />
-                    <span>Minha Assinatura</span>
+                    <span>Seu Plano e Assinatura</span>
                 </CardTitle>
                 <CardDescription>
                     Veja os detalhes do seu plano atual e gerencie sua assinatura.

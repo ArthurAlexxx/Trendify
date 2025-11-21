@@ -100,7 +100,7 @@ export default function SubscribePage() {
   return (
     <div className="space-y-12">
       <PageHeader
-        title="Nossos Planos"
+        title="Selecione seu Plano"
         description="Escolha o plano ideal para o seu momento e acelere seu crescimento."
       />
 

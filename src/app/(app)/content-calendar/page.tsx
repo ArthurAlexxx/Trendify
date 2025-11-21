@@ -151,7 +151,7 @@ export default function ContentCalendarPage() {
   return (
     <div className="space-y-12">
       <PageHeader
-        title="Calendário de Conteúdo"
+        title="Seu Calendário de Conteúdo Inteligente"
         description="Planeje, agende e visualize suas publicações em um só lugar."
       >
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>

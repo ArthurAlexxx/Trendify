@@ -209,7 +209,7 @@ export default function DashboardPage() {
         title={`Bem-vindo(a) de volta, ${
           user?.displayName?.split(' ')[0] || 'Criador'
         }!`}
-        description="Aqui está um resumo do seu progresso e seu plano de conteúdo para a semana."
+        description="Seu centro de comando para crescimento e monetização."
       >
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

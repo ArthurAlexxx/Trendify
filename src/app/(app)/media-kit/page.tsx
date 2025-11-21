@@ -194,8 +194,8 @@ function MediaKitPageContent() {
   return (
     <div className="space-y-12">
       <PageHeader
-        title="Propostas & Mídia Kit"
-        description="Gere propostas, calcule preços e seu mídia kit profissional em um só lugar."
+        title="Pacote de Prospecção para Marcas"
+        description="Gere propostas, calcule preços e crie seu mídia kit profissional em um só lugar."
       >
         <SavedIdeasSheet />
       </PageHeader>

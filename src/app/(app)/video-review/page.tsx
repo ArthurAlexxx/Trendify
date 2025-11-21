@@ -23,8 +23,8 @@ export default function VideoReviewPage() {
   return (
     <div className="space-y-12">
       <PageHeader
-        title="Análise de Vídeo com IA"
-        description="Receba um diagnóstico completo e sugestões para viralizar seu vídeo."
+        title="Diagnóstico de Vídeo com IA"
+        description="Receba uma análise completa e sugestões para otimizar e viralizar seu vídeo."
       >
         <SavedIdeasSheet />
       </PageHeader>

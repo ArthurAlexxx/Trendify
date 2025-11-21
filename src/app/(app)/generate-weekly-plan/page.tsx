@@ -193,8 +193,8 @@ export default function GenerateWeeklyPlanPage() {
   return (
     <div className="space-y-12">
       <PageHeader
-        title="Planejamento de Conteúdo Semanal"
-        description="Defina um objetivo e deixe a IA criar um plano de ação completo para sua semana."
+        title="Crie seu Plano Semanal com IA"
+        description="Transforme seu objetivo da semana em um roteiro de conteúdo acionável."
       >
         <PreviousPlansSheet />
       </PageHeader>
