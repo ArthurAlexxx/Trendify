@@ -43,8 +43,8 @@ export default function StorageTestPage() {
     setLastUploadUrl(null);
 
     try {
-      const { firebaseApp } = initializeFirebase();
-      const storage = getStorage(firebaseApp);
+      // O SDK resolve o bucket correto a partir da configuração.
+      const storage = getStorage(initializeFirebase().firebaseApp);
       const storageRef = ref(storage, `test-uploads/${Date.now()}-${file.name}`);
       
       const uploadTask = uploadBytesResumable(storageRef, file);
@@ -60,7 +60,7 @@ export default function StorageTestPage() {
           setUploadProgress(null);
           toast({
             title: 'Erro no Upload',
-            description: 'Verifique as permissões do bucket e a configuração de CORS.',
+            description: `Falha ao enviar o arquivo. Código do erro: ${error.code}`,
             variant: 'destructive',
           });
         },

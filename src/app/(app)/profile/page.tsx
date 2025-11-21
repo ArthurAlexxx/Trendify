@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { useUser, useFirestore, useDoc, useMemoFirebase, useAuth } from '@/firebase';
+import { useUser, useFirestore, useDoc, useMemoFirebase, useAuth, initializeFirebase } from '@/firebase';
 import { User as UserIcon } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
@@ -109,7 +109,7 @@ export default function ProfilePage() {
     
     setLocalPhotoUrl(URL.createObjectURL(file));
     
-    const storage = getStorage();
+    const storage = getStorage(initializeFirebase().firebaseApp);
     const storageRef = ref(storage, `profile-pictures/${user.uid}/${file.name}`);
     const uploadTask = uploadBytesResumable(storageRef, file);
 
