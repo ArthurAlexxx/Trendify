@@ -558,20 +558,20 @@ export default function DashboardPage() {
 
           {/* Coluna Lateral (Informações Rápidas) */}
           <div className="lg:col-span-1 space-y-8">
-            <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card">
+            <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card flex flex-col">
               <CardHeader className="text-center sm:text-left">
                 <CardTitle className="font-headline text-xl">
                   Próximos Posts Agendados
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className='flex-grow flex flex-col'>
                 {isLoadingUpcomingContent ? (
                   <div className="space-y-4">
                     <Skeleton className="h-16 w-full rounded-lg" />
                     <Skeleton className="h-16 w-full rounded-lg" />
                   </div>
                 ) : upcomingContent && upcomingContent.length > 0 ? (
-                  <div className="space-y-4">
+                  <div className="space-y-4 flex-grow flex flex-col">
                     {upcomingContent.map((post) => (
                       <div
                         key={post.id}
@@ -609,14 +609,16 @@ export default function DashboardPage() {
                         </DropdownMenu>
                       </div>
                     ))}
-                    <Button variant="link" asChild className="w-full">
-                      <Link href="/content-calendar">
-                        Ver calendário completo
-                      </Link>
-                    </Button>
+                    <div className='mt-auto pt-4'>
+                      <Button variant="link" asChild className="w-full">
+                        <Link href="/content-calendar">
+                          Ver calendário completo
+                        </Link>
+                      </Button>
+                    </div>
                   </div>
                 ) : (
-                  <div className="text-center py-8 px-4 rounded-xl bg-muted/50 border border-dashed">
+                  <div className="text-center py-8 px-4 rounded-xl bg-muted/50 border border-dashed flex-grow flex flex-col items-center justify-center">
                     <Calendar className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
                     <h3 className="font-semibold text-foreground">
                       Nenhum post futuro.
@@ -629,13 +631,13 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
 
-             <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card">
+             <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card flex flex-col">
               <CardHeader className="text-center sm:text-left">
                 <CardTitle className="font-headline text-xl">
                   Desempenho Semanal (Simulado)
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pl-2">
+              <CardContent className="pl-2 flex-grow flex flex-col">
                 {isLoadingRoteiro ? (
                   <div className="h-[300px] w-full flex items-center justify-center">
                     <Skeleton className="h-full w-full rounded-xl" />
@@ -685,7 +687,7 @@ export default function DashboardPage() {
                     </BarChart>
                   </ChartContainer>
                 ) : (
-                  <div className="h-[300px] w-full flex items-center justify-center text-center p-4">
+                  <div className="h-full w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
                     <div>
                       <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
                       <h3 className="font-semibold text-foreground">
