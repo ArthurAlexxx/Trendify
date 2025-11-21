@@ -113,7 +113,7 @@ const ProfileCompletionAlert = () => {
       <AlertDescription>
         Métricas como seguidores, nicho e engajamento são essenciais para a IA gerar estratégias precisas.
         <Button variant="link" asChild className="p-0 h-auto ml-1 font-semibold">
-          <Link href="/settings">Completar seu perfil agora.</Link>
+          <Link href="/profile">Completar seu perfil agora.</Link>
         </Button>
       </AlertDescription>
     </Alert>
