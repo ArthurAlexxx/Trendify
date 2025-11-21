@@ -17,6 +17,8 @@ import {
   ClipboardList,
   AlertTriangle,
   LayoutGrid,
+  MoreHorizontal,
+  CheckCircle,
 } from 'lucide-react';
 import {
   ChartContainer,
@@ -67,6 +69,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useToast } from '@/hooks/use-toast';
 
 const chartConfig = {
   alcance: {
@@ -121,6 +124,7 @@ const ProfileCompletionAlert = () => {
 export default function DashboardPage() {
   const firestore = useFirestore();
   const { user } = useUser();
+  const { toast } = useToast();
   const [isExpanded, setIsExpanded] = useState(false);
 
   const metricaQuery = useMemoFirebase(
@@ -167,6 +171,7 @@ export default function DashboardPage() {
     const now = new Date();
     return query(
       collection(firestore, `users/${user.uid}/conteudoAgendado`),
+      where('status', '!=', 'Publicado'),
       where('date', '>=', now),
       orderBy('date', 'asc'),
       limit(3)
@@ -206,6 +211,32 @@ export default function DashboardPage() {
       console.error('Failed to update roteiro status:', error);
     }
   };
+  
+  const handleMarkAsPublished = async (postId: string) => {
+    if (!user || !firestore) return;
+    try {
+      const postRef = doc(
+        firestore,
+        `users/${user.uid}/conteudoAgendado`,
+        postId
+      );
+      await updateDoc(postRef, {
+        status: 'Publicado',
+      });
+      toast({
+        title: 'Sucesso!',
+        description: 'Post marcado como publicado.',
+      });
+    } catch (error) {
+      console.error('Error updating post status:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível marcar o post como publicado.',
+        variant: 'destructive',
+      });
+    }
+  };
+
 
   const visibleItems = roteiroItems?.slice(0, 4);
   const collapsibleItems = roteiroItems?.slice(4);
@@ -546,12 +577,12 @@ export default function DashboardPage() {
                         key={post.id}
                         className="p-3 rounded-lg border bg-background/50 flex items-start justify-between gap-4 text-left"
                       >
-                        <div className="flex items-start gap-3">
-                          <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
+                        <div className="flex items-start gap-3 flex-1 overflow-hidden">
+                          <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
                             <Tag className="h-5 w-5 text-muted-foreground" />
                           </div>
-                          <div>
-                            <p className="font-semibold text-foreground text-sm leading-tight">
+                          <div className="flex-1 overflow-hidden">
+                            <p className="font-semibold text-foreground text-sm leading-tight truncate">
                               {post.title}
                             </p>
                             <p className="text-xs text-muted-foreground">
@@ -563,13 +594,19 @@ export default function DashboardPage() {
                             </p>
                           </div>
                         </div>
-                        <Badge
-                          variant={
-                            post.status === 'Agendado' ? 'default' : 'outline'
-                          }
-                        >
-                          {post.status}
-                        </Badge>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+                                <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleMarkAsPublished(post.id)}>
+                              <CheckCircle className="mr-2 h-4 w-4" />
+                              <span>Marcar como Publicado</span>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     ))}
                     <Button variant="link" asChild className="w-full">
@@ -670,3 +707,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    
