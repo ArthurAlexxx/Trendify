@@ -314,36 +314,36 @@ export default function LandingPage() {
                 </div>
 
                 <div className="hidden items-center justify-end gap-2 md:flex flex-1">
-          {user ? (
-              <Link
-                href="/dashboard"
-                className={buttonVariants({
-                  variant: 'outline',
-                  className: 'font-manrope rounded-full',
-                })}
-              >
-                Painel
-              </Link>
-            ) : (
-              <Link
-                href="/login"
-                className={buttonVariants({
-                  variant: 'outline',
-                  className: 'font-semibold rounded-lg',
-                })}
-              >
-                Entrar
-              </Link>
-            )}
-            <Link
-              href="/sign-up"
-              className={cn(
-                buttonVariants({}),
-                'font-semibold rounded-lg'
-              )}
-            >
-              Começar Grátis
-            </Link>
+                  {user ? (
+                      <Link
+                        href="/dashboard"
+                        className={buttonVariants({
+                          variant: 'ghost',
+                        })}
+                      >
+                        Painel
+                      </Link>
+                    ) : (
+                      <>
+                        <Link
+                          href="/login"
+                          className={buttonVariants({
+                            variant: 'ghost',
+                          })}
+                        >
+                          Entrar
+                        </Link>
+                        <Link
+                          href="/sign-up"
+                          className={cn(
+                            buttonVariants({}),
+                            'font-semibold rounded-lg'
+                          )}
+                        >
+                          Começar Grátis
+                        </Link>
+                      </>
+                    )}
 				</div>
 				<Button size="icon" variant="outline" onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden">
 					<MenuToggleIcon open={isMenuOpen} className="size-5" duration={300} />
@@ -380,17 +380,19 @@ export default function LandingPage() {
 					</div>
 					<div className="flex flex-col gap-2">
             {user ? (
-						<Button asChild variant="outline" size="lg" className="w-full">
+						<Button asChild variant="ghost" size="lg" className="w-full justify-start text-lg h-12">
 							<Link href="/dashboard">Painel</Link>
 						</Button>
             ) : (
-            <Button asChild variant="outline" size="lg" className="w-full">
-							<Link href="/login">Entrar</Link>
-						</Button>
+            <>
+              <Button asChild variant="ghost" size="lg" className="w-full justify-start text-lg h-12">
+                <Link href="/login">Entrar</Link>
+              </Button>
+              <Button asChild size="lg" className="w-full">
+                <Link href="/sign-up">Começar Grátis</Link>
+              </Button>
+            </>
             )}
-						<Button asChild size="lg" className="w-full">
-							<Link href="/sign-up">Começar Grátis</Link>
-						</Button>
 					</div>
 				</div>
 			</div>
