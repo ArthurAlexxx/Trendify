@@ -33,6 +33,7 @@ import { useFirestore } from '@/firebase';
 export default function VideoReviewPage() {
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const [isSaving, startSavingTransition] = useTransition();
 
   const { user } = useUser();
@@ -48,6 +49,8 @@ export default function VideoReviewPage() {
     const file = acceptedFiles[0];
     if (file && file.type.startsWith('video/')) {
       setVideoFile(file);
+      // Reset state when a new file is dropped
+      setUploadProgress(null);
     } else {
       toast({
         title: 'Arquivo Inválido',
@@ -63,9 +66,10 @@ export default function VideoReviewPage() {
     accept: { 'video/*': [] },
   });
 
-  const handleAnalyze = async () => {
+  const handleAnalyze = () => {
     if (!videoFile || !user) return;
 
+    setIsUploading(true);
     const storage = getStorage(initializeFirebase().firebaseApp);
     const storageRef = ref(
       storage,
@@ -83,6 +87,7 @@ export default function VideoReviewPage() {
       (error) => {
         console.error('Upload error:', error);
         setUploadProgress(null);
+        setIsUploading(false);
         toast({
           title: 'Erro no Upload',
           description: `Não foi possível enviar seu vídeo. (${error.code})`,
@@ -91,7 +96,7 @@ export default function VideoReviewPage() {
       },
       () => {
         getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-          setUploadProgress(100);
+          setIsUploading(false);
           const formData = new FormData();
           formData.append('videoUrl', downloadURL);
           formAction(formData);
@@ -168,7 +173,7 @@ export default function VideoReviewPage() {
     </Card>
   );
 
-  const renderPreviewAndUpload = () =>
+  const renderPreviewAndUpload = () => (
     videoFile && (
       <Card className="shadow-lg shadow-primary/5 border-border/30 bg-card rounded-2xl max-w-2xl mx-auto">
         <CardContent className="p-6 space-y-6 flex flex-col items-center">
@@ -180,7 +185,7 @@ export default function VideoReviewPage() {
           <p className="font-semibold text-sm text-muted-foreground">
             {videoFile.name}
           </p>
-          {uploadProgress !== null && uploadProgress < 100 && !isAnalyzing && (
+          {isUploading && uploadProgress !== null && (
             <div className="w-full space-y-2 text-center">
               <Progress value={uploadProgress} />
               <p className="text-sm text-primary">
@@ -193,14 +198,12 @@ export default function VideoReviewPage() {
             <div className="flex items-center gap-2 text-primary font-semibold">
               <Loader2 className="h-5 w-5 animate-spin" />
               <span>Analisando seu vídeo com IA...</span>
-            </div>>
+            </div>
           )}
 
           <Button
             onClick={handleAnalyze}
-            disabled={
-              uploadProgress !== null || isAnalyzing || !videoFile
-            }
+            disabled={isUploading || isAnalyzing || !videoFile}
             size="lg"
             className="font-manrope w-full sm:w-auto h-12 px-10 rounded-full text-base font-bold shadow-lg shadow-primary/20 transition-transform hover:scale-[1.02]"
           >
@@ -209,21 +212,21 @@ export default function VideoReviewPage() {
           </Button>
         </CardContent>
       </Card>
-    );
+    )
+  );
     
-    const renderAnalysisResult = () => result && (
+  const renderAnalysisResult = () => (
+    result && (
         <div className="space-y-8 animate-fade-in">
            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-center">
                 <div className='flex-1'>
                   <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Resultado da Análise</h2>
                   <p className="text-muted-foreground">Aqui está o diagnóstico do seu vídeo.</p>
                 </div>
-                {result && (
-                  <Button onClick={handleSave} disabled={isSaving} className="w-full sm:w-auto rounded-full font-manrope">
+                <Button onClick={handleSave} disabled={isSaving} className="w-full sm:w-auto rounded-full font-manrope">
                     {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                     Salvar Análise
-                  </Button>
-                )}
+                </Button>
               </div>
             <div className="grid lg:grid-cols-3 gap-6 items-start">
                 <Card className="lg:col-span-2 shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl p-6 space-y-6">
@@ -254,7 +257,8 @@ export default function VideoReviewPage() {
                 </div>
             </div>
         </div>
-    );
+    )
+  );
 
   return (
     <div className="space-y-12">
@@ -266,8 +270,8 @@ export default function VideoReviewPage() {
         <SavedIdeasSheet />
       </PageHeader>
 
-      {!result && !videoFile && renderInitialState()}
-      {!result && videoFile && renderPreviewAndUpload()}
+      {!videoFile && !result && renderInitialState()}
+      {videoFile && !result && renderPreviewAndUpload()}
       {result && renderAnalysisResult()}
 
     </div>
@@ -286,5 +290,3 @@ function AnalysisSection({ icon: Icon, title, content }: { icon: React.ElementTy
         </div>
     )
 }
-
-    
