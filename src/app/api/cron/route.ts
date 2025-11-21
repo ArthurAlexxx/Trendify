@@ -20,10 +20,13 @@ async function getScheduledContentForTomorrow() {
     
     const now = new Date();
     const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    const tomorrowStart = new Date(tomorrow.setHours(0, 0, 0, 0));
+    const tomorrowEnd = new Date(tomorrow.setHours(23, 59, 59, 999));
+
 
     const snapshot = await firestore.collectionGroup('conteudoAgendado')
-        .where('date', '>=', now)
-        .where('date', '<=', tomorrow)
+        .where('date', '>=', tomorrowStart)
+        .where('date', '<=', tomorrowEnd)
         .get();
     
     if (snapshot.empty) {
@@ -55,14 +58,16 @@ export async function GET(req: NextRequest) {
     // 1. Authenticate the request
     const cronSecret = process.env.CRON_SECRET;
     const authHeader = req.headers.get('authorization');
-    if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+
+    // Allow testing in preview without secret, but enforce in production
+    if (process.env.VERCEL_ENV === 'production' && (!cronSecret || authHeader !== `Bearer ${cronSecret}`)) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // 2. Get the webhook URL
-    const webhookUrl = process.env.N8N_WEBHOOK_URL;
+    // 2. Get the webhook URL with a fallback for testing
+    const webhookUrl = process.env.N8N_WEBHOOK_URL || 'https://n8n.srv1061126.hstgr.cloud/webhook-test/7ee16df9-0159-4651-bb64-72fa2aaa9a1b';
     if (!webhookUrl) {
-        console.error('N8N_WEBHOOK_URL is not set.');
+        console.error('N8N_WEBHOOK_URL is not set and no fallback is available.');
         return NextResponse.json({ error: 'Webhook URL not configured' }, { status: 500 });
     }
 
@@ -106,6 +111,9 @@ export async function GET(req: NextRequest) {
 
     } catch (error) {
         console.error('Error in cron job:', error);
+        if (error instanceof Error) {
+            return NextResponse.json({ error: 'Internal Server Error: ' + error.message }, { status: 500 });
+        }
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
