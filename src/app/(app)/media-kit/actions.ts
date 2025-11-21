@@ -1,3 +1,4 @@
+
 'use server';
 
 import OpenAI from 'openai';
@@ -41,7 +42,7 @@ const AiCareerPackageOutputSchema = z.object({
 export type AiCareerPackageOutput = z.infer<typeof AiCareerPackageOutputSchema>;
 
 const formSchema = z.object({
-  niche: z.string().min(10, 'Seu nicho deve ter pelo menos 10 caracteres.'),
+  niche: z.string().min(1, 'O nicho não pode estar vazio.'),
   keyMetrics: z
     .string()
     .min(10, 'Suas métricas devem ter pelo menos 10 caracteres.'),
@@ -156,3 +157,5 @@ export async function getAiCareerPackageAction(
     return { error: `Failed to generate package: ${errorMessage}` };
   }
 }
+
+    

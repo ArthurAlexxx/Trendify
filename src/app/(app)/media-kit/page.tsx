@@ -41,7 +41,7 @@ import { useRouter } from 'next/navigation';
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 const formSchema = z.object({
-  niche: z.string().min(10, 'Seu nicho deve ter pelo menos 10 caracteres.'),
+  niche: z.string().min(1, 'O nicho não pode estar vazio.'),
   keyMetrics: z.string().min(10, 'Suas métricas devem ter pelo menos 10 caracteres.'),
   targetBrand: z.string().min(3, 'A marca alvo deve ter pelo menos 3 caracteres.'),
 });
@@ -50,8 +50,6 @@ function PremiumFeatureGuard({ children }: { children: React.ReactNode }) {
     const { subscription, isLoading } = useSubscription();
     const router = useRouter();
 
-    const isPremiumActive = subscription?.plan === 'premium' && subscription.status === 'active';
-
     if (isLoading) {
         return (
             <div className="w-full h-96 flex items-center justify-center">
@@ -59,6 +57,8 @@ function PremiumFeatureGuard({ children }: { children: React.ReactNode }) {
             </div>
         );
     }
+
+    const isPremiumActive = subscription?.plan === 'premium' && subscription.status === 'active';
 
     if (!isPremiumActive) {
         return (
