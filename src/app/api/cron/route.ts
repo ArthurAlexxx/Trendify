@@ -137,11 +137,11 @@ export async function GET(req: NextRequest) {
         console.log(`[Cron Job] Successfully triggered ${webhookPromises.length} webhooks.`);
         return NextResponse.json({ message: `Successfully triggered ${webhookPromises.length} webhooks.` });
 
-    } catch (error) {
-        console.error('[Cron Job] Error during execution:', error);
-        if (error instanceof Error) {
-            return NextResponse.json({ error: 'Internal Server Error: ' + error.message }, { status: 500 });
-        }
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    } catch (error: any) {
+        // Log the full error details to ensure the index creation link is visible.
+        const errorMessage = error.details || error.message || 'Unknown Firestore error.';
+        console.error(`[Cron Job] Error during execution: ${errorMessage}`, error);
+        
+        return NextResponse.json({ error: 'Internal Server Error: ' + errorMessage }, { status: 500 });
     }
 }
