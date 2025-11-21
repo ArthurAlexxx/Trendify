@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { useUser, useFirestore, useDoc, useMemoFirebase, useAuth } from '@/firebase';
 import { User as UserIcon } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
@@ -46,6 +46,7 @@ const profileFormSchema = z.object({
 
 export default function ProfilePage() {
   const { user } = useUser();
+  const auth = useAuth();
   const firestore = useFirestore();
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
@@ -92,11 +93,15 @@ export default function ProfilePage() {
         averageComments: userProfile.averageComments || '',
         audience: userProfile.audience || '',
       });
-      if (userProfile.photoURL) {
-        setLocalPhotoUrl(userProfile.photoURL);
-      }
+      setLocalPhotoUrl(userProfile.photoURL || user?.photoURL || null);
+    } else if (user) {
+        form.reset({
+            displayName: user.displayName || '',
+            photoURL: user.photoURL || null,
+        });
+        setLocalPhotoUrl(user.photoURL || null);
     }
-  }, [userProfile, form]);
+  }, [userProfile, user, form]);
   
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -116,16 +121,18 @@ export default function ProfilePage() {
       (error) => {
         console.error("Upload error:", error);
         setUploadProgress(null);
-        setLocalPhotoUrl(userProfile?.photoURL || null);
+        setLocalPhotoUrl(userProfile?.photoURL || user?.photoURL || null);
         toast({
           title: 'Erro no Upload',
-          description: 'Não foi possível enviar sua foto. Tente novamente.',
+          description: 'Não foi possível enviar sua foto. Verifique as regras de segurança e a configuração do bucket.',
           variant: 'destructive'
         });
       },
       () => {
         getDownloadURL(uploadTask.snapshot.ref).then(async (downloadURL) => {
-          await updateDoc(userProfileRef!, { photoURL: downloadURL });
+          if (userProfileRef) {
+            await updateDoc(userProfileRef, { photoURL: downloadURL });
+          }
           if (auth.currentUser) {
             await updateProfile(auth.currentUser, { photoURL: downloadURL });
           }
@@ -151,8 +158,8 @@ export default function ProfilePage() {
         await updateDoc(userProfileRef, firestoreData);
         
         // Update Firebase Auth profile if necessary
-        if (user.displayName !== values.displayName) {
-            await updateProfile(user, {
+        if (user.displayName !== values.displayName && auth.currentUser) {
+            await updateProfile(auth.currentUser, {
                 displayName: values.displayName,
             });
         }
@@ -197,7 +204,7 @@ export default function ProfilePage() {
                       <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
                       <Avatar className="h-24 w-24 cursor-pointer" onClick={() => fileInputRef.current?.click()}>
                         <AvatarImage
-                          src={localPhotoUrl ?? userProfile?.photoURL}
+                          src={localPhotoUrl ?? undefined}
                           alt="User Avatar"
                         />
                         <AvatarFallback>
@@ -205,7 +212,7 @@ export default function ProfilePage() {
                         </AvatarFallback>
                       </Avatar>
                       {uploadProgress !== null && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full">
+                         <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full">
                            <p className="text-white text-sm font-bold">{Math.round(uploadProgress)}%</p>
                         </div>
                       )}
@@ -218,6 +225,9 @@ export default function ProfilePage() {
                           className="h-11"
                         />
                         {form.formState.errors.displayName && <p className="text-sm font-medium text-destructive">{form.formState.errors.displayName.message}</p>}
+                         {uploadProgress !== null && (
+                            <Progress value={uploadProgress} className="w-full h-2 mt-2" />
+                        )}
                     </div>
                   </div>
 
