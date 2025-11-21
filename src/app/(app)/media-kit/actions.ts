@@ -94,13 +94,13 @@ Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON d
 
   Para cada campo do JSON, siga estas diretrizes:
 
-  - **Pense como um especialista**: Mergulhe no nicho. Se o nicho for um jogo como 'Valorant', não fale apenas sobre skins. Fale sobre jogabilidade, estratégias, agentes, humor da comunidade, etc. Se for 'skincare', fale sobre ingredientes, rotinas, problemas de pele específicos.
+  - **Pense como um especialista**: Mergulhe no nicho fornecido. Se o nicho for um jogo como 'Valorant', não fale apenas sobre skins. Fale sobre jogabilidade, estratégias, agentes, humor da comunidade, etc. Se for 'skincare', fale sobre ingredientes, rotinas, problemas de pele específicos. Sua resposta deve provar que você entende o universo daquele nicho.
 
-  - executiveSummary: Crie um parágrafo de apresentação EM PRIMEIRA PESSOA (usando "Eu sou...", "Minha audiência..."), conciso e profissional, pronto para ser copiado e colado em um e-mail. Ele deve destacar minha especialidade, o perfil do meu público e o valor que posso agregar para uma marca como a marca alvo, mostrando que entendo do assunto.
+  - executiveSummary: Crie um parágrafo de apresentação EM PRIMEIRA PESSOA (usando "Eu sou...", "Minha audiência..."), conciso e profissional, pronto para ser copiado e colado em um e-mail. Ele deve destacar a especialidade do criador dentro do nicho, o perfil do seu público e o valor que ele pode agregar para uma marca como a marca alvo.
   
   - pricingTiers: Com base nas métricas fornecidas (seguidores, engajamento), calcule e sugira faixas de preço realistas para o mercado brasileiro. Retorne uma STRING formatada para cada campo (ex: "R$ 800 - R$ 1.500"). Crie uma faixa para cada um dos seguintes formatos: 'reels', 'storySequence' (sequência de 3-5 stories), 'staticPost' (post no feed) e 'monthlyPackage' (um pacote combinado). Justifique mentalmente os valores com base em benchmarks de CPM, CPV e taxa de engajamento.
 
-  - sampleCollaborationIdeas: Descreva 2-3 ideias de colaboração criativas e autênticas que se alinham ao nicho e à marca alvo. Evite ideias genéricas. Para um nicho de games, sugira coisas como "Série de vídeos com dicas para subir de ranking usando o mouse da marca" ou "Guia de um agente/personagem específico patrocinado pela marca de periféricos". Para um nicho de beleza, "Desafio de 30 dias documentando a transformação da pele com a linha de skincare da marca".
+  - sampleCollaborationIdeas: Descreva 2-3 ideias de colaboração criativas e autênticas que se alinham ao nicho e à marca alvo. Evite ideias genéricas. A ideia deve parecer que partiu de um criador que realmente entende seu público. Para um nicho de games, sugira coisas como "Série de vídeos com dicas para subir de ranking usando o mouse da marca". Para um nicho de beleza, "Desafio de 30 dias documentando a transformação da pele com a linha de skincare da marca".
   `;
 
   try {
