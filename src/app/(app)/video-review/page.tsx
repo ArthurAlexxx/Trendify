@@ -34,13 +34,12 @@ export default function VideoReviewPage() {
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [isSaving, startSavingTransition] = useTransition();
-  const [isAnalyzing, startAnalyzingTransition] = useTransition();
 
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
 
-  const [state, formAction] = useActionState(
+  const [state, formAction, isAnalyzing] = useActionState(
     analyzeVideoAction,
     null
   );
@@ -95,9 +94,7 @@ export default function VideoReviewPage() {
           setUploadProgress(100);
           const formData = new FormData();
           formData.append('videoUrl', downloadURL);
-          startAnalyzingTransition(() => {
-            formAction(formData);
-          });
+          formAction(formData);
         });
       }
     );
@@ -183,7 +180,7 @@ export default function VideoReviewPage() {
           <p className="font-semibold text-sm text-muted-foreground">
             {videoFile.name}
           </p>
-          {uploadProgress !== null && uploadProgress < 100 && (
+          {uploadProgress !== null && uploadProgress < 100 && !isAnalyzing && (
             <div className="w-full space-y-2 text-center">
               <Progress value={uploadProgress} />
               <p className="text-sm text-primary">
@@ -196,7 +193,7 @@ export default function VideoReviewPage() {
             <div className="flex items-center gap-2 text-primary font-semibold">
               <Loader2 className="h-5 w-5 animate-spin" />
               <span>Analisando seu vídeo com IA...</span>
-            </div>
+            </div>>
           )}
 
           <Button
