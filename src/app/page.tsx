@@ -301,13 +301,19 @@ export default function LandingPage() {
 					},
 				)}
 			>
-				<WordmarkIcon />
-				<div className="hidden items-center gap-2 md:flex">
+				<div className="flex-1 justify-start">
+                    <WordmarkIcon />
+                </div>
+
+				<div className="hidden items-center justify-center gap-2 md:flex flex-1">
 					{navLinks.map((link) => (
 						<a key={link.href} className={buttonVariants({ variant: 'ghost' })} href={link.href}>
 							{link.text}
 						</a>
 					))}
+                </div>
+
+                <div className="hidden items-center justify-end gap-2 md:flex flex-1">
           {user ? (
               <Link
                 href="/dashboard"
