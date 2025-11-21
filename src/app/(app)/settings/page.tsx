@@ -131,9 +131,8 @@ export default function SettingsPage() {
       />
 
       <Tabs defaultValue="subscription" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 sm:max-w-lg mx-auto sm:mx-0">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="subscription">Assinatura</TabsTrigger>
-          <TabsTrigger value="integrations" className="hidden sm:inline-flex">Integrações</TabsTrigger>
           <TabsTrigger value="account">Conta</TabsTrigger>
         </TabsList>
 
@@ -204,37 +203,6 @@ export default function SettingsPage() {
                         </div>
                     </div>
                 ) : null}
-              </CardContent>
-           </Card>
-        </TabsContent>
-        
-        <TabsContent value="integrations" className="mt-6">
-           <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
-              <CardHeader className="text-center sm:text-left">
-                <CardTitle className="flex items-center justify-center sm:justify-start gap-3 font-headline text-xl">
-                    <Building className="h-6 w-6 text-primary" />
-                    <span>Integrações & Pagamentos</span>
-                </CardTitle>
-                <CardDescription>
-                    Gerencie suas chaves de API para serviços externos como o Abacate Pay.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6 text-left">
-                <div className="space-y-2">
-                    <Label htmlFor="abacate-api-key">Chave de API do Abacate Pay</Label>
-                    <Input id="abacate-api-key" type="password" placeholder="cole_sua_chave_aqui" />
-                    <p className='text-xs text-muted-foreground'>Você pode encontrar sua chave no painel do Abacate Pay.</p>
-                </div>
-                 <div className="space-y-2">
-                    <Label htmlFor="abacate-webhook-secret">Webhook Secret do Abacate Pay</Label>
-                    <Input id="abacate-webhook-secret" type="password" placeholder="cole_seu_webhook_secret_aqui" />
-                     <p className='text-xs text-muted-foreground'>Usado para verificar a autenticidade dos webhooks de pagamento.</p>
-                </div>
-                 <div className="flex justify-center sm:justify-end pt-2">
-                  <Button disabled className="font-manrope rounded-full w-full sm:w-auto">
-                    Salvar Chaves
-                  </Button>
-                </div>
               </CardContent>
            </Card>
         </TabsContent>
@@ -333,3 +301,5 @@ export default function SettingsPage() {
     </div>
   );
 }
+
+    
