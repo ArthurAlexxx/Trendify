@@ -65,6 +65,12 @@ import {
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 
 const chartConfig = {
   alcance: {
@@ -203,6 +209,9 @@ export default function DashboardPage() {
       console.error('Failed to update roteiro status:', error);
     }
   };
+
+  const visibleItems = roteiroItems?.slice(0, 4);
+  const collapsibleItems = roteiroItems?.slice(4);
 
   return (
     <div className="space-y-12">
@@ -396,42 +405,89 @@ export default function DashboardPage() {
                     ))}
                   </div>
                 ) : roteiroItems && roteiroItems.length > 0 ? (
-                  <ul className="space-y-2">
-                    {roteiroItems.map((item, index) => (
-                      <li key={index}>
-                        <div className="flex items-start gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50 text-left">
-                          <Checkbox
-                            id={`roteiro-${index}`}
-                            checked={item.concluido}
-                            onCheckedChange={() => handleToggleRoteiro(item)}
-                            className="h-5 w-5 mt-1"
-                          />
-                          <div>
-                            <label
-                              htmlFor={`roteiro-${index}`}
-                              className={cn(
-                                'font-medium text-base transition-colors cursor-pointer',
-                                item.concluido
-                                  ? 'line-through text-muted-foreground'
-                                  : 'text-foreground'
-                              )}
-                            >
-                              <span className="font-semibold text-primary">
-                                {item.dia}:
-                              </span>{' '}
-                              {item.tarefa}
-                            </label>
-                            <p className="text-sm text-muted-foreground">
-                              {item.detalhes}
-                            </p>
-                          </div>
-                        </div>
-                        {roteiroItems && index < roteiroItems.length - 1 && (
-                          <Separator className="my-2" />
-                        )}
-                      </li>
-                    ))}
-                  </ul>
+                   <div>
+                    <ul className="space-y-2">
+                        {visibleItems?.map((item, index) => (
+                        <li key={index}>
+                            <div className="flex items-start gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50 text-left">
+                            <Checkbox
+                                id={`roteiro-${index}`}
+                                checked={item.concluido}
+                                onCheckedChange={() => handleToggleRoteiro(item)}
+                                className="h-5 w-5 mt-1"
+                            />
+                            <div>
+                                <label
+                                htmlFor={`roteiro-${index}`}
+                                className={cn(
+                                    'font-medium text-base transition-colors cursor-pointer',
+                                    item.concluido
+                                    ? 'line-through text-muted-foreground'
+                                    : 'text-foreground'
+                                )}
+                                >
+                                <span className="font-semibold text-primary">
+                                    {item.dia}:
+                                </span>{' '}
+                                {item.tarefa}
+                                </label>
+                                <p className="text-sm text-muted-foreground">
+                                {item.detalhes}
+                                </p>
+                            </div>
+                            </div>
+                            {visibleItems && index < visibleItems.length - 1 && (
+                            <Separator className="my-2" />
+                            )}
+                        </li>
+                        ))}
+                    </ul>
+                    {collapsibleItems && collapsibleItems.length > 0 && (
+                        <Accordion type="single" collapsible className="w-full">
+                            <AccordionItem value="item-1" className="border-b-0">
+                                <AccordionTrigger className="justify-center py-2 text-sm font-medium text-primary hover:no-underline">
+                                    Ver restante da semana
+                                </AccordionTrigger>
+                                <AccordionContent>
+                                     <ul className="space-y-2 pt-2">
+                                        {collapsibleItems.map((item, index) => (
+                                        <li key={index}>
+                                            <Separator className="my-2" />
+                                            <div className="flex items-start gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50 text-left">
+                                            <Checkbox
+                                                id={`roteiro-collapsible-${index}`}
+                                                checked={item.concluido}
+                                                onCheckedChange={() => handleToggleRoteiro(item)}
+                                                className="h-5 w-5 mt-1"
+                                            />
+                                            <div>
+                                                <label
+                                                htmlFor={`roteiro-collapsible-${index}`}
+                                                className={cn(
+                                                    'font-medium text-base transition-colors cursor-pointer',
+                                                    item.concluido
+                                                    ? 'line-through text-muted-foreground'
+                                                    : 'text-foreground'
+                                                )}
+                                                >
+                                                <span className="font-semibold text-primary">
+                                                    {item.dia}:
+                                                </span>{' '}
+                                                {item.tarefa}
+                                                </label>
+                                                <p className="text-sm text-muted-foreground">
+                                                {item.detalhes}
+                                                </p>
+                                            </div>
+                                            </div>
+                                        </li>
+                                        ))}
+                                    </ul>
+                                </AccordionContent>
+                            </AccordionItem>
+                        </Accordion>
+                    )}
+                   </div>
                 ) : (
                   <div className="text-center py-8 px-4 rounded-xl bg-muted/50 border border-dashed">
                     <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
