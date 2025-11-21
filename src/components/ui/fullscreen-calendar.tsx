@@ -270,12 +270,12 @@ export function FullScreenCalendar({ data, onNewEvent, renderEventActions, rende
       </div>
       
       {/* Selected Day's Events */}
-      <aside className="w-full lg:w-96 lg:border-l p-4 space-y-4">
-        <h3 className="font-headline text-xl text-center sm:text-left">
+      <aside className="w-full lg:w-96 lg:border-l p-4 flex flex-col">
+        <h3 className="font-headline text-xl text-center sm:text-left mb-4">
           Posts para {format(selectedDay, "dd 'de' MMMM", { locale: ptBR })}
         </h3>
         {selectedDayEvents.length > 0 ? (
-          <div className="space-y-4 text-left">
+          <div className="space-y-4 text-left flex-1">
             {selectedDayEvents.map((event) => (
               <div key={event.id} className="p-4 rounded-lg border bg-background/50 flex items-start justify-between gap-4">
                  <div className="flex items-start gap-4 flex-1 overflow-hidden">
@@ -295,7 +295,7 @@ export function FullScreenCalendar({ data, onNewEvent, renderEventActions, rende
             ))}
           </div>
         ) : (
-          <div className="text-center py-12 px-4 rounded-xl bg-muted/50 border border-dashed h-full flex flex-col justify-center">
+          <div className="text-center py-12 px-4 rounded-xl bg-muted/50 border border-dashed flex-1 flex flex-col justify-center items-center">
             <CalendarIcon className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
             <h3 className="font-semibold text-foreground">
               Nenhum post para este dia.
