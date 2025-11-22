@@ -68,46 +68,26 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 const features = [
   {
     icon: Lightbulb,
-    title: 'Roteiros e Ganchos Virais',
+    title: 'Roteiros e Estratégia com IA',
     description:
-      'Use IA para gerar ideias de vídeo que capturam a atenção e engajam seu público.',
+      'Gere ideias de vídeo, roteiros completos e planos de conteúdo semanais que capturam a atenção e engajam seu público.',
   },
   {
     icon: Target,
-    title: 'Análise de Performance',
+    title: 'Análise e Diagnóstico de Conteúdo',
     description:
-      'Receba diagnósticos do que funciona (ou não) no seu conteúdo e otimize sua estratégia.',
+      'Receba diagnósticos do que funciona (ou não) nos seus vídeos e receba um plano de ação para otimizar sua estratégia.',
     plan: 'pro',
   },
   {
     icon: Briefcase,
-    title: 'Mídia Kit e Propostas',
+    title: 'Monetização e Parcerias com Marcas',
     description:
-      'Crie propostas comerciais e um mídia kit profissional para fechar parcerias com marcas.',
+      'Crie propostas comerciais e um mídia kit profissional para fechar parcerias e transformar seu conteúdo em receita.',
     plan: 'premium',
   },
 ];
 
-const whyTrendify = [
-  {
-    icon: ClipboardList,
-    title: 'Foco em Ação, Não em Vaidade',
-    description:
-      'Métricas são importantes, mas nosso foco é no que fazer com elas. Entregamos planos e roteiros, não apenas gráficos.',
-  },
-  {
-    icon: BrainCircuit,
-    title: 'IA Especialista em Criadores',
-    description:
-      'Nossa inteligência artificial é treinada com milhares de vídeos virais e estratégias de conteúdo que funcionam hoje.',
-  },
-  {
-    icon: Rocket,
-    title: 'Do Roteiro à Proposta',
-    description:
-      'Cobrimos todo o ciclo do criador: da ideia inicial até a prospecção de marcas e monetização do seu conteúdo.',
-  },
-];
 
 const faqItems = [
   {
@@ -392,15 +372,14 @@ export default function LandingPage() {
            <AnimatedHero />
         </section>
 
-        {/* Benefits Section */}
+        {/* Unified Benefits Section */}
         <section id="beneficios" className="py-20 sm:py-24">
-          <div className="container text-center sm:text-left">
+          <div className="container text-center">
             <h2 className="text-3xl md:text-4xl font-bold font-headline tracking-tight mb-4">
-              Menos esforço, mais inteligência.
+              A plataforma de IA completa para criadores
             </h2>
-            <p className="text-lg text-muted-foreground mb-12 max-w-2xl">
-              Tudo que você precisa para crescer de forma inteligente, em um só
-              lugar.
+            <p className="text-lg text-muted-foreground mb-12 max-w-2xl mx-auto">
+              Da estratégia de conteúdo à monetização, a Trendify centraliza tudo que você precisa para crescer de forma inteligente.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {features.map((feature) => (
@@ -437,78 +416,8 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Why Section */}
-        <section id="why-trendify" className="py-20 sm:py-24 bg-muted/30">
-          <div className="container">
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
-              <div className="text-center sm:text-left">
-                <h2 className="text-3xl md:text-4xl font-bold font-headline tracking-tight mb-4">
-                  Por que a Trendify?
-                </h2>
-                <p className="text-lg text-muted-foreground mb-12">
-                  Nós não somos apenas mais uma ferramenta de análise. Somos um
-                  sistema operacional para o crescimento do criador de
-                  conteúdo.
-                </p>
-                <div className="grid sm:grid-cols-1 gap-6">
-                  {whyTrendify.map((item) => (
-                     <Card key={item.title} className="bg-background/50 border-border/50 shadow-sm hover:shadow-lg transition-shadow rounded-2xl">
-                        <CardContent className="p-6 flex flex-col sm:flex-row items-center text-center sm:text-left gap-6">
-                            <div className="h-16 w-16 flex-shrink-0 rounded-xl bg-primary/10 text-primary flex items-center justify-center border border-primary/20">
-                                <item.icon className="h-8 w-8" />
-                            </div>
-                            <div>
-                                <h3 className="font-bold text-lg text-foreground">{item.title}</h3>
-                                <p className="text-muted-foreground mt-1">{item.description}</p>
-                            </div>
-                        </CardContent>
-                     </Card>
-                  ))}
-                </div>
-              </div>
-              <div className="bg-background/50 p-4 sm:p-8 rounded-2xl">
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.5 }}
-                  viewport={{ once: true, amount: 0.5 }}
-                >
-                  <Card className="shadow-lg">
-                    <CardHeader>
-                      <CardTitle className="text-xl flex items-center gap-2">
-                        <Sparkles className="h-5 w-5 text-primary" /> Roteiro
-                        Sugerido
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div>
-                        <p className="text-sm font-bold">Gancho:</p>
-                        <p className="text-muted-foreground">
-                          "Isso está arruinando sua pele (e não é o que você pensa)."
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold">Roteiro:</p>
-                        <p className="text-muted-foreground">
-                          "[Close-up no produto X]. Você investe em produtos caros, mas o erro pode estar na ordem de aplicação. A regra de ouro é: do mais leve ao mais denso..."
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold">CTA:</p>
-                        <p className="text-muted-foreground">
-                         "Quer minha rotina completa para pele oleosa? Comente 'ROTINA' que eu te envio."
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              </div>
-            </div>
-          </div>
-        </section>
-
         {/* Calculator Section */}
-        <section id="calculadora" className="py-20 sm:py-24 bg-background">
+        <section id="calculadora" className="py-20 sm:py-24 bg-muted/30">
           <div className="container">
             <div className="text-center max-w-3xl mx-auto mb-12">
               <h2 className="text-4xl md:text-5xl font-bold font-headline tracking-tight mb-4">
@@ -520,7 +429,7 @@ export default function LandingPage() {
               </p>
             </div>
 
-            <Card className="max-w-4xl mx-auto p-4 sm:p-6 rounded-2xl bg-muted/30">
+            <Card className="max-w-4xl mx-auto p-4 sm:p-6 rounded-2xl bg-card">
               <CardContent className="p-2 sm:p-4">
                 <AnimatePresence mode="wait">
                   {step === 0 && (
@@ -544,7 +453,7 @@ export default function LandingPage() {
                                     defaultValue={field.value}
                                   >
                                     <FormControl>
-                                      <SelectTrigger className="h-12 text-base bg-background">
+                                      <SelectTrigger className="h-12 text-base bg-muted/50">
                                         <SelectValue />
                                       </SelectTrigger>
                                     </FormControl>
@@ -577,7 +486,7 @@ export default function LandingPage() {
                                           parseInt(e.target.value, 10) || 0
                                         )
                                       }
-                                      className="h-12 text-base bg-background"
+                                      className="h-12 text-base bg-muted/50"
                                     />
                                   </FormControl>
                                   <FormMessage />
@@ -601,7 +510,7 @@ export default function LandingPage() {
                                           parseInt(e.target.value, 10) || 0
                                         )
                                       }
-                                      className="h-12 text-base bg-background"
+                                      className="h-12 text-base bg-muted/50"
                                     />
                                   </FormControl>
                                   <FormMessage />
@@ -771,7 +680,7 @@ export default function LandingPage() {
                           Seu Plano Inicial
                         </h4>
                         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 text-center">
-                          <Card className="bg-card">
+                          <Card className="bg-muted/50">
                             <CardContent className="p-4">
                               <p className="text-sm text-muted-foreground">
                                 Plano da Semana
@@ -783,7 +692,7 @@ export default function LandingPage() {
                           </Card>
                           {results.trendSuggestions.map(
                             (sug: any, index: number) => (
-                              <Card key={index} className="bg-card">
+                              <Card key={index} className="bg-muted/50">
                                 <CardContent className="p-4">
                                   <p className="text-sm text-muted-foreground">
                                     Gancho Sugerido
@@ -829,7 +738,7 @@ export default function LandingPage() {
         </section>
 
         {/* Pricing Section */}
-        <section id="precos" className="py-20 sm:py-24 bg-muted/30">
+        <section id="precos" className="py-20 sm:py-24 bg-background">
           <div className="container">
             <div className="text-center max-w-2xl mx-auto mb-12">
               <h2 className="text-4xl md:text-5xl font-bold font-headline tracking-tight mb-4">
@@ -841,7 +750,7 @@ export default function LandingPage() {
             </div>
             <div className="grid lg:grid-cols-3 gap-8 max-w-6xl mx-auto items-start">
                {/* Plano Grátis */}
-              <Card className="rounded-2xl p-6 flex flex-col h-full">
+              <Card className="rounded-2xl p-6 flex flex-col h-full bg-muted/30">
                 <h3 className="text-2xl font-bold font-headline mb-2">
                   Grátis
                 </h3>
@@ -965,7 +874,7 @@ export default function LandingPage() {
         </section>
 
         {/* FAQ Section */}
-        <section id="faq" className="py-20 sm:py-24">
+        <section id="faq" className="py-20 sm:py-24 bg-muted/30">
           <div className="container max-w-3xl mx-auto">
             <div className="text-center mb-12">
               <h2 className="text-4xl md:text-5xl font-bold font-headline tracking-tight mb-4">
