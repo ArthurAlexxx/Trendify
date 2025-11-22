@@ -18,6 +18,8 @@ import {
   useState,
   useTransition,
   useCallback,
+  useActionState,
+  useRef,
 } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -30,45 +32,31 @@ import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
-type AnalysisStatus = 'idle' | 'loading' | 'success' | 'error';
-
-function AnalysisSection({
-  icon: Icon,
-  title,
-  content,
-}: {
-  icon: React.ElementType;
-  title: string;
-  content: string;
-}) {
-  return (
-    <div className="text-left">
-      <h3 className="font-bold text-lg mb-2 flex items-center gap-2">
-        <Icon className="h-5 w-5 text-primary" />
-        {title}
-      </h3>
-      <p className="text-muted-foreground whitespace-pre-wrap">{content}</p>
-    </div>
-  );
-}
-
 export default function VideoReviewPage() {
   const [file, setFile] = useState<File | null>(null);
+  const [videoDataUri, setVideoDataUri] = useState<string>('');
   const [isSaving, startSavingTransition] = useTransition();
 
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
 
-  const [analysisStatus, setAnalysisStatus] = useState<AnalysisStatus>('idle');
-  const [analysisResult, setAnalysisResult] =
-    useState<VideoAnalysisOutput | null>(null);
-  const [analysisError, setAnalysisError] = useState<string>('');
+  const [state, formAction, isAnalyzing] = useActionState(
+    analyzeVideoAction,
+    null
+  );
 
-  const handleFileSelect = (selectedFile: File | null) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    const selectedFile = acceptedFiles[0];
     if (selectedFile && selectedFile.type.startsWith('video/')) {
       setFile(selectedFile);
-      resetState();
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setVideoDataUri(reader.result as string);
+      };
+      reader.readAsDataURL(selectedFile);
     } else {
       toast({
         title: 'Arquivo Inválido',
@@ -76,73 +64,21 @@ export default function VideoReviewPage() {
         variant: 'destructive',
       });
     }
-  };
+  }, [toast]);
+
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop: (acceptedFiles) => handleFileSelect(acceptedFiles[0]),
+    onDrop,
     multiple: false,
     accept: { 'video/*': ['.mp4', '.mov', '.webm'] },
   });
 
-  const resetState = () => {
-    setAnalysisStatus('idle');
-    setAnalysisResult(null);
-    setAnalysisError('');
-  };
-
   const handleReset = () => {
     setFile(null);
-    resetState();
+    setVideoDataUri('');
+    // Apenas para limpar o estado visual, o 'state' do useActionState será resetado na próxima ação
   };
-
-  const handleAnalyzeVideo = async () => {
-    if (!file) {
-      setAnalysisError('Nenhum arquivo de vídeo selecionado.');
-      setAnalysisStatus('error');
-      return;
-    }
-
-    setAnalysisStatus('loading');
-    setAnalysisError('');
-    setAnalysisResult(null);
-
-    try {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onloadend = async () => {
-        const base64data = reader.result as string;
-        const result = await analyzeVideoAction({ videoDataUri: base64data });
-
-        if (result.data) {
-          setAnalysisResult(result.data);
-          setAnalysisStatus('success');
-          toast({
-            title: 'Análise Concluída',
-            description: 'A IA analisou o seu vídeo.',
-          });
-        } else if (result.error) {
-           throw new Error(result.error);
-        } else {
-          throw new Error('A análise não produziu um resultado.');
-        }
-      };
-      reader.onerror = () => {
-        throw new Error('Falha ao ler o arquivo de vídeo.');
-      };
-    } catch (e: any) {
-      console.error('Erro na análise:', e);
-      const errorMsg =
-        e.message || 'Ocorreu um erro desconhecido durante a análise.';
-      setAnalysisError(errorMsg);
-      setAnalysisStatus('error');
-      toast({
-        title: 'Falha na Análise',
-        description: errorMsg,
-        variant: 'destructive',
-      });
-    }
-  };
-
+  
   const handleSave = async (result: VideoAnalysisOutput) => {
     if (!user || !firestore || !result || !file) {
       toast({
@@ -196,6 +132,9 @@ export default function VideoReviewPage() {
     });
   };
 
+  const analysisResult = state?.data;
+  const analysisError = state?.error;
+
   const renderInitialOrSelected = () => {
     if (!file) {
       return (
@@ -205,7 +144,7 @@ export default function VideoReviewPage() {
             isDragActive ? 'border-primary bg-primary/10' : 'border-border'
           }`}
         >
-          <input {...getInputProps()} />
+          <input {...getInputProps()} ref={fileInputRef} />
           <CardContent className="p-8 text-center">
             <UploadCloud className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
             <h3 className="font-semibold text-lg">
@@ -217,7 +156,7 @@ export default function VideoReviewPage() {
               ou clique para selecionar o arquivo
             </p>
             <p className="text-xs text-muted-foreground mt-4">
-              MP4, MOV, WEBM
+              MP4, MOV, WEBM (Máx 50MB)
             </p>
           </CardContent>
         </Card>
@@ -233,33 +172,33 @@ export default function VideoReviewPage() {
               {file.name}
             </p>
           </div>
-          <div className="w-full flex flex-col sm:flex-row gap-4">
-            <Button
-              onClick={handleAnalyzeVideo}
-              disabled={analysisStatus === 'loading'}
-              size="lg"
-              className="font-manrope w-full h-11 px-10 rounded-md text-base font-bold shadow-lg shadow-primary/20 transition-transform hover:scale-[1.02]"
-            >
-              {analysisStatus === 'loading' ? (
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-              ) : (
-                <Sparkles className="mr-2 h-5 w-5" />
-              )}
-              Analisar Vídeo
-            </Button>
-            <Button onClick={handleReset} variant="outline" className="w-full sm:w-auto h-11">
-              Cancelar
-            </Button>
-          </div>
+           <form action={formAction} className="w-full flex flex-col sm:flex-row gap-4">
+              <input type="hidden" name="videoDataUri" value={videoDataUri} />
+              <Button
+                type="submit"
+                disabled={isAnalyzing || !videoDataUri}
+                size="lg"
+                className="font-manrope w-full h-11 px-10 rounded-md text-base font-bold shadow-lg shadow-primary/20 transition-transform hover:scale-[1.02]"
+              >
+                {isAnalyzing ? (
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                ) : (
+                  <Sparkles className="mr-2 h-5 w-5" />
+                )}
+                Analisar Vídeo
+              </Button>
+              <Button onClick={handleReset} variant="outline" className="w-full sm:w-auto h-11" type="button">
+                Cancelar
+              </Button>
+           </form>
         </CardContent>
       </Card>
     );
   };
 
   const renderAnalysis = () => {
-    switch (analysisStatus) {
-      case 'loading':
-        return (
+    if (isAnalyzing) {
+       return (
           <Card className="shadow-lg shadow-primary/5 border-border/30 bg-card rounded-2xl max-w-2xl mx-auto">
             <CardContent className="p-6 space-y-6 flex flex-col items-center">
               <div className="flex items-center gap-2 text-primary font-semibold animate-pulse">
@@ -271,9 +210,10 @@ export default function VideoReviewPage() {
             </CardContent>
           </Card>
         );
-      case 'success':
-        if (!analysisResult) return null;
-        return (
+    }
+    
+    if (analysisResult) {
+       return (
           <div className="space-y-8 animate-fade-in">
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-center">
               <div className="flex-1">
@@ -299,7 +239,7 @@ export default function VideoReviewPage() {
             </div>
             <div className="grid lg:grid-cols-3 gap-6 items-start">
               <Card className="lg:col-span-2 shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl p-6 space-y-6">
-                <AnalysisSection
+                 <AnalysisSection
                   title="Análise do Gancho (Hook)"
                   content={analysisResult.hookAnalysis}
                   icon={Target}
@@ -346,13 +286,15 @@ export default function VideoReviewPage() {
               </div>
             </div>
             <div className="text-center">
-              <Button onClick={handleReset} variant="outline">
+              <Button onClick={handleReset} variant="outline" type="button">
                 Analisar Outro Vídeo
               </Button>
             </div>
           </div>
         );
-      case 'error':
+    }
+
+    if (analysisError) {
         return (
           <Card className="shadow-lg shadow-destructive/5 border-destructive/20 bg-card rounded-2xl max-w-2xl mx-auto">
             <CardContent className="p-6 text-center space-y-4">
@@ -362,15 +304,15 @@ export default function VideoReviewPage() {
                 <AlertTitle>Erro na Análise</AlertTitle>
                 <AlertDescription>{analysisError}</AlertDescription>
               </Alert>
-              <Button onClick={handleReset} variant="secondary">
+              <Button onClick={handleReset} variant="secondary" type="button">
                 Tentar Novamente
               </Button>
             </CardContent>
           </Card>
         );
-      default:
-        return null;
     }
+    
+    return null;
   };
 
   return (
@@ -382,12 +324,31 @@ export default function VideoReviewPage() {
       >
         <SavedIdeasSheet />
       </PageHeader>
+      
+      {!file && renderInitialOrSelected()}
+      {file && !analysisResult && !analysisError && !isAnalyzing && renderInitialOrSelected()}
 
-      {analysisStatus === 'idle'
-        ? renderInitialOrSelected()
-        : renderAnalysis()}
+      {(isAnalyzing || analysisResult || analysisError) && renderAnalysis()}
     </div>
   );
 }
 
-    
+function AnalysisSection({
+  icon: Icon,
+  title,
+  content,
+}: {
+  icon: React.ElementType;
+  title: string;
+  content: string;
+}) {
+  return (
+    <div className="text-left">
+      <h3 className="font-bold text-lg mb-2 flex items-center gap-2">
+        <Icon className="h-5 w-5 text-primary" />
+        {title}
+      </h3>
+      <p className="text-muted-foreground whitespace-pre-wrap">{content}</p>
+    </div>
+  );
+}
