@@ -51,7 +51,6 @@ const navItems: { href: string; icon: React.ElementType; label: string, plan: 'p
   { href: '/video-review', icon: Video, label: 'Análise de Vídeo', plan: 'pro' },
   { href: '/publis-assistant', icon: Newspaper, label: 'Propostas & Publis', plan: 'premium' },
   { href: '/media-kit', icon: Briefcase, label: 'Mídia Kit', plan: 'premium' },
-  { href: '/support', icon: Hammer, label: 'Suporte', plan: 'free' },
 ];
 
 const hasAccess = (userPlan: Plan, itemPlan: 'pro' | 'premium' | 'free'): boolean => {
@@ -194,6 +193,12 @@ export function AppSidebar() {
                     <Link href="/settings">
                         <Settings className="mr-2 h-4 w-4" />
                         <span>Configurações</span>
+                    </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                    <Link href="/support">
+                        <Hammer className="mr-2 h-4 w-4" />
+                        <span>Suporte</span>
                     </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />

@@ -1037,10 +1037,15 @@ export default function LandingPage() {
 
       <footer className="border-t border-border">
         <div className="container py-8 text-center text-sm text-muted-foreground">
-          <p>
-            &copy; {new Date().getFullYear()} trendify. Todos os direitos
-            reservados.
-          </p>
+          <div className="flex justify-center items-center gap-4">
+             <p>
+                &copy; {new Date().getFullYear()} trendify. Todos os direitos
+                reservados.
+              </p>
+             <Link href="/support" className="hover:text-primary transition-colors">
+                Suporte
+              </Link>
+          </div>
         </div>
       </footer>
     </div>
