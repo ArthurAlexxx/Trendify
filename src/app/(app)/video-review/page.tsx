@@ -39,7 +39,7 @@ import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { useTransition } from "react";
 
 type AnalysisStatus = "idle" | "loading" | "success" | "error";
-const MAX_FILE_SIZE_MB = 50;
+const MAX_FILE_SIZE_MB = 70;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
 
@@ -238,7 +238,7 @@ export default function VideoReviewPage() {
           >
             Selecione o Arquivo
           </Button>
-           <p className="text-xs text-muted-foreground mt-2">Limite de {MAX_FILE_SIZE_MB}MB por vídeo</p>
+           <p className="text-xs text-muted-foreground mt-2">Limite de ${MAX_FILE_SIZE_MB}MB por vídeo</p>
           <Input
             ref={fileInputRef}
             type="file"
