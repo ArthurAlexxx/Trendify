@@ -216,85 +216,89 @@ export default function VideoReviewPage() {
         <PageHeader
             icon={<Video />}
             title="Diagnóstico de Vídeo com IA"
-            description="Receba uma análise completa e sugestões para otimizar e viralizar seu vídeo."
+            description="Envie um vídeo de até 70MB e receba um diagnóstico completo do seu potencial."
         >
             <SavedIdeasSheet />
         </PageHeader>
         
-        <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
-           <CardHeader>
-            <CardTitle className="font-headline text-xl text-center sm:text-left">
-              1. Selecione o Vídeo
-            </CardTitle>
-            <CardDescription className="text-center sm:text-left">
-                Envie um vídeo de até {MAX_FILE_SIZE_MB}MB para que a IA analise e dê sugestões.
-            </CardDescription>
-           </CardHeader>
-           <CardContent>
-             {!file ? (
-                 <div
-                    className={`flex w-full flex-col items-center justify-center rounded-lg border-2 border-dashed p-12 text-center transition-colors ${
-                      isDragging ? "border-primary bg-primary/10" : "border-border"
-                    }`}
-                    onDragEnter={handleDragEnter}
-                    onDragLeave={handleDragLeave}
-                    onDragOver={handleDragOver}
-                    onDrop={handleDrop}
-                  >
-                    <UploadCloud className="h-12 w-12 text-gray-400" />
-                    <p className="mt-4 font-semibold">Arraste e solte seu arquivo aqui</p>
-                    <p className="mt-1 text-sm text-muted-foreground">ou</p>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="mt-4"
-                      onClick={() => fileInputRef.current?.click()}
+        {!file ? (
+            <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
+                <CardContent className="p-6">
+                    <div
+                        className={`flex w-full flex-col items-center justify-center rounded-xl border-2 border-dashed p-12 text-center transition-colors ${
+                        isDragging ? "border-primary bg-primary/10" : "border-border"
+                        }`}
+                        onDragEnter={handleDragEnter}
+                        onDragLeave={handleDragLeave}
+                        onDragOver={handleDragOver}
+                        onDrop={handleDrop}
                     >
-                      Selecione o Arquivo
-                    </Button>
-                    <p className="text-xs text-muted-foreground mt-2">Limite de {MAX_FILE_SIZE_MB}MB por vídeo</p>
-                    <Input
-                      ref={fileInputRef}
-                      type="file"
-                      className="hidden"
-                      onChange={handleFileInputChange}
-                      accept="video/*"
-                    />
-                  </div>
-             ) : (
-                <div className="space-y-4">
-                  <div className="p-4 border rounded-lg flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
-                    <Clapperboard className="h-10 w-10 text-primary" />
-                    <div className="flex-1">
-                        <p className="font-medium">{file.name}</p>
-                        <p className="text-sm text-muted-foreground">{new Intl.NumberFormat('en-US', { style: 'unit', unit: 'megabyte', unitDisplay: 'short' }).format(file.size / 1024 / 1024)}</p>
-                    </div>
-                    <div className="flex w-full sm:w-auto flex-col sm:flex-row gap-2">
-                        <Button onClick={handleAnalyzeVideo} disabled={analysisStatus === 'loading'} className="w-full sm:w-auto">
-                           {analysisStatus === 'loading' ? <Loader2 className="mr-2 animate-spin" /> : <Sparkles className="mr-2" />}
-                           Analisar Vídeo
+                        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20 text-primary">
+                            <UploadCloud className="h-8 w-8" />
+                        </div>
+                        <h3 className="mt-6 text-xl font-bold tracking-tight text-foreground">
+                            Arraste seu vídeo para cá
+                        </h3>
+                        <p className="mt-2 text-sm text-muted-foreground">
+                            ou clique para selecionar um arquivo do seu computador.
+                        </p>
+                        <Button
+                        type="button"
+                        variant="outline"
+                        className="mt-6 rounded-full font-manrope"
+                        onClick={() => fileInputRef.current?.click()}
+                        >
+                        Selecionar Vídeo
                         </Button>
-                        <Button onClick={handleReset} variant="outline" className="w-full sm:w-auto">
-                            Trocar Vídeo
-                        </Button>
+                        <Input
+                            ref={fileInputRef}
+                            type="file"
+                            className="hidden"
+                            onChange={handleFileInputChange}
+                            accept="video/*"
+                        />
                     </div>
-                  </div>
-                </div>
-             )}
-           </CardContent>
-        </Card>
+                </CardContent>
+            </Card>
+        ) : (
+            <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
+                <CardHeader>
+                    <CardTitle className="font-headline text-xl text-center sm:text-left">
+                        Vídeo Selecionado
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="p-4 border rounded-lg flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left bg-muted/30">
+                        <Clapperboard className="h-10 w-10 text-primary" />
+                        <div className="flex-1">
+                            <p className="font-medium">{file.name}</p>
+                            <p className="text-sm text-muted-foreground">{new Intl.NumberFormat('en-US', { style: 'unit', unit: 'megabyte', unitDisplay: 'short' }).format(file.size / 1024 / 1024)}</p>
+                        </div>
+                        <div className="flex w-full sm:w-auto flex-col sm:flex-row gap-2">
+                            <Button onClick={handleAnalyzeVideo} disabled={analysisStatus === 'loading'} className="w-full sm:w-auto rounded-full font-manrope">
+                            {analysisStatus === 'loading' ? <Loader2 className="mr-2 animate-spin" /> : <Sparkles className="mr-2" />}
+                            Analisar Vídeo
+                            </Button>
+                            <Button onClick={handleReset} variant="outline" className="w-full sm:w-auto rounded-full font-manrope">
+                                Trocar Vídeo
+                            </Button>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+        )}
         
         {(analysisStatus !== 'idle') && (
             <div className="space-y-8 animate-fade-in">
                  <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-center">
                     <div className="flex-1 text-center sm:text-left">
-                    <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">2. Análise da IA</h2>
+                    <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Resultado da Análise</h2>
                     <p className="text-muted-foreground">
                         Aqui está o diagnóstico completo do seu vídeo.
                     </p>
                     </div>
                     {analysisResult && (
-                    <Button onClick={handleSaveAnalysis} disabled={isSaving} className="w-full sm:w-auto">
+                    <Button onClick={handleSaveAnalysis} disabled={isSaving} className="w-full sm:w-auto rounded-full font-manrope">
                         {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                         Salvar Análise
                     </Button>
@@ -323,11 +327,11 @@ export default function VideoReviewPage() {
                     <div className="grid gap-8">
                        <div className="grid lg:grid-cols-3 gap-8 items-start">
                          <Card className="lg:col-span-1 shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
-                             <CardHeader className="text-center">
-                                <CardTitle className="font-headline text-lg text-primary">Nota de Viralização</CardTitle>
+                             <CardHeader>
+                                <CardTitle className="font-headline text-lg text-primary text-center">Nota de Viralização</CardTitle>
                              </CardHeader>
                              <CardContent className="text-center">
-                                <p className="text-4xl font-bold text-foreground">{numericNote}/10</p>
+                                <div className="text-4xl font-bold text-foreground">{numericNote}/10</div>
                                 <p className="text-sm text-muted-foreground mt-2">{noteDescription}</p>
                              </CardContent>
                          </Card>
@@ -380,5 +384,3 @@ export default function VideoReviewPage() {
     </div>
   );
 }
-
-    
