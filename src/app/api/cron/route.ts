@@ -2,6 +2,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getFirestore } from 'firebase-admin/firestore';
 import { initializeFirebaseAdmin } from '@/firebase/admin';
+import type { ConteudoAgendado } from '@/lib/types';
+
 
 // --- Funções Auxiliares ---
 
@@ -31,7 +33,7 @@ async function getScheduledContentForTomorrow(firestore: ReturnType<typeof getFi
     const allTasks = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
-    }));
+    } as ConteudoAgendado));
 
     // Filtra as tarefas para o dia de amanhã
     const tomorrowTasks = allTasks.filter(task => {
@@ -138,5 +140,3 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: 'Erro Interno do Servidor: ' + errorMessage }, { status: 500 });
     }
 }
-
-    
