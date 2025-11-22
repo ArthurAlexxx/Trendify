@@ -26,6 +26,12 @@ export interface UserProfile {
   }
 }
 
+export interface DailyUsage {
+  id: string;
+  date: string; // YYYY-MM-DD
+  videoAnalyses: number;
+}
+
 export interface Metrica {
   id: string;
   nome: string;
@@ -76,3 +82,5 @@ export interface ConteudoAgendado {
   notes?: string;
   createdAt: Timestamp;
 }
+
+    

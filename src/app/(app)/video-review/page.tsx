@@ -1,10 +1,9 @@
 
 "use client";
 
-import { useState, useCallback, useRef, type ChangeEvent, type DragEvent } from "react";
+import { useState, useCallback, useRef, type ChangeEvent, type DragEvent, useEffect } from "react";
 import {
   UploadCloud,
-  File as FileIcon,
   Loader2,
   Sparkles,
   Clapperboard,
@@ -17,6 +16,7 @@ import {
   Target,
   BarChart,
   Eye,
+  Crown,
 } from "lucide-react";
 import {
   Card,
@@ -38,14 +38,25 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { useUser, useFirestore } from "@/firebase";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
+import { collection, addDoc, serverTimestamp, doc, setDoc, increment } from "firebase/firestore";
 import { useTransition } from "react";
 import { Separator } from "@/components/ui/separator";
+import { useSubscription } from "@/hooks/useSubscription";
+import { Plan } from "@/lib/types";
+import Link from "next/link";
+import type { DailyUsage } from '@/lib/types';
+import { format as formatDate } from 'date-fns';
 
 type AnalysisStatus = "idle" | "loading" | "success" | "error";
 const MAX_FILE_SIZE_MB = 70;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+
+const PLAN_LIMITS: Record<Plan, number> = {
+  free: 0,
+  pro: 10,
+  premium: 30,
+};
 
 
 export default function VideoReviewPage() {
@@ -60,7 +71,22 @@ export default function VideoReviewPage() {
   
   const { user } = useUser();
   const firestore = useFirestore();
+  const { subscription } = useSubscription();
   const [isSaving, startSavingTransition] = useTransition();
+  
+  const todayStr = formatDate(new Date(), 'yyyy-MM-dd');
+  const usageDocRef = useMemoFirebase(() =>
+    user && firestore ? doc(firestore, `users/${user.uid}/dailyUsage`, todayStr) : null
+  , [user, firestore, todayStr]);
+  
+  const { data: dailyUsage, isLoading: isLoadingUsage } = useDoc<DailyUsage>(usageDocRef);
+  
+  const analysesDoneToday = dailyUsage?.videoAnalyses || 0;
+  const currentPlan = subscription?.plan || 'free';
+  const limit = PLAN_LIMITS[currentPlan];
+  const analysesLeft = Math.max(0, limit - analysesDoneToday);
+  const hasReachedLimit = analysesLeft <= 0;
+
 
   const handleFileSelect = (selectedFile: File | null) => {
     if (selectedFile) {
@@ -135,6 +161,10 @@ export default function VideoReviewPage() {
         setAnalysisStatus("error");
         return;
     }
+    if(hasReachedLimit || !usageDocRef) {
+        toast({ title: "Limite atingido", description: "Você atingiu seu limite diário de análises.", variant: "destructive"});
+        return;
+    }
 
     setAnalysisStatus("loading");
     setAnalysisError("");
@@ -151,6 +181,10 @@ export default function VideoReviewPage() {
             if (result && result.data) {
                 setAnalysisResult(result.data);
                 setAnalysisStatus("success");
+                
+                // Increment usage in Firestore
+                await setDoc(usageDocRef, { videoAnalyses: increment(1), date: todayStr }, { merge: true });
+
                  toast({
                     title: "Análise Concluída",
                     description: "A IA analisou o seu vídeo.",
@@ -238,6 +272,9 @@ export default function VideoReviewPage() {
         description: "Com base em todos os fatores, a IA atribui uma nota e um checklist de melhorias para aumentar o potencial de alcance do seu vídeo."
     }
   ]
+  
+  const showUpgradeAlert = currentPlan === 'free';
+  const disableActions = hasReachedLimit || showUpgradeAlert;
 
   return (
     <div className="space-y-12">
@@ -298,6 +335,7 @@ export default function VideoReviewPage() {
                 variant="outline"
                 className="mt-6 rounded-full font-manrope"
                 onClick={() => fileInputRef.current?.click()}
+                disabled={disableActions}
                 >
                 Selecionar Vídeo
                 </Button>
@@ -324,7 +362,7 @@ export default function VideoReviewPage() {
                             <p className="text-sm text-muted-foreground">{new Intl.NumberFormat('pt-BR', { style: 'unit', unit: 'megabyte', unitDisplay: 'short' }).format(file.size / 1024 / 1024)}</p>
                         </div>
                         <div className="flex w-full sm:w-auto flex-col sm:flex-row gap-2">
-                            <Button onClick={handleAnalyzeVideo} disabled={analysisStatus === 'loading'} className="w-full sm:w-auto rounded-full font-manrope">
+                            <Button onClick={handleAnalyzeVideo} disabled={analysisStatus === 'loading' || disableActions} className="w-full sm:w-auto rounded-full font-manrope">
                             {analysisStatus === 'loading' ? <Loader2 className="mr-2 animate-spin" /> : <Sparkles className="mr-2" />}
                             Analisar Vídeo
                             </Button>
@@ -337,6 +375,25 @@ export default function VideoReviewPage() {
             </Card>
         )}
         
+        {showUpgradeAlert ? (
+          <Alert className="border-primary/30 bg-primary/5">
+            <Crown className="h-4 w-4 text-primary" />
+            <AlertTitle className="font-semibold text-primary">Plano Gratuito</AlertTitle>
+            <AlertDescription>
+                A análise de vídeo é um recurso dos planos Pro e Premium.
+                <Button variant="link" asChild className="p-0 h-auto ml-1 font-semibold">
+                  <Link href="/subscribe">Faça o upgrade para continuar.</Link>
+                </Button>
+            </AlertDescription>
+        </Alert>
+        ) : (
+        <div className="text-center">
+            <p className="text-sm text-muted-foreground">
+                Análises restantes hoje: <span className="font-bold text-primary">{analysesLeft} de {limit}</span>
+            </p>
+        </div>
+        )}
+
         {(analysisStatus !== 'idle') && (
             <div className="space-y-8 animate-fade-in">
                  <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-center">
@@ -433,3 +490,5 @@ export default function VideoReviewPage() {
     </div>
   );
 }
+
+    

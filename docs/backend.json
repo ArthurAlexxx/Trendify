@@ -89,6 +89,23 @@
       },
       "required": ["displayName", "email", "createdAt"]
     },
+    "DailyUsage": {
+      "title": "Daily Usage",
+      "description": "Tracks daily usage of features for a user.",
+      "type": "object",
+      "properties": {
+        "date": {
+          "type": "string",
+          "format": "date",
+          "description": "The date of the usage record (YYYY-MM-DD)."
+        },
+        "videoAnalyses": {
+          "type": "number",
+          "description": "Number of video analyses performed on this date."
+        }
+      },
+      "required": ["date", "videoAnalyses"]
+    },
     "Metrica": {
       "title": "Métrica",
       "description": "Armazena as principais métricas de desempenho do criador.",
@@ -186,6 +203,10 @@
       "schema": { "$ref": "#/backend/entities/UserProfile" },
       "description": "Stores user profile data."
     },
+    "/users/{userId}/dailyUsage/{usageId}": {
+        "schema": { "$ref": "#/backend/entities/DailyUsage" },
+        "description": "Tracks daily usage of features for a specific user. The document ID is the date in YYYY-MM-DD format."
+    },
     "/users/{userId}/ideiasSalvas/{ideiaId}": {
       "schema": { "$ref": "#/backend/entities/IdeiaSalva" },
       "description": "Stores saved AI-generated ideas for a specific user."
@@ -208,3 +229,5 @@
     }
   }
 }
+
+    

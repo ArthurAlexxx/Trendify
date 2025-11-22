@@ -26,6 +26,11 @@ service cloud.firestore {
     match /users/{userId}/conteudoAgendado {
       allow list: if request.auth.uid == userId;
     }
+    
+    // Allow users to manage their own daily usage stats
+    match /users/{userId}/dailyUsage/{usageId} {
+        allow read, create, update: if request.auth.uid == userId;
+    }
 
     // Protect all other data to only be accessible by authenticated users
     match /metrica/{metricaId} {
@@ -55,3 +60,5 @@ service firebase.storage {
     }
   }
 }
+
+    
