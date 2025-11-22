@@ -421,7 +421,7 @@ export default function LandingPage() {
           <div className="container">
             <div className="text-center max-w-3xl mx-auto mb-12">
               <h2 className="text-4xl md:text-5xl font-bold font-headline tracking-tight mb-4">
-                Se veja no futuro
+                Calcule seu Potencial de Crescimento
               </h2>
               <p className="text-lg text-muted-foreground">
                 Responda 3 perguntas e, em 60 segundos, mostraremos seu plano,
@@ -545,7 +545,7 @@ export default function LandingPage() {
                           <Button
                             type="submit"
                             size="lg"
-                            className="w-full h-12 text-base font-bold bg-gradient-to-r from-purple-600 to-indigo-600 text-primary-foreground shadow-lg hover:opacity-90 transition-opacity"
+                            className="w-full h-12 text-base font-bold bg-gradient-to-r from-purple-600 to-indigo-600 text-primary-foreground shadow-lg shadow-indigo-500/50 hover:opacity-90 transition-opacity"
                             disabled={isCalculating}
                           >
                             {isCalculating ? (
@@ -710,7 +710,7 @@ export default function LandingPage() {
                       <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
                         <Button
                           size="lg"
-                          className="w-full sm:w-auto h-12 text-base"
+                          className="w-full sm:w-auto h-12 text-base shadow-lg shadow-indigo-500/50"
                           asChild
                         >
                           <Link href="/sign-up">
@@ -823,7 +823,7 @@ export default function LandingPage() {
                         <span>Suporte via e-mail</span>
                     </li>
                 </ul>
-                <Button className="w-full h-11 text-base font-bold mt-auto" asChild>
+                <Button className="w-full h-11 text-base font-bold mt-auto shadow-lg shadow-indigo-500/50" asChild>
                   <Link href="/subscribe?plan=pro">Assinar o Pro</Link>
                 </Button>
               </Card>
@@ -865,7 +865,7 @@ export default function LandingPage() {
                         <span>Suporte prioritário via WhatsApp</span>
                     </li>
                 </ul>
-                <Button className="w-full h-11 text-base font-bold bg-yellow-500 hover:bg-yellow-500/90 text-black mt-auto" asChild>
+                <Button className="w-full h-11 text-base font-bold bg-yellow-500 hover:bg-yellow-500/90 text-black mt-auto shadow-lg shadow-yellow-500/50" asChild>
                   <Link href="/subscribe?plan=premium">Assinar o Premium</Link>
                 </Button>
               </Card>
@@ -918,7 +918,7 @@ export default function LandingPage() {
               </p>
               <Button
                 size="lg"
-                className="w-full sm:w-auto h-12 text-base px-8 font-bold"
+                className="w-full sm:w-auto h-12 text-base px-8 font-bold shadow-lg shadow-indigo-500/50"
                 asChild
               >
                 <Link href="/sign-up">Começar grátis agora</Link>
