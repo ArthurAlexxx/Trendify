@@ -67,6 +67,26 @@ Diretrizes para a Análise Profissional:
 - conteudo: Analise o desenvolvimento. O ritmo é bom? A mensagem é clara? Existem partes lentas onde o usuário pode sair? Aponte um ponto específico que pode estar causando perda de retenção.
 - cta: Avalie a chamada para ação. Ela é clara, direta e alinhada com o objetivo do vídeo? (vendas, comentários, seguidores, etc.). Sugira uma alternativa se necessário.
 - melhorias: Forneça EXATAMENTE 3 dicas em formato de checklist. As dicas devem ser práticas e focadas nos maiores pontos de melhoria. Comece cada dica com um verbo de ação. Ex: "Adicione legendas dinâmicas para aumentar a retenção", "Corte os primeiros 2 segundos para ir direto ao ponto", "Use um gancho mais polêmico para gerar debate".`,
+  config: {
+    safetySettings: [
+        {
+            category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+            threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+        },
+        {
+            category: 'HARM_CATEGORY_HARASSMENT',
+            threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+        },
+        {
+            category: 'HARM_CATEGORY_HATE_SPEECH',
+            threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+        },
+        {
+            category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+            threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+        }
+    ]
+  }
 });
 
 
