@@ -12,7 +12,7 @@ if (!apiKey && process.env.NODE_ENV === 'production') {
 
 export const ai = genkit({
   plugins: [
-    googleAI(apiKey ? { apiKey, apiVersion: 'v1' } : { apiVersion: 'v1' }),
+    googleAI(apiKey ? { apiKey } : {}),
   ],
   logLevel: 'debug',
   enableTracingAndMetrics: true,
