@@ -340,7 +340,7 @@ export default function LandingPage() {
                     </SheetTrigger>
                     <SheetContent side="left">
                         <SheetHeader className="text-center">
-                            <SheetTitle className="text-center">
+                            <SheetTitle>
                                 <WordmarkIcon onClick={() => setIsMenuOpen(false)}/>
                             </SheetTitle>
                         </SheetHeader>
@@ -351,7 +351,7 @@ export default function LandingPage() {
                                         key={link.href}
                                         className={buttonVariants({
                                             variant: 'ghost',
-                                            className: 'text-lg h-12 justify-center',
+                                            className: 'text-lg h-12',
                                         })}
                                         href={link.href}
                                         onClick={() => setIsMenuOpen(false)}
