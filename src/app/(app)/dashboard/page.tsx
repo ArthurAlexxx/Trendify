@@ -199,16 +199,30 @@ export default function DashboardPage() {
     }
   };
 
-  const handleToggleRoteiro = async (item: ItemRoteiro) => {
-    if (!firestore || !roteiro) return;
+  const handleToggleRoteiro = async (toggledItem: ItemRoteiro, index: number) => {
+    if (!firestore || !roteiro || !roteiroItems) return;
     const planoRef = doc(firestore, 'roteiro', roteiro.id);
-    const updatedItems = roteiroItems?.map((i) =>
-      i.tarefa === item.tarefa ? { ...i, concluido: !i.concluido } : i
-    );
+  
+    // Create a deep copy to avoid direct mutation issues
+    const updatedItems = JSON.parse(JSON.stringify(roteiroItems));
+    
+    // Find the item by index and toggle its `concluido` status
+    if (updatedItems[index]) {
+      updatedItems[index].concluido = !updatedItems[index].concluido;
+    } else {
+        console.error("Item not found at index:", index);
+        return;
+    }
+  
     try {
       await updateDoc(planoRef, { items: updatedItems });
     } catch (error) {
       console.error('Failed to update roteiro status:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar a tarefa do roteiro.",
+        variant: "destructive"
+      })
     }
   };
   
@@ -441,7 +455,7 @@ export default function DashboardPage() {
                             <Checkbox
                                 id={`roteiro-${index}`}
                                 checked={item.concluido}
-                                onCheckedChange={() => handleToggleRoteiro(item)}
+                                onCheckedChange={() => handleToggleRoteiro(item, index)}
                                 className="h-5 w-5 mt-1"
                             />
                             <div>
@@ -484,7 +498,7 @@ export default function DashboardPage() {
                                 <Checkbox
                                     id={`roteiro-collapsible-${index}`}
                                     checked={item.concluido}
-                                    onCheckedChange={() => handleToggleRoteiro(item)}
+                                    onCheckedChange={() => handleToggleRoteiro(item, 4 + index)}
                                     className="h-5 w-5 mt-1"
                                 />
                                 <div>

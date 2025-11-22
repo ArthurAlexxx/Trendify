@@ -86,7 +86,7 @@ function PremiumFeatureGuard({ children }: { children: React.ReactNode }) {
             </div>
         );
     }
-
+    
     const isPremiumActive = subscription?.plan === 'premium' && subscription.status === 'active';
     
     if (!isPremiumActive) {

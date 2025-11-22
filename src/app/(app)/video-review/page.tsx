@@ -47,6 +47,7 @@ import { Plan } from "@/lib/types";
 import Link from "next/link";
 import type { DailyUsage } from '@/lib/types';
 import { format as formatDate } from 'date-fns';
+import { useRouter } from "next/navigation";
 
 type AnalysisStatus = "idle" | "loading" | "success" | "error";
 const MAX_FILE_SIZE_MB = 70;
@@ -59,7 +60,50 @@ const PLAN_LIMITS: Record<Plan, number> = {
 };
 
 
+function PremiumFeatureGuard({ children }: { children: React.ReactNode }) {
+    const { subscription, isLoading } = useSubscription();
+    const router = useRouter();
+
+    if (isLoading) {
+        return (
+            <div className="w-full h-96 flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        );
+    }
+
+    const isPaidPlan = (subscription?.plan === 'pro' || subscription?.plan === 'premium') && subscription.status === 'active';
+    
+    if (!isPaidPlan) {
+        return (
+             <AlertDialog open={true} onOpenChange={(open) => !open && router.push('/subscribe')}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Funcionalidade Pro</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    A Análise de Vídeo é um recurso exclusivo para assinantes dos planos Pro ou Premium. Faça o upgrade para ter acesso!
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogAction onClick={() => router.push('/subscribe')}>Ver Planos</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+        );
+    }
+    
+    return <>{children}</>;
+}
+
 export default function VideoReviewPage() {
+    return (
+        <PremiumFeatureGuard>
+            <VideoReviewPageContent />
+        </PremiumFeatureGuard>
+    )
+}
+
+function VideoReviewPageContent() {
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -273,9 +317,6 @@ export default function VideoReviewPage() {
     }
   ]
   
-  const showUpgradeAlert = currentPlan === 'free';
-  const disableActions = hasReachedLimit || showUpgradeAlert;
-
   return (
     <div className="space-y-12">
         <PageHeader
@@ -335,7 +376,7 @@ export default function VideoReviewPage() {
                 variant="outline"
                 className="mt-6 rounded-full font-manrope"
                 onClick={() => fileInputRef.current?.click()}
-                disabled={disableActions}
+                disabled={hasReachedLimit}
                 >
                 Selecionar Vídeo
                 </Button>
@@ -362,7 +403,7 @@ export default function VideoReviewPage() {
                             <p className="text-sm text-muted-foreground">{new Intl.NumberFormat('pt-BR', { style: 'unit', unit: 'megabyte', unitDisplay: 'short' }).format(file.size / 1024 / 1024)}</p>
                         </div>
                         <div className="flex w-full sm:w-auto flex-col sm:flex-row gap-2">
-                            <Button onClick={handleAnalyzeVideo} disabled={analysisStatus === 'loading' || disableActions} className="w-full sm:w-auto rounded-full font-manrope">
+                            <Button onClick={handleAnalyzeVideo} disabled={analysisStatus === 'loading' || hasReachedLimit} className="w-full sm:w-auto rounded-full font-manrope">
                             {analysisStatus === 'loading' ? <Loader2 className="mr-2 animate-spin" /> : <Sparkles className="mr-2" />}
                             Analisar Vídeo
                             </Button>
@@ -375,24 +416,11 @@ export default function VideoReviewPage() {
             </Card>
         )}
         
-        {showUpgradeAlert ? (
-          <Alert className="border-primary/30 bg-primary/5">
-            <Crown className="h-4 w-4 text-primary" />
-            <AlertTitle className="font-semibold text-primary">Plano Gratuito</AlertTitle>
-            <AlertDescription>
-                A análise de vídeo é um recurso dos planos Pro e Premium.
-                <Button variant="link" asChild className="p-0 h-auto ml-1 font-semibold">
-                  <Link href="/subscribe">Faça o upgrade para continuar.</Link>
-                </Button>
-            </AlertDescription>
-        </Alert>
-        ) : (
         <div className="text-center">
             <p className="text-sm text-muted-foreground">
                 Análises restantes hoje: <span className="font-bold text-primary">{analysesLeft} de {limit}</span>
             </p>
         </div>
-        )}
 
         {(analysisStatus !== 'idle') && (
             <div className="space-y-8 animate-fade-in">
@@ -490,4 +518,3 @@ export default function VideoReviewPage() {
     </div>
   );
 }
-
