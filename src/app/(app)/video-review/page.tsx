@@ -48,6 +48,8 @@ import Link from "next/link";
 import type { DailyUsage } from '@/lib/types';
 import { format as formatDate } from 'date-fns';
 import { useRouter } from "next/navigation";
+import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+
 
 type AnalysisStatus = "idle" | "loading" | "success" | "error";
 const MAX_FILE_SIZE_MB = 70;

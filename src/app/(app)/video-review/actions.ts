@@ -27,12 +27,11 @@ const formSchema = z.object({
 /**
  * Server Action to analyze a video provided as a data URI.
  */
-export async function analyzeVideoAction(
-  prevState: ActionState,
-  formData: FormData
+export async function analyzeVideo(
+  input: { videoDataUri: string }
 ): Promise<ActionState> {
   
-  const parsed = formSchema.safeParse({ videoDataUri: formData.get('videoDataUri') });
+  const parsed = formSchema.safeParse(input);
 
   if (!parsed.success) {
     const error = 'Dados de entrada inválidos.';
@@ -106,5 +105,3 @@ const analyzeVideoFlow = ai.defineFlow(
     return output;
   }
 );
-
-    
