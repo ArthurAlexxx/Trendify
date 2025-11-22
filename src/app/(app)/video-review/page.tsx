@@ -106,6 +106,7 @@ export default function VideoReviewPage() {
       router.push(`?${newParams.toString()}`);
     }
     if (state?.error) {
+      console.error("Erro na ação de análise:", state.error);
       toast({
         title: 'Erro na Análise',
         description: state.error,
@@ -116,6 +117,7 @@ export default function VideoReviewPage() {
 
   useEffect(() => {
     if (analysisResult?.error) {
+      console.error("Erro ao processar o resultado da análise:", analysisResult.error);
       toast({
         title: 'Erro ao Processar Análise',
         description:
@@ -446,5 +448,3 @@ function AnalysisSection({
     </div>
   );
 }
-
-    

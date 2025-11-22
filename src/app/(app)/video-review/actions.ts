@@ -1,8 +1,8 @@
+
 'use server';
 
 import { z } from 'zod';
 import { ai } from '@/ai/genkit';
-import { googleAI } from '@genkit-ai/google-genai';
 
 // Schema para a saída da análise de vídeo
 const VideoAnalysisOutputSchema = z.object({
@@ -72,9 +72,6 @@ const analysisFlow = ai.defineFlow(
         prompt,
         model: 'googleai/gemini-pro-vision',
         output: { schema: VideoAnalysisOutputSchema },
-        config: {
-            temperature: 0.5,
-        },
     });
 
     if (!output) {
@@ -115,6 +112,9 @@ export async function checkAnalysisStatus(operationId: string) {
     try {
         const operation = await ai.checkOperation(operationId);
         if (operation.done) {
+            if (operation.error) {
+              console.error(`[checkAnalysisStatus] Erro na operação ${operationId}:`, operation.error);
+            }
             return {
                 done: true,
                 result: operation.output as VideoAnalysisOutput,
@@ -123,7 +123,7 @@ export async function checkAnalysisStatus(operationId: string) {
         }
         return { done: false };
     } catch(e) {
-        console.error(`[checkAnalysisStatus] Error checking operation ${operationId}`, e);
+        console.error(`[checkAnalysisStatus] Erro ao verificar operação ${operationId}`, e);
         const errorMessage = e instanceof Error ? e.message : 'Unknown error';
         return { done: true, error: { message: errorMessage } };
     }
