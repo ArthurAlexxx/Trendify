@@ -54,8 +54,8 @@ const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
 const PLAN_LIMITS: Record<Plan, number> = {
   free: 0,
-  pro: 10,
-  premium: 30,
+  pro: 3,
+  premium: 10,
 };
 
 
@@ -491,4 +491,3 @@ export default function VideoReviewPage() {
   );
 }
 
-    
