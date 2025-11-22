@@ -51,7 +51,6 @@ import {
   where,
 } from 'firebase/firestore';
 import type {
-  Metrica,
   ItemRoteiro,
   IdeiaSalva,
   ConteudoAgendado,
