@@ -26,13 +26,14 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PageHeader } from "@/components/page-header";
 import { SavedIdeasSheet } from "@/components/saved-ideas-sheet";
 import { Video } from "lucide-react";
-import type { VideoAnalysisOutput } from "@/lib/types";
+import type { VideoAnalysisOutput } from "./actions";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Separator } from "@/components/ui/separator";
 
 type AnalysisStatus = "idle" | "loading" | "success" | "error";
 
@@ -226,15 +227,29 @@ export default function VideoReviewPage() {
             )
         case 'success':
             if (!analysisResult) return null;
+
+            const noteMatch = analysisResult.geral.match(/(\d{1,2}(?:[.,]\d{1,2})?)\s*\/\s*10/);
+            const numericNote = noteMatch ? noteMatch[1] : analysisResult.geral;
+            const noteDescription = noteMatch ? analysisResult.geral.replace(noteMatch[0], '').trim() : '';
+
             return (
                 <div className="space-y-6 text-left">
-                    <Card className="text-center bg-primary/10 border-primary/20">
-                      <CardHeader>
-                        <CardTitle className="font-headline text-lg text-primary">Nota de Viralização</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-5xl font-bold text-foreground">{analysisResult.geral}</p>
-                      </CardContent>
+                    <Card className="bg-primary/10 border-primary/20">
+                        <CardHeader>
+                            <CardTitle className="font-headline text-lg text-primary text-center sm:text-left">Nota de Viralização</CardTitle>
+                        </CardHeader>
+                        <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
+                            <div className="sm:col-span-1 text-center">
+                                <p className="text-4xl font-bold text-foreground">{numericNote}</p>
+                                <p className="text-sm text-muted-foreground">de 10</p>
+                            </div>
+                             <div className="hidden sm:block">
+                                <Separator orientation="vertical" className="h-16" />
+                             </div>
+                            <div className="sm:col-span-1 text-center sm:text-left">
+                                <p className="text-sm text-muted-foreground">{noteDescription}</p>
+                            </div>
+                        </CardContent>
                     </Card>
 
                     <Card>
