@@ -81,9 +81,11 @@ const analysisFlow = ai.defineFlow(
 );
 
 export async function analyzeVideoAction(
-  input: z.infer<typeof formSchema>
+  prevState: ActionState,
+  formData: FormData
 ): Promise<ActionState> {
-  const parsed = formSchema.safeParse(input);
+  const videoDataUri = formData.get('videoDataUri') as string;
+  const parsed = formSchema.safeParse({ videoDataUri });
 
   if (!parsed.success) {
     const error = parsed.error.issues.map((i) => i.message).join(', ');
@@ -93,11 +95,9 @@ export async function analyzeVideoAction(
   try {
     const result = await analysisFlow(parsed.data);
     return { data: result };
-  } catch (e) {
-    const errorMessage = e instanceof Error ? e.message : 'Ocorreu um erro desconhecido.';
+  } catch (e: any) {
+    const errorMessage = e.message || 'Ocorreu um erro desconhecido durante a análise.';
     console.error(`[analyzeVideoAction] Erro ao executar o flow: ${errorMessage}`);
     return { error: `Falha ao analisar o vídeo: ${errorMessage}` };
   }
 }
-
-    
