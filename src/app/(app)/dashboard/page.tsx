@@ -268,7 +268,7 @@ export default function DashboardPage() {
       >
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button size={isMobile ? 'default' : 'lg'} className="font-manrope rounded-full text-base w-full sm:w-auto">
+            <Button size={isMobile ? 'default' : 'lg'} className="font-manrope rounded-full text-base w-full sm:w-auto shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-shadow">
               <Plus className="mr-2 h-5 w-5" />
               Criar Novo
               <ChevronDown className="ml-2 h-4 w-4" />

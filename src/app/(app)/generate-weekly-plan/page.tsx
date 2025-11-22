@@ -337,7 +337,7 @@ export default function GenerateWeeklyPlanPage() {
                   type="submit"
                   disabled={isGenerating || isSaving || isLoadingProfile}
                   size="lg"
-                  className="font-manrope w-full sm:w-auto h-12 px-10 rounded-full text-base font-bold shadow-lg shadow-primary/20 transition-transform hover:scale-[1.02]"
+                  className="font-manrope w-full sm:w-auto h-12 px-10 rounded-full text-base font-bold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-shadow"
                 >
                   {isGenerating || isSaving ? (
                     <>

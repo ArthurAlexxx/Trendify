@@ -310,7 +310,7 @@ function CheckoutPageContent() {
                         )}
                       />
                     </div>
-                    <Button type="submit" className="w-full" disabled={isGenerating}>
+                    <Button type="submit" className="w-full shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-shadow" disabled={isGenerating}>
                       {isGenerating && (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       )}

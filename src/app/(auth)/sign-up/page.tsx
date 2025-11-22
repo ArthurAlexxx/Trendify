@@ -171,7 +171,7 @@ export default function SignUpPage() {
                 <Button
                   type="submit"
                   disabled={isPending}
-                  className="w-full font-manrope h-11 text-base font-bold"
+                  className="w-full font-manrope h-11 text-base font-bold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-shadow"
                 >
                   {isPending && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
