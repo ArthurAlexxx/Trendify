@@ -59,7 +59,7 @@ import {
 } from '@/components/ui/accordion';
 import { AnimatedHero } from '@/components/ui/animated-hero';
 import { useScroll } from '@/hooks/use-scroll';
-import { MenuToggleIcon } from '@/components/ui/menu-toggle-icon';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 
 
 const features = [
@@ -185,18 +185,6 @@ export default function LandingPage() {
       { href: '#faq', text: 'FAQ' },
   ];
 
-
-  useEffect(() => {
-    if (isMenuOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'auto';
-    }
-    return () => {
-      document.body.style.overflow = 'auto';
-    };
-  }, [isMenuOpen]);
-
   const form = useForm<CalculatorInput>({
     resolver: zodResolver(calculatorSchema),
     defaultValues: {
@@ -285,20 +273,13 @@ export default function LandingPage() {
     <div className="flex flex-col min-h-screen bg-background text-foreground">
       	<header
 			className={cn(
-				'sticky top-0 z-50 mx-auto w-full max-w-5xl border-b border-transparent md:rounded-full md:border md:transition-all md:ease-out',
-				{
-					'bg-background/95 supports-[backdrop-filter]:bg-background/50 border-border backdrop-blur-lg md:top-4 md:max-w-4xl md:shadow-lg md:shadow-primary/5':
-						scrolled && !isMenuOpen,
-					'bg-background/90': isMenuOpen,
-				},
+				'sticky top-0 z-50 w-full border-b backdrop-blur-lg transition-all ease-out',
+                'bg-background/95 supports-[backdrop-filter]:bg-background/60 border-border'
 			)}
 		>
 			<nav
 				className={cn(
-					'flex h-16 w-full items-center justify-between px-4 md:h-14 md:transition-all md:ease-out',
-					{
-						'md:px-4': scrolled,
-					},
+					'container flex h-16 w-full items-center justify-between'
 				)}
 			>
 				<div className="flex-1 justify-start">
@@ -345,57 +326,54 @@ export default function LandingPage() {
                       </>
                     )}
 				</div>
-				<Button size="icon" variant="outline" onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden">
-					<MenuToggleIcon open={isMenuOpen} className="size-5" duration={300} />
-				</Button>
+                <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+                    <SheetTrigger asChild>
+                        <Button size="icon" variant="outline" className="md:hidden">
+                            <Menu className="h-5 w-5" />
+                        </Button>
+                    </SheetTrigger>
+                    <SheetContent side="left">
+                        <SheetHeader>
+                            <SheetTitle className="text-left">
+                                <WordmarkIcon onClick={() => setIsMenuOpen(false)}/>
+                            </SheetTitle>
+                        </SheetHeader>
+                        <div className="py-4 flex flex-col h-full">
+                           <div className="grid gap-y-2">
+                                {navLinks.map((link) => (
+                                    <a
+                                        key={link.href}
+                                        className={buttonVariants({
+                                            variant: 'ghost',
+                                            className: 'justify-start text-lg h-12',
+                                        })}
+                                        href={link.href}
+                                        onClick={() => setIsMenuOpen(false)}
+                                    >
+                                        {link.text}
+                                    </a>
+                                ))}
+                            </div>
+                            <div className="flex flex-col gap-2 mt-auto">
+                            {user ? (
+                                <Button asChild variant="ghost" size="lg" className="w-full justify-start text-lg h-12">
+                                    <Link href="/dashboard" onClick={() => setIsMenuOpen(false)}>Painel</Link>
+                                </Button>
+                            ) : (
+                            <>
+                              <Button asChild variant="ghost" size="lg" className="w-full justify-start text-lg h-12">
+                                <Link href="/login" onClick={() => setIsMenuOpen(false)}>Entrar</Link>
+                              </Button>
+                              <Button asChild size="lg" className="w-full">
+                                <Link href="/sign-up" onClick={() => setIsMenuOpen(false)}>Começar Grátis</Link>
+                              </Button>
+                            </>
+                            )}
+					        </div>
+                        </div>
+                    </SheetContent>
+                </Sheet>
 			</nav>
-
-			<div
-				className={cn(
-					'bg-background/90 fixed top-16 right-0 bottom-0 left-0 z-50 flex flex-col overflow-hidden border-y md:hidden',
-					isMenuOpen ? 'block' : 'hidden',
-				)}
-			>
-				<div
-					data-slot={isMenuOpen ? 'open' : 'closed'}
-					className={cn(
-						'data-[slot=open]:animate-in data-[slot=open]:zoom-in-95 data-[slot=closed]:animate-out data-[slot=closed]:zoom-out-95 ease-out',
-						'flex h-full w-full flex-col justify-between gap-y-2 p-4',
-					)}
-				>
-					<div className="grid gap-y-2">
-						{navLinks.map((link) => (
-							<a
-								key={link.href}
-								className={buttonVariants({
-									variant: 'ghost',
-									className: 'justify-start text-lg h-12',
-								})}
-								href={link.href}
-                onClick={() => setIsMenuOpen(false)}
-							>
-								{link.text}
-							</a>
-						))}
-					</div>
-					<div className="flex flex-col gap-2">
-            {user ? (
-						<Button asChild variant="ghost" size="lg" className="w-full justify-start text-lg h-12">
-							<Link href="/dashboard" onClick={() => setIsMenuOpen(false)}>Painel</Link>
-						</Button>
-            ) : (
-            <>
-              <Button asChild variant="ghost" size="lg" className="w-full justify-start text-lg h-12">
-                <Link href="/login" onClick={() => setIsMenuOpen(false)}>Entrar</Link>
-              </Button>
-              <Button asChild size="lg" className="w-full">
-                <Link href="/sign-up" onClick={() => setIsMenuOpen(false)}>Começar Grátis</Link>
-              </Button>
-            </>
-            )}
-					</div>
-				</div>
-			</div>
 		</header>
 
       <main className="flex-1">
@@ -411,10 +389,10 @@ export default function LandingPage() {
         {/* Benefits Section */}
         <section id="beneficios" className="py-20 sm:py-24">
           <div className="container text-center">
-            <h2 className="text-3xl md:text-4xl font-bold font-headline tracking-tight mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold font-headline tracking-tight mb-4 text-center sm:text-left">
               Menos esforço, mais inteligência.
             </h2>
-            <p className="text-lg text-muted-foreground mb-12 max-w-2xl mx-auto">
+            <p className="text-lg text-muted-foreground mb-12 max-w-2xl mx-auto text-center sm:text-left">
               Tudo que você precisa para crescer de forma inteligente, em um só
               lugar.
             </p>
@@ -458,10 +436,10 @@ export default function LandingPage() {
           <div className="container">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               <div>
-                <h2 className="text-3xl md:text-4xl font-bold font-headline tracking-tight mb-4">
+                <h2 className="text-3xl md:text-4xl font-bold font-headline tracking-tight mb-4 text-center sm:text-left">
                   Por que a Trendify?
                 </h2>
-                <p className="text-lg text-muted-foreground mb-8">
+                <p className="text-lg text-muted-foreground mb-8 text-center sm:text-left">
                   Nós não somos apenas mais uma ferramenta de análise. Somos um
                   sistema operacional para o crescimento do criador de
                   conteúdo.
@@ -1051,5 +1029,3 @@ export default function LandingPage() {
     </div>
   );
 }
-
-    
