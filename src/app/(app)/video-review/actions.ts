@@ -2,7 +2,7 @@
 'use server';
 
 import { z } from 'zod';
-import { genkit } from 'genkit';
+import { ai } from '@/ai/genkit';
 import { googleAI } from '@genkit-ai/google-genai';
 
 // 1. Define os schemas de entrada e saída
@@ -28,7 +28,7 @@ type ActionState = {
 } | null;
 
 // 2. Define o fluxo Genkit para a análise
-const analysisFlow = genkit.defineFlow(
+const analysisFlow = ai.defineFlow(
   {
     name: 'simpleVideoAnalysisFlow',
     inputSchema: VideoAnalysisInputSchema,
@@ -36,7 +36,8 @@ const analysisFlow = genkit.defineFlow(
   },
   async (input) => {
     // Inicializa o plugin do Google AI com a chave fornecida pelo usuário
-    const dynamicAi = genkit({
+    // Isso é feito dinamicamente para cada chamada, usando a chave que o usuário insere na UI.
+    const dynamicAi = ai.configure({
       plugins: [googleAI({ apiKey: input.apiKey, apiVersion: 'v1' })],
     });
 
