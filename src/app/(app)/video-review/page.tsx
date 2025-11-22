@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -17,11 +18,8 @@ import {
   useState,
   useTransition,
   useCallback,
-  useRef,
-  type ChangeEvent,
-  type DragEvent,
 } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useDropzone } from 'react-dropzone';
 import { useUser, useFirestore } from '@/firebase';
@@ -391,3 +389,5 @@ export default function VideoReviewPage() {
     </div>
   );
 }
+
+    

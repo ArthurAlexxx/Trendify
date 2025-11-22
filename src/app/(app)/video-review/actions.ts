@@ -1,3 +1,4 @@
+
 'use server';
 
 import { z } from 'zod';
@@ -98,3 +99,5 @@ export async function analyzeVideoAction(
     return { error: `Falha ao analisar o vídeo: ${errorMessage}` };
   }
 }
+
+    
