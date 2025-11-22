@@ -2,7 +2,7 @@
 'use client';
 
 import { PageHeader } from '@/components/page-header';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -38,6 +38,7 @@ import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 
 export default function SettingsPage() {
   const { user, isUserLoading } = useUser();
@@ -286,7 +287,7 @@ export default function SettingsPage() {
                       <AlertDialogAction
                         onClick={handleDeleteAccount}
                         disabled={isDeleteButtonDisabled}
-                        variant="destructive"
+                        className={cn(buttonVariants({ variant: "destructive" }))}
                       >
                         Eu entendo, exclua minha conta
                       </AlertDialogAction>

@@ -1,6 +1,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getFirestore, Timestamp } from 'firebase-admin/firestore';
+import { getFirestore } from 'firebase-admin/firestore';
 import { initializeFirebaseAdmin } from '@/firebase/admin';
 
 // --- Funções Auxiliares ---
@@ -138,3 +138,5 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: 'Erro Interno do Servidor: ' + errorMessage }, { status: 500 });
     }
 }
+
+    
