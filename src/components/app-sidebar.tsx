@@ -131,12 +131,12 @@ export function AppSidebar() {
                   tooltip={isMobile ? undefined : item.label}
                   className={cn(
                     "h-10 justify-start", 
-                    active ? "bg-primary/20 text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                    active ? "bg-primary text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-accent"
                   )}
                   disabled={!accessible}
                 >
                   <item.icon className="h-5 w-5" />
-                  <span className={cn("text-sm font-medium", active ? "text-primary font-bold" : "text-foreground")}>{item.label}</span>
+                  <span className={cn("text-sm font-medium")}>{item.label}</span>
                   {!accessible && item.plan === 'premium' && (
                      <Crown className={cn("h-4 w-4 ml-auto text-yellow-400 fill-yellow-400", { "hidden": !isMobile && "group-data-[state=collapsed]" })}/>
                   )}
