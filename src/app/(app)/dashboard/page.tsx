@@ -19,6 +19,10 @@ import {
   LayoutGrid,
   MoreHorizontal,
   CheckCircle,
+  Users,
+  Eye,
+  Heart,
+  MessageSquare,
 } from 'lucide-react';
 import {
   ChartContainer,
@@ -67,7 +71,7 @@ import {
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -129,12 +133,11 @@ export default function DashboardPage() {
   const [isExpanded, setIsExpanded] = useState(false);
   const isMobile = useIsMobile();
 
-  const metricaQuery = useMemoFirebase(
-    () => (firestore ? collection(firestore, 'metrica') : null),
-    [firestore]
+  const userProfileRef = useMemoFirebase(
+    () => (firestore && user ? doc(firestore, `users/${user.uid}`) : null),
+    [firestore, user]
   );
-  const { data: metrica, isLoading: isLoadingMetrica } =
-    useCollection<Metrica>(metricaQuery);
+  const { data: userProfile, isLoading: isLoadingProfile } = useDoc<UserProfile>(userProfileRef);
 
   const roteiroQuery = useMemoFirebase(
     () =>
@@ -182,6 +185,16 @@ export default function DashboardPage() {
 
   const { data: upcomingContent, isLoading: isLoadingUpcomingContent } =
     useCollection<ConteudoAgendado>(upcomingContentQuery);
+
+    const userMetrics = useMemo(() => {
+        if (!userProfile) return [];
+        return [
+            { icon: Users, label: "Seguidores", value: userProfile.followers, description: "Total de seguidores" },
+            { icon: Eye, label: "Média de Views", value: userProfile.averageViews, description: "Por post/vídeo" },
+            { icon: Heart, label: "Média de Likes", value: userProfile.averageLikes, description: "Por post/vídeo" },
+            { icon: MessageSquare, label: "Média de Comentários", value: userProfile.averageComments, description: "Por post/vídeo" },
+        ].filter(metric => metric.value);
+    }, [userProfile]);
 
   const handleToggleIdeia = async (ideia: IdeiaSalva) => {
     if (!firestore || !user) return;
@@ -314,7 +327,7 @@ export default function DashboardPage() {
       <div className="space-y-8">
         {/* Métricas Principais */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {isLoadingMetrica
+          {isLoadingProfile
             ? Array.from({ length: 4 }).map((_, i) => (
                 <Card key={i} className="rounded-2xl text-center sm:text-left">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -326,34 +339,23 @@ export default function DashboardPage() {
                   </CardContent>
                 </Card>
               ))
-            : metrica?.map((metric) => (
+            : userMetrics.map((metric) => (
                 <Card
-                  key={metric.id}
+                  key={metric.label}
                   className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card text-center sm:text-left"
                 >
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-base font-medium text-muted-foreground">
-                      {metric.nome}
+                      {metric.label}
                     </CardTitle>
-                    {metric.tipoAlteracao === 'aumento' ? (
-                      <TrendingUp className="h-4 w-4 text-emerald-500" />
-                    ) : (
-                      <TrendingDown className="h-4 w-4 text-red-500" />
-                    )}
+                    <metric.icon className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
                     <div className="text-3xl font-bold font-headline">
-                      {metric.valor}
+                      {metric.value}
                     </div>
-                    <p
-                      className={cn(
-                        'text-xs',
-                        metric.tipoAlteracao === 'aumento'
-                          ? 'text-emerald-500'
-                          : 'text-red-500'
-                      )}
-                    >
-                      {metric.alteracao} da semana passada
+                    <p className="text-xs text-muted-foreground">
+                      {metric.description}
                     </p>
                   </CardContent>
                 </Card>
@@ -726,3 +728,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    
