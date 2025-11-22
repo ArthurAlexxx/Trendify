@@ -1,27 +1,23 @@
-
 import { genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/google-genai';
+import { GENKIT_ENV } from 'genkit/environment';
 
-// Note: This file is not actively used while the Genkit-dependent features are disabled.
-// It is kept for future re-enablement.
+// This file configures the Genkit AI services for the application.
 
-// Correctly initialize the googleAI plugin with service account credentials
-// This resolves authentication issues (401 Unauthorized) when calling advanced models.
-const googleAICredentials = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON
-  ? JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON)
-  : undefined;
+// We prioritize using the explicitly provided GOOGLE_AI_API_KEY from the .env file.
+// This is the most direct and reliable way to handle authentication for Google AI services.
+const apiKey = process.env.GOOGLE_AI_API_KEY;
 
-if (!googleAICredentials) {
+if (!apiKey && GENKIT_ENV === 'prod') {
   console.warn(
-    '[Genkit] GOOGLE_APPLICATION_CREDENTIALS_JSON is not set. Genkit may not be able to authenticate with Google AI services.'
+    `[Genkit] A GOOGLE_AI_API_KEY não foi encontrada nas variáveis de ambiente. A análise de vídeo pode falhar.`
   );
 }
 
 export const ai = genkit({
   plugins: [
-    googleAI(
-      googleAICredentials ? { credentials: googleAICredentials } : undefined
-    ),
+    // Initialize the Google AI plugin with the API key.
+    googleAI(apiKey ? { apiKey } : undefined),
   ],
   logLevel: 'debug',
   enableTracingAndMetrics: true,
