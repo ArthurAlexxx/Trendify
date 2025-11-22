@@ -15,7 +15,7 @@ import {
   Save,
   FileVideo,
 } from 'lucide-react';
-import { useState, useActionState, useEffect } from 'react';
+import { useState, useActionState, useEffect, useTransition } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useDropzone } from 'react-dropzone';
@@ -82,7 +82,7 @@ export default function VideoReviewPage() {
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
+  const [isSaving, startSavingTransition] = useTransition();
 
   const { user } = useUser();
   const firestore = useFirestore();
@@ -146,10 +146,9 @@ export default function VideoReviewPage() {
     accept: { 'video/*': [] },
   });
 
-  const handleAnalyzeSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!videoFile || !user || isUploading || isAnalyzing) return;
-
+  const handleFormAction = (formData: FormData) => {
+    if (!videoFile || !user) return;
+    
     setIsUploading(true);
     const storage = getStorage(initializeFirebase().firebaseApp);
     const storageRef = ref(
@@ -178,14 +177,13 @@ export default function VideoReviewPage() {
       () => {
         getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
           setIsUploading(false);
-          const formData = new FormData();
-          formData.append('videoUrl', downloadURL);
-          // Directly call the action now that we have the URL
+          formData.set('videoUrl', downloadURL);
           formAction(formData);
         });
       }
     );
   };
+
 
   const handleSave = async (result: VideoAnalysisOutput) => {
     if (!user || !firestore || !result || !videoFile) {
@@ -197,48 +195,47 @@ export default function VideoReviewPage() {
       return;
     }
 
-    setIsSaving(true);
-    try {
-      const title = `Análise do vídeo: ${videoFile.name.substring(0, 40)}`;
-      const {
-        overallScore,
-        hookAnalysis,
-        contentAnalysis,
-        ctaAnalysis,
-        improvementPoints,
-      } = result;
+    startSavingTransition(async () => {
+      try {
+        const title = `Análise do vídeo: ${videoFile.name.substring(0, 40)}`;
+        const {
+          overallScore,
+          hookAnalysis,
+          contentAnalysis,
+          ctaAnalysis,
+          improvementPoints,
+        } = result;
 
-      let content = `**Nota Geral:** ${overallScore}/10\n\n`;
-      content += `**Análise do Gancho:**\n${hookAnalysis}\n\n`;
-      content += `**Análise do Conteúdo:**\n${contentAnalysis}\n\n`;
-      content += `**Análise do CTA:**\n${ctaAnalysis}\n\n`;
-      content += `**Pontos de Melhoria:**\n${improvementPoints
-        .map((point) => `- ${point}`)
-        .join('\n')}`;
+        let content = `**Nota Geral:** ${overallScore}/10\n\n`;
+        content += `**Análise do Gancho:**\n${hookAnalysis}\n\n`;
+        content += `**Análise do Conteúdo:**\n${contentAnalysis}\n\n`;
+        content += `**Análise do CTA:**\n${ctaAnalysis}\n\n`;
+        content += `**Pontos de Melhoria:**\n${improvementPoints
+          .map((point) => `- ${point}`)
+          .join('\n')}`;
 
-      await addDoc(collection(firestore, `users/${user.uid}/ideiasSalvas`), {
-        userId: user.uid,
-        titulo: title,
-        conteudo: content,
-        origem: 'Análise de Vídeo',
-        concluido: false,
-        createdAt: serverTimestamp(),
-      });
+        await addDoc(collection(firestore, `users/${user.uid}/ideiasSalvas`), {
+          userId: user.uid,
+          titulo: title,
+          conteudo: content,
+          origem: 'Análise de Vídeo',
+          concluido: false,
+          createdAt: serverTimestamp(),
+        });
 
-      toast({
-        title: 'Sucesso!',
-        description: 'Sua análise foi salva no painel.',
-      });
-    } catch (error) {
-      console.error('Failed to save analysis:', error);
-      toast({
-        title: 'Erro ao Salvar',
-        description: 'Não foi possível salvar a análise. Tente novamente.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsSaving(false);
-    }
+        toast({
+          title: 'Sucesso!',
+          description: 'Sua análise foi salva no painel.',
+        });
+      } catch (error) {
+        console.error('Failed to save analysis:', error);
+        toast({
+          title: 'Erro ao Salvar',
+          description: 'Não foi possível salvar a análise. Tente novamente.',
+          variant: 'destructive',
+        });
+      }
+    });
   };
 
   const finalResult = analysisResult?.result;
@@ -308,12 +305,13 @@ export default function VideoReviewPage() {
             )}
 
             {!operationId && !isAnalyzing && (
-              <form onSubmit={handleAnalyzeSubmit} className="w-full">
+              <form action={handleFormAction} className="w-full">
+                 <input type="hidden" name="videoUrl" value="" />
                  <Button
                     type="submit"
                     disabled={isUploading || isAnalyzing}
                     size="lg"
-                    className="font-manrope w-full sm:w-auto h-12 px-10 rounded-full text-base font-bold shadow-lg shadow-primary/20 transition-transform hover:scale-[1.02]"
+                    className="font-manrope w-full h-12 px-10 rounded-full text-base font-bold shadow-lg shadow-primary/20 transition-transform hover:scale-[1.02]"
                 >
                     <Sparkles className="mr-2 h-5 w-5" />
                     Analisar Vídeo
