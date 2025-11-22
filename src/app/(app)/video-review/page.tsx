@@ -290,31 +290,28 @@ export default function VideoReviewPage() {
                             <div className="text-center">
                                 <p className="text-4xl font-bold text-foreground">{numericNote}</p>
                                 <p className="text-sm text-muted-foreground">de 10</p>
-                                {noteDescription && (
-                                   <p className="text-sm text-muted-foreground mt-2">{noteDescription}</p>
-                                )}
                             </div>
-                             <div className="hidden sm:block">
-                                <Separator orientation="vertical" className="h-24" />
-                             </div>
-                            <Card>
-                              <CardHeader>
-                                <CardTitle className="text-lg font-semibold">Checklist de Melhorias</CardTitle>
-                              </CardHeader>
-                               <CardContent>
-                                <ul className="space-y-3">
-                                    {analysisResult.melhorias.map((item, index) => (
-                                        <li key={index} className="flex items-start gap-3">
-                                        <Check className="h-5 w-5 text-primary mt-0.5 shrink-0" />
-                                        <span className="text-muted-foreground">{item}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                               </CardContent>
-                            </Card>
+                            <div className="text-sm text-muted-foreground">
+                                {noteDescription}
+                            </div>
                         </CardContent>
                     </Card>
 
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-lg font-semibold">Checklist de Melhorias</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                        <ul className="space-y-3">
+                            {analysisResult.melhorias.map((item, index) => (
+                                <li key={index} className="flex items-start gap-3">
+                                <Check className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                                <span className="text-muted-foreground">{item}</span>
+                                </li>
+                            ))}
+                        </ul>
+                        </CardContent>
+                    </Card>
                     
                     <Accordion type="single" collapsible className="w-full">
                         <AccordionItem value="item-1">
@@ -395,3 +392,4 @@ export default function VideoReviewPage() {
     </div>
   );
 }
+
