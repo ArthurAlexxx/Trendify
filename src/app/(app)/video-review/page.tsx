@@ -39,6 +39,9 @@ import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { useTransition } from "react";
 
 type AnalysisStatus = "idle" | "loading" | "success" | "error";
+const MAX_FILE_SIZE_MB = 50;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+
 
 export default function VideoReviewPage() {
   const [file, setFile] = useState<File | null>(null);
@@ -60,6 +63,14 @@ export default function VideoReviewPage() {
         toast({
           title: "Arquivo Inválido",
           description: "Por favor, selecione um arquivo de vídeo (MP4, MOV, etc.).",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (selectedFile.size > MAX_FILE_SIZE_BYTES) {
+        toast({
+          title: "Arquivo Muito Grande",
+          description: `O vídeo deve ter no máximo ${MAX_FILE_SIZE_MB}MB.`,
           variant: "destructive",
         });
         return;
@@ -227,6 +238,7 @@ export default function VideoReviewPage() {
           >
             Selecione o Arquivo
           </Button>
+           <p className="text-xs text-muted-foreground mt-2">Limite de {MAX_FILE_SIZE_MB}MB por vídeo</p>
           <Input
             ref={fileInputRef}
             type="file"
