@@ -1,8 +1,5 @@
-'use server';
-
 import { genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/google-genai';
-import { GENKIT_ENV } from 'genkit/environment';
 
 // Este arquivo configura os serviços Genkit AI para a aplicação.
 
