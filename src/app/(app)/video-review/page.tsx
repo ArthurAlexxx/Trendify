@@ -284,7 +284,7 @@ export default function VideoReviewPage() {
                 <div className="space-y-6 text-left">
                     <Card className="bg-primary/10 border-primary/20">
                         <CardHeader>
-                            <CardTitle className="font-headline text-lg text-primary text-center sm:text-left">Nota de Viralização</CardTitle>
+                            <CardTitle className="font-headline text-lg text-primary text-center">Nota de Viralização</CardTitle>
                         </CardHeader>
                         <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
                             <div className="text-center">
@@ -392,4 +392,3 @@ export default function VideoReviewPage() {
     </div>
   );
 }
-
