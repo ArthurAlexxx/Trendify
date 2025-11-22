@@ -334,7 +334,7 @@ export default function LandingPage() {
                     </SheetTrigger>
                     <SheetContent side="left">
                         <SheetHeader>
-                            <SheetTitle className="text-left">
+                            <SheetTitle className="text-center sm:text-left">
                                 <WordmarkIcon onClick={() => setIsMenuOpen(false)}/>
                             </SheetTitle>
                         </SheetHeader>
@@ -345,7 +345,7 @@ export default function LandingPage() {
                                         key={link.href}
                                         className={buttonVariants({
                                             variant: 'ghost',
-                                            className: 'justify-start text-lg h-12',
+                                            className: 'text-lg h-12',
                                         })}
                                         href={link.href}
                                         onClick={() => setIsMenuOpen(false)}
@@ -356,12 +356,12 @@ export default function LandingPage() {
                             </div>
                             <div className="flex flex-col gap-2 mt-auto">
                             {user ? (
-                                <Button asChild variant="ghost" size="lg" className="w-full justify-start text-lg h-12">
+                                <Button asChild variant="ghost" size="lg" className="w-full text-lg h-12">
                                     <Link href="/dashboard" onClick={() => setIsMenuOpen(false)}>Painel</Link>
                                 </Button>
                             ) : (
                             <>
-                              <Button asChild variant="ghost" size="lg" className="w-full justify-start text-lg h-12">
+                              <Button asChild variant="ghost" size="lg" className="w-full text-lg h-12">
                                 <Link href="/login" onClick={() => setIsMenuOpen(false)}>Entrar</Link>
                               </Button>
                               <Button asChild size="lg" className="w-full">
