@@ -85,10 +85,6 @@
     .glass-effect {
         @apply bg-white/80 backdrop-blur-xl border border-white/30 shadow-lg shadow-black/5;
     }
-    
-    .nav-link.active {
-      @apply bg-primary text-primary-foreground font-semibold shadow-inner;
-    }
 }
 
 @layer utilities {

@@ -129,7 +129,7 @@ export function AppSidebar() {
                  <SidebarMenuButton
                   isActive={active}
                   tooltip={isMobile ? undefined : item.label}
-                  className={cn("h-10 justify-start nav-link", active ? "active" : "text-muted-foreground hover:text-foreground hover:bg-accent")}
+                  className={cn("h-10 justify-start", active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-accent")}
                   disabled={!accessible}
                 >
                   <item.icon className="h-5 w-5" />
