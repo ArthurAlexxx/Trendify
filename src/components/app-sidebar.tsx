@@ -43,7 +43,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { cn } from '@/lib/utils';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
 
-const navItems: { href: string; icon: React.ElementType; label: string, plan: 'pro' | 'premium' }[] = [
+const navItems: { href: string; icon: React.ElementType; label: string, plan: 'pro' | 'premium' | 'free' }[] = [
   { href: '/dashboard', icon: LineChart, label: 'Painel', plan: 'pro' },
   { href: '/generate-weekly-plan', icon: ClipboardList, label: 'Planejamento', plan: 'pro' },
   { href: '/content-calendar', icon: Calendar, label: 'Calendário', plan: 'pro' },
@@ -51,9 +51,11 @@ const navItems: { href: string; icon: React.ElementType; label: string, plan: 'p
   { href: '/video-review', icon: Video, label: 'Análise de Vídeo', plan: 'pro' },
   { href: '/publis-assistant', icon: Newspaper, label: 'Propostas & Publis', plan: 'premium' },
   { href: '/media-kit', icon: Briefcase, label: 'Mídia Kit', plan: 'premium' },
+  { href: '/support', icon: Hammer, label: 'Suporte', plan: 'free' },
 ];
 
-const hasAccess = (userPlan: Plan, itemPlan: 'pro' | 'premium'): boolean => {
+const hasAccess = (userPlan: Plan, itemPlan: 'pro' | 'premium' | 'free'): boolean => {
+    if (itemPlan === 'free') return true;
     if (userPlan === 'premium') return true;
     if (userPlan === 'pro' && itemPlan === 'pro') return true;
     return false;
@@ -120,7 +122,7 @@ export function AppSidebar() {
 
         <SidebarMenu>
           {navItems.map((item) => {
-            const accessible = isUserActive && hasAccess(userPlan, item.plan);
+            const accessible = item.plan === 'free' || (isUserActive && hasAccess(userPlan, item.plan));
             const button = (
                  <SidebarMenuButton
                   isActive={pathname.startsWith(item.href)}
