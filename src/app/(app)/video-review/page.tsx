@@ -5,7 +5,6 @@ import { useState, useCallback, useRef, type ChangeEvent, type DragEvent } from 
 import {
   UploadCloud,
   File as FileIcon,
-  CheckCircle2,
   XCircle,
   Loader2,
   Sparkles,
@@ -22,7 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { analyzeVideoAction } from "./actions";
+import { analyzeVideo } from "./actions";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PageHeader } from "@/components/page-header";
 import { SavedIdeasSheet } from "@/components/saved-ideas-sheet";
@@ -115,7 +114,7 @@ export default function VideoReviewPage() {
         reader.onloadend = async () => {
             const base64data = reader.result as string;
             
-            const result = await analyzeVideoAction({ videoDataUri: base64data });
+            const result = await analyzeVideo({ videoDataUri: base64data });
 
             if (result && result.data) {
                 setAnalysisResult(result.data);

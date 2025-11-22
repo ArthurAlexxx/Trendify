@@ -1,47 +1,53 @@
 
 'use server';
-/**
- * @fileOverview An AI flow to analyze video content.
- *
- * - analyzeVideo - A function that handles the video analysis process.
- * - AnalyzeVideoInput - The input type for the analyzeVideo function.
- * - AnalyzeVideoOutput - The return type for the analyzeVideo function.
- */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import { z } from 'zod';
+import { VideoAnalysisOutputSchema, type VideoAnalysisOutput } from '@/lib/types';
 
-const AnalyzeVideoInputSchema = z.object({
-  videoDataUri: z
-    .string()
-    .describe(
-      "A video file, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
-    ),
+
+type ActionState = {
+  data?: VideoAnalysisOutput;
+  error?: string;
+} | null;
+
+
+const formSchema = z.object({
+  videoDataUri: z.string(),
 });
-export type AnalyzeVideoInput = z.infer<typeof AnalyzeVideoInputSchema>;
 
-const VideoAnalysisOutputSchema = z.object({
-  geral: z.string().describe("Uma nota geral de 0 a 10 para o potencial de viralização do vídeo."),
-  gancho: z.string().describe("Análise do gancho (primeiros 3 segundos), explicando o que funciona ou o que pode ser melhorado para reter a atenção."),
-  conteudo: z.string().describe("Análise do conteúdo principal (o 'miolo' do vídeo), avaliando a entrega de valor, ritmo e engajamento."),
-  cta: z.string().describe("Análise da chamada para ação (CTA), avaliando se é clara, convincente e alinhada ao objetivo do vídeo."),
-  melhorias: z.array(z.string()).describe("Um checklist com 3 sugestões práticas e acionáveis para o criador melhorar o vídeo."),
-});
-export type VideoAnalysisOutput = z.infer<typeof VideoAnalysisOutputSchema>;
-
-
+/**
+ * Server Action to analyze a video provided as a data URI.
+ */
 export async function analyzeVideo(
-  input: AnalyzeVideoInput
-): Promise<VideoAnalysisOutput> {
-  return analyzeVideoFlow(input);
+  input: { videoDataUri: string }
+): Promise<ActionState> {
+  
+  const parsed = formSchema.safeParse(input);
+
+  if (!parsed.success) {
+    const error = 'Dados de entrada inválidos.';
+    console.error(error, parsed.error.issues);
+    return { error };
+  }
+
+  try {
+    const analysis = await analyzeVideoFlow(parsed.data);
+    return { data: analysis };
+  } catch (e: any) {
+    console.error("Falha na execução do fluxo de análise:", e);
+    const errorMessage = e.message || "Ocorreu um erro desconhecido durante a análise.";
+    return { error: errorMessage };
+  }
 }
 
+// 1. Define o prompt para a IA
 const prompt = ai.definePrompt({
-  name: 'analyzeVideoPrompt',
-  input: { schema: AnalyzeVideoInputSchema },
-  output: { schema: VideoAnalysisOutputSchema },
+  name: 'videoAnalysisExpert',
   model: 'googleai/gemini-2.5-flash',
-  prompt: `Você é uma IA especialista em conteúdo viral e estrategista para criadores de conteúdo. Sua tarefa é analisar um vídeo e fornecer um diagnóstico completo e acionável.
+  input: { schema: z.object({ videoDataUri: z.string() }) },
+  output: { schema: VideoAnalysisOutputSchema },
+  prompt: `Você é uma IA especialista em conteúdo viral e estrategista para criadores de conteúdo. Sua tarefa é analisar um vídeo e fornecer um diagnóstico completo e acionável em português do Brasil.
 
 Analise o vídeo fornecido e retorne sua análise ESTRITAMENTE no formato JSON solicitado.
 
@@ -55,10 +61,12 @@ Diretrizes para a Análise:
 - melhorias: Forneça EXATAMENTE 3 dicas práticas e diretas que o criador pode aplicar para melhorar o vídeo. Comece cada dica com um verbo de ação (ex: "Adicione legendas dinâmicas...", "Corte os primeiros 2 segundos...", "Use um gancho mais direto...").`,
 });
 
+
+// 2. Define o fluxo Genkit para a análise
 const analyzeVideoFlow = ai.defineFlow(
   {
-    name: 'analyzeVideoFlow',
-    inputSchema: AnalyzeVideoInputSchema,
+    name: 'videoAnalysisFlow',
+    inputSchema: z.object({ videoDataUri: z.string() }),
     outputSchema: VideoAnalysisOutputSchema,
   },
   async input => {
