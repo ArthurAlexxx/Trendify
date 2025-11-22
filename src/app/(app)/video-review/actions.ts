@@ -71,7 +71,7 @@ const analysisFlow = ai.defineFlow(
     
     const { output } = await ai.generate({
         prompt,
-        model: googleAI.model('gemini-2'),
+        model: 'googleai/gemini-pro-vision',
         output: { schema: VideoAnalysisOutputSchema },
         config: {
             temperature: 0.5,
