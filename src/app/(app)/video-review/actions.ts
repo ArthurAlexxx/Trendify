@@ -1,10 +1,8 @@
-
 'use server';
 
 import { z } from 'zod';
 import { ai } from '@/ai/genkit';
 
-// Schema para a saída da análise de vídeo
 const VideoAnalysisOutputSchema = z.object({
   overallScore: z
     .number()
@@ -37,21 +35,21 @@ const VideoAnalysisOutputSchema = z.object({
 
 export type VideoAnalysisOutput = z.infer<typeof VideoAnalysisOutputSchema>;
 
-// Schema para a entrada do formulário
 const formSchema = z.object({
-  videoUrl: z.string().url('A URL do vídeo é obrigatória.'),
+  videoDataUri: z.string().describe(
+    "A video file, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
+  ),
 });
 
-export type VideoAnalysisState = {
-  operationId?: string;
+type ActionState = {
+  data?: VideoAnalysisOutput;
   error?: string;
-};
+} | null;
 
-// Definição do flow do Genkit
 const analysisFlow = ai.defineFlow(
   {
     name: 'videoAnalysisFlow',
-    inputSchema: z.object({ videoUrl: z.string() }),
+    inputSchema: formSchema,
     outputSchema: VideoAnalysisOutputSchema,
   },
   async (input) => {
@@ -59,7 +57,7 @@ const analysisFlow = ai.defineFlow(
 
     Analise o vídeo fornecido e retorne um JSON estruturado com base no schema.
 
-    Vídeo para análise: {{media url=${input.videoUrl}}}
+    Vídeo para análise: {{media url=videoDataUri}}
 
     Diretrizes para a análise:
     - overallScore: Dê uma nota de 0 a 10 para o potencial de viralização. Seja crítico e baseie-se em todos os aspectos (visual, áudio, ritmo, mensagem).
@@ -67,11 +65,11 @@ const analysisFlow = ai.defineFlow(
     - contentAnalysis: O conteúdo visual (frames) é interessante e bem editado? A transcrição do áudio mostra que a mensagem é clara, valiosa e bem estruturada? O ritmo da fala e da edição funcionam bem juntos?
     - ctaAnalysis: O que o vídeo pede para o espectador fazer? O CTA é claro tanto visualmente (ex: texto na tela) quanto no áudio?
     - improvementPoints: Dê dicas práticas que combinem melhorias visuais e de roteiro. Ex: "Adicionar legendas dinâmicas nos primeiros 5s para reforçar o gancho de áudio" ou "Encurtar a introdução falada para ir direto ao ponto mostrado no frame inicial".`;
-    
+
     const { output } = await ai.generate({
-        prompt,
-        model: 'googleai/gemini-1.5-flash-latest',
-        output: { schema: VideoAnalysisOutputSchema },
+      prompt,
+      model: 'googleai/gemini-1.5-flash-latest',
+      output: { schema: VideoAnalysisOutputSchema },
     });
 
     if (!output) {
@@ -81,53 +79,22 @@ const analysisFlow = ai.defineFlow(
   }
 );
 
-// Ação do servidor que será chamada pelo formulário
 export async function analyzeVideoAction(
-  prevState: VideoAnalysisState | null,
-  formData: FormData
-): Promise<VideoAnalysisState> {
-  const parsed = formSchema.safeParse(Object.fromEntries(formData));
+  input: z.infer<typeof formSchema>
+): Promise<ActionState> {
+  const parsed = formSchema.safeParse(input);
 
   if (!parsed.success) {
-    return { error: 'URL do vídeo inválida.' };
+    const error = parsed.error.issues.map((i) => i.message).join(', ');
+    return { error };
   }
 
   try {
-    // Usamos .run() para iniciar a operação e obter o objeto da operação.
-    const operation = await analysisFlow.run(parsed.data);
-
-    // Retornamos o nome (ID) da operação para o cliente.
-    return { operationId: operation.name };
+    const result = await analysisFlow(parsed.data);
+    return { data: result };
   } catch (e) {
-    console.error('[analyzeVideoAction] Error starting analysis:', e);
     const errorMessage = e instanceof Error ? e.message : 'Ocorreu um erro desconhecido.';
-    return { error: `Falha ao iniciar a análise do vídeo: ${errorMessage}` };
+    console.error(`[analyzeVideoAction] Erro ao executar o flow: ${errorMessage}`);
+    return { error: `Falha ao analisar o vídeo: ${errorMessage}` };
   }
-}
-
-export async function checkAnalysisStatus(operationId: string) {
-    try {
-        const operation = await ai.checkOperation(operationId);
-        
-        if (operation.done) {
-            if (operation.error) {
-              // Log detalhado do erro da operação no servidor
-              console.error(`[checkAnalysisStatus] Erro na operação ${operationId}:`, JSON.stringify(operation.error, null, 2));
-              // Retorna a mensagem de erro para ser exibida no cliente
-              return { done: true, error: { message: operation.error.message || 'Erro desconhecido na operação.' } };
-            }
-            // Se a operação foi concluída com sucesso
-            return {
-                done: true,
-                result: operation.output as VideoAnalysisOutput,
-            };
-        }
-        // Se a operação ainda está em andamento
-        return { done: false };
-    } catch(e) {
-        // Erro ao tentar verificar o status (ex: problema de rede)
-        console.error(`[checkAnalysisStatus] Erro ao verificar o status da operação ${operationId}:`, e);
-        const errorMessage = e instanceof Error ? e.message : 'Erro desconhecido ao verificar status.';
-        return { done: true, error: { message: errorMessage } };
-    }
 }
