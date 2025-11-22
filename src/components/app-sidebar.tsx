@@ -81,15 +81,15 @@ export function AppSidebar() {
     <Sidebar
       collapsible={!isMobile ? "icon" : undefined}
       variant="inset"
-      className="bg-sidebar border-r border-sidebar-border"
+      className="glass-effect"
     >
-      <SidebarHeader className="flex items-center p-4">
+      <SidebarHeader className="flex items-center p-4 h-20 border-b border-white/10">
         <Link
           href="/"
-          className="flex items-center gap-2 text-xl font-bold font-headline tracking-tighter text-foreground"
+          className="flex items-center gap-2 text-xl font-bold font-headline tracking-tighter text-white"
         >
-          <div className="bg-foreground text-background h-7 w-7 flex items-center justify-center rounded-full">
-            <ArrowRight className="h-4 w-4" />
+          <div className="bg-indigo-400 text-background h-8 w-8 flex items-center justify-center rounded-full">
+            <ArrowRight className="h-5 w-5" />
           </div>
           <span className={cn("hidden group-data-[state=expanded]:inline", { 'inline': isMobile })}>
             trendify
@@ -103,7 +103,7 @@ export function AppSidebar() {
             ) : isUserActive && (userPlan === 'pro' || userPlan === 'premium') ? (
                  <div className={cn(
                     "flex items-center justify-center gap-2 h-10 rounded-lg border font-semibold text-sm",
-                    userPlan === 'premium' ? "bg-yellow-400/10 border-yellow-400/20 text-yellow-500" : "bg-primary/10 border-primary/20 text-primary"
+                    userPlan === 'premium' ? "bg-yellow-400/10 border-yellow-400/20 text-yellow-400" : "bg-indigo-400/10 border-indigo-400/20 text-indigo-400"
                  )}>
                     <Crown className="h-4 w-4 fill-current" />
                     <span>
@@ -112,7 +112,7 @@ export function AppSidebar() {
                     </span>
                 </div>
             ) : (
-                <Button asChild className='w-full justify-start font-bold'>
+                <Button asChild className='w-full justify-center font-bold bg-indigo-500 text-white hover:bg-indigo-600 rounded-lg'>
                     <Link href="/subscribe">
                         <Crown className="mr-2 h-4 w-4 fill-current" />
                         Virar PRO
@@ -123,12 +123,13 @@ export function AppSidebar() {
 
         <SidebarMenu>
           {navItems.map((item) => {
+            const active = pathname.startsWith(item.href);
             const accessible = item.plan === 'free' || (isUserActive && hasAccess(userPlan, item.plan));
             const button = (
                  <SidebarMenuButton
-                  isActive={pathname.startsWith(item.href)}
+                  isActive={active}
                   tooltip={isMobile ? undefined : item.label}
-                  className="h-10 justify-start"
+                  className={cn("h-10 justify-start nav-link", active ? "active" : "")}
                   disabled={!accessible}
                 >
                   <item.icon className="h-5 w-5" />
@@ -161,50 +162,52 @@ export function AppSidebar() {
           })}
         </SidebarMenu>
       </SidebarContent>
-      <SidebarFooter className="p-2 mt-auto">
+      <SidebarFooter className="p-4 border-t border-white/10">
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className='w-full justify-start h-auto p-2'>
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={user?.photoURL ?? undefined} alt="User avatar" />
-                      <AvatarFallback>
-                          {user?.displayName?.[0].toUpperCase() ?? user?.email?.[0].toUpperCase() ?? 'U'}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className={cn("hidden group-data-[state=expanded]:flex items-center gap-3 w-full", { 'flex': isMobile })}>
-                        <div className="w-[120px] overflow-hidden text-left ml-3">
-                        <p className="text-sm font-semibold truncate">{user?.displayName ?? 'Usuário'}</p>
-                        <p className="text-xs text-muted-foreground truncate">
-                            {user?.email ?? ''}
-                        </p>
+                <Button variant="ghost" className='w-full justify-start h-auto p-0 hover:bg-transparent'>
+                    <div className="flex items-center gap-3">
+                        <Avatar className="h-10 w-10 border-2 border-indigo-400">
+                          <AvatarImage src={user?.photoURL ?? `https://i.pravatar.cc/150?u=${user?.uid}`} alt="User avatar" />
+                          <AvatarFallback>
+                              {user?.displayName?.[0].toUpperCase() ?? user?.email?.[0].toUpperCase() ?? 'U'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className={cn("hidden group-data-[state=expanded]:flex items-center gap-3 w-full", { 'flex': isMobile })}>
+                            <div className="w-[120px] overflow-hidden text-left">
+                            <p className="text-sm font-semibold truncate text-white">{user?.displayName ?? 'Usuário'}</p>
+                            <p className="text-xs text-gray-400 truncate">
+                                {user?.email ?? ''}
+                            </p>
+                            </div>
+                            <MoreHorizontal className="h-4 w-4 ml-auto text-gray-400" />
                         </div>
-                        <MoreHorizontal className="h-4 w-4 ml-auto" />
                     </div>
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent side={isMobile ? 'top' : 'right'} align="end" className="w-56 mb-2">
+            <DropdownMenuContent side={isMobile ? 'top' : 'right'} align="end" className="w-56 mb-2 bg-gray-800/80 backdrop-blur-sm border-gray-700 text-gray-200">
                 <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
+                <DropdownMenuSeparator className="bg-gray-700" />
+                <DropdownMenuItem asChild className="focus:bg-white/10 focus:text-white">
                     <Link href="/profile">
                         <User className="mr-2 h-4 w-4" />
                         <span>Meu Perfil</span>
                     </Link>
                 </DropdownMenuItem>
-                 <DropdownMenuItem asChild>
+                 <DropdownMenuItem asChild className="focus:bg-white/10 focus:text-white">
                     <Link href="/settings">
                         <Settings className="mr-2 h-4 w-4" />
                         <span>Configurações</span>
                     </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
+                <DropdownMenuItem asChild className="focus:bg-white/10 focus:text-white">
                     <Link href="/support">
                         <Hammer className="mr-2 h-4 w-4" />
                         <span>Suporte</span>
                     </Link>
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut} className='text-destructive focus:text-destructive focus:bg-destructive/10'>
+                <DropdownMenuSeparator className="bg-gray-700"/>
+                <DropdownMenuItem onClick={handleSignOut} className='text-red-400 focus:text-red-400 focus:bg-red-400/10'>
                      <LogOut className="mr-2 h-4 w-4" />
                      <span>Sair</span>
                 </DropdownMenuItem>
