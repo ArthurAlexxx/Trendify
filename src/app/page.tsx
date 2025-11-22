@@ -14,6 +14,9 @@ import {
   Crown,
   Menu,
   X,
+  ClipboardList,
+  BrainCircuit,
+  Rocket,
 } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { useUser } from '@/firebase';
@@ -87,16 +90,19 @@ const features = [
 
 const whyTrendify = [
   {
+    icon: ClipboardList,
     title: 'Foco em Ação, Não em Vaidade',
     description:
       'Métricas são importantes, mas nosso foco é no que fazer com elas. Entregamos planos e roteiros, não apenas gráficos.',
   },
   {
+    icon: BrainCircuit,
     title: 'IA Especialista em Criadores',
     description:
       'Nossa inteligência artificial é treinada com milhares de vídeos virais e estratégias de conteúdo que funcionam hoje.',
   },
   {
+    icon: Rocket,
     title: 'Do Roteiro à Proposta',
     description:
       'Cobrimos todo o ciclo do criador: da ideia inicial até a prospecção de marcas e monetização do seu conteúdo.',
@@ -334,7 +340,7 @@ export default function LandingPage() {
                     </SheetTrigger>
                     <SheetContent side="left">
                         <SheetHeader className="text-center">
-                            <SheetTitle>
+                            <SheetTitle className="text-center">
                                 <WordmarkIcon onClick={() => setIsMenuOpen(false)}/>
                             </SheetTitle>
                         </SheetHeader>
@@ -448,7 +454,7 @@ export default function LandingPage() {
                   {whyTrendify.map((item) => (
                     <div key={item.title} className="flex gap-4">
                       <div className="h-10 w-10 flex-shrink-0 rounded-lg bg-primary text-primary-foreground flex items-center justify-center">
-                        <ArrowRight />
+                        <item.icon className="h-5 w-5" />
                       </div>
                       <div>
                         <h3 className="font-bold text-lg">{item.title}</h3>
