@@ -69,7 +69,7 @@ function AnimatedHero() {
               ação claro, ajudando você a crescer e monetizar seu conteúdo.
             </p>
           </div>
-          <div className="flex flex-col sm:flex-row gap-3 w-full max-w-sm sm:max-w-none">
+          <div className="flex flex-col sm:flex-row gap-3 w-full max-w-sm sm:max-w-none sm:justify-center">
              <Link
                 href="/dashboard"
                 className={cn(
