@@ -5,7 +5,7 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    --background: 240 5.9% 95%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
@@ -83,24 +83,11 @@
 
 @layer components {
     .glass-effect {
-        @apply bg-white/50 backdrop-blur-lg border border-gray-200/50;
-    }
-
-    .shape-1 {
-        @apply fixed top-0 left-0 w-64 h-64 bg-indigo-500 rounded-full opacity-30 blur-3xl animate-pulse;
-        animation-duration: 10s;
-        filter: blur(100px);
-    }
-
-    .shape-2 {
-        @apply fixed bottom-0 right-0 w-80 h-80 bg-pink-500 rounded-full opacity-30 blur-3xl animate-pulse;
-        animation-duration: 12s;
-        animation-delay: 2s;
-        filter: blur(120px);
+        @apply bg-white/80 backdrop-blur-xl border border-white/30 shadow-lg shadow-black/5;
     }
     
     .nav-link.active {
-      @apply bg-primary/10 text-primary font-semibold shadow-inner;
+      @apply bg-primary text-primary-foreground font-semibold shadow-inner;
     }
 }
 
