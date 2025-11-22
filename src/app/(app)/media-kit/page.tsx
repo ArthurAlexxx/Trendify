@@ -222,14 +222,6 @@ function MediaKitPageContent() {
   };
 
   const result = state?.data;
-  
-  const collaborationIdeas = useMemo(() => {
-    if (!result?.sampleCollaborationIdeas) return [];
-    return result.sampleCollaborationIdeas.map(idea => 
-      typeof idea === 'string' ? idea : idea.ideia
-    );
-  }, [result]);
-
 
   return (
     <div className="space-y-12">
@@ -392,7 +384,7 @@ function MediaKitPageContent() {
                   <InfoCard title="Apresentação para Marcas" icon={FileText} content={result.executiveSummary} />
                   <div className="grid lg:grid-cols-2 gap-8 items-start">
                     <PricingCard title="Tabela de Preços Sugerida" icon={DollarSign} pricing={result.pricingTiers} />
-                    <InfoList title="Ideias de Colaboração" icon={Lightbulb} items={collaborationIdeas} />
+                    <InfoList title="Ideias de Colaboração" icon={Lightbulb} items={result.sampleCollaborationIdeas} />
                   </div>
                 </div>
               ) : null}

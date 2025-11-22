@@ -49,13 +49,13 @@ const AiCareerPackageOutputSchema = z.object({
     .array(CollaborationIdeaSchema)
     .describe(
       'Uma lista de 2-3 ideias de colaboração criativas e de alto nível que se encaixam no nicho do criador e da marca alvo.'
+    )
+    .transform((ideas) =>
+      ideas.map((idea) => (typeof idea === 'string' ? idea : idea.ideia))
     ),
 });
 
-// Adjusted type to reflect the final, normalized shape
-export type AiCareerPackageOutput = Omit<z.infer<typeof AiCareerPackageOutputSchema>, 'sampleCollaborationIdeas'> & {
-  sampleCollaborationIdeas: string[];
-};
+export type AiCareerPackageOutput = z.infer<typeof AiCareerPackageOutputSchema>;
 
 const formSchema = z.object({
   niche: z.string().min(1, 'O nicho não pode estar vazio.'),
@@ -143,20 +143,7 @@ Sua resposta DEVE ser um bloco de código JSON válido, e NADA MAIS. O JSON deve
     const parsedJson = JSON.parse(jsonString);
     const validatedData = AiCareerPackageOutputSchema.parse(parsedJson);
 
-    // Normalize the sampleCollaborationIdeas to always be an array of strings
-    const normalizedIdeas = validatedData.sampleCollaborationIdeas.map(
-      (idea) => {
-        if (typeof idea === 'string') {
-          return idea;
-        }
-        return idea.ideia;
-      }
-    );
-
-    return {
-      ...validatedData,
-      sampleCollaborationIdeas: normalizedIdeas,
-    };
+    return validatedData;
   } catch (error) {
     console.error('Error calling OpenAI or parsing response:', error);
     const errorMessage =
