@@ -52,7 +52,10 @@ const AiCareerPackageOutputSchema = z.object({
     ),
 });
 
-export type AiCareerPackageOutput = z.infer<typeof AiCareerPackageOutputSchema>;
+// Adjusted type to reflect the final, normalized shape
+export type AiCareerPackageOutput = Omit<z.infer<typeof AiCareerPackageOutputSchema>, 'sampleCollaborationIdeas'> & {
+  sampleCollaborationIdeas: string[];
+};
 
 const formSchema = z.object({
   niche: z.string().min(1, 'O nicho não pode estar vazio.'),
