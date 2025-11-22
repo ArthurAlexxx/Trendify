@@ -187,13 +187,12 @@ export default function DashboardPage() {
     useCollection<ConteudoAgendado>(upcomingContentQuery);
 
     const userMetrics = useMemo(() => {
-        if (!userProfile) return [];
         return [
-            { icon: Users, label: "Seguidores", value: userProfile.followers, description: "Total de seguidores" },
-            { icon: Eye, label: "Média de Views", value: userProfile.averageViews, description: "Por post/vídeo" },
-            { icon: Heart, label: "Média de Likes", value: userProfile.averageLikes, description: "Por post/vídeo" },
-            { icon: MessageSquare, label: "Média de Comentários", value: userProfile.averageComments, description: "Por post/vídeo" },
-        ].filter(metric => metric.value);
+            { icon: Users, label: "Seguidores", value: userProfile?.followers, description: "Total de seguidores" },
+            { icon: Eye, label: "Média de Views", value: userProfile?.averageViews, description: "Por post/vídeo" },
+            { icon: Heart, label: "Média de Likes", value: userProfile?.averageLikes, description: "Por post/vídeo" },
+            { icon: MessageSquare, label: "Média de Comentários", value: userProfile?.averageComments, description: "Por post/vídeo" },
+        ];
     }, [userProfile]);
 
   const handleToggleIdeia = async (ideia: IdeiaSalva) => {
@@ -352,10 +351,10 @@ export default function DashboardPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-3xl font-bold font-headline">
-                      {metric.value}
+                      {metric.value || '—'}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      {metric.description}
+                      {metric.value ? metric.description : <Link href="/profile" className="hover:underline">Adicionar no perfil</Link>}
                     </p>
                   </CardContent>
                 </Card>
