@@ -34,7 +34,11 @@ import {
   Pen,
   Save,
   Sparkles,
-  Lightbulb
+  Lightbulb,
+  BrainCircuit,
+  Target,
+  BarChart,
+  Eye,
 } from 'lucide-react';
 import { useEffect, useActionState, useTransition, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
@@ -60,6 +64,31 @@ const formSchema = z.object({
   tone: z.string().min(1, 'O tom de voz é obrigatório.'),
   objective: z.string().min(1, 'O objetivo é obrigatório.'),
 });
+
+
+const analysisCriteria = [
+    {
+        icon: BrainCircuit,
+        title: "Estrategista Viral",
+        description: "A IA atua como uma especialista em conteúdo viral, focando em ideias com alto potencial de engajamento e alcance para o seu nicho."
+    },
+    {
+        icon: Target,
+        title: "Gancho Magnético",
+        description: "Cria ganchos de 2-3 segundos para capturar a atenção imediatamente, quebrando padrões e gerando curiosidade."
+    },
+     {
+        icon: BarChart,
+        title: "Otimizado para Algoritmo",
+        description: "Gera roteiros estruturados para reter a atenção e sugere músicas em alta, aumentando as chances de ser favorecido pelo algoritmo."
+    },
+    {
+        icon: Eye,
+        title: "Foco no Objetivo",
+        description: "Cada elemento, do roteiro ao CTA, é pensado para atingir seu objetivo principal, seja ele vendas, engajamento ou alcance."
+    },
+  ]
+
 
 export default function VideoIdeasPage() {
   const { toast } = useToast();
@@ -160,6 +189,30 @@ export default function VideoIdeasPage() {
       >
         <SavedIdeasSheet />
       </PageHeader>
+      
+      <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
+            <CardHeader>
+                <CardTitle className="flex items-center gap-3 font-headline text-xl text-center sm:text-left">
+                    <Sparkles className="h-6 w-6 text-primary" />
+                    Como a IA Pensa Para Criar Suas Ideias?
+                </CardTitle>
+                 <CardDescription className="text-center sm:text-left">Nossa IA foi treinada para pensar como uma estrategista de conteúdo viral. Ela analisa sua necessidade em busca de 4 pilares:</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {analysisCriteria.map((item, index) => (
+                        <div key={index} className="p-4 rounded-lg bg-muted/50 border">
+                            <div className="flex items-center gap-3 mb-2">
+                                <item.icon className="h-5 w-5 text-primary" />
+                                <h4 className="font-semibold text-foreground">{item.title}</h4>
+                            </div>
+                            <p className="text-xs text-muted-foreground">{item.description}</p>
+                        </div>
+                    ))}
+                </div>
+            </CardContent>
+      </Card>
+
 
       <Card className="shadow-lg shadow-primary/5 border-border/30 bg-card rounded-2xl">
         <CardHeader className="text-center sm:text-left">

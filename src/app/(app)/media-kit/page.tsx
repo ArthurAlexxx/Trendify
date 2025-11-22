@@ -13,6 +13,8 @@ import {
   FileText,
   Lightbulb,
   Briefcase,
+  BrainCircuit,
+  Target,
 } from 'lucide-react';
 import { useActionState, useTransition, useEffect, useState } from 'react';
 import {
@@ -47,6 +49,31 @@ const formSchema = z.object({
   keyMetrics: z.string().min(1, 'As métricas não podem estar vazias.'),
   targetBrand: z.string().min(3, 'A marca alvo deve ter pelo menos 3 caracteres.'),
 });
+
+const analysisCriteria = [
+    {
+        icon: BrainCircuit,
+        title: "Gerente de Talentos IA",
+        description: "A IA atua como uma gerente de talentos, usando suas métricas e nicho para criar um pacote de prospecção profissional."
+    },
+    {
+        icon: FileText,
+        title: "Apresentação Impactante",
+        description: "Cria um parágrafo de apresentação em primeira pessoa, focado em como você agrega valor para marcas dentro do seu nicho."
+    },
+     {
+        icon: DollarSign,
+        title: "Preços Realistas",
+        description: "Com base nas suas métricas, a IA calcula faixas de preço realistas para o mercado brasileiro, te dando um ponto de partida para negociações."
+    },
+    {
+        icon: Lightbulb,
+        title: "Ideias Criativas",
+        description: "Gera 3 ideias de colaboração autênticas e alinhadas tanto com seu nicho quanto com a marca alvo que você definir."
+    }
+  ]
+
+
 
 function PremiumFeatureGuard({ children }: { children: React.ReactNode }) {
     const { subscription, isLoading } = useSubscription();
@@ -201,6 +228,31 @@ function MediaKitPageContent() {
       >
         <SavedIdeasSheet />
       </PageHeader>
+      
+        <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
+            <CardHeader>
+                <CardTitle className="flex items-center gap-3 font-headline text-xl text-center sm:text-left">
+                    <Sparkles className="h-6 w-6 text-primary" />
+                    Como a IA Cria seu Pacote de Prospecção?
+                </CardTitle>
+                 <CardDescription className="text-center sm:text-left">Nossa IA atua como uma gerente de talentos para monetizar sua influência. Ela foca em 4 pilares:</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {analysisCriteria.map((item, index) => (
+                        <div key={index} className="p-4 rounded-lg bg-muted/50 border">
+                            <div className="flex items-center gap-3 mb-2">
+                                <item.icon className="h-5 w-5 text-primary" />
+                                <h4 className="font-semibold text-foreground">{item.title}</h4>
+                            </div>
+                            <p className="text-xs text-muted-foreground">{item.description}</p>
+                        </div>
+                    ))}
+                </div>
+            </CardContent>
+        </Card>
+
+
       <div className="space-y-12">
           
           <Card className="shadow-lg shadow-primary/5 border-border/30 bg-card rounded-2xl">

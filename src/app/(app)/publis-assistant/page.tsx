@@ -31,6 +31,10 @@ import {
   Sparkles,
   Zap,
   Newspaper,
+  BrainCircuit,
+  Target,
+  BarChart,
+  Eye,
 } from 'lucide-react';
 import { useEffect, useActionState, useTransition, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -58,6 +62,31 @@ const formSchema = z.object({
   objective: z.string().min(1, 'O objetivo é obrigatório.'),
   extraInfo: z.string().optional(),
 });
+
+
+const analysisCriteria = [
+    {
+        icon: BrainCircuit,
+        title: "Diretora Criativa",
+        description: "A IA atua como uma diretora criativa, gerando 5 roteiros distintos que exploram diferentes ângulos de comunicação para o seu produto."
+    },
+    {
+        icon: Target,
+        title: "Foco em Conversão",
+        description: "Cada roteiro inclui um gancho forte, desenvolvimento rápido e um CTA claro, todos alinhados com seu objetivo principal (vendas, leads, etc.)."
+    },
+     {
+        icon: Zap,
+        title: "Adaptado para Trends",
+        description: "A IA sugere como adaptar as ideias para tendências e áudios que estão em alta no momento, aumentando o potencial de alcance."
+    },
+    {
+        icon: Check,
+        title: "Checklist de Sucesso",
+        description: "Para garantir que nada seja esquecido, a IA fornece um checklist prático para maximizar a conversão dos seus vídeos."
+    }
+  ]
+
 
 
 function PremiumFeatureGuard({ children }: { children: React.ReactNode }) {
@@ -197,6 +226,30 @@ function PublisAssistantPageContent() {
       >
         <SavedIdeasSheet />
       </PageHeader>
+
+        <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
+            <CardHeader>
+                <CardTitle className="flex items-center gap-3 font-headline text-xl text-center sm:text-left">
+                    <Sparkles className="h-6 w-6 text-primary" />
+                    Como a IA Cria Sua Campanha?
+                </CardTitle>
+                 <CardDescription className="text-center sm:text-left">Nossa IA atua como uma diretora de criação, combinando estratégia com criatividade. Ela foca em 4 pilares:</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {analysisCriteria.map((item, index) => (
+                        <div key={index} className="p-4 rounded-lg bg-muted/50 border">
+                            <div className="flex items-center gap-3 mb-2">
+                                <item.icon className="h-5 w-5 text-primary" />
+                                <h4 className="font-semibold text-foreground">{item.title}</h4>
+                            </div>
+                            <p className="text-xs text-muted-foreground">{item.description}</p>
+                        </div>
+                    ))}
+                </div>
+            </CardContent>
+        </Card>
+
 
       <Card className="shadow-lg shadow-primary/5 border-border/30 bg-card rounded-2xl">
         <CardHeader className="text-center sm:text-left">

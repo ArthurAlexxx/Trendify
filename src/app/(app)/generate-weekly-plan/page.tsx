@@ -21,7 +21,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Bot, Loader2, Sparkles, Trash2, Check, History, ClipboardList } from 'lucide-react';
+import { Bot, Loader2, Sparkles, Trash2, Check, History, ClipboardList, BrainCircuit, Target, BarChart, Eye } from 'lucide-react';
 import { useEffect, useActionState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -74,6 +74,31 @@ const chartConfig = {
   alcance: { label: 'Alcance', color: 'hsl(var(--primary))' },
   engajamento: { label: 'Engajamento', color: 'hsl(var(--chart-2))' },
 } satisfies ChartConfig;
+
+
+const analysisCriteria = [
+    {
+        icon: BrainCircuit,
+        title: "Estrategista de Crescimento",
+        description: "A IA atua como uma estrategista, analisando seu nicho, estatísticas e objetivo para criar um plano de ação semanal focado em crescimento."
+    },
+    {
+        icon: Target,
+        title: "Tarefas Acionáveis",
+        description: "Para cada dia da semana, a IA define tarefas de conteúdo claras e práticas, com detalhes sobre o que fazer e como fazer."
+    },
+     {
+        icon: BarChart,
+        title: "Simulação de Desempenho",
+        description: "Com base nas tarefas, a IA projeta uma simulação realista de alcance e engajamento para você visualizar o impacto potencial do seu esforço."
+    },
+    {
+        icon: Eye,
+        title: "Foco no Objetivo",
+        description: "Todo o plano, desde as tarefas diárias até a simulação, é construído com base no objetivo principal que você definiu para a semana."
+    }
+  ]
+
 
 export default function GenerateWeeklyPlanPage() {
   const { toast } = useToast();
@@ -199,6 +224,30 @@ export default function GenerateWeeklyPlanPage() {
       >
         <PreviousPlansSheet />
       </PageHeader>
+      
+        <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
+            <CardHeader>
+                <CardTitle className="flex items-center gap-3 font-headline text-xl text-center sm:text-left">
+                    <Sparkles className="h-6 w-6 text-primary" />
+                    Como a IA Monta seu Plano Estratégico?
+                </CardTitle>
+                 <CardDescription className="text-center sm:text-left">Nossa IA foi treinada para atuar como uma estrategista de crescimento. Ela analisa sua necessidade em busca de 4 pilares:</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {analysisCriteria.map((item, index) => (
+                        <div key={index} className="p-4 rounded-lg bg-muted/50 border">
+                            <div className="flex items-center gap-3 mb-2">
+                                <item.icon className="h-5 w-5 text-primary" />
+                                <h4 className="font-semibold text-foreground">{item.title}</h4>
+                            </div>
+                            <p className="text-xs text-muted-foreground">{item.description}</p>
+                        </div>
+                    ))}
+                </div>
+            </CardContent>
+        </Card>
+
 
       <Card className="shadow-lg shadow-primary/5 border-border/30 bg-card rounded-2xl">
         <CardHeader className="text-center sm:text-left">
