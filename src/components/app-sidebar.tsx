@@ -129,14 +129,11 @@ export function AppSidebar() {
                  <SidebarMenuButton
                   isActive={active}
                   tooltip={isMobile ? undefined : item.label}
-                  className={cn(
-                    "h-10 justify-start", 
-                    active ? "bg-primary text-foreground hover:bg-primary/90" : "text-muted-foreground hover:text-foreground hover:bg-accent"
-                  )}
+                  className={cn("h-10 justify-start")}
                   disabled={!accessible}
                 >
-                  <item.icon className={cn("h-5 w-5", active && "text-foreground")} />
-                  <span className={cn("text-sm font-medium", active && "text-foreground")}>{item.label}</span>
+                  <item.icon className="h-5 w-5" />
+                  <span className="text-sm font-medium">{item.label}</span>
                   {!accessible && item.plan === 'premium' && (
                      <Crown className={cn("h-4 w-4 ml-auto text-yellow-400 fill-yellow-400", { "hidden": !isMobile && "group-data-[state=collapsed]" })}/>
                   )}
