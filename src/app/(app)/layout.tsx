@@ -40,13 +40,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <div className="relative min-h-screen w-full flex bg-background">
-         {/* Shapes and dark background are now part of the sidebar's container */}
-         <div className="fixed inset-0 bg-gray-900 -z-10">
-            <div className="shape-1"></div>
-            <div className="shape-2"></div>
-         </div>
         <AppSidebar />
-        <SidebarInset className="w-full bg-transparent">
+        <SidebarInset className="w-full bg-background">
           {isMobile && (
             <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background/95 px-4 sm:px-6 backdrop-blur-sm">
               <SidebarTrigger variant="outline" size="icon" className="sm:hidden">

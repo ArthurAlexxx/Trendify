@@ -83,7 +83,7 @@
 
 @layer components {
     .glass-effect {
-        @apply bg-gray-800/50 backdrop-blur-lg border border-white/10;
+        @apply bg-white/50 backdrop-blur-lg border border-gray-200/50;
     }
 
     .shape-1 {
@@ -100,7 +100,7 @@
     }
     
     .nav-link.active {
-      @apply bg-white/10 text-white font-semibold shadow-inner;
+      @apply bg-primary/10 text-primary font-semibold shadow-inner;
     }
 }
 
