@@ -156,7 +156,7 @@ const BENCHMARKS: Record<
   Default: { baseGrowth: 0.05, cpmRange: [15, 60], reelsMultiplier: 0.005 },
 };
 
-const WordmarkIcon = (props: React.ComponentProps<'div'>) => (
+const WordmarkIcon = (props: React.ComponentProps<'a'>) => (
   <Link
     href="/"
     className="flex items-center gap-2 text-xl font-bold font-headline tracking-tighter text-foreground"
@@ -193,7 +193,7 @@ export default function LandingPage() {
       document.body.style.overflow = 'auto';
     }
     return () => {
-      document.body.style.overflow = '';
+      document.body.style.overflow = 'auto';
     };
   }, [isMenuOpen]);
 
@@ -302,7 +302,7 @@ export default function LandingPage() {
 				)}
 			>
 				<div className="flex-1 justify-start">
-                    <WordmarkIcon />
+                    <WordmarkIcon onClick={() => setIsMenuOpen(false)} />
                 </div>
 
 				<div className="hidden items-center justify-center gap-2 md:flex flex-1">
@@ -381,15 +381,15 @@ export default function LandingPage() {
 					<div className="flex flex-col gap-2">
             {user ? (
 						<Button asChild variant="ghost" size="lg" className="w-full justify-start text-lg h-12">
-							<Link href="/dashboard">Painel</Link>
+							<Link href="/dashboard" onClick={() => setIsMenuOpen(false)}>Painel</Link>
 						</Button>
             ) : (
             <>
               <Button asChild variant="ghost" size="lg" className="w-full justify-start text-lg h-12">
-                <Link href="/login">Entrar</Link>
+                <Link href="/login" onClick={() => setIsMenuOpen(false)}>Entrar</Link>
               </Button>
               <Button asChild size="lg" className="w-full">
-                <Link href="/sign-up">Começar Grátis</Link>
+                <Link href="/sign-up" onClick={() => setIsMenuOpen(false)}>Começar Grátis</Link>
               </Button>
             </>
             )}
@@ -1025,7 +1025,7 @@ export default function LandingPage() {
               </p>
               <Button
                 size="lg"
-                className="h-12 text-base px-8 font-bold"
+                className="w-full sm:w-auto h-12 text-base px-8 font-bold"
                 asChild
               >
                 <Link href="/sign-up">Começar grátis agora</Link>
@@ -1051,3 +1051,5 @@ export default function LandingPage() {
     </div>
   );
 }
+
+    

@@ -70,6 +70,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const chartConfig = {
   alcance: {
@@ -126,6 +127,7 @@ export default function DashboardPage() {
   const { user } = useUser();
   const { toast } = useToast();
   const [isExpanded, setIsExpanded] = useState(false);
+  const isMobile = useIsMobile();
 
   const metricaQuery = useMemoFirebase(
     () => (firestore ? collection(firestore, 'metrica') : null),
@@ -266,7 +268,7 @@ export default function DashboardPage() {
       >
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button size="lg" className="font-manrope rounded-full text-base w-full sm:w-auto">
+            <Button size={isMobile ? 'default' : 'lg'} className="font-manrope rounded-full text-base w-full sm:w-auto">
               <Plus className="mr-2 h-5 w-5" />
               Criar Novo
               <ChevronDown className="ml-2 h-4 w-4" />
@@ -723,3 +725,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    

@@ -454,7 +454,7 @@ export default function GenerateWeeklyPlanPage() {
       {(isGenerating || result) && (
         <div className="space-y-8 animate-fade-in">
           <Separator />
-          <div className="flex flex-col sm:flex-row justify-between items-start gap-4 text-center">
+          <div className="flex flex-col sm:flex-row justify-between items-start gap-4 text-center sm:text-left">
             <div className="flex-1">
               <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">
                 Plano Gerado pela IA
@@ -564,3 +564,5 @@ export default function GenerateWeeklyPlanPage() {
     </div>
   );
 }
+
+    

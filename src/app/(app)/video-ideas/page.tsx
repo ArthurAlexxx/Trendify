@@ -411,7 +411,7 @@ export default function VideoIdeasPage() {
 
       {(isGenerating || result) && (
         <div className="space-y-8 animate-fade-in">
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-center">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
             <div className="flex-1">
               <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">
                 Resultado da IA
@@ -601,3 +601,5 @@ function InfoListCard({
     </Card>
   );
 }
+
+    

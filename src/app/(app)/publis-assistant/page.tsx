@@ -35,6 +35,7 @@ import {
   Target,
   BarChart,
   Eye,
+  Crown,
 } from 'lucide-react';
 import { useEffect, useActionState, useTransition, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -107,14 +108,17 @@ function PremiumFeatureGuard({ children }: { children: React.ReactNode }) {
         return (
              <AlertDialog open={true} onOpenChange={(open) => !open && router.push('/subscribe')}>
               <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Funcionalidade Premium</AlertDialogTitle>
+                 <AlertDialogHeader className="text-center items-center">
+                  <div className="h-16 w-16 rounded-full bg-yellow-400/10 flex items-center justify-center mb-2 border-2 border-yellow-400/20">
+                    <Crown className="h-8 w-8 text-yellow-500 animate-pulse" />
+                  </div>
+                  <AlertDialogTitle className="font-headline text-xl">Funcionalidade Premium</AlertDialogTitle>
                   <AlertDialogDescription>
                     O Assistente de Publis é um recurso exclusivo para assinantes do plano Premium. Faça o upgrade para ter acesso!
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogAction onClick={() => router.push('/subscribe')}>Ver Planos</AlertDialogAction>
+                  <AlertDialogAction onClick={() => router.push('/subscribe')} className="w-full">Ver Planos</AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
@@ -413,7 +417,7 @@ function PublisAssistantPageContent() {
 
       {(isGenerating || result) && (
         <div className="space-y-8 animate-fade-in">
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-center">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
             <div className="flex-1">
               <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">
                 Pacote de Conteúdo Gerado
@@ -526,3 +530,5 @@ function InfoListCard({
     </Card>
   );
 }
+
+    

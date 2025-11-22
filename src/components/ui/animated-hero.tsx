@@ -36,7 +36,7 @@ function AnimatedHero() {
             </Button>
           </div>
           <div className="flex gap-4 flex-col">
-            <h1 className="text-5xl md:text-7xl max-w-3xl tracking-tighter text-center font-bold font-headline">
+            <h1 className="text-5xl md:text-6xl max-w-3xl tracking-tighter text-center font-bold font-headline">
               <span className="text-foreground/90">A plataforma IA para seu</span>
               <span className="relative flex w-full justify-center overflow-hidden text-center md:pb-4 md:pt-1 text-primary">
                 &nbsp;
@@ -69,7 +69,7 @@ function AnimatedHero() {
               ação claro, ajudando você a crescer e monetizar seu conteúdo.
             </p>
           </div>
-          <div className="flex flex-row gap-3">
+          <div className="flex flex-col sm:flex-row gap-3 w-full max-w-sm sm:max-w-none">
              <Link
                 href="/dashboard"
                 className={cn(
@@ -96,3 +96,5 @@ function AnimatedHero() {
 }
 
 export { AnimatedHero };
+
+    
