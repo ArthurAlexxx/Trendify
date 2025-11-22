@@ -112,9 +112,9 @@ export default function SubscribePage() {
           description="Para criadores que levam o crescimento a sério."
           features={[
             'Gerações de IA <b>ilimitadas</b>',
-            'Mídia kit e propostas automáticas',
-            'Análise de vídeos publicados',
-            'Planejamento semanal com IA',
+            'Planejamento de conteúdo semanal',
+            'Calendário de publicações',
+            'Análise de Vídeo com IA (3/dia)',
             'Suporte via e-mail',
           ]}
         />
@@ -126,9 +126,10 @@ export default function SubscribePage() {
           isPremium
           features={[
             '<b>Tudo do plano PRO</b>',
+            'Análise de Vídeo com IA (10/dia)',
+            'Assistente de Propostas para Publis',
+            'Gerador de Mídia Kit profissional',
             'Acesso antecipado a novas ferramentas',
-            'Análise de vídeo (em breve)',
-            'Consultoria IA Avançada (em breve)',
             'Suporte prioritário via WhatsApp',
           ]}
         />
