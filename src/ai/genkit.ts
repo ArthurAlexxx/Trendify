@@ -1,6 +1,5 @@
 import { genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/google-genai';
-import { GENKIT_ENV } from 'genkit/environment';
 
 // This file configures the Genkit AI services for the application.
 
@@ -8,7 +7,7 @@ import { GENKIT_ENV } from 'genkit/environment';
 // This is the most direct and reliable way to handle authentication for Google AI services.
 const apiKey = process.env.GOOGLE_AI_API_KEY;
 
-if (!apiKey && GENKIT_ENV === 'prod') {
+if (!apiKey && process.env.NODE_ENV === 'production') {
   console.warn(
     `[Genkit] A GOOGLE_AI_API_KEY não foi encontrada nas variáveis de ambiente. A análise de vídeo pode falhar.`
   );
