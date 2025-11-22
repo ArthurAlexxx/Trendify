@@ -32,6 +32,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarTrigger,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import { useUser, useAuth } from '@/firebase';
 import { Button } from './ui/button';
@@ -66,6 +67,7 @@ export function AppSidebar() {
   const auth = useAuth();
   const router = useRouter();
   const { subscription, isLoading: isSubscriptionLoading } = useSubscription();
+  const { isMobile } = useSidebar();
 
   const handleSignOut = () => {
     auth.signOut();
@@ -125,7 +127,7 @@ export function AppSidebar() {
             const button = (
                  <SidebarMenuButton
                   isActive={pathname.startsWith(item.href)}
-                  tooltip={item.label}
+                  tooltip={isMobile ? undefined : item.label}
                   className="h-10 justify-start"
                   disabled={!accessible}
                 >
@@ -180,7 +182,7 @@ export function AppSidebar() {
                     </div>
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent side="right" align="end" className="w-56 mb-2">
+            <DropdownMenuContent side={isMobile ? 'top' : 'right'} align="end" className="w-56 mb-2">
                 <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
