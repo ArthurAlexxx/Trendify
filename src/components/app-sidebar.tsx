@@ -83,7 +83,7 @@ export function AppSidebar() {
       variant="inset"
       className="glass-effect"
     >
-      <SidebarHeader className="flex items-center p-4 h-20 border-b border-gray-200/80">
+      <SidebarHeader className="flex items-center p-4 h-20 border-b border-white/10">
         <Link
           href="/"
           className="flex items-center gap-2 text-xl font-bold font-headline tracking-tighter text-foreground"
@@ -129,7 +129,10 @@ export function AppSidebar() {
                  <SidebarMenuButton
                   isActive={active}
                   tooltip={isMobile ? undefined : item.label}
-                  className={cn("h-10 justify-start", active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-accent")}
+                  className={cn(
+                    "h-10 justify-start", 
+                    active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                  )}
                   disabled={!accessible}
                 >
                   <item.icon className="h-5 w-5" />
@@ -162,7 +165,7 @@ export function AppSidebar() {
           })}
         </SidebarMenu>
       </SidebarContent>
-      <SidebarFooter className="p-4 border-t border-gray-200/80">
+      <SidebarFooter className="p-4 border-t border-white/10">
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className='w-full justify-start h-auto p-0 hover:bg-transparent'>
