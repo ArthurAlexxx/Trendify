@@ -37,7 +37,6 @@ import { Separator } from "@/components/ui/separator";
 import { useUser, useFirestore } from "@/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { useTransition } from "react";
-import { type VideoAnalysisOutput as VideoAnalysisOutputType } from "@/lib/types";
 
 type AnalysisStatus = "idle" | "loading" | "success" | "error";
 
@@ -48,7 +47,7 @@ export default function VideoReviewPage() {
   const { toast } = useToast();
 
   const [analysisStatus, setAnalysisStatus] = useState<AnalysisStatus>("idle");
-  const [analysisResult, setAnalysisResult] = useState<VideoAnalysisOutputType | null>(null);
+  const [analysisResult, setAnalysisResult] = useState<VideoAnalysisOutput | null>(null);
   const [analysisError, setAnalysisError] = useState<string>("");
   
   const { user } = useUser();
@@ -57,6 +56,14 @@ export default function VideoReviewPage() {
 
   const handleFileSelect = (selectedFile: File | null) => {
     if (selectedFile) {
+      if (!selectedFile.type.startsWith('video/')) {
+        toast({
+          title: "Arquivo Inválido",
+          description: "Por favor, selecione um arquivo de vídeo (MP4, MOV, etc.).",
+          variant: "destructive",
+        });
+        return;
+      }
       setFile(selectedFile);
       resetState();
     }
@@ -107,8 +114,8 @@ export default function VideoReviewPage() {
   };
 
   const handleAnalyzeVideo = async () => {
-    if (!file || !file.type.startsWith('video/')) {
-        setAnalysisError("Por favor, selecione um arquivo de vídeo válido para analisar.");
+    if (!file) {
+        setAnalysisError("Por favor, selecione um arquivo para analisar.");
         setAnalysisStatus("error");
         return;
     }
@@ -240,18 +247,14 @@ export default function VideoReviewPage() {
         <p className="font-medium">{file.name}</p>
         <p className="text-sm text-muted-foreground">{formatFileSize(file.size)}</p>
         <div className="flex justify-center gap-4">
-          {isVideo ? (
-             <Button onClick={handleAnalyzeVideo} disabled={analysisStatus === 'loading'}>
-              {analysisStatus === 'loading' ? (
-                <Loader2 className="mr-2 animate-spin" />
-              ) : (
-                <Sparkles className="mr-2" />
-              )}
-              Analisar Vídeo
-            </Button>
-          ) : (
-            <p className="text-sm text-muted-foreground">A análise só está disponível para vídeos no momento.</p>
-          )}
+          <Button onClick={handleAnalyzeVideo} disabled={analysisStatus === 'loading'}>
+            {analysisStatus === 'loading' ? (
+              <Loader2 className="mr-2 animate-spin" />
+            ) : (
+              <Sparkles className="mr-2" />
+            )}
+            Analisar Vídeo
+          </Button>
           <Button onClick={handleReset} variant="outline">
             Cancelar
           </Button>
@@ -275,7 +278,7 @@ export default function VideoReviewPage() {
 
             const noteMatch = analysisResult.geral.match(/(\d{1,2}(?:[.,]\d{1,2})?)\s*\/\s*10/);
             const numericNote = noteMatch ? noteMatch[1] : analysisResult.geral;
-            const noteDescription = noteMatch ? analysisResult.geral.replace(noteMatch[0], '').trim() : '';
+            const noteDescription = noteMatch ? analysisResult.geral.replace(noteMatch[0], '').replace(':', '').trim() : '';
 
             return (
                 <div className="space-y-6 text-left">
@@ -283,35 +286,35 @@ export default function VideoReviewPage() {
                         <CardHeader>
                             <CardTitle className="font-headline text-lg text-primary text-center sm:text-left">Nota de Viralização</CardTitle>
                         </CardHeader>
-                        <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
-                            <div className="sm:col-span-1 text-center">
+                        <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
+                            <div className="text-center">
                                 <p className="text-4xl font-bold text-foreground">{numericNote}</p>
                                 <p className="text-sm text-muted-foreground">de 10</p>
+                                {noteDescription && (
+                                   <p className="text-sm text-muted-foreground mt-2">{noteDescription}</p>
+                                )}
                             </div>
                              <div className="hidden sm:block">
-                                <Separator orientation="vertical" className="h-16" />
+                                <Separator orientation="vertical" className="h-24" />
                              </div>
-                            <div className="sm:col-span-1 text-center sm:text-left">
-                                <p className="text-sm text-muted-foreground">{noteDescription}</p>
-                            </div>
+                            <Card>
+                              <CardHeader>
+                                <CardTitle className="text-lg font-semibold">Checklist de Melhorias</CardTitle>
+                              </CardHeader>
+                               <CardContent>
+                                <ul className="space-y-3">
+                                    {analysisResult.melhorias.map((item, index) => (
+                                        <li key={index} className="flex items-start gap-3">
+                                        <Check className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                                        <span className="text-muted-foreground">{item}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                               </CardContent>
+                            </Card>
                         </CardContent>
                     </Card>
 
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-lg font-semibold">Checklist de Melhorias</CardTitle>
-                      </CardHeader>
-                       <CardContent>
-                        <ul className="space-y-3">
-                            {analysisResult.melhorias.map((item, index) => (
-                                <li key={index} className="flex items-start gap-3">
-                                <Check className="h-5 w-5 text-primary mt-0.5 shrink-0" />
-                                <span className="text-muted-foreground">{item}</span>
-                                </li>
-                            ))}
-                        </ul>
-                       </CardContent>
-                    </Card>
                     
                     <Accordion type="single" collapsible className="w-full">
                         <AccordionItem value="item-1">
@@ -377,11 +380,11 @@ export default function VideoReviewPage() {
             <SavedIdeasSheet />
         </PageHeader>
         <div className="flex justify-center">
-            <Card className="w-full max-w-2xl shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
+            <Card className="w-full max-w-4xl shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
                 <CardHeader>
-                    <CardTitle className="text-2xl font-headline">Analisador de Vídeo</CardTitle>
-                    <CardDescription>
-                    Selecione um vídeo para que a IA analise seu conteúdo.
+                    <CardTitle className="text-2xl font-headline text-center sm:text-left">Analisador de Vídeo</CardTitle>
+                    <CardDescription className="text-center sm:text-left">
+                     Selecione um vídeo para que a IA analise e dê sugestões de melhoria.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
