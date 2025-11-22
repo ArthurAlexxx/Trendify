@@ -10,6 +10,7 @@ import {
   Sparkles,
   Clapperboard,
   Check,
+  Save,
 } from "lucide-react";
 import {
   Card,
@@ -21,12 +22,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { analyzeVideo } from "./actions";
+import { analyzeVideo, type VideoAnalysisOutput } from "./actions";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PageHeader } from "@/components/page-header";
 import { SavedIdeasSheet } from "@/components/saved-ideas-sheet";
 import { Video } from "lucide-react";
-import type { VideoAnalysisOutput } from "./actions";
 import {
   Accordion,
   AccordionContent,
@@ -34,6 +34,9 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Separator } from "@/components/ui/separator";
+import { useUser, useFirestore } from "@/firebase";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { useTransition } from "react";
 
 type AnalysisStatus = "idle" | "loading" | "success" | "error";
 
@@ -46,6 +49,10 @@ export default function VideoReviewPage() {
   const [analysisStatus, setAnalysisStatus] = useState<AnalysisStatus>("idle");
   const [analysisResult, setAnalysisResult] = useState<VideoAnalysisOutput | null>(null);
   const [analysisError, setAnalysisError] = useState<string>("");
+  
+  const { user } = useUser();
+  const firestore = useFirestore();
+  const [isSaving, startSavingTransition] = useTransition();
 
   const handleFileSelect = (selectedFile: File | null) => {
     if (selectedFile) {
@@ -142,6 +149,43 @@ export default function VideoReviewPage() {
             variant: "destructive",
         });
     }
+  };
+
+  const handleSaveAnalysis = () => {
+    if (!analysisResult || !file || !user || !firestore) return;
+
+    startSavingTransition(async () => {
+      try {
+        const title = `Análise do vídeo: ${file.name}`;
+        
+        let content = `**Nota Geral:** ${analysisResult.geral}\n\n`;
+        content += `**Gancho:**\n${analysisResult.gancho}\n\n`;
+        content += `**Conteúdo:**\n${analysisResult.conteudo}\n\n`;
+        content += `**CTA:**\n${analysisResult.cta}\n\n`;
+        content += `**Checklist de Melhorias:**\n- ${analysisResult.melhorias.join('\n- ')}`;
+
+        await addDoc(collection(firestore, `users/${user.uid}/ideiasSalvas`), {
+          userId: user.uid,
+          titulo: title,
+          conteudo: content,
+          origem: 'Análise de Vídeo',
+          concluido: false,
+          createdAt: serverTimestamp(),
+        });
+
+        toast({
+          title: 'Análise Salva!',
+          description: 'Você pode encontrá-la no painel de ideias salvas.',
+        });
+      } catch (error) {
+        console.error('Failed to save analysis:', error);
+        toast({
+          title: 'Erro ao Salvar',
+          description: 'Não foi possível salvar a análise. Tente novamente.',
+          variant: 'destructive',
+        });
+      }
+    });
   };
 
   const formatFileSize = (bytes: number) => {
@@ -290,6 +334,10 @@ export default function VideoReviewPage() {
                     </Accordion>
 
                     <div className="flex justify-center gap-4 pt-4">
+                        <Button onClick={handleSaveAnalysis} disabled={isSaving}>
+                          {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                          Salvar Análise
+                        </Button>
                         <Button onClick={handleReset} variant="outline">
                             Analisar Outro Vídeo
                         </Button>
