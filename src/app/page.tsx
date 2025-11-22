@@ -388,11 +388,11 @@ export default function LandingPage() {
 
         {/* Benefits Section */}
         <section id="beneficios" className="py-20 sm:py-24">
-          <div className="container text-center">
-            <h2 className="text-3xl md:text-4xl font-bold font-headline tracking-tight mb-4 text-center sm:text-left">
+          <div className="container text-center sm:text-left">
+            <h2 className="text-3xl md:text-4xl font-bold font-headline tracking-tight mb-4">
               Menos esforço, mais inteligência.
             </h2>
-            <p className="text-lg text-muted-foreground mb-12 max-w-2xl mx-auto text-center sm:text-left">
+            <p className="text-lg text-muted-foreground mb-12 max-w-2xl">
               Tudo que você precisa para crescer de forma inteligente, em um só
               lugar.
             </p>
@@ -435,11 +435,11 @@ export default function LandingPage() {
         <section id="why-trendify" className="py-20 sm:py-24 bg-muted/30">
           <div className="container">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
-              <div>
-                <h2 className="text-3xl md:text-4xl font-bold font-headline tracking-tight mb-4 text-center sm:text-left">
+              <div className="text-center sm:text-left">
+                <h2 className="text-3xl md:text-4xl font-bold font-headline tracking-tight mb-4">
                   Por que a Trendify?
                 </h2>
-                <p className="text-lg text-muted-foreground mb-8 text-center sm:text-left">
+                <p className="text-lg text-muted-foreground mb-8">
                   Nós não somos apenas mais uma ferramenta de análise. Somos um
                   sistema operacional para o crescimento do criador de
                   conteúdo.
