@@ -8,8 +8,8 @@
  * - AnalyzeVideoOutput - The return type for the analyzeVideo function.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { ai } from '@/ai/genkit';
+import { z } from 'genkit';
 
 const AnalyzeVideoInputSchema = z.object({
   videoDataUri: z
@@ -33,8 +33,9 @@ export async function analyzeVideo(
 
 const prompt = ai.definePrompt({
   name: 'analyzeVideoPrompt',
-  input: {schema: AnalyzeVideoInputSchema},
-  output: {schema: AnalyzeVideoOutputSchema},
+  input: { schema: AnalyzeVideoInputSchema },
+  output: { schema: AnalyzeVideoOutputSchema },
+  model: 'googleai/gemini-2.5-flash',
   prompt: `You are a video analysis expert. Analyze the provided video and describe its content in a concise paragraph.
 
 Video: {{media url=videoDataUri}}`,
@@ -47,7 +48,7 @@ const analyzeVideoFlow = ai.defineFlow(
     outputSchema: AnalyzeVideoOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
+    const { output } = await prompt(input);
     if (!output) {
       throw new Error("A IA não retornou uma análise.");
     }
