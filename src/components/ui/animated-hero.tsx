@@ -83,7 +83,7 @@ function AnimatedHero() {
                 href="/sign-up"
                 className={cn(
                     buttonVariants({ size: 'lg' }),
-                    'font-manrope rounded-lg text-base h-12 px-8 w-full sm:w-auto bg-gradient-to-r from-purple-600 to-indigo-600 text-primary-foreground shadow-lg hover:opacity-90 transition-opacity'
+                    'font-manrope rounded-lg text-base h-12 px-8 w-full sm:w-auto bg-gradient-to-r from-purple-600 to-indigo-600 text-primary-foreground shadow-lg shadow-indigo-500/40 hover:opacity-90 transition-opacity'
                 )}
             >
               Começar Grátis <ArrowRight className="w-4 h-4" />
@@ -96,5 +96,3 @@ function AnimatedHero() {
 }
 
 export { AnimatedHero };
-
-    
