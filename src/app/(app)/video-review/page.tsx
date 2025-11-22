@@ -13,6 +13,10 @@ import {
   Video,
   XCircle,
   Lightbulb,
+  BrainCircuit,
+  Target,
+  BarChart,
+  Eye,
 } from "lucide-react";
 import {
   Card,
@@ -37,6 +41,7 @@ import {
 import { useUser, useFirestore } from "@/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { useTransition } from "react";
+import { Separator } from "@/components/ui/separator";
 
 type AnalysisStatus = "idle" | "loading" | "success" | "error";
 const MAX_FILE_SIZE_MB = 70;
@@ -211,55 +216,99 @@ export default function VideoReviewPage() {
   const numericNote = noteMatch ? noteMatch[1] : analysisResult?.geral;
   const noteDescription = noteMatch ? analysisResult?.geral.replace(noteMatch[0], '').replace(':', '').trim() : '';
 
+  const analysisCriteria = [
+    {
+        icon: Eye,
+        title: "Retenção e Gancho",
+        description: "A IA avalia os 3 primeiros segundos para ver se o gancho é forte o suficiente para parar a rolagem e gerar curiosidade."
+    },
+    {
+        icon: BrainCircuit,
+        title: "Ritmo e Conteúdo",
+        description: "Analisa a estrutura do vídeo, o ritmo da edição e a clareza da mensagem para identificar pontos que podem causar a perda de interesse."
+    },
+    {
+        icon: Target,
+        title: "Eficácia do CTA",
+        description: "Verifica se a chamada para ação (CTA) é clara, convincente e está alinhada com o objetivo do vídeo (vendas, seguidores, etc.)."
+    },
+     {
+        icon: BarChart,
+        title: "Potencial de Viralização",
+        description: "Com base em todos os fatores, a IA atribui uma nota e um checklist de melhorias para aumentar o potencial de alcance do seu vídeo."
+    }
+  ]
+
   return (
     <div className="space-y-12">
         <PageHeader
             icon={<Video />}
             title="Diagnóstico de Vídeo com IA"
-            description="Envie um vídeo de até 70MB e receba um diagnóstico completo do seu potencial."
+            description="Receba uma análise completa do potencial de viralização do seu vídeo e um plano de ação para melhorá-lo."
         >
             <SavedIdeasSheet />
         </PageHeader>
         
-        {!file ? (
-            <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
-                <CardContent className="p-6">
-                    <div
-                        className={`flex w-full flex-col items-center justify-center rounded-xl border-2 border-dashed p-12 text-center transition-colors ${
-                        isDragging ? "border-primary bg-primary/10" : "border-border"
-                        }`}
-                        onDragEnter={handleDragEnter}
-                        onDragLeave={handleDragLeave}
-                        onDragOver={handleDragOver}
-                        onDrop={handleDrop}
-                    >
-                        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20 text-primary">
-                            <UploadCloud className="h-8 w-8" />
+        <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
+            <CardHeader>
+                <CardTitle className="flex items-center gap-3 font-headline text-xl text-center sm:text-left">
+                    <BrainCircuit className="h-6 w-6 text-primary" />
+                    Como a IA Avalia Seu Vídeo?
+                </CardTitle>
+                 <CardDescription className="text-center sm:text-left">Nossa IA foi treinada para pensar como um estrategista de conteúdo viral. Ela analisa seu vídeo em busca de 4 pilares fundamentais:</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {analysisCriteria.map((item, index) => (
+                        <div key={index} className="p-4 rounded-lg bg-muted/50 border">
+                            <div className="flex items-center gap-3 mb-2">
+                                <item.icon className="h-5 w-5 text-primary" />
+                                <h4 className="font-semibold text-foreground">{item.title}</h4>
+                            </div>
+                            <p className="text-xs text-muted-foreground">{item.description}</p>
                         </div>
-                        <h3 className="mt-6 text-xl font-bold tracking-tight text-foreground">
-                            Arraste seu vídeo para cá
-                        </h3>
-                        <p className="mt-2 text-sm text-muted-foreground">
-                            ou clique para selecionar um arquivo do seu computador.
-                        </p>
-                        <Button
-                        type="button"
-                        variant="outline"
-                        className="mt-6 rounded-full font-manrope"
-                        onClick={() => fileInputRef.current?.click()}
-                        >
-                        Selecionar Vídeo
-                        </Button>
-                        <Input
-                            ref={fileInputRef}
-                            type="file"
-                            className="hidden"
-                            onChange={handleFileInputChange}
-                            accept="video/*"
-                        />
-                    </div>
-                </CardContent>
-            </Card>
+                    ))}
+                </div>
+            </CardContent>
+        </Card>
+        
+        <Separator />
+
+        {!file ? (
+             <div
+                className={`flex w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed p-12 text-center transition-colors ${
+                isDragging ? "border-primary bg-primary/10" : "border-border/50"
+                }`}
+                onDragEnter={handleDragEnter}
+                onDragLeave={handleDragLeave}
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
+            >
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20 text-primary">
+                    <UploadCloud className="h-8 w-8" />
+                </div>
+                <h3 className="mt-6 text-xl font-bold tracking-tight text-foreground">
+                    Arraste seu vídeo para cá
+                </h3>
+                <p className="mt-2 text-sm text-muted-foreground">
+                    ou clique para selecionar um arquivo. Limite de {MAX_FILE_SIZE_MB}MB por vídeo.
+                </p>
+                <Button
+                type="button"
+                variant="outline"
+                className="mt-6 rounded-full font-manrope"
+                onClick={() => fileInputRef.current?.click()}
+                >
+                Selecionar Vídeo
+                </Button>
+                <Input
+                    ref={fileInputRef}
+                    type="file"
+                    className="hidden"
+                    onChange={handleFileInputChange}
+                    accept="video/*"
+                />
+            </div>
         ) : (
             <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
                 <CardHeader>
@@ -272,7 +321,7 @@ export default function VideoReviewPage() {
                         <Clapperboard className="h-10 w-10 text-primary" />
                         <div className="flex-1">
                             <p className="font-medium">{file.name}</p>
-                            <p className="text-sm text-muted-foreground">{new Intl.NumberFormat('en-US', { style: 'unit', unit: 'megabyte', unitDisplay: 'short' }).format(file.size / 1024 / 1024)}</p>
+                            <p className="text-sm text-muted-foreground">{new Intl.NumberFormat('pt-BR', { style: 'unit', unit: 'megabyte', unitDisplay: 'short' }).format(file.size / 1024 / 1024)}</p>
                         </div>
                         <div className="flex w-full sm:w-auto flex-col sm:flex-row gap-2">
                             <Button onClick={handleAnalyzeVideo} disabled={analysisStatus === 'loading'} className="w-full sm:w-auto rounded-full font-manrope">
