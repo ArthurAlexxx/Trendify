@@ -20,32 +20,46 @@ const AnalyzeVideoInputSchema = z.object({
 });
 export type AnalyzeVideoInput = z.infer<typeof AnalyzeVideoInputSchema>;
 
-const AnalyzeVideoOutputSchema = z.object({
-  analysis: z.string().describe('A description of what is happening in the video.'),
+const VideoAnalysisOutputSchema = z.object({
+  geral: z.string().describe("Uma nota geral de 0 a 10 para o potencial de viralização do vídeo."),
+  gancho: z.string().describe("Análise do gancho (primeiros 3 segundos), explicando o que funciona ou o que pode ser melhorado para reter a atenção."),
+  conteudo: z.string().describe("Análise do conteúdo principal (o 'miolo' do vídeo), avaliando a entrega de valor, ritmo e engajamento."),
+  cta: z.string().describe("Análise da chamada para ação (CTA), avaliando se é clara, convincente e alinhada ao objetivo do vídeo."),
+  melhorias: z.array(z.string()).describe("Um checklist com 3 sugestões práticas e acionáveis para o criador melhorar o vídeo."),
 });
-export type AnalyzeVideoOutput = z.infer<typeof AnalyzeVideoOutputSchema>;
+export type VideoAnalysisOutput = z.infer<typeof VideoAnalysisOutputSchema>;
+
 
 export async function analyzeVideo(
   input: AnalyzeVideoInput
-): Promise<AnalyzeVideoOutput> {
+): Promise<VideoAnalysisOutput> {
   return analyzeVideoFlow(input);
 }
 
 const prompt = ai.definePrompt({
   name: 'analyzeVideoPrompt',
   input: { schema: AnalyzeVideoInputSchema },
-  output: { schema: AnalyzeVideoOutputSchema },
+  output: { schema: VideoAnalysisOutputSchema },
   model: 'googleai/gemini-2.5-flash',
-  prompt: `You are a video analysis expert. Analyze the provided video and describe its content in a concise paragraph.
+  prompt: `Você é uma IA especialista em conteúdo viral e estrategista para criadores de conteúdo. Sua tarefa é analisar um vídeo e fornecer um diagnóstico completo e acionável.
 
-Video: {{media url=videoDataUri}}`,
+Analise o vídeo fornecido e retorne sua análise ESTRITAMENTE no formato JSON solicitado.
+
+Vídeo: {{media url=videoDataUri}}
+
+Diretrizes para a Análise:
+- geral: Dê uma nota de 0 a 10 para o potencial de viralização do vídeo, com base em todos os critérios.
+- gancho: Avalie os primeiros 3 segundos. O gancho é forte? Gera curiosidade? É rápido o suficiente?
+- conteudo: Avalie o desenvolvimento do vídeo. O ritmo é bom? A mensagem é clara? O conteúdo entrega o que o gancho prometeu?
+- cta: Avalie a chamada para ação no final. Ela é clara? É relevante para o conteúdo? Incentiva uma ação específica?
+- melhorias: Forneça EXATAMENTE 3 dicas práticas e diretas que o criador pode aplicar para melhorar o vídeo. Comece cada dica com um verbo de ação (ex: "Adicione legendas dinâmicas...", "Corte os primeiros 2 segundos...", "Use um gancho mais direto...").`,
 });
 
 const analyzeVideoFlow = ai.defineFlow(
   {
     name: 'analyzeVideoFlow',
     inputSchema: AnalyzeVideoInputSchema,
-    outputSchema: AnalyzeVideoOutputSchema,
+    outputSchema: VideoAnalysisOutputSchema,
   },
   async input => {
     const { output } = await prompt(input);
