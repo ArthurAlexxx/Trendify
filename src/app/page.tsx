@@ -351,7 +351,7 @@ export default function LandingPage() {
                                         key={link.href}
                                         className={buttonVariants({
                                             variant: 'ghost',
-                                            className: 'text-lg h-12',
+                                            className: 'text-lg h-12 justify-center',
                                         })}
                                         href={link.href}
                                         onClick={() => setIsMenuOpen(false)}
@@ -445,24 +445,24 @@ export default function LandingPage() {
                 <h2 className="text-3xl md:text-4xl font-bold font-headline tracking-tight mb-4">
                   Por que a Trendify?
                 </h2>
-                <p className="text-lg text-muted-foreground mb-8">
+                <p className="text-lg text-muted-foreground mb-12">
                   Nós não somos apenas mais uma ferramenta de análise. Somos um
                   sistema operacional para o crescimento do criador de
                   conteúdo.
                 </p>
-                <div className="space-y-6">
+                <div className="grid sm:grid-cols-1 gap-6">
                   {whyTrendify.map((item) => (
-                    <div key={item.title} className="flex gap-4">
-                      <div className="h-10 w-10 flex-shrink-0 rounded-lg bg-primary text-primary-foreground flex items-center justify-center">
-                        <item.icon className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-lg">{item.title}</h3>
-                        <p className="text-muted-foreground">
-                          {item.description}
-                        </p>
-                      </div>
-                    </div>
+                     <Card key={item.title} className="bg-background/50 border-border/50 shadow-sm hover:shadow-lg transition-shadow rounded-2xl">
+                        <CardContent className="p-6 flex flex-col sm:flex-row items-center text-center sm:text-left gap-6">
+                            <div className="h-16 w-16 flex-shrink-0 rounded-xl bg-primary/10 text-primary flex items-center justify-center border border-primary/20">
+                                <item.icon className="h-8 w-8" />
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-lg text-foreground">{item.title}</h3>
+                                <p className="text-muted-foreground mt-1">{item.description}</p>
+                            </div>
+                        </CardContent>
+                     </Card>
                   ))}
                 </div>
               </div>
