@@ -15,5 +15,4 @@ export const ai = genkit({
   plugins: [
     googleAI(apiKey ? { apiKey } : {}),
   ],
-  enableTracingAndMetrics: true,
 });
