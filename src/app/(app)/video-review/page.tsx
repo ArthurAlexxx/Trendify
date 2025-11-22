@@ -238,7 +238,7 @@ export default function VideoReviewPage() {
           >
             Selecione o Arquivo
           </Button>
-           <p className="text-xs text-muted-foreground mt-2">Limite de ${MAX_FILE_SIZE_MB}MB por vídeo</p>
+           <p className="text-xs text-muted-foreground mt-2">Limite de {MAX_FILE_SIZE_MB}MB por vídeo</p>
           <Input
             ref={fileInputRef}
             type="file"
