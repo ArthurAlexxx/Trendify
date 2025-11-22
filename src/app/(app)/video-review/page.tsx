@@ -80,6 +80,7 @@ function usePollAnalysis(operationId: string | null) {
 
 export default function VideoReviewPage() {
   const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, startSavingTransition] = useTransition();
@@ -125,31 +126,11 @@ export default function VideoReviewPage() {
     }
   }, [analysisResult, toast]);
 
-  const onDrop = (acceptedFiles: File[]) => {
-    const file = acceptedFiles[0];
-    if (file && file.type.startsWith('video/')) {
-      setVideoFile(file);
-      router.push('/video-review'); // Reset URL if a new file is dropped
-      setUploadProgress(null);
-    } else {
-      toast({
-        title: 'Arquivo Inválido',
-        description: 'Por favor, selecione um arquivo de vídeo.',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    multiple: false,
-    accept: { 'video/*': [] },
-  });
-
-  const handleFormAction = (formData: FormData) => {
+  const handleUpload = () => {
     if (!videoFile || !user) return;
     
     setIsUploading(true);
+    setUploadProgress(0);
     const storage = getStorage(initializeFirebase().firebaseApp);
     const storageRef = ref(
       storage,
@@ -177,12 +158,38 @@ export default function VideoReviewPage() {
       () => {
         getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
           setIsUploading(false);
-          formData.set('videoUrl', downloadURL);
-          formAction(formData);
+          setVideoUrl(downloadURL);
+          toast({
+            title: 'Upload Concluído!',
+            description: 'Seu vídeo foi enviado. Agora clique em "Analisar Vídeo".',
+          });
         });
       }
     );
   };
+
+
+  const onDrop = (acceptedFiles: File[]) => {
+    const file = acceptedFiles[0];
+    if (file && file.type.startsWith('video/')) {
+      setVideoFile(file);
+      setVideoUrl(null); // Reset URL when new file is dropped
+      setUploadProgress(null);
+      router.push('/video-review'); // Reset URL
+    } else {
+      toast({
+        title: 'Arquivo Inválido',
+        description: 'Por favor, selecione um arquivo de vídeo.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    multiple: false,
+    accept: { 'video/*': [] },
+  });
 
 
   const handleSave = async (result: VideoAnalysisOutput) => {
@@ -276,7 +283,7 @@ export default function VideoReviewPage() {
       )}
 
       {/* Uploading or Ready to Analyze State */}
-      {videoFile && !finalResult && (
+      {videoFile && !finalResult && !isCurrentlyPolling && (
         <Card className="shadow-lg shadow-primary/5 border-border/30 bg-card rounded-2xl max-w-2xl mx-auto">
           <CardContent className="p-6 space-y-6 flex flex-col items-center">
             <div className="flex items-center gap-4 bg-muted/50 p-3 rounded-lg w-full">
@@ -285,42 +292,59 @@ export default function VideoReviewPage() {
                 {videoFile.name}
               </p>
             </div>
-
-            {isUploading && uploadProgress !== null && (
+            
+            {uploadProgress !== null && (
               <div className="w-full space-y-2 text-center">
                 <Progress value={uploadProgress} />
                 <p className="text-sm text-primary">
-                  Enviando... {Math.round(uploadProgress)}%
+                  {isUploading ? `Enviando... ${Math.round(uploadProgress)}%` : `Upload concluído!`}
                 </p>
               </div>
             )}
+            
+            <div className="w-full flex flex-col sm:flex-row gap-4">
+                <Button onClick={handleUpload} disabled={isUploading || !!videoUrl} className="w-full sm:w-1/2">
+                   {isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <UploadCloud className="mr-2 h-4 w-4"/>}
+                   {videoUrl ? 'Enviado' : '1. Enviar Vídeo'}
+                </Button>
+                <form action={formAction} className="w-full sm:w-1/2">
+                    <input type="hidden" name="videoUrl" value={videoUrl || ''} />
+                    <Button
+                        type="submit"
+                        disabled={!videoUrl || isAnalyzing || isUploading}
+                        size="lg"
+                        className="font-manrope w-full h-10 px-10 rounded-md text-base font-bold shadow-lg shadow-primary/20 transition-transform hover:scale-[1.02]"
+                    >
+                        {isAnalyzing ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Sparkles className="mr-2 h-5 w-5" />}
+                        2. Analisar Vídeo
+                    </Button>
+                </form>
+            </div>
 
-            {(isAnalyzing || isCurrentlyPolling) && (
-              <div className="flex items-center gap-2 text-primary font-semibold animate-pulse">
+          </CardContent>
+        </Card>
+      )}
+      
+      {/* Polling/Analyzing State */}
+      {isCurrentlyPolling && (
+         <Card className="shadow-lg shadow-primary/5 border-border/30 bg-card rounded-2xl max-w-2xl mx-auto">
+          <CardContent className="p-6 space-y-6 flex flex-col items-center">
+            <div className="flex items-center gap-4 bg-muted/50 p-3 rounded-lg w-full">
+              <FileVideo className="h-8 w-8 text-muted-foreground" />
+              <p className="font-semibold text-sm text-muted-foreground truncate">
+                Análise em andamento...
+              </p>
+            </div>
+             <div className="flex items-center gap-2 text-primary font-semibold animate-pulse">
                 <Loader2 className="h-5 w-5 animate-spin" />
                 <span>
                   Analisando seu vídeo com IA... (Isso pode levar um minuto)
                 </span>
               </div>
-            )}
-
-            {!operationId && !isAnalyzing && (
-              <form action={handleFormAction} className="w-full">
-                 <input type="hidden" name="videoUrl" value="" />
-                 <Button
-                    type="submit"
-                    disabled={isUploading || isAnalyzing}
-                    size="lg"
-                    className="font-manrope w-full h-12 px-10 rounded-full text-base font-bold shadow-lg shadow-primary/20 transition-transform hover:scale-[1.02]"
-                >
-                    <Sparkles className="mr-2 h-5 w-5" />
-                    Analisar Vídeo
-                </Button>
-              </form>
-            )}
           </CardContent>
         </Card>
       )}
+
 
       {/* Analysis Result State */}
       {finalResult && (
