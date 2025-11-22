@@ -9,7 +9,8 @@ import {
   XCircle,
   Loader2,
   Sparkles,
-  Clapperboard
+  Clapperboard,
+  Check,
 } from "lucide-react";
 import {
   Card,
@@ -21,12 +22,18 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { analyzeVideo } from "./actions";
+import { analyzeVideoAction } from "./actions";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PageHeader } from "@/components/page-header";
 import { SavedIdeasSheet } from "@/components/saved-ideas-sheet";
 import { Video } from "lucide-react";
-
+import type { VideoAnalysisOutput } from "@/lib/types";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 type AnalysisStatus = "idle" | "loading" | "success" | "error";
 
@@ -37,7 +44,7 @@ export default function VideoReviewPage() {
   const { toast } = useToast();
 
   const [analysisStatus, setAnalysisStatus] = useState<AnalysisStatus>("idle");
-  const [analysisResult, setAnalysisResult] = useState<string>("");
+  const [analysisResult, setAnalysisResult] = useState<VideoAnalysisOutput | null>(null);
   const [analysisError, setAnalysisError] = useState<string>("");
 
   const handleFileSelect = (selectedFile: File | null) => {
@@ -82,7 +89,7 @@ export default function VideoReviewPage() {
 
   const resetState = () => {
     setAnalysisStatus("idle");
-    setAnalysisResult("");
+    setAnalysisResult(null);
     setAnalysisError("");
   };
 
@@ -100,7 +107,7 @@ export default function VideoReviewPage() {
 
     setAnalysisStatus("loading");
     setAnalysisError("");
-    setAnalysisResult("");
+    setAnalysisResult(null);
 
     try {
         const reader = new FileReader();
@@ -108,17 +115,17 @@ export default function VideoReviewPage() {
         reader.onloadend = async () => {
             const base64data = reader.result as string;
             
-            const result = await analyzeVideo({ videoDataUri: base64data });
+            const result = await analyzeVideoAction({ videoDataUri: base64data });
 
-            if (result && result.analysis) {
-                setAnalysisResult(result.analysis);
+            if (result && result.data) {
+                setAnalysisResult(result.data);
                 setAnalysisStatus("success");
                  toast({
                     title: "Análise Concluída",
                     description: "A IA analisou o seu vídeo.",
                 });
             } else {
-                throw new Error("A análise não produziu um resultado.");
+                throw new Error(result?.error || "A análise não produziu um resultado.");
             }
         };
         reader.onerror = () => {
@@ -219,15 +226,56 @@ export default function VideoReviewPage() {
                 </div>
             )
         case 'success':
+            if (!analysisResult) return null;
             return (
-                <div className="text-center space-y-6">
-                    <CheckCircle2 className="mx-auto h-12 w-12 text-green-500" />
-                    <Alert>
-                      <Sparkles className="h-4 w-4" />
-                      <AlertTitle>Análise da IA</AlertTitle>
-                      <AlertDescription className="whitespace-pre-wrap">{analysisResult}</AlertDescription>
-                    </Alert>
-                    <div className="flex justify-center gap-4">
+                <div className="space-y-6 text-left">
+                    <Card className="text-center bg-primary/10 border-primary/20">
+                      <CardHeader>
+                        <CardTitle className="font-headline text-lg text-primary">Nota de Viralização</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-5xl font-bold text-foreground">{analysisResult.geral}</p>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg font-semibold">Checklist de Melhorias</CardTitle>
+                      </CardHeader>
+                       <CardContent>
+                        <ul className="space-y-3">
+                            {analysisResult.melhorias.map((item, index) => (
+                                <li key={index} className="flex items-start gap-3">
+                                <Check className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                                <span className="text-muted-foreground">{item}</span>
+                                </li>
+                            ))}
+                        </ul>
+                       </CardContent>
+                    </Card>
+                    
+                    <Accordion type="single" collapsible className="w-full">
+                        <AccordionItem value="item-1">
+                            <AccordionTrigger>Análise do Gancho</AccordionTrigger>
+                            <AccordionContent>
+                            {analysisResult.gancho}
+                            </AccordionContent>
+                        </AccordionItem>
+                        <AccordionItem value="item-2">
+                            <AccordionTrigger>Análise do Conteúdo</AccordionTrigger>
+                            <AccordionContent>
+                             {analysisResult.conteudo}
+                            </AccordionContent>
+                        </AccordionItem>
+                        <AccordionItem value="item-3">
+                            <AccordionTrigger>Análise do CTA</AccordionTrigger>
+                            <AccordionContent>
+                             {analysisResult.cta}
+                            </AccordionContent>
+                        </AccordionItem>
+                    </Accordion>
+
+                    <div className="flex justify-center gap-4 pt-4">
                         <Button onClick={handleReset} variant="outline">
                             Analisar Outro Vídeo
                         </Button>
@@ -266,9 +314,9 @@ export default function VideoReviewPage() {
             <SavedIdeasSheet />
         </PageHeader>
         <div className="flex justify-center">
-            <Card className="w-full max-w-lg shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
+            <Card className="w-full max-w-2xl shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
                 <CardHeader>
-                    <CardTitle className="text-2xl font-headline">Analisador de Mídia</CardTitle>
+                    <CardTitle className="text-2xl font-headline">Analisador de Vídeo</CardTitle>
                     <CardDescription>
                     Selecione um vídeo para que a IA analise seu conteúdo.
                     </CardDescription>
