@@ -123,8 +123,10 @@ export default function VideoReviewPage() {
           'Falha ao obter o resultado da análise.',
         variant: 'destructive',
       });
+       // Clear the operationId from URL to allow retry
+      router.push('/video-review');
     }
-  }, [analysisResult, toast]);
+  }, [analysisResult, toast, router]);
 
   const handleUpload = () => {
     if (!videoFile || !user) return;
@@ -283,7 +285,7 @@ export default function VideoReviewPage() {
       )}
 
       {/* Uploading or Ready to Analyze State */}
-      {videoFile && !finalResult && !isCurrentlyPolling && (
+      {videoFile && !finalResult && !isAnalyzing && !isCurrentlyPolling && (
         <Card className="shadow-lg shadow-primary/5 border-border/30 bg-card rounded-2xl max-w-2xl mx-auto">
           <CardContent className="p-6 space-y-6 flex flex-col items-center">
             <div className="flex items-center gap-4 bg-muted/50 p-3 rounded-lg w-full">
@@ -315,7 +317,7 @@ export default function VideoReviewPage() {
                         size="lg"
                         className="font-manrope w-full h-10 px-10 rounded-md text-base font-bold shadow-lg shadow-primary/20 transition-transform hover:scale-[1.02]"
                     >
-                        {isAnalyzing ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Sparkles className="mr-2 h-5 w-5" />}
+                        <Sparkles className="mr-2 h-5 w-5" />
                         2. Analisar Vídeo
                     </Button>
                 </form>
@@ -326,7 +328,7 @@ export default function VideoReviewPage() {
       )}
       
       {/* Polling/Analyzing State */}
-      {isCurrentlyPolling && (
+      {(isAnalyzing || isCurrentlyPolling) && (
          <Card className="shadow-lg shadow-primary/5 border-border/30 bg-card rounded-2xl max-w-2xl mx-auto">
           <CardContent className="p-6 space-y-6 flex flex-col items-center">
             <div className="flex items-center gap-4 bg-muted/50 p-3 rounded-lg w-full">
@@ -444,3 +446,5 @@ function AnalysisSection({
     </div>
   );
 }
+
+    
