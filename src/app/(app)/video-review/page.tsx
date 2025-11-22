@@ -12,7 +12,7 @@ import {
   KeyRound,
   CheckCircle2,
 } from 'lucide-react';
-import { useState, useTransition, useCallback, useActionState, useRef } from 'react';
+import { useState, useTransition, useCallback, useActionState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useDropzone } from 'react-dropzone';
@@ -23,13 +23,10 @@ import { SavedIdeasSheet } from '@/components/saved-ideas-sheet';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 
 export default function VideoReviewPage() {
   const [file, setFile] = useState<File | null>(null);
   const [videoDataUri, setVideoDataUri] = useState<string>('');
-  const [apiKey, setApiKey] = useState('');
 
   const [isSaving, startSavingTransition] = useTransition();
   const { user } = useUser();
@@ -67,6 +64,10 @@ export default function VideoReviewPage() {
   const handleReset = () => {
     setFile(null);
     setVideoDataUri('');
+    // A ação do useActionState não é limpa diretamente, mas ao submeter de novo
+    // o estado será resetado pela nova ação. Se for preciso limpar visualmente
+    // sem reenviar, seria necessário um state local adicional.
+    // Por enquanto, o fluxo de resubmissão cuidará disso.
   };
   
   const handleSave = async (analysis: string) => {
@@ -148,28 +149,6 @@ export default function VideoReviewPage() {
 
     return (
       <form action={formAction} className="space-y-6">
-        <div className="space-y-2">
-          <Label htmlFor="apiKey" className="flex items-center gap-2 font-semibold">
-            <KeyRound className="h-4 w-4 text-primary" />
-            Sua Chave de API do Gemini
-          </Label>
-          <Input
-            id="apiKey"
-            name="apiKey"
-            type="password"
-            value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
-            placeholder="Cole sua chave de API aqui"
-            required
-            className="h-11"
-          />
-          <p className="text-xs text-muted-foreground">
-             Sua chave é usada apenas para esta análise e não é armazenada.
-             Você pode criar uma no {' '}
-             <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">Google AI Studio</a>.
-          </p>
-        </div>
-
         <div
           {...getRootProps()}
           className={`relative flex w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed p-10 text-center transition-colors ${
@@ -198,7 +177,7 @@ export default function VideoReviewPage() {
         
         <Button
           type="submit"
-          disabled={isAnalyzing || !videoDataUri || !apiKey}
+          disabled={isAnalyzing || !videoDataUri}
           size="lg"
           className="font-manrope w-full h-12 text-base font-bold shadow-lg shadow-primary/20 transition-transform hover:scale-[1.02]"
         >
