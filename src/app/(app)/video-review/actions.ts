@@ -3,8 +3,16 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import { VideoAnalysisOutputSchema, type VideoAnalysisOutput } from '@/lib/types';
 
+const VideoAnalysisOutputSchema = z.object({
+  geral: z.string().describe('Uma nota geral de 0 a 10 para o potencial de viralização do vídeo.'),
+  gancho: z.string().describe('Análise dos primeiros 3 segundos do vídeo, avaliando se o gancho é forte e gera curiosidade.'),
+  conteudo: z.string().describe('Análise do desenvolvimento do vídeo, ritmo e clareza da mensagem.'),
+  cta: z.string().describe('Avaliação da chamada para ação (call to action) no final do vídeo.'),
+  melhorias: z.array(z.string()).describe('Uma lista de 3 dicas práticas para o criador melhorar o vídeo.'),
+});
+
+export type VideoAnalysisOutput = z.infer<typeof VideoAnalysisOutputSchema>;
 
 type ActionState = {
   data?: VideoAnalysisOutput;
