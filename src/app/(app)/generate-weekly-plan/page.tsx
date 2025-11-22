@@ -21,7 +21,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Bot, Loader2, Sparkles, Trash2, Check, History, ClipboardList, BrainCircuit, Target, BarChart, Eye } from 'lucide-react';
+import { Bot, Loader2, Sparkles, Trash2, Check, History, ClipboardList, BrainCircuit, Target, BarChart as BarChartIcon, Eye } from 'lucide-react';
 import { useEffect, useActionState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -88,7 +88,7 @@ const analysisCriteria = [
         description: "Para cada dia da semana, a IA define tarefas de conteúdo claras e práticas, com detalhes sobre o que fazer e como fazer."
     },
      {
-        icon: BarChart,
+        icon: BarChartIcon,
         title: "Simulação de Desempenho",
         description: "Com base nas tarefas, a IA projeta uma simulação realista de alcance e engajamento para você visualizar o impacto potencial do seu esforço."
     },
@@ -564,5 +564,3 @@ export default function GenerateWeeklyPlanPage() {
     </div>
   );
 }
-
-    
