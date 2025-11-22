@@ -108,7 +108,7 @@ const ProfileCompletionAlert = () => {
   }
 
   return (
-    <Alert className="mb-8 border-primary/30 bg-primary/5 text-center sm:text-left">
+    <Alert className="mb-8 border-primary/30 bg-primary/10 text-center sm:text-left">
       <AlertTriangle className="h-4 w-4 text-primary" />
       <AlertTitle className='font-semibold text-primary'>Atualize seu Perfil!</AlertTitle>
       <AlertDescription>
@@ -160,7 +160,7 @@ export default function DashboardPage() {
         ? query(
             collection(firestore, `users/${user.uid}/ideiasSalvas`),
             where('concluido', '==', false),
-            limit(5)
+            limit(3)
           )
         : null,
     [firestore, user]
@@ -176,7 +176,7 @@ export default function DashboardPage() {
       where('status', '==', 'Agendado'),
       where('date', '>=', now),
       orderBy('date', 'asc'),
-      limit(3)
+      limit(2)
     );
   }, [firestore, user]);
 
@@ -254,8 +254,8 @@ export default function DashboardPage() {
   };
 
 
-  const visibleItems = roteiroItems?.slice(0, 4);
-  const collapsibleItems = roteiroItems?.slice(4);
+  const visibleItems = roteiroItems?.slice(0, 3);
+  const collapsibleItems = roteiroItems?.slice(3);
 
   return (
     <div className="space-y-12">
@@ -363,67 +363,74 @@ export default function DashboardPage() {
         {/* Layout Principal do Dashboard */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
           
-          {/* Coluna Principal (Ações e Tarefas) */}
+          {/* Coluna Principal (Gráfico e Roteiro) */}
           <div className="lg:col-span-2 space-y-8">
-            <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card">
+             <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card flex flex-col">
               <CardHeader className="text-center sm:text-left">
                 <CardTitle className="font-headline text-xl">
-                  Ideias e Tarefas
+                  Desempenho Semanal (Simulado)
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                {isLoadingIdeias ? (
-                  <div className="space-y-4">
-                    {Array.from({ length: 3 }).map((_, i) => (
-                      <div key={i} className="flex items-center gap-3">
-                        <Skeleton className="h-5 w-5 rounded" />
-                        <Skeleton className="h-5 w-4/5" />
-                      </div>
-                    ))}
+              <CardContent className="pl-2 flex-grow flex flex-col">
+                {isLoadingRoteiro ? (
+                  <div className="h-[300px] w-full flex items-center justify-center">
+                    <Skeleton className="h-full w-full rounded-xl" />
                   </div>
-                ) : ideiasSalvas && ideiasSalvas.length > 0 ? (
-                  <ul className="space-y-3">
-                    {ideiasSalvas.map((ideia) => (
-                      <li key={ideia.id} className="flex items-start gap-3 text-left">
-                        <Checkbox
-                          id={`ideia-${ideia.id}`}
-                          checked={ideia.concluido}
-                          onCheckedChange={() => handleToggleIdeia(ideia)}
-                          className="h-5 w-5 mt-0.5"
-                        />
-                        <div className="grid gap-0.5">
-                          <label
-                            htmlFor={`ideia-${ideia.id}`}
-                            className={cn(
-                              'font-medium transition-colors cursor-pointer',
-                              ideia.concluido
-                                ? 'line-through text-muted-foreground'
-                                : 'text-foreground'
-                            )}
-                          >
-                            {ideia.titulo}
-                          </label>
-                          <p className="text-xs text-muted-foreground">
-                            Salvo de "{ideia.origem}"{' '}
-                            {ideia.createdAt &&
-                              formatDistanceToNow(ideia.createdAt.toDate(), {
-                                addSuffix: true,
-                                locale: ptBR,
-                              })}
-                          </p>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
+                ) : dadosGrafico && dadosGrafico.length > 0 ? (
+                  <ChartContainer
+                    config={chartConfig}
+                    className="h-[300px] w-full"
+                  >
+                    <BarChart accessibilityLayer data={dadosGrafico}>
+                      <CartesianGrid
+                        vertical={false}
+                        strokeDasharray="3 3"
+                        stroke="hsl(var(--border) / 0.5)"
+                      />
+                      <XAxis
+                        dataKey="data"
+                        tickLine={false}
+                        tickMargin={10}
+                        axisLine={false}
+                        tickFormatter={(value) => value.slice(0, 3)}
+                      />
+                      <YAxis
+                        tickLine={false}
+                        axisLine={false}
+                        tickMargin={10}
+                        tickFormatter={(value) =>
+                          typeof value === 'number' && value >= 1000
+                            ? `${value / 1000}k`
+                            : value
+                        }
+                      />
+                      <ChartTooltip
+                        cursor={false}
+                        content={<ChartTooltipContent indicator="dot" />}
+                      />
+                      <Bar
+                        dataKey="alcance"
+                        fill="var(--color-alcance)"
+                        radius={8}
+                      />
+                      <Bar
+                        dataKey="engajamento"
+                        fill="var(--color-engajamento)"
+                        radius={8}
+                      />
+                    </BarChart>
+                  </ChartContainer>
                 ) : (
-                  <div className="text-center py-8 px-4 rounded-xl bg-muted/50 border border-dashed">
-                    <Rocket className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
-                    <h3 className="font-semibold text-foreground">
-                      Comece a Gerar Ideias!
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      Suas ideias e tarefas salvas aparecerão aqui.
-                    </p>
+                  <div className="h-full w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
+                    <div>
+                      <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+                      <h3 className="font-semibold text-foreground">
+                        Sem dados de desempenho.
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        Gere um roteiro para ver uma simulação.
+                      </p>
+                    </div>
                   </div>
                 )}
               </CardContent>
@@ -500,7 +507,7 @@ export default function DashboardPage() {
                                 <Checkbox
                                     id={`roteiro-collapsible-${index}`}
                                     checked={item.concluido}
-                                    onCheckedChange={() => handleToggleRoteiro(item, 4 + index)}
+                                    onCheckedChange={() => handleToggleRoteiro(item, 3 + index)}
                                     className="h-5 w-5 mt-1"
                                 />
                                 <div>
@@ -574,6 +581,70 @@ export default function DashboardPage() {
 
           {/* Coluna Lateral (Informações Rápidas) */}
           <div className="lg:col-span-1 space-y-8">
+            <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card">
+              <CardHeader className="text-center sm:text-left">
+                <CardTitle className="font-headline text-xl">
+                  Ideias e Tarefas
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isLoadingIdeias ? (
+                  <div className="space-y-4">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                      <div key={i} className="flex items-center gap-3">
+                        <Skeleton className="h-5 w-5 rounded" />
+                        <Skeleton className="h-5 w-4/5" />
+                      </div>
+                    ))}
+                  </div>
+                ) : ideiasSalvas && ideiasSalvas.length > 0 ? (
+                  <ul className="space-y-3">
+                    {ideiasSalvas.map((ideia) => (
+                      <li key={ideia.id} className="flex items-start gap-3 text-left">
+                        <Checkbox
+                          id={`ideia-${ideia.id}`}
+                          checked={ideia.concluido}
+                          onCheckedChange={() => handleToggleIdeia(ideia)}
+                          className="h-5 w-5 mt-0.5"
+                        />
+                        <div className="grid gap-0.5">
+                          <label
+                            htmlFor={`ideia-${ideia.id}`}
+                            className={cn(
+                              'font-medium transition-colors cursor-pointer',
+                              ideia.concluido
+                                ? 'line-through text-muted-foreground'
+                                : 'text-foreground'
+                            )}
+                          >
+                            {ideia.titulo}
+                          </label>
+                          <p className="text-xs text-muted-foreground">
+                            Salvo de "{ideia.origem}"{' '}
+                            {ideia.createdAt &&
+                              formatDistanceToNow(ideia.createdAt.toDate(), {
+                                addSuffix: true,
+                                locale: ptBR,
+                              })}
+                          </p>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="text-center py-8 px-4 rounded-xl bg-muted/50 border border-dashed">
+                    <Rocket className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+                    <h3 className="font-semibold text-foreground">
+                      Comece a Gerar Ideias!
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      Suas ideias e tarefas salvas aparecerão aqui.
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
             <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card flex flex-col">
               <CardHeader className="text-center sm:text-left">
                 <CardTitle className="font-headline text-xl">
@@ -647,76 +718,6 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
 
-             <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card flex flex-col">
-              <CardHeader className="text-center sm:text-left">
-                <CardTitle className="font-headline text-xl">
-                  Desempenho Semanal (Simulado)
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pl-2 flex-grow flex flex-col">
-                {isLoadingRoteiro ? (
-                  <div className="h-[300px] w-full flex items-center justify-center">
-                    <Skeleton className="h-full w-full rounded-xl" />
-                  </div>
-                ) : dadosGrafico && dadosGrafico.length > 0 ? (
-                  <ChartContainer
-                    config={chartConfig}
-                    className="h-[300px] w-full"
-                  >
-                    <BarChart accessibilityLayer data={dadosGrafico}>
-                      <CartesianGrid
-                        vertical={false}
-                        strokeDasharray="3 3"
-                        stroke="hsl(var(--border) / 0.5)"
-                      />
-                      <XAxis
-                        dataKey="data"
-                        tickLine={false}
-                        tickMargin={10}
-                        axisLine={false}
-                        tickFormatter={(value) => value.slice(0, 3)}
-                      />
-                      <YAxis
-                        tickLine={false}
-                        axisLine={false}
-                        tickMargin={10}
-                        tickFormatter={(value) =>
-                          typeof value === 'number' && value >= 1000
-                            ? `${value / 1000}k`
-                            : value
-                        }
-                      />
-                      <ChartTooltip
-                        cursor={false}
-                        content={<ChartTooltipContent indicator="dot" />}
-                      />
-                      <Bar
-                        dataKey="alcance"
-                        fill="var(--color-alcance)"
-                        radius={8}
-                      />
-                      <Bar
-                        dataKey="engajamento"
-                        fill="var(--color-engajamento)"
-                        radius={8}
-                      />
-                    </BarChart>
-                  </ChartContainer>
-                ) : (
-                  <div className="h-full w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
-                    <div>
-                      <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
-                      <h3 className="font-semibold text-foreground">
-                        Sem dados de desempenho.
-                      </h3>
-                      <p className="text-sm text-muted-foreground">
-                        Gere um roteiro para ver uma simulação.
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
           </div>
 
         </div>
@@ -725,5 +726,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-    
