@@ -902,31 +902,36 @@ export default function LandingPage() {
         </section>
 
         {/* Final CTA Section */}
-        <section className="py-20 sm:py-24">
-          <div className="container text-center">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7 }}
-              viewport={{ once: true, amount: 0.5 }}
-              className="bg-primary/5 p-8 sm:p-12 rounded-2xl"
-            >
-              <h2 className="text-4xl md:text-5xl font-bold font-headline tracking-tight mb-4">
-                Pronto para crescer?
-              </h2>
-              <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto">
-                Crie sua conta grátis e transforme seu conteúdo com o poder da
-                inteligência artificial.
-              </p>
-              <Button
-                size="lg"
-                className="w-full sm:w-auto h-12 text-base px-8 font-bold shadow-lg shadow-indigo-500/50"
-                asChild
-              >
-                <Link href="/sign-up">Começar grátis agora</Link>
-              </Button>
-            </motion.div>
-          </div>
+        <section className="relative overflow-hidden bg-primary/95 text-primary-foreground py-20 sm:py-24">
+            <div
+                className="absolute inset-0 w-full h-full bg-grid-pattern opacity-10"
+                aria-hidden="true"
+            />
+            <div className="container relative text-center">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.7 }}
+                    viewport={{ once: true, amount: 0.5 }}
+                    className="flex flex-col items-center"
+                >
+                    <h2 className="text-4xl md:text-5xl font-bold font-headline tracking-tight mb-4">
+                        Pronto para crescer?
+                    </h2>
+                    <p className="text-lg text-primary-foreground/80 mb-8 max-w-xl mx-auto">
+                        Crie sua conta grátis e transforme seu conteúdo com o poder da
+                        inteligência artificial.
+                    </p>
+                    <Button
+                        size="lg"
+                        variant="secondary"
+                        className="w-full sm:w-auto h-12 text-base px-8 font-bold bg-primary-foreground text-primary hover:bg-primary-foreground/90"
+                        asChild
+                    >
+                        <Link href="/sign-up">Começar grátis agora</Link>
+                    </Button>
+                </motion.div>
+            </div>
         </section>
       </main>
 

@@ -83,13 +83,13 @@
 
 @layer components {
     .glass-effect {
-        @apply bg-white/80 backdrop-blur-xl border border-white/30 shadow-lg shadow-black/5;
+        @apply bg-white/50 backdrop-blur-xl border border-white/20 shadow-lg shadow-black/5;
     }
 }
 
 @layer utilities {
   .bg-grid-pattern {
-    background-image: linear-gradient( to bottom, theme(colors.black / 0.1) 1px, transparent 1px ), linear-gradient( to right, theme(colors.black / 0.1) 1px, transparent 1px );
+    background-image: linear-gradient( to bottom, hsl(var(--foreground) / 0.1) 1px, transparent 1px ), linear-gradient( to right, hsl(var(--foreground) / 0.1) 1px, transparent 1px );
     background-size: 2rem 2rem;
   }
   .bg-gradient-radial {
