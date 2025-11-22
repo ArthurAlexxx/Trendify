@@ -1,85 +1,56 @@
 
 'use server';
+/**
+ * @fileOverview An AI flow to analyze video content.
+ *
+ * - analyzeVideo - A function that handles the video analysis process.
+ * - AnalyzeVideoInput - The input type for the analyzeVideo function.
+ * - AnalyzeVideoOutput - The return type for the analyzeVideo function.
+ */
 
-import { z } from 'zod';
-import { ai } from '@/ai/genkit';
+import {ai} from '@/ai/genkit';
+import {z} from 'genkit';
 
-// 1. Define o schema de entrada (que vem do formulário)
-const formSchema = z.object({
+const AnalyzeVideoInputSchema = z.object({
   videoDataUri: z
     .string()
-    .min(1, 'O Data URI do vídeo não pode estar vazio.')
     .describe(
-      "O arquivo de vídeo, como um data URI. Formato esperado: 'data:<mimetype>;base64,<encoded_data>'."
+      "A video file, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
     ),
 });
+export type AnalyzeVideoInput = z.infer<typeof AnalyzeVideoInputSchema>;
 
-// 2. Define o schema de saída da IA
-const VideoAnalysisOutputSchema = z.object({
-  analysis: z
-    .string()
-    .describe('Uma descrição concisa do que está acontecendo no vídeo.'),
+const AnalyzeVideoOutputSchema = z.object({
+  analysis: z.string().describe('A description of what is happening in the video.'),
+});
+export type AnalyzeVideoOutput = z.infer<typeof AnalyzeVideoOutputSchema>;
+
+export async function analyzeVideo(
+  input: AnalyzeVideoInput
+): Promise<AnalyzeVideoOutput> {
+  return analyzeVideoFlow(input);
+}
+
+const prompt = ai.definePrompt({
+  name: 'analyzeVideoPrompt',
+  input: {schema: AnalyzeVideoInputSchema},
+  output: {schema: AnalyzeVideoOutputSchema},
+  prompt: `You are a video analysis expert. Analyze the provided video and describe its content in a concise paragraph.
+
+Video: {{media url=videoDataUri}}`,
 });
 
-// 3. Define o tipo de estado que a Ação do Servidor irá gerenciar
-type ActionState = {
-  data?: z.infer<typeof VideoAnalysisOutputSchema>;
-  error?: string;
-} | null;
-
-// 4. Define o fluxo Genkit para a análise
-const analysisFlow = ai.defineFlow(
+const analyzeVideoFlow = ai.defineFlow(
   {
-    name: 'simpleVideoAnalysisFlow',
-    inputSchema: formSchema, // O fluxo agora espera a mesma entrada do formulário
-    outputSchema: VideoAnalysisOutputSchema,
+    name: 'analyzeVideoFlow',
+    inputSchema: AnalyzeVideoInputSchema,
+    outputSchema: AnalyzeVideoOutputSchema,
   },
-  async (input) => {
-    // O objeto 'ai' já está configurado globalmente em src/ai/genkit.ts
-    // com a chave de API correta das variáveis de ambiente.
-
-    const prompt = `Você é um especialista em análise de vídeo. Analise o vídeo fornecido e descreva seu conteúdo em um parágrafo conciso.
-
-    Vídeo para análise: {{media url=videoDataUri}}`;
-
-    const { output } = await ai.generate({
-      prompt,
-      model: 'gemini-1.5-flash-latest',
-      input: { videoDataUri: input.videoDataUri }, // Passa a entrada para o prompt
-      output: { schema: VideoAnalysisOutputSchema },
-    });
-
+  async input => {
+    const {output} = await prompt(input);
     if (!output) {
-      throw new Error('A IA não retornou uma análise.');
+      throw new Error("A IA não retornou uma análise.");
     }
     return output;
   }
 );
-
-// 5. Define a Ação do Servidor que será chamada pelo formulário
-export async function analyzeVideoAction(
-  prevState: ActionState,
-  formData: FormData
-): Promise<ActionState> {
-  const validated = formSchema.safeParse({
-    videoDataUri: formData.get('videoDataUri'),
-  });
-
-  if (!validated.success) {
-    return { error: validated.error.errors.map((e) => e.message).join(', ') };
-  }
-  
-  if (!validated.data.videoDataUri) {
-     return { error: 'Nenhum vídeo foi enviado para análise.' };
-  }
-
-  try {
-    const result = await analysisFlow(validated.data);
-    return { data: result };
-  } catch (e: any) {
-    const errorMessage =
-      e.message || 'Ocorreu um erro desconhecido durante a análise.';
-    console.error(`[analyzeVideoAction] Erro ao executar o flow: ${errorMessage}`);
-    return { error: `Falha ao analisar o vídeo: ${errorMessage}` };
-  }
-}
