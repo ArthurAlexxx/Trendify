@@ -333,8 +333,8 @@ export default function LandingPage() {
                         </Button>
                     </SheetTrigger>
                     <SheetContent side="left">
-                        <SheetHeader>
-                            <SheetTitle className="text-center sm:text-left">
+                        <SheetHeader className="text-center">
+                            <SheetTitle>
                                 <WordmarkIcon onClick={() => setIsMenuOpen(false)}/>
                             </SheetTitle>
                         </SheetHeader>
