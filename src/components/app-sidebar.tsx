@@ -79,7 +79,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar
-      collapsible="icon"
+      collapsible={!isMobile ? "icon" : undefined}
       variant="inset"
       className="bg-sidebar border-r border-sidebar-border"
     >
@@ -91,13 +91,13 @@ export function AppSidebar() {
           <div className="bg-foreground text-background h-7 w-7 flex items-center justify-center rounded-full">
             <ArrowRight className="h-4 w-4" />
           </div>
-          <span className="hidden group-data-[state=expanded]:inline">
+          <span className={cn("hidden group-data-[state=expanded]:inline", { 'inline': isMobile })}>
             trendify
           </span>
         </Link>
       </SidebarHeader>
       <SidebarContent className="p-2">
-         <div className="hidden group-data-[state=expanded]:block p-2 mb-2">
+         <div className={cn("hidden group-data-[state=expanded]:block p-2 mb-2", { 'block': isMobile })}>
             {isSubscriptionLoading ? (
                 <Skeleton className="h-10 w-full" />
             ) : isUserActive && (userPlan === 'pro' || userPlan === 'premium') ? (
@@ -134,10 +134,10 @@ export function AppSidebar() {
                   <item.icon className="h-5 w-5" />
                   <span className="text-sm font-medium">{item.label}</span>
                   {!accessible && item.plan === 'premium' && (
-                     <Crown className="h-4 w-4 ml-auto text-yellow-400 fill-yellow-400 group-data-[state=collapsed]:hidden"/>
+                     <Crown className={cn("h-4 w-4 ml-auto text-yellow-400 fill-yellow-400", { "hidden": !isMobile && "group-data-[state=collapsed]" })}/>
                   )}
                    {!accessible && item.plan === 'pro' && userPlan === 'free' && (
-                     <Crown className="h-4 w-4 ml-auto text-slate-400 fill-slate-400 group-data-[state=collapsed]:hidden"/>
+                     <Crown className={cn("h-4 w-4 ml-auto text-slate-400 fill-slate-400", { "hidden": !isMobile && "group-data-[state=collapsed]" })}/>
                   )}
                 </SidebarMenuButton>
             );
@@ -171,7 +171,7 @@ export function AppSidebar() {
                           {user?.displayName?.[0].toUpperCase() ?? user?.email?.[0].toUpperCase() ?? 'U'}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="hidden group-data-[state=expanded]:flex items-center gap-3 w-full">
+                    <div className={cn("hidden group-data-[state=expanded]:flex items-center gap-3 w-full", { 'flex': isMobile })}>
                         <div className="w-[120px] overflow-hidden text-left ml-3">
                         <p className="text-sm font-semibold truncate">{user?.displayName ?? 'Usuário'}</p>
                         <p className="text-xs text-muted-foreground truncate">
