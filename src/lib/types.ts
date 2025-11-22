@@ -32,13 +32,6 @@ export interface DailyUsage {
   videoAnalyses: number;
 }
 
-export interface Metrica {
-  id: string;
-  nome: string;
-  valor: string;
-  alteracao: string;
-  tipoAlteracao: 'aumento' | 'diminuicao';
-}
 
 export interface PontoDadosGrafico {
   id?: string; // Optional as it might be nested
@@ -82,5 +75,3 @@ export interface ConteudoAgendado {
   notes?: string;
   createdAt: Timestamp;
 }
-
-    
