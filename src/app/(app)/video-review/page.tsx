@@ -37,6 +37,7 @@ import { Separator } from "@/components/ui/separator";
 import { useUser, useFirestore } from "@/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { useTransition } from "react";
+import { type VideoAnalysisOutput as VideoAnalysisOutputType } from "@/lib/types";
 
 type AnalysisStatus = "idle" | "loading" | "success" | "error";
 
@@ -47,7 +48,7 @@ export default function VideoReviewPage() {
   const { toast } = useToast();
 
   const [analysisStatus, setAnalysisStatus] = useState<AnalysisStatus>("idle");
-  const [analysisResult, setAnalysisResult] = useState<VideoAnalysisOutput | null>(null);
+  const [analysisResult, setAnalysisResult] = useState<VideoAnalysisOutputType | null>(null);
   const [analysisError, setAnalysisError] = useState<string>("");
   
   const { user } = useUser();
