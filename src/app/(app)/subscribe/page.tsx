@@ -90,7 +90,7 @@ export default function SubscribePage() {
           </CardContent>
           <CardFooter>
             <Button asChild className={cn("w-full", isPremium && 'bg-yellow-500 hover:bg-yellow-500/90')} disabled={isCurrentPlan}>
-               <Link href={`/checkout?plan=${plan}`}>{buttonText}</Link>
+               <Link href={!isCurrentPlan ? `/checkout?plan=${plan}` : '#'}>{buttonText}</Link>
             </Button>
           </CardFooter>
         </Card>
