@@ -98,14 +98,21 @@ function AnimatedHero() {
             className="relative w-full max-w-5xl mt-12"
           >
             <div className="absolute -inset-4 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl opacity-20 blur-2xl"></div>
-            <Image
-              src="https://firebasestorage.googleapis.com/v0/b/studio-4233590611-a8ab0.firebasestorage.app/o/HeroDemo.png?alt=media&token=5d241b5f-cffb-4361-a8c3-57c8bf3966f3"
-              alt="Dashboard da Trendify mostrando métricas de crescimento"
-              width={1200}
-              height={750}
-              className="relative rounded-2xl border-2 border-primary/10 shadow-2xl shadow-primary/20"
-              priority
-            />
+            <div className="relative rounded-2xl border-2 border-primary/10 shadow-2xl shadow-primary/20 overflow-hidden bg-card">
+              <div className="h-10 bg-muted/50 flex items-center gap-2 px-4 border-b border-border/50">
+                <div className="w-3 h-3 rounded-full bg-red-400"></div>
+                <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
+                <div className="w-3 h-3 rounded-full bg-green-400"></div>
+              </div>
+              <Image
+                src="https://firebasestorage.googleapis.com/v0/b/studio-4233590611-a8ab0.firebasestorage.app/o/HeroDemo.png?alt=media&token=5d241b5f-cffb-4361-a8c3-57c8bf3966f3"
+                alt="Dashboard da Trendify mostrando métricas de crescimento"
+                width={1200}
+                height={750}
+                className="w-full h-auto"
+                priority
+              />
+            </div>
           </motion.div>
 
         </div>
