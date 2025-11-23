@@ -33,23 +33,6 @@ import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 import { ChartConfig } from '@/components/ui/chart';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
-import {
-  useCollection,
-  useFirestore,
-  useUser,
-  useMemoFirebase,
-  useDoc,
-} from '@/firebase';
-import {
-  collection,
-  doc,
-  limit,
-  orderBy,
-  query,
-  serverTimestamp,
-  updateDoc,
-  where,
-} from 'firebase/firestore';
 import type {
   ItemRoteiro,
   IdeiaSalva,
@@ -74,6 +57,56 @@ import { useState, useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useUser } from '@/firebase';
+
+
+// --- DADOS DE DEMONSTRAÇÃO ---
+const demoUserProfile: Partial<UserProfile> = {
+  displayName: 'Sofia',
+  followers: '250K',
+  averageViews: '15.5K',
+  averageLikes: '890',
+  averageComments: '120',
+  audience: '75% Mulheres, 18-24 anos',
+  bio: 'Criadora de conteúdo focada em lifestyle e moda sustentável.',
+  niche: 'Lifestyle e Moda Sustentável'
+};
+
+const demoRoteiro: PlanoSemanal = {
+  id: 'demo-plan-1',
+  createdAt: { toDate: () => new Date() } as any,
+  items: [
+    { dia: 'Segunda', tarefa: 'Gravar Reels sobre "3 formas de usar uma camisa branca"', detalhes: 'Focar em transições rápidas e usar um áudio em alta.', concluido: true },
+    { dia: 'Terça', tarefa: 'Postar Carrossel com dicas de moda sustentável', detalhes: 'Criar 5 slides informativos com design limpo.', concluido: true },
+    { dia: 'Quarta', tarefa: 'Abrir caixa de perguntas sobre consumo consciente', detalhes: 'Responder as 10 melhores perguntas nos Stories.', concluido: false },
+    { dia: 'Quinta', tarefa: 'Gravar vídeo longo para YouTube sobre "Minimalismo no Guarda-Roupa"', detalhes: 'Estruturar o roteiro: introdução, 3 blocos de conteúdo e conclusão.', concluido: false },
+    { dia: 'Sexta', tarefa: 'Postar Reels de "Arrume-se comigo para o final de semana"', detalhes: 'Focar em um look com peças de brechó.', concluido: false },
+    { dia: 'Sábado', tarefa: 'Stories mostrando um evento de parceiros', detalhes: 'Marcar a @lojaparceira e usar o link de afiliado.', concluido: false },
+    { dia: 'Domingo', tarefa: 'Planejar o conteúdo da próxima semana', detalhes: 'Usar o gerador de ideias da Trendify para 3 novos vídeos.', concluido: false },
+  ],
+  desempenhoSimulado: [
+    { data: 'Seg', alcance: 12000, engajamento: 850 },
+    { data: 'Ter', alcance: 9500, engajamento: 720 },
+    { data: 'Qua', alcance: 15000, engajamento: 1100 },
+    { data: 'Qui', alcance: 8000, engajamento: 600 },
+    { data: 'Sex', alcance: 18500, engajamento: 1300 },
+    { data: 'Sáb', alcance: 11000, engajamento: 900 },
+    { data: 'Dom', alcance: 7500, engajamento: 550 },
+  ],
+};
+
+const demoIdeiasSalvas: IdeiaSalva[] = [
+  { id: '1', titulo: 'Ideia: Collab com marca de cosméticos veganos', origem: 'Mídia Kit & Prospecção', concluido: false, userId: 'demo', createdAt: { toDate: () => new Date(Date.now() - 2 * 24 * 60 * 60 * 1000) } as any },
+  { id: '2', titulo: 'Roteiro: Unboxing de recebidos sustentáveis', origem: 'Ideias de Vídeo', concluido: false, userId: 'demo', createdAt: { toDate: () => new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) } as any },
+  { id: '3', titulo: 'Campanha: Lançamento do e-book de moda', origem: 'Propostas & Publis', concluido: false, userId: 'demo', createdAt: { toDate: () => new Date(Date-now() - 5 * 24 * 60 * 60 * 1000) } as any },
+];
+
+const demoUpcomingContent: ConteudoAgendado[] = [
+  { id: '1', title: 'Reels: Transformando look de brechó', contentType: 'Reels', status: 'Agendado', date: { toDate: () => new Date(Date.now() + 1 * 24 * 60 * 60 * 1000) } as any, userId: 'demo', createdAt: { toDate: () => new Date() } as any },
+  { id: '2', title: 'Post: Review do novo tênis ecológico', contentType: 'Post', status: 'Agendado', date: { toDate: () => new Date(Date.now() + 3 * 24 * 60 * 60 * 1000) } as any, userId: 'demo', createdAt: { toDate: () => new Date() } as any },
+];
+// --- FIM DOS DADOS DE DEMONSTRAÇÃO ---
+
 
 const chartConfig = {
   alcance: {
@@ -87,181 +120,48 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 const ProfileCompletionAlert = () => {
-  const { user } = useUser();
-  const firestore = useFirestore();
-
-  const userProfileRef = useMemoFirebase(
-    () => (firestore && user ? doc(firestore, `users/${user.uid}`) : null),
-    [firestore, user]
-  );
-  const { data: userProfile, isLoading } = useDoc<UserProfile>(userProfileRef);
-
-  if (isLoading || !userProfile) {
-    return null; // Don't show anything while loading or if there's no profile
-  }
-
-  const isProfileIncomplete =
-    !userProfile.followers ||
-    !userProfile.audience ||
-    !userProfile.averageViews ||
-    !userProfile.bio;
-
-  if (!isProfileIncomplete) {
-    return null;
-  }
-
-  return (
-    <Alert className="mb-8 border-primary/30 bg-primary/10 text-center sm:text-left">
-      <AlertTriangle className="h-4 w-4 text-primary" />
-      <AlertTitle className='font-semibold text-primary'>Atualize seu Perfil!</AlertTitle>
-      <AlertDescription>
-        Métricas como seguidores, nicho e engajamento são essenciais para a IA gerar estratégias precisas.
-        <Button variant="link" asChild className="p-0 h-auto ml-1 font-semibold">
-          <Link href="/profile">Completar seu perfil agora.</Link>
-        </Button>
-      </AlertDescription>
-    </Alert>
-  );
+  return null; // Desabilitado para a página de demonstração
 };
 
 
 export default function DashboardPage() {
-  const firestore = useFirestore();
   const { user } = useUser();
   const { toast } = useToast();
   const [isExpanded, setIsExpanded] = useState(false);
   const isMobile = useIsMobile();
-
-  const userProfileRef = useMemoFirebase(
-    () => (firestore && user ? doc(firestore, `users/${user.uid}`) : null),
-    [firestore, user]
-  );
-  const { data: userProfile, isLoading: isLoadingProfile } = useDoc<UserProfile>(userProfileRef);
-
-  const roteiroQuery = useMemoFirebase(
-    () =>
-      firestore
-        ? query(
-            collection(firestore, 'roteiro'),
-            orderBy('createdAt', 'desc'),
-            limit(1)
-          )
-        : null,
-    [firestore]
-  );
-  const { data: roteiroData, isLoading: isLoadingRoteiro } = useCollection<PlanoSemanal>(roteiroQuery);
-
-  const roteiro = roteiroData?.[0];
-  const roteiroItems = roteiro?.items;
-  const dadosGrafico = roteiro?.desempenhoSimulado;
+  
+  // Usando dados de demonstração
+  const [userProfile, setUserProfile] = useState(demoUserProfile);
+  const [roteiroItems, setRoteiroItems] = useState(demoRoteiro.items);
+  const dadosGrafico = demoRoteiro.desempenhoSimulado;
+  const ideiasSalvas = demoIdeiasSalvas;
+  const upcomingContent = demoUpcomingContent;
+  const roteiro = demoRoteiro;
 
 
-  const ideiasSalvasQuery = useMemoFirebase(
-    () =>
-      firestore && user
-        ? query(
-            collection(firestore, `users/${user.uid}/ideiasSalvas`),
-            where('concluido', '==', false),
-            limit(3)
-          )
-        : null,
-    [firestore, user]
-  );
-  const { data: ideiasSalvas, isLoading: isLoadingIdeias } =
-    useCollection<IdeiaSalva>(ideiasSalvasQuery);
+  const userMetrics = useMemo(() => {
+      return [
+          { icon: Users, label: "Seguidores", value: userProfile?.followers, description: "Total de seguidores" },
+          { icon: Eye, label: "Média de Views", value: userProfile?.averageViews, description: "Por post/vídeo" },
+          { icon: Heart, label: "Média de Likes", value: userProfile?.averageLikes, description: "Por post/vídeo" },
+          { icon: MessageSquare, label: "Média de Comentários", value: userProfile?.averageComments, description: "Por post/vídeo" },
+      ];
+  }, [userProfile]);
 
-  const upcomingContentQuery = useMemoFirebase(() => {
-    if (!firestore || !user) return null;
-    const now = new Date();
-    return query(
-      collection(firestore, `users/${user.uid}/conteudoAgendado`),
-      where('status', '==', 'Agendado'),
-      where('date', '>=', now),
-      orderBy('date', 'asc'),
-      limit(2)
-    );
-  }, [firestore, user]);
-
-  const { data: upcomingContent, isLoading: isLoadingUpcomingContent } =
-    useCollection<ConteudoAgendado>(upcomingContentQuery);
-
-    const userMetrics = useMemo(() => {
-        return [
-            { icon: Users, label: "Seguidores", value: userProfile?.followers, description: "Total de seguidores" },
-            { icon: Eye, label: "Média de Views", value: userProfile?.averageViews, description: "Por post/vídeo" },
-            { icon: Heart, label: "Média de Likes", value: userProfile?.averageLikes, description: "Por post/vídeo" },
-            { icon: MessageSquare, label: "Média de Comentários", value: userProfile?.averageComments, description: "Por post/vídeo" },
-        ];
-    }, [userProfile]);
-
-  const handleToggleIdeia = async (ideia: IdeiaSalva) => {
-    if (!firestore || !user) return;
-    const ideiaRef = doc(
-      firestore,
-      `users/${user.uid}/ideiasSalvas`,
-      ideia.id
-    );
-    try {
-      const isCompleting = !ideia.concluido;
-      await updateDoc(ideiaRef, { 
-        concluido: isCompleting,
-        completedAt: isCompleting ? serverTimestamp() : null,
-       });
-    } catch (error) {
-      console.error('Failed to update idea status:', error);
-    }
+  const handleToggleIdeia = (ideia: IdeiaSalva) => {
+    toast({ title: "Ação de demonstração", description: "Esta ação está desabilitada no modo de visualização."});
   };
 
-  const handleToggleRoteiro = async (toggledItem: ItemRoteiro, index: number) => {
-    if (!firestore || !roteiro || !roteiroItems) return;
-    const planoRef = doc(firestore, 'roteiro', roteiro.id);
-  
-    // Create a deep copy to avoid direct mutation issues
-    const updatedItems = JSON.parse(JSON.stringify(roteiroItems));
-    
-    // Find the item by index and toggle its `concluido` status
-    if (updatedItems[index]) {
-      updatedItems[index].concluido = !updatedItems[index].concluido;
-    } else {
-        console.error("Item not found at index:", index);
-        return;
-    }
-  
-    try {
-      await updateDoc(planoRef, { items: updatedItems });
-    } catch (error) {
-      console.error('Failed to update roteiro status:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível atualizar a tarefa do roteiro.",
-        variant: "destructive"
-      })
-    }
+  const handleToggleRoteiro = (toggledItem: ItemRoteiro, index: number) => {
+    setRoteiroItems(prevItems => {
+        const newItems = [...prevItems];
+        newItems[index] = { ...newItems[index], concluido: !newItems[index].concluido };
+        return newItems;
+    });
   };
   
-  const handleMarkAsPublished = async (postId: string) => {
-    if (!user || !firestore) return;
-    try {
-      const postRef = doc(
-        firestore,
-        `users/${user.uid}/conteudoAgendado`,
-        postId
-      );
-      await updateDoc(postRef, {
-        status: 'Publicado',
-      });
-      toast({
-        title: 'Sucesso!',
-        description: 'Post marcado como publicado.',
-      });
-    } catch (error) {
-      console.error('Error updating post status:', error);
-      toast({
-        title: 'Erro',
-        description: 'Não foi possível marcar o post como publicado.',
-        variant: 'destructive',
-      });
-    }
+  const handleMarkAsPublished = (postId: string) => {
+    toast({ title: "Ação de demonstração", description: "Esta ação está desabilitada no modo de visualização."});
   };
 
 
@@ -273,49 +173,35 @@ export default function DashboardPage() {
       <PageHeader
         icon={<LayoutGrid />}
         title={`Bem-vindo(a) de volta, ${
-          user?.displayName?.split(' ')[0] || 'Criador'
+          userProfile?.displayName?.split(' ')[0] || 'Criador'
         }!`}
         description="Seu centro de comando para crescimento e monetização."
       />
-      
-      <ProfileCompletionAlert />
 
       <div className="space-y-8">
         {/* Métricas Principais */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {isLoadingProfile
-            ? Array.from({ length: 4 }).map((_, i) => (
-                <Card key={i} className="rounded-2xl text-center sm:text-left">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <Skeleton className="h-4 w-2/3" />
-                  </CardHeader>
-                  <CardContent>
-                    <Skeleton className="h-7 w-1/3 mb-2 mx-auto sm:mx-0" />
-                    <Skeleton className="h-3 w-1/2 mx-auto sm:mx-0" />
-                  </CardContent>
-                </Card>
-              ))
-            : userMetrics.map((metric) => (
-                <Card
-                  key={metric.label}
-                  className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card text-center sm:text-left"
-                >
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-base font-medium text-muted-foreground">
-                      {metric.label}
-                    </CardTitle>
-                    <metric.icon className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-3xl font-bold font-headline">
-                      {metric.value || '—'}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {metric.value ? metric.description : <Link href="/profile" className="hover:underline">Adicionar no perfil</Link>}
-                    </p>
-                  </CardContent>
-                </Card>
-              ))}
+          {userMetrics.map((metric) => (
+              <Card
+                key={metric.label}
+                className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card text-center sm:text-left"
+              >
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-base font-medium text-muted-foreground">
+                    {metric.label}
+                  </CardTitle>
+                  <metric.icon className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold font-headline">
+                    {metric.value || '—'}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {metric.value ? metric.description : <Link href="/profile" className="hover:underline">Adicionar no perfil</Link>}
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
         </div>
 
         {/* Layout Principal do Dashboard */}
@@ -330,11 +216,7 @@ export default function DashboardPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="pl-2 flex-grow flex flex-col">
-                {isLoadingRoteiro ? (
-                  <div className="h-[300px] w-full flex items-center justify-center">
-                    <Skeleton className="h-full w-full rounded-xl" />
-                  </div>
-                ) : dadosGrafico && dadosGrafico.length > 0 ? (
+                {dadosGrafico && dadosGrafico.length > 0 ? (
                   <ChartContainer
                     config={chartConfig}
                     className="h-[300px] w-full"
@@ -401,19 +283,7 @@ export default function DashboardPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {isLoadingRoteiro ? (
-                  <div className="space-y-6">
-                    {Array.from({ length: 3 }).map((_, i) => (
-                      <div key={i} className="flex items-start gap-4">
-                        <Skeleton className="h-6 w-6 rounded-full mt-0.5" />
-                        <div className="w-full space-y-2">
-                          <Skeleton className="h-5 w-3/4" />
-                          <Skeleton className="h-4 w-full" />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : roteiroItems && roteiroItems.length > 0 ? (
+                {roteiroItems && roteiroItems.length > 0 ? (
                    <div>
                     <ul className="space-y-2">
                         {visibleItems?.map((item, index) => (
@@ -546,16 +416,7 @@ export default function DashboardPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {isLoadingIdeias ? (
-                  <div className="space-y-4">
-                    {Array.from({ length: 3 }).map((_, i) => (
-                      <div key={i} className="flex items-center gap-3">
-                        <Skeleton className="h-5 w-5 rounded" />
-                        <Skeleton className="h-5 w-4/5" />
-                      </div>
-                    ))}
-                  </div>
-                ) : ideiasSalvas && ideiasSalvas.length > 0 ? (
+                {ideiasSalvas && ideiasSalvas.length > 0 ? (
                   <ul className="space-y-3">
                     {ideiasSalvas.map((ideia) => (
                       <li key={ideia.id} className="flex items-start gap-3 text-left">
@@ -610,12 +471,7 @@ export default function DashboardPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className='flex-grow flex flex-col'>
-                {isLoadingUpcomingContent ? (
-                  <div className="space-y-4">
-                    <Skeleton className="h-16 w-full rounded-lg" />
-                    <Skeleton className="h-16 w-full rounded-lg" />
-                  </div>
-                ) : upcomingContent && upcomingContent.length > 0 ? (
+                {upcomingContent && upcomingContent.length > 0 ? (
                   <div className="space-y-4 flex-grow flex flex-col">
                     {upcomingContent.map((post) => (
                       <div
