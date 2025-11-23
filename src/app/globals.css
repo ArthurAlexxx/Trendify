@@ -5,26 +5,26 @@
 
 @layer base {
   :root {
-    --background: 240 5.9% 95%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 240 10% 98%;
+    --foreground: 240 6% 10%;
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 240 6% 10%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 240 6% 10%;
     --primary: 262 88% 60%;
     --primary-foreground: 0 0% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 215.4 16.3% 46.9%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-    --radius: 0.5rem;
+    --secondary: 240 5% 96%;
+    --secondary-foreground: 240 4% 46%;
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 4% 46%;
+    --accent: 240 5% 96%;
+    --accent-foreground: 240 6% 10%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
+    --ring: 262 88% 60%;
+    --radius: 0.8rem;
     --chart-1: 262 82% 60%;
     --chart-2: 342 91% 65%;
   }
@@ -81,23 +81,17 @@
   }
 }
 
-@layer components {
-    .glass-effect {
-        @apply bg-white/50 backdrop-blur-xl border border-white/20 shadow-lg shadow-black/5;
-    }
-}
-
 @layer utilities {
   .bg-grid-pattern {
-    background-image: linear-gradient( to bottom, hsl(var(--foreground) / 0.1) 1px, transparent 1px ), linear-gradient( to right, hsl(var(--foreground) / 0.1) 1px, transparent 1px );
+    background-image: linear-gradient( to bottom, hsl(var(--foreground) / 0.05) 1px, transparent 1px ), linear-gradient( to right, hsl(var(--foreground) / 0.05) 1px, transparent 1px );
     background-size: 2rem 2rem;
   }
   .bg-gradient-radial {
     background-image: radial-gradient( circle at center, var(--tw-gradient-from), var(--tw-gradient-to) );
   }
   .text-gradient {
-    background-clip: text;
     -webkit-background-clip: text;
+    background-clip: text;
     color: transparent;
   }
 }

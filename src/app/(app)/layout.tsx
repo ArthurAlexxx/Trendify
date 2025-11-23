@@ -2,22 +2,16 @@
 'use client';
 
 import { AppSidebar } from '@/components/app-sidebar';
-import { Button } from '@/components/ui/button';
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
 import { useUser } from '@/firebase';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { Loader2, PanelLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
-  const isMobile = useIsMobile();
 
   useEffect(() => {
     // Only redirect if loading is complete and there is definitively no user.
@@ -38,21 +32,24 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   // Once loading is complete and we have a user, render the app layout.
   return (
-    <SidebarProvider>
-      <div className="relative min-h-screen w-full flex bg-background/95">
+    <div className="min-h-screen w-full bg-background">
         <AppSidebar />
-        <SidebarInset className="w-full bg-transparent">
-          {isMobile && (
-            <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background/95 px-4 sm:px-6 backdrop-blur-sm">
-              <SidebarTrigger variant="outline" size="icon" className="sm:hidden">
-                <PanelLeft />
-                <span className="sr-only">Abrir menu</span>
-              </SidebarTrigger>
+        <div className="md:pl-64">
+            <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm md:hidden">
+              <Sheet>
+                <SheetTrigger asChild>
+                    <Button variant="outline" size="icon">
+                        <PanelLeft />
+                        <span className="sr-only">Abrir menu</span>
+                    </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="p-0">
+                    <AppSidebar />
+                </SheetContent>
+              </Sheet>
             </header>
-          )}
-          <div className="p-4 sm:p-6 md:p-8 w-full">{children}</div>
-        </SidebarInset>
-      </div>
-    </SidebarProvider>
+            <main className="p-4 sm:p-6 md:p-8 w-full">{children}</main>
+        </div>
+    </div>
   );
 }

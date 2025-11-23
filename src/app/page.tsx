@@ -261,7 +261,7 @@ export default function LandingPage() {
 			className={cn(
 				'sticky top-0 z-50 w-full border-b backdrop-blur-lg transition-all ease-out',
                 scrolled ? 'h-16' : 'h-20',
-                'bg-background/95 supports-[backdrop-filter]:bg-background/60 border-border'
+                'bg-background/95 supports-[backdrop-filter]:bg-background/60 border-border/50'
 			)}
 		>
 			<nav
@@ -368,7 +368,7 @@ export default function LandingPage() {
         {/* Hero Section */}
         <section className="relative overflow-hidden">
           <div
-            className="absolute top-0 left-0 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] sm:w-[1500px] sm:h-[1500px] bg-gradient-radial from-primary/10 via-background to-background -z-10"
+            className="absolute top-0 left-0 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] sm:w-[1500px] sm:h-[1500px] bg-gradient-radial from-primary/5 via-background to-background -z-10"
             aria-hidden="true"
           />
            <AnimatedHero />

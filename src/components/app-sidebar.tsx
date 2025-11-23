@@ -17,47 +17,50 @@ import {
   User,
   MoreHorizontal,
   Hammer,
+  Sparkles,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarTrigger,
-  useSidebar,
-} from '@/components/ui/sidebar';
+
 import { useUser, useAuth } from '@/firebase';
 import { Button } from './ui/button';
-import { Badge } from './ui/badge';
 import { useSubscription } from '@/hooks/useSubscription';
 import { Skeleton } from './ui/skeleton';
 import { Plan } from '@/lib/types';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import { cn } from '@/lib/utils';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
+import { Separator } from './ui/separator';
 
-const navItems: { href: string; icon: React.ElementType; label: string, plan: 'pro' | 'premium' | 'free' }[] = [
-  { href: '/dashboard', icon: LineChart, label: 'Painel', plan: 'pro' },
-  { href: '/generate-weekly-plan', icon: ClipboardList, label: 'Planejamento', plan: 'pro' },
-  { href: '/content-calendar', icon: Calendar, label: 'Calendário', plan: 'pro' },
-  { href: '/video-ideas', icon: Lightbulb, label: 'Ideias de Vídeo', plan: 'pro' },
-  { href: '/video-review', icon: Video, label: 'Análise de Vídeo', plan: 'pro' },
-  { href: '/publis-assistant', icon: Newspaper, label: 'Propostas & Publis', plan: 'premium' },
-  { href: '/media-kit', icon: Briefcase, label: 'Mídia Kit', plan: 'premium' },
+const menuItems: {
+  category: string;
+  items: { href: string; icon: React.ElementType; label: string; plan: Plan }[];
+}[] = [
+  {
+    category: 'Menu',
+    items: [
+      { href: '/dashboard', icon: LineChart, label: 'Acompanhamento', plan: 'free' },
+      { href: '/generate-weekly-plan', icon: ClipboardList, label: 'Seu Plano', plan: 'pro' },
+      { href: '/content-calendar', icon: Calendar, label: 'Calendário', plan: 'pro' },
+    ],
+  },
+  {
+    category: 'Ferramentas de IA',
+    items: [
+      { href: '/video-review', icon: Video, label: 'Análise de Vídeo', plan: 'pro' },
+      { href: '/video-ideas', icon: Lightbulb, label: 'Ideias de Vídeos', plan: 'pro' },
+      { href: '/media-kit', icon: Briefcase, label: 'Mídia Kit & Propostas', plan: 'premium' },
+      { href: '/publis-assistant', icon: Newspaper, label: 'Ideias para Publis', plan: 'premium' },
+    ],
+  },
 ];
 
-const hasAccess = (userPlan: Plan, itemPlan: 'pro' | 'premium' | 'free'): boolean => {
+
+const hasAccess = (userPlan: Plan, itemPlan: Plan): boolean => {
     if (itemPlan === 'free') return true;
     if (userPlan === 'premium') return true;
-    if (userPlan === 'pro' && itemPlan === 'pro') return true;
+    if (userPlan === 'pro' && (itemPlan === 'pro' || itemPlan === 'free')) return true;
     return false;
 }
 
@@ -67,7 +70,6 @@ export function AppSidebar() {
   const auth = useAuth();
   const router = useRouter();
   const { subscription, isLoading: isSubscriptionLoading } = useSubscription();
-  const { isMobile } = useSidebar();
 
   const handleSignOut = () => {
     auth.signOut();
@@ -77,117 +79,110 @@ export function AppSidebar() {
   const userPlan = subscription?.plan || 'free';
   const isUserActive = subscription?.status === 'active';
 
+  const getPlanName = () => {
+    if (!isUserActive) return "Upgrade";
+    if (userPlan === 'premium') return 'Premium';
+    if (userPlan === 'pro') return 'Pro';
+    return "Upgrade";
+  }
+  
+  const getPlanIcon = () => {
+    if (isUserActive && (userPlan === 'pro' || userPlan === 'premium')) return <Sparkles className="h-5 w-5" />;
+    return <Crown className="h-5 w-5" />;
+  }
+
   return (
-    <Sidebar
-      collapsible={!isMobile ? "icon" : undefined}
-      variant="inset"
-      className="glass-effect"
-    >
-      <SidebarHeader className="flex items-center p-4 h-20 border-b border-white/10">
-        <Link
-          href="/"
-          className="flex items-center gap-2 text-xl font-bold font-headline tracking-tighter text-foreground"
+     <aside className="h-screen w-64 flex-col fixed inset-y-0 z-50 bg-card border-r hidden md:flex">
+      <div className="flex items-center gap-2 px-6 h-20 border-b">
+         <Link
+            href="/dashboard"
+            className="flex items-center gap-2 text-xl font-bold font-headline tracking-tighter text-foreground"
         >
-          <div className="bg-primary text-primary-foreground h-8 w-8 flex items-center justify-center rounded-full">
+            <div className="bg-foreground text-background h-8 w-8 flex items-center justify-center rounded-lg">
             <ArrowRight className="h-5 w-5" />
-          </div>
-          <span className={cn("hidden group-data-[state=expanded]:inline", { 'inline': isMobile })}>
+            </div>
             trendify
-          </span>
         </Link>
-      </SidebarHeader>
-      <SidebarContent className="p-2">
-         <div className={cn("hidden group-data-[state=expanded]:block p-2 mb-2", { 'block': isMobile })}>
-            {isSubscriptionLoading ? (
-                <Skeleton className="h-10 w-full" />
-            ) : isUserActive && (userPlan === 'pro' || userPlan === 'premium') ? (
-                 <div className={cn(
-                    "flex items-center justify-center gap-2 h-10 rounded-lg border font-semibold text-sm",
-                    userPlan === 'premium' ? "bg-yellow-400/10 border-yellow-400/20 text-yellow-600" : "bg-primary/10 border-primary/20 text-primary"
-                 )}>
-                    <Crown className="h-4 w-4 fill-current" />
-                    <span>
-                        {userPlan === 'pro' && 'Plano PRO'}
-                        {userPlan === 'premium' && 'Plano Premium'}
-                    </span>
+      </div>
+
+      <nav className="flex-1 px-4 py-4">
+        <div className='relative'>
+             <Link href="/subscribe" className="block w-full text-left p-4 rounded-xl bg-gradient-to-br from-primary via-purple-500 to-violet-600 text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-shadow">
+                <div className='flex items-center gap-3'>
+                    {getPlanIcon()}
+                    <div className='flex flex-col'>
+                        <span className='font-semibold text-lg leading-tight'>{getPlanName()}</span>
+                        <span className='text-sm opacity-80'>Gerenciar assinatura</span>
+                    </div>
                 </div>
-            ) : (
-                <Button asChild className='w-full justify-center font-bold bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg'>
-                    <Link href="/subscribe">
-                        <Crown className="mr-2 h-4 w-4 fill-current" />
-                        Virar PRO
-                    </Link>
-                </Button>
-            )}
-         </div>
+            </Link>
+        </div>
+        
+        <div className="flex flex-col gap-4 mt-6">
+          {menuItems.map(group => (
+            <div key={group.category} className='px-2'>
+              <h3 className="text-xs font-semibold text-muted-foreground tracking-wider uppercase mb-2">
+                {group.category}
+              </h3>
+               <ul className="space-y-1">
+                 {group.items.map(item => {
+                   const isActive = pathname === item.href;
+                   const canAccess = hasAccess(userPlan, item.plan);
 
-        <SidebarMenu>
-          {navItems.map((item) => {
-            const active = pathname.startsWith(item.href);
-            const accessible = item.plan === 'free' || (isUserActive && hasAccess(userPlan, item.plan));
-            const button = (
-                 <SidebarMenuButton
-                  isActive={active}
-                  tooltip={isMobile ? undefined : item.label}
-                  className={cn("h-10 justify-start")}
-                  disabled={!accessible}
-                >
-                  <item.icon className="h-5 w-5" />
-                  <span className="text-sm font-medium">{item.label}</span>
-                  {!accessible && item.plan === 'premium' && (
-                     <Crown className={cn("h-4 w-4 ml-auto text-yellow-400 fill-yellow-400", { "hidden": !isMobile && "group-data-[state=collapsed]" })}/>
-                  )}
-                   {!accessible && item.plan === 'pro' && userPlan === 'free' && (
-                     <Crown className={cn("h-4 w-4 ml-auto text-slate-400 fill-slate-400", { "hidden": !isMobile && "group-data-[state=collapsed]" })}/>
-                  )}
-                </SidebarMenuButton>
-            );
+                   const content = (
+                      <div className={cn(
+                        "flex items-center gap-3 p-3 rounded-lg transition-colors text-sm",
+                        isActive 
+                            ? "bg-primary/10 text-primary font-semibold" 
+                            : canAccess 
+                                ? "text-foreground/70 hover:bg-muted hover:text-foreground"
+                                : "text-muted-foreground cursor-not-allowed",
+                        !canAccess && "relative"
+                      )}>
+                        <item.icon className={cn("h-5 w-5", isActive ? "text-primary" : "text-foreground/60")} />
+                        <span>{item.label}</span>
+                         {!canAccess && item.plan !== 'free' && (
+                           <Crown className="h-4 w-4 ml-auto text-yellow-400 fill-yellow-400" />
+                        )}
+                      </div>
+                   );
 
-            return (
-                 <SidebarMenuItem key={item.label}>
-                    {accessible ? (
-                         <Link href={item.href}>{button}</Link>
-                    ) : (
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Link href="/subscribe" className="cursor-pointer w-full">{button}</Link>
-                                </TooltipTrigger>
-                                <TooltipContent side="right">
-                                    <p>Acesse o plano {item.plan === 'pro' ? 'PRO' : 'Premium'} para liberar.</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                    )}
-                 </SidebarMenuItem>
-            )
-          })}
-        </SidebarMenu>
-      </SidebarContent>
-      <SidebarFooter className="p-4 border-t border-white/10">
-        <DropdownMenu>
+                   return (
+                     <li key={item.label}>
+                       <Link href={canAccess ? item.href : '/subscribe'}>
+                         {content}
+                       </Link>
+                     </li>
+                   );
+                 })}
+               </ul>
+            </div>
+          ))}
+        </div>
+      </nav>
+      
+       <div className="mt-auto p-4 border-t">
+         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className='w-full justify-start h-auto p-0 hover:bg-transparent'>
-                    <div className="flex items-center gap-3">
+                <Button variant="ghost" className='w-full justify-start h-auto p-2 hover:bg-muted'>
+                    <div className="flex items-center gap-3 w-full">
                         <Avatar className="h-10 w-10 border-2 border-primary">
                           <AvatarImage src={user?.photoURL ?? `https://i.pravatar.cc/150?u=${user?.uid}`} alt="User avatar" />
                           <AvatarFallback>
                               {user?.displayName?.[0].toUpperCase() ?? user?.email?.[0].toUpperCase() ?? 'U'}
                           </AvatarFallback>
                         </Avatar>
-                        <div className={cn("hidden group-data-[state=expanded]:flex items-center gap-3 w-full", { 'flex': isMobile })}>
-                            <div className="w-[120px] overflow-hidden text-left">
+                        <div className="w-[120px] overflow-hidden text-left">
                             <p className="text-sm font-semibold truncate text-foreground">{user?.displayName ?? 'Usuário'}</p>
                             <p className="text-xs text-muted-foreground truncate">
                                 {user?.email ?? ''}
                             </p>
-                            </div>
-                            <MoreHorizontal className="h-4 w-4 ml-auto text-muted-foreground" />
                         </div>
+                         <LogOut className="h-4 w-4 ml-auto text-muted-foreground" />
                     </div>
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent side={isMobile ? 'top' : 'right'} align="end" className="w-56 mb-2">
+            <DropdownMenuContent side="right" align="end" className="w-56 mb-2">
                 <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
@@ -215,15 +210,7 @@ export function AppSidebar() {
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
-
-         <SidebarTrigger
-            variant="ghost"
-            size="icon"
-            className="hidden group-data-[state=expanded]:hidden group-data-[state=collapsed]:flex h-8 w-8 absolute bottom-4 left-2"
-        >
-            <PanelLeft />
-        </SidebarTrigger>
-      </SidebarFooter>
-    </Sidebar>
+       </div>
+    </aside>
   );
 }
