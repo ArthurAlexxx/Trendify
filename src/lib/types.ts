@@ -30,6 +30,7 @@ export interface DailyUsage {
   id: string;
   date: string; // YYYY-MM-DD
   videoAnalyses: number;
+  geracoesAI: number;
 }
 
 
