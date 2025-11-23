@@ -43,7 +43,7 @@ import { useEffect, useActionState, useTransition, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { generateVideoIdeasAction, GenerateVideoIdeasOutput } from './actions';
-import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase, useUser, useDoc } from '@/firebase';
 import { collection, addDoc, serverTimestamp, where, query, orderBy, setDoc, doc, increment } from 'firebase/firestore';
 import { SavedIdeasSheet } from '@/components/saved-ideas-sheet';
 import type { DailyUsage, IdeiaSalva } from '@/lib/types';
@@ -537,5 +537,3 @@ function InfoListCard({
     </Card>
   );
 }
-
-    
