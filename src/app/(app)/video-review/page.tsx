@@ -136,8 +136,8 @@ function VideoReviewPageContent() {
   
   const analysesDoneToday = dailyUsage?.videoAnalyses || 0;
   const currentPlan = subscription?.plan || 'free';
-  const limit = PLAN_LIMITS[currentPlan];
-  const analysesLeft = Math.max(0, limit - analysesDoneToday);
+  const limitCount = PLAN_LIMITS[currentPlan];
+  const analysesLeft = Math.max(0, limitCount - analysesDoneToday);
   const hasReachedLimit = analysesLeft <= 0;
 
   const previousAnalysesQuery = useMemoFirebase(() =>
@@ -428,7 +428,7 @@ function VideoReviewPageContent() {
         
         <div className="text-center">
             <p className="text-sm text-muted-foreground">
-                Análises restantes hoje: <span className="font-bold text-primary">{analysesLeft} de {limit}</span>
+                Análises restantes hoje: <span className="font-bold text-primary">{analysesLeft} de {limitCount}</span>
             </p>
         </div>
 
@@ -564,7 +564,7 @@ function VideoReviewPageContent() {
                                                             </CardHeader>
                                                             <CardContent>
                                                                 <div className="text-3xl font-bold">{analise.analysisData.geral.match(/(\d{1,2}(?:[.,]\d{1,2})?)\s*\/\s*10/)?.[0] || '-/10'}</div>
-                                                                <p className="text-sm text-muted-foreground mt-1">{analise.analysisData.geral.replace(/(\d{1-2}(?:[.,]\d{1,2})?)\s*\/\s*10[:\s]*/, '')}</p>
+                                                                <p className="text-sm text-muted-foreground mt-1">{analise.analysisData.geral.replace(/(\d{1,2}(?:[.,]\d{1,2})?)\s*\/\s*10[:\s]*/, '')}</p>
                                                             </CardContent>
                                                         </Card>
 
