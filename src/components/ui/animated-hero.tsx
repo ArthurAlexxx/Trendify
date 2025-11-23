@@ -6,6 +6,7 @@ import { ArrowRight, Sparkles } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 function AnimatedHero() {
   const [titleNumber, setTitleNumber] = useState(0);
@@ -89,6 +90,24 @@ function AnimatedHero() {
               Começar Grátis <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
+
+           <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="relative w-full max-w-5xl mt-12"
+          >
+            <div className="absolute -inset-4 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl opacity-20 blur-2xl"></div>
+            <Image
+              src="https://storage.googleapis.com/aai-sit-studio-public-pro-prop-image-bucket/user/clwkx51g600003b6kchg3us3a/clx75a6r60001l70ptz11vof6/clx75b63x0002l70pnd80e5k1.png"
+              alt="Dashboard da Trendify mostrando métricas de crescimento"
+              width={1200}
+              height={750}
+              className="relative rounded-2xl border-2 border-primary/10 shadow-2xl shadow-primary/20"
+              priority
+            />
+          </motion.div>
+
         </div>
       </div>
     </div>
