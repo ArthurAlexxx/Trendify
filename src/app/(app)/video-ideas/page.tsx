@@ -70,17 +70,17 @@ const analysisCriteria = [
     {
         icon: BrainCircuit,
         title: "Estrategista Viral",
-        description: "A IA atua como uma especialista em conteúdo viral, focando em ideias com alto potencial de engajamento e alcance para o seu nicho."
+        description: "A plataforma foca em ideias com alto potencial de engajamento e alcance para o seu nicho, pensando como um especialista em conteúdo viral."
     },
     {
         icon: Target,
         title: "Gancho Magnético",
-        description: "Cria ganchos de 2-3 segundos para capturar a atenção imediatamente, quebrando padrões e gerando curiosidade."
+        description: "Criamos ganchos de 2-3 segundos para capturar a atenção imediatamente, quebrando padrões e gerando curiosidade."
     },
      {
         icon: BarChart,
         title: "Otimizado para Algoritmo",
-        description: "Gera roteiros estruturados para reter a atenção e sugere músicas em alta, aumentando as chances de ser favorecido pelo algoritmo."
+        description: "Geramos roteiros estruturados para reter a atenção e sugerimos músicas em alta, aumentando as chances de ser favorecido pelo algoritmo."
     },
     {
         icon: Eye,
@@ -194,9 +194,9 @@ export default function VideoIdeasPage() {
             <CardHeader>
                 <CardTitle className="flex items-center gap-3 font-headline text-xl text-center sm:text-left">
                     <Sparkles className="h-6 w-6 text-primary" />
-                    Como a IA Pensa Para Criar Suas Ideias?
+                    Como Criamos Suas Ideias?
                 </CardTitle>
-                 <CardDescription className="text-center sm:text-left">Nossa IA foi treinada para pensar como uma estrategista de conteúdo viral. Ela analisa sua necessidade em busca de 4 pilares:</CardDescription>
+                 <CardDescription className="text-center sm:text-left">Nossa plataforma foi treinada para pensar como uma estrategista de conteúdo viral. Analisamos sua necessidade em busca de 4 pilares:</CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -414,7 +414,7 @@ export default function VideoIdeasPage() {
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
             <div className="flex-1">
               <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">
-                Resultado da IA
+                Resultado Gerado
               </h2>
               <p className="text-muted-foreground">
                 Aqui está um plano de conteúdo completo para seu próximo vídeo.
@@ -442,7 +442,7 @@ export default function VideoIdeasPage() {
             <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-96">
               <Loader2 className="h-10 w-10 animate-spin text-primary" />
               <p className="mt-4 text-muted-foreground">
-                A IA está criando algo incrível para você...
+                Estamos criando algo incrível para você...
               </p>
             </div>
           ) : result ? (
@@ -601,5 +601,3 @@ function InfoListCard({
     </Card>
   );
 }
-
-    

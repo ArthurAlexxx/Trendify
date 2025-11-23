@@ -233,7 +233,7 @@ function VideoReviewPageContent() {
 
                  toast({
                     title: "Análise Concluída",
-                    description: "A IA analisou o seu vídeo.",
+                    description: "A análise do seu vídeo está pronta.",
                 });
             } else {
                 throw new Error(result?.error || "A análise não produziu um resultado.");
@@ -300,22 +300,22 @@ function VideoReviewPageContent() {
     {
         icon: Eye,
         title: "Retenção e Gancho",
-        description: "A IA avalia os 3 primeiros segundos para ver se o gancho é forte o suficiente para parar a rolagem e gerar curiosidade."
+        description: "Avaliamos os 3 primeiros segundos para ver se o gancho é forte o suficiente para parar a rolagem e gerar curiosidade."
     },
     {
         icon: BrainCircuit,
         title: "Ritmo e Conteúdo",
-        description: "Analisa a estrutura do vídeo, o ritmo da edição e a clareza da mensagem para identificar pontos que podem causar a perda de interesse."
+        description: "Analisamos a estrutura do vídeo, o ritmo da edição e a clareza da mensagem para identificar pontos que podem causar a perda de interesse."
     },
     {
         icon: Target,
         title: "Eficácia do CTA",
-        description: "Verifica se a chamada para ação (CTA) é clara, convincente e está alinhada com o objetivo do vídeo (vendas, seguidores, etc.)."
+        description: "Verificamos se a chamada para ação (CTA) é clara, convincente e está alinhada com o objetivo do vídeo (vendas, seguidores, etc.)."
     },
      {
         icon: BarChart,
         title: "Potencial de Viralização",
-        description: "Com base em todos os fatores, a IA atribui uma nota e um checklist de melhorias para aumentar o potencial de alcance do seu vídeo."
+        description: "Com base em todos os fatores, atribuímos uma nota e um checklist de melhorias para aumentar o potencial de alcance do seu vídeo."
     }
   ]
   
@@ -323,7 +323,7 @@ function VideoReviewPageContent() {
     <div className="space-y-12">
         <PageHeader
             icon={<Video />}
-            title="Diagnóstico de Vídeo com IA"
+            title="Diagnóstico de Vídeo"
             description="Receba uma análise completa do potencial de viralização do seu vídeo e um plano de ação para melhorá-lo."
         >
             <SavedIdeasSheet />
@@ -333,9 +333,9 @@ function VideoReviewPageContent() {
             <CardHeader>
                 <CardTitle className="flex items-center gap-3 font-headline text-xl text-center sm:text-left">
                     <BrainCircuit className="h-6 w-6 text-primary" />
-                    Como a IA Avalia Seu Vídeo?
+                    Como Avaliamos Seu Vídeo?
                 </CardTitle>
-                 <CardDescription className="text-center sm:text-left">Nossa IA foi treinada para pensar como um estrategista de conteúdo viral. Ela analisa seu vídeo em busca de 4 pilares fundamentais:</CardDescription>
+                 <CardDescription className="text-center sm:text-left">Nossa plataforma foi treinada para pensar como um estrategista de conteúdo viral. Analisamos seu vídeo em busca de 4 pilares fundamentais:</CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -444,7 +444,7 @@ function VideoReviewPageContent() {
                 {analysisStatus === 'loading' && (
                     <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-96">
                         <Loader2 className="h-10 w-10 animate-spin text-primary" />
-                        <p className="mt-4 text-muted-foreground">A IA está processando seu vídeo...</p>
+                        <p className="mt-4 text-muted-foreground">Estamos processando seu vídeo...</p>
                         <p className="text-sm text-muted-foreground">Isso pode levar alguns instantes.</p>
                     </div>
                 )}

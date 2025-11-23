@@ -69,7 +69,7 @@ const analysisCriteria = [
     {
         icon: BrainCircuit,
         title: "Diretora Criativa",
-        description: "A IA atua como uma diretora criativa, gerando 5 roteiros distintos que exploram diferentes ângulos de comunicação para o seu produto."
+        description: "A plataforma atua como uma diretora criativa, gerando 5 roteiros distintos que exploram diferentes ângulos de comunicação para o seu produto."
     },
     {
         icon: Target,
@@ -79,12 +79,12 @@ const analysisCriteria = [
      {
         icon: Zap,
         title: "Adaptado para Trends",
-        description: "A IA sugere como adaptar as ideias para tendências e áudios que estão em alta no momento, aumentando o potencial de alcance."
+        description: "A plataforma sugere como adaptar as ideias para tendências e áudios que estão em alta no momento, aumentando o potencial de alcance."
     },
     {
         icon: Check,
         title: "Checklist de Sucesso",
-        description: "Para garantir que nada seja esquecido, a IA fornece um checklist prático para maximizar a conversão dos seus vídeos."
+        description: "Para garantir que nada seja esquecido, fornecemos um checklist prático para maximizar a conversão dos seus vídeos."
     }
   ]
 
@@ -235,9 +235,9 @@ function PublisAssistantPageContent() {
             <CardHeader>
                 <CardTitle className="flex items-center gap-3 font-headline text-xl text-center sm:text-left">
                     <Sparkles className="h-6 w-6 text-primary" />
-                    Como a IA Cria Sua Campanha?
+                    Como Criamos Sua Campanha?
                 </CardTitle>
-                 <CardDescription className="text-center sm:text-left">Nossa IA atua como uma diretora de criação, combinando estratégia com criatividade. Ela foca em 4 pilares:</CardDescription>
+                 <CardDescription className="text-center sm:text-left">Nossa plataforma atua como uma diretora de criação, combinando estratégia com criatividade. Focamos em 4 pilares:</CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -438,7 +438,7 @@ function PublisAssistantPageContent() {
             <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-96">
               <Loader2 className="h-10 w-10 animate-spin text-primary" />
               <p className="mt-4 text-muted-foreground">
-                A IA está montando sua próxima campanha...
+                Estamos montando sua próxima campanha...
               </p>
             </div>
           ) : result ? (
@@ -530,5 +530,3 @@ function InfoListCard({
     </Card>
   );
 }
-
-    

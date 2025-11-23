@@ -54,8 +54,8 @@ const formSchema = z.object({
 const analysisCriteria = [
     {
         icon: BrainCircuit,
-        title: "Gerente de Talentos IA",
-        description: "A IA atua como uma gerente de talentos, usando suas métricas e nicho para criar um pacote de prospecção profissional."
+        title: "Gerente de Talentos",
+        description: "A plataforma atua como uma gerente de talentos, usando suas métricas e nicho para criar um pacote de prospecção profissional."
     },
     {
         icon: FileText,
@@ -65,7 +65,7 @@ const analysisCriteria = [
      {
         icon: DollarSign,
         title: "Preços Realistas",
-        description: "Com base nas suas métricas, a IA calcula faixas de preço realistas para o mercado brasileiro, te dando um ponto de partida para negociações."
+        description: "Com base nas suas métricas, calculamos faixas de preço realistas para o mercado, te dando um ponto de partida para negociações."
     },
     {
         icon: Lightbulb,
@@ -237,9 +237,9 @@ function MediaKitPageContent() {
             <CardHeader>
                 <CardTitle className="flex items-center gap-3 font-headline text-xl text-center sm:text-left">
                     <Sparkles className="h-6 w-6 text-primary" />
-                    Como a IA Cria seu Pacote de Prospecção?
+                    Como Criamos seu Pacote de Prospecção?
                 </CardTitle>
-                 <CardDescription className="text-center sm:text-left">Nossa IA atua como uma gerente de talentos para monetizar sua influência. Ela foca em 4 pilares:</CardDescription>
+                 <CardDescription className="text-center sm:text-left">Nossa plataforma atua como uma gerente de talentos para monetizar sua influência. Focamos em 4 pilares:</CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -332,7 +332,7 @@ function MediaKitPageContent() {
                               />
                             </FormControl>
                              <FormDescription>
-                                A IA usará esta marca para criar ideias de colaboração mais relevantes.
+                                A plataforma usará esta marca para criar ideias de colaboração mais relevantes.
                              </FormDescription>
                             <FormMessage />
                           </FormItem>
@@ -363,7 +363,7 @@ function MediaKitPageContent() {
             <div className="space-y-8 animate-fade-in">
               <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
                 <div className='flex-1'>
-                  <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Resultado da IA</h2>
+                  <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Resultado Gerado</h2>
                   <p className="text-muted-foreground">Um pacote completo para sua prospecção de marcas.</p>
                 </div>
                 {result && (
@@ -377,7 +377,7 @@ function MediaKitPageContent() {
               {isGenerating && !result ? (
                 <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-96">
                   <Loader2 className="h-10 w-10 animate-spin text-primary" />
-                  <p className="mt-4 text-muted-foreground">A IA está criando seu pacote de prospecção...</p>
+                  <p className="mt-4 text-muted-foreground">Estamos criando seu pacote de prospecção...</p>
                 </div>
               ) : result ? (
                  <div className="grid gap-8">
@@ -509,5 +509,3 @@ function PricingCard({
     </Card>
   );
 }
-
-    

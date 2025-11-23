@@ -55,7 +55,7 @@ const prompt = ai.definePrompt({
   model: 'googleai/gemini-2.5-flash',
   input: { schema: z.object({ videoDataUri: z.string() }) },
   output: { schema: VideoAnalysisOutputSchema },
-  prompt: `Você é uma IA consultora de conteúdo viral e estrategista para criadores de conteúdo. Sua tarefa é fornecer uma análise profunda, profissional e acionável em português do Brasil.
+  prompt: `Você é uma consultora de conteúdo viral e estrategista para criadores de conteúdo. Sua tarefa é fornecer uma análise profunda, profissional e acionável em português do Brasil.
 
 Analise o vídeo fornecido e retorne sua análise ESTRITAMENTE no formato JSON solicitado.
 
@@ -100,7 +100,7 @@ const analyzeVideoFlow = ai.defineFlow(
   async input => {
     const { output } = await prompt(input);
     if (!output) {
-      throw new Error("A IA não retornou uma análise.");
+      throw new Error("A plataforma não retornou uma análise.");
     }
     return output;
   }

@@ -80,17 +80,17 @@ const analysisCriteria = [
     {
         icon: BrainCircuit,
         title: "Estrategista de Crescimento",
-        description: "A IA atua como uma estrategista, analisando seu nicho, estatísticas e objetivo para criar um plano de ação semanal focado em crescimento."
+        description: "A plataforma atua como uma estrategista, analisando seu nicho, estatísticas e objetivo para criar um plano de ação semanal focado em crescimento."
     },
     {
         icon: Target,
         title: "Tarefas Acionáveis",
-        description: "Para cada dia da semana, a IA define tarefas de conteúdo claras e práticas, com detalhes sobre o que fazer e como fazer."
+        description: "Para cada dia da semana, definimos tarefas de conteúdo claras e práticas, com detalhes sobre o que fazer e como fazer."
     },
      {
         icon: BarChartIcon,
         title: "Simulação de Desempenho",
-        description: "Com base nas tarefas, a IA projeta uma simulação realista de alcance e engajamento para você visualizar o impacto potencial do seu esforço."
+        description: "Com base nas tarefas, projetamos uma simulação realista de alcance e engajamento para você visualizar o impacto potencial do seu esforço."
     },
     {
         icon: Eye,
@@ -219,7 +219,7 @@ export default function GenerateWeeklyPlanPage() {
     <div className="space-y-12">
       <PageHeader
         icon={<ClipboardList />}
-        title="Crie seu Plano Semanal com IA"
+        title="Crie seu Plano Semanal"
         description="Transforme seu objetivo da semana em um roteiro de conteúdo acionável."
       >
         <PreviousPlansSheet />
@@ -229,9 +229,9 @@ export default function GenerateWeeklyPlanPage() {
             <CardHeader>
                 <CardTitle className="flex items-center gap-3 font-headline text-xl text-center sm:text-left">
                     <Sparkles className="h-6 w-6 text-primary" />
-                    Como a IA Monta seu Plano Estratégico?
+                    Como Montamos seu Plano Estratégico?
                 </CardTitle>
-                 <CardDescription className="text-center sm:text-left">Nossa IA foi treinada para atuar como uma estrategista de crescimento. Ela analisa sua necessidade em busca de 4 pilares:</CardDescription>
+                 <CardDescription className="text-center sm:text-left">Nossa plataforma foi treinada para atuar como uma estrategista de crescimento. Ela analisa sua necessidade em busca de 4 pilares:</CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -256,8 +256,7 @@ export default function GenerateWeeklyPlanPage() {
             <span>Briefing da Semana</span>
           </CardTitle>
           <CardDescription>
-            Quanto mais detalhes você fornecer, melhor será o plano gerado pela
-            IA.
+            Quanto mais detalhes você fornecer, melhor será o plano gerado.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -457,7 +456,7 @@ export default function GenerateWeeklyPlanPage() {
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4 text-center sm:text-left">
             <div className="flex-1">
               <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">
-                Plano Gerado pela IA
+                Plano Gerado
               </h2>
               <p className="text-muted-foreground">
                 Revise o plano abaixo. Se estiver bom, ele será salvo e
@@ -470,7 +469,7 @@ export default function GenerateWeeklyPlanPage() {
             <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-96">
               <Loader2 className="h-10 w-10 animate-spin text-primary" />
               <p className="mt-4 text-muted-foreground">
-                A IA está montando sua estratégia...
+                Nossa plataforma está montando sua estratégia...
               </p>
             </div>
           ) : result ? (
