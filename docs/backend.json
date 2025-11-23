@@ -1,4 +1,3 @@
-
 {
   "entities": {
     "UserProfile": {
@@ -181,6 +180,19 @@
          "createdAt": { "type": "string", "format": "date-time", "description": "O timestamp de quando o agendamento foi criado." }
       },
       "required": ["userId", "title", "date", "contentType", "status", "createdAt"]
+    },
+    "AnaliseVideo": {
+      "title": "Análise de Vídeo",
+      "description": "Armazena o resultado de uma análise de vídeo feita pela IA, incluindo a URL do vídeo e os dados da análise.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "O ID do usuário que solicitou a análise." },
+        "videoUrl": { "type": "string", "format": "uri", "description": "A URL do vídeo armazenado no Firebase Storage." },
+        "videoFileName": { "type": "string", "description": "O nome original do arquivo de vídeo." },
+        "analysisData": { "type": "object", "description": "O objeto JSON contendo os dados da análise da IA." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "O timestamp de quando a análise foi criada." }
+      },
+      "required": ["userId", "videoUrl", "videoFileName", "analysisData", "createdAt"]
     }
   },
   "auth": {
@@ -202,6 +214,10 @@
      "/users/{userId}/conteudoAgendado/{conteudoId}": {
       "schema": { "$ref": "#/entities/ConteudoAgendado" },
       "description": "Stores scheduled content for a specific user."
+    },
+    "/users/{userId}/analisesVideo/{analiseId}": {
+      "schema": { "$ref": "#/entities/AnaliseVideo" },
+      "description": "Stores video analysis results for a specific user."
     },
     "/roteiro/{planoId}": {
       "schema": { "$ref": "#/entities/PlanoSemanal" },

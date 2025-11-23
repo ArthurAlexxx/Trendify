@@ -75,3 +75,12 @@ export interface ConteudoAgendado {
   notes?: string;
   createdAt: Timestamp;
 }
+
+export interface AnaliseVideo {
+    id: string;
+    userId: string;
+    videoUrl: string;
+    videoFileName: string;
+    analysisData: any; // O objeto JSON da análise
+    createdAt: Timestamp;
+}

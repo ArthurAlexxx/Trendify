@@ -32,6 +32,14 @@ service cloud.firestore {
         allow read, create, update: if request.auth.uid == userId;
     }
 
+    // Allow users to manage their own video analyses
+    match /users/{userId}/analisesVideo/{analiseId} {
+      allow read, create: if request.auth.uid == userId;
+    }
+     match /users/{userId}/analisesVideo {
+      allow list: if request.auth.uid == userId;
+    }
+
     // Protect all other data to only be accessible by authenticated users
     match /metrica/{metricaId} {
       allow read, write: if request.auth != null;
@@ -53,6 +61,11 @@ service firebase.storage {
     match /profile-pictures/{userId}/{fileName} {
       allow read;
       allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Allow users to upload, read, and delete their own videos for analysis.
+    match /video-reviews/{userId}/{videoId}/{fileName} {
+      allow read, write, delete: if request.auth.uid == userId;
     }
 
     // Allow authenticated users to write to a test directory
