@@ -1,4 +1,3 @@
-
 'use client';
 
 import { PageHeader } from '@/components/page-header';
@@ -182,7 +181,7 @@ export default function ProfilePage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        icon={<UserIcon />}
+        icon={<UserIcon className="text-primary" />}
         title="Gerencie seu Perfil"
         description="Mantenha suas informações atualizadas para a IA gerar estratégias mais precisas."
       />

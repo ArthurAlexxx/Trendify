@@ -1,4 +1,3 @@
-
 'use client';
 
 import { PageHeader } from '@/components/page-header';
@@ -76,7 +75,7 @@ export default function SupportPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        icon={<Hammer />}
+        icon={<Hammer className="text-primary" />}
         title="Suporte & Contato"
         description="Precisa de ajuda ou tem alguma sugestão? Preencha o formulário abaixo."
       />

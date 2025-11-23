@@ -1,4 +1,3 @@
-
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -183,7 +182,7 @@ export default function VideoIdeasPage() {
   return (
     <div className="space-y-12">
       <PageHeader
-        icon={<Lightbulb />}
+        icon={<Lightbulb className="text-primary" />}
         title="Gerador de Vídeos Virais"
         description="Nunca mais fique sem ideias. Crie roteiros completos e otimizados para viralizar."
       >
@@ -553,7 +552,7 @@ function InfoCard({
     >
       <CardHeader className="text-center sm:text-left">
         <CardTitle className="flex items-center justify-center sm:justify-start gap-3 text-lg font-semibold text-foreground">
-          <Icon className="h-5 w-5 text-primary/80" />
+          <Icon className="h-5 w-5 text-primary" />
           <span>{title}</span>
         </CardTitle>
       </CardHeader>
@@ -587,7 +586,7 @@ function InfoListCard({
     <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
       <CardHeader className="text-center sm:text-left">
         <CardTitle className="flex items-center justify-center sm:justify-start gap-3 text-lg font-semibold text-foreground">
-          <Icon className="h-5 w-5 text-primary/80" />
+          <Icon className="h-5 w-5 text-primary" />
           <span>{title}</span>
         </CardTitle>
       </CardHeader>

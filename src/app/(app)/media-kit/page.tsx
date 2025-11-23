@@ -1,4 +1,3 @@
-
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -226,7 +225,7 @@ function MediaKitPageContent() {
   return (
     <div className="space-y-12">
       <PageHeader
-        icon={<Briefcase />}
+        icon={<Briefcase className="text-primary" />}
         title="Pacote de Prospecção para Marcas"
         description="Gere propostas, calcule preços e crie seu mídia kit profissional em um só lugar."
       >

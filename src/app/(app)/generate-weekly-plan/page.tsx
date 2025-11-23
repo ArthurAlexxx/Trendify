@@ -1,4 +1,3 @@
-
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -218,7 +217,7 @@ export default function GenerateWeeklyPlanPage() {
   return (
     <div className="space-y-12">
       <PageHeader
-        icon={<ClipboardList />}
+        icon={<ClipboardList className="text-primary" />}
         title="Crie seu Plano Semanal"
         description="Transforme seu objetivo da semana em um roteiro de conteúdo acionável."
       >

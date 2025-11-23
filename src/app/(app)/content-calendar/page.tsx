@@ -1,4 +1,3 @@
-
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -262,7 +261,7 @@ export default function ContentCalendarPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        icon={<CalendarIcon />}
+        icon={<CalendarIcon className="text-primary" />}
         title="Calendário de Conteúdo"
         description="Visualize, organize e agende suas publicações em um só lugar."
       />

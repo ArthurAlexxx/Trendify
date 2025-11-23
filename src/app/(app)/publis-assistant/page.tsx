@@ -1,4 +1,3 @@
-
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -224,7 +223,7 @@ function PublisAssistantPageContent() {
   return (
     <div className="space-y-12">
       <PageHeader
-        icon={<Newspaper />}
+        icon={<Newspaper className="text-primary" />}
         title="Assistente de Publis & Parcerias"
         description="Crie pacotes de conteúdo para marcas com foco em conversão e tendências."
       >

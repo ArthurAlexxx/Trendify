@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -47,7 +46,7 @@ const menuItems: {
     ],
   },
   {
-    category: 'Ferramentas de IA',
+    category: 'Ferramentas',
     items: [
       { href: '/video-review', icon: Video, label: 'Análise de Vídeo', plan: 'pro' },
       { href: '/video-ideas', icon: Lightbulb, label: 'Ideias de Vídeos', plan: 'pro' },
@@ -143,7 +142,7 @@ export function AppSidebar() {
                                 : "text-muted-foreground cursor-not-allowed",
                         !canAccess && "relative"
                       )}>
-                        <item.icon className={cn("h-5 w-5", isActive ? "text-primary" : "text-foreground/60")} />
+                        <item.icon className={cn("h-5 w-5", isActive || !canAccess ? "text-primary" : "text-foreground/60")} />
                         <span>{item.label}</span>
                          {!canAccess && item.plan !== 'free' && (
                            <Crown className="h-4 w-4 ml-auto text-yellow-400 fill-yellow-400" />
@@ -226,5 +225,3 @@ export function AppSidebar() {
     </aside>
   );
 }
-
-    

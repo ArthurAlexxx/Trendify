@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useCallback, useRef, type ChangeEvent, type DragEvent, useEffect } from "react";
@@ -322,7 +321,7 @@ function VideoReviewPageContent() {
   return (
     <div className="space-y-12">
         <PageHeader
-            icon={<Video />}
+            icon={<Video className="text-primary" />}
             title="Diagnóstico de Vídeo"
             description="Receba uma análise completa do potencial de viralização do seu vídeo e um plano de ação para melhorá-lo."
         >
@@ -332,7 +331,7 @@ function VideoReviewPageContent() {
         <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
             <CardHeader>
                 <CardTitle className="flex items-center gap-3 font-headline text-xl text-center sm:text-left">
-                    <BrainCircuit className="h-6 w-6 text-primary" />
+                    <Sparkles className="h-6 w-6 text-primary" />
                     Como Avaliamos Seu Vídeo?
                 </CardTitle>
                  <CardDescription className="text-center sm:text-left">Nossa plataforma foi treinada para pensar como um estrategista de conteúdo viral. Analisamos seu vídeo em busca de 4 pilares fundamentais:</CardDescription>

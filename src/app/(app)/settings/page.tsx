@@ -1,4 +1,3 @@
-
 'use client';
 
 import { PageHeader } from '@/components/page-header';
@@ -126,7 +125,7 @@ export default function SettingsPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        icon={<SettingsIcon />}
+        icon={<SettingsIcon className="text-primary" />}
         title="Configurações da Conta"
         description="Gerencie suas informações, assinatura e integrações."
       />
@@ -213,7 +212,7 @@ export default function SettingsPage() {
             <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
               <CardHeader className="text-center sm:text-left">
                 <CardTitle className="flex items-center justify-center sm:justify-start gap-3 font-headline text-xl">
-                  <LogOut className="h-6 w-6" />
+                  <LogOut className="h-6 w-6 text-primary" />
                   <span>Sessão</span>
                 </CardTitle>
               </CardHeader>

@@ -78,7 +78,7 @@ const ProfileCompletionAlert = ({ userProfile }: { userProfile: UserProfile | nu
 
     return (
         <Alert>
-            <AlertTriangle className="h-4 w-4" />
+            <AlertTriangle className="h-4 w-4 text-primary" />
             <AlertTitle>Complete seu Perfil!</AlertTitle>
             <AlertDescription>
                 <Link href="/profile" className='hover:underline font-semibold'>Adicione seu nicho e métricas</Link> para que a IA gere insights mais precisos.
@@ -175,7 +175,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-12">
       <PageHeader
-        icon={<LayoutGrid />}
+        icon={<LayoutGrid className="text-primary" />}
         title={`Bem-vindo(a) de volta, ${
           userProfile?.displayName?.split(' ')[0] || user?.displayName?.split(' ')[0] || 'Criador'
         }!`}
@@ -196,7 +196,7 @@ export default function DashboardPage() {
                   <CardTitle className="text-base font-medium text-muted-foreground">
                     {metric.label}
                   </CardTitle>
-                  <metric.icon className="h-4 w-4 text-muted-foreground" />
+                  <metric.icon className="h-4 w-4 text-primary" />
                 </CardHeader>
                 <CardContent>
                   {isLoadingProfile ? <Skeleton className="h-8 w-24 mx-auto sm:mx-0" /> :
@@ -497,7 +497,7 @@ export default function DashboardPage() {
                         >
                             <div className="flex items-start gap-3 flex-1 overflow-hidden">
                             <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
-                                <Tag className="h-5 w-5 text-muted-foreground" />
+                                <Tag className="h-5 w-5 text-primary" />
                             </div>
                             <div className="flex-1 overflow-hidden">
                                 <p className="font-semibold text-foreground text-sm leading-tight truncate">
@@ -558,5 +558,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-    
