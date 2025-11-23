@@ -168,15 +168,13 @@ export function AppSidebar() {
                 <Button variant="ghost" className='w-full justify-start h-auto p-2 hover:bg-muted'>
                     <div className="flex items-center gap-3 w-full">
                         <Avatar className="h-10 w-10 border-2 border-primary">
-                          <AvatarImage src={user?.photoURL ?? `https://i.pravatar.cc/150?u=${user?.uid}`} alt="User avatar" />
-                          <AvatarFallback>
-                              {user?.displayName?.[0].toUpperCase() ?? user?.email?.[0].toUpperCase() ?? 'U'}
-                          </AvatarFallback>
+                          <AvatarImage src='https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=100&q=80' alt="User avatar" />
+                          <AvatarFallback>S</AvatarFallback>
                         </Avatar>
                         <div className="w-[120px] overflow-hidden text-left">
-                            <p className="text-sm font-semibold truncate text-foreground">{user?.displayName ?? 'Usuário'}</p>
+                            <p className="text-sm font-semibold truncate text-foreground">Sofia Alves</p>
                             <p className="text-xs text-muted-foreground truncate">
-                                {user?.email ?? ''}
+                                sofia.alves@demo.com
                             </p>
                         </div>
                          <LogOut className="h-4 w-4 ml-auto text-muted-foreground" />
