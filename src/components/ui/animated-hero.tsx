@@ -31,14 +31,14 @@ function AnimatedHero() {
       <div className="container mx-auto">
         <div className="flex gap-8 py-20 lg:py-40 items-center justify-center flex-col">
           <div>
-            <Button variant="secondary" size="sm" className="gap-4 rounded-full bg-primary/10 text-primary hover:bg-primary/20 border-primary/20">
-               <Sparkles className="w-4 h-4" />
+            <Button variant="outline" size="sm" className="gap-4 rounded-full bg-transparent text-primary hover:bg-primary/10 border-primary">
+               <Sparkles className="w-4 h-4 animate-pulse" />
                Feito para criadores de conteúdo
             </Button>
           </div>
           <div className="flex gap-4 flex-col">
             <h1 className="text-5xl md:text-6xl max-w-3xl tracking-tighter text-center font-bold font-headline">
-              <span className="text-foreground/90">A plataforma IA para seu</span>
+              <span className="text-foreground/90">A plataforma para seu</span>
               <span className="relative flex w-full justify-center overflow-hidden text-center md:pb-4 md:pt-1 text-primary">
                 &nbsp;
                 {titles.map((title, index) => (
