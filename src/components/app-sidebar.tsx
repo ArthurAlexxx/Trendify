@@ -59,10 +59,13 @@ const menuItems: {
 
 
 const hasAccess = (userPlan: Plan, itemPlan: Plan): boolean => {
-    if (itemPlan === 'free') return true;
-    if (userPlan === 'premium') return true;
-    if (userPlan === 'pro' && (itemPlan === 'pro' || itemPlan === 'free')) return true;
-    return false;
+    const planHierarchy: Record<Plan, number> = {
+        free: 0,
+        pro: 1,
+        premium: 2
+    };
+
+    return planHierarchy[userPlan] >= planHierarchy[itemPlan];
 }
 
 export function AppSidebar() {
