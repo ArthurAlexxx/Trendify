@@ -40,8 +40,8 @@ import { useEffect, useActionState, useTransition, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { generatePubliProposalsAction, GeneratePubliProposalsOutput } from './actions';
-import { useFirestore, useUser } from '@/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useFirestore, useUser, useDoc, useMemoFirebase } from '@/firebase';
+import { collection, addDoc, serverTimestamp, doc, setDoc, increment } from 'firebase/firestore';
 import { SavedIdeasSheet } from '@/components/saved-ideas-sheet';
 import {
   Accordion,
@@ -53,12 +53,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useRouter } from 'next/navigation';
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { format as formatDate } from 'date-fns';
+import type { DailyUsage } from '@/lib/types';
+import Link from 'next/link';
 
 const formSchema = z.object({
   product: z.string().min(3, 'O nome do produto/marca deve ter pelo menos 3 caracteres.'),
   targetAudience: z.string().min(10, 'O público-alvo deve ter pelo menos 10 caracteres.'),
   differentiators: z.string().min(10, 'Os diferenciais devem ter pelo menos 10 caracteres.'),
-  tone: z.string().min(1, 'O tom de voz é obrigatório.'),
   objective: z.string().min(1, 'O objetivo é obrigatório.'),
   extraInfo: z.string().optional(),
 });
@@ -147,17 +149,28 @@ function PublisAssistantPageContent() {
   const { user } = useUser();
   const firestore = useFirestore();
 
+  const { subscription, isTrialActive } = useSubscription();
+  const todayStr = formatDate(new Date(), 'yyyy-MM-dd');
+  const usageDocRef = useMemoFirebase(() =>
+    user && firestore ? doc(firestore, `users/${user.uid}/dailyUsage`, todayStr) : null
+  , [user, firestore, todayStr]);
+  const { data: dailyUsage } = useDoc<DailyUsage>(usageDocRef);
+  const generationsToday = dailyUsage?.geracoesAI || 0;
+  const hasReachedFreeLimit = isTrialActive && generationsToday >= 2;
+
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       product: 'Tênis de corrida "Velocity"',
       targetAudience: 'Mulheres de 25-35 anos, interessadas em vida saudável e que já praticam corrida.',
       differentiators: 'Feito com material reciclado, super leve, tecnologia de absorção de impacto, design moderno.',
-      tone: 'Autêntico e Confiável',
       objective: 'Gerar Vendas',
       extraInfo: 'Evitar comparações diretas com outras marcas. Focar na sensação de liberdade ao correr.',
     },
   });
+  
+  const result = state?.data;
 
   useEffect(() => {
     if (state?.error) {
@@ -167,7 +180,10 @@ function PublisAssistantPageContent() {
         variant: 'destructive',
       });
     }
-  }, [state, toast]);
+     if (result && usageDocRef) {
+      setDoc(usageDocRef, { geracoesAI: increment(1) }, { merge: true });
+    }
+  }, [state, result, toast, usageDocRef]);
 
   const handleSave = (data: GeneratePubliProposalsOutput) => {
     if (!user || !firestore) {
@@ -218,7 +234,9 @@ function PublisAssistantPageContent() {
     });
   };
   
-  const result = state?.data;
+  const isButtonDisabled = isGenerating || hasReachedFreeLimit;
+  const isFreePlan = subscription?.plan === 'free';
+
 
   return (
     <div className="space-y-12">
@@ -328,30 +346,7 @@ function PublisAssistantPageContent() {
                     />
                  </div>
               </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-6">
-                 <FormField
-                  control={form.control}
-                  name="tone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tom de Voz</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value} name={field.name}>
-                        <FormControl>
-                          <SelectTrigger className="h-11">
-                            <SelectValue placeholder="Selecione" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="Autêntico e Confiável">Autêntico e Confiável</SelectItem>
-                          <SelectItem value="Divertido e Energético">Divertido e Energético</SelectItem>
-                          <SelectItem value="Sofisticado e Premium">Sofisticado e Premium</SelectItem>
-                           <SelectItem value="Educacional e Informativo">Educacional e Informativo</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                 <FormField
                   control={form.control}
                   name="objective"
@@ -395,10 +390,10 @@ function PublisAssistantPageContent() {
                   />
               </div>
 
-              <div className="pt-4 flex justify-center sm:justify-start">
+              <div className="pt-4 flex flex-col sm:flex-row items-center gap-4">
                 <Button
                   type="submit"
-                  disabled={isGenerating}
+                  disabled={isButtonDisabled}
                   size="lg"
                   className="font-manrope w-full sm:w-auto h-12 px-10 rounded-full text-base font-bold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-shadow"
                 >
@@ -408,6 +403,11 @@ function PublisAssistantPageContent() {
                     <><Sparkles className="mr-2 h-5 w-5" />Gerar Pacote de Conteúdo</>
                   )}
                 </Button>
+                {isFreePlan && (
+                  <p className="text-sm text-muted-foreground text-center sm:text-left">
+                    Você precisa de um plano <Link href="/subscribe" className='underline text-primary font-semibold'>Premium</Link> para usar esta ferramenta.
+                  </p>
+                )}
               </div>
             </form>
           </Form>
@@ -529,3 +529,5 @@ function InfoListCard({
     </Card>
   );
 }
+
+    

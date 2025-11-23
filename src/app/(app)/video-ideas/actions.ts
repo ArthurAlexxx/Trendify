@@ -28,9 +28,6 @@ const formSchema = z.object({
   targetAudience: z
     .string()
     .min(3, 'Target audience must be at least 3 characters.'),
-  platform: z.enum(['instagram', 'tiktok']),
-  videoFormat: z.string().min(1, 'Video format is required.'),
-  tone: z.string().min(1, 'Tone of voice is required.'),
   objective: z.string().min(1, 'Objective is required.'),
 });
 
@@ -77,9 +74,6 @@ Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON d
 
   - Tópico: ${input.topic}
   - Público-alvo: ${input.targetAudience}
-  - Plataforma: ${input.platform}
-  - Formato do Vídeo: ${input.videoFormat}
-  - Tom de Voz: ${input.tone}
   - Objetivo Principal: ${input.objective}
 
   Para cada campo do JSON, siga estas diretrizes:
@@ -87,8 +81,8 @@ Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON d
   - script: Escreva um roteiro claro e conciso como um único texto (string). Estruture-o em três partes: Introdução (o gancho), Desenvolvimento (a entrega de valor/o miolo do conteúdo) e Conclusão (o CTA). Inclua sugestões de cenas entre colchetes. Exemplo: "[CENA: Close-up no produto] Você investe em produtos caros, mas o erro pode estar na ordem de aplicação. A regra de ouro é: do mais leve ao mais denso... [CENA: Mostrando a textura de um sérum e depois de um creme]".
   - cta: A chamada para ação deve ser direta e incentivar o comportamento desejado (ex: "Comente 'EU QUERO' para receber o link", "Siga para mais dicas como esta").
   - takes: Descreva uma lista de tomadas simples e práticas que o criador precisa gravar. Ex: ["Take do seu rosto falando para a câmera.", "Take de unboxing do produto.", "Take mostrando o resultado final."]. Retorne um array de strings.
-  - suggestedPostTime: Com base na plataforma, sugira um dia e horário de pico para postagem (ex: "Sexta-feira, 18:30h" ou "Domingo, 20:00h").
-  - trendingSong: Pesquise e sugira uma música que esteja genuinamente em alta AGORA na plataforma especificada e que combine com a vibe do vídeo. Inclua o nome do artista.
+  - suggestedPostTime: Com base na plataforma (Instagram/Tiktok), sugira um dia e horário de pico para postagem (ex: "Sexta-feira, 18:30h" ou "Domingo, 20:00h").
+  - trendingSong: Pesquise e sugira uma música que esteja genuinamente em alta AGORA no Instagram ou TikTok e que combine com a vibe do vídeo. Inclua o nome do artista.
   `;
 
   try {
@@ -140,5 +134,7 @@ export async function generateVideoIdeasAction(
     return { error: `Failed to generate ideas: ${errorMessage}` };
   }
 }
+
+    
 
     

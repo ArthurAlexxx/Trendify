@@ -1,3 +1,4 @@
+
 'use server';
 
 import OpenAI from 'openai';
@@ -27,7 +28,6 @@ const formSchema = z.object({
   product: z.string().min(3, 'O nome do produto/marca deve ter pelo menos 3 caracteres.'),
   targetAudience: z.string().min(10, 'O público-alvo deve ter pelo menos 10 caracteres.'),
   differentiators: z.string().min(10, 'Os diferenciais devem ter pelo menos 10 caracteres.'),
-  tone: z.string().min(1, 'O tom de voz é obrigatório.'),
   objective: z.string().min(1, 'O objetivo é obrigatório.'),
   extraInfo: z.string().optional(),
 });
@@ -75,13 +75,12 @@ Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON d
   - Produto/Marca a ser promovido: ${input.product}
   - Público-alvo: ${input.targetAudience}
   - Diferenciais do produto/marca: ${input.differentiators}
-  - Tom de Voz da campanha: ${input.tone}
   - Objetivo Principal da campanha: ${input.objective}
   - Informações Adicionais (restrições, links, etc.): ${input.extraInfo || 'Nenhuma'}
 
   Para cada campo do JSON, siga estas diretrizes:
 
-  - scripts: Crie EXATAMENTE 5 roteiros de vídeo distintos, cada um explorando um ângulo diferente (ex: tutorial focado no diferencial, POV do cliente, unboxing estético, problema vs. solução, etc.). Cada roteiro deve ser prático e pronto para gravar, incluindo um gancho forte (gancho), um desenvolvimento rápido (script) e uma chamada para ação clara (cta) alinhada ao objetivo.
+  - scripts: Crie EXATAMENTE 5 roteiros de vídeo distintos, cada um explorando um ângulo diferente (ex: tutorial focado no diferencial, POV do cliente, unboxing estético, problema vs. solução, etc.). Cada roteiro deve ser prático e pronto para gravar, incluindo um gancho forte (gancho), um desenvolvimento rápido (script) e uma chamada para ação clara (cta) alinhada ao objetivo. O tom de voz deve ser profissional, autêntico e apropriado para o público e produto.
 
   - trendVariations: Crie 2-3 sugestões de como adaptar uma das ideias de roteiro para uma tendência (trend) de áudio ou vídeo que esteja em alta no Instagram/TikTok. Seja específico. Ex: "Adapte o roteiro 3 usando o áudio 'som do momento' com a trend de dublagem X." Para cada item no array, use a chave 'variacao' para a descrição.
 
@@ -137,3 +136,5 @@ export async function generatePubliProposalsAction(
     return { error: `Failed to generate proposals: ${errorMessage}` };
   }
 }
+
+    

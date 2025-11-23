@@ -44,23 +44,22 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { generateVideoIdeasAction, GenerateVideoIdeasOutput } from './actions';
 import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
-import { collection, addDoc, serverTimestamp, where, query, orderBy } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, where, query, orderBy, setDoc, doc, increment } from 'firebase/firestore';
 import { SavedIdeasSheet } from '@/components/saved-ideas-sheet';
-import type { IdeiaSalva } from '@/lib/types';
+import type { DailyUsage, IdeiaSalva } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, format as formatDate } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useSubscription } from '@/hooks/useSubscription';
+import Link from 'next/link';
 
 const formSchema = z.object({
   topic: z.string().min(3, 'O tópico deve ter pelo menos 3 caracteres.'),
   targetAudience: z
     .string()
     .min(3, 'O público-alvo deve ter pelo menos 3 caracteres.'),
-  platform: z.enum(['instagram', 'tiktok']),
-  videoFormat: z.string().min(1, 'O formato é obrigatório.'),
-  tone: z.string().min(1, 'O tom de voz é obrigatório.'),
   objective: z.string().min(1, 'O objetivo é obrigatório.'),
 });
 
@@ -99,14 +98,21 @@ export default function VideoIdeasPage() {
   const { user } = useUser();
   const firestore = useFirestore();
 
+   const { subscription, isTrialActive } = useSubscription();
+  const todayStr = formatDate(new Date(), 'yyyy-MM-dd');
+  const usageDocRef = useMemoFirebase(() =>
+    user && firestore ? doc(firestore, `users/${user.uid}/dailyUsage`, todayStr) : null
+  , [user, firestore, todayStr]);
+  const { data: dailyUsage } = useDoc<DailyUsage>(usageDocRef);
+  const generationsToday = dailyUsage?.geracoesAI || 0;
+  const hasReachedFreeLimit = isTrialActive && generationsToday >= 2;
+
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       topic: 'Como fazer o melhor café coado',
       targetAudience: 'Amantes de café que querem melhorar suas técnicas em casa',
-      platform: 'tiktok',
-      videoFormat: 'Tutorial',
-      tone: 'Inspirador',
       objective: 'Engajamento',
     },
   });
@@ -122,7 +128,7 @@ export default function VideoIdeasPage() {
   ), [firestore, user]);
   
   const { data: completedIdeas, isLoading: isLoadingCompleted } = useCollection<IdeiaSalva>(completedIdeasQuery);
-
+  const result = state?.data;
 
   useEffect(() => {
     if (state?.error) {
@@ -132,7 +138,10 @@ export default function VideoIdeasPage() {
         variant: 'destructive',
       });
     }
-  }, [state, toast]);
+     if (result && usageDocRef) {
+      setDoc(usageDocRef, { geracoesAI: increment(1) }, { merge: true });
+    }
+  }, [state, result, usageDocRef, toast]);
 
   const handleSave = (data: GenerateVideoIdeasOutput) => {
     if (!user || !firestore) {
@@ -177,7 +186,9 @@ export default function VideoIdeasPage() {
     });
   };
 
-  const result = state?.data;
+  const isButtonDisabled = isGenerating || hasReachedFreeLimit;
+  const isFreePlan = subscription?.plan === 'free';
+
 
   return (
     <div className="space-y-12">
@@ -192,7 +203,7 @@ export default function VideoIdeasPage() {
       <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
             <CardHeader>
                 <CardTitle className="flex items-center gap-3 font-headline text-xl text-center sm:text-left">
-                    <Sparkles className="h-6 w-6 text-primary" />
+                    <Sparkles className="text-primary h-6 w-6" />
                     Como Criamos Suas Ideias?
                 </CardTitle>
                  <CardDescription className="text-center sm:text-left">Nossa plataforma foi treinada para pensar como uma estrategista de conteúdo viral. Analisamos sua necessidade em busca de 4 pilares:</CardDescription>
@@ -267,133 +278,49 @@ export default function VideoIdeasPage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-6">
-                <FormField
-                  control={form.control}
-                  name="platform"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Plataforma</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        name={field.name}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="h-11">
-                            <SelectValue placeholder="Selecione" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="instagram">Instagram</SelectItem>
-                          <SelectItem value="tiktok">TikTok</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="videoFormat"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Formato do Vídeo</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        name={field.name}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="h-11">
-                            <SelectValue placeholder="Selecione" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="Tutorial">Tutorial</SelectItem>
-                          <SelectItem value="Unboxing">Unboxing</SelectItem>
-                          <SelectItem value="Dança">Dança</SelectItem>
-                          <SelectItem value="Storytelling">
-                            Storytelling
-                          </SelectItem>
-                          <SelectItem value="Comédia">Comédia</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="tone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tom de Voz</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        name={field.name}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="h-11">
-                            <SelectValue placeholder="Selecione" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="Inspirador">Inspirador</SelectItem>
-                          <SelectItem value="Engraçado">Engraçado</SelectItem>
-                          <SelectItem value="Educacional">
-                            Educacional
-                          </SelectItem>
-                          <SelectItem value="Luxuoso">Luxuoso</SelectItem>
-                          <SelectItem value="Polêmico">Polêmico</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="objective"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Objetivo</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        name={field.name}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="h-11">
-                            <SelectValue placeholder="Selecione" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="Engajamento">
-                            Engajamento
-                          </SelectItem>
-                          <SelectItem value="Alcance">Alcance</SelectItem>
-                          <SelectItem value="Vendas">Vendas</SelectItem>
-                          <SelectItem value="Educar">Educar</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+               
+                 <FormField
+                    control={form.control}
+                    name="objective"
+                    render={({ field }) => (
+                      <FormItem className='md:col-span-2'>
+                        <FormLabel>Objetivo</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          name={field.name}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="h-11">
+                              <SelectValue placeholder="Selecione" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="Engajamento">
+                              Engajamento
+                            </SelectItem>
+                            <SelectItem value="Alcance">Alcance</SelectItem>
+                            <SelectItem value="Vendas">Vendas</SelectItem>
+                            <SelectItem value="Educar">Educar</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
               </div>
 
-              <div className="pt-4 flex justify-center sm:justify-start">
+              <div className="pt-4 flex flex-col sm:flex-row items-center gap-4">
                 <Button
                   type="submit"
-                  disabled={isGenerating}
+                  disabled={isButtonDisabled}
                   size="lg"
                   className="font-manrope w-full sm:w-auto h-12 px-10 rounded-full text-base font-bold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-shadow"
                 >
                   {isGenerating ? (
                     <>
                       <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Gerando Ideias...
+                      Gerando Ideia...
                     </>
                   ) : (
                     <>
@@ -402,6 +329,16 @@ export default function VideoIdeasPage() {
                     </>
                   )}
                 </Button>
+                  {isFreePlan && (
+                  <p className="text-sm text-muted-foreground text-center sm:text-left">
+                    {hasReachedFreeLimit 
+                      ? 'Você atingiu seu limite de gerações gratuitas por hoje.'
+                      : `Gerações restantes hoje: ${2 - generationsToday}/2.`
+                    }
+                    {' '}
+                    <Link href="/subscribe" className='underline text-primary font-semibold'>Faça upgrade para mais.</Link>
+                  </p>
+                )}
               </div>
             </form>
           </Form>
@@ -548,7 +485,7 @@ function InfoCard({
 }) {
   return (
     <Card
-      className={`shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl ${className}`}
+      className={cn("shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl", className)}
     >
       <CardHeader className="text-center sm:text-left">
         <CardTitle className="flex items-center justify-center sm:justify-start gap-3 text-lg font-semibold text-foreground">
@@ -600,3 +537,5 @@ function InfoListCard({
     </Card>
   );
 }
+
+    
