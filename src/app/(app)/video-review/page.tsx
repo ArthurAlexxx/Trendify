@@ -61,15 +61,13 @@ type AnalysisStatus = "idle" | "uploading" | "loading" | "success" | "error";
 const MAX_FILE_SIZE_MB = 70;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
-const PLAN_LIMITS: Record<Plan, number> = {
-  free: 0,
+const PLAN_LIMITS: Record<Exclude<Plan, 'free'>, number> = {
   pro: 3,
-  premium: 10,
+  premium: 7,
 };
 
-
-function PremiumFeatureGuard({ children }: { children: React.ReactNode }) {
-    const { subscription, isLoading } = useSubscription();
+function FeatureGuard({ children }: { children: React.ReactNode }) {
+    const { subscription, isLoading, isTrialActive, trialDaysLeft } = useSubscription();
     const router = useRouter();
 
     if (isLoading) {
@@ -79,21 +77,24 @@ function PremiumFeatureGuard({ children }: { children: React.ReactNode }) {
             </div>
         );
     }
-
-    const isPaidPlan = (subscription?.plan === 'pro' || subscription?.plan === 'premium') && subscription.status === 'active';
     
-    if (!isPaidPlan) {
+    const isPaidPlan = (subscription?.plan === 'pro' || subscription?.plan === 'premium');
+
+    if (!isPaidPlan && !isTrialActive) {
         return (
              <AlertDialog open={true} onOpenChange={(open) => !open && router.push('/subscribe')}>
               <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle className="font-headline text-xl">Funcionalidade Pro</AlertDialogTitle>
+                <AlertDialogHeader className="text-center items-center">
+                   <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mb-2 border-2 border-primary/20">
+                     <Crown className="h-8 w-8 text-primary" />
+                   </div>
+                  <AlertDialogTitle className="font-headline text-xl">Funcionalidade indisponível</AlertDialogTitle>
                   <AlertDialogDescription>
-                    A Análise de Vídeo é um recurso exclusivo para assinantes dos planos Pro ou Premium. Faça o upgrade para ter acesso!
+                    Seu período de teste gratuito acabou. A Análise de Vídeo é um recurso para assinantes dos planos Pro ou Premium. Faça o upgrade para continuar usando!
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogAction onClick={() => router.push('/subscribe')}>Ver Planos</AlertDialogAction>
+                  <AlertDialogAction onClick={() => router.push('/subscribe')} className="w-full">Ver Planos</AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
@@ -103,11 +104,12 @@ function PremiumFeatureGuard({ children }: { children: React.ReactNode }) {
     return <>{children}</>;
 }
 
+
 export default function VideoReviewPage() {
     return (
-        <PremiumFeatureGuard>
+        <FeatureGuard>
             <VideoReviewPageContent />
-        </PremiumFeatureGuard>
+        </FeatureGuard>
     )
 }
 
@@ -124,7 +126,7 @@ function VideoReviewPageContent() {
 
   const { user } = useUser();
   const firestore = useFirestore();
-  const { subscription } = useSubscription();
+  const { subscription, isTrialActive } = useSubscription();
   const [isSaving, startSavingTransition] = useTransition();
   const uniqueId = useId();
   
@@ -133,13 +135,13 @@ function VideoReviewPageContent() {
     user && firestore ? doc(firestore, `users/${user.uid}/dailyUsage`, todayStr) : null
   , [user, firestore, todayStr]);
   
-  const { data: dailyUsage, isLoading: isLoadingUsage } = useDoc<DailyUsage>(usageDocRef);
+  const { data: dailyUsage } = useDoc<DailyUsage>(usageDocRef);
   
   const analysesDoneToday = dailyUsage?.videoAnalyses || 0;
   const currentPlan = subscription?.plan || 'free';
-  const limitCount = PLAN_LIMITS[currentPlan];
+  const limitCount = currentPlan === 'free' ? 1 : PLAN_LIMITS[currentPlan];
   const analysesLeft = Math.max(0, limitCount - analysesDoneToday);
-  const hasReachedLimit = analysesLeft <= 0;
+  const hasReachedLimit = isTrialActive ? analysesLeft <= 0 : currentPlan === 'free';
 
   const previousAnalysesQuery = useMemoFirebase(() =>
     user && firestore ? query(collection(firestore, `users/${user.uid}/analisesVideo`), orderBy('createdAt', 'desc'), limit(5)) : null
@@ -274,7 +276,7 @@ function VideoReviewPageContent() {
                             createdAt: serverTimestamp(),
                         });
 
-                        await setDoc(usageDocRef, { videoAnalyses: increment(1), date: todayStr }, { merge: true });
+                        await setDoc(usageDocRef, { videoAnalyses: increment(1), date: todayStr, geracoesAI: increment(0) }, { merge: true });
 
                         toast({
                             title: "Análise Concluída",
@@ -430,8 +432,13 @@ function VideoReviewPageContent() {
         
         <div className="text-center">
             <p className="text-sm text-muted-foreground">
-                Análises restantes hoje: <span className="font-bold text-primary">{analysesLeft} de {limitCount}</span>
+                Análises de vídeo restantes hoje: <span className="font-bold text-primary">{analysesLeft} de {limitCount}</span>
             </p>
+             {hasReachedLimit && currentPlan !== 'free' && (
+                <p className="text-xs text-muted-foreground">
+                  Você atingiu seu limite diário. Para mais análises, <Link href="/subscribe" className="underline text-primary">faça upgrade</Link>.
+                </p>
+            )}
         </div>
 
         {(analysisStatus !== 'idle' && analysisStatus !== 'uploading') && (
