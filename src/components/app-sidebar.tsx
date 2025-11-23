@@ -32,6 +32,7 @@ import { Skeleton } from './ui/skeleton';
 import { Plan } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Separator } from './ui/separator';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 const menuItems: {
   category: string;
