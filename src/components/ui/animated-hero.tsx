@@ -99,7 +99,7 @@ function AnimatedHero() {
           >
             <div className="absolute -inset-4 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl opacity-20 blur-2xl"></div>
             <Image
-              src="/images/dashboard-demo.png"
+              src="https://firebasestorage.googleapis.com/v0/b/studio-4233590611-a8ab0.firebasestorage.app/o/HeroDemo.png?alt=media&token=5d241b5f-cffb-4361-a8c3-57c8bf3966f3"
               alt="Dashboard da Trendify mostrando métricas de crescimento"
               width={1200}
               height={750}
