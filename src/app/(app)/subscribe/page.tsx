@@ -31,7 +31,7 @@ export default function SubscribePage() {
       <div className="space-y-12">
         <PageHeader
           title="Nossos Planos"
-          description="Desbloqueie todo o potencial da IA para acelerar seu crescimento."
+          description="Desbloqueie todo o potencial da plataforma para acelerar seu crescimento."
         />
         <div className="grid lg:grid-cols-2 gap-8 items-start max-w-4xl mx-auto">
           <Skeleton className="h-96 w-full rounded-2xl" />
@@ -108,25 +108,25 @@ export default function SubscribePage() {
         <PlanCard
           plan="pro"
           title="Plano Pro"
-          price="R$49"
+          price="R$29"
           description="Para criadores que levam o crescimento a sério."
           features={[
-            'Gerações de IA <b>ilimitadas</b>',
+            'Gerações de conteúdo <b>ilimitadas</b>',
             'Planejamento de conteúdo semanal',
             'Calendário de publicações',
-            'Análise de Vídeo com IA (3/dia)',
+            'Análise de Vídeo (3/dia)',
             'Suporte via e-mail',
           ]}
         />
          <PlanCard
           plan="premium"
           title="Plano Premium"
-          price="R$99"
+          price="R$39"
           description="Acesso exclusivo e suporte prioritário."
           isPremium
           features={[
             '<b>Tudo do plano PRO</b>',
-            'Análise de Vídeo com IA (10/dia)',
+            'Análise de Vídeo (10/dia)',
             'Assistente de Propostas para Publis',
             'Gerador de Mídia Kit profissional',
             'Acesso antecipado a novas ferramentas',

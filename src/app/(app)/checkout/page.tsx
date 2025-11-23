@@ -54,7 +54,7 @@ type FormData = z.infer<typeof formSchema>;
 const planDetails = {
   pro: {
     name: 'Plano Pro',
-    price: 'R$49',
+    price: 'R$29',
     features: [
       'Gerações de IA ilimitadas',
       'Mídia kit e propostas automáticas',
@@ -63,7 +63,7 @@ const planDetails = {
   },
   premium: {
     name: 'Plano Premium',
-    price: 'R$99',
+    price: 'R$39',
     features: [
       'Tudo do plano PRO',
       'Acesso antecipado a novas ferramentas',

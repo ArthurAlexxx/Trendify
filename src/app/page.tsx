@@ -68,7 +68,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 const features = [
   {
     icon: Lightbulb,
-    title: 'Roteiros e Estratégia com IA',
+    title: 'Roteiros e Estratégia',
     description:
       'Gere ideias de vídeo, roteiros completos e planos de conteúdo semanais que capturam a atenção e engajam seu público.',
   },
@@ -98,7 +98,7 @@ const faqItems = [
    {
     question: 'A Trendify funciona para qualquer nicho?',
     answer:
-      'Sim! Nossa IA é treinada para se adaptar a dezenas de nichos, de beleza e fitness a tecnologia e finanças. As sugestões são personalizadas para o seu público.',
+      'Sim! Nossa plataforma é treinada para se adaptar a dezenas de nichos, de beleza e fitness a tecnologia e finanças. As sugestões são personalizadas para o seu público.',
   },
   {
     question: 'Posso cancelar minha assinatura a qualquer momento?',
@@ -378,7 +378,7 @@ export default function LandingPage() {
         <section id="beneficios" className="py-20 sm:py-24">
           <div className="container text-center">
             <h2 className="text-3xl md:text-4xl font-bold font-headline tracking-tight mb-4">
-              A plataforma de IA completa para criadores
+              A plataforma completa para criadores
             </h2>
             <p className="text-lg text-muted-foreground mb-12 max-w-2xl mx-auto">
               Da estratégia de conteúdo à monetização, a Trendify centraliza tudo que você precisa para crescer de forma inteligente.
@@ -794,7 +794,7 @@ export default function LandingPage() {
                   Para criadores que levam o crescimento a sério e querem otimizar seu conteúdo.
                 </p>
                 <p className="text-4xl font-bold mb-6">
-                  R$49{' '}
+                  R$29{' '}
                   <span className="text-lg font-normal text-muted-foreground">
                     /mês
                   </span>
@@ -840,7 +840,7 @@ export default function LandingPage() {
                   Acesso total para criadores que querem monetizar e profissionalizar sua carreira.
                 </p>
                 <p className="text-4xl font-bold mb-6">
-                  R$99{' '}
+                  R$39{' '}
                   <span className="text-lg font-normal text-muted-foreground">
                     /mês
                   </span>

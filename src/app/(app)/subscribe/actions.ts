@@ -32,11 +32,11 @@ type ActionState = {
 
 const planDetails: Record<Exclude<Plan, 'free'>, { amount: number; description: string }> = {
     pro: {
-        amount: 4900, // R$49,00
+        amount: 2900, // R$29,00
         description: 'Assinatura Trendify PRO - 1 Mês'
     },
     premium: {
-        amount: 9900, // R$99,00
+        amount: 3900, // R$39,00
         description: 'Assinatura Trendify PREMIUM - 1 Mês'
     }
 }
