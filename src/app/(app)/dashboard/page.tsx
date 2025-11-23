@@ -276,49 +276,7 @@ export default function DashboardPage() {
           user?.displayName?.split(' ')[0] || 'Criador'
         }!`}
         description="Seu centro de comando para crescimento e monetização."
-      >
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button size={isMobile ? 'default' : 'lg'} className="font-manrope rounded-full text-base w-full sm:w-auto shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-shadow">
-              <Plus className="mr-2 h-5 w-5" />
-              Criar Novo
-              <ChevronDown className="ml-2 h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuItem asChild>
-              <Link href="/generate-weekly-plan">
-                <ClipboardList className="mr-2 h-4 w-4" />
-                <span>Planejamento Semanal</span>
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/video-ideas">
-                <Lightbulb className="mr-2 h-4 w-4" />
-                <span>Ideia de Vídeo</span>
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/video-review">
-                <Video className="mr-2 h-4 w-4" />
-                <span>Análise de Vídeo</span>
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/publis-assistant">
-                <Newspaper className="mr-2 h-4 w-4" />
-                <span>Proposta de Publi</span>
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/content-calendar">
-                <Calendar className="mr-2 h-4 w-4" />
-                <span>Agendar Post</span>
-              </Link>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </PageHeader>
+      />
       
       <ProfileCompletionAlert />
 
