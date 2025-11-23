@@ -98,7 +98,7 @@ const demoRoteiro: PlanoSemanal = {
 const demoIdeiasSalvas: IdeiaSalva[] = [
   { id: '1', titulo: 'Ideia: Collab com marca de cosméticos veganos', origem: 'Mídia Kit & Prospecção', concluido: false, userId: 'demo', createdAt: { toDate: () => new Date(Date.now() - 2 * 24 * 60 * 60 * 1000) } as any },
   { id: '2', titulo: 'Roteiro: Unboxing de recebidos sustentáveis', origem: 'Ideias de Vídeo', concluido: false, userId: 'demo', createdAt: { toDate: () => new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) } as any },
-  { id: '3', titulo: 'Campanha: Lançamento do e-book de moda', origem: 'Propostas & Publis', concluido: false, userId: 'demo', createdAt: { toDate: () => new Date(Date-now() - 5 * 24 * 60 * 60 * 1000) } as any },
+  { id: '3', titulo: 'Campanha: Lançamento do e-book de moda', origem: 'Propostas & Publis', concluido: false, userId: 'demo', createdAt: { toDate: () => new Date(Date.now() - 5 * 24 * 60 * 60 * 1000) } as any },
 ];
 
 const demoUpcomingContent: ConteudoAgendado[] = [
