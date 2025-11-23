@@ -57,55 +57,8 @@ import { useState, useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useUser } from '@/firebase';
-
-
-// --- DADOS DE DEMONSTRAÇÃO ---
-const demoUserProfile: Partial<UserProfile> = {
-  displayName: 'Sofia',
-  followers: '250K',
-  averageViews: '15.5K',
-  averageLikes: '890',
-  averageComments: '120',
-  audience: '75% Mulheres, 18-24 anos',
-  bio: 'Criadora de conteúdo focada em lifestyle e moda sustentável.',
-  niche: 'Lifestyle e Moda Sustentável'
-};
-
-const demoRoteiro: PlanoSemanal = {
-  id: 'demo-plan-1',
-  createdAt: { toDate: () => new Date() } as any,
-  items: [
-    { dia: 'Segunda', tarefa: 'Gravar Reels sobre "3 formas de usar uma camisa branca"', detalhes: 'Focar em transições rápidas e usar um áudio em alta.', concluido: true },
-    { dia: 'Terça', tarefa: 'Postar Carrossel com dicas de moda sustentável', detalhes: 'Criar 5 slides informativos com design limpo.', concluido: true },
-    { dia: 'Quarta', tarefa: 'Abrir caixa de perguntas sobre consumo consciente', detalhes: 'Responder as 10 melhores perguntas nos Stories.', concluido: false },
-    { dia: 'Quinta', tarefa: 'Gravar vídeo longo para YouTube sobre "Minimalismo no Guarda-Roupa"', detalhes: 'Estruturar o roteiro: introdução, 3 blocos de conteúdo e conclusão.', concluido: false },
-    { dia: 'Sexta', tarefa: 'Postar Reels de "Arrume-se comigo para o final de semana"', detalhes: 'Focar em um look com peças de brechó.', concluido: false },
-    { dia: 'Sábado', tarefa: 'Stories mostrando um evento de parceiros', detalhes: 'Marcar a @lojaparceira e usar o link de afiliado.', concluido: false },
-    { dia: 'Domingo', tarefa: 'Planejar o conteúdo da próxima semana', detalhes: 'Usar o gerador de ideias da Trendify para 3 novos vídeos.', concluido: false },
-  ],
-  desempenhoSimulado: [
-    { data: 'Seg', alcance: 12000, engajamento: 850 },
-    { data: 'Ter', alcance: 9500, engajamento: 720 },
-    { data: 'Qua', alcance: 15000, engajamento: 1100 },
-    { data: 'Qui', alcance: 8000, engajamento: 600 },
-    { data: 'Sex', alcance: 18500, engajamento: 1300 },
-    { data: 'Sáb', alcance: 11000, engajamento: 900 },
-    { data: 'Dom', alcance: 7500, engajamento: 550 },
-  ],
-};
-
-const demoIdeiasSalvas: IdeiaSalva[] = [
-  { id: '1', titulo: 'Ideia: Collab com marca de cosméticos veganos', conteudo: 'Conteúdo da ideia de collab...', origem: 'Mídia Kit & Prospecção', concluido: false, userId: 'demo', createdAt: { toDate: () => new Date(Date.now() - 2 * 24 * 60 * 60 * 1000) } as any },
-  { id: '2', titulo: 'Roteiro: Unboxing de recebidos sustentáveis', conteudo: 'Conteúdo do roteiro de unboxing...', origem: 'Ideias de Vídeo', concluido: false, userId: 'demo', createdAt: { toDate: () => new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) } as any },
-  { id: '3', titulo: 'Campanha: Lançamento do e-book de moda', conteudo: 'Conteúdo da campanha do e-book...', origem: 'Propostas & Publis', concluido: false, userId: 'demo', createdAt: { toDate: () => new Date(Date.now() - 5 * 24 * 60 * 60 * 1000) } as any },
-];
-
-const demoUpcomingContent: ConteudoAgendado[] = [
-  { id: '1', title: 'Reels: Transformando look de brechó', contentType: 'Reels', status: 'Agendado', date: { toDate: () => new Date(Date.now() + 1 * 24 * 60 * 60 * 1000) } as any, userId: 'demo', createdAt: { toDate: () => new Date() } as any },
-  { id: '2', title: 'Post: Review do novo tênis ecológico', contentType: 'Post', status: 'Agendado', date: { toDate: () => new Date(Date.now() + 3 * 24 * 60 * 60 * 1000) } as any, userId: 'demo', createdAt: { toDate: () => new Date() } as any },
-];
-// --- FIM DOS DADOS DE DEMONSTRAÇÃO ---
+import { useUser, useFirestore, useCollection, useDoc, useMemoFirebase } from '@/firebase';
+import { collection, doc, query, orderBy, limit, updateDoc, where } from 'firebase/firestore';
 
 
 const chartConfig = {
@@ -119,24 +72,53 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-const ProfileCompletionAlert = () => {
-  return null; // Desabilitado para a página de demonstração
-};
+const ProfileCompletionAlert = ({ userProfile }: { userProfile: UserProfile | null }) => {
+    const isProfileComplete = userProfile?.niche && userProfile.followers;
+    if (isProfileComplete) return null;
+
+    return (
+        <Alert>
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Complete seu Perfil!</AlertTitle>
+            <AlertDescription>
+                <Link href="/profile" className='hover:underline font-semibold'>Adicione seu nicho e métricas</Link> para que a IA gere insights mais precisos.
+            </AlertDescription>
+        </Alert>
+    )
+}
 
 
 export default function DashboardPage() {
   const { user } = useUser();
+  const firestore = useFirestore();
   const { toast } = useToast();
   const [isExpanded, setIsExpanded] = useState(false);
   const isMobile = useIsMobile();
+
+  // --- BUSCA DE DADOS DINÂMICOS ---
+
+  const userProfileRef = useMemoFirebase(() => (
+      firestore && user ? doc(firestore, `users/${user.uid}`) : null
+  ), [firestore, user]);
+  const { data: userProfile, isLoading: isLoadingProfile } = useDoc<UserProfile>(userProfileRef);
+
+  const roteiroQuery = useMemoFirebase(() => (
+      firestore ? query(collection(firestore, 'roteiro'), orderBy('createdAt', 'desc'), limit(1)) : null
+  ), [firestore]);
+  const { data: roteiroData, isLoading: isLoadingRoteiro } = useCollection<PlanoSemanal>(roteiroQuery);
+  const roteiro = roteiroData?.[0];
+
+  const ideiasQuery = useMemoFirebase(() => (
+      firestore && user ? query(collection(firestore, `users/${user.uid}/ideiasSalvas`), where('concluido', '==', false), limit(5)) : null
+  ), [firestore, user]);
+  const { data: ideiasSalvas, isLoading: isLoadingIdeias } = useCollection<IdeiaSalva>(ideiasQuery);
   
-  // Usando dados de demonstração
-  const [userProfile, setUserProfile] = useState(demoUserProfile);
-  const [roteiroItems, setRoteiroItems] = useState(demoRoteiro.items);
-  const dadosGrafico = demoRoteiro.desempenhoSimulado;
-  const ideiasSalvas = demoIdeiasSalvas;
-  const upcomingContent = demoUpcomingContent;
-  const roteiro = demoRoteiro;
+  const upcomingContentQuery = useMemoFirebase(() => (
+      firestore && user ? query(collection(firestore, `users/${user.uid}/conteudoAgendado`), where('status', '==', 'Agendado'), orderBy('date', 'asc'), limit(2)) : null
+  ), [firestore, user]);
+  const { data: upcomingContent, isLoading: isLoadingUpcoming } = useCollection<ConteudoAgendado>(upcomingContentQuery);
+
+  const isLoading = isLoadingProfile || isLoadingRoteiro || isLoadingIdeias || isLoadingUpcoming;
 
 
   const userMetrics = useMemo(() => {
@@ -148,37 +130,61 @@ export default function DashboardPage() {
       ];
   }, [userProfile]);
 
-  const handleToggleIdeia = (ideia: IdeiaSalva) => {
-    toast({ title: "Ação de demonstração", description: "Esta ação está desabilitada no modo de visualização."});
+  const handleToggleIdeia = async (ideia: IdeiaSalva) => {
+    if (!firestore || !user) return;
+    const ideaRef = doc(firestore, `users/${user.uid}/ideiasSalvas`, ideia.id);
+    try {
+        await updateDoc(ideaRef, { 
+            concluido: !ideia.concluido,
+            completedAt: !ideia.concluido ? new Date() : null,
+        });
+        toast({ title: "Tarefa atualizada!"});
+    } catch (e: any) {
+        toast({ title: "Erro", description: e.message, variant: 'destructive'})
+    }
   };
 
-  const handleToggleRoteiro = (toggledItem: ItemRoteiro, index: number) => {
-    setRoteiroItems(prevItems => {
-        const newItems = [...prevItems];
-        newItems[index] = { ...newItems[index], concluido: !newItems[index].concluido };
-        return newItems;
-    });
+  const handleToggleRoteiro = async (toggledItem: ItemRoteiro, index: number) => {
+    if (!firestore || !roteiro) return;
+    const roteiroRef = doc(firestore, 'roteiro', roteiro.id);
+    const updatedItems = roteiro.items.map((item, i) => 
+        i === index ? { ...item, concluido: !item.concluido } : item
+    );
+    try {
+        await updateDoc(roteiroRef, { items: updatedItems });
+    } catch (e: any) {
+        toast({ title: "Erro ao atualizar roteiro", description: e.message, variant: 'destructive'});
+    }
   };
   
-  const handleMarkAsPublished = (postId: string) => {
-    toast({ title: "Ação de demonstração", description: "Esta ação está desabilitada no modo de visualização."});
+  const handleMarkAsPublished = async (postId: string) => {
+    if (!firestore || !user) return;
+    const postRef = doc(firestore, `users/${user.uid}/conteudoAgendado`, postId);
+    try {
+        await updateDoc(postRef, { status: 'Publicado' });
+        toast({ title: "Post marcado como publicado!"});
+    } catch(e: any) {
+        toast({ title: "Erro", description: e.message, variant: 'destructive'})
+    }
   };
 
 
-  const visibleItems = roteiroItems?.slice(0, 3);
-  const collapsibleItems = roteiroItems?.slice(3);
+  const visibleItems = roteiro?.items.slice(0, 3);
+  const collapsibleItems = roteiro?.items.slice(3);
 
   return (
     <div className="space-y-12">
       <PageHeader
         icon={<LayoutGrid />}
         title={`Bem-vindo(a) de volta, ${
-          userProfile?.displayName?.split(' ')[0] || 'Criador'
+          userProfile?.displayName?.split(' ')[0] || user?.displayName?.split(' ')[0] || 'Criador'
         }!`}
         description="Seu centro de comando para crescimento e monetização."
       />
 
       <div className="space-y-8">
+        <ProfileCompletionAlert userProfile={userProfile} />
+
         {/* Métricas Principais */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {userMetrics.map((metric) => (
@@ -193,12 +199,16 @@ export default function DashboardPage() {
                   <metric.icon className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold font-headline">
-                    {metric.value || '—'}
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    {metric.value ? metric.description : <Link href="/profile" className="hover:underline">Adicionar no perfil</Link>}
-                  </p>
+                  {isLoadingProfile ? <Skeleton className="h-8 w-24 mx-auto sm:mx-0" /> :
+                    <>
+                        <div className="text-3xl font-bold font-headline">
+                            {metric.value || '—'}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                            {metric.value ? metric.description : <Link href="/profile" className="hover:underline">Adicionar no perfil</Link>}
+                        </p>
+                    </>
+                  }
                 </CardContent>
               </Card>
             ))}
@@ -216,62 +226,64 @@ export default function DashboardPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="pl-2 flex-grow flex flex-col">
-                {dadosGrafico && dadosGrafico.length > 0 ? (
-                  <ChartContainer
-                    config={chartConfig}
-                    className="h-[300px] w-full"
-                  >
-                    <BarChart accessibilityLayer data={dadosGrafico}>
-                      <CartesianGrid
-                        vertical={false}
-                        strokeDasharray="3 3"
-                        stroke="hsl(var(--border) / 0.5)"
-                      />
-                      <XAxis
-                        dataKey="data"
-                        tickLine={false}
-                        tickMargin={10}
-                        axisLine={false}
-                        tickFormatter={(value) => value.slice(0, 3)}
-                      />
-                      <YAxis
-                        tickLine={false}
-                        axisLine={false}
-                        tickMargin={10}
-                        tickFormatter={(value) =>
-                          typeof value === 'number' && value >= 1000
-                            ? `${value / 1000}k`
-                            : value
-                        }
-                      />
-                      <ChartTooltip
-                        cursor={false}
-                        content={<ChartTooltipContent indicator="dot" />}
-                      />
-                      <Bar
-                        dataKey="alcance"
-                        fill="var(--color-alcance)"
-                        radius={8}
-                      />
-                      <Bar
-                        dataKey="engajamento"
-                        fill="var(--color-engajamento)"
-                        radius={8}
-                      />
-                    </BarChart>
-                  </ChartContainer>
-                ) : (
-                  <div className="h-full w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
-                    <div>
-                      <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
-                      <h3 className="font-semibold text-foreground">
-                        Sem dados de desempenho.
-                      </h3>
-                      <p className="text-sm text-muted-foreground">
-                        Gere um roteiro para ver uma simulação.
-                      </p>
+                {isLoadingRoteiro ? <Skeleton className="h-[300px] w-full" /> : (
+                    roteiro && roteiro.desempenhoSimulado.length > 0 ? (
+                    <ChartContainer
+                        config={chartConfig}
+                        className="h-[300px] w-full"
+                    >
+                        <BarChart accessibilityLayer data={roteiro.desempenhoSimulado}>
+                        <CartesianGrid
+                            vertical={false}
+                            strokeDasharray="3 3"
+                            stroke="hsl(var(--border) / 0.5)"
+                        />
+                        <XAxis
+                            dataKey="data"
+                            tickLine={false}
+                            tickMargin={10}
+                            axisLine={false}
+                            tickFormatter={(value) => value.slice(0, 3)}
+                        />
+                        <YAxis
+                            tickLine={false}
+                            axisLine={false}
+                            tickMargin={10}
+                            tickFormatter={(value) =>
+                            typeof value === 'number' && value >= 1000
+                                ? `${value / 1000}k`
+                                : value
+                            }
+                        />
+                        <ChartTooltip
+                            cursor={false}
+                            content={<ChartTooltipContent indicator="dot" />}
+                        />
+                        <Bar
+                            dataKey="alcance"
+                            fill="var(--color-alcance)"
+                            radius={8}
+                        />
+                        <Bar
+                            dataKey="engajamento"
+                            fill="var(--color-engajamento)"
+                            radius={8}
+                        />
+                        </BarChart>
+                    </ChartContainer>
+                    ) : (
+                    <div className="h-full w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
+                        <div>
+                        <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+                        <h3 className="font-semibold text-foreground">
+                            Sem dados de desempenho.
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                            Gere um roteiro para ver uma simulação.
+                        </p>
+                        </div>
                     </div>
-                  </div>
+                    )
                 )}
               </CardContent>
             </Card>
@@ -283,64 +295,22 @@ export default function DashboardPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {roteiroItems && roteiroItems.length > 0 ? (
-                   <div>
-                    <ul className="space-y-2">
-                        {visibleItems?.map((item, index) => (
-                        <li key={index}>
-                            <div className="flex items-start gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50 text-left">
-                            <Checkbox
-                                id={`roteiro-${index}`}
-                                checked={item.concluido}
-                                onCheckedChange={() => handleToggleRoteiro(item, index)}
-                                className="h-5 w-5 mt-1"
-                            />
-                            <div>
-                                <label
-                                htmlFor={`roteiro-${index}`}
-                                className={cn(
-                                    'font-medium text-base transition-colors cursor-pointer',
-                                    item.concluido
-                                    ? 'line-through text-muted-foreground'
-                                    : 'text-foreground'
-                                )}
-                                >
-                                <span className="font-semibold text-primary">
-                                    {item.dia}:
-                                </span>{' '}
-                                {item.tarefa}
-                                </label>
-                                <p className="text-sm text-muted-foreground">
-                                {item.detalhes}
-                                </p>
-                            </div>
-                            </div>
-                            {visibleItems && index < visibleItems.length - 1 && (
-                            <Separator className="my-2" />
-                            )}
-                        </li>
-                        ))}
-                         <AnimatePresence>
-                          {isExpanded && collapsibleItems?.map((item, index) => (
-                            <motion.li 
-                              key={`collapsible-${index}`}
-                              initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: 'auto' }}
-                              exit={{ opacity: 0, height: 0 }}
-                              transition={{ duration: 0.3, ease: "easeInOut" }}
-                              className="overflow-hidden"
-                            >
-                                <Separator className="my-2" />
+                {isLoadingRoteiro ? <Skeleton className="h-40 w-full" /> : (
+                    roteiro && roteiro.items.length > 0 ? (
+                    <div>
+                        <ul className="space-y-2">
+                            {visibleItems?.map((item, index) => (
+                            <li key={index}>
                                 <div className="flex items-start gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50 text-left">
                                 <Checkbox
-                                    id={`roteiro-collapsible-${index}`}
+                                    id={`roteiro-${index}`}
                                     checked={item.concluido}
-                                    onCheckedChange={() => handleToggleRoteiro(item, 3 + index)}
+                                    onCheckedChange={() => handleToggleRoteiro(item, index)}
                                     className="h-5 w-5 mt-1"
                                 />
                                 <div>
                                     <label
-                                    htmlFor={`roteiro-collapsible-${index}`}
+                                    htmlFor={`roteiro-${index}`}
                                     className={cn(
                                         'font-medium text-base transition-colors cursor-pointer',
                                         item.concluido
@@ -358,50 +328,94 @@ export default function DashboardPage() {
                                     </p>
                                 </div>
                                 </div>
-                            </motion.li>
-                          ))}
-                        </AnimatePresence>
-                    </ul>
-                    {collapsibleItems && collapsibleItems.length > 0 && !isExpanded && (
-                       <div className='flex justify-center mt-2'>
-                          <Button 
-                            variant="ghost" 
-                            onClick={() => setIsExpanded(true)} 
-                            className="text-primary hover:text-primary"
-                          >
-                            Ver restante da semana
-                          </Button>
-                       </div>
-                    )}
-                    {isExpanded && (
-                       <div className='flex justify-center mt-2'>
-                          <Button 
-                            variant="ghost" 
-                            onClick={() => setIsExpanded(false)} 
-                            className="text-primary hover:text-primary"
-                          >
-                            Ver menos
-                          </Button>
-                       </div>
-                    )}
-                   </div>
-                ) : (
-                  <div className="text-center py-8 px-4 rounded-xl bg-muted/50 border border-dashed">
-                    <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
-                    <h3 className="font-semibold text-foreground">
-                      Sem roteiro para a semana.
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      Gere um novo no{' '}
-                      <Link
-                        href="/generate-weekly-plan"
-                        className="text-primary font-medium hover:underline"
-                      >
-                        Planejamento Semanal
-                      </Link>
-                      .
-                    </p>
-                  </div>
+                                {visibleItems && index < visibleItems.length - 1 && (
+                                <Separator className="my-2" />
+                                )}
+                            </li>
+                            ))}
+                            <AnimatePresence>
+                            {isExpanded && collapsibleItems?.map((item, index) => (
+                                <motion.li 
+                                key={`collapsible-${index}`}
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                exit={{ opacity: 0, height: 0 }}
+                                transition={{ duration: 0.3, ease: "easeInOut" }}
+                                className="overflow-hidden"
+                                >
+                                    <Separator className="my-2" />
+                                    <div className="flex items-start gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50 text-left">
+                                    <Checkbox
+                                        id={`roteiro-collapsible-${index}`}
+                                        checked={item.concluido}
+                                        onCheckedChange={() => handleToggleRoteiro(item, 3 + index)}
+                                        className="h-5 w-5 mt-1"
+                                    />
+                                    <div>
+                                        <label
+                                        htmlFor={`roteiro-collapsible-${index}`}
+                                        className={cn(
+                                            'font-medium text-base transition-colors cursor-pointer',
+                                            item.concluido
+                                            ? 'line-through text-muted-foreground'
+                                            : 'text-foreground'
+                                        )}
+                                        >
+                                        <span className="font-semibold text-primary">
+                                            {item.dia}:
+                                        </span>{' '}
+                                        {item.tarefa}
+                                        </label>
+                                        <p className="text-sm text-muted-foreground">
+                                        {item.detalhes}
+                                        </p>
+                                    </div>
+                                    </div>
+                                </motion.li>
+                            ))}
+                            </AnimatePresence>
+                        </ul>
+                        {collapsibleItems && collapsibleItems.length > 0 && !isExpanded && (
+                        <div className='flex justify-center mt-2'>
+                            <Button 
+                                variant="ghost" 
+                                onClick={() => setIsExpanded(true)} 
+                                className="text-primary hover:text-primary"
+                            >
+                                Ver restante da semana
+                            </Button>
+                        </div>
+                        )}
+                        {isExpanded && (
+                        <div className='flex justify-center mt-2'>
+                            <Button 
+                                variant="ghost" 
+                                onClick={() => setIsExpanded(false)} 
+                                className="text-primary hover:text-primary"
+                            >
+                                Ver menos
+                            </Button>
+                        </div>
+                        )}
+                    </div>
+                    ) : (
+                    <div className="text-center py-8 px-4 rounded-xl bg-muted/50 border border-dashed">
+                        <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+                        <h3 className="font-semibold text-foreground">
+                        Sem roteiro para a semana.
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                        Gere um novo no{' '}
+                        <Link
+                            href="/generate-weekly-plan"
+                            className="text-primary font-medium hover:underline"
+                        >
+                            Planejamento Semanal
+                        </Link>
+                        .
+                        </p>
+                    </div>
+                    )
                 )}
               </CardContent>
             </Card>
@@ -416,50 +430,52 @@ export default function DashboardPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {ideiasSalvas && ideiasSalvas.length > 0 ? (
-                  <ul className="space-y-3">
-                    {ideiasSalvas.map((ideia) => (
-                      <li key={ideia.id} className="flex items-start gap-3 text-left">
-                        <Checkbox
-                          id={`ideia-${ideia.id}`}
-                          checked={ideia.concluido}
-                          onCheckedChange={() => handleToggleIdeia(ideia)}
-                          className="h-5 w-5 mt-0.5"
-                        />
-                        <div className="grid gap-0.5">
-                          <label
-                            htmlFor={`ideia-${ideia.id}`}
-                            className={cn(
-                              'font-medium transition-colors cursor-pointer',
-                              ideia.concluido
-                                ? 'line-through text-muted-foreground'
-                                : 'text-foreground'
-                            )}
-                          >
-                            {ideia.titulo}
-                          </label>
-                          <p className="text-xs text-muted-foreground">
-                            Salvo de "{ideia.origem}"{' '}
-                            {ideia.createdAt &&
-                              formatDistanceToNow(ideia.createdAt.toDate(), {
-                                addSuffix: true,
-                                locale: ptBR,
-                              })}
-                          </p>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <div className="text-center py-8 px-4 rounded-xl bg-muted/50 border border-dashed">
-                    <Rocket className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
-                    <h3 className="font-semibold text-foreground">
-                      Comece a Gerar Ideias!
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      Suas ideias e tarefas salvas aparecerão aqui.
-                    </p>
-                  </div>
+                {isLoadingIdeias ? <Skeleton className="h-24 w-full" /> : (
+                    ideiasSalvas && ideiasSalvas.length > 0 ? (
+                    <ul className="space-y-3">
+                        {ideiasSalvas.map((ideia) => (
+                        <li key={ideia.id} className="flex items-start gap-3 text-left">
+                            <Checkbox
+                            id={`ideia-${ideia.id}`}
+                            checked={ideia.concluido}
+                            onCheckedChange={() => handleToggleIdeia(ideia)}
+                            className="h-5 w-5 mt-0.5"
+                            />
+                            <div className="grid gap-0.5">
+                            <label
+                                htmlFor={`ideia-${ideia.id}`}
+                                className={cn(
+                                'font-medium transition-colors cursor-pointer',
+                                ideia.concluido
+                                    ? 'line-through text-muted-foreground'
+                                    : 'text-foreground'
+                                )}
+                            >
+                                {ideia.titulo}
+                            </label>
+                            <p className="text-xs text-muted-foreground">
+                                Salvo de "{ideia.origem}"{' '}
+                                {ideia.createdAt &&
+                                formatDistanceToNow(ideia.createdAt.toDate(), {
+                                    addSuffix: true,
+                                    locale: ptBR,
+                                })}
+                            </p>
+                            </div>
+                        </li>
+                        ))}
+                    </ul>
+                    ) : (
+                    <div className="text-center py-8 px-4 rounded-xl bg-muted/50 border border-dashed">
+                        <Rocket className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+                        <h3 className="font-semibold text-foreground">
+                        Comece a Gerar Ideias!
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                        Suas ideias e tarefas salvas aparecerão aqui.
+                        </p>
+                    </div>
+                    )
                 )}
               </CardContent>
             </Card>
@@ -471,63 +487,65 @@ export default function DashboardPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className='flex-grow flex flex-col'>
-                {upcomingContent && upcomingContent.length > 0 ? (
-                  <div className="space-y-4 flex-grow flex flex-col">
-                    {upcomingContent.map((post) => (
-                      <div
-                        key={post.id}
-                        className="p-3 rounded-lg border bg-background/50 flex items-start justify-between gap-4 text-left"
-                      >
-                        <div className="flex items-start gap-3 flex-1 overflow-hidden">
-                          <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
-                            <Tag className="h-5 w-5 text-muted-foreground" />
-                          </div>
-                          <div className="flex-1 overflow-hidden">
-                            <p className="font-semibold text-foreground text-sm leading-tight truncate">
-                              {post.title}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {post.contentType} •{' '}
-                              {formatDistanceToNow(post.date.toDate(), {
-                                addSuffix: true,
-                                locale: ptBR,
-                              })}
-                            </p>
-                          </div>
+                {isLoadingUpcoming ? <Skeleton className="h-28 w-full" /> : (
+                    upcomingContent && upcomingContent.length > 0 ? (
+                    <div className="space-y-4 flex-grow flex flex-col">
+                        {upcomingContent.map((post) => (
+                        <div
+                            key={post.id}
+                            className="p-3 rounded-lg border bg-background/50 flex items-start justify-between gap-4 text-left"
+                        >
+                            <div className="flex items-start gap-3 flex-1 overflow-hidden">
+                            <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                                <Tag className="h-5 w-5 text-muted-foreground" />
+                            </div>
+                            <div className="flex-1 overflow-hidden">
+                                <p className="font-semibold text-foreground text-sm leading-tight truncate">
+                                {post.title}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                {post.contentType} •{' '}
+                                {formatDistanceToNow(post.date.toDate(), {
+                                    addSuffix: true,
+                                    locale: ptBR,
+                                })}
+                                </p>
+                            </div>
+                            </div>
+                            <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => handleMarkAsPublished(post.id)}>
+                                <CheckCircle className="mr-2 h-4 w-4" />
+                                <span>Marcar como Publicado</span>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                            </DropdownMenu>
                         </div>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
-                                <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleMarkAsPublished(post.id)}>
-                              <CheckCircle className="mr-2 h-4 w-4" />
-                              <span>Marcar como Publicado</span>
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    ))}
-                    <div className='mt-auto pt-4'>
-                      <Button variant="link" asChild className="w-full">
-                        <Link href="/content-calendar">
-                          Ver calendário completo
-                        </Link>
-                      </Button>
+                        ))}
+                        <div className='mt-auto pt-4'>
+                        <Button variant="link" asChild className="w-full">
+                            <Link href="/content-calendar">
+                            Ver calendário completo
+                            </Link>
+                        </Button>
+                        </div>
                     </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-8 px-4 rounded-xl bg-muted/50 border border-dashed flex-grow flex flex-col items-center justify-center">
-                    <Calendar className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
-                    <h3 className="font-semibold text-foreground">
-                      Nenhum post futuro.
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      Agende seu próximo conteúdo no calendário.
-                    </p>
-                  </div>
+                    ) : (
+                    <div className="text-center py-8 px-4 rounded-xl bg-muted/50 border border-dashed flex-grow flex flex-col items-center justify-center">
+                        <Calendar className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+                        <h3 className="font-semibold text-foreground">
+                        Nenhum post futuro.
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                        Agende seu próximo conteúdo no calendário.
+                        </p>
+                    </div>
+                    )
                 )}
               </CardContent>
             </Card>

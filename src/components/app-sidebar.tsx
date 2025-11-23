@@ -70,7 +70,7 @@ const hasAccess = (userPlan: Plan, itemPlan: Plan): boolean => {
 
 export function AppSidebar() {
   const pathname = usePathname();
-  const { user } = useUser();
+  const { user, isUserLoading } = useUser();
   const auth = useAuth();
   const router = useRouter();
   const { subscription, isLoading: isSubscriptionLoading } = useSubscription();
@@ -113,9 +113,9 @@ export function AppSidebar() {
         <div className='relative'>
              <Link href="/subscribe" className="block w-full text-left p-4 rounded-xl bg-gradient-to-br from-primary via-purple-500 to-violet-600 text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-shadow">
                 <div className='flex items-center gap-3'>
-                    {getPlanIcon()}
+                    {isSubscriptionLoading ? <Skeleton className="h-6 w-6 rounded-full" /> : getPlanIcon()}
                     <div className='flex flex-col'>
-                        <span className='font-semibold text-lg leading-tight'>{getPlanName()}</span>
+                        {isSubscriptionLoading ? <Skeleton className="h-5 w-20" /> : <span className='font-semibold text-lg leading-tight'>{getPlanName()}</span>}
                         <span className='text-sm opacity-80'>Gerenciar assinatura</span>
                     </div>
                 </div>
@@ -169,19 +169,29 @@ export function AppSidebar() {
          <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className='w-full justify-start h-auto p-2 hover:bg-muted'>
-                    <div className="flex items-center gap-3 w-full">
-                        <Avatar className="h-10 w-10 border-2 border-primary">
-                          <AvatarImage src='https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=100&q=80' alt="User avatar" />
-                          <AvatarFallback>S</AvatarFallback>
-                        </Avatar>
-                        <div className="w-[120px] overflow-hidden text-left">
-                            <p className="text-sm font-semibold truncate text-foreground">Sofia Alves</p>
-                            <p className="text-xs text-muted-foreground truncate">
-                                sofia.alves@demo.com
-                            </p>
+                    {isUserLoading ? (
+                        <div className="flex items-center gap-3 w-full">
+                            <Skeleton className="h-10 w-10 rounded-full" />
+                            <div className="space-y-2">
+                                <Skeleton className="h-4 w-24" />
+                                <Skeleton className="h-3 w-32" />
+                            </div>
                         </div>
-                         <LogOut className="h-4 w-4 ml-auto text-muted-foreground" />
-                    </div>
+                    ) : (
+                        <div className="flex items-center gap-3 w-full">
+                            <Avatar className="h-10 w-10 border-2 border-primary">
+                            <AvatarImage src={user?.photoURL ?? undefined} alt="User avatar" />
+                            <AvatarFallback>{user?.displayName?.[0] || user?.email?.[0]}</AvatarFallback>
+                            </Avatar>
+                            <div className="w-[120px] overflow-hidden text-left">
+                                <p className="text-sm font-semibold truncate text-foreground">{user?.displayName}</p>
+                                <p className="text-xs text-muted-foreground truncate">
+                                    {user?.email}
+                                </p>
+                            </div>
+                            <LogOut className="h-4 w-4 ml-auto text-muted-foreground" />
+                        </div>
+                    )}
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent side="right" align="end" className="w-56 mb-2">
@@ -216,3 +226,5 @@ export function AppSidebar() {
     </aside>
   );
 }
+
+    
