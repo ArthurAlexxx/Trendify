@@ -39,9 +39,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   // Once loading is complete and we have a user, render the app layout.
   return (
     <SidebarProvider>
-      <div className="relative min-h-screen w-full flex bg-background">
+      <div className="relative min-h-screen w-full flex bg-background/95">
         <AppSidebar />
-        <SidebarInset className="w-full bg-background">
+        <SidebarInset className="w-full bg-transparent">
           {isMobile && (
             <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background/95 px-4 sm:px-6 backdrop-blur-sm">
               <SidebarTrigger variant="outline" size="icon" className="sm:hidden">

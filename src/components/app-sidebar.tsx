@@ -40,7 +40,7 @@ import { Badge } from './ui/badge';
 import { useSubscription } from '@/hooks/useSubscription';
 import { Skeleton } from './ui/skeleton';
 import { Plan } from '@/lib/types';
-import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import { cn } from '@/lib/utils';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
 
@@ -148,14 +148,16 @@ export function AppSidebar() {
                     {accessible ? (
                          <Link href={item.href}>{button}</Link>
                     ) : (
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Link href="/subscribe" className="cursor-pointer">{button}</Link>
-                            </TooltipTrigger>
-                            <TooltipContent side="right">
-                                <p>Acesse o plano {item.plan === 'pro' ? 'PRO' : 'Premium'} para liberar.</p>
-                            </TooltipContent>
-                        </Tooltip>
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Link href="/subscribe" className="cursor-pointer w-full">{button}</Link>
+                                </TooltipTrigger>
+                                <TooltipContent side="right">
+                                    <p>Acesse o plano {item.plan === 'pro' ? 'PRO' : 'Premium'} para liberar.</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
                     )}
                  </SidebarMenuItem>
             )
@@ -225,5 +227,3 @@ export function AppSidebar() {
     </Sidebar>
   );
 }
-
-    
