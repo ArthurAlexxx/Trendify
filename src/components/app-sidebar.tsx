@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -10,7 +11,7 @@ import {
   Settings,
   LogOut,
   Calendar,
-  ArrowRight,
+  ArrowUpRight,
   ClipboardList,
   Crown,
   User,
@@ -101,8 +102,8 @@ export function AppSidebar() {
             href="/"
             className="flex items-center gap-2 text-xl font-bold font-headline tracking-tighter text-foreground"
         >
-            <div className="bg-foreground text-background h-8 w-8 flex items-center justify-center rounded-lg">
-            <ArrowRight className="h-5 w-5" />
+            <div className="bg-foreground text-background h-8 w-8 flex items-center justify-center rounded-full">
+            <ArrowUpRight className="h-5 w-5" />
             </div>
             trendify
         </Link>

@@ -2,7 +2,7 @@
 'use client';
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowUpRight, Sparkles } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -87,7 +87,7 @@ function AnimatedHero() {
                     'font-manrope rounded-lg text-base h-12 px-8 w-full sm:w-auto bg-gradient-to-r from-purple-600 to-indigo-600 text-primary-foreground shadow-2xl shadow-indigo-500/50 hover:opacity-90 transition-opacity'
                 )}
             >
-              Começar Grátis <ArrowRight className="w-4 h-4" />
+              Começar Grátis <ArrowUpRight className="w-4 h-4" />
             </Link>
           </div>
 

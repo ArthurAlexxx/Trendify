@@ -2,7 +2,7 @@
 'use client';
 
 import {
-  ArrowRight,
+  ArrowUpRight,
   Briefcase,
   Lightbulb,
   LineChart,
@@ -149,7 +149,7 @@ const WordmarkIcon = (props: React.ComponentProps<'a'>) => (
     {...props}
   >
     <div className="bg-foreground text-background h-7 w-7 flex items-center justify-center rounded-full">
-      <ArrowRight className="h-4 w-4" />
+      <ArrowUpRight className="h-4 w-4" />
     </div>
     trendify
   </Link>

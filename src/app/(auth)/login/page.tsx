@@ -17,7 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, KeyRound, ArrowRight } from 'lucide-react';
+import { Loader2, KeyRound, ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/firebase';
@@ -75,7 +75,7 @@ export default function LoginPage() {
             className="flex justify-center items-center gap-2 text-3xl font-bold font-headline tracking-tighter text-foreground"
           >
             <div className="bg-foreground text-background h-8 w-8 flex items-center justify-center rounded-full">
-              <ArrowRight className="h-5 w-5" />
+              <ArrowUpRight className="h-5 w-5" />
             </div>
             trendify
           </Link>
