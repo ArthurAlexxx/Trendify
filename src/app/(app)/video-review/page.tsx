@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useCallback, useRef, type ChangeEvent, type DragEvent, useEffect, useId } from "react";
@@ -86,7 +87,7 @@ function PremiumFeatureGuard({ children }: { children: React.ReactNode }) {
              <AlertDialog open={true} onOpenChange={(open) => !open && router.push('/subscribe')}>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Funcionalidade Pro</AlertDialogTitle>
+                  <AlertDialogTitle className="font-headline text-xl">Funcionalidade Pro</AlertDialogTitle>
                   <AlertDialogDescription>
                     A Análise de Vídeo é um recurso exclusivo para assinantes dos planos Pro ou Premium. Faça o upgrade para ter acesso!
                   </AlertDialogDescription>
@@ -143,6 +144,7 @@ function VideoReviewPageContent() {
   const previousAnalysesQuery = useMemoFirebase(() =>
     user && firestore ? query(collection(firestore, `users/${user.uid}/analisesVideo`), orderBy('createdAt', 'desc'), limit(5)) : null
   , [user, firestore]);
+
   const { data: previousAnalyses, isLoading: isLoadingAnalyses } = useCollection<AnaliseVideo>(previousAnalysesQuery);
 
 
@@ -299,7 +301,7 @@ function VideoReviewPageContent() {
 
   const noteMatch = analysisResult?.geral.match(/(\d{1,2}(?:[.,]\d{1,2})?)\s*\/\s*10/);
   const numericNote = noteMatch ? noteMatch[1] : analysisResult?.geral;
-  const noteDescription = noteMatch ? analysisResult?.geral.replace(noteMatch[0], '').replace(':', '').trim() : '';
+  const noteDescription = noteMatch ? noteMatch[0] : '';
 
   const analysisCriteria = [
     {
@@ -470,7 +472,7 @@ function VideoReviewPageContent() {
                              </CardHeader>
                              <CardContent className="text-center">
                                 <div className="text-4xl font-bold text-foreground">{numericNote}/10</div>
-                                <p className="text-sm text-muted-foreground mt-2">{noteDescription}</p>
+                                <p className="text-sm text-muted-foreground mt-2">{analysisResult.geral.replace(noteDescription, '').replace(':', '').trim()}</p>
                              </CardContent>
                          </Card>
 
@@ -544,7 +546,7 @@ function VideoReviewPageContent() {
                                         <Clapperboard className="h-6 w-6 text-primary shrink-0" />
                                         <div className="flex-1">
                                             <p className="font-semibold text-foreground truncate">{analise.videoFileName}</p>
-                                            <p className="text-xs text-muted-foreground">{formatDistanceToNow(analise.createdAt.toDate(), { addSuffix: true, locale: ptBR })}</p>
+                                            <p className="text-xs text-muted-foreground">{analise.createdAt ? formatDistanceToNow(analise.createdAt.toDate(), { addSuffix: true, locale: ptBR }) : ''}</p>
                                         </div>
                                         <Dialog>
                                             <DialogTrigger asChild>
