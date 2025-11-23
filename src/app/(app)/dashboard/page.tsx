@@ -215,10 +215,10 @@ export default function DashboardPage() {
         </div>
 
         {/* Layout Principal do Dashboard */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
           {/* Coluna Principal (Gráfico e Roteiro) */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-2 space-y-8 flex flex-col">
              <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card flex flex-col">
               <CardHeader className="text-center sm:text-left">
                 <CardTitle className="font-headline text-xl">
@@ -422,8 +422,8 @@ export default function DashboardPage() {
           </div>
 
           {/* Coluna Lateral (Informações Rápidas) */}
-          <div className="lg:col-span-1 space-y-8">
-            <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card">
+          <div className="lg:col-span-1 space-y-8 flex flex-col">
+            <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card h-full">
               <CardHeader className="text-center sm:text-left">
                 <CardTitle className="font-headline text-xl">
                   Ideias e Tarefas
@@ -466,7 +466,7 @@ export default function DashboardPage() {
                         ))}
                     </ul>
                     ) : (
-                    <div className="text-center py-8 px-4 rounded-xl bg-muted/50 border border-dashed">
+                    <div className="text-center py-8 px-4 rounded-xl bg-muted/50 border border-dashed h-full flex flex-col justify-center">
                         <Rocket className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
                         <h3 className="font-semibold text-foreground">
                         Comece a Gerar Ideias!
@@ -480,7 +480,7 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
 
-            <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card flex flex-col">
+            <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card flex flex-col h-full">
               <CardHeader className="text-center sm:text-left">
                 <CardTitle className="font-headline text-xl">
                   Próximos Posts Agendados
