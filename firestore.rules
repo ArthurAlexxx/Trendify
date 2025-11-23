@@ -47,10 +47,6 @@ service cloud.firestore {
 
 service firebase.storage {
   match /b/{bucket}/o {
-    // Allow public read access to the hero image
-    match /Screenshot_45.png {
-      allow read;
-    }
     
     // Allow users to read and write their own profile picture in a dedicated folder.
     // The {fileName} wildcard allows for any file name.
