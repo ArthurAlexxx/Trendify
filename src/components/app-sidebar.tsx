@@ -96,7 +96,7 @@ export function AppSidebar() {
      <aside className="h-screen w-64 flex-col fixed inset-y-0 z-50 bg-card border-r hidden md:flex">
       <div className="flex items-center gap-2 px-6 h-20 border-b">
          <Link
-            href="/dashboard"
+            href="/"
             className="flex items-center gap-2 text-xl font-bold font-headline tracking-tighter text-foreground"
         >
             <div className="bg-foreground text-background h-8 w-8 flex items-center justify-center rounded-lg">
