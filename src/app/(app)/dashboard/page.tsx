@@ -82,7 +82,10 @@ const ProfileCompletionAlert = ({ userProfile }: { userProfile: UserProfile | nu
             <AlertTriangle className="h-4 w-4 text-primary" />
             <AlertTitle>Complete seu Perfil!</AlertTitle>
             <AlertDescription>
-                <Link href="/profile" className='hover:underline font-semibold'>Adicione seu nicho e métricas</Link> para que a IA gere insights mais precisos.
+                {userProfile?.instagramHandle 
+                 ? <Link href="/profile" className='hover:underline font-semibold'>Adicione seu nicho no perfil</Link>
+                 : <Link href="/settings" className='hover:underline font-semibold'>Conecte seu Instagram</Link>
+                } para que a IA gere insights mais precisos.
             </AlertDescription>
         </Alert>
     )
@@ -204,7 +207,7 @@ export default function DashboardPage() {
                             {userProfile?.followers || '—'}
                         </div>
                         <p className="text-xs text-pink-500/80">
-                            {userProfile?.followers ? 'Total de seguidores' : <Link href="/settings" className="hover:underline">Conecte sua conta</Link>}
+                            {userProfile?.followers ? userProfile.instagramHandle : <Link href="/settings" className="hover:underline">Conecte sua conta</Link>}
                         </p>
                     </>
                   }
@@ -227,7 +230,7 @@ export default function DashboardPage() {
                             {userProfile?.averageViews || '—'}
                         </div>
                         <p className="text-xs text-muted-foreground">
-                            {userProfile?.averageViews ? "Por post/vídeo" : <Link href="/profile" className="hover:underline">Adicionar no perfil</Link>}
+                            {userProfile?.averageViews ? "Por post/vídeo" : <Link href="/settings" className="hover:underline">Conectar conta</Link>}
                         </p>
                     </>
                   }
@@ -250,7 +253,7 @@ export default function DashboardPage() {
                             {userProfile?.averageLikes || '—'}
                         </div>
                         <p className="text-xs text-muted-foreground">
-                            {userProfile?.averageLikes ? "Por post/vídeo" : <Link href="/profile" className="hover:underline">Adicionar no perfil</Link>}
+                             {userProfile?.averageLikes ? "Por post/vídeo" : <Link href="/settings" className="hover:underline">Conectar conta</Link>}
                         </p>
                     </>
                   }
@@ -273,7 +276,7 @@ export default function DashboardPage() {
                             {userProfile?.averageComments || '—'}
                         </div>
                         <p className="text-xs text-muted-foreground">
-                            {userProfile?.averageComments ? "Por post/vídeo" : <Link href="/profile" className="hover:underline">Adicionar no perfil</Link>}
+                            {userProfile?.averageComments ? "Por post/vídeo" : <Link href="/settings" className="hover:underline">Conectar conta</Link>}
                         </p>
                     </>
                   }
@@ -626,3 +629,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    
