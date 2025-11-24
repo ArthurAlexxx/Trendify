@@ -1,4 +1,3 @@
-
 'use client';
 
 import { PageHeader } from '@/components/page-header';
@@ -98,7 +97,17 @@ function CheckoutPageContent() {
   });
 
   const [state, formAction, isGenerating] = useActionState(
-    createPixChargeAction,
+    (prevState: any, formData: FormData) => {
+      const formattedData = new FormData();
+      Object.entries(formData).forEach(([key, value]) => {
+          if (key === 'taxId' || key === 'cellphone') {
+              formattedData.append(key, String(value).replace(/\D/g, ''));
+          } else {
+              formattedData.append(key, value as string);
+          }
+      });
+      return createPixChargeAction(prevState, formattedData);
+    },
     null
   );
 
@@ -253,7 +262,17 @@ function CheckoutPageContent() {
                 </div>
               ) : !result && !isGenerating ? (
                 <Form {...form}>
-                  <form action={formAction} className="space-y-6 text-left">
+                  <form 
+                    action={() => {
+                        const values = form.getValues();
+                        const formData = new FormData();
+                        Object.entries(values).forEach(([key, value]) => {
+                            formData.append(key, value as string);
+                        });
+                        formAction(formData);
+                    }} 
+                    className="space-y-6 text-left"
+                  >
                     <input type="hidden" {...form.register('plan')} value={plan} />
                     <input type="hidden" {...form.register('userId')} />
                     <FormField
