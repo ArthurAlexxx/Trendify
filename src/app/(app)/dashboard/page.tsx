@@ -23,6 +23,7 @@ import {
   Eye,
   Heart,
   MessageSquare,
+  Instagram,
 } from 'lucide-react';
 import {
   ChartContainer,
@@ -187,31 +188,98 @@ export default function DashboardPage() {
 
         {/* Métricas Principais */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {userMetrics.map((metric) => (
-              <Card
-                key={metric.label}
+            <Card
+                className="rounded-2xl shadow-lg shadow-pink-500/5 border-pink-500/20 bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 text-center sm:text-left"
+              >
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-base font-medium text-pink-600">
+                    Seguidores no Instagram
+                  </CardTitle>
+                  <Instagram className="h-5 w-5 text-pink-500" />
+                </CardHeader>
+                <CardContent>
+                  {isLoadingProfile ? <Skeleton className="h-8 w-24 mx-auto sm:mx-0" /> :
+                    <>
+                        <div className="text-3xl font-bold font-headline text-pink-600">
+                            {userProfile?.followers || '—'}
+                        </div>
+                        <p className="text-xs text-pink-500/80">
+                            {userProfile?.followers ? 'Total de seguidores' : <Link href="/settings" className="hover:underline">Conectar Instagram</Link>}
+                        </p>
+                    </>
+                  }
+                </CardContent>
+            </Card>
+
+            <Card
                 className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card text-center sm:text-left"
               >
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-base font-medium text-muted-foreground">
-                    {metric.label}
+                    Média de Views
                   </CardTitle>
-                  <metric.icon className="h-4 w-4 text-primary" />
+                  <Eye className="h-4 w-4 text-primary" />
                 </CardHeader>
                 <CardContent>
                   {isLoadingProfile ? <Skeleton className="h-8 w-24 mx-auto sm:mx-0" /> :
                     <>
                         <div className="text-3xl font-bold font-headline">
-                            {metric.value || '—'}
+                            {userProfile?.averageViews || '—'}
                         </div>
                         <p className="text-xs text-muted-foreground">
-                            {metric.value ? metric.description : <Link href="/profile" className="hover:underline">Adicionar no perfil</Link>}
+                            {userProfile?.averageViews ? "Por post/vídeo" : <Link href="/profile" className="hover:underline">Adicionar no perfil</Link>}
                         </p>
                     </>
                   }
                 </CardContent>
-              </Card>
-            ))}
+            </Card>
+            
+            <Card
+                className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card text-center sm:text-left"
+              >
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-base font-medium text-muted-foreground">
+                    Média de Likes
+                  </CardTitle>
+                  <Heart className="h-4 w-4 text-primary" />
+                </CardHeader>
+                <CardContent>
+                  {isLoadingProfile ? <Skeleton className="h-8 w-24 mx-auto sm:mx-0" /> :
+                    <>
+                        <div className="text-3xl font-bold font-headline">
+                            {userProfile?.averageLikes || '—'}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                            {userProfile?.averageLikes ? "Por post/vídeo" : <Link href="/profile" className="hover:underline">Adicionar no perfil</Link>}
+                        </p>
+                    </>
+                  }
+                </CardContent>
+            </Card>
+
+            <Card
+                className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card text-center sm:text-left"
+              >
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-base font-medium text-muted-foreground">
+                    Média de Comentários
+                  </CardTitle>
+                  <MessageSquare className="h-4 w-4 text-primary" />
+                </CardHeader>
+                <CardContent>
+                  {isLoadingProfile ? <Skeleton className="h-8 w-24 mx-auto sm:mx-0" /> :
+                    <>
+                        <div className="text-3xl font-bold font-headline">
+                            {userProfile?.averageComments || '—'}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                            {userProfile?.averageComments ? "Por post/vídeo" : <Link href="/profile" className="hover:underline">Adicionar no perfil</Link>}
+                        </p>
+                    </>
+                  }
+                </CardContent>
+            </Card>
+            
         </div>
 
         {/* Layout Principal do Dashboard */}
