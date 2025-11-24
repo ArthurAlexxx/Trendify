@@ -5,9 +5,9 @@ import { getAuth } from 'firebase-admin/auth';
 import { cookies } from 'next/headers';
 
 /**
- * Exchanges a short-lived Instagram code for a short-lived access token.
+ * Exchanges an authorization code for a short-lived user access token.
  */
-async function getShortLivedAccessToken(code: string, redirectUri: string) {
+async function getAccessToken(code: string, redirectUri: string) {
     const appId = process.env.META_APP_ID;
     const appSecret = process.env.META_APP_SECRET;
 
@@ -15,58 +15,57 @@ async function getShortLivedAccessToken(code: string, redirectUri: string) {
         throw new Error("Credenciais do aplicativo Meta não configuradas no servidor.");
     }
     
-    const body = new URLSearchParams({
-        client_id: appId,
-        client_secret: appSecret,
-        grant_type: 'authorization_code',
-        redirect_uri: redirectUri,
-        code: code,
-    });
-
-    const response = await fetch('https://api.instagram.com/oauth/access_token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: body.toString(),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-        console.error("Erro ao obter token de acesso de curta duração:", data);
-        throw new Error(data.error_message || "Falha ao obter o token de acesso de curta duração.");
-    }
-
-    return data.access_token;
-}
-
-/**
- * Exchanges a short-lived access token for a long-lived access token.
- */
-async function getLongLivedAccessToken(shortLivedToken: string) {
-    const appSecret = process.env.META_APP_SECRET;
-    if (!appSecret) {
-        throw new Error("Chave secreta do aplicativo Meta não configurada no servidor.");
-    }
-    
-    const url = `https://graph.instagram.com/access_token?grant_type=ig_exchange_token&client_secret=${appSecret}&access_token=${shortLivedToken}`;
+    const url = `https://graph.facebook.com/v19.0/oauth/access_token?client_id=${appId}&redirect_uri=${redirectUri}&client_secret=${appSecret}&code=${code}`;
 
     const response = await fetch(url);
     const data = await response.json();
 
-    if (!response.ok) {
-        console.error("Erro ao obter token de acesso de longa duração:", data);
-        throw new Error(data.error_message || "Falha ao obter o token de acesso de longa duração.");
+    if (!response.ok || data.error) {
+        console.error("Erro ao obter token de acesso:", data.error);
+        throw new Error(data.error?.message || "Falha ao obter o token de acesso.");
     }
 
     return data.access_token;
 }
 
 /**
- * Fetches Instagram user data (followers_count, username) using an access token.
+ * Fetches the user's Facebook Pages.
  */
-async function getInstagramUserData(accessToken: string) {
-    const url = `https://graph.instagram.com/me?fields=followers_count,username&access_token=${accessToken}`;
+async function getFacebookPages(userAccessToken: string) {
+    const url = `https://graph.facebook.com/me/accounts?access_token=${userAccessToken}`;
+    const response = await fetch(url);
+    const data = await response.json();
     
+    if (!response.ok || !data.data || data.data.length === 0) {
+        console.error("Erro ao listar páginas do Facebook ou nenhuma página encontrada:", data);
+        throw new Error("Nenhuma Página do Facebook foi encontrada. Por favor, conecte uma página à sua conta do Instagram.");
+    }
+    
+    return data.data; // Returns an array of pages
+}
+
+/**
+ * Fetches the Instagram Business Account ID from a Facebook Page.
+ */
+async function getInstagramAccountId(pageId: string, userAccessToken: string) {
+    const url = `https://graph.facebook.com/${pageId}?fields=instagram_business_account&access_token=${userAccessToken}`;
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (!response.ok || !data.instagram_business_account) {
+        console.error("Erro ao obter a conta business do Instagram:", data);
+        throw new Error("Não foi possível encontrar uma conta do Instagram Business vinculada a esta Página do Facebook.");
+    }
+
+    return data.instagram_business_account.id;
+}
+
+
+/**
+ * Fetches Instagram user data (followers_count, username) using the Instagram Business Account ID.
+ */
+async function getInstagramUserData(instagramId: string, userAccessToken: string) {
+    const url = `https://graph.facebook.com/${instagramId}?fields=followers_count,username&access_token=${userAccessToken}`;
     const response = await fetch(url);
     const data = await response.json();
 
@@ -85,7 +84,7 @@ async function getInstagramUserData(accessToken: string) {
 export async function GET(req: NextRequest) {
     const url = new URL(req.url);
     const code = url.searchParams.get('code');
-    const error = url.searchParams.get('error');
+    const error = url.searchPojos.get('error');
 
     const settingsUrl = new URL('/settings', req.nextUrl.origin);
 
@@ -120,27 +119,31 @@ export async function GET(req: NextRequest) {
 
     try {
         const redirectUri = `${req.nextUrl.origin}/api/auth/instagram/callback`;
-        const shortLivedToken = await getShortLivedAccessToken(code, redirectUri);
-        const longLivedToken = await getLongLivedAccessToken(shortLivedToken);
+        const userAccessToken = await getAccessToken(code, redirectUri);
         
-        // Fetch user data from Instagram
-        const instagramData = await getInstagramUserData(longLivedToken);
+        const pages = await getFacebookPages(userAccessToken);
+        const firstPageId = pages[0].id; // Use the first page found
+
+        const instagramAccountId = await getInstagramAccountId(firstPageId, userAccessToken);
+        
+        const instagramData = await getInstagramUserData(instagramAccountId, userAccessToken);
 
         const { firestore } = initializeFirebaseAdmin();
         const userRef = firestore.collection('users').doc(uid);
         
         await userRef.update({
-            instagramAccessToken: longLivedToken,
+            // Note: This is a short-lived token. For production, you'd exchange it for a long-lived one.
+            instagramAccessToken: userAccessToken, 
             instagramHandle: instagramData.username,
-            followers: instagramData.followers
+            followers: instagramData.followers,
         });
 
         settingsUrl.searchParams.set('success', 'true');
         return NextResponse.redirect(settingsUrl);
 
     } catch (e: any) {
-        console.error("Erro no fluxo de callback do Instagram:", e);
-        settingsUrl.searchParams.set('error', e.message || 'Erro desconhecido');
+        console.error("Erro no fluxo de callback do Instagram Graph API:", e);
+        settingsUrl.searchParams.set('error', e.message || 'Erro desconhecido durante a conexão com o Instagram.');
         return NextResponse.redirect(settingsUrl);
     }
 }

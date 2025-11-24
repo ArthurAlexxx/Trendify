@@ -50,10 +50,10 @@ function InstagramIntegration() {
             return;
         }
         
-        // A URL de callback DEVE ser a mesma que está no seu painel de desenvolvedor da Meta
         const redirectUri = 'https://trendify-beta.vercel.app/api/auth/instagram/callback';
-        const scope = 'user_profile,user_media';
-        const url = `https://api.instagram.com/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&response_type=code`;
+        // These are the scopes required for the Instagram Graph API flow
+        const scope = 'instagram_basic,pages_show_list,instagram_manage_insights,pages_read_engagement';
+        const url = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&response_type=code`;
         
         window.location.href = url;
     };
