@@ -3,15 +3,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { initializeFirebaseAdmin } from '@/firebase/admin';
 import { getAuth } from 'firebase-admin/auth';
 import { cookies } from 'next/headers';
-import { z } from 'zod';
-
-const formSchema = z.object({
-    client_id: z.string(),
-    client_secret: z.string(),
-    grant_type: z.string(),
-    redirect_uri: z.string(),
-    code: z.string(),
-});
 
 /**
  * Exchanges a short-lived Instagram code for a short-lived access token.
@@ -89,7 +80,8 @@ export async function GET(req: NextRequest) {
     }
     
     // Check for Firebase session cookie to get the UID
-    const sessionCookie = cookies().get('__session')?.value;
+    const cookieStore = cookies();
+    const sessionCookie = cookieStore.get('__session')?.value;
     if (!sessionCookie) {
         settingsUrl.searchParams.set('error', 'Sessão de usuário não encontrada. Faça login novamente.');
         return NextResponse.redirect(settingsUrl);
