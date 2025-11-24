@@ -1,9 +1,14 @@
 
 import { NextRequest, NextResponse } from 'next/server';
+import { getFirestore } from 'firebase-admin/firestore';
+import { initializeFirebaseAdmin } from '@/firebase/admin';
+import { cookies } from 'next/headers';
+import crypto from 'crypto';
 
 // --- Funções Auxiliares da Graph API ---
 
 async function getAccessToken(code: string, redirectUri: string) {
+    console.log('[getAccessToken] Obtendo token de acesso de curta duração...');
     const appId = process.env.META_APP_ID;
     const appSecret = process.env.META_APP_SECRET;
     if (!appId || !appSecret) {
@@ -14,11 +19,12 @@ async function getAccessToken(code: string, redirectUri: string) {
     const response = await fetch(url);
     const data = await response.json();
     if (data.error) throw new Error(data.error.message);
-    console.log('[getAccessToken] Token de acesso de curta duração obtido.');
+    console.log('[getAccessToken] Token de acesso de curta duração obtido com sucesso.');
     return data.access_token;
 }
 
 async function getLongLivedAccessToken(shortLivedToken: string) {
+    console.log('[getLongLivedAccessToken] Trocando por token de longa duração...');
     const appId = process.env.META_APP_ID;
     const appSecret = process.env.META_APP_SECRET;
     if (!appId || !appSecret) {
@@ -29,49 +35,43 @@ async function getLongLivedAccessToken(shortLivedToken: string) {
     const response = await fetch(url);
     const data = await response.json();
     if (data.error) throw new Error(data.error.message);
-    console.log('[getLongLivedAccessToken] Token de longa duração obtido.');
+    console.log('[getLongLivedAccessToken] Token de longa duração obtido com sucesso.');
     return data.access_token;
 }
 
 async function getFacebookPages(userAccessToken: string) {
-    console.log('[getFacebookPages] Buscando páginas do Facebook...');
+    console.log('[getFacebookPages] Buscando páginas do Facebook do usuário...');
     const url = `https://graph.facebook.com/me/accounts?fields=instagram_business_account{name,username},name,access_token&access_token=${userAccessToken}`;
     const response = await fetch(url);
     const data = await response.json();
 
-    console.log('[getFacebookPages] Resposta da API /me/accounts:', JSON.stringify(data, null, 2));
+    // Log da resposta bruta da API para depuração
+    console.log('[getFacebookPages] Resposta bruta da API /me/accounts:', JSON.stringify(data, null, 2));
 
     if (data.error) {
         throw new Error(`Erro ao buscar páginas: ${data.error.message}`);
     }
     
+    // Agora, em vez de falhar silenciosamente, vamos lançar um erro informativo se data.data estiver vazio.
     if (!data.data || data.data.length === 0) {
-        throw new Error("Nenhuma de suas Páginas do Facebook foi encontrada. Verifique se você concedeu permissão para 'Todas as Páginas' na tela de autorização do Facebook.");
+        const errorMessage = `Nenhuma de suas Páginas do Facebook foi encontrada na resposta da API. Verifique se você concedeu permissão para 'Todas as Páginas' na tela de autorização do Facebook. Resposta recebida da Meta: ${JSON.stringify(data)}`;
+        throw new Error(errorMessage);
     }
+    
+    console.log(`[getFacebookPages] Encontradas ${data.data.length} páginas. Procurando por uma com conta do Instagram Business...`);
 
     const pageWithIg = data.data.find((page: any) => page.instagram_business_account);
     if (!pageWithIg) {
         throw new Error("Nenhuma Página do Facebook com uma conta do Instagram Business vinculada foi encontrada. Verifique as permissões no seu painel da Meta.");
     }
     
-    console.log(`[getFacebookPages] Encontrada página com Instagram vinculado. ID da Página: ${pageWithIg.id}`);
-    return [pageWithIg];
+    console.log(`[getFacebookPages] Página encontrada com Instagram vinculado. ID da Página: ${pageWithIg.id}`);
+    return pageWithIg;
 }
 
-
-async function getInstagramAccountId(pageId: string, userAccessToken: string) {
-    const url = `https://graph.facebook.com/${pageId}?fields=instagram_business_account&access_token=${userAccessToken}`;
-    const response = await fetch(url);
-    const data = await response.json();
-    if (!data.instagram_business_account) {
-        throw new Error("Não foi possível encontrar uma conta do Instagram Business vinculada a esta Página do Facebook.");
-    }
-    console.log(`[getInstagramAccountId] ID da conta do Instagram encontrado: ${data.instagram_business_account.id}`);
-    return data.instagram_business_account.id;
-}
 
 async function getInstagramMetrics(instagramId: string, accessToken: string) {
-    console.log(`[getInstagramMetrics] Buscando métricas para a conta do Instagram ${instagramId}...`);
+    console.log(`[getInstagramMetrics] Buscando métricas para a conta do Instagram ID: ${instagramId}...`);
     const fields = 'username,followers_count,media.limit(25){like_count,comments_count,media_type,insights.metric(reach)}';
     const url = `https://graph.facebook.com/${instagramId}?fields=${fields}&access_token=${accessToken}`;
 
@@ -120,7 +120,7 @@ async function getInstagramMetrics(instagramId: string, accessToken: string) {
         averageViews: avgViews,
     };
 
-    console.log(`[getInstagramMetrics] Métricas calculadas:`, metrics);
+    console.log(`[getInstagramMetrics] Métricas calculadas com sucesso:`, metrics);
     return metrics;
 }
 
@@ -131,72 +131,71 @@ export async function GET(req: NextRequest) {
     console.log('[API Callback] Nova requisição GET recebida.');
     const url = new URL(req.url);
     const code = url.searchParams.get('code');
-    const state = url.searchParams.get('state');
+    const stateFromUrl = url.searchParams.get('state');
     const error = url.searchParams.get('error');
     const errorDescription = url.searchParams.get('error_description');
 
     const settingsUrl = new URL('/settings', req.nextUrl.origin);
+    const cookieStore = cookies();
+    const stateFromCookie = cookieStore.get('csrf_state')?.value;
     
-    // Check if it's the test mode from our isolated test
-    const isTestMode = state?.startsWith('test-mode-');
-
     if (error) {
         console.warn(`[API Callback] Erro recebido da Meta: ${error} - ${errorDescription}`);
-        const param = isTestMode ? 'test_error' : 'error';
-        settingsUrl.searchParams.set(isTestMode ? 'test_success' : 'success', 'false');
-        settingsUrl.searchParams.set(param, error);
-        if (errorDescription) settingsUrl.searchParams.set(isTestMode ? 'test_error_description' : 'error_description', errorDescription);
+        settingsUrl.searchParams.set('error', error);
+        if (errorDescription) settingsUrl.searchParams.set('error_description', errorDescription);
         return NextResponse.redirect(settingsUrl);
     }
     
     if (!code) {
         const errorMsg = 'Código de autorização não encontrado na URL.';
         console.error(`[API Callback] ERRO: ${errorMsg}`);
-        settingsUrl.searchParams.set(isTestMode ? 'test_success' : 'success', 'false');
-        settingsUrl.searchParams.set(isTestMode ? 'test_error' : 'error', 'authorization_code_missing');
-        settingsUrl.searchParams.set(isTestMode ? 'test_error_description' : 'error_description', errorMsg);
+        settingsUrl.searchParams.set('error', 'authorization_code_missing');
+        settingsUrl.searchParams.set('error_description', errorMsg);
         return NextResponse.redirect(settingsUrl);
     }
+
+    if (!stateFromUrl || !stateFromCookie || stateFromUrl !== stateFromCookie) {
+        const errorMsg = 'Falha na validação CSRF (state mismatch). A requisição não é confiável.';
+        console.error(`[API Callback] ERRO: ${errorMsg}`);
+        settingsUrl.searchParams.set('error', 'csrf_validation_failed');
+        settingsUrl.searchParams.set('error_description', errorMsg);
+        return NextResponse.redirect(settingsUrl);
+    }
+    
+    const uid = JSON.parse(stateFromCookie).uid;
+    console.log(`[API Callback] Validação de estado e CSRF bem-sucedida para o UID: ${uid}`);
+
 
     try {
         const redirectUri = `${req.nextUrl.origin}/api/auth/instagram/callback`;
         const userAccessToken = await getAccessToken(code, redirectUri);
         const longLivedToken = await getLongLivedAccessToken(userAccessToken);
         
-        const pages = await getFacebookPages(longLivedToken);
-        const firstPage = pages[0]; 
-        const instagramAccountId = firstPage.instagram_business_account.id;
+        const facebookPage = await getFacebookPages(longLivedToken);
+        const instagramAccountId = facebookPage.instagram_business_account.id;
         
         const instagramData = await getInstagramMetrics(instagramAccountId, longLivedToken);
 
-        const resultData = {
-            longLivedToken,
-            pageId: firstPage.id,
-            instagramAccountId,
-            ...instagramData
-        };
+        const firestore = initializeFirebaseAdmin().firestore;
+        const userRef = firestore.collection('users').doc(uid);
 
-        // If in test mode, just redirect with the data
-        if (isTestMode) {
-             console.log('[API Callback] Teste bem-sucedido. Redirecionando com dados:', resultData);
-             settingsUrl.searchParams.set('test_success', 'true');
-             settingsUrl.searchParams.set('test_data', encodeURIComponent(JSON.stringify(resultData)));
-             return NextResponse.redirect(settingsUrl);
-        }
+        await userRef.update({
+            instagramAccessToken: longLivedToken,
+            instagramHandle: instagramData.username,
+            followers: instagramData.followers,
+            averageViews: instagramData.averageViews,
+            averageLikes: instagramData.averageLikes,
+            averageComments: instagramData.averageComments,
+        });
 
-        // The rest of the logic can be re-enabled later by removing the test mode logic.
-        // For now, we stop here for the test.
-        console.error('[API Callback] ERRO: Fluxo de produção não implementado neste modo de teste.');
-        settingsUrl.searchParams.set('error', 'production_flow_disabled');
-        settingsUrl.searchParams.set('error_description', 'O fluxo de salvamento de dados está desativado para teste.');
+        console.log(`[API Callback] SUCESSO: Dados do Instagram para o UID ${uid} foram atualizados no Firestore.`);
+
+        settingsUrl.searchParams.set('instagram_connected', 'true');
         return NextResponse.redirect(settingsUrl);
-
 
     } catch (e: any) {
         console.error("[API Callback] Erro no fluxo de callback do Instagram Graph API:", e);
-        const param = isTestMode ? 'test_error' : 'error';
-        settingsUrl.searchParams.set(isTestMode ? 'test_success' : 'success', 'false');
-        settingsUrl.searchParams.set(param, e.message || 'Erro desconhecido durante a conexão com o Instagram.');
+        settingsUrl.searchParams.set('error', e.message || 'Erro desconhecido durante a conexão com o Instagram.');
         return NextResponse.redirect(settingsUrl);
     }
 }
