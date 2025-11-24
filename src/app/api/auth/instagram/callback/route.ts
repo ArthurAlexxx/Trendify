@@ -81,7 +81,9 @@ export async function GET(req: NextRequest) {
     
     let uid: string;
     try {
-        const sessionCookie = cookies().get('__session')?.value;
+        const cookieStore = cookies();
+        const sessionCookie = cookieStore.get('__session')?.value;
+
         if (!sessionCookie) {
             throw new Error('Sessão de usuário não encontrada. Faça login novamente.');
         }
