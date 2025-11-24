@@ -38,7 +38,7 @@ async function getLongLivedAccessToken(shortLivedToken: string) {
 }
 
 async function getFacebookPages(userAccessToken: string) {
-    const url = `https://graph.facebook.com/me/accounts?fields=instagram_business_account&access_token=${userAccessToken}`;
+    const url = `https://graph.facebook.com/me/accounts?fields=instagram_business_account{name,username},name,access_token&access_token=${userAccessToken}`;
     const response = await fetch(url);
     const data = await response.json();
 
