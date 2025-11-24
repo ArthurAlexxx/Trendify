@@ -79,22 +79,20 @@ export async function GET(req: NextRequest) {
         return NextResponse.redirect(settingsUrl);
     }
     
-    // Check for Firebase session cookie to get the UID
-    const cookieStore = cookies();
-    const sessionCookie = cookieStore.get('__session')?.value;
-    if (!sessionCookie) {
-        settingsUrl.searchParams.set('error', 'Sessão de usuário não encontrada. Faça login novamente.');
-        return NextResponse.redirect(settingsUrl);
-    }
-
     let uid: string;
     try {
+        const sessionCookie = cookies().get('__session')?.value;
+        if (!sessionCookie) {
+            throw new Error('Sessão de usuário não encontrada. Faça login novamente.');
+        }
+
         const adminApp = initializeFirebaseAdmin();
         const decodedToken = await getAuth(adminApp.app).verifySessionCookie(sessionCookie);
         uid = decodedToken.uid;
-    } catch (e) {
+    } catch (e: any) {
         console.error("Erro ao verificar o cookie de sessão:", e);
-        settingsUrl.searchParams.set('error', 'Sessão inválida. Faça login novamente.');
+        const errorMessage = e.message || 'Sessão inválida. Faça login novamente.';
+        settingsUrl.searchParams.set('error', errorMessage);
         return NextResponse.redirect(settingsUrl);
     }
 
