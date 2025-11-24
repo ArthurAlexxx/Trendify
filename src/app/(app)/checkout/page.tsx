@@ -98,7 +98,12 @@ function CheckoutPageContent() {
 
   const [state, formAction, isGenerating] = useActionState(
     (prevState: any, formData: FormData) => {
-        return createPixChargeAction(prevState, formData);
+        const cleanedData = {
+            ...formData,
+            taxId: formData.taxId.replace(/\D/g, ''),
+            cellphone: formData.cellphone.replace(/\D/g, ''),
+        };
+        return createPixChargeAction(prevState, cleanedData);
     },
     null
   );
@@ -115,6 +120,13 @@ function CheckoutPageContent() {
       });
     }
   }, [user, plan, form]);
+  
+  useEffect(() => {
+    if (plan) {
+      form.setValue('plan', plan);
+    }
+  }, [plan, form]);
+
 
   useEffect(() => {
     if (state?.error) {
@@ -244,7 +256,7 @@ function CheckoutPageContent() {
                     <ShieldAlert className="h-12 w-12 text-primary mb-4" />
                     <h3 className="text-xl font-bold">Você já possui este plano</h3>
                     <p className="text-muted-foreground max-w-sm mx-auto mt-2">
-                        Seu plano {selectedPlanDetails.name} já está ativo. Você pode gerenciar sua assinatura nas configurações.
+                        Seu plano {selectedPlanDetails.name} já está ativo. Você pode gerenciar sua assinatura nas <Link href="/settings" className="font-semibold text-primary hover:underline">configurações</Link>.
                     </p>
                     <Button asChild className='mt-6 w-full sm:w-auto'>
                         <Link href="/dashboard">
@@ -255,10 +267,16 @@ function CheckoutPageContent() {
               ) : !result && !isGenerating ? (
                 <Form {...form}>
                   <form 
-                     onSubmit={form.handleSubmit(data => formAction(data as any))}
+                     onSubmit={form.handleSubmit(data => formAction(data))}
                     className="space-y-6 text-left"
                   >
-                    <input type="hidden" {...form.register('plan')} value={plan} />
+                    <FormField
+                      control={form.control}
+                      name="plan"
+                      render={({ field }) => (
+                        <input type="hidden" {...field} />
+                      )}
+                    />
                     <input type="hidden" {...form.register('userId')} />
                     <FormField
                       control={form.control}

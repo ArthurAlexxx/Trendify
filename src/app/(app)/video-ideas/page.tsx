@@ -399,7 +399,6 @@ export default function VideoIdeasPage() {
                 title="Roteiro do Vídeo"
                 icon={Pen}
                 content={typeof result.script === 'string' ? result.script : JSON.stringify(result.script, null, 2)}
-                isTextarea
               />
               <InfoListCard
                 title="Takes para Gravar"
@@ -474,13 +473,11 @@ function InfoCard({
   title,
   icon: Icon,
   content,
-  isTextarea = false,
   className,
 }: {
   title: string;
   icon: React.ElementType;
   content: string;
-  isTextarea?: boolean;
   className?: string;
 }) {
   return (
@@ -494,7 +491,7 @@ function InfoCard({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {isTextarea ? (
+        {title === 'Roteiro do Vídeo' ? (
           <Textarea
             readOnly
             value={content}
