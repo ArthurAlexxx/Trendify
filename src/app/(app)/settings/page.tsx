@@ -45,13 +45,16 @@ function InstagramIntegration() {
     const handleConnect = () => {
         const clientId = process.env.NEXT_PUBLIC_META_APP_ID;
         if (!clientId) {
-            console.error("Meta App ID not found in environment variables.");
-            alert("A configuração para integração com o Instagram está incompleta.");
+            console.error("ERRO: A variável de ambiente NEXT_PUBLIC_META_APP_ID não está definida. A conexão com o Instagram não pode ser iniciada.");
+            alert("A configuração para integração com o Instagram está incompleta. Verifique as variáveis de ambiente.");
             return;
         }
-        const redirectUri = `${window.location.origin}/api/auth/instagram/callback`;
+        
+        // A URL de callback DEVE ser a mesma que está no seu painel de desenvolvedor da Meta
+        const redirectUri = 'https://trendify-beta.vercel.app/api/auth/instagram/callback';
         const scope = 'user_profile,user_media';
         const url = `https://api.instagram.com/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&response_type=code`;
+        
         window.location.href = url;
     };
 
