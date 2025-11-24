@@ -41,10 +41,13 @@ async function getFacebookPages(userAccessToken: string) {
     const url = `https://graph.facebook.com/me/accounts?fields=instagram_business_account&access_token=${userAccessToken}`;
     const response = await fetch(url);
     const data = await response.json();
+
+    console.log('[getFacebookPages] Resposta da API /me/accounts:', JSON.stringify(data, null, 2));
+
     // Procura por uma página que tenha uma conta do instagram business associada.
     const pageWithIg = data.data?.find((page: any) => page.instagram_business_account);
     if (!pageWithIg) {
-        throw new Error("Nenhuma Página do Facebook com uma conta do Instagram Business vinculada foi encontrada. Verifique as permissões no seu painel da Meta.");
+        throw new Error("Nenhuma Página do Facebook com uma conta do Instagram Business vinculada foi encontrada. Verifique se concedeu todas as permissões na tela de login do Facebook.");
     }
     console.log(`[getFacebookPages] Encontrada página com Instagram vinculado. ID da Página: ${pageWithIg.id}`);
     return [pageWithIg]; // Retorna um array com a página encontrada
