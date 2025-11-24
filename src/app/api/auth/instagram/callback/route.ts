@@ -1,3 +1,4 @@
+
 import { NextRequest, NextResponse } from 'next/server';
 import { initializeFirebaseAdmin } from '@/firebase/admin';
 import { cookies } from 'next/headers';
@@ -177,7 +178,7 @@ export async function GET(req: NextRequest) {
     if (!code) {
         console.error('[API Callback] ERRO: Código de autorização não encontrado na URL.');
         settingsUrl.searchParams.set('error', 'authorization_code_missing');
-        settingsUrl.search_params.set('error_description', 'Código de autorização não encontrado.');
+        settingsUrl.searchParams.set('error_description', 'Código de autorização não encontrado.');
         return NextResponse.redirect(settingsUrl);
     }
     
