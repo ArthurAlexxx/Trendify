@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "UserProfile": {
@@ -27,6 +28,10 @@
         "instagramHandle": {
             "type": "string",
             "description": "User's Instagram handle (e.g., @username)."
+        },
+        "instagramAccessToken": {
+            "type": "string",
+            "description": "Long-lived access token for the Instagram Graph API."
         },
         "youtubeHandle": {
             "type": "string",
@@ -101,9 +106,13 @@
         "videoAnalyses": {
           "type": "number",
           "description": "Number of video analyses performed on this date."
+        },
+        "geracoesAI": {
+          "type": "number",
+          "description": "Number of general AI generations (video ideas, plans, etc.) on this date."
         }
       },
-      "required": ["date", "videoAnalyses"]
+      "required": ["date", "videoAnalyses", "geracoesAI"]
     },
     "PontoDadosGrafico": {
       "title": "Ponto de Dados do Gráfico",
