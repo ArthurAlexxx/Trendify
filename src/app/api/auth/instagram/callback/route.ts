@@ -44,13 +44,21 @@ async function getFacebookPages(userAccessToken: string) {
 
     console.log('[getFacebookPages] Resposta da API /me/accounts:', JSON.stringify(data, null, 2));
 
-    // Procura por uma página que tenha uma conta do instagram business associada.
-    const pageWithIg = data.data?.find((page: any) => page.instagram_business_account);
-    if (!pageWithIg) {
-        throw new Error("Nenhuma Página do Facebook com uma conta do Instagram Business vinculada foi encontrada. Verifique se concedeu todas as permissões na tela de login do Facebook.");
+    if (data.error) {
+        throw new Error(`Erro ao buscar páginas: ${data.error.message}`);
     }
+    
+    if (!data.data || data.data.length === 0) {
+        throw new Error("Nenhuma Página do Facebook foi encontrada. Verifique se você concedeu permissão para 'Todas as Páginas' na tela de autorização do Facebook.");
+    }
+
+    const pageWithIg = data.data.find((page: any) => page.instagram_business_account);
+    if (!pageWithIg) {
+        throw new Error("Nenhuma de suas Páginas do Facebook parece ter uma Conta do Instagram Business vinculada. Verifique suas configurações na Meta.");
+    }
+    
     console.log(`[getFacebookPages] Encontrada página com Instagram vinculado. ID da Página: ${pageWithIg.id}`);
-    return [pageWithIg]; // Retorna um array com a página encontrada
+    return [pageWithIg];
 }
 
 
@@ -67,15 +75,15 @@ async function getInstagramAccountId(pageId: string, userAccessToken: string) {
 
 async function getInstagramMetrics(instagramId: string, accessToken: string) {
     console.log(`[getInstagramMetrics] Buscando métricas para a conta do Instagram ${instagramId}...`);
-    const fields = 'username,followers_count,media{like_count,comments_count,media_type,insights.metric(reach)}';
+    const fields = 'username,followers_count,media.limit(25){like_count,comments_count,media_type,insights.metric(reach)}';
     const url = `https://graph.facebook.com/${instagramId}?fields=${fields}&access_token=${accessToken}`;
 
     const response = await fetch(url);
     const data = await response.json();
 
-    if (!response.ok) {
-        console.error("[getInstagramMetrics] Erro ao buscar dados do usuário do Instagram:", data);
-        throw new Error(data.error?.message || "Falha ao buscar dados do usuário do Instagram.");
+    if (data.error) {
+        console.error("[getInstagramMetrics] Erro ao buscar dados do usuário do Instagram:", data.error);
+        throw new Error(data.error?.message || "Falha ao buscar dados do usuário do Instagram. A permissão de 'insights' pode estar faltando.");
     }
     
     let totalLikes = 0;
@@ -85,7 +93,7 @@ async function getInstagramMetrics(instagramId: string, accessToken: string) {
 
     if (data.media && data.media.data) {
         for (const item of data.media.data) {
-            // Consider only recent posts for a more accurate average, e.g., first 25 (default limit)
+            // Consider only recent posts for a more accurate average
             totalLikes += item.like_count || 0;
             totalComments += item.comments_count || 0;
             if (item.insights && item.insights.data && item.insights.data[0]) {
@@ -93,6 +101,8 @@ async function getInstagramMetrics(instagramId: string, accessToken: string) {
             }
             mediaCount++;
         }
+    } else {
+        console.warn(`[getInstagramMetrics] Nenhum post (mídia) encontrado para a conta ${instagramId} para calcular as médias.`);
     }
     
     const formatNumber = (num: number) => {
@@ -191,7 +201,7 @@ export async function GET(req: NextRequest) {
         
         const pages = await getFacebookPages(longLivedToken);
         const firstPageId = pages[0].id; 
-        const instagramAccountId = await getInstagramAccountId(firstPageId, longLivedToken);
+        const instagramAccountId = pages[0].instagram_business_account.id;
         
         const instagramData = await getInstagramMetrics(instagramAccountId, longLivedToken);
 
@@ -220,5 +230,3 @@ export async function GET(req: NextRequest) {
         return NextResponse.redirect(settingsUrl);
     }
 }
-
-    
