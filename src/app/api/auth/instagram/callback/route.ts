@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import { initializeFirebaseAdmin } from '@/firebase/admin';
 import { getAuth } from 'firebase-admin/auth';
@@ -27,6 +26,27 @@ async function getAccessToken(code: string, redirectUri: string) {
 
     return data.access_token;
 }
+
+/**
+ * Exchanges a short-lived token for a long-lived one.
+ */
+async function getLongLivedAccessToken(shortLivedToken: string) {
+    const appId = process.env.META_APP_ID;
+    const appSecret = process.env.META_APP_SECRET;
+     if (!appId || !appSecret) {
+        throw new Error("Credenciais do aplicativo Meta não configuradas no servidor.");
+    }
+
+    const url = `https://graph.facebook.com/v19.0/oauth/access_token?grant_type=fb_exchange_token&client_id=${appId}&client_secret=${appSecret}&fb_exchange_token=${shortLivedToken}`;
+    const response = await fetch(url);
+    const data = await response.json();
+    if (!response.ok || data.error) {
+        console.error("Erro ao obter token de longa duração:", data.error);
+        throw new Error(data.error?.message || 'Falha ao obter token de longa duração.');
+    }
+    return data.access_token;
+}
+
 
 /**
  * Fetches the user's Facebook Pages.
@@ -84,7 +104,7 @@ async function getInstagramUserData(instagramId: string, userAccessToken: string
 export async function GET(req: NextRequest) {
     const url = new URL(req.url);
     const code = url.searchParams.get('code');
-    const error = url.searchPojos.get('error');
+    const error = url.searchParams.get('error');
 
     const settingsUrl = new URL('/settings', req.nextUrl.origin);
 
@@ -100,7 +120,7 @@ export async function GET(req: NextRequest) {
     
     let uid: string;
     try {
-        const cookieStore = await cookies();
+        const cookieStore = cookies();
         const sessionCookie = cookieStore.get('__session')?.value;
 
         if (!sessionCookie) {
@@ -120,21 +140,21 @@ export async function GET(req: NextRequest) {
     try {
         const redirectUri = `${req.nextUrl.origin}/api/auth/instagram/callback`;
         const userAccessToken = await getAccessToken(code, redirectUri);
+        const longLivedToken = await getLongLivedAccessToken(userAccessToken);
         
-        const pages = await getFacebookPages(userAccessToken);
+        const pages = await getFacebookPages(longLivedToken);
         const firstPageId = pages[0].id; // Use the first page found
 
-        const instagramAccountId = await getInstagramAccountId(firstPageId, userAccessToken);
+        const instagramAccountId = await getInstagramAccountId(firstPageId, longLivedToken);
         
-        const instagramData = await getInstagramUserData(instagramAccountId, userAccessToken);
+        const instagramData = await getInstagramUserData(instagramAccountId, longLivedToken);
 
         const { firestore } = initializeFirebaseAdmin();
         const userRef = firestore.collection('users').doc(uid);
         
         await userRef.update({
-            // Note: This is a short-lived token. For production, you'd exchange it for a long-lived one.
-            instagramAccessToken: userAccessToken, 
-            instagramHandle: instagramData.username,
+            instagramAccessToken: longLivedToken, 
+            instagramHandle: `@${instagramData.username}`,
             followers: instagramData.followers,
         });
 

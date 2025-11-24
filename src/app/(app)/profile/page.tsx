@@ -157,7 +157,7 @@ export default function ProfilePage() {
         await updateDoc(userProfileRef, firestoreData);
         
         // Update Firebase Auth profile if necessary
-        if (user.displayName !== values.displayName && auth.currentUser) {
+        if (auth.currentUser && user.displayName !== values.displayName) {
             await updateProfile(auth.currentUser, {
                 displayName: values.displayName,
             });

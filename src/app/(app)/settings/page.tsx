@@ -1,4 +1,3 @@
-
 'use client';
 
 import { PageHeader } from '@/components/page-header';
@@ -51,7 +50,7 @@ function InstagramIntegration() {
         }
         
         const redirectUri = 'https://trendify-beta.vercel.app/api/auth/instagram/callback';
-        // These are the scopes required for the Instagram Graph API flow
+        // These scopes are required for the Instagram Graph API business flow
         const scope = 'instagram_basic,pages_show_list,instagram_manage_insights,pages_read_engagement';
         const url = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&response_type=code`;
         
@@ -66,12 +65,12 @@ function InstagramIntegration() {
                 <span>Integração com Instagram</span>
             </CardTitle>
                 <CardDescription>
-                Conecte sua conta do Instagram para buscar métricas de seguidores e, futuramente, automatizar postagens.
+                Conecte sua conta do Instagram (Business ou Creator) para buscar métricas de seguidores e engajamento.
             </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col sm:flex-row items-center justify-between p-6">
             <p className="text-muted-foreground text-sm mb-4 sm:mb-0">
-                Clique no botão para autenticar sua conta com segurança.
+                Clique no botão para autenticar sua conta com segurança via Facebook.
             </p>
             <Button onClick={handleConnect}>
                 <Instagram className="mr-2 h-4 w-4" />
