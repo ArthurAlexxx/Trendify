@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { LogOut, ShieldAlert, Crown, Settings as SettingsIcon, Instagram } from 'lucide-react';
+import { LogOut, ShieldAlert, Crown, Settings as SettingsIcon, Instagram, CheckCircle } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -38,23 +38,37 @@ import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import Cookies from 'js-cookie';
-import crypto from 'crypto';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+
 
 function InstagramIntegration() {
-    const { user } = useUser();
     const { toast } = useToast();
+    const searchParams = useSearchParams();
+    const [testResult, setTestResult] = useState<{ success: boolean; data?: any; error?: string } | null>(null);
+
+
+    useEffect(() => {
+        const success = searchParams.get('test_success');
+        const data = searchParams.get('test_data');
+        const error = searchParams.get('test_error');
+
+        if (success === 'true' && data) {
+            try {
+                const decodedData = JSON.parse(decodeURIComponent(data));
+                setTestResult({ success: true, data: decodedData });
+                 toast({
+                    title: 'Teste de Conexão Bem-Sucedido!',
+                    description: 'Os dados da API da Meta foram capturados.',
+                });
+            } catch (e) {
+                 setTestResult({ success: false, error: 'Falha ao decodificar os dados do teste.' });
+            }
+        } else if (success === 'false' && error) {
+            setTestResult({ success: false, error: decodeURIComponent(error) });
+        }
+    }, [searchParams, toast]);
 
     const handleConnect = () => {
-        if (!user) {
-            toast({
-                title: 'Erro',
-                description: 'Você precisa estar logado para conectar sua conta.',
-                variant: 'destructive',
-            });
-            return;
-        }
-
         const clientId = process.env.NEXT_PUBLIC_META_APP_ID;
         if (!clientId) {
             console.error("ERRO: A variável de ambiente NEXT_PUBLIC_META_APP_ID não está definida.");
@@ -65,37 +79,23 @@ function InstagramIntegration() {
             });
             return;
         }
-        
-        // 1. Generate a secure state token
-        const csrfToken = crypto.randomBytes(16).toString('hex');
-        const state = JSON.stringify({ uid: user.uid, csrf: csrfToken });
-        
-        // 2. Store the CSRF part of the state in a secure, httpOnly cookie
-        Cookies.set('instagram_auth_csrf', csrfToken, { secure: true, sameSite: 'lax', expires: 5 / (24 * 60) }); // Expires in 5 minutes
 
-        // 3. Construct the authorization URL
+        const state = 'test-mode-' + Math.random().toString(36).substring(7);
         const redirectUri = `${window.location.origin}/api/auth/instagram/callback`;
         const permissions = [
-            'email',
-            'instagram_basic',
-            'instagram_manage_insights',
-            'instagram_manage_comments',
-            'pages_manage_metadata',
-            'pages_read_engagement',
-            'pages_read_user_content',
-            'pages_show_list',
+            'email', 'instagram_basic', 'instagram_manage_insights', 
+            'instagram_manage_comments', 'pages_manage_metadata', 
+            'pages_read_engagement', 'pages_read_user_content', 'pages_show_list'
         ];
         const scope = permissions.join(',');
         
         const authUrl = new URL('https://www.facebook.com/v19.0/dialog/oauth');
-        
         authUrl.searchParams.set('client_id', clientId);
         authUrl.searchParams.set('redirect_uri', redirectUri);
         authUrl.searchParams.set('scope', scope);
         authUrl.searchParams.set('response_type', 'code');
         authUrl.searchParams.set('state', state);
         
-        // 4. Redirect the user
         window.location.href = authUrl.toString();
     };
 
@@ -103,21 +103,45 @@ function InstagramIntegration() {
          <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
             <CardHeader>
                 <CardTitle className="flex items-center gap-3 font-headline text-xl">
-                <Instagram className="h-6 w-6 text-primary" />
-                <span>Integração com Instagram</span>
-            </CardTitle>
+                    <Instagram className="h-6 w-6 text-primary" />
+                    <span>Integração com Instagram (Modo de Teste)</span>
+                </CardTitle>
                 <CardDescription>
-                Conecte sua conta do Instagram (Business ou Creator) para buscar métricas de seguidores e engajamento.
-            </CardDescription>
+                    Use este modo para testar a conexão com a API da Meta e ver os dados brutos retornados, sem salvar no banco.
+                </CardDescription>
             </CardHeader>
-            <CardContent className="flex flex-col sm:flex-row items-center justify-between p-6">
-            <p className="text-muted-foreground text-sm mb-4 sm:mb-0">
-                Clique no botão para autenticar sua conta com segurança via Facebook.
-            </p>
-            <Button onClick={handleConnect}>
-                <Instagram className="mr-2 h-4 w-4" />
-                Conectar com Instagram
-            </Button>
+            <CardContent className="space-y-4">
+                <div className="flex flex-col sm:flex-row items-center justify-between p-6 bg-muted/30 border rounded-lg">
+                    <p className="text-muted-foreground text-sm mb-4 sm:mb-0 text-center sm:text-left">
+                        Clique para iniciar o fluxo de autorização com a Meta.
+                    </p>
+                    <Button onClick={handleConnect}>
+                        <Instagram className="mr-2 h-4 w-4" />
+                        Iniciar Teste de Conexão
+                    </Button>
+                </div>
+
+                {testResult && (
+                    testResult.success ? (
+                        <Alert variant="default" className="border-green-500/50 text-green-700 [&>svg]:text-green-500">
+                             <CheckCircle className="h-4 w-4" />
+                            <AlertTitle>Teste Concluído com Sucesso!</AlertTitle>
+                            <AlertDescription>
+                                <p className="mb-2">Os seguintes dados foram recebidos da API da Meta:</p>
+                                <pre className="text-xs bg-black/80 text-white p-4 rounded-md overflow-x-auto">
+                                    {JSON.stringify(testResult.data, null, 2)}
+                                </pre>
+                            </AlertDescription>
+                        </Alert>
+                    ) : (
+                         <Alert variant="destructive">
+                            <AlertTitle>Falha no Teste</AlertTitle>
+                            <AlertDescription>
+                                {testResult.error || "Ocorreu um erro desconhecido durante o teste."}
+                            </AlertDescription>
+                        </Alert>
+                    )
+                )}
             </CardContent>
         </Card>
     )
@@ -132,33 +156,6 @@ export default function SettingsPage() {
   const { toast } = useToast();
   const [deleteConfirmationText, setDeleteConfirmationText] = useState('');
   const [isCancelling, startCancellingTransition] = useTransition();
-
-  const searchParams = useSearchParams();
-
-  useEffect(() => {
-    const error = searchParams.get('error');
-    const errorDescription = searchParams.get('error_description');
-
-    if (error) {
-      toast({
-        title: 'Erro na Conexão',
-        description: errorDescription || (error === 'access_denied' 
-          ? 'Você cancelou a conexão com o Instagram.' 
-          : 'Ocorreu um erro ao conectar sua conta.'),
-        variant: 'destructive',
-      });
-       router.replace('/settings');
-    }
-     const success = searchParams.get('success');
-    if (success) {
-      toast({
-        title: 'Sucesso!',
-        description: 'Sua conta do Instagram foi conectada.',
-      });
-      router.replace('/settings');
-    }
-  }, [searchParams, toast, router]);
-
 
   const userProfileRef = useMemoFirebase(
     () => (firestore && user ? doc(firestore, 'users', user.uid) : null),
@@ -242,7 +239,7 @@ export default function SettingsPage() {
         description="Gerencie suas informações, assinatura e integrações."
       />
 
-      <Tabs defaultValue="subscription" className="w-full">
+      <Tabs defaultValue="integrations" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="subscription">Assinatura</TabsTrigger>
           <TabsTrigger value="integrations">Integrações</TabsTrigger>
@@ -418,3 +415,5 @@ export default function SettingsPage() {
     </div>
   );
 }
+
+    
