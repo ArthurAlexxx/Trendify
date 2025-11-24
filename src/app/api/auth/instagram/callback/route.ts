@@ -38,6 +38,7 @@ async function getLongLivedAccessToken(shortLivedToken: string) {
 }
 
 async function getFacebookPages(userAccessToken: string) {
+    console.log('[getFacebookPages] Buscando páginas do Facebook...');
     const url = `https://graph.facebook.com/me/accounts?fields=instagram_business_account{name,username},name,access_token&access_token=${userAccessToken}`;
     const response = await fetch(url);
     const data = await response.json();
@@ -49,7 +50,7 @@ async function getFacebookPages(userAccessToken: string) {
     }
     
     if (!data.data || data.data.length === 0) {
-        throw new Error("Nenhuma Página do Facebook foi encontrada. Verifique se você concedeu permissão para 'Todas as Páginas' na tela de autorização do Facebook.");
+        throw new Error("Nenhuma de suas Páginas do Facebook foi encontrada. Verifique se você concedeu permissão para 'Todas as Páginas' na tela de autorização do Facebook.");
     }
 
     const pageWithIg = data.data.find((page: any) => page.instagram_business_account);
