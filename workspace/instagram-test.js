@@ -34,7 +34,7 @@ async function testInstagramApi() {
     } else if (!data.data || data.data.length === 0) {
       console.warn('\x1b[33m%s\x1b[0m', 'AVISO: A API retornou uma lista de páginas vazia (`data: []`).');
       console.log('Isso geralmente significa que a permissão para acessar a Página do Facebook específica não foi concedida durante o fluxo de login, mesmo que outras permissões tenham sido aceitas.');
-      console.log('Solução: Remova a integração "Trendify" das suas "Integrações Comerciais" no Facebook e tente novamente, garantindo que você clique em "Editar Acesso" e selecione "Todas as Páginas".');
+      console.log('Solução: Remova a integração "Trendify" das suas "Integrações Comerciais" no Facebook (https://www.facebook.com/settings/?tab=business_tools) e tente conectar novamente no aplicativo, garantindo que você clique em "Editar Acesso" e selecione "Todas as Páginas" e "Todas as Contas".');
     } else {
       console.log('\x1b[32m%s\x1b[0m', `SUCESSO: ${data.data.length} página(s) encontrada(s).`);
       const pageWithIg = data.data.find((page) => page.instagram_business_account);
@@ -42,7 +42,7 @@ async function testInstagramApi() {
         console.log(`-> Página encontrada com Instagram vinculado: "${pageWithIg.name}" (ID: ${pageWithIg.id})`);
         console.log(`-> Conta do Instagram: @${pageWithIg.instagram_business_account.username} (ID: ${pageWithIg.instagram_business_account.id})`);
       } else {
-        console.warn('\x1b[33m%s\x1b[0m', 'AVISO: Nenhuma das páginas retornadas parece ter uma conta do Instagram Business vinculada.');
+        console.warn('\x1b[33m%s\x1b[0m', 'AVISO: Nenhuma das páginas retornadas parece ter uma conta do Instagram Business vinculada. Verifique as conexões no seu "Painel Profissional" do Instagram.');
       }
     }
 
