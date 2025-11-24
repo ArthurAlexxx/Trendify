@@ -39,36 +39,25 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import Cookies from 'js-cookie';
 
 
 function InstagramIntegration() {
     const { toast } = useToast();
     const searchParams = useSearchParams();
-    const [testResult, setTestResult] = useState<{ success: boolean; data?: any; error?: string } | null>(null);
+    const { user } = useUser();
 
-
-    useEffect(() => {
-        const success = searchParams.get('test_success');
-        const data = searchParams.get('test_data');
-        const error = searchParams.get('test_error');
-
-        if (success === 'true' && data) {
-            try {
-                const decodedData = JSON.parse(decodeURIComponent(data));
-                setTestResult({ success: true, data: decodedData });
-                 toast({
-                    title: 'Teste de Conexão Bem-Sucedido!',
-                    description: 'Os dados da API da Meta foram capturados.',
-                });
-            } catch (e) {
-                 setTestResult({ success: false, error: 'Falha ao decodificar os dados do teste.' });
-            }
-        } else if (success === 'false' && error) {
-            setTestResult({ success: false, error: decodeURIComponent(error) });
-        }
-    }, [searchParams, toast]);
 
     const handleConnect = () => {
+         if (!user) {
+            toast({
+                title: 'Usuário não autenticado',
+                description: 'Você precisa estar logado para conectar sua conta.',
+                variant: 'destructive',
+            });
+            return;
+        }
+
         const clientId = process.env.NEXT_PUBLIC_META_APP_ID;
         if (!clientId) {
             console.error("ERRO: A variável de ambiente NEXT_PUBLIC_META_APP_ID não está definida.");
@@ -80,7 +69,20 @@ function InstagramIntegration() {
             return;
         }
 
-        const state = 'test-mode-' + Math.random().toString(36).substring(7);
+        // Generate a secure random string for CSRF protection
+        const array = new Uint8Array(16);
+        window.crypto.getRandomValues(array);
+        const csrfToken = Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+
+        const state = {
+            uid: user.uid,
+            csrf: csrfToken
+        };
+        
+        // Use js-cookie to set the cookie, which works reliably on the client-side
+        Cookies.set('csrf_state', JSON.stringify(state), { expires: 1/24, path: '/', sameSite: 'Lax', secure: process.env.NODE_ENV === 'production' });
+
+
         const redirectUri = `${window.location.origin}/api/auth/instagram/callback`;
         const permissions = [
             'email', 'instagram_basic', 'instagram_manage_insights', 
@@ -94,7 +96,7 @@ function InstagramIntegration() {
         authUrl.searchParams.set('redirect_uri', redirectUri);
         authUrl.searchParams.set('scope', scope);
         authUrl.searchParams.set('response_type', 'code');
-        authUrl.searchParams.set('state', state);
+        authUrl.searchParams.set('state', JSON.stringify(state)); // Pass state to FB
         
         window.location.href = authUrl.toString();
     };
@@ -104,10 +106,10 @@ function InstagramIntegration() {
             <CardHeader>
                 <CardTitle className="flex items-center gap-3 font-headline text-xl">
                     <Instagram className="h-6 w-6 text-primary" />
-                    <span>Integração com Instagram (Modo de Teste)</span>
+                    <span>Integração com Instagram</span>
                 </CardTitle>
                 <CardDescription>
-                    Use este modo para testar a conexão com a API da Meta e ver os dados brutos retornados, sem salvar no banco.
+                    Conecte sua conta do Instagram para buscar métricas de engajamento automaticamente e aprimorar as sugestões da IA.
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -117,30 +119,26 @@ function InstagramIntegration() {
                     </p>
                     <Button onClick={handleConnect}>
                         <Instagram className="mr-2 h-4 w-4" />
-                        Iniciar Teste de Conexão
+                        Conectar com Instagram
                     </Button>
                 </div>
 
-                {testResult && (
-                    testResult.success ? (
-                        <Alert variant="default" className="border-green-500/50 text-green-700 [&>svg]:text-green-500">
-                             <CheckCircle className="h-4 w-4" />
-                            <AlertTitle>Teste Concluído com Sucesso!</AlertTitle>
-                            <AlertDescription>
-                                <p className="mb-2">Os seguintes dados foram recebidos da API da Meta:</p>
-                                <pre className="text-xs bg-black/80 text-white p-4 rounded-md overflow-x-auto">
-                                    {JSON.stringify(testResult.data, null, 2)}
-                                </pre>
-                            </AlertDescription>
-                        </Alert>
-                    ) : (
-                         <Alert variant="destructive">
-                            <AlertTitle>Falha no Teste</AlertTitle>
-                            <AlertDescription>
-                                {testResult.error || "Ocorreu um erro desconhecido durante o teste."}
-                            </AlertDescription>
-                        </Alert>
-                    )
+                {searchParams.get('error') && (
+                     <Alert variant="destructive">
+                        <AlertTitle>Falha na Conexão</AlertTitle>
+                        <AlertDescription>
+                            {searchParams.get('error') || "Ocorreu um erro desconhecido durante a conexão."}
+                        </AlertDescription>
+                    </Alert>
+                )}
+                 {searchParams.get('instagram_connected') === 'true' && (
+                     <Alert variant="default" className="border-green-500/50 text-green-700 [&>svg]:text-green-500">
+                         <CheckCircle className="h-4 w-4" />
+                        <AlertTitle>Conexão Bem-Sucedida!</AlertTitle>
+                        <AlertDescription>
+                            Sua conta do Instagram foi conectada. Seus dados de perfil e métricas foram atualizados.
+                        </AlertDescription>
+                    </Alert>
                 )}
             </CardContent>
         </Card>
@@ -415,5 +413,3 @@ export default function SettingsPage() {
     </div>
   );
 }
-
-    
