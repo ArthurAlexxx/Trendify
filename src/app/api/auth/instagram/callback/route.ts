@@ -38,15 +38,18 @@ async function getLongLivedAccessToken(shortLivedToken: string) {
 }
 
 async function getFacebookPages(userAccessToken: string) {
-    const url = `https://graph.facebook.com/me/accounts?access_token=${userAccessToken}`;
+    const url = `https://graph.facebook.com/me/accounts?fields=instagram_business_account&access_token=${userAccessToken}`;
     const response = await fetch(url);
     const data = await response.json();
-    if (!data.data || data.data.length === 0) {
-        throw new Error("Nenhuma Página do Facebook foi encontrada. Certifique-se de que sua conta do Instagram esteja vinculada a uma Página do Facebook.");
+    // Procura por uma página que tenha uma conta do instagram business associada.
+    const pageWithIg = data.data?.find((page: any) => page.instagram_business_account);
+    if (!pageWithIg) {
+        throw new Error("Nenhuma Página do Facebook com uma conta do Instagram Business vinculada foi encontrada. Verifique as permissões no seu painel da Meta.");
     }
-    console.log(`[getFacebookPages] Encontradas ${data.data.length} páginas.`);
-    return data.data;
+    console.log(`[getFacebookPages] Encontrada página com Instagram vinculado. ID da Página: ${pageWithIg.id}`);
+    return [pageWithIg]; // Retorna um array com a página encontrada
 }
+
 
 async function getInstagramAccountId(pageId: string, userAccessToken: string) {
     const url = `https://graph.facebook.com/${pageId}?fields=instagram_business_account&access_token=${userAccessToken}`;
@@ -214,5 +217,3 @@ export async function GET(req: NextRequest) {
         return NextResponse.redirect(settingsUrl);
     }
 }
-
-    
