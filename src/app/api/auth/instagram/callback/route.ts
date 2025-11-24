@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getFirestore } from 'firebase-admin/firestore';
 import { initializeFirebaseAdmin } from '@/firebase/admin';
 import { cookies } from 'next/headers';
-import crypto from 'crypto';
 
 // --- Funções Auxiliares da Graph API ---
 
@@ -52,7 +51,6 @@ async function getFacebookPages(userAccessToken: string) {
         throw new Error(`Erro ao buscar páginas: ${data.error.message}`);
     }
     
-    // Agora, em vez de falhar silenciosamente, vamos lançar um erro informativo se data.data estiver vazio.
     if (!data.data || data.data.length === 0) {
         const errorMessage = `Nenhuma de suas Páginas do Facebook foi encontrada na resposta da API. Verifique se você concedeu permissão para 'Todas as Páginas' na tela de autorização do Facebook. Resposta recebida da Meta: ${JSON.stringify(data)}`;
         throw new Error(errorMessage);
@@ -131,13 +129,13 @@ export async function GET(req: NextRequest) {
     console.log('[API Callback] Nova requisição GET recebida.');
     const url = new URL(req.url);
     const code = url.searchParams.get('code');
-    const stateFromUrl = url.searchParams.get('state');
+    const stateFromUrlStr = url.searchParams.get('state');
     const error = url.searchParams.get('error');
     const errorDescription = url.searchParams.get('error_description');
 
     const settingsUrl = new URL('/settings', req.nextUrl.origin);
     const cookieStore = cookies();
-    const stateFromCookie = cookieStore.get('csrf_state')?.value;
+    const stateFromCookieStr = cookieStore.get('csrf_state')?.value;
     
     if (error) {
         console.warn(`[API Callback] Erro recebido da Meta: ${error} - ${errorDescription}`);
@@ -147,26 +145,37 @@ export async function GET(req: NextRequest) {
     }
     
     if (!code) {
-        const errorMsg = 'Código de autorização não encontrado na URL.';
-        console.error(`[API Callback] ERRO: ${errorMsg}`);
+        console.error(`[API Callback] ERRO: Código de autorização não encontrado na URL.`);
         settingsUrl.searchParams.set('error', 'authorization_code_missing');
-        settingsUrl.searchParams.set('error_description', errorMsg);
+        settingsUrl.searchParams.set('error_description', 'Código de autorização não encontrado.');
         return NextResponse.redirect(settingsUrl);
     }
 
-    if (!stateFromUrl || !stateFromCookie || stateFromUrl !== stateFromCookie) {
-        const errorMsg = 'Falha na validação CSRF (state mismatch). A requisição não é confiável.';
-        console.error(`[API Callback] ERRO: ${errorMsg}`);
-        settingsUrl.searchParams.set('error', 'csrf_validation_failed');
-        settingsUrl.searchParams.set('error_description', errorMsg);
+     if (!stateFromUrlStr || !stateFromCookieStr) {
+        console.error('[API Callback] ERRO: State da URL ou do cookie não encontrado.');
+        settingsUrl.searchParams.set('error', 'state_missing');
+        settingsUrl.searchParams.set('error_description', 'Parâmetro state de validação não encontrado.');
         return NextResponse.redirect(settingsUrl);
     }
-    
-    const uid = JSON.parse(stateFromCookie).uid;
-    console.log(`[API Callback] Validação de estado e CSRF bem-sucedida para o UID: ${uid}`);
-
 
     try {
+        const stateFromUrl = JSON.parse(stateFromUrlStr);
+        const stateFromCookie = JSON.parse(stateFromCookieStr);
+
+        if (stateFromUrl.csrf !== stateFromCookie.csrf) {
+            const errorMsg = 'Falha na validação CSRF (state mismatch). A requisição não é confiável.';
+            console.error(`[API Callback] ERRO: ${errorMsg}`);
+            settingsUrl.searchParams.set('error', 'csrf_validation_failed');
+            settingsUrl.searchParams.set('error_description', errorMsg);
+            return NextResponse.redirect(settingsUrl);
+        }
+        
+        const uid = stateFromCookie.uid;
+        console.log(`[API Callback] Validação de estado e CSRF bem-sucedida para o UID: ${uid}`);
+
+        // Limpa o cookie após a validação
+        cookieStore.delete('csrf_state');
+
         const redirectUri = `${req.nextUrl.origin}/api/auth/instagram/callback`;
         const userAccessToken = await getAccessToken(code, redirectUri);
         const longLivedToken = await getLongLivedAccessToken(userAccessToken);
