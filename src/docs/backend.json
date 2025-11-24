@@ -29,6 +29,10 @@
             "type": "string",
             "description": "User's Instagram handle (e.g., @username)."
         },
+        "instagramAccessToken": {
+            "type": "string",
+            "description": "Long-lived access token for the Instagram Graph API."
+        },
         "youtubeHandle": {
             "type": "string",
             "description": "User's YouTube handle (e.g., @YourChannel)."

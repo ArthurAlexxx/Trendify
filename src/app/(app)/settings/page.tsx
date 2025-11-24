@@ -11,8 +11,8 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { LogOut, ShieldAlert, Building, Crown, Settings as SettingsIcon, Instagram } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { LogOut, ShieldAlert, Building, Crown, Settings as SettingsIcon, Instagram, Link as LinkIcon } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   AlertDialog,
@@ -25,7 +25,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { doc, updateDoc } from 'firebase/firestore';
 import { Loader2 } from 'lucide-react';
@@ -39,6 +39,46 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+
+function InstagramIntegration() {
+    const handleConnect = () => {
+        const clientId = process.env.NEXT_PUBLIC_META_APP_ID;
+        if (!clientId) {
+            console.error("Meta App ID not found in environment variables.");
+            alert("A configuração para integração com o Instagram está incompleta.");
+            return;
+        }
+        const redirectUri = `${window.location.origin}/api/auth/instagram/callback`;
+        const scope = 'user_profile,user_media';
+        const url = `https://api.instagram.com/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&response_type=code`;
+        window.location.href = url;
+    };
+
+    return (
+         <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
+            <CardHeader>
+                <CardTitle className="flex items-center gap-3 font-headline text-xl">
+                <Instagram className="h-6 w-6 text-primary" />
+                <span>Integração com Instagram</span>
+            </CardTitle>
+                <CardDescription>
+                Conecte sua conta do Instagram para buscar métricas de seguidores e, futuramente, automatizar postagens.
+            </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col sm:flex-row items-center justify-between p-6">
+            <p className="text-muted-foreground text-sm mb-4 sm:mb-0">
+                Clique no botão para autenticar sua conta com segurança.
+            </p>
+            <Button onClick={handleConnect}>
+                <Instagram className="mr-2 h-4 w-4" />
+                Conectar com Instagram
+            </Button>
+            </CardContent>
+        </Card>
+    )
+}
+
 
 export default function SettingsPage() {
   const { user, isUserLoading } = useUser();
@@ -48,6 +88,30 @@ export default function SettingsPage() {
   const { toast } = useToast();
   const [deleteConfirmationText, setDeleteConfirmationText] = useState('');
   const [isCancelling, startCancellingTransition] = useTransition();
+
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const error = searchParams.get('error');
+    if (error) {
+      toast({
+        title: 'Erro na Conexão',
+        description: error === 'access_denied' 
+          ? 'Você cancelou a conexão com o Instagram.' 
+          : 'Ocorreu um erro ao conectar sua conta.',
+        variant: 'destructive',
+      });
+       router.replace('/settings');
+    }
+     const success = searchParams.get('success');
+    if (success) {
+      toast({
+        title: 'Sucesso!',
+        description: 'Sua conta do Instagram foi conectada.',
+      });
+      router.replace('/settings');
+    }
+  }, [searchParams, toast, router]);
 
 
   const userProfileRef = useMemoFirebase(
@@ -191,7 +255,7 @@ export default function SettingsPage() {
                                         <AlertDialogHeader>
                                             <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
                                             <AlertDialogDescription>
-                                                Esta ação cancelará sua assinatura. Você continuará com acesso aos recursos até o final do período de faturamento atual. Após isso, sua conta será revertida para o plano gratuito.
+                                                Esta ação cancelará sua assinatura. Você continuará com acesso aos recursos do seu plano até o final do período de faturamento atual. Após isso, sua conta será revertida para o plano gratuito.
                                             </AlertDialogDescription>
                                         </AlertDialogHeader>
                                         <AlertDialogFooter>
@@ -211,26 +275,7 @@ export default function SettingsPage() {
         </TabsContent>
         
         <TabsContent value="integrations" className="mt-6">
-            <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
-              <CardHeader>
-                 <CardTitle className="flex items-center gap-3 font-headline text-xl">
-                    <Instagram className="h-6 w-6 text-primary" />
-                    <span>Integração com Instagram</span>
-                </CardTitle>
-                 <CardDescription>
-                    Conecte sua conta do Instagram para buscar métricas de seguidores em tempo real e, no futuro, automatizar postagens.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-col sm:flex-row items-center justify-between p-6">
-                <p className="text-muted-foreground text-sm">
-                    Clique no botão para autenticar sua conta com segurança.
-                </p>
-                <Button disabled>
-                    <Instagram className="mr-2 h-4 w-4" />
-                    Conectar com Instagram
-                </Button>
-              </CardContent>
-            </Card>
+            <InstagramIntegration />
         </TabsContent>
 
         <TabsContent value="account" className="mt-6">
@@ -296,7 +341,7 @@ export default function SettingsPage() {
                         </strong>{' '}
                         abaixo.
                       </AlertDialogDescription>
-                    </AlertDialogHeader>
+                    </Header>
                     <div className="py-2">
                       <Input
                         id="delete-confirm"

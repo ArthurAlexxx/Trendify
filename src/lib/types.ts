@@ -18,6 +18,7 @@ export interface UserProfile {
   averageLikes?: string;
   averageComments?: string;
   audience?: string;
+  instagramAccessToken?: string;
   subscription?: {
     status: 'active' | 'inactive';
     plan: Plan;
