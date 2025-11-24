@@ -8,7 +8,6 @@ const VERIFY_TOKEN = process.env.INSTAGRAM_VERIFY_TOKEN || 'trendify-webhook-sec
  * https://developers.facebook.com/docs/graph-api/webhooks/getting-started#verification-requests
  */
 export async function GET(req: NextRequest) {
-  // CORRECT: Use req.nextUrl.searchParams to get URL parameters
   const params = req.nextUrl.searchParams;
   const mode = params.get('hub.mode');
   const token = params.get('hub.verify_token');
@@ -20,8 +19,9 @@ export async function GET(req: NextRequest) {
     if (mode === 'subscribe' && token === VERIFY_TOKEN) {
       // Responds with the challenge token from the request
       console.log('WEBHOOK_VERIFIED');
-      // The challenge needs to be sent back as the body, not as JSON
-      return new NextResponse(challenge, { status: 200 });
+      // The challenge needs to be sent back as the body, not as JSON.
+      // Use the standard Web API `Response` object for this.
+      return new Response(challenge, { status: 200 });
     } else {
       // Responds with '403 Forbidden' if verify tokens do not match
       return NextResponse.json({ error: 'Verification token mismatch' }, { status: 403 });
