@@ -61,6 +61,26 @@ async function getLongLivedAccessToken(shortLivedToken: string) {
     return data.access_token;
 }
 
+/**
+ * Fetches Instagram user data (followers_count, username) using an access token.
+ */
+async function getInstagramUserData(accessToken: string) {
+    const url = `https://graph.instagram.com/me?fields=followers_count,username&access_token=${accessToken}`;
+    
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (!response.ok) {
+        console.error("Erro ao buscar dados do usuário do Instagram:", data);
+        throw new Error(data.error?.message || "Falha ao buscar dados do usuário do Instagram.");
+    }
+
+    return {
+        followers: data.followers_count?.toString() || '0',
+        username: data.username || '',
+    };
+}
+
 
 export async function GET(req: NextRequest) {
     const url = new URL(req.url);
@@ -81,7 +101,7 @@ export async function GET(req: NextRequest) {
     
     let uid: string;
     try {
-        const cookieStore = await cookies(); // 👈 AGORA ASSÍNCRONO
+        const cookieStore = await cookies();
         const sessionCookie = cookieStore.get('__session')?.value;
 
         if (!sessionCookie) {
@@ -102,12 +122,17 @@ export async function GET(req: NextRequest) {
         const redirectUri = `${req.nextUrl.origin}/api/auth/instagram/callback`;
         const shortLivedToken = await getShortLivedAccessToken(code, redirectUri);
         const longLivedToken = await getLongLivedAccessToken(shortLivedToken);
+        
+        // Fetch user data from Instagram
+        const instagramData = await getInstagramUserData(longLivedToken);
 
         const { firestore } = initializeFirebaseAdmin();
         const userRef = firestore.collection('users').doc(uid);
         
         await userRef.update({
             instagramAccessToken: longLivedToken,
+            instagramHandle: instagramData.username,
+            followers: instagramData.followers
         });
 
         settingsUrl.searchParams.set('success', 'true');
