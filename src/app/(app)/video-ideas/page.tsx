@@ -39,7 +39,7 @@ import {
   BarChart,
   Eye,
 } from 'lucide-react';
-import { useEffect, useActionState, useTransition, useMemo } from 'react';
+import { useEffect, useTransition, useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { generateVideoIdeasAction, GenerateVideoIdeasOutput } from './actions';
@@ -62,6 +62,11 @@ const formSchema = z.object({
     .min(3, 'O público-alvo deve ter pelo menos 3 caracteres.'),
   objective: z.string().min(1, 'O objetivo é obrigatório.'),
 });
+
+type VideoIdeasState = {
+  data?: GenerateVideoIdeasOutput;
+  error?: string;
+} | null;
 
 
 const analysisCriteria = [
@@ -90,10 +95,9 @@ const analysisCriteria = [
 
 export default function VideoIdeasPage() {
   const { toast } = useToast();
-  const [state, formAction, isGenerating] = useActionState(
-    generateVideoIdeasAction,
-    null
-  );
+  const [isGenerating, startTransition] = useTransition();
+  const [state, setState] = useState<VideoIdeasState>(null);
+
   const [isSaving, startSavingTransition] = useTransition();
   const { user } = useUser();
   const firestore = useFirestore();
@@ -116,6 +120,13 @@ export default function VideoIdeasPage() {
       objective: 'Engajamento',
     },
   });
+
+  const formAction = async (formData: FormData) => {
+    startTransition(async () => {
+      const result = await generateVideoIdeasAction(null, formData);
+      setState(result);
+    });
+  };
   
   const completedIdeasQuery = useMemoFirebase(() => (
     firestore && user

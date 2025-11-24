@@ -36,7 +36,7 @@ import {
   Eye,
   Crown,
 } from 'lucide-react';
-import { useEffect, useActionState, useTransition, useState } from 'react';
+import { useEffect, useTransition, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { generatePubliProposalsAction, GeneratePubliProposalsOutput } from './actions';
@@ -64,6 +64,11 @@ const formSchema = z.object({
   objective: z.string().min(1, 'O objetivo é obrigatório.'),
   extraInfo: z.string().optional(),
 });
+
+type PubliProposalsState = {
+  data?: GeneratePubliProposalsOutput;
+  error?: string;
+} | null;
 
 
 const analysisCriteria = [
@@ -141,10 +146,9 @@ export default function PublisAssistantPage() {
 
 function PublisAssistantPageContent() {
   const { toast } = useToast();
-  const [state, formAction, isGenerating] = useActionState(
-    generatePubliProposalsAction,
-    null
-  );
+  const [isGenerating, startTransition] = useTransition();
+  const [state, setState] = useState<PubliProposalsState>(null);
+  
   const [isSaving, startSavingTransition] = useTransition();
   const { user } = useUser();
   const firestore = useFirestore();
@@ -171,6 +175,13 @@ function PublisAssistantPageContent() {
   });
   
   const result = state?.data;
+
+  const formAction = async (formData: FormData) => {
+    startTransition(async () => {
+      const result = await generatePubliProposalsAction(null, formData);
+      setState(result);
+    });
+  };
 
   useEffect(() => {
     if (state?.error) {

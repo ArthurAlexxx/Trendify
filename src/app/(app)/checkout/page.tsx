@@ -24,14 +24,14 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import {
-  useActionState,
   useEffect,
   useState,
   useCallback,
   Suspense,
+  useTransition,
 } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { createPixChargeAction } from '../subscribe/actions';
+import { createPixChargeAction, PixChargeResponse } from '../subscribe/actions';
 import { Skeleton } from '@/components/ui/skeleton';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -49,6 +49,12 @@ const formSchema = z.object({
 });
 
 type FormData = z.infer<typeof formSchema>;
+
+type ActionState = {
+  data?: PixChargeResponse;
+  error?: string;
+} | null;
+
 
 const planDetails = {
   pro: {
@@ -83,6 +89,8 @@ function CheckoutPageContent() {
   const selectedPlanDetails = plan ? planDetails[plan] : null;
 
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [isGenerating, startTransition] = useTransition();
+  const [state, setState] = useState<ActionState>(null);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -96,17 +104,17 @@ function CheckoutPageContent() {
     },
   });
 
-  const [state, formAction, isGenerating] = useActionState(
-    (prevState: any, formData: FormData) => {
-        const cleanedData = {
-            ...formData,
-            taxId: formData.taxId.replace(/\D/g, ''),
-            cellphone: formData.cellphone.replace(/\D/g, ''),
-        };
-        return createPixChargeAction(prevState, cleanedData);
-    },
-    null
-  );
+  const formAction = async (formData: FormData) => {
+    startTransition(async () => {
+      const cleanedData = {
+          ...formData,
+          taxId: formData.taxId.replace(/\D/g, ''),
+          cellphone: formData.cellphone.replace(/\D/g, ''),
+      };
+      const result = await createPixChargeAction(null, cleanedData);
+      setState(result);
+    });
+  };
 
   useEffect(() => {
     if (user) {

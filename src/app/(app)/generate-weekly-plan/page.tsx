@@ -21,10 +21,10 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Bot, Loader2, Sparkles, Trash2, Check, History, ClipboardList, BrainCircuit, Target, BarChart as BarChartIcon, Eye } from 'lucide-react';
-import { useEffect, useActionState, useTransition } from 'react';
+import { useEffect, useTransition, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { generateWeeklyPlanAction } from './actions';
+import { generateWeeklyPlanAction, GenerateWeeklyPlanOutput } from './actions';
 import { Separator } from '@/components/ui/separator';
 import { useDoc, useFirestore, useMemoFirebase, useUser, useCollection } from '@/firebase';
 import type { UserProfile, ItemRoteiro, PlanoSemanal } from '@/lib/types';
@@ -69,6 +69,12 @@ const formSchema = z.object({
   currentStats: z.string().min(1, 'As estatísticas são obrigatórias.'),
 });
 
+type WeeklyPlanState = {
+  data?: GenerateWeeklyPlanOutput;
+  error?: string;
+} | null;
+
+
 const chartConfig = {
   alcance: { label: 'Alcance', color: 'hsl(var(--primary))' },
   engajamento: { label: 'Engajamento', color: 'hsl(var(--chart-2))' },
@@ -101,10 +107,9 @@ const analysisCriteria = [
 
 export default function GenerateWeeklyPlanPage() {
   const { toast } = useToast();
-  const [state, formAction, isGenerating] = useActionState(
-    generateWeeklyPlanAction,
-    null
-  );
+  const [isGenerating, startTransition] = useTransition();
+  const [state, setState] = useState<WeeklyPlanState>(null);
+  
   const [isSaving, startSavingTransition] = useTransition();
 
   const { user } = useUser();
@@ -135,6 +140,13 @@ export default function GenerateWeeklyPlanPage() {
       currentStats: '',
     },
   });
+  
+  const formAction = async (formData: FormData) => {
+    startTransition(async () => {
+      const result = await generateWeeklyPlanAction(null, formData);
+      setState(result);
+    });
+  };
 
   useEffect(() => {
     if (userProfile) {
