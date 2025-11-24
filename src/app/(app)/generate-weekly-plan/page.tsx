@@ -260,7 +260,7 @@ export default function GenerateWeeklyPlanPage() {
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form action={formAction} className="space-y-8 text-left">
+            <form onSubmit={form.handleSubmit(data => formAction(data as any))} className="space-y-8 text-left">
               <div className="space-y-6">
                 <FormField
                   control={form.control}

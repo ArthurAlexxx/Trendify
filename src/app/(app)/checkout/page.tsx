@@ -98,15 +98,7 @@ function CheckoutPageContent() {
 
   const [state, formAction, isGenerating] = useActionState(
     (prevState: any, formData: FormData) => {
-      const formattedData = new FormData();
-      Object.entries(formData).forEach(([key, value]) => {
-          if (key === 'taxId' || key === 'cellphone') {
-              formattedData.append(key, String(value).replace(/\D/g, ''));
-          } else {
-              formattedData.append(key, value as string);
-          }
-      });
-      return createPixChargeAction(prevState, formattedData);
+        return createPixChargeAction(prevState, formData);
     },
     null
   );
@@ -263,14 +255,7 @@ function CheckoutPageContent() {
               ) : !result && !isGenerating ? (
                 <Form {...form}>
                   <form 
-                    action={() => {
-                        const values = form.getValues();
-                        const formData = new FormData();
-                        Object.entries(values).forEach(([key, value]) => {
-                            formData.append(key, value as string);
-                        });
-                        formAction(formData);
-                    }} 
+                     onSubmit={form.handleSubmit(data => formAction(data as any))}
                     className="space-y-6 text-left"
                   >
                     <input type="hidden" {...form.register('plan')} value={plan} />

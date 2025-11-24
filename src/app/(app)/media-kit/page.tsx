@@ -268,7 +268,7 @@ function MediaKitPageContent() {
             <CardContent>
               <Form {...form}>
                 <form
-                  action={formAction}
+                  onSubmit={form.handleSubmit(data => formAction(data as any))}
                   className="space-y-8 text-left"
                 >
                   <div className="space-y-6">

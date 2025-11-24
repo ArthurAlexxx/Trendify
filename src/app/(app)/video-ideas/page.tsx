@@ -235,7 +235,7 @@ export default function VideoIdeasPage() {
         <CardContent>
           <Form {...form}>
             <form
-              action={formAction}
+              onSubmit={form.handleSubmit(data => formAction(data as any))}
               className="space-y-8 text-left"
             >
               <div className="grid md:grid-cols-2 gap-x-6 gap-y-6">

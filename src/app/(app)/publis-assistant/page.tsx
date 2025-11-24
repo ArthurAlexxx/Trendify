@@ -283,7 +283,7 @@ function PublisAssistantPageContent() {
         <CardContent>
           <Form {...form}>
             <form
-              action={formAction}
+              onSubmit={form.handleSubmit(data => formAction(data as any))}
               className="space-y-8 text-left"
             >
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-6">
@@ -529,5 +529,3 @@ function InfoListCard({
     </Card>
   );
 }
-
-    

@@ -102,13 +102,13 @@ export async function POST(req: NextRequest) {
     const abacateSignature = req.headers.get('x-webhook-signature');
     if (!abacateSignature) {
       console.error('[webhook-post] ERRO: Assinatura "x-webhook-signature" ausente no cabeçalho.');
-      return NextResponse.json({ error: 'Signature missing.' }, { status: 400 });
+      return NextResponse.json({ error: 'Assinatura ausente.' }, { status: 400 });
     }
     console.log('[webhook-post] Assinatura "x-webhook-signature" encontrada no cabeçalho.');
     
     if (!verifyAbacateSignature(body, abacateSignature)) {
       console.error('[webhook-post] ERRO: Assinatura inválida. A requisição pode não ser da Abacate Pay.');
-      return NextResponse.json({ error: 'Invalid signature.' }, { status: 403 });
+      return NextResponse.json({ error: 'Assinatura inválida.' }, { status: 403 });
     }
     console.log('[webhook-post] Assinatura HMAC verificada com sucesso.');
   }
@@ -123,7 +123,7 @@ export async function POST(req: NextRequest) {
 
     if (!userId) {
       console.warn(`[webhook-post] AVISO: Webhook 'billing.paid' recebido para paymentId ${paymentId || 'desconhecido'} sem userId nos metadados. Ignorando.`);
-      return NextResponse.json({ success: true, message: 'Event received, but no userId found.' });
+      return NextResponse.json({ success: true, message: 'Evento recebido, mas nenhum userId encontrado.' });
     }
     console.log(`[webhook-post] userId "${userId}" encontrado nos metadados do pagamento ${paymentId} para o plano "${plan}".`);
 
@@ -151,12 +151,12 @@ export async function POST(req: NextRequest) {
 
     } catch (error) {
       console.error(`[webhook-post] ERRO CRÍTICO: Falha ao atualizar a assinatura para o usuário ${userId} no Firestore:`, error);
-      return NextResponse.json({ error: 'Failed to process subscription update.' }, { status: 500 });
+      return NextResponse.json({ error: 'Falha ao processar a atualização da assinatura.' }, { status: 500 });
     }
   } else {
     console.log(`[webhook-post] Evento do tipo '${event.event}' recebido. Nenhuma ação configurada para este evento.`);
   }
 
   console.log('[webhook-post] Processamento do webhook concluído com sucesso.');
-  return NextResponse.json({ success: true, message: 'Webhook received and processed.' });
+  return NextResponse.json({ success: true, message: 'Webhook recebido e processado.' });
 }
