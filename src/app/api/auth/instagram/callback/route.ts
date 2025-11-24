@@ -81,7 +81,7 @@ export async function GET(req: NextRequest) {
     
     let uid: string;
     try {
-        const cookieStore = cookies();
+        const cookieStore = await cookies(); // 👈 AGORA ASSÍNCRONO
         const sessionCookie = cookieStore.get('__session')?.value;
 
         if (!sessionCookie) {
@@ -97,7 +97,6 @@ export async function GET(req: NextRequest) {
         settingsUrl.searchParams.set('error', errorMessage);
         return NextResponse.redirect(settingsUrl);
     }
-
 
     try {
         const redirectUri = `${req.nextUrl.origin}/api/auth/instagram/callback`;
