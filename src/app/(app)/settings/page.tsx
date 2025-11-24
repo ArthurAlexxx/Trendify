@@ -1,3 +1,4 @@
+
 'use client';
 
 import { PageHeader } from '@/components/page-header';
@@ -10,7 +11,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { LogOut, ShieldAlert, Building, Crown, Settings as SettingsIcon, Link as LinkIcon, Instagram } from 'lucide-react';
+import { LogOut, ShieldAlert, Building, Crown, Settings as SettingsIcon, Instagram } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -38,7 +39,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { CodeBlock } from '@/components/ui/code-block';
 
 export default function SettingsPage() {
   const { user, isUserLoading } = useUser();
@@ -123,7 +123,6 @@ export default function SettingsPage() {
       }
   }
   
-  const productionUrl = 'https://trendify-beta.vercel.app/api/webhooks/instagram';
 
   return (
     <div className="space-y-8">
@@ -216,51 +215,20 @@ export default function SettingsPage() {
               <CardHeader>
                  <CardTitle className="flex items-center gap-3 font-headline text-xl">
                     <Instagram className="h-6 w-6 text-primary" />
-                    <span>Integração com Instagram (Meta)</span>
+                    <span>Integração com Instagram</span>
                 </CardTitle>
                  <CardDescription>
-                    Conecte sua conta para obter dados e automatizar tarefas. Siga os passos abaixo.
+                    Conecte sua conta do Instagram para buscar métricas de seguidores em tempo real e, no futuro, automatizar postagens.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div>
-                  <h4 className="font-semibold mb-2">Passo 1: Obtenha suas credenciais</h4>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Acesse o painel de {' '}
-                    <a href="https://developers.facebook.com/apps/" target="_blank" rel="noopener noreferrer" className="text-primary underline">
-                      Desenvolvedores da Meta
-                    </a>, crie um novo aplicativo e obtenha a ID do Aplicativo e a Chave Secreta do Cliente.
-                  </p>
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="meta-app-id">ID do Aplicativo (App ID)</Label>
-                      <Input id="meta-app-id" readOnly placeholder="Cole sua App ID aqui..." className="font-mono bg-muted/50" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="meta-app-secret">Chave Secreta do Cliente</Label>
-                      <Input id="meta-app-secret" readOnly placeholder="Cole sua Chave Secreta aqui..." className="font-mono bg-muted/50" />
-                    </div>
-                  </div>
-                </div>
-
-                 <div>
-                  <h4 className="font-semibold mb-2">Passo 2: Configure as variáveis de ambiente</h4>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Adicione as credenciais obtidas ao seu arquivo `.env` na raiz do projeto.
-                  </p>
-                  <CodeBlock
-                    language="bash"
-                    value={`META_APP_ID="SUA_ID_DO_APLICATIVO_AQUI"\nMETA_APP_SECRET="SUA_CHAVE_SECRETA_AQUI"`}
-                  />
-                </div>
-
-                <div>
-                  <h4 className="font-semibold mb-2">Passo 3: Configure a URL de Callback</h4>
-                   <p className="text-sm text-muted-foreground mb-4">
-                    No painel da Meta, adicione a seguinte URL de Callback nas configurações do seu aplicativo:
-                  </p>
-                   <Input readOnly value={productionUrl} className="font-mono bg-muted/50" />
-                </div>
+              <CardContent className="flex flex-col sm:flex-row items-center justify-between p-6">
+                <p className="text-muted-foreground text-sm">
+                    Clique no botão para autenticar sua conta com segurança.
+                </p>
+                <Button disabled>
+                    <Instagram className="mr-2 h-4 w-4" />
+                    Conectar com Instagram
+                </Button>
               </CardContent>
             </Card>
         </TabsContent>
