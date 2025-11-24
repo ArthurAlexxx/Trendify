@@ -1,3 +1,4 @@
+
 {
   "name": "nextn",
   "version": "0.1.0",
@@ -42,6 +43,7 @@
     "firebase-admin": "^12.2.0",
     "framer-motion": "^11.3.19",
     "genkit": "^1.0.0",
+    "js-cookie": "^3.0.5",
     "lucide-react": "^0.475.0",
     "next": "14.2.5",
     "openai": "^4.52.7",
@@ -57,6 +59,8 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@types/crypto-js": "^4.2.2",
+    "@types/js-cookie": "^3.0.6",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",

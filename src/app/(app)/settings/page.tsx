@@ -1,3 +1,4 @@
+
 'use client';
 
 import { PageHeader } from '@/components/page-header';
@@ -10,7 +11,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { LogOut, ShieldAlert, Building, Crown, Settings as SettingsIcon, Instagram, Link as LinkIcon } from 'lucide-react';
+import { LogOut, ShieldAlert, Crown, Settings as SettingsIcon, Instagram } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -35,26 +36,56 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import Cookies from 'js-cookie';
+import crypto from 'crypto';
 
 function InstagramIntegration() {
+    const { user } = useUser();
+    const { toast } = useToast();
+
     const handleConnect = () => {
+        if (!user) {
+            toast({
+                title: 'Erro',
+                description: 'Você precisa estar logado para conectar sua conta.',
+                variant: 'destructive',
+            });
+            return;
+        }
+
         const clientId = process.env.NEXT_PUBLIC_META_APP_ID;
         if (!clientId) {
-            console.error("ERRO: A variável de ambiente NEXT_PUBLIC_META_APP_ID não está definida. A conexão com o Instagram não pode ser iniciada.");
-            alert("A configuração para integração com o Instagram está incompleta. Verifique as variáveis de ambiente.");
+            console.error("ERRO: A variável de ambiente NEXT_PUBLIC_META_APP_ID não está definida.");
+            toast({
+                title: 'Erro de Configuração',
+                description: "A integração com o Instagram não pode ser iniciada.",
+                variant: 'destructive'
+            });
             return;
         }
         
-        const redirectUri = 'https://trendify-beta.vercel.app/api/auth/instagram/callback';
-        // These scopes are required for the Instagram Graph API business flow
-        const scope = 'instagram_basic,pages_show_list,instagram_manage_insights,pages_read_engagement';
-        const url = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&response_type=code`;
+        // 1. Generate a secure state token
+        const csrfToken = crypto.randomBytes(16).toString('hex');
+        const state = JSON.stringify({ uid: user.uid, csrf: csrfToken });
         
-        window.location.href = url;
+        // 2. Store the CSRF part of the state in a secure, httpOnly cookie
+        Cookies.set('instagram_auth_csrf', csrfToken, { secure: true, sameSite: 'lax', expires: 5 / (24 * 60) }); // Expires in 5 minutes
+
+        // 3. Construct the authorization URL
+        const redirectUri = `${window.location.origin}/api/auth/instagram/callback`;
+        const scope = 'instagram_basic,pages_show_list,instagram_manage_insights,pages_read_engagement';
+        const authUrl = new URL('https://www.facebook.com/v19.0/dialog/oauth');
+        
+        authUrl.searchParams.set('client_id', clientId);
+        authUrl.searchParams.set('redirect_uri', redirectUri);
+        authUrl.searchParams.set('scope', scope);
+        authUrl.searchParams.set('response_type', 'code');
+        authUrl.searchParams.set('state', state);
+        
+        // 4. Redirect the user
+        window.location.href = authUrl.toString();
     };
 
     return (
@@ -83,7 +114,7 @@ function InstagramIntegration() {
 
 
 export default function SettingsPage() {
-  const { user, isUserLoading } = useUser();
+  const { user } = useUser();
   const auth = useAuth();
   const firestore = useFirestore();
   const router = useRouter();
@@ -95,12 +126,14 @@ export default function SettingsPage() {
 
   useEffect(() => {
     const error = searchParams.get('error');
+    const errorDescription = searchParams.get('error_description');
+
     if (error) {
       toast({
         title: 'Erro na Conexão',
-        description: error === 'access_denied' 
+        description: errorDescription || (error === 'access_denied' 
           ? 'Você cancelou a conexão com o Instagram.' 
-          : 'Ocorreu um erro ao conectar sua conta.',
+          : 'Ocorreu um erro ao conectar sua conta.'),
         variant: 'destructive',
       });
        router.replace('/settings');
@@ -120,7 +153,7 @@ export default function SettingsPage() {
     () => (firestore && user ? doc(firestore, 'users', user.uid) : null),
     [firestore, user]
   );
-  const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userProfileRef);
+  const { data: userProfile } = useDoc<UserProfile>(userProfileRef);
   const { subscription, isLoading: isSubscriptionLoading } = useSubscription();
 
 
