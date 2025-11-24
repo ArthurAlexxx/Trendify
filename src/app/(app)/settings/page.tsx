@@ -180,12 +180,12 @@ export default function SettingsPage() {
   const isDeleteButtonDisabled = deleteConfirmationText !== 'excluir minha conta';
 
   const getPlanName = (plan: 'free' | 'pro' | 'premium') => {
-      switch(plan) {
-        case 'pro': return 'PRO';
-        case 'premium': return 'Premium';
-        default: return 'Gratuito';
-      }
-  }
+    switch(plan) {
+      case 'pro': return 'PRO';
+      case 'premium': return 'Premium';
+      default: return 'Gratuito';
+    }
+  };
   
 
   return (
@@ -341,7 +341,7 @@ export default function SettingsPage() {
                         </strong>{' '}
                         abaixo.
                       </AlertDialogDescription>
-                    </Header>
+                    </AlertDialogHeader>
                     <div className="py-2">
                       <Input
                         id="delete-confirm"
