@@ -59,6 +59,7 @@ const PostNodeSchema = z.object({
   comment_count: z.number().optional(),
   view_count: z.number().nullable().optional(),
   media_type: z.number(), // 1: Image, 2: Video, 8: Carousel
+  taken_at: z.number(),
 });
 
 const PostsResultSchema = z.object({
@@ -161,8 +162,14 @@ export async function getInstagramPosts(username: string): Promise<PostData[]> {
      try {
         const result = await fetchFromRapidApi('posts', username);
         const parsed = PostsResultSchema.parse(result);
+
+        const thirtyOneDaysAgo = Math.floor(Date.now() / 1000) - (31 * 24 * 60 * 60);
+
+        const recentPosts = parsed.edges.filter(({ node }) => {
+            return node.taken_at > thirtyOneDaysAgo;
+        });
         
-        return parsed.edges.map(({ node }) => {
+        return recentPosts.map(({ node }) => {
             let displayUrl = '';
             // Handle carousel posts
             if (node.media_type === 8 && node.carousel_media && node.carousel_media.length > 0) {
