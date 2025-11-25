@@ -66,12 +66,36 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 
 
-const chartConfig = {
-  followers: { label: "Seguidores", color: "hsl(var(--chart-1))" },
-  views: { label: "Views", color: "hsl(var(--chart-2))" },
-  likes: { label: "Likes", color: "hsl(var(--chart-3))" },
-  comments: { label: "Comentários", color: "hsl(var(--chart-4))" },
+const chartConfigBase = {
+  followers: { label: "Seguidores" },
+  views: { label: "Views" },
+  likes: { label: "Likes" },
+  comments: { label: "Comentários" },
 } satisfies ChartConfig;
+
+const platformChartConfig = {
+  total: {
+    ...chartConfigBase,
+    followers: { ...chartConfigBase.followers, color: "hsl(var(--chart-1))" },
+    views: { ...chartConfigBase.views, color: "hsl(var(--chart-2))" },
+    likes: { ...chartConfigBase.likes, color: "hsl(var(--chart-3))" },
+    comments: { ...chartConfigBase.comments, color: "hsl(var(--chart-4))" },
+  },
+  instagram: {
+    ...chartConfigBase,
+    followers: { ...chartConfigBase.followers, color: "#833AB4" },
+    views: { ...chartConfigBase.views, color: "#C13584" },
+    likes: { ...chartConfigBase.likes, color: "#E1306C" },
+    comments: { ...chartConfigBase.comments, color: "#FD1D1D" },
+  },
+  tiktok: {
+    ...chartConfigBase,
+    followers: { ...chartConfigBase.followers, color: "#00f2ea" },
+    views: { ...chartConfigBase.views, color: "#ff0050" },
+    likes: { ...chartConfigBase.likes, color: "#FFFFFF" },
+    comments: { ...chartConfigBase.comments, color: "#69C9D0" },
+  },
+} satisfies Record<string, ChartConfig>;
 
 
 const profileMetricsSchema = z.object({
@@ -432,6 +456,8 @@ export default function DashboardPage() {
 
   const visibleItems = roteiro?.items.slice(0, 3);
   const collapsibleItems = roteiro?.items.slice(3);
+  
+  const chartConfig = platformChartConfig[selectedPlatform] || platformChartConfig.total;
 
   return (
     <div className="space-y-12">
@@ -464,11 +490,11 @@ export default function DashboardPage() {
                   </div>
             </CardHeader>
             <CardContent>
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                  <MetricCard icon={Users} title="Seguidores" value={formatMetricValue(latestMetrics?.followers)} handle={selectedPlatform !== 'total' ? latestMetrics?.handle as string : undefined} isLoading={isLoading} />
-                  <MetricCard icon={Eye} title="Média de Views" value={formatMetricValue(latestMetrics?.views)} isLoading={isLoading} />
-                  <MetricCard icon={Heart} title="Média de Likes" value={formatMetricValue(latestMetrics?.likes)} isLoading={isLoading} />
-                  <MetricCard icon={MessageSquare} title="Média de Comentários" value={formatMetricValue(latestMetrics?.comments)} isLoading={isLoading} />
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 justify-center">
+                  <MetricCard icon={Users} title="Seguidores" value={formatMetricValue(latestMetrics?.followers)} handle={selectedPlatform !== 'total' ? latestMetrics?.handle as string : undefined} isLoading={isLoading} platform={selectedPlatform} />
+                  <MetricCard icon={Eye} title="Média de Views" value={formatMetricValue(latestMetrics?.views)} isLoading={isLoading} platform={selectedPlatform} />
+                  <MetricCard icon={Heart} title="Média de Likes" value={formatMetricValue(latestMetrics?.likes)} isLoading={isLoading} platform={selectedPlatform} />
+                  <MetricCard icon={MessageSquare} title="Média de Comentários" value={formatMetricValue(latestMetrics?.comments)} isLoading={isLoading} platform={selectedPlatform} />
                 </div>
             </CardContent>
         </Card>
@@ -503,7 +529,7 @@ export default function DashboardPage() {
                                 <div>
                                 <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
                                 <h3 className="font-semibold text-foreground">
-                                    Dados insuficientes para o gráfico.
+                                    {historicalChartData.length > 0 ? "" : "Dados insuficientes para o gráfico."}
                                 </h3>
                                 <p className="text-sm text-muted-foreground">
                                     {userProfile && (
@@ -596,194 +622,200 @@ export default function DashboardPage() {
 
         {/* Bottom Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card h-full">
-              <CardHeader className="text-center sm:text-left">
-                <CardTitle className="font-headline text-xl">
-                  Roteiro de Conteúdo Semanal
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {isLoadingRoteiro ? <Skeleton className="h-40 w-full" /> : (
-                    roteiro && roteiro.items.length > 0 ? (
-                    <div>
-                        <ul className="space-y-2">
-                            {visibleItems?.map((item, index) => (
-                            <li key={index}>
-                                <div className="flex items-start gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50 text-left">
-                                <Checkbox
-                                    id={`roteiro-${index}`}
-                                    checked={item.concluido}
-                                    onCheckedChange={() => handleToggleRoteiro(item, index)}
-                                    className="h-5 w-5 mt-1"
-                                />
-                                <div>
-                                    <label
-                                    htmlFor={`roteiro-${index}`}
-                                    className={cn(
-                                        'font-medium text-base transition-colors cursor-pointer',
-                                        item.concluido
-                                        ? 'line-through text-muted-foreground'
-                                        : 'text-foreground'
-                                    )}
-                                    >
-                                    <span className="font-semibold text-primary">
-                                        {item.dia}:
-                                    </span>{' '}
-                                    {item.tarefa}
-                                    </label>
-                                    <p className="text-sm text-muted-foreground">
-                                    {item.detalhes}
-                                    </p>
-                                </div>
-                                </div>
-                                {visibleItems && index < visibleItems.length - 1 && (
-                                <Separator className="my-2" />
-                                )}
-                            </li>
-                            ))}
-                            <AnimatePresence>
-                            {isExpanded && collapsibleItems?.map((item, index) => (
-                                <motion.li 
-                                key={`collapsible-${index}`}
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: 'auto' }}
-                                exit={{ opacity: 0, height: 0 }}
-                                transition={{ duration: 0.3, ease: "easeInOut" }}
-                                className="overflow-hidden"
-                                >
-                                    <Separator className="my-2" />
-                                    <div className="flex items-start gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50 text-left">
-                                    <Checkbox
-                                        id={`roteiro-collapsible-${index}`}
-                                        checked={item.concluido}
-                                        onCheckedChange={() => handleToggleRoteiro(item, 3 + index)}
-                                        className="h-5 w-5 mt-1"
-                                    />
-                                    <div>
-                                        <label
-                                        htmlFor={`roteiro-collapsible-${index}`}
-                                        className={cn(
-                                            'font-medium text-base transition-colors cursor-pointer',
-                                            item.concluido
-                                            ? 'line-through text-muted-foreground'
-                                            : 'text-foreground'
-                                        )}
-                                        >
-                                        <span className="font-semibold text-primary">
-                                            {item.dia}:
-                                        </span>{' '}
-                                        {item.tarefa}
-                                        </label>
-                                        <p className="text-sm text-muted-foreground">
-                                        {item.detalhes}
-                                        </p>
-                                    </div>
-                                    </div>
-                                </motion.li>
-                            ))}
-                            </AnimatePresence>
-                        </ul>
-                        {collapsibleItems && collapsibleItems.length > 0 && !isExpanded && (
-                        <div className='flex justify-center mt-2'>
-                            <Button 
-                                variant="ghost" 
-                                onClick={() => setIsExpanded(true)} 
-                                className="text-primary hover:text-primary"
-                            >
-                                Ver restante da semana
-                            </Button>
-                        </div>
-                        )}
-                        {isExpanded && (
-                        <div className='flex justify-center mt-2'>
-                            <Button 
-                                variant="ghost" 
-                                onClick={() => setIsExpanded(false)} 
-                                className="text-primary hover:text-primary"
-                            >
-                                Ver menos
-                            </Button>
-                        </div>
-                        )}
-                    </div>
-                    ) : (
-                    <div className="text-center py-8 px-4 rounded-xl bg-muted/50 border border-dashed">
-                        <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
-                        <h3 className="font-semibold text-foreground">
-                        Sem roteiro para a semana.
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                        Gere um novo no{' '}
-                        <Link
-                            href="/generate-weekly-plan"
-                            className="text-primary font-medium hover:underline"
-                        >
-                            Planejamento Semanal
-                        </Link>
-                        .
-                        </p>
-                    </div>
-                    )
-                )}
-              </CardContent>
-            </Card>
+            <div className="space-y-8">
+              <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card h-full">
+                <CardHeader className="text-center sm:text-left">
+                  <CardTitle className="font-headline text-xl">
+                    Roteiro de Conteúdo Semanal
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {isLoadingRoteiro ? <Skeleton className="h-40 w-full" /> : (
+                      roteiro && roteiro.items.length > 0 ? (
+                      <div>
+                          <ul className="space-y-2">
+                              {visibleItems?.map((item, index) => (
+                              <li key={index}>
+                                  <div className="flex items-start gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50 text-left">
+                                  <Checkbox
+                                      id={`roteiro-${index}`}
+                                      checked={item.concluido}
+                                      onCheckedChange={() => handleToggleRoteiro(item, index)}
+                                      className="h-5 w-5 mt-1"
+                                  />
+                                  <div>
+                                      <label
+                                      htmlFor={`roteiro-${index}`}
+                                      className={cn(
+                                          'font-medium text-base transition-colors cursor-pointer',
+                                          item.concluido
+                                          ? 'line-through text-muted-foreground'
+                                          : 'text-foreground'
+                                      )}
+                                      >
+                                      <span className="font-semibold text-primary">
+                                          {item.dia}:
+                                      </span>{' '}
+                                      {item.tarefa}
+                                      </label>
+                                      <p className="text-sm text-muted-foreground">
+                                      {item.detalhes}
+                                      </p>
+                                  </div>
+                                  </div>
+                                  {visibleItems && index < visibleItems.length - 1 && (
+                                  <Separator className="my-2" />
+                                  )}
+                              </li>
+                              ))}
+                              <AnimatePresence>
+                              {isExpanded && collapsibleItems?.map((item, index) => (
+                                  <motion.li 
+                                  key={`collapsible-${index}`}
+                                  initial={{ opacity: 0, height: 0 }}
+                                  animate={{ opacity: 1, height: 'auto' }}
+                                  exit={{ opacity: 0, height: 0 }}
+                                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                                  className="overflow-hidden"
+                                  >
+                                      <Separator className="my-2" />
+                                      <div className="flex items-start gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50 text-left">
+                                      <Checkbox
+                                          id={`roteiro-collapsible-${index}`}
+                                          checked={item.concluido}
+                                          onCheckedChange={() => handleToggleRoteiro(item, 3 + index)}
+                                          className="h-5 w-5 mt-1"
+                                      />
+                                      <div>
+                                          <label
+                                          htmlFor={`roteiro-collapsible-${index}`}
+                                          className={cn(
+                                              'font-medium text-base transition-colors cursor-pointer',
+                                              item.concluido
+                                              ? 'line-through text-muted-foreground'
+                                              : 'text-foreground'
+                                          )}
+                                          >
+                                          <span className="font-semibold text-primary">
+                                              {item.dia}:
+                                          </span>{' '}
+                                          {item.tarefa}
+                                          </label>
+                                          <p className="text-sm text-muted-foreground">
+                                          {item.detalhes}
+                                          </p>
+                                      </div>
+                                      </div>
+                                  </motion.li>
+                              ))}
+                              </AnimatePresence>
+                          </ul>
+                          {collapsibleItems && collapsibleItems.length > 0 && !isExpanded && (
+                          <div className='flex justify-center mt-2'>
+                              <Button 
+                                  variant="ghost" 
+                                  onClick={() => setIsExpanded(true)} 
+                                  className="text-primary hover:text-primary"
+                              >
+                                  Ver restante da semana
+                              </Button>
+                          </div>
+                          )}
+                          {isExpanded && (
+                          <div className='flex justify-center mt-2'>
+                              <Button 
+                                  variant="ghost" 
+                                  onClick={() => setIsExpanded(false)} 
+                                  className="text-primary hover:text-primary"
+                              >
+                                  Ver menos
+                              </Button>
+                          </div>
+                          )}
+                      </div>
+                      ) : (
+                      <div className="text-center py-8 px-4 rounded-xl bg-muted/50 border border-dashed">
+                          <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+                          <h3 className="font-semibold text-foreground">
+                          Sem roteiro para a semana.
+                          </h3>
+                          <p className="text-sm text-muted-foreground">
+                          Gere um novo no{' '}
+                          <Link
+                              href="/generate-weekly-plan"
+                              className="text-primary font-medium hover:underline"
+                          >
+                              Planejamento Semanal
+                          </Link>
+                          .
+                          </p>
+                      </div>
+                      )
+                  )}
+                </CardContent>
+              </Card>
 
-            <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card h-full">
-              <CardHeader className="text-center sm:text-left">
-                <CardTitle className="font-headline text-xl">
-                  Ideias e Tarefas
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {isLoadingIdeias ? <Skeleton className="h-24 w-full" /> : (
-                    ideiasSalvas && ideiasSalvas.length > 0 ? (
-                    <ul className="space-y-3">
-                        {ideiasSalvas.map((ideia) => (
-                        <li key={ideia.id} className="flex items-start gap-3 text-left">
-                            <Checkbox
-                            id={`ideia-${ideia.id}`}
-                            checked={ideia.concluido}
-                            onCheckedChange={() => handleToggleIdeia(ideia)}
-                            className="h-5 w-5 mt-0.5"
-                            />
-                            <div className="grid gap-0.5">
-                            <label
-                                htmlFor={`ideia-${ideia.id}`}
-                                className={cn(
-                                'font-medium transition-colors cursor-pointer',
-                                ideia.concluido
-                                    ? 'line-through text-muted-foreground'
-                                    : 'text-foreground'
-                                )}
-                            >
-                                {ideia.titulo}
-                            </label>
-                            <p className="text-xs text-muted-foreground">
-                                Salvo de "{ideia.origem}"{' '}
-                                {ideia.createdAt &&
-                                formatDistanceToNow(ideia.createdAt.toDate(), {
-                                    addSuffix: true,
-                                    locale: ptBR,
-                                })}
-                            </p>
-                            </div>
-                        </li>
-                        ))}
-                    </ul>
-                    ) : (
-                    <div className="text-center py-8 px-4 rounded-xl bg-muted/50 border border-dashed h-full flex flex-col justify-center">
-                        <Rocket className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
-                        <h3 className="font-semibold text-foreground">
-                        Comece a Gerar Ideias!
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                        Suas ideias e tarefas salvas aparecerão aqui.
-                        </p>
-                    </div>
-                    )
-                )}
-              </CardContent>
-            </Card>
+              <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card h-full">
+                <CardHeader className="text-center sm:text-left">
+                  <CardTitle className="font-headline text-xl">
+                    Ideias e Tarefas
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {isLoadingIdeias ? <Skeleton className="h-24 w-full" /> : (
+                      ideiasSalvas && ideiasSalvas.length > 0 ? (
+                      <ul className="space-y-3">
+                          {ideiasSalvas.map((ideia) => (
+                          <li key={ideia.id} className="flex items-start gap-3 text-left">
+                              <Checkbox
+                              id={`ideia-${ideia.id}`}
+                              checked={ideia.concluido}
+                              onCheckedChange={() => handleToggleIdeia(ideia)}
+                              className="h-5 w-5 mt-0.5"
+                              />
+                              <div className="grid gap-0.5">
+                              <label
+                                  htmlFor={`ideia-${ideia.id}`}
+                                  className={cn(
+                                  'font-medium transition-colors cursor-pointer',
+                                  ideia.concluido
+                                      ? 'line-through text-muted-foreground'
+                                      : 'text-foreground'
+                                  )}
+                              >
+                                  {ideia.titulo}
+                              </label>
+                              <p className="text-xs text-muted-foreground">
+                                  Salvo de "{ideia.origem}"{' '}
+                                  {ideia.createdAt &&
+                                  formatDistanceToNow(ideia.createdAt.toDate(), {
+                                      addSuffix: true,
+                                      locale: ptBR,
+                                  })}
+                              </p>
+                              </div>
+                          </li>
+                          ))}
+                      </ul>
+                      ) : (
+                      <div className="text-center py-8 px-4 rounded-xl bg-muted/50 border border-dashed h-full flex flex-col justify-center">
+                          <Rocket className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+                          <h3 className="font-semibold text-foreground">
+                          Comece a Gerar Ideias!
+                          </h3>
+                          <p className="text-sm text-muted-foreground">
+                          Suas ideias e tarefas salvas aparecerão aqui.
+                          </p>
+                      </div>
+                      )
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+            
+            <div className="lg:col-span-1">
+                {/* This space is intentionally left blank for the new layout */}
+            </div>
         </div>
       </div>
     </div>
@@ -791,9 +823,15 @@ export default function DashboardPage() {
 }
 
 
-function MetricCard({ icon: Icon, title, value, handle, isLoading }: { icon: React.ElementType, title: string, value?: string, handle?: string, isLoading: boolean }) {
+function MetricCard({ icon: Icon, title, value, handle, isLoading, platform }: { icon: React.ElementType, title: string, value?: string, handle?: string, isLoading: boolean, platform: 'total' | 'instagram' | 'tiktok' }) {
+    const platformClasses = {
+      total: "bg-muted/50",
+      instagram: "bg-gradient-to-br from-purple-500/20 via-fuchsia-500/20 to-red-500/20",
+      tiktok: "bg-gradient-to-br from-cyan-400/20 to-blue-500/20",
+    }
+    
     return (
-        <div className="p-6 rounded-lg bg-muted/50 flex flex-col justify-center">
+        <div className={cn("p-6 rounded-lg flex flex-col justify-center", platformClasses[platform] || platformClasses.total)}>
             <div className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <h3 className="text-base font-medium text-muted-foreground">
                 {title}
