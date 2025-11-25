@@ -45,7 +45,7 @@ export default function SettingsPage() {
   const auth = useAuth();
   const firestore = useFirestore();
   const router = useRouter();
-  const { toast } } from useToast();
+  const { toast } = useToast();
   const [deleteConfirmationText, setDeleteConfirmationText] = useState('');
   const [isCancelling, startCancellingTransition] = useTransition();
 
