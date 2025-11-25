@@ -1,3 +1,4 @@
+
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -103,7 +104,7 @@ export default function VideoIdeasPage() {
   const usageDocRef = useMemoFirebase(() =>
     user && firestore ? doc(firestore, `users/${user.uid}/dailyUsage`, todayStr) : null
   , [user, firestore, todayStr]);
-  const { data: dailyUsage } = useDoc<DailyUsage>(usageDocRef);
+  const { data: dailyUsage } } from useDoc<DailyUsage>(usageDocRef);
   const generationsToday = dailyUsage?.geracoesAI || 0;
   const hasReachedFreeLimit = isTrialActive && generationsToday >= 2;
 
@@ -200,7 +201,7 @@ export default function VideoIdeasPage() {
         <SavedIdeasSheet />
       </PageHeader>
       
-      <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
+      <Card className="shadow-lg shadow-primary/5 border-0 rounded-2xl">
             <CardHeader>
                 <CardTitle className="flex items-center gap-3 font-headline text-xl text-center sm:text-left">
                     <Sparkles className="text-primary h-6 w-6" />
@@ -224,7 +225,7 @@ export default function VideoIdeasPage() {
       </Card>
 
 
-      <Card className="shadow-lg shadow-primary/5 border-border/30 bg-card rounded-2xl">
+      <Card className="shadow-lg shadow-primary/5 border-0 rounded-2xl">
         <CardHeader className="text-center sm:text-left">
           <CardTitle className="flex items-center justify-center sm:justify-start gap-3 font-headline text-xl">
             <Sparkles className="h-6 w-6 text-primary" />
@@ -434,7 +435,7 @@ export default function VideoIdeasPage() {
             Aqui estão as ideias que você já marcou como concluídas.
           </p>
         </div>
-        <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card">
+        <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0">
           <CardContent className='pt-6'>
             {isLoadingCompleted ? (
               <div className="space-y-4">
@@ -485,7 +486,7 @@ function InfoCard({
 }) {
   return (
     <Card
-      className={cn("shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl", className)}
+      className={cn("shadow-lg shadow-primary/5 border-0 rounded-2xl", className)}
     >
       <CardHeader className="text-center sm:text-left">
         <CardTitle className="flex items-center justify-center sm:justify-start gap-3 text-lg font-semibold text-foreground">
@@ -520,7 +521,7 @@ function InfoListCard({
   content: string[];
 }) {
   return (
-    <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
+    <Card className="shadow-lg shadow-primary/5 border-0 rounded-2xl">
       <CardHeader className="text-center sm:text-left">
         <CardTitle className="flex items-center justify-center sm:justify-start gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary" />

@@ -76,7 +76,7 @@ const chartConfigBase = {
 const platformChartConfig = {
   total: {
     ...chartConfigBase,
-    followers: { ...chartConfigBase.followers, color: "hsl(var(--chart-1))" },
+    followers: { ...chartConfigBase.followers, color: "hsl(var(--primary))" },
     views: { ...chartConfigBase.views, color: "hsl(var(--chart-2))" },
     likes: { ...chartConfigBase.likes, color: "hsl(var(--chart-3))" },
     comments: { ...chartConfigBase.comments, color: "hsl(var(--chart-4))" },
@@ -473,7 +473,7 @@ export default function DashboardPage() {
         <ProfileCompletionAlert userProfile={userProfile} hasUpdatedToday={hasUpdatedToday} />
 
         {/* Métricas Principais */}
-        <Card className="rounded-2xl shadow-lg shadow-primary/5">
+        <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0">
             <CardHeader className="flex flex-col gap-4 sm:flex-row items-center justify-between pb-4">
                  <CardTitle className="text-base font-medium text-muted-foreground">
                     Visão Geral da Plataforma
@@ -502,7 +502,7 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 xl:grid-cols-5 gap-8">
             <div className="xl:col-span-3 space-y-8">
                 {/* Gráfico Histórico */}
-                <Card className="rounded-2xl shadow-lg shadow-primary/5 h-full">
+                <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0 h-full">
                     <CardHeader>
                         <CardTitle className="font-headline text-xl">
                         Evolução das Métricas ({selectedPlatform === 'instagram' ? 'Instagram' : selectedPlatform === 'tiktok' ? 'TikTok' : 'Total'})
@@ -548,7 +548,7 @@ export default function DashboardPage() {
                 </Card>
             </div>
             <div className="xl:col-span-2 space-y-8">
-                 <Card className="rounded-2xl shadow-lg shadow-primary/5 flex flex-col h-full">
+                 <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0 flex flex-col h-full">
                   <CardHeader className="text-center sm:text-left">
                     <CardTitle className="font-headline text-xl">
                       Próximos Posts Agendados
@@ -623,7 +623,7 @@ export default function DashboardPage() {
         {/* Bottom Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div className="space-y-8">
-              <Card className="rounded-2xl shadow-lg shadow-primary/5 h-full">
+              <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0 h-full">
                 <CardHeader className="text-center sm:text-left">
                   <CardTitle className="font-headline text-xl">
                     Roteiro de Conteúdo Semanal
@@ -757,7 +757,7 @@ export default function DashboardPage() {
             </div>
             
             <div className="lg:col-span-1 space-y-8">
-                <Card className="rounded-2xl shadow-lg shadow-primary/5 h-full">
+                <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0 h-full">
                 <CardHeader className="text-center sm:text-left">
                   <CardTitle className="font-headline text-xl">
                     Ideias e Tarefas

@@ -1,3 +1,4 @@
+
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -154,7 +155,7 @@ function PublisAssistantPageContent() {
   const usageDocRef = useMemoFirebase(() =>
     user && firestore ? doc(firestore, `users/${user.uid}/dailyUsage`, todayStr) : null
   , [user, firestore, todayStr]);
-  const { data: dailyUsage } = useDoc<DailyUsage>(usageDocRef);
+  const { data: dailyUsage } } from useDoc<DailyUsage>(usageDocRef);
   const generationsToday = dailyUsage?.geracoesAI || 0;
   const hasReachedFreeLimit = isTrialActive && generationsToday >= 2;
 
@@ -248,7 +249,7 @@ function PublisAssistantPageContent() {
         <SavedIdeasSheet />
       </PageHeader>
 
-        <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
+        <Card className="shadow-lg shadow-primary/5 border-0 rounded-2xl">
             <CardHeader>
                 <CardTitle className="flex items-center gap-3 font-headline text-xl text-center sm:text-left">
                     <Sparkles className="h-6 w-6 text-primary" />
@@ -272,7 +273,7 @@ function PublisAssistantPageContent() {
         </Card>
 
 
-      <Card className="shadow-lg shadow-primary/5 border-border/30 bg-card rounded-2xl">
+      <Card className="shadow-lg shadow-primary/5 border-0 rounded-2xl">
         <CardHeader className="text-center sm:text-left">
           <CardTitle className="flex items-center justify-center sm:justify-start gap-3 font-headline text-xl">
             <Bot className="h-6 w-6 text-primary" />
@@ -445,7 +446,7 @@ function PublisAssistantPageContent() {
 
               {/* Scripts */}
               <div className="lg:col-span-2 space-y-6">
-                <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
+                <Card className="shadow-lg shadow-primary/5 border-0 rounded-2xl">
                     <CardHeader className="text-center sm:text-left">
                         <CardTitle className="flex items-center justify-center sm:justify-start gap-3 text-lg font-semibold text-foreground">
                             <Clapperboard className="h-5 w-5 text-primary" />
@@ -506,7 +507,7 @@ function InfoListCard({
   items: string[];
 }) {
   return (
-    <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl h-full">
+    <Card className="shadow-lg shadow-primary/5 border-0 rounded-2xl h-full">
       <CardHeader className="text-center sm:text-left">
         <CardTitle className="flex items-center justify-center sm:justify-start gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary" />
@@ -529,5 +530,3 @@ function InfoListCard({
     </Card>
   );
 }
-
-    

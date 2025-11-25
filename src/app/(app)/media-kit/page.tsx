@@ -1,3 +1,4 @@
+
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -232,7 +233,7 @@ function MediaKitPageContent() {
         <SavedIdeasSheet />
       </PageHeader>
       
-        <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
+        <Card className="shadow-lg shadow-primary/5 border-0 rounded-2xl">
             <CardHeader>
                 <CardTitle className="flex items-center gap-3 font-headline text-xl text-center sm:text-left">
                     <Sparkles className="h-6 w-6 text-primary" />
@@ -258,7 +259,7 @@ function MediaKitPageContent() {
 
       <div className="space-y-12">
           
-          <Card className="shadow-lg shadow-primary/5 border-border/30 bg-card rounded-2xl">
+          <Card className="shadow-lg shadow-primary/5 border-0 rounded-2xl">
             <CardHeader className="text-center sm:text-left">
               <CardTitle className="flex items-center justify-center sm:justify-start gap-3 font-headline text-xl">
                 <Bot className="h-6 w-6 text-primary" />
@@ -405,7 +406,7 @@ function InfoCard({
 }) {
   return (
     <Card
-      className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl h-full"
+      className="shadow-lg shadow-primary/5 border-0 rounded-2xl h-full"
     >
       <CardHeader className="text-center sm:text-left">
         <CardTitle className="flex items-center justify-center sm:justify-start gap-3 text-lg font-semibold text-foreground">
@@ -433,7 +434,7 @@ function InfoList({
   items: string[];
 }) {
   return (
-    <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl h-full">
+    <Card className="shadow-lg shadow-primary/5 border-0 rounded-2xl h-full">
       <CardHeader className="text-center sm:text-left">
         <CardTitle className="flex items-center justify-center sm:justify-start gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary" />
@@ -468,7 +469,7 @@ function PricingCard({
 }) {
   return (
     <Card
-      className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl h-full"
+      className="shadow-lg shadow-primary/5 border-0 rounded-2xl h-full"
     >
       <CardHeader className="text-center sm:text-left">
         <CardTitle className="flex items-center justify-center sm:justify-start gap-3 text-lg font-semibold text-foreground">

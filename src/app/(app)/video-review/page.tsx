@@ -135,7 +135,7 @@ function VideoReviewPageContent() {
     user && firestore ? doc(firestore, `users/${user.uid}/dailyUsage`, todayStr) : null
   , [user, firestore, todayStr]);
   
-  const { data: dailyUsage } = useDoc<DailyUsage>(usageDocRef);
+  const { data: dailyUsage } } = useDoc<DailyUsage>(usageDocRef);
   
   const analysesDoneToday = dailyUsage?.videoAnalyses || 0;
   const currentPlan = subscription?.plan || 'free';
@@ -338,7 +338,7 @@ function VideoReviewPageContent() {
             description="Receba uma análise completa do potencial de viralização do seu vídeo e um plano de ação para melhorá-lo."
         />
         
-        <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
+        <Card className="shadow-lg shadow-primary/5 border-0 rounded-2xl">
             <CardHeader>
                 <CardTitle className="flex items-center gap-3 font-headline text-xl text-center sm:text-left">
                     <Sparkles className="h-6 w-6 text-primary" />
@@ -400,7 +400,7 @@ function VideoReviewPageContent() {
                 />
             </div>
         ) : (
-            <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
+            <Card className="shadow-lg shadow-primary/5 border-0 rounded-2xl">
                 <CardHeader>
                     <CardTitle className="font-headline text-xl text-center sm:text-left">
                         Vídeo Selecionado
@@ -475,7 +475,7 @@ function VideoReviewPageContent() {
                 {analysisStatus === 'success' && analysisResult && (
                     <div className="grid gap-8">
                        <div className="grid lg:grid-cols-3 gap-8 items-start">
-                         <Card className="lg:col-span-1 shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
+                         <Card className="lg:col-span-1 shadow-lg shadow-primary/5 border-0 rounded-2xl">
                              <CardHeader>
                                 <CardTitle className="font-headline text-lg text-primary text-center">Nota de Viralização</CardTitle>
                              </CardHeader>
@@ -485,7 +485,7 @@ function VideoReviewPageContent() {
                              </CardContent>
                          </Card>
 
-                         <Card className="lg:col-span-2 shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
+                         <Card className="lg:col-span-2 shadow-lg shadow-primary/5 border-0 rounded-2xl">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
                                     <Lightbulb className="h-5 w-5 text-primary" />
@@ -505,7 +505,7 @@ function VideoReviewPageContent() {
                          </Card>
                        </div>
                        
-                        <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
+                        <Card className="shadow-lg shadow-primary/5 border-0 rounded-2xl">
                             <CardHeader>
                                 <CardTitle className="font-headline text-lg">Análise Detalhada</CardTitle>
                             </CardHeader>
@@ -540,7 +540,7 @@ function VideoReviewPageContent() {
                     Aqui estão os últimos vídeos que você analisou.
                 </p>
             </div>
-             <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
+             <Card className="shadow-lg shadow-primary/5 border-0 rounded-2xl">
                 <CardContent className="pt-6">
                     {isLoadingAnalyses && (
                          <div className="flex justify-center items-center h-40">
@@ -643,7 +643,3 @@ function VideoReviewPageContent() {
     </div>
   );
 }
-
-    
-
-    

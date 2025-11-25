@@ -1,3 +1,4 @@
+
 'use client';
 
 import { PageHeader } from '@/components/page-header';
@@ -44,7 +45,7 @@ export default function SettingsPage() {
   const auth = useAuth();
   const firestore = useFirestore();
   const router = useRouter();
-  const { toast } = useToast();
+  const { toast } } from useToast();
   const [deleteConfirmationText, setDeleteConfirmationText] = useState('');
   const [isCancelling, startCancellingTransition] = useTransition();
 
@@ -137,7 +138,7 @@ export default function SettingsPage() {
         </TabsList>
 
         <TabsContent value="subscription" className="mt-6">
-           <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
+           <Card className="shadow-lg shadow-primary/5 border-0 rounded-2xl">
               <CardHeader className="text-center sm:text-left">
                 <CardTitle className="flex items-center justify-center sm:justify-start gap-3 font-headline text-xl">
                     <Crown className="h-6 w-6 text-primary" />
@@ -209,7 +210,7 @@ export default function SettingsPage() {
 
         <TabsContent value="account" className="mt-6">
           <div className="space-y-8">
-            <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
+            <Card className="shadow-lg shadow-primary/5 border-0 rounded-2xl">
               <CardHeader className="text-center sm:text-left">
                 <CardTitle className="flex items-center justify-center sm:justify-start gap-3 font-headline text-xl">
                   <LogOut className="h-6 w-6 text-primary" />

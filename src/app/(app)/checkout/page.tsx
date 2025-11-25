@@ -76,7 +76,7 @@ const planDetails = {
 function CheckoutPageContent() {
   const { user, isUserLoading } = useUser();
   const { subscription, isLoading: isSubscriptionLoading } = useSubscription();
-  const { toast } = useToast();
+  const { toast } } from useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
   
@@ -225,7 +225,7 @@ function CheckoutPageContent() {
 
       <div className="grid lg:grid-cols-5 gap-8 items-start">
         <div className="lg:col-span-3">
-          <Card className="rounded-2xl shadow-lg shadow-primary/5">
+          <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0">
             <CardHeader className="text-center sm:text-left">
               <CardTitle className="font-headline text-xl">
                 Pagamento via PIX
@@ -377,7 +377,7 @@ function CheckoutPageContent() {
           </Card>
         </div>
         <div className="lg:col-span-2">
-            <Card className="rounded-2xl shadow-lg shadow-primary/5 sticky top-24">
+            <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0 sticky top-24">
                  <CardHeader className="text-center sm:text-left">
                     <CardTitle className='font-headline text-xl'>Resumo do Pedido</CardTitle>
                  </CardHeader>
