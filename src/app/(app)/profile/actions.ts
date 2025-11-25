@@ -38,6 +38,24 @@ export type InstagramProfileData = {
     followingCount: number;
 }
 
+const InstagramPostSchema = z.object({
+    id: z.string(),
+    shortcode: z.string(),
+    caption: z.string().optional().nullable(),
+    media_url: z.string().url(),
+    thumbnail_url: z.string().url().optional().nullable(),
+    like_count: z.number(),
+    comment_count: z.number(),
+}).passthrough();
+
+export type InstagramPostData = {
+    id: string;
+    caption: string | null;
+    mediaUrl: string;
+    likes: number;
+    comments: number;
+};
+
 
 // --- TikTok Schemas ---
 
@@ -101,7 +119,7 @@ export type TikTokPostData = {
 
 // --- API Fetching Logic ---
 
-async function fetchFromRapidApi(platform: 'instagram' | 'tiktok-profile' | 'tiktok-posts', username: string) {
+async function fetchFromRapidApi(platform: 'instagram-profile' | 'instagram-posts' | 'tiktok-profile' | 'tiktok-posts', username: string) {
     const apiKey = process.env.RAPIDAPI_KEY;
     if (!apiKey) {
       throw new Error('A chave da API (RAPIDAPI_KEY) não está configurada no servidor.');
@@ -116,32 +134,29 @@ async function fetchFromRapidApi(platform: 'instagram' | 'tiktok-profile' | 'tik
     let path: string;
     let options: RequestInit;
 
-    if (platform === 'instagram') {
-        host = hosts.instagram;
-        path = 'api/instagram/profile';
-        options = {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username }),
-        };
-    } else if (platform === 'tiktok-profile') {
-        host = hosts.tiktok;
-        path = 'user/details';
-        options = {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username }),
-        };
-    } else if (platform === 'tiktok-posts') {
-        host = hosts.tiktok;
-        path = 'user/videos';
-        options = {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username }),
-        };
-    } else {
-        throw new Error(`Plataforma '${platform}' desconhecida.`);
+    switch (platform) {
+        case 'instagram-profile':
+            host = hosts.instagram;
+            path = 'api/instagram/profile';
+            options = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username }) };
+            break;
+        case 'instagram-posts':
+             host = hosts.instagram;
+             path = 'api/instagram/posts';
+             options = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, maxId: '' }) };
+             break;
+        case 'tiktok-profile':
+            host = hosts.tiktok;
+            path = 'user/details';
+            options = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username }) };
+            break;
+        case 'tiktok-posts':
+            host = hosts.tiktok;
+            path = 'user/videos';
+            options = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username }) };
+            break;
+        default:
+            throw new Error(`Plataforma '${platform}' desconhecida.`);
     }
 
     if (!host) {
@@ -187,8 +202,7 @@ async function fetchData(url: string, options: RequestInit) {
 
 export async function getInstagramProfile(username: string): Promise<InstagramProfileData> {
     try {
-        const result = await fetchFromRapidApi('instagram', username);
-        // Adapt to the new API response structure where data is inside a "result" object
+        const result = await fetchFromRapidApi('instagram-profile', username);
         const dataToParse = result.result || result;
         const parsed = InstagramProfileResultSchema.parse(dataToParse);
 
@@ -220,6 +234,33 @@ export async function getInstagramProfile(username: string): Promise<InstagramPr
         throw new Error(`Falha ao buscar perfil do Instagram: ${e.message}`);
     }
 }
+
+
+export async function getInstagramPosts(username: string): Promise<InstagramPostData[]> {
+    if (!username) {
+        throw new Error('Nome de usuário é necessário para buscar os posts.');
+    }
+    try {
+        const result = await fetchFromRapidApi('instagram-posts', username);
+        const parsed = z.array(InstagramPostSchema).parse(result);
+        
+        return parsed.map(post => ({
+            id: post.id,
+            caption: post.caption,
+            mediaUrl: post.media_url,
+            likes: post.like_count,
+            comments: post.comment_count,
+        }));
+    } catch (e: any) {
+        console.error(`[ACTION ERROR - getInstagramPosts] ${e.message}`);
+        if (e.issues) {
+             const errorDetails = e.issues.map((issue: any) => `${issue.path.join('.')} - ${issue.message}`).join(', ');
+             throw new Error(`Falha na validação dos dados dos posts do Instagram: ${errorDetails}`);
+        }
+        throw new Error(`Falha ao buscar posts do Instagram: ${e.message}`);
+    }
+}
+
 
 
 export async function getTikTokProfile(username: string): Promise<TikTokProfileData> {
@@ -263,7 +304,14 @@ export async function getTikTokPosts(username: string): Promise<TikTokPostData[]
         const result = await fetchFromRapidApi('tiktok-posts', username);
         const parsed = TikTokPostResponseSchema.parse(result);
         
-        return parsed.videos.map(post => ({
+        const recentPosts = parsed.videos.filter(post => {
+            const postDate = new Date(Number(post.create_time) * 1000);
+            const thirtyOneDaysAgo = new Date();
+            thirtyOneDaysAgo.setDate(thirtyOneDaysAgo.getDate() - 31);
+            return postDate > thirtyOneDaysAgo;
+        });
+
+        return recentPosts.map(post => ({
             id: post.video_id,
             description: post.description,
             coverUrl: post.cover,
@@ -281,6 +329,5 @@ export async function getTikTokPosts(username: string): Promise<TikTokPostData[]
         throw new Error(`Falha ao buscar posts do TikTok: ${e.message}`);
     }
 }
-
 
     

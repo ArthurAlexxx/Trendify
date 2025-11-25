@@ -31,7 +31,7 @@ import Image from 'next/image';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { InstagramProfileData, InstagramPostData, TikTokProfileData, TikTokPostData } from './actions';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { getInstagramProfile, getTikTokPosts, getTikTokProfile } from './actions';
+import { getInstagramProfile, getTikTokPosts, getTikTokProfile, getInstagramPosts } from './actions';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -72,6 +72,7 @@ export default function ProfilePage() {
   
   const [instaStatus, setInstaStatus] = useState<SearchStatus>('idle');
   const [instaProfile, setInstaProfile] = useState<InstagramProfileData | null>(null);
+  const [instaPosts, setInstaPosts] = useState<InstagramPostData[] | null>(null);
   const [instaError, setInstaError] = useState<string | null>(null);
 
   const [tiktokStatus, setTiktokStatus] = useState<SearchStatus>('idle');
@@ -110,12 +111,14 @@ export default function ProfilePage() {
   useEffect(() => {
     try {
       const savedInstaProfile = localStorage.getItem('lastInstagramProfile');
+      const savedInstaPosts = localStorage.getItem('lastInstagramPosts');
       if (savedInstaProfile) {
         const parsedProfile: InstagramProfileData = JSON.parse(savedInstaProfile);
         setInstaProfile(parsedProfile);
         setUsername(parsedProfile.username);
         setInstaStatus('success');
       }
+      if (savedInstaPosts) setInstaPosts(JSON.parse(savedInstaPosts));
       
       const savedTiktokProfile = localStorage.getItem('lastTikTokProfile');
       const savedTiktokPosts = localStorage.getItem('lastTikTokPosts');
@@ -253,21 +256,33 @@ export default function ProfilePage() {
     setInstaStatus('loading');
     setInstaError(null);
     setInstaProfile(null);
+    setInstaPosts(null);
 
     const cleanedUsername = username.replace('@', '');
 
     try {
-      const profileResult = await getInstagramProfile(cleanedUsername);
+      const [profileResult, postsResult] = await Promise.all([
+        getInstagramProfile(cleanedUsername),
+        getInstagramPosts(cleanedUsername)
+      ]);
+      
       setInstaProfile(profileResult);
+      setInstaPosts(postsResult);
       setInstaStatus('success');
       localStorage.setItem('lastInstagramProfile', JSON.stringify(profileResult));
+      localStorage.setItem('lastInstagramPosts', JSON.stringify(postsResult));
       
        if (userProfileRef) {
+         const averageLikes = postsResult.length > 0 ? postsResult.reduce((acc, p) => acc + p.likes, 0) / postsResult.length : 0;
+         const averageComments = postsResult.length > 0 ? postsResult.reduce((acc, p) => acc + p.comments, 0) / postsResult.length : 0;
+
         const updateData: Partial<ProfileFormData> = {
             instagramHandle: `@${profileResult.username}`,
             bio: profileResult.biography,
             photoURL: form.getValues('photoURL') || profileResult.profilePicUrlHd,
             instagramFollowers: formatNumber(profileResult.followersCount),
+            instagramAverageLikes: formatNumber(Math.round(averageLikes)),
+            instagramAverageComments: formatNumber(Math.round(averageComments)),
         }
         form.reset({ ...form.getValues(), ...updateData });
         await updateDoc(userProfileRef, updateData);
@@ -277,6 +292,7 @@ export default function ProfilePage() {
       setInstaError(e.message || 'Ocorreu um erro desconhecido.');
       setInstaStatus('error');
       localStorage.removeItem('lastInstagramProfile');
+      localStorage.removeItem('lastInstagramPosts');
     }
   };
 
@@ -298,18 +314,13 @@ export default function ProfilePage() {
       localStorage.setItem('lastTikTokProfile', JSON.stringify(profileResult));
 
       let fetchedPosts: TikTokPostData[] = [];
-      if (profileResult.secUid) {
-          try {
-              fetchedPosts = await getTikTokPosts(profileResult.secUid);
-              setTiktokPosts(fetchedPosts);
-              localStorage.setItem('lastTikTokPosts', JSON.stringify(fetchedPosts));
-          } catch(postsError: any) {
-              setTiktokError('Perfil encontrado, mas não foi possível carregar os vídeos recentes. ' + postsError.message);
-              localStorage.removeItem('lastTikTokPosts');
-          }
-      } else {
-           setTiktokError('Perfil encontrado, mas o secUid necessário para buscar os vídeos não foi retornado pela API.');
-           localStorage.removeItem('lastTikTokPosts');
+      try {
+          fetchedPosts = await getTikTokPosts(cleanedUsername);
+          setTiktokPosts(fetchedPosts);
+          localStorage.setItem('lastTikTokPosts', JSON.stringify(fetchedPosts));
+      } catch(postsError: any) {
+          setTiktokError('Perfil encontrado, mas não foi possível carregar os vídeos recentes. ' + postsError.message);
+          localStorage.removeItem('lastTikTokPosts');
       }
 
       setTiktokStatus('success');
@@ -561,12 +572,12 @@ export default function ProfilePage() {
                                 </AlertDialogContent>
                                 </AlertDialog>
                             </div>
-                            <p className='text-xs text-muted-foreground mt-2'>Isso irá buscar e preencher sua foto, @, bio e métricas de seguidores.</p>
+                            <p className='text-xs text-muted-foreground mt-2'>Isso irá buscar e preencher sua foto, @, bio e métricas de seguidores, curtidas e comentários.</p>
                             </CardContent>
                         </Card>
                          {instaStatus === 'loading' && <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>}
                          {instaStatus === 'error' && instaError && <Alert variant="destructive" className="mt-4"><AlertTriangle className="h-4 w-4" /><AlertTitle>Erro ao Buscar Perfil</AlertTitle><AlertDescription>{instaError}</AlertDescription></Alert>}
-                         {instaStatus === 'success' && instaProfile && <InstagramProfileResults profile={instaProfile} error={instaError} formatNumber={formatNumber}/>}
+                         {instaStatus === 'success' && instaProfile && <InstagramProfileResults profile={instaProfile} posts={instaPosts} error={instaError} formatNumber={formatNumber}/>}
                     </TabsContent>
                     <TabsContent value="tiktok" className="mt-4">
                         <Card className='border-0 shadow-none'>
@@ -619,7 +630,7 @@ export default function ProfilePage() {
 
 // --- Instagram Components ---
 
-function InstagramProfileResults({ profile, error, formatNumber }: { profile: InstagramProfileData, error: string | null, formatNumber: (n: number) => string }) {
+function InstagramProfileResults({ profile, posts, error, formatNumber }: { profile: InstagramProfileData, posts: InstagramPostData[] | null, error: string | null, formatNumber: (n: number) => string }) {
     return (
         <div className="space-y-8 animate-in fade-in-50">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -635,6 +646,31 @@ function InstagramProfileResults({ profile, error, formatNumber }: { profile: In
                     <AlertTitle>Posts Recentes</AlertTitle>
                     <AlertDescription>{error}</AlertDescription>
                 </Alert>
+            )}
+
+            {posts && posts.length > 0 && (
+                <div>
+                <h4 className="text-lg font-semibold text-center mb-4">Posts Recentes</h4>
+                <Carousel opts={{ align: "start", loop: false }} className="w-full max-w-sm mx-auto md:max-w-xl lg:max-w-4xl">
+                    <CarouselContent>
+                    {posts.map(post => (
+                        <CarouselItem key={post.id} className="md:basis-1/2 lg:basis-1/3">
+                        <Card className="overflow-hidden rounded-xl">
+                            <CardContent className="p-0 aspect-square relative group">
+                                <Image src={post.mediaUrl} alt={post.caption || 'Instagram post'} fill style={{objectFit: 'cover'}} />
+                            </CardContent>
+                            <div className="p-3 bg-muted/30 text-xs text-muted-foreground grid grid-cols-2 gap-1 text-center">
+                                <span className='flex items-center justify-center gap-1.5'><Heart className='h-4 w-4 text-pink-500' /> {formatNumber(post.likes)}</span>
+                                <span className='flex items-center justify-center gap-1.5'><MessageSquare className='h-4 w-4 text-sky-500' /> {formatNumber(post.comments)}</span>
+                            </div>
+                        </Card>
+                        </CarouselItem>
+                    ))}
+                    </CarouselContent>
+                    <CarouselPrevious className="ml-12 hidden sm:flex" />
+                    <CarouselNext className="mr-12 hidden sm:flex" />
+                </Carousel>
+                </div>
             )}
         </div>
     )
@@ -662,21 +698,16 @@ function TikTokProfileResults({ profile, posts, error, formatNumber }: { profile
             
             {posts && posts.length > 0 && (
                 <div>
-                <h4 className="text-lg font-semibold text-center mb-4">Vídeos Recentes (Últimos 31 dias)</h4>
+                <h4 className="text-lg font-semibold text-center mb-4">Vídeos Recentes</h4>
                 <Carousel opts={{ align: "start", loop: false }} className="w-full max-w-sm mx-auto md:max-w-xl lg:max-w-4xl">
                     <CarouselContent>
                     {posts.map(post => (
                         <CarouselItem key={post.id} className="md:basis-1/2 lg:basis-1/3">
                         <Card className="overflow-hidden rounded-xl">
                             <CardContent className="p-0 aspect-[9/16] relative group">
-                                <video src={post.videoUrl} poster={post.coverUrl} muted loop className="w-full h-full object-cover" onMouseOver={e => e.currentTarget.play()} onMouseOut={e => e.currentTarget.pause()} />
+                                <Image src={post.coverUrl} alt={post.description} fill style={{objectFit: 'cover'}} />
                                 <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <button onClick={(e) => {
-                                        const video = e.currentTarget.parentElement?.previousElementSibling as HTMLVideoElement;
-                                        video.paused ? video.play() : video.pause();
-                                    }}>
-                                        <PlayCircle className="h-12 w-12 text-white/80" />
-                                    </button>
+                                    <PlayCircle className="h-12 w-12 text-white/80" />
                                 </div>
                             </CardContent>
                             <div className="p-3 bg-muted/30 text-xs text-muted-foreground grid grid-cols-3 gap-1 text-center">
@@ -709,3 +740,5 @@ function MetricCard({ icon: Icon, label, value }: { icon: React.ElementType, lab
     </Card>
   )
 }
+
+    
