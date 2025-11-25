@@ -94,15 +94,16 @@ const TikTokPostSchema = z.object({
     video_id: z.string(),
     description: z.string(),
     cover: z.string().url(),
+    create_time: z.number().optional(),
     statistics: z.object({
-        play_count: z.number(),
-        digg_count: z.number(),
-        comment_count: z.number(),
+        play_count: z.number().or(z.string()).transform(val => Number(val)).optional(),
+        digg_count: z.number().or(z.string()).transform(val => Number(val)).optional(),
+        comment_count: z.number().or(z.string()).transform(val => Number(val)).optional(),
     }).passthrough(),
 }).passthrough();
 
+
 const TikTokPostResponseSchema = z.object({
-  username: z.string(),
   videos: z.array(TikTokPostSchema).optional().default([]),
 }).passthrough();
 
@@ -119,7 +120,7 @@ export type TikTokPostData = {
 
 // --- API Fetching Logic ---
 
-async function fetchFromRapidApi(platform: 'instagram-profile' | 'instagram-posts' | 'tiktok-profile' | 'tiktok-posts', username: string) {
+async function fetchFromRapidApi(platform: 'instagram-profile' | 'instagram-posts' | 'tiktok-profile' | 'tiktok-posts', username: string, secUid?: string) {
     const apiKey = process.env.RAPIDAPI_KEY;
     if (!apiKey) {
       throw new Error('A chave da API (RAPIDAPI_KEY) não está configurada no servidor.');
@@ -243,8 +244,14 @@ export async function getInstagramPosts(username: string): Promise<InstagramPost
     try {
         const result = await fetchFromRapidApi('instagram-posts', username);
         
-        // The API returns an object with a 'result' key containing the array of posts.
-        const dataToParse = result.result;
+        // Find the first property in the result that is an array
+        const dataToParse = Array.isArray(result) 
+          ? result 
+          : Object.values(result).find(value => Array.isArray(value));
+
+        if (!Array.isArray(dataToParse)) {
+            throw new Error('A resposta da API de posts não continha uma lista de publicações.');
+        }
 
         const parsed = z.array(InstagramPostSchema).parse(dataToParse);
         
@@ -320,9 +327,9 @@ export async function getTikTokPosts(username: string): Promise<TikTokPostData[]
             id: post.video_id,
             description: post.description,
             coverUrl: post.cover,
-            views: post.statistics.play_count,
-            likes: post.statistics.digg_count,
-            comments: post.statistics.comment_count,
+            views: post.statistics.play_count ?? 0,
+            likes: post.statistics.digg_count ?? 0,
+            comments: post.statistics.comment_count ?? 0,
         }));
 
     } catch (e: any) {
@@ -334,5 +341,3 @@ export async function getTikTokPosts(username: string): Promise<TikTokPostData[]
         throw new Error(`Falha ao buscar posts do TikTok: ${e.message}`);
     }
 }
-
-    
