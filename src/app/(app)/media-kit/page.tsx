@@ -17,7 +17,7 @@ import {
   Target,
   Crown,
 } from 'lucide-react';
-import { useActionState, useTransition, useEffect, useState, useMemo } from 'react';
+import { useTransition, useEffect, useState, useMemo } from 'react';
 import {
   Form,
   FormControl,
@@ -50,6 +50,12 @@ const formSchema = z.object({
   keyMetrics: z.string().min(1, 'As métricas não podem estar vazias.'),
   targetBrand: z.string().min(3, 'A marca alvo deve ter pelo menos 3 caracteres.'),
 });
+
+type CareerPackageState = {
+  data?: AiCareerPackageOutput;
+  error?: string;
+} | null;
+
 
 const analysisCriteria = [
     {
@@ -126,10 +132,9 @@ export default function MediaKitPage() {
 
 function MediaKitPageContent() {
   const { toast } = useToast();
-  const [state, formAction, isGenerating] = useActionState(
-    getAiCareerPackageAction,
-    null
-  );
+  const [isGenerating, startTransition] = useTransition();
+  const [state, setState] = useState<CareerPackageState>(null);
+  
   const [isSaving, startSavingTransition] = useTransition();
   const { user } = useUser();
   const firestore = useFirestore();
@@ -148,6 +153,13 @@ function MediaKitPageContent() {
       targetBrand: 'Sallve',
     },
   });
+
+  const formAction = async (formData: FormData) => {
+    startTransition(async () => {
+      const result = await getAiCareerPackageAction(null, formData);
+      setState(result);
+    });
+  };
 
    useEffect(() => {
     if (userProfile) {
@@ -269,7 +281,7 @@ function MediaKitPageContent() {
             <CardContent>
               <Form {...form}>
                 <form
-                  action={formAction}
+                  onSubmit={form.handleSubmit(data => formAction(data as any))}
                   className="space-y-8 text-left"
                 >
                   <div className="space-y-6">

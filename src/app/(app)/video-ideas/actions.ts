@@ -7,7 +7,7 @@ import { z } from 'zod';
 // Esquema de saída esperado da IA
 const GenerateVideoIdeasOutputSchema = z.object({
   gancho: z.string().describe('Um gancho de 2-3 segundos, otimizado para parar a rolagem e gerar curiosidade imediata.'),
-  script: z.union([z.string(), z.object({})]).describe('Um roteiro detalhado e conciso, com indicações de cena e narração, estruturado para reter a atenção.'),
+  script: z.string().describe('Um roteiro detalhado e conciso, com indicações de cena e narração, estruturado para reter a atenção.'),
   cta: z.string().describe('Uma chamada para ação clara, convincente e alinhada ao objetivo do vídeo.'),
   takes: z.array(z.string()).describe('Uma lista de cenas ou tomadas específicas para gravar, facilitando a produção do conteúdo.'),
   suggestedPostTime: z
@@ -78,7 +78,7 @@ Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON d
 
   Para cada campo do JSON, siga estas diretrizes:
   - gancho: Crie uma frase ou cena de 2-3 segundos que gere curiosidade, quebre uma crença comum ou apresente uma solução contraintuitiva. Evite clichês.
-  - script: Escreva um roteiro claro e conciso como um único texto (string). Estruture-o em três partes: Introdução (o gancho), Desenvolvimento (a entrega de valor/o miolo do conteúdo) e Conclusão (o CTA). Inclua sugestões de cenas entre colchetes. Exemplo: "[CENA: Close-up no produto] Você investe em produtos caros, mas o erro pode estar na ordem de aplicação. A regra de ouro é: do mais leve ao mais denso... [CENA: Mostrando a textura de um sérum e depois de um creme]".
+  - script: Escreva um roteiro claro e conciso como um único texto (string). Estruture-o em três partes: Introdução (o gancho), Desenvolvimento (a entrega de valor/o miolo do conteúdo) e Conclusão (o CTA). Inclua sugestões de cenas entre colchetes. Exemplo: "[CENA: Close-up no produto] Você investe em produtos caros, mas o erro pode estar na ordem de aplicação. A regra de ouro é: do mais leve ao mais denso... [CENA: Mostrando a textura de um sérum e depois de um creme]". O script deve ser detalhado o suficiente para ser gravado.
   - cta: A chamada para ação deve ser direta e incentivar o comportamento desejado (ex: "Comente 'EU QUERO' para receber o link", "Siga para mais dicas como esta").
   - takes: Descreva uma lista de tomadas simples e práticas que o criador precisa gravar. Ex: ["Take do seu rosto falando para a câmera.", "Take de unboxing do produto.", "Take mostrando o resultado final."]. Retorne um array de strings.
   - suggestedPostTime: Com base na plataforma (Instagram/Tiktok), sugira um dia e horário de pico para postagem (ex: "Sexta-feira, 18:30h" ou "Domingo, 20:00h").
@@ -106,6 +106,11 @@ Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON d
     }
 
     const parsedJson = JSON.parse(jsonString);
+    // This will now parse the script correctly if it's an object
+    if (typeof parsedJson.script === 'object' && parsedJson.script !== null) {
+      // Assuming the object has a meaningful property, or just stringify it
+      parsedJson.script = JSON.stringify(parsedJson.script, null, 2);
+    }
     return GenerateVideoIdeasOutputSchema.parse(parsedJson);
   } catch (error) {
     console.error('Error calling OpenAI or parsing response:', error);
@@ -134,7 +139,3 @@ export async function generateVideoIdeasAction(
     return { error: `Failed to generate ideas: ${errorMessage}` };
   }
 }
-
-    
-
-    

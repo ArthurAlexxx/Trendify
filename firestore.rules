@@ -10,7 +10,6 @@ service cloud.firestore {
     }
 
     // Allow users to manage their own saved ideas
-    // "read" covers get and list operations.
     match /users/{userId}/ideiasSalvas/{ideiaId} {
       allow read, create, update, delete: if request.auth.uid == userId;
     }
@@ -22,7 +21,6 @@ service cloud.firestore {
     match /users/{userId}/conteudoAgendado/{conteudoId} {
       allow read, create, update, delete: if request.auth.uid == userId;
     }
-    // Allow users to list their own scheduled content
     match /users/{userId}/conteudoAgendado {
       allow list: if request.auth.uid == userId;
     }
@@ -37,14 +35,6 @@ service cloud.firestore {
       allow read, create: if request.auth.uid == userId;
     }
      match /users/{userId}/analisesVideo {
-      allow list: if request.auth.uid == userId;
-    }
-    
-    // Allow users to manage their own metric snapshots
-    match /users/{userId}/metricSnapshots/{snapshotId} {
-      allow read, create: if request.auth.uid == userId;
-    }
-     match /users/{userId}/metricSnapshots {
       allow list: if request.auth.uid == userId;
     }
 
@@ -82,3 +72,5 @@ service firebase.storage {
     }
   }
 }
+
+    

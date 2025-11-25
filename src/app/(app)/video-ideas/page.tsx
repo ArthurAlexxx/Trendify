@@ -40,7 +40,7 @@ import {
   BarChart,
   Eye,
 } from 'lucide-react';
-import { useEffect, useActionState, useTransition, useMemo } from 'react';
+import { useEffect, useTransition, useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { generateVideoIdeasAction, GenerateVideoIdeasOutput } from './actions';
@@ -63,6 +63,11 @@ const formSchema = z.object({
     .min(3, 'O público-alvo deve ter pelo menos 3 caracteres.'),
   objective: z.string().min(1, 'O objetivo é obrigatório.'),
 });
+
+type VideoIdeasState = {
+  data?: GenerateVideoIdeasOutput;
+  error?: string;
+} | null;
 
 
 const analysisCriteria = [
@@ -91,10 +96,9 @@ const analysisCriteria = [
 
 export default function VideoIdeasPage() {
   const { toast } = useToast();
-  const [state, formAction, isGenerating] = useActionState(
-    generateVideoIdeasAction,
-    null
-  );
+  const [isGenerating, startTransition] = useTransition();
+  const [state, setState] = useState<VideoIdeasState>(null);
+
   const [isSaving, startSavingTransition] = useTransition();
   const { user } = useUser();
   const firestore = useFirestore();
@@ -117,6 +121,13 @@ export default function VideoIdeasPage() {
       objective: 'Engajamento',
     },
   });
+
+  const formAction = async (formData: FormData) => {
+    startTransition(async () => {
+      const result = await generateVideoIdeasAction(null, formData);
+      setState(result);
+    });
+  };
   
   const completedIdeasQuery = useMemoFirebase(() => (
     firestore && user
@@ -236,7 +247,7 @@ export default function VideoIdeasPage() {
         <CardContent>
           <Form {...form}>
             <form
-              action={formAction}
+              onSubmit={form.handleSubmit(data => formAction(data as any))}
               className="space-y-8 text-left"
             >
               <div className="grid md:grid-cols-2 gap-x-6 gap-y-6">
@@ -400,7 +411,6 @@ export default function VideoIdeasPage() {
                 title="Roteiro do Vídeo"
                 icon={Pen}
                 content={typeof result.script === 'string' ? result.script : JSON.stringify(result.script, null, 2)}
-                isTextarea
               />
               <InfoListCard
                 title="Takes para Gravar"
@@ -475,13 +485,11 @@ function InfoCard({
   title,
   icon: Icon,
   content,
-  isTextarea = false,
   className,
 }: {
   title: string;
   icon: React.ElementType;
   content: string;
-  isTextarea?: boolean;
   className?: string;
 }) {
   return (
@@ -495,7 +503,7 @@ function InfoCard({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {isTextarea ? (
+        {title === 'Roteiro do Vídeo' ? (
           <Textarea
             readOnly
             value={content}

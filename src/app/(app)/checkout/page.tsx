@@ -1,4 +1,3 @@
-
 'use client';
 
 import { PageHeader } from '@/components/page-header';
@@ -25,14 +24,14 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import {
-  useActionState,
   useEffect,
   useState,
   useCallback,
   Suspense,
+  useTransition,
 } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { createPixChargeAction } from '../subscribe/actions';
+import { createPixChargeAction, PixChargeResponse } from '../subscribe/actions';
 import { Skeleton } from '@/components/ui/skeleton';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -50,6 +49,12 @@ const formSchema = z.object({
 });
 
 type FormData = z.infer<typeof formSchema>;
+
+type ActionState = {
+  data?: PixChargeResponse;
+  error?: string;
+} | null;
+
 
 const planDetails = {
   pro: {
@@ -84,6 +89,8 @@ function CheckoutPageContent() {
   const selectedPlanDetails = plan ? planDetails[plan] : null;
 
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [isGenerating, startTransition] = useTransition();
+  const [state, setState] = useState<ActionState>(null);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -97,10 +104,17 @@ function CheckoutPageContent() {
     },
   });
 
-  const [state, formAction, isGenerating] = useActionState(
-    createPixChargeAction,
-    null
-  );
+  const formAction = async (formData: FormData) => {
+    startTransition(async () => {
+      const cleanedData = {
+          ...formData,
+          taxId: formData.taxId.replace(/\D/g, ''),
+          cellphone: formData.cellphone.replace(/\D/g, ''),
+      };
+      const result = await createPixChargeAction(null, cleanedData);
+      setState(result);
+    });
+  };
 
   useEffect(() => {
     if (user) {
@@ -114,6 +128,13 @@ function CheckoutPageContent() {
       });
     }
   }, [user, plan, form]);
+  
+  useEffect(() => {
+    if (plan) {
+      form.setValue('plan', plan);
+    }
+  }, [plan, form]);
+
 
   useEffect(() => {
     if (state?.error) {
@@ -243,7 +264,7 @@ function CheckoutPageContent() {
                     <ShieldAlert className="h-12 w-12 text-primary mb-4" />
                     <h3 className="text-xl font-bold">Você já possui este plano</h3>
                     <p className="text-muted-foreground max-w-sm mx-auto mt-2">
-                        Seu plano {selectedPlanDetails.name} já está ativo. Você pode gerenciar sua assinatura nas configurações.
+                        Seu plano {selectedPlanDetails.name} já está ativo. Você pode gerenciar sua assinatura nas <Link href="/settings" className="font-semibold text-primary hover:underline">configurações</Link>.
                     </p>
                     <Button asChild className='mt-6 w-full sm:w-auto'>
                         <Link href="/dashboard">
@@ -253,8 +274,17 @@ function CheckoutPageContent() {
                 </div>
               ) : !result && !isGenerating ? (
                 <Form {...form}>
-                  <form action={formAction} className="space-y-6 text-left">
-                    <input type="hidden" {...form.register('plan')} value={plan} />
+                  <form 
+                     onSubmit={form.handleSubmit(data => formAction(data))}
+                    className="space-y-6 text-left"
+                  >
+                    <FormField
+                      control={form.control}
+                      name="plan"
+                      render={({ field }) => (
+                        <input type="hidden" {...field} />
+                      )}
+                    />
                     <input type="hidden" {...form.register('userId')} />
                     <FormField
                       control={form.control}

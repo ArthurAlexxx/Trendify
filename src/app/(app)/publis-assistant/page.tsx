@@ -37,7 +37,11 @@ import {
   Eye,
   Crown,
 } from 'lucide-react';
+<<<<<<< HEAD
 import { useEffect, useActionState, useTransition, useState, useMemo } from 'react';
+=======
+import { useEffect, useTransition, useState } from 'react';
+>>>>>>> 1f12964f54e43ffc0dca3d68c7b788661f61de7c
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { generatePubliProposalsAction, GeneratePubliProposalsOutput } from './actions';
@@ -65,6 +69,11 @@ const formSchema = z.object({
   objective: z.string().min(1, 'O objetivo é obrigatório.'),
   extraInfo: z.string().optional(),
 });
+
+type PubliProposalsState = {
+  data?: GeneratePubliProposalsOutput;
+  error?: string;
+} | null;
 
 
 const analysisCriteria = [
@@ -142,10 +151,9 @@ export default function PublisAssistantPage() {
 
 function PublisAssistantPageContent() {
   const { toast } = useToast();
-  const [state, formAction, isGenerating] = useActionState(
-    generatePubliProposalsAction,
-    null
-  );
+  const [isGenerating, startTransition] = useTransition();
+  const [state, setState] = useState<PubliProposalsState>(null);
+  
   const [isSaving, startSavingTransition] = useTransition();
   const { user } = useUser();
   const firestore = useFirestore();
@@ -172,6 +180,13 @@ function PublisAssistantPageContent() {
   });
   
   const result = state?.data;
+
+  const formAction = async (formData: FormData) => {
+    startTransition(async () => {
+      const result = await generatePubliProposalsAction(null, formData);
+      setState(result);
+    });
+  };
 
   useEffect(() => {
     if (state?.error) {
@@ -284,7 +299,7 @@ function PublisAssistantPageContent() {
         <CardContent>
           <Form {...form}>
             <form
-              action={formAction}
+              onSubmit={form.handleSubmit(data => formAction(data as any))}
               className="space-y-8 text-left"
             >
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-6">

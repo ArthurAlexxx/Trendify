@@ -25,6 +25,25 @@
           "format": "date-time",
           "description": "The timestamp when the user profile was created."
         },
+<<<<<<< HEAD
+=======
+        "instagramHandle": {
+            "type": "string",
+            "description": "User's Instagram handle (e.g., @username)."
+        },
+        "instagramUserId": {
+            "type": "string",
+            "description": "The user's unique Instagram User ID."
+        },
+        "instagramAccessToken": {
+            "type": "string",
+            "description": "Long-lived access token for the Instagram Graph API."
+        },
+        "youtubeHandle": {
+            "type": "string",
+            "description": "User's YouTube handle (e.g., @YourChannel)."
+        },
+>>>>>>> 1f12964f54e43ffc0dca3d68c7b788661f61de7c
         "niche": {
             "type": "string",
             "description": "The creator's content niche (e.g., 'Lifestyle and sustainable fashion')."

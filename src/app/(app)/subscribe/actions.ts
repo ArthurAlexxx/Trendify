@@ -113,11 +113,11 @@ async function createPixCharge(
 
 export async function createPixChargeAction(
   prevState: ActionState,
-  formData: FormData
+  formData: z.infer<typeof formSchema>
 ): Promise<ActionState> {
   console.log('[createPixChargeAction] Ação iniciada.');
 
-  const parsed = formSchema.safeParse(Object.fromEntries(formData));
+  const parsed = formSchema.safeParse(formData);
 
   if (!parsed.success) {
     console.error('[createPixChargeAction] Erro de validação do formulário:', parsed.error.issues);

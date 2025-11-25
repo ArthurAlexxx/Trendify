@@ -206,10 +206,21 @@ export default function ProfilePage() {
     
     startTransition(async () => {
       try {
+<<<<<<< HEAD
         await saveMetrics(firestore, user.uid, values, userProfileRef);
         
         // Update Firebase Auth profile if displayName changed
         if (user.displayName !== values.displayName && auth.currentUser) {
+=======
+        // Exclude read-only fields that come from APIs from the update payload
+        const { photoURL, followers, instagramHandle, ...firestoreData } = values;
+
+        // Update Firestore document
+        await updateDoc(userProfileRef, firestoreData);
+        
+        // Update Firebase Auth profile if displayName changed
+        if (auth.currentUser && user.displayName !== values.displayName) {
+>>>>>>> 1f12964f54e43ffc0dca3d68c7b788661f61de7c
             await updateProfile(auth.currentUser, {
                 displayName: values.displayName,
             });
@@ -281,7 +292,33 @@ export default function ProfilePage() {
                         )}
                     </div>
                   </div>
+<<<<<<< HEAD
                 
+=======
+
+                 <div className="grid sm:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="instagramHandle">Instagram Handle</Label>
+                      <Input
+                        id="instagramHandle"
+                        placeholder="Conecte sua conta em Configurações"
+                        {...form.register('instagramHandle')}
+                        className="h-11 bg-muted/50"
+                        readOnly
+                      />
+                    </div>
+                     <div className="space-y-2">
+                      <Label htmlFor="youtubeHandle">YouTube Handle</Label>
+                      <Input
+                        id="youtubeHandle"
+                        placeholder="@SeuCanal"
+                        {...form.register('youtubeHandle')}
+                        className="h-11"
+                      />
+                    </div>
+                  </div>
+
+>>>>>>> 1f12964f54e43ffc0dca3d68c7b788661f61de7c
                  <div className="space-y-2">
                     <Label htmlFor="niche">Seu Nicho</Label>
                     <Input
@@ -314,6 +351,7 @@ export default function ProfilePage() {
                 
                 <Separator />
 
+<<<<<<< HEAD
                 {/* Instagram */}
                 <div className="space-y-6">
                     <h3 className="text-lg font-semibold flex items-center gap-2"><Instagram className="h-5 w-5" /> Instagram</h3>
@@ -331,6 +369,12 @@ export default function ProfilePage() {
                         <Label htmlFor="instagramFollowers">Seguidores no Instagram</Label>
                         <Input id="instagramFollowers" {...form.register('instagramFollowers')} placeholder="Ex: 250K" className="h-11" />
                         </div>
+=======
+                <div className="grid sm:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="followers">Total de Seguidores</Label>
+                      <Input id="followers" {...form.register('followers')} placeholder="Conecte sua conta em Configurações" className="h-11 bg-muted/50" readOnly />
+>>>>>>> 1f12964f54e43ffc0dca3d68c7b788661f61de7c
                     </div>
                     <div className="grid sm:grid-cols-3 gap-6">
                         <div className="space-y-2">

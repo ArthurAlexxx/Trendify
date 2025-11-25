@@ -1,8 +1,9 @@
-
-import type {NextConfig} from 'next';
-
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   /* config options here */
+  env: {
+    NEXT_PUBLIC_META_APP_ID: process.env.META_APP_ID,
+  },
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -40,11 +41,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  serverActions: {
-    bodySizeLimit: '80mb',
-  },
 };
 
-export default nextConfig;
-
-    
+module.exports = nextConfig;
