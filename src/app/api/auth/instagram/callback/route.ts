@@ -18,6 +18,7 @@ async function exchangeCodeForToken(code: string, redirectUri: string) {
     url.searchParams.set('client_secret', appSecret);
     url.searchParams.set('code', code);
     
+    console.log(`[exchangeCodeForToken] Fazendo requisição para obter token de curta duração.`);
     const response = await fetch(url.toString());
     const data = await response.json();
 
@@ -25,7 +26,7 @@ async function exchangeCodeForToken(code: string, redirectUri: string) {
         console.error("[exchangeCodeForToken] Erro da API do Facebook ao trocar código:", data.error);
         throw new Error(data.error.message || "Erro desconhecido ao obter token de acesso.");
     }
-
+    console.log("[exchangeCodeForToken] Token de curta duração obtido com sucesso.");
     return { accessToken: data.access_token };
 }
 
@@ -44,6 +45,7 @@ async function getLongLivedAccessToken(shortLivedToken: string): Promise<string>
     url.searchParams.set('client_secret', appSecret);
     url.searchParams.set('fb_exchange_token', shortLivedToken);
 
+    console.log(`[getLongLivedAccessToken] Fazendo requisição para obter token de longa duração.`);
     const response = await fetch(url.toString());
     const data = await response.json();
 
@@ -51,6 +53,7 @@ async function getLongLivedAccessToken(shortLivedToken: string): Promise<string>
         console.error("[getLongLivedAccessToken] Erro da API do Facebook ao obter token de longa duração:", data.error);
         throw new Error(data.error.message || "Erro ao obter token de longa duração.");
     }
+    console.log("[getLongLivedAccessToken] Token de longa duração obtido com sucesso.");
     return data.access_token;
 }
 

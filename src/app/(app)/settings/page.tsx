@@ -25,7 +25,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { doc, updateDoc } from 'firebase/firestore';
 import { Loader2 } from 'lucide-react';
@@ -45,6 +45,7 @@ import Cookies from 'js-cookie';
 function InstagramIntegration() {
     const { toast } = useToast();
     const searchParams = useSearchParams();
+    const router = useRouter();
     const { user } = useUser();
     const firestore = useFirestore();
 
@@ -53,6 +54,31 @@ function InstagramIntegration() {
         [firestore, user]
     );
     const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userProfileRef);
+
+    useEffect(() => {
+        const error = searchParams.get('error');
+        const errorDescription = searchParams.get('error_description');
+        if (error) {
+            toast({
+                title: 'Falha na Conexão com Instagram',
+                description: errorDescription || 'Ocorreu um erro desconhecido.',
+                variant: 'destructive',
+            });
+            // Clean up URL
+            router.replace('/settings', undefined);
+        }
+
+        const isConnected = searchParams.get('instagram_connected');
+         if (isConnected === 'true') {
+             toast({
+                title: 'Sucesso!',
+                description: 'Sua conta do Instagram foi conectada.',
+            });
+            router.replace('/settings', undefined);
+         }
+
+    }, [searchParams, toast, router]);
+
 
     const handleConnect = () => {
         if (!user) {
@@ -89,12 +115,8 @@ function InstagramIntegration() {
         const redirectUri = `${window.location.origin}/api/auth/instagram/callback`;
         const permissions = [
             'instagram_basic',
-            'instagram_content_publish',
-            'instagram_manage_comments',
-            'instagram_manage_messages',
-            'instagram_manage_insights',
             'pages_show_list',
-            'pages_read_engagement',
+            'instagram_manage_insights',
         ];
         const scope = permissions.join(',');
         
@@ -141,24 +163,6 @@ function InstagramIntegration() {
                             {isConnected ? 'Reconectar Conta' : 'Conectar com Instagram'}
                         </Button>
                     </div>
-                )}
-
-                {searchParams.get('error') && (
-                     <Alert variant="destructive">
-                        <AlertTitle>Falha na Conexão</AlertTitle>
-                        <AlertDescription>
-                            {searchParams.get('error_description') || searchParams.get('error') || "Ocorreu um erro desconhecido durante a conexão."}
-                        </AlertDescription>
-                    </Alert>
-                )}
-                 {searchParams.get('instagram_connected') === 'true' && (
-                     <Alert variant="default" className="border-green-500/50 text-green-700 [&>svg]:text-green-500">
-                         <CheckCircle className="h-4 w-4" />
-                        <AlertTitle>Conexão Bem-Sucedida!</AlertTitle>
-                        <AlertDescription>
-                            Sua conta do Instagram foi conectada. Seus dados de perfil e métricas foram atualizados.
-                        </AlertDescription>
-                    </Alert>
                 )}
             </CardContent>
         </Card>

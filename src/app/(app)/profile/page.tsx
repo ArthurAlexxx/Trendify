@@ -153,11 +153,13 @@ export default function ProfilePage() {
     
     startTransition(async () => {
       try {
-        const { photoURL, ...firestoreData } = values;
+        // Exclude read-only fields that come from APIs from the update payload
+        const { photoURL, followers, instagramHandle, ...firestoreData } = values;
+
         // Update Firestore document
         await updateDoc(userProfileRef, firestoreData);
         
-        // Update Firebase Auth profile if necessary
+        // Update Firebase Auth profile if displayName changed
         if (auth.currentUser && user.displayName !== values.displayName) {
             await updateProfile(auth.currentUser, {
                 displayName: values.displayName,
@@ -236,7 +238,7 @@ export default function ProfilePage() {
                       <Label htmlFor="instagramHandle">Instagram Handle</Label>
                       <Input
                         id="instagramHandle"
-                        placeholder="@seu_usuario"
+                        placeholder="Conecte sua conta em Configurações"
                         {...form.register('instagramHandle')}
                         className="h-11 bg-muted/50"
                         readOnly
@@ -276,7 +278,7 @@ export default function ProfilePage() {
                 <div className="grid sm:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <Label htmlFor="followers">Total de Seguidores</Label>
-                      <Input id="followers" {...form.register('followers')} placeholder="Ex: 250K" className="h-11 bg-muted/50" readOnly />
+                      <Input id="followers" {...form.register('followers')} placeholder="Conecte sua conta em Configurações" className="h-11 bg-muted/50" readOnly />
                     </div>
                      <div className="space-y-2">
                        <Label htmlFor="audience">Demografia do Público</Label>
