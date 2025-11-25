@@ -82,7 +82,7 @@ export default function ProfilePage() {
 
 
   const userProfileRef = useMemoFirebase(
-    () => (firestore && user ? doc(firestore, 'users', user.uid) : null),
+    () => (firestore && user ? doc(firestore, `users/${user.uid}`) : null),
     [firestore, user]
   );
   const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userProfileRef);
