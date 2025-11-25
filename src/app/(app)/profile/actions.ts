@@ -76,8 +76,7 @@ const TikTokUserSchema = z.object({
 const TikTokProfileSchema = z.object({
     stats: TikTokStatsSchema.optional(),
     statsV2: TikTokStatsSchema.optional(),
-    user: TikTokUserSchema,
-    // Add a catch-all for any other properties that might be present
+    user: TikTokUserSchema.passthrough(),
 }).passthrough();
 
 
@@ -180,6 +179,7 @@ async function fetchFromRapidApi(platform: 'instagram' | 'tiktok', endpoint: 'pr
         options.method = 'POST';
         options.body = JSON.stringify({ username: usernameOrSecUid });
     } else if (platform === 'tiktok' && endpoint === 'posts') {
+        options.method = 'GET';
         url.searchParams.append('secUid', usernameOrSecUid);
         url.searchParams.append('count', '30');
         url.searchParams.append('cursor', '0');
@@ -210,7 +210,8 @@ async function fetchFromRapidApi(platform: 'instagram' | 'tiktok', endpoint: 'pr
       if (data.status === 'error' || data.message) {
         throw new Error(data.message || `API do TikTok retornou um erro.`);
       }
-      return data.data || data; // API v6 seems to nest in data
+       // New TikTok API might not nest under 'data'
+       return data;
     }
 
     if (platform === 'tiktok' && endpoint === 'posts') {
@@ -336,4 +337,5 @@ export async function getTikTokPosts(secUid: string): Promise<TikTokPostData[]> 
         throw new Error(`Falha ao buscar posts do TikTok: ${e.message}`);
     }
 }
+
 
