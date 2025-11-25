@@ -16,6 +16,10 @@ import {
   CheckCircle,
   Tag,
   Rocket,
+  RefreshCw,
+  Loader2,
+  Instagram,
+  Film,
 } from 'lucide-react';
 import {
   ChartContainer,
@@ -47,12 +51,19 @@ import {
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useTransition } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, useCollection, useDoc, useMemoFirebase } from '@/firebase';
-import { collection, doc, query, orderBy, limit, updateDoc, where } from 'firebase/firestore';
+import { collection, doc, query, orderBy, limit, updateDoc, where, addDoc, serverTimestamp } from 'firebase/firestore';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 
 
 const chartConfig = {
@@ -61,6 +72,20 @@ const chartConfig = {
   likes: { label: "Likes", color: "hsl(var(--chart-3))" },
   comments: { label: "Comentários", color: "hsl(var(--chart-4))" },
 } satisfies ChartConfig;
+
+
+const profileMetricsSchema = z.object({
+  instagramHandle: z.string().optional(),
+  instagramFollowers: z.string().optional(),
+  instagramAverageViews: z.string().optional(),
+  instagramAverageLikes: z.string().optional(),
+  instagramAverageComments: z.string().optional(),
+  tiktokHandle: z.string().optional(),
+  tiktokFollowers: z.string().optional(),
+  tiktokAverageViews: z.string().optional(),
+  tiktokAverageLikes: z.string().optional(),
+  tiktokAverageComments: z.string().optional(),
+});
 
 
 const ProfileCompletionAlert = ({ userProfile, hasUpdatedToday }: { userProfile: UserProfile | null, hasUpdatedToday: boolean }) => {
@@ -81,11 +106,15 @@ const ProfileCompletionAlert = ({ userProfile, hasUpdatedToday }: { userProfile:
     if (!hasUpdatedToday) {
          return (
             <Alert>
-                <AlertTriangle className="h-4 w-4 text-primary" />
-                <AlertTitle>Atualize suas Métricas!</AlertTitle>
-                <AlertDescription>
-                    <Link href="/profile" className='hover:underline font-semibold'>Vá para a página de perfil</Link> e atualize suas métricas de hoje para manter os gráficos precisos.
-                </AlertDescription>
+                <div className='flex justify-between items-center'>
+                    <div>
+                        <AlertTitle className="flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-primary" />Atualize suas Métricas!</AlertTitle>
+                        <AlertDescription>
+                            Registre seus números de hoje para manter os gráficos precisos.
+                        </AlertDescription>
+                    </div>
+                    <UpdateMetricsModal userProfile={userProfile} />
+                </div>
             </Alert>
         )
     }
@@ -93,6 +122,147 @@ const ProfileCompletionAlert = ({ userProfile, hasUpdatedToday }: { userProfile:
     return null;
 }
 
+
+const UpdateMetricsModal = ({ userProfile }: { userProfile: UserProfile }) => {
+    const { user } = useUser();
+    const firestore = useFirestore();
+    const { toast } = useToast();
+    const [isPending, startTransition] = useTransition();
+    const [isOpen, setIsOpen] = useState(false);
+
+    const form = useForm<z.infer<typeof profileMetricsSchema>>({
+        resolver: zodResolver(profileMetricsSchema),
+        defaultValues: {
+            instagramHandle: userProfile?.instagramHandle || '',
+            instagramFollowers: userProfile?.instagramFollowers || '',
+            instagramAverageViews: userProfile?.instagramAverageViews || '',
+            instagramAverageLikes: userProfile?.instagramAverageLikes || '',
+            instagramAverageComments: userProfile?.instagramAverageComments || '',
+            tiktokHandle: userProfile?.tiktokHandle || '',
+            tiktokFollowers: userProfile?.tiktokFollowers || '',
+            tiktokAverageViews: userProfile?.tiktokAverageViews || '',
+            tiktokAverageLikes: userProfile?.tiktokAverageLikes || '',
+            tiktokAverageComments: userProfile?.tiktokAverageComments || '',
+        }
+    });
+
+    useEffect(() => {
+        if (userProfile && isOpen) {
+            form.reset({
+                instagramHandle: userProfile.instagramHandle || '',
+                instagramFollowers: userProfile.instagramFollowers || '',
+                instagramAverageViews: userProfile.instagramAverageViews || '',
+                instagramAverageLikes: userProfile.instagramAverageLikes || '',
+                instagramAverageComments: userProfile.instagramAverageComments || '',
+                tiktokHandle: userProfile.tiktokHandle || '',
+                tiktokFollowers: userProfile.tiktokFollowers || '',
+                tiktokAverageViews: userProfile.tiktokAverageViews || '',
+                tiktokAverageLikes: userProfile.tiktokAverageLikes || '',
+                tiktokAverageComments: userProfile.tiktokAverageComments || '',
+            });
+        }
+    }, [userProfile, isOpen, form]);
+
+    const onSubmit = (values: z.infer<typeof profileMetricsSchema>) => {
+        if (!user || !firestore) return;
+        const userProfileRef = doc(firestore, 'users', user.uid);
+
+        startTransition(async () => {
+            try {
+                await updateDoc(userProfileRef, values);
+
+                const metricSnapshotsRef = collection(firestore, `users/${user.uid}/metricSnapshots`);
+
+                if (values.instagramHandle) {
+                    await addDoc(metricSnapshotsRef, {
+                        date: serverTimestamp(),
+                        platform: 'instagram',
+                        followers: values.instagramFollowers || '0',
+                        views: values.instagramAverageViews || '0',
+                        likes: values.instagramAverageLikes || '0',
+                        comments: values.instagramAverageComments || '0',
+                    });
+                }
+                if (values.tiktokHandle) {
+                    await addDoc(metricSnapshotsRef, {
+                        date: serverTimestamp(),
+                        platform: 'tiktok',
+                        followers: values.tiktokFollowers || '0',
+                        views: values.tiktokAverageViews || '0',
+                        likes: values.tiktokAverageLikes || '0',
+                        comments: values.tiktokAverageComments || '0',
+                    });
+                }
+
+                toast({
+                    title: 'Sucesso!',
+                    description: 'Suas métricas foram salvas.',
+                });
+                setIsOpen(false);
+            } catch (error: any) {
+                toast({
+                    title: 'Erro ao Atualizar',
+                    description: 'Não foi possível salvar suas métricas. ' + error.message,
+                    variant: 'destructive',
+                });
+            }
+        });
+    }
+
+    return (
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogTrigger asChild>
+                <Button>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Atualizar Métricas Agora
+                </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[650px]">
+                <DialogHeader>
+                    <DialogTitle className="font-headline text-xl">Atualizar Métricas Diárias</DialogTitle>
+                    <DialogDescription>
+                        Insira seus números mais recentes para manter o gráfico de evolução preciso.
+                    </DialogDescription>
+                </DialogHeader>
+                <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-4 text-left">
+                    <div className="space-y-6">
+                        <h3 className="text-lg font-semibold flex items-center gap-2"><Instagram className="h-5 w-5" /> Instagram</h3>
+                        <div className="grid sm:grid-cols-2 gap-4">
+                            <FormField control={form.control} name="instagramHandle" render={({ field }) => ( <FormItem><FormLabel>Handle</FormLabel><FormControl><Input placeholder="@seu_usuario" {...field} /></FormControl></FormItem> )}/>
+                            <FormField control={form.control} name="instagramFollowers" render={({ field }) => ( <FormItem><FormLabel>Seguidores</FormLabel><FormControl><Input placeholder="Ex: 250K" {...field} /></FormControl></FormItem> )}/>
+                        </div>
+                        <div className="grid sm:grid-cols-3 gap-4">
+                            <FormField control={form.control} name="instagramAverageViews" render={({ field }) => ( <FormItem><FormLabel>Views (Média)</FormLabel><FormControl><Input placeholder="Ex: 15.5K" {...field} /></FormControl></FormItem> )}/>
+                            <FormField control={form.control} name="instagramAverageLikes" render={({ field }) => ( <FormItem><FormLabel>Likes (Média)</FormLabel><FormControl><Input placeholder="Ex: 890" {...field} /></FormControl></FormItem> )}/>
+                            <FormField control={form.control} name="instagramAverageComments" render={({ field }) => ( <FormItem><FormLabel>Comentários (Média)</FormLabel><FormControl><Input placeholder="Ex: 120" {...field} /></FormControl></FormItem> )}/>
+                        </div>
+                    </div>
+                    <Separator />
+                     <div className="space-y-6">
+                        <h3 className="text-lg font-semibold flex items-center gap-2"><Film className="h-5 w-5" /> TikTok</h3>
+                        <div className="grid sm:grid-cols-2 gap-4">
+                            <FormField control={form.control} name="tiktokHandle" render={({ field }) => ( <FormItem><FormLabel>Handle</FormLabel><FormControl><Input placeholder="@seu_usuario" {...field} /></FormControl></FormItem> )}/>
+                            <FormField control={form.control} name="tiktokFollowers" render={({ field }) => ( <FormItem><FormLabel>Seguidores</FormLabel><FormControl><Input placeholder="Ex: 1.2M" {...field} /></FormControl></FormItem> )}/>
+                        </div>
+                        <div className="grid sm:grid-cols-3 gap-4">
+                            <FormField control={form.control} name="tiktokAverageViews" render={({ field }) => ( <FormItem><FormLabel>Views (Média)</FormLabel><FormControl><Input placeholder="Ex: 1M" {...field} /></FormControl></FormItem> )}/>
+                            <FormField control={form.control} name="tiktokAverageLikes" render={({ field }) => ( <FormItem><FormLabel>Likes (Média)</FormLabel><FormControl><Input placeholder="Ex: 100K" {...field} /></FormControl></FormItem> )}/>
+                            <FormField control={form.control} name="tiktokAverageComments" render={({ field }) => ( <FormItem><FormLabel>Comentários (Média)</FormLabel><FormControl><Input placeholder="Ex: 1.5K" {...field} /></FormControl></FormItem> )}/>
+                        </div>
+                    </div>
+                    <DialogFooter className="pt-4">
+                        <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
+                            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Salvar Métricas
+                        </Button>
+                    </DialogFooter>
+                </form>
+                </Form>
+            </DialogContent>
+        </Dialog>
+    )
+}
 
 export default function DashboardPage() {
   const { user } = useUser();
