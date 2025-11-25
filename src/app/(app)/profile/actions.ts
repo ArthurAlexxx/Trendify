@@ -148,9 +148,15 @@ async function fetchFromRapidApi(platform: 'instagram' | 'tiktok', endpoint: 'pr
     }
 
     const hosts = {
-        instagram: 'instagram130.p.rapidapi.com',
-        tiktok: 'tiktok-api23.p.rapidapi.com',
+        instagram: process.env.INSTAGRAM_RAPIDAPI_HOST,
+        tiktok: process.env.TIKTOK_RAPIDAPI_HOST,
     };
+    
+    const host = hosts[platform];
+    if (!host) {
+        throw new Error(`O host da API para a plataforma '${platform}' não está configurado.`);
+    }
+
 
     const paths = {
         instagram: {
@@ -163,7 +169,6 @@ async function fetchFromRapidApi(platform: 'instagram' | 'tiktok', endpoint: 'pr
         }
     }
 
-    const host = hosts[platform];
     const path = paths[platform][endpoint];
     const url = `https://${host}${path}`;
 
