@@ -120,39 +120,34 @@ export type TikTokPostData = {
 
 // --- API Fetching Logic ---
 
-async function fetchFromRapidApi(platform: 'instagram-profile' | 'instagram-posts' | 'tiktok-profile' | 'tiktok-posts', username: string, secUid?: string) {
+async function fetchFromRapidApi(platform: 'instagram-profile' | 'instagram-posts' | 'tiktok-profile' | 'tiktok-posts', username: string) {
     const apiKey = process.env.RAPIDAPI_KEY;
     if (!apiKey) {
       throw new Error('A chave da API (RAPIDAPI_KEY) não está configurada no servidor.');
     }
 
-    const hosts = {
-        instagram: process.env.INSTAGRAM_RAPIDAPI_HOST,
-        tiktok: process.env.TIKTOK_RAPIDAPI_HOST,
-    };
-    
     let host: string | undefined;
     let path: string;
     let options: RequestInit;
 
     switch (platform) {
         case 'instagram-profile':
-            host = hosts.instagram;
+            host = process.env.INSTAGRAM_RAPIDAPI_HOST;
             path = 'api/instagram/profile';
             options = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username }) };
             break;
         case 'instagram-posts':
-             host = hosts.instagram;
+             host = process.env.INSTAGRAM_RAPIDAPI_HOST;
              path = 'api/instagram/posts';
              options = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, maxId: '' }) };
              break;
         case 'tiktok-profile':
-            host = hosts.tiktok;
+            host = process.env.TIKTOK_RAPIDAPI_HOST;
             path = 'user/details';
             options = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username }) };
             break;
         case 'tiktok-posts':
-            host = hosts.tiktok;
+            host = process.env.TIKTOK_RAPIDAPI_HOST;
             path = 'user/videos';
             options = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username }) };
             break;
@@ -244,10 +239,7 @@ export async function getInstagramPosts(username: string): Promise<InstagramPost
     try {
         const result = await fetchFromRapidApi('instagram-posts', username);
         
-        // Find the first property in the result that is an array
-        const dataToParse = Array.isArray(result) 
-          ? result 
-          : Object.values(result).find(value => Array.isArray(value));
+        const dataToParse = result.result;
 
         if (!Array.isArray(dataToParse)) {
             throw new Error('A resposta da API de posts não continha uma lista de publicações.');
@@ -341,3 +333,4 @@ export async function getTikTokPosts(username: string): Promise<TikTokPostData[]
         throw new Error(`Falha ao buscar posts do TikTok: ${e.message}`);
     }
 }
+
