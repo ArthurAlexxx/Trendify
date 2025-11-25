@@ -9,8 +9,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Nome de usuário é obrigatório.' }, { status: 400 });
     }
 
-    const apiKey = process.env.NEXT_PUBLIC_RAPIDAPI_KEY;
-    const apiHost = process.env.NEXT_PUBLIC_RAPIDAPI_HOST;
+    const apiKey = process.env.RAPIDAPI_KEY;
+    const apiHost = process.env.RAPIDAPI_HOST;
 
     if (!apiKey || !apiHost) {
       console.error("As variáveis de ambiente da RapidAPI não estão configuradas.");
@@ -52,5 +52,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: error.message || 'Ocorreu um erro desconhecido.' }, { status: 500 });
   }
 }
-
-    
