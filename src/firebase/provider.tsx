@@ -70,25 +70,36 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
 
   const handleUser = async (firebaseUser: User | null) => {
     if (firebaseUser) {
-      // User is signed in. Create user profile if it doesn't exist.
+      // User is signed in. Create or merge user profile.
       const userRef = doc(firestore, `users/${firebaseUser.uid}`);
-      const docSnap = await getDoc(userRef);
-      if (!docSnap.exists()) {
-        const { displayName, email, photoURL } = firebaseUser;
-        try {
-          await setDoc(userRef, {
-            displayName,
-            email,
-            photoURL,
-            createdAt: serverTimestamp(),
-            subscription: {
+      const { displayName, email, photoURL } = firebaseUser;
+      
+      try {
+        // Use setDoc with merge: true to create or update the profile.
+        // This will create the doc if it doesn't exist, or merge the data
+        // if it does (e.g., a user signs up with email, then logs in with Google).
+        // `createdAt` is only set on initial creation.
+        const userProfileData = {
+          displayName,
+          email,
+          photoURL,
+          // Conditionally add subscription only on what might be a new user
+          subscription: {
               status: 'inactive',
               plan: 'free',
-            },
-          }, { merge: true });
-        } catch (error) {
-          console.error('Error creating user profile:', error);
+          }
+        };
+
+        const docSnap = await getDoc(userRef);
+        if (!docSnap.exists()) {
+          // @ts-ignore
+          userProfileData.createdAt = serverTimestamp();
         }
+
+        await setDoc(userRef, userProfileData, { merge: true });
+
+      } catch (error) {
+        console.error('Error creating/merging user profile:', error);
       }
     }
     setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
