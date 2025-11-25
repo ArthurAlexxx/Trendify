@@ -9,8 +9,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { useUser, useFirestore, useDoc, useMemoFirebase, useAuth, initializeFirebase } from '@/firebase';
-import { User as UserIcon, Instagram, Film, Search } from 'lucide-react';
+import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { User as UserIcon, Instagram, Film, Search, Loader2, AlertTriangle, Users, Eye, Heart, MessageSquare, Clapperboard, ShoppingBag } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -21,13 +21,15 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { doc, updateDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2 } from 'lucide-react';
 import { updateProfile } from 'firebase/auth';
 import type { UserProfile } from '@/lib/types';
-import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
-
+import { getInstagramProfile, getInstagramPosts, ProfileData, PostData } from './actions';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import Image from 'next/image';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const profileFormSchema = z.object({
   displayName: z.string().min(2, 'O nome deve ter pelo menos 2 caracteres.'),
@@ -49,58 +51,21 @@ const profileFormSchema = z.object({
 
 type ProfileFormData = z.infer<typeof profileFormSchema>;
 
-async function saveMetrics(
-    firestore: any,
-    userId: string,
-    profileData: ProfileFormData,
-    profileRef: any
-) {
-  // Update the main user profile document
-  await updateDoc(profileRef, profileData);
-
-  // Create new metric snapshots for today
-  const metricSnapshotsRef = collection(firestore, `users/${userId}/metricSnapshots`);
-  const timestamp = serverTimestamp();
-
-  if (profileData.instagramHandle && profileData.instagramFollowers) {
-    await addDoc(metricSnapshotsRef, {
-      userId,
-      date: timestamp,
-      platform: 'instagram',
-      followers: profileData.instagramFollowers || '0',
-      views: profileData.instagramAverageViews || '0',
-      likes: profileData.instagramAverageLikes || '0',
-      comments: profileData.instagramAverageComments || '0',
-    });
-  }
-
-  if (profileData.tiktokHandle && profileData.tiktokFollowers) {
-    await addDoc(metricSnapshotsRef, {
-      userId,
-      date: timestamp,
-      platform: 'tiktok',
-      followers: profileData.tiktokFollowers || '0',
-      views: profileData.tiktokAverageViews || '0',
-      likes: profileData.tiktokAverageLikes || '0',
-      comments: profileData.tiktokAverageComments || '0',
-    });
-  }
-}
-
+type SearchStatus = 'idle' | 'loading' | 'success' | 'error';
 
 export default function ProfilePage() {
   const { user } = useUser();
-  const auth = useAuth();
   const firestore = useFirestore();
   const { toast } = useToast();
-  const [isPending, startTransition] = useTransition();
-
-  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
-  const [localPhotoUrl, setLocalPhotoUrl] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isSaving, startSavingTransition] = useTransition();
+  const [username, setUsername] = useState('');
   
-  const [isFetchingInstagram, setIsFetchingInstagram] = useState(false);
-  const [instagramUsername, setInstagramUsername] = useState('');
+  const [status, setStatus] = useState<SearchStatus>('idle');
+  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [posts, setPosts] = useState<PostData[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [postsError, setPostsError] = useState<string | null>(null);
+
 
   const userProfileRef = useMemoFirebase(
     () => (firestore && user ? doc(firestore, 'users', user.uid) : null),
@@ -128,6 +93,12 @@ export default function ProfilePage() {
       tiktokAverageComments: '',
     },
   });
+  
+  const formatNumber = (num: number): string => {
+    if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(1).replace('.', ',')}M`;
+    if (num >= 1000) return `${(num / 1000).toFixed(1).replace('.', ',')}K`;
+    return num.toLocaleString('pt-BR');
+  };
 
   useEffect(() => {
     if (userProfile) {
@@ -148,124 +119,31 @@ export default function ProfilePage() {
         tiktokAverageLikes: userProfile.tiktokAverageLikes || '',
         tiktokAverageComments: userProfile.tiktokAverageComments || '',
       });
-      setLocalPhotoUrl(userProfile.photoURL || user?.photoURL || null);
-      setInstagramUsername(userProfile.instagramHandle || '');
+      setUsername(userProfile.instagramHandle || '');
     } else if (user) {
         form.reset({
             displayName: user.displayName || '',
             photoURL: user.photoURL || null,
         });
-        setLocalPhotoUrl(user.photoURL || null);
     }
   }, [userProfile, user, form]);
-  
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file || !user) return;
-    
-    setLocalPhotoUrl(URL.createObjectURL(file));
-    
-    const storage = getStorage(initializeFirebase().firebaseApp);
-    const storageRef = ref(storage, `profile-pictures/${user.uid}/${file.name}`);
-    const uploadTask = uploadBytesResumable(storageRef, file);
-
-    uploadTask.on('state_changed',
-      (snapshot) => {
-        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        setUploadProgress(progress);
-      },
-      (error) => {
-        console.error("Upload error:", error);
-        setUploadProgress(null);
-        setLocalPhotoUrl(userProfile?.photoURL || user?.photoURL || null);
-        toast({
-          title: 'Erro no Upload',
-          description: `Não foi possível enviar sua foto. (${error.code})`,
-          variant: 'destructive'
-        });
-      },
-      () => {
-        getDownloadURL(uploadTask.snapshot.ref).then(async (downloadURL) => {
-          if (userProfileRef) {
-            await updateDoc(userProfileRef, { photoURL: downloadURL });
-          }
-          if (auth.currentUser) {
-            await updateProfile(auth.currentUser, { photoURL: downloadURL });
-          }
-          form.setValue('photoURL', downloadURL);
-          setLocalPhotoUrl(downloadURL);
-          setUploadProgress(null);
-          toast({
-            title: 'Sucesso!',
-            description: 'Sua foto de perfil foi atualizada.',
-          });
-        });
-      }
-    );
-  };
-  
-  const formatFollowers = (count: number) => {
-    if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`.replace('.', ',');
-    if (count >= 1000) return `${Math.floor(count / 1000)}K`;
-    return count.toString();
-  };
-
-  const handleFetchInstagramData = async () => {
-    if (!instagramUsername) {
-      toast({ title: 'Atenção', description: 'Por favor, insira um nome de usuário do Instagram.', variant: 'destructive' });
-      return;
-    }
-    setIsFetchingInstagram(true);
-    try {
-      const response = await fetch('/api/instagram/profile', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: instagramUsername.replace('@', '') }),
-      });
-      
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Erro ao buscar dados do Instagram.');
-      }
-
-      const profileData = data.result;
-      form.reset({
-        ...form.getValues(),
-        instagramHandle: `@${profileData.username}`,
-        displayName: form.getValues('displayName') || profileData.full_name,
-        bio: form.getValues('bio') || profileData.biography,
-        instagramFollowers: formatFollowers(profileData.edge_followed_by.count),
-        photoURL: profileData.profile_pic_url_hd,
-      });
-      setLocalPhotoUrl(profileData.profile_pic_url_hd);
-      toast({ title: 'Sucesso!', description: 'Dados do Instagram preenchidos.' });
-
-    } catch (error: any) {
-      toast({ title: 'Erro', description: error.message, variant: 'destructive' });
-    } finally {
-      setIsFetchingInstagram(false);
-    }
-  };
-
 
   const onProfileSubmit = (values: ProfileFormData) => {
-    if (!user || !userProfileRef || !firestore) return;
+    if (!user || !userProfileRef) return;
     
-    startTransition(async () => {
+    startSavingTransition(async () => {
       try {
-        await saveMetrics(firestore, user.uid, values, userProfileRef);
+        await updateDoc(userProfileRef, values);
         
-        // Update Firebase Auth profile if displayName changed
-        if (user.displayName !== values.displayName && auth.currentUser) {
-            await updateProfile(auth.currentUser, {
+        if (user.displayName !== values.displayName && user.auth.currentUser) {
+            await updateProfile(user.auth.currentUser, {
                 displayName: values.displayName,
             });
         }
         
         toast({
           title: 'Sucesso!',
-          description: 'Seu perfil e métricas foram salvos.',
+          description: 'Seu perfil foi atualizado.',
         });
       } catch (error: any) {
         console.error('Error updating profile:', error);
@@ -277,6 +155,54 @@ export default function ProfilePage() {
       }
     });
   };
+
+  const handleSearch = async () => {
+    if (!username) {
+      toast({ title: 'Atenção', description: 'Por favor, insira um nome de usuário.', variant: 'destructive'});
+      return;
+    }
+    setStatus('loading');
+    setError(null);
+    setPostsError(null);
+    setProfile(null);
+    setPosts(null);
+
+    try {
+      const [profileResult, postsResult] = await Promise.allSettled([
+        getInstagramProfile(username.replace('@', '')),
+        getInstagramPosts(username.replace('@', ''))
+      ]);
+
+      if (profileResult.status === 'rejected') {
+        throw new Error(profileResult.reason.message);
+      }
+      
+      const fetchedProfile = profileResult.value;
+      setProfile(fetchedProfile);
+      
+      form.reset({
+        ...form.getValues(),
+        instagramHandle: `@${fetchedProfile.username}`,
+        displayName: form.getValues('displayName') || fetchedProfile.fullName,
+        bio: form.getValues('bio') || fetchedProfile.biography,
+        instagramFollowers: formatNumber(fetchedProfile.followersCount),
+        photoURL: fetchedProfile.profilePicUrlHd,
+      });
+
+      if (postsResult.status === 'fulfilled') {
+        setPosts(postsResult.value);
+      } else {
+        setPostsError('Não foi possível carregar os posts recentes. ' + postsResult.reason.message);
+      }
+
+      setStatus('success');
+
+    } catch (e: any) {
+      setError(e.message || 'Ocorreu um erro desconhecido.');
+      setStatus('error');
+    }
+  };
+
 
   return (
     <div className="space-y-8">
@@ -296,26 +222,100 @@ export default function ProfilePage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={form.handleSubmit(onProfileSubmit)} className="space-y-8 text-left">
+              {/* Instagram Integration */}
+                <div className="space-y-4 mb-8">
+                  <h3 className="text-lg font-semibold flex items-center gap-2"><Instagram className="h-5 w-5" /> Integração com Instagram</h3>
+                  <Card className='border-0 shadow-none'>
+                    <CardContent className="p-4 bg-muted/50 rounded-lg">
+                      <div className="flex flex-col sm:flex-row items-end gap-4">
+                        <div className="flex-1 w-full">
+                          <Label htmlFor="instagramHandleApi">Usuário do Instagram</Label>
+                          <Input
+                              id="instagramHandleApi"
+                              placeholder="@seu_usuario"
+                              value={username}
+                              onChange={(e) => setUsername(e.target.value)}
+                              className="h-11 mt-1"
+                          />
+                        </div>
+                        <Button type="button" onClick={handleSearch} disabled={status === 'loading'} className="w-full sm:w-auto">
+                          {status === 'loading' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
+                           Buscar Dados
+                        </Button>
+                      </div>
+                      <p className='text-xs text-muted-foreground mt-2'>Isso irá buscar e preencher sua foto, @, bio e número de seguidores. Os dados não serão salvos até que você clique em "Salvar Alterações".</p>
+                    </CardContent>
+                  </Card>
+                </div>
                 
-                <div className="flex flex-col sm:flex-row items-center gap-6">
-                    <div className="relative">
-                      <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
-                      <Avatar className="h-24 w-24 cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                        <AvatarImage
-                          src={localPhotoUrl ?? undefined}
-                          alt="User Avatar"
-                        />
+                {status === 'loading' && (
+                  <div className="flex justify-center items-center h-64">
+                    <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                  </div>
+                )}
+                
+                {status === 'error' && error && (
+                  <Alert variant="destructive">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>Erro ao Buscar Perfil</AlertTitle>
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
+
+                {status === 'success' && profile && (
+                  <div className="space-y-8 animate-in fade-in-50">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <MetricCard icon={Users} label="Seguidores" value={formatNumber(profile.followersCount)} />
+                      <MetricCard icon={Users} label="Seguindo" value={formatNumber(profile.followingCount)} />
+                      <MetricCard icon={Clapperboard} label="Publicações" value={formatNumber(profile.mediaCount)} />
+                      {profile.isBusiness && <MetricCard icon={ShoppingBag} label="Conta" value="Comercial" />}
+                    </div>
+
+                    {postsError && (
+                      <Alert variant="destructive">
+                        <AlertTriangle className="h-4 w-4" />
+                        <AlertTitle>Posts Recentes</AlertTitle>
+                        <AlertDescription>{postsError}</AlertDescription>
+                      </Alert>
+                    )}
+                    
+                    {posts && posts.length > 0 && (
+                      <div>
+                        <h4 className="text-lg font-semibold text-center mb-4">Posts Recentes</h4>
+                        <Carousel opts={{ align: "start", loop: true }} className="w-full">
+                          <CarouselContent>
+                            {posts.map(post => (
+                              <CarouselItem key={post.id} className="md:basis-1/2 lg:basis-1/3">
+                                <Card>
+                                  <CardContent className="p-2 aspect-square">
+                                    <Image src={post.displayUrl} alt={post.caption.slice(0, 50)} width={400} height={400} className="w-full h-full object-cover rounded-md" />
+                                  </CardContent>
+                                  <div className="p-2 text-xs text-muted-foreground flex justify-between">
+                                    <span className='flex items-center gap-1'><Heart className='h-3 w-3' /> {formatNumber(post.likes)}</span>
+                                    <span className='flex items-center gap-1'><MessageSquare className='h-3 w-3' /> {formatNumber(post.comments)}</span>
+                                  </div>
+                                </Card>
+                              </CarouselItem>
+                            ))}
+                          </CarouselContent>
+                          <CarouselPrevious className="ml-12" />
+                          <CarouselNext className="mr-12" />
+                        </Carousel>
+                      </div>
+                    )}
+                  </div>
+                )}
+                
+                <Separator className="my-8" />
+                
+                <form onSubmit={form.handleSubmit(onProfileSubmit)} className="space-y-8 text-left">
+                  <div className="flex flex-col sm:flex-row items-center gap-6">
+                      <Avatar className="h-24 w-24">
+                        <AvatarImage src={form.watch('photoURL') ?? undefined} alt="User Avatar" />
                         <AvatarFallback>
                           {user?.displayName?.[0].toUpperCase() ?? user?.email?.[0].toUpperCase() ?? 'U'}
                         </AvatarFallback>
                       </Avatar>
-                      {uploadProgress !== null && (
-                         <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full">
-                           <p className="text-white text-sm font-bold">{Math.round(uploadProgress)}%</p>
-                        </div>
-                      )}
-                    </div>
                     <div className="flex-1 w-full space-y-2">
                         <Label htmlFor="displayName">Nome de Exibição</Label>
                         <Input
@@ -324,9 +324,6 @@ export default function ProfilePage() {
                           className="h-11"
                         />
                         {form.formState.errors.displayName && <p className="text-sm font-medium text-destructive">{form.formState.errors.displayName.message}</p>}
-                         {uploadProgress !== null && (
-                            <Progress value={uploadProgress} className="w-full h-2 mt-2" />
-                        )}
                     </div>
                   </div>
                 
@@ -361,33 +358,6 @@ export default function ProfilePage() {
                 </div>
                 
                 <Separator />
-                 
-                {/* Instagram Integration */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold flex items-center gap-2"><Instagram className="h-5 w-5" /> Integração com Instagram</h3>
-                  <Card className='border-0 shadow-none'>
-                    <CardContent className="p-4 bg-muted/50 rounded-lg">
-                      <div className="flex flex-col sm:flex-row items-end gap-4">
-                        <div className="flex-1 w-full">
-                          <Label htmlFor="instagramHandleApi">Usuário do Instagram</Label>
-                          <Input
-                              id="instagramHandleApi"
-                              placeholder="@seu_usuario"
-                              value={instagramUsername}
-                              onChange={(e) => setInstagramUsername(e.target.value)}
-                              className="h-11 mt-1"
-                          />
-                        </div>
-                        <Button type="button" onClick={handleFetchInstagramData} disabled={isFetchingInstagram} className="w-full sm:w-auto">
-                          {isFetchingInstagram ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
-                           Buscar Dados
-                        </Button>
-                      </div>
-                      <p className='text-xs text-muted-foreground mt-2'>Isso irá buscar e preencher sua foto, @, bio e número de seguidores. Os dados não serão salvos até que você clique em "Salvar Alterações".</p>
-                    </CardContent>
-                  </Card>
-                </div>
-
 
                 {/* Instagram */}
                 <div className="space-y-6">
@@ -461,8 +431,8 @@ export default function ProfilePage() {
 
 
                 <div className="flex justify-center sm:justify-end pt-2">
-                  <Button type="submit" disabled={isPending || isProfileLoading || uploadProgress !== null} className="font-manrope rounded-full w-full sm:w-auto">
-                     {(isPending || uploadProgress !== null) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  <Button type="submit" disabled={isSaving || isProfileLoading} className="font-manrope rounded-full w-full sm:w-auto">
+                     {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Salvar Alterações
                   </Button>
                 </div>
@@ -473,4 +443,13 @@ export default function ProfilePage() {
   );
 }
 
-    
+
+function MetricCard({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value: string | number }) {
+  return (
+    <Card className='text-center p-4 bg-muted/50'>
+      <Icon className="h-6 w-6 text-primary mx-auto mb-2" />
+      <p className="text-xl font-bold">{value}</p>
+      <p className="text-xs text-muted-foreground">{label}</p>
+    </Card>
+  )
+}
