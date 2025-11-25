@@ -152,8 +152,8 @@ export default function GenerateWeeklyPlanPage() {
   useEffect(() => {
     if (userProfile) {
        const stats = [
-        userProfile.followers ? `${userProfile.followers} seguidores` : '',
-        userProfile.averageViews ? `${userProfile.averageViews} de média de views` : '',
+        userProfile.instagramFollowers ? `${userProfile.instagramFollowers} seguidores` : '',
+        userProfile.instagramAverageViews ? `${userProfile.instagramAverageViews} de média de views` : '',
       ].filter(Boolean).join(', ');
 
       form.reset({
