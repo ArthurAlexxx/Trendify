@@ -232,52 +232,68 @@ function VideoReviewPageContent() {
       return;
     }
 
-    setAnalysisStatus("loading");
+    setAnalysisStatus("uploading");
     setAnalysisError("");
 
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onloadend = async () => {
-      const base64data = reader.result as string;
-      try {
-        const result = await analyzeVideo({ videoDataUri: base64data });
+    const { firebaseApp } = initializeFirebase();
+    const storage = getStorage(firebaseApp);
+    const storagePath = `video-reviews/${user.uid}/${Date.now()}-${file.name}`;
+    const storageRef = ref(storage, storagePath);
+    const uploadTask = uploadBytesResumable(storageRef, file);
 
-        if (result && result.data) {
-          setAnalysisResult(result.data);
-          setAnalysisStatus("success");
+    uploadTask.on('state_changed',
+      (snapshot) => {
+        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        setUploadProgress(progress);
+      },
+      (error) => {
+        console.error("Upload error:", error);
+        setAnalysisError("Falha no upload do vídeo. Tente novamente.");
+        setAnalysisStatus("error");
+        toast({
+          title: 'Erro no Upload',
+          description: `Não foi possível enviar seu vídeo. (${error.code})`,
+          variant: 'destructive'
+        });
+      },
+      async () => {
+        try {
+          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+          setAnalysisStatus("loading");
 
-          if (usageDocRef) {
-            await setDoc(usageDocRef, { videoAnalyses: increment(1) }, { merge: true });
-          }
+          const result = await analyzeVideo({ videoUrl: downloadURL });
 
-          if (user) {
-             await addDoc(collection(firestore, `users/${user.uid}/analisesVideo`), {
+          if (result && result.data) {
+            setAnalysisResult(result.data);
+            setAnalysisStatus("success");
+
+            if (usageDocRef) {
+              await setDoc(usageDocRef, { videoAnalyses: increment(1) }, { merge: true });
+            }
+            if (user && firestore) {
+              await addDoc(collection(firestore, `users/${user.uid}/analisesVideo`), {
                 userId: user.uid,
-                videoUrl: '', // URL não está mais sendo salva
+                videoUrl: downloadURL,
                 videoFileName: file.name,
                 analysisData: result.data,
                 createdAt: serverTimestamp(),
-            });
-          }
+              });
+            }
 
-          toast({
-            title: "Análise Concluída",
-            description: "A análise do seu vídeo está pronta.",
-          });
-        } else {
-          throw new Error(result?.error || "A análise não produziu um resultado.");
+            toast({
+              title: "Análise Concluída",
+              description: "A análise do seu vídeo está pronta.",
+            });
+          } else {
+            throw new Error(result?.error || "A análise não produziu um resultado.");
+          }
+        } catch (e: any) {
+          setAnalysisError(e.message || "Ocorreu um erro desconhecido.");
+          setAnalysisStatus("error");
+          toast({ title: "Falha na Análise", description: e.message, variant: "destructive" });
         }
-      } catch (e: any) {
-        setAnalysisError(e.message || "Ocorreu um erro desconhecido.");
-        setAnalysisStatus("error");
-        toast({ title: "Falha na Análise", description: e.message, variant: "destructive" });
       }
-    };
-    reader.onerror = () => {
-      setAnalysisError("Falha ao ler o arquivo de vídeo.");
-      setAnalysisStatus("error");
-      toast({ title: "Erro", description: "Não foi possível ler o arquivo.", variant: "destructive" });
-    };
+    );
   };
 
 
@@ -621,5 +637,7 @@ function VideoReviewPageContent() {
     </div>
   );
 }
+
+    
 
     

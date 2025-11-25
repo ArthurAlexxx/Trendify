@@ -3,6 +3,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
+import { initializeFirebaseAdmin } from '@/firebase/admin';
 
 const VideoAnalysisOutputSchema = z.object({
   geral: z.string().describe('Uma nota geral de 0 a 10 para o potencial de viralização do vídeo, sempre acompanhada de uma justificativa concisa.'),
@@ -21,14 +22,26 @@ type ActionState = {
 
 
 const formSchema = z.object({
-  videoDataUri: z.string(),
+  videoUrl: z.string().url(),
 });
+
+async function urlToDataUri(url: string): Promise<string> {
+    const response = await fetch(url);
+    if (!response.ok) {
+        throw new Error(`Failed to fetch video from URL: ${response.statusText}`);
+    }
+    const contentType = response.headers.get('content-type') || 'video/mp4';
+    const buffer = await response.arrayBuffer();
+    const base64 = Buffer.from(buffer).toString('base64');
+    return `data:${contentType};base64,${base64}`;
+}
+
 
 /**
  * Server Action to analyze a video provided as a data URI.
  */
 export async function analyzeVideo(
-  input: { videoDataUri: string }
+  input: { videoUrl: string }
 ): Promise<ActionState> {
   
   const parsed = formSchema.safeParse(input);
@@ -40,11 +53,12 @@ export async function analyzeVideo(
   }
 
   try {
-    const analysis = await analyzeVideoFlow(parsed.data);
+    const videoDataUri = await urlToDataUri(parsed.data.videoUrl);
+    const analysis = await analyzeVideoFlow({ videoDataUri: videoDataUri });
     return { data: analysis };
   } catch (e: any) {
     console.error("Falha na execução do fluxo de análise:", e);
-    const errorMessage = e.message || "Ocorreu um erro desconhecido durante a análise.";
+    const errorMessage = `Não foi possível acessar o vídeo para análise. Verifique se o caminho do arquivo está correto. Detalhe: ${e.message || "Ocorreu um erro desconhecido durante a análise."}`;
     return { error: errorMessage };
   }
 }
@@ -105,3 +119,5 @@ const analyzeVideoFlow = ai.defineFlow(
     return output;
   }
 );
+
+    
