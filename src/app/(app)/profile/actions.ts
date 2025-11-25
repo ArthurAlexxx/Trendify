@@ -49,6 +49,9 @@ const PostNodeSchema = z.object({
         })).min(1),
     })
   })).nullable().optional(),
+  video_versions: z.array(z.object({
+    url: z.string().url(),
+  })).optional(),
   caption: z.object({
     text: z.string(),
   }).nullable().optional(),
@@ -67,6 +70,7 @@ const PostsResultSchema = z.object({
 export type PostData = {
     id: string;
     displayUrl: string;
+    videoUrl?: string;
     caption: string;
     likes: number;
     comments: number;
@@ -170,10 +174,12 @@ export async function getInstagramPosts(username: string): Promise<PostData[]> {
             }
 
             const isVideo = node.media_type === 2;
+            const videoUrl = isVideo && node.video_versions && node.video_versions.length > 0 ? node.video_versions[0].url : undefined;
 
             return {
                 id: node.id,
                 displayUrl: displayUrl,
+                videoUrl: videoUrl,
                 caption: node.caption?.text || '',
                 likes: node.like_count || 0,
                 comments: node.comment_count || 0,

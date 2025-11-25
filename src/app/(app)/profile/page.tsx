@@ -233,12 +233,12 @@ export default function ProfilePage() {
             ? videoPosts.reduce((acc, p) => acc + (p.views || 0), 0) / videoPosts.length 
             : 0;
         
-        const averageLikes = imagePosts.length > 0 
-            ? imagePosts.reduce((acc, p) => acc + p.likes, 0) / imagePosts.length 
+        const averageLikes = fetchedPosts.length > 0
+            ? fetchedPosts.reduce((acc, p) => acc + p.likes, 0) / fetchedPosts.length
             : 0;
 
-        const averageComments = imagePosts.length > 0 
-            ? imagePosts.reduce((acc, p) => acc + p.comments, 0) / imagePosts.length 
+        const averageComments = fetchedPosts.length > 0
+            ? fetchedPosts.reduce((acc, p) => acc + p.comments, 0) / fetchedPosts.length
             : 0;
         
         const updateData: Partial<ProfileFormData> = {
@@ -373,19 +373,28 @@ export default function ProfilePage() {
                             {posts.map(post => (
                               <CarouselItem key={post.id} className="md:basis-1/2 lg:basis-1/3">
                                 <Card className="overflow-hidden rounded-xl">
-                                  <CardContent className="p-0 aspect-square relative">
-                                    <Image src={post.displayUrl} alt={post.caption.slice(0, 50)} width={400} height={400} className="w-full h-full object-cover rounded-t-md" />
-                                    {post.isVideo && <div className="absolute inset-0 bg-black/20 flex items-center justify-center"><PlayCircle className="h-10 w-10 text-white/80" /></div>}
+                                  <CardContent className="p-0 aspect-square relative group">
+                                     {post.isVideo && post.videoUrl ? (
+                                        <video
+                                            src={post.videoUrl}
+                                            controls
+                                            className="w-full h-full object-cover"
+                                        />
+                                        ) : (
+                                        <Image 
+                                            src={post.displayUrl} 
+                                            alt={post.caption.slice(0, 50)} 
+                                            width={400} height={400} 
+                                            className="w-full h-full object-cover" 
+                                        />
+                                        )}
                                   </CardContent>
-                                  <div className="p-3 bg-muted/30 text-xs text-muted-foreground flex justify-between">
+                                  <div className="p-3 bg-muted/30 text-xs text-muted-foreground grid grid-cols-3 gap-2 text-center">
                                     {post.isVideo ? (
-                                      <span className='flex items-center gap-1.5'><Eye className='h-4 w-4 text-primary' /> {formatNumber(post.views || 0)}</span>
-                                    ) : (
-                                      <>
-                                        <span className='flex items-center gap-1.5'><Heart className='h-4 w-4 text-pink-500' /> {formatNumber(post.likes)}</span>
-                                        <span className='flex items-center gap-1.5'><MessageSquare className='h-4 w-4 text-sky-500' /> {formatNumber(post.comments)}</span>
-                                      </>
-                                    )}
+                                        <span className='flex items-center justify-center gap-1.5'><Eye className='h-4 w-4 text-primary' /> {formatNumber(post.views || 0)}</span>
+                                    ) : null}
+                                    <span className='flex items-center justify-center gap-1.5'><Heart className='h-4 w-4 text-pink-500' /> {formatNumber(post.likes)}</span>
+                                    <span className='flex items-center justify-center gap-1.5'><MessageSquare className='h-4 w-4 text-sky-500' /> {formatNumber(post.comments)}</span>
                                   </div>
                                 </Card>
                               </CarouselItem>
