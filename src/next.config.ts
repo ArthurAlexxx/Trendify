@@ -43,6 +43,12 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'scontent-bom1-2.cdninstagram.com',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
   serverActions: {
@@ -51,5 +57,3 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
-
-    

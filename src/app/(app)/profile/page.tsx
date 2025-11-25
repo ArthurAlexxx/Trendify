@@ -1,4 +1,3 @@
-
 'use client';
 
 import { PageHeader } from '@/components/page-header';
@@ -11,7 +10,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useUser, useFirestore, useDoc, useMemoFirebase, useAuth, initializeFirebase } from '@/firebase';
-import { User as UserIcon, Instagram, Film } from 'lucide-react';
+import { User as UserIcon, Instagram, Film, Search } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -99,6 +98,9 @@ export default function ProfilePage() {
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [localPhotoUrl, setLocalPhotoUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const [isFetchingInstagram, setIsFetchingInstagram] = useState(false);
+  const [instagramUsername, setInstagramUsername] = useState('');
 
   const userProfileRef = useMemoFirebase(
     () => (firestore && user ? doc(firestore, 'users', user.uid) : null),
@@ -147,6 +149,7 @@ export default function ProfilePage() {
         tiktokAverageComments: userProfile.tiktokAverageComments || '',
       });
       setLocalPhotoUrl(userProfile.photoURL || user?.photoURL || null);
+      setInstagramUsername(userProfile.instagramHandle || '');
     } else if (user) {
         form.reset({
             displayName: user.displayName || '',
@@ -200,6 +203,51 @@ export default function ProfilePage() {
       }
     );
   };
+  
+  const formatFollowers = (count: number) => {
+    if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`.replace('.', ',');
+    if (count >= 1000) return `${Math.floor(count / 1000)}K`;
+    return count.toString();
+  };
+
+  const handleFetchInstagramData = async () => {
+    if (!instagramUsername) {
+      toast({ title: 'Atenção', description: 'Por favor, insira um nome de usuário do Instagram.', variant: 'destructive' });
+      return;
+    }
+    setIsFetchingInstagram(true);
+    try {
+      const response = await fetch('/api/instagram/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: instagramUsername.replace('@', '') }),
+      });
+      
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Erro ao buscar dados do Instagram.');
+      }
+
+      const profileData = data.result;
+      form.reset({
+        ...form.getValues(),
+        instagramHandle: `@${profileData.username}`,
+        displayName: form.getValues('displayName') || profileData.full_name,
+        bio: form.getValues('bio') || profileData.biography,
+        instagramFollowers: formatFollowers(profileData.edge_followed_by.count),
+        photoURL: profileData.profile_pic_url_hd,
+      });
+      setLocalPhotoUrl(profileData.profile_pic_url_hd);
+      toast({ title: 'Sucesso!', description: 'Dados do Instagram preenchidos.' });
+
+    } catch (error: any) {
+      toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+    } finally {
+      setIsFetchingInstagram(false);
+    }
+  };
+
 
   const onProfileSubmit = (values: ProfileFormData) => {
     if (!user || !userProfileRef || !firestore) return;
@@ -237,7 +285,7 @@ export default function ProfilePage() {
         title="Gerencie seu Perfil"
         description="Mantenha suas informações atualizadas para a IA gerar estratégias mais precisas."
       />
-          <Card className="shadow-lg shadow-primary/5 border-0 rounded-2xl">
+          <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0">
             <CardHeader className="text-center sm:text-left">
               <CardTitle className="flex items-center justify-center sm:justify-start gap-3 font-headline text-xl">
                 <UserIcon className="h-6 w-6 text-primary" />
@@ -313,10 +361,37 @@ export default function ProfilePage() {
                 </div>
                 
                 <Separator />
+                 
+                {/* Instagram Integration */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold flex items-center gap-2"><Instagram className="h-5 w-5" /> Integração com Instagram</h3>
+                  <Card className='border-0 shadow-none'>
+                    <CardContent className="p-4 bg-muted/50 rounded-lg">
+                      <div className="flex flex-col sm:flex-row items-end gap-4">
+                        <div className="flex-1 w-full">
+                          <Label htmlFor="instagramHandleApi">Usuário do Instagram</Label>
+                          <Input
+                              id="instagramHandleApi"
+                              placeholder="@seu_usuario"
+                              value={instagramUsername}
+                              onChange={(e) => setInstagramUsername(e.target.value)}
+                              className="h-11 mt-1"
+                          />
+                        </div>
+                        <Button type="button" onClick={handleFetchInstagramData} disabled={isFetchingInstagram} className="w-full sm:w-auto">
+                          {isFetchingInstagram ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
+                           Buscar Dados
+                        </Button>
+                      </div>
+                      <p className='text-xs text-muted-foreground mt-2'>Isso irá buscar e preencher sua foto, @, bio e número de seguidores. Os dados não serão salvos até que você clique em "Salvar Alterações".</p>
+                    </CardContent>
+                  </Card>
+                </div>
+
 
                 {/* Instagram */}
                 <div className="space-y-6">
-                    <h3 className="text-lg font-semibold flex items-center gap-2"><Instagram className="h-5 w-5" /> Instagram</h3>
+                    <h3 className="text-lg font-semibold flex items-center gap-2"><Instagram className="h-5 w-5" /> Métricas do Instagram</h3>
                     <div className="grid sm:grid-cols-2 gap-6">
                         <div className="space-y-2">
                         <Label htmlFor="instagramHandle">Handle do Instagram</Label>
