@@ -91,7 +91,7 @@ async function testFacebookApi() {
 
 // --- ESCOLHA QUAL TESTE EXECUTAR ---
 // Para testar a API do Instagram, deixe a linha abaixo como está.
-// testInstagramApi();
+testInstagramApi();
 
 // Para testar a API do Facebook, comente a linha acima e descomente a linha abaixo.
-testFacebookApi();
+// testFacebookApi();

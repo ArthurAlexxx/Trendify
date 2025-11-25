@@ -135,7 +135,8 @@ export async function GET(req: NextRequest) {
         const userRef = firestore.collection('users').doc(uid);
 
         const formatFollowers = (num: number) => {
-            if (num >= 1000) return (num / 1000).toFixed(1).replace('.', ',') + 'K';
+            if (num >= 1000000) return (num / 1000000).toFixed(1).replace('.', ',') + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(0) + 'K';
             return num.toString();
         }
 
@@ -144,6 +145,7 @@ export async function GET(req: NextRequest) {
             instagramUserId: accountInfo.id,
             instagramHandle: accountInfo.username,
             followers: accountInfo.followers_count ? formatFollowers(accountInfo.followers_count) : '0',
+            // Limpa as métricas antigas para serem recalculadas no futuro
             averageViews: null,
             averageLikes: null,
             averageComments: null,
