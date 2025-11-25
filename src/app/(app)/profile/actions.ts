@@ -76,7 +76,6 @@ const TikTokPostSchema = z.object({
     video_id: z.string(),
     description: z.string(),
     cover: z.string().url(),
-    download_url: z.string().url(),
     statistics: z.object({
         number_of_plays: z.number(),
         number_of_hearts: z.number(),
@@ -93,7 +92,6 @@ const TikTokPostResponseSchema = z.object({
 export type TikTokPostData = {
     id: string;
     description: string;
-    videoUrl: string;
     coverUrl: string;
     views: number;
     likes: number;
@@ -190,7 +188,9 @@ async function fetchData(url: string, options: RequestInit) {
 export async function getInstagramProfile(username: string): Promise<InstagramProfileData> {
     try {
         const result = await fetchFromRapidApi('instagram', username);
-        const parsed = InstagramProfileResultSchema.parse(result.data || result);
+        // Adapt to the new API response structure where data is inside a "result" object
+        const dataToParse = result.result || result;
+        const parsed = InstagramProfileResultSchema.parse(dataToParse);
 
         if (parsed.is_private) {
             throw new Error("Este perfil é privado. A integração funciona apenas com perfis públicos.");
@@ -266,7 +266,6 @@ export async function getTikTokPosts(username: string): Promise<TikTokPostData[]
         return parsed.videos.map(post => ({
             id: post.video_id,
             description: post.description,
-            videoUrl: post.download_url,
             coverUrl: post.cover,
             views: post.statistics.number_of_plays,
             likes: post.statistics.number_of_hearts,
