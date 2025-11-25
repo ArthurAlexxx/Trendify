@@ -20,7 +20,6 @@ import {
   Loader2,
   Instagram,
   Film,
-  Clapperboard,
 } from 'lucide-react';
 import {
   ChartContainer,
@@ -355,7 +354,6 @@ export default function DashboardPage() {
         return {
             handle: hasInsta && hasTiktok ? 'Total' : hasInsta ? userProfile.instagramHandle : hasTiktok ? userProfile.tiktokHandle : 'N/A',
             followers: parseMetric(userProfile.instagramFollowers) + parseMetric(userProfile.tiktokFollowers),
-            publications: (userProfile.mediaCount || 0) + 0, // Assuming TikTok media count is not tracked yet
             likes: parseMetric(userProfile.instagramAverageLikes) + parseMetric(userProfile.tiktokAverageLikes),
             comments: parseMetric(userProfile.instagramAverageComments) + parseMetric(userProfile.tiktokAverageComments),
         }
@@ -363,13 +361,11 @@ export default function DashboardPage() {
     return selectedPlatform === 'instagram' ? {
         handle: userProfile.instagramHandle,
         followers: parseMetric(userProfile.instagramFollowers),
-        publications: userProfile.mediaCount || 0,
         likes: parseMetric(userProfile.instagramAverageLikes),
         comments: parseMetric(userProfile.instagramAverageComments),
     } : {
         handle: userProfile.tiktokHandle,
         followers: parseMetric(userProfile.tiktokFollowers),
-        publications: 0, // TikTok media count is not tracked yet
         likes: parseMetric(userProfile.tiktokAverageLikes),
         comments: parseMetric(userProfile.tiktokAverageComments),
     }
@@ -497,7 +493,7 @@ export default function DashboardPage() {
             <CardContent>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 justify-center">
                   <MetricCard icon={Users} title="Seguidores" value={formatMetricValue(latestMetrics?.followers)} handle={selectedPlatform !== 'total' ? latestMetrics?.handle as string : undefined} isLoading={isLoading} />
-                  <MetricCard icon={Clapperboard} title="Publicações" value={formatMetricValue(latestMetrics?.publications)} isLoading={isLoading} />
+                  <MetricCard icon={Eye} title="Views (Manual)" isManual={true} isLoading={isLoading} />
                   <MetricCard icon={Heart} title="Média de Likes" value={formatMetricValue(latestMetrics?.likes)} isLoading={isLoading} />
                   <MetricCard icon={MessageSquare} title="Média de Comentários" value={formatMetricValue(latestMetrics?.comments)} isLoading={isLoading} />
                 </div>
@@ -827,7 +823,7 @@ export default function DashboardPage() {
 }
 
 
-function MetricCard({ icon: Icon, title, value, handle, isLoading }: { icon: React.ElementType, title: string, value?: string, handle?: string, isLoading: boolean }) {
+function MetricCard({ icon: Icon, title, value, handle, isLoading, isManual }: { icon: React.ElementType, title: string, value?: string, handle?: string, isLoading: boolean, isManual?: boolean }) {
     return (
         <div className="p-6 rounded-lg bg-muted/50 flex flex-col justify-center text-center sm:text-left">
             <div className="flex flex-col sm:flex-row items-center justify-between space-y-2 sm:space-y-0 pb-2">
@@ -837,6 +833,14 @@ function MetricCard({ icon: Icon, title, value, handle, isLoading }: { icon: Rea
                 <Icon className="h-4 w-4 text-primary" />
             </div>
             {isLoading ? <Skeleton className="h-8 w-24 mt-1" /> :
+                isManual ? (
+                     <div className="flex items-center gap-2 mt-1">
+                        <AlertTriangle className="h-5 w-5 text-amber-500" />
+                        <Link href="/profile" className="text-sm text-muted-foreground hover:underline">
+                            Atualize no perfil
+                        </Link>
+                    </div>
+                ) : (
                 <>
                     <div className="text-3xl font-bold font-headline">
                         {value || '—'}
@@ -847,10 +851,12 @@ function MetricCard({ icon: Icon, title, value, handle, isLoading }: { icon: Rea
                         </p>
                     )}
                 </>
-            }
+            )}
         </div>
     )
 }
+    
+
     
 
     
