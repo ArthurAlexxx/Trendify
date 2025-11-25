@@ -52,3 +52,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: error.message || 'Ocorreu um erro desconhecido.' }, { status: 500 });
   }
 }
+
+    
