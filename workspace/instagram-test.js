@@ -9,7 +9,8 @@
 // 2. Cole o token gerado na variável `USER_ACCESS_TOKEN` abaixo.
 // 3. Abra o terminal e execute o script com: node workspace/instagram-test.js
 
-const USER_ACCESS_TOKEN = 'IGAAz8oOjNLRhBZAFF5NlZA1Rms2QXM1TFVZAMHN4amFQa2ZAWNlVsbjRqMGpEdWFmVGZA6QXpfSUxjLTFfbGVNTkFYQ1hPQU5SdEM1cTJ2ZAERyS3dJMWowbHpETGJlQVFRbC1ITFM5RlkxM09kaU5PVU0tOHVZAN3lUSUh2UU5nOHBXWQZDZD';
+// COLE SEU TOKEN DE ACESSO AQUI DENTRO DAS ASPAS
+const USER_ACCESS_TOKEN = 'COLE_SEU_TOKEN_DE_ACESSO_DE_USUARIO_AQUI';
 
 async function testInstagramApi() {
   if (!USER_ACCESS_TOKEN || USER_ACCESS_TOKEN.startsWith('COLE_SEU_TOKEN')) {
@@ -38,10 +39,10 @@ async function testInstagramApi() {
       console.log('Isso geralmente indica que o token expirou, é inválido ou não possui as permissões necessárias.');
     } else if (data.id && data.username) {
       console.log('\x1b[32m%s\x1b[0m', `SUCESSO: Token válido para o usuário @${data.username} (ID: ${data.id})`);
-      if (data.account_type === 'BUSINESS' || data.account_type === 'CREATOR') {
+      if (data.account_type === 'BUSINESS' || data.account_type === 'MEDIA_CREATOR') {
           console.log(`-> Tipo de conta: ${data.account_type}. Correto para a integração.`);
       } else {
-          console.warn('\x1b[33m%s\x1b[0m', `AVISO: A conta é do tipo "${data.account_type}". A integração exige uma conta "BUSINESS" ou "CREATOR".`);
+          console.warn('\x1b[33m%s\x1b[0m', `AVISO: A conta é do tipo "${data.account_type}". A integração exige uma conta "BUSINESS" ou "MEDIA_CREATOR".`);
       }
     } else {
         console.warn('\x1b[33m%s\x1b[0m', 'AVISO: A resposta não contém os dados esperados (id, username). Verifique se o token tem as permissões corretas (pelo menos instagram_business_basic).');
@@ -52,4 +53,46 @@ async function testInstagramApi() {
   }
 }
 
+async function testFacebookApi() {
+  if (!USER_ACCESS_TOKEN || USER_ACCESS_TOKEN.startsWith('COLE_SEU_TOKEN')) {
+    console.error('\x1b[31m%s\x1b[0m', 'ERRO: Por favor, insira um Token de Acesso do Usuário válido na variável USER_ACCESS_TOKEN.');
+    return;
+  }
+
+  console.log('Iniciando teste com a API do Facebook Graph...');
+  
+  // Este endpoint busca o perfil básico do usuário no Facebook.
+  // Requer as permissões 'public_profile' e 'email'.
+  const url = `https://graph.facebook.com/me?fields=id,name,email,picture&access_token=${USER_ACCESS_TOKEN}`;
+
+  try {
+    console.log(`\nFazendo requisição para: ${url.replace(USER_ACCESS_TOKEN, '[TOKEN_OMITIDO]')}\n`);
+
+    const response = await fetch(url);
+    const data = await response.json();
+
+    console.log('\x1b[36m%s\x1b[0m', '--- RESPOSTA DA API DO FACEBOOK ---');
+    console.log(JSON.stringify(data, null, 2));
+    console.log('\x1b[36m%s\x1b[0m', '-----------------------------------\n');
+
+    if (data.error) {
+      console.error('\x1b[31m%s\x1b[0m', `A API retornou um erro: ${data.error.message}`);
+      console.log('Verifique se o token é válido e possui as permissões "public_profile" e "email".');
+    } else if (data.id && data.name) {
+      console.log('\x1b[32m%s\x1b[0m', `SUCESSO: Token válido para o usuário ${data.name} (ID: ${data.id})`);
+    } else {
+        console.warn('\x1b[33m%s\x1b[0m', 'AVISO: A resposta não contém os dados esperados (id, name).');
+    }
+
+  } catch (error) {
+    console.error('\x1b[31m%s\x1b[0m', 'Ocorreu um erro crítico durante a requisição:', error);
+  }
+}
+
+
+// --- ESCOLHA QUAL TESTE EXECUTAR ---
+// Para testar a API do Instagram, deixe a linha abaixo como está.
 testInstagramApi();
+
+// Para testar a API do Facebook, comente a linha acima e descomente a linha abaixo.
+// testFacebookApi();
