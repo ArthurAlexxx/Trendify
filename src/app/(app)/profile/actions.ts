@@ -1,13 +1,8 @@
 
 'use server';
+
 import { z } from 'zod';
 
-// Utility schemas
-const CountSchema = z.object({
-  count: z.number().optional(),
-});
-
-// Profile Schema
 const ProfileResultSchema = z.object({
   id: z.string(),
   username: z.string(),
@@ -15,9 +10,15 @@ const ProfileResultSchema = z.object({
   profile_pic_url_hd: z.string().url(),
   biography: z.string(),
   full_name: z.string(),
-  edge_owner_to_timeline_media: CountSchema,
-  edge_followed_by: CountSchema,
-  edge_follow: CountSchema,
+  edge_owner_to_timeline_media: z.object({
+    count: z.number().optional(),
+  }),
+  edge_followed_by: z.object({
+    count: z.number().optional(),
+  }),
+  edge_follow: z.object({
+    count: z.number().optional(),
+  }),
   is_business_account: z.boolean().optional(),
 });
 
@@ -34,7 +35,6 @@ export type ProfileData = {
     isBusiness: boolean;
 }
 
-// Post Schema - Updated to match the real API response
 const PostNodeSchema = z.object({
   id: z.string(),
   image_versions2: z.object({
@@ -48,7 +48,7 @@ const PostNodeSchema = z.object({
             url: z.string().url(),
         })).min(1),
     })
-  })).optional(),
+  })).nullable().optional(),
   caption: z.object({
     text: z.string(),
   }).nullable().optional(),
@@ -96,7 +96,6 @@ async function fetchFromRapidApi(endpoint: 'profile' | 'posts', username: string
     const data = await response.json();
 
     if (!response.ok || data.message) {
-      // Prioritize the message from the API body if it exists
       throw new Error(data.message || `A API retornou um erro: ${response.statusText}`);
     }
 
@@ -127,7 +126,6 @@ export async function getInstagramProfile(username: string): Promise<ProfileData
         };
     } catch (e: any) {
         console.error(`[ACTION ERROR - getInstagramProfile] ${e.message}`);
-        // This is a simple way to propagate Zod errors for debugging
         if (e.issues) {
              throw new Error(`Falha na validação dos dados do perfil: ${e.issues.map((issue: any) => `${issue.path.join('.')} - ${issue.message}`).join(', ')}`);
         }
@@ -142,9 +140,12 @@ export async function getInstagramPosts(username: string): Promise<PostData[]> {
         
         return parsed.edges.map(({ node }) => {
             let displayUrl = '';
+            // Handle carousel posts
             if (node.media_type === 8 && node.carousel_media && node.carousel_media.length > 0) {
                  displayUrl = node.carousel_media[0].image_versions2.candidates[0].url;
-            } else if (node.image_versions2 && node.image_versions2.candidates.length > 0) {
+            } 
+            // Handle single image/video posts
+            else if (node.image_versions2 && node.image_versions2.candidates.length > 0) {
                 displayUrl = node.image_versions2.candidates[0].url;
             }
 
@@ -160,7 +161,8 @@ export async function getInstagramPosts(username: string): Promise<PostData[]> {
     } catch (e: any) {
         console.error(`[ACTION ERROR - getInstagramPosts] ${e.message}`);
          if (e.issues) {
-             throw new Error(`Falha na validação dos dados dos posts: ${e.issues.map((issue: any) => `${issue.path.join('.')} - ${issue.message}`).join(', ')}`);
+             const errorDetails = e.issues.map((issue: any) => `${issue.path.join('.')} - ${issue.message}`).join(', ');
+             throw new Error(`Falha na validação dos dados dos posts: ${errorDetails}`);
         }
         throw new Error(`Falha ao buscar posts do Instagram: ${e.message}`);
     }
