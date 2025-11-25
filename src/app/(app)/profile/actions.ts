@@ -239,13 +239,23 @@ export async function getInstagramPosts(username: string): Promise<InstagramPost
     try {
         const result = await fetchFromRapidApi('instagram-posts', username);
         
-        const dataToParse = result.result;
+        // Flexibly find the array of posts within the response object
+        let postsArray = null;
+        if (Array.isArray(result)) {
+            postsArray = result;
+        } else if (typeof result === 'object' && result !== null) {
+            // Find the first key that holds an array
+            const keyWithArray = Object.keys(result).find(key => Array.isArray(result[key]));
+            if (keyWithArray) {
+                postsArray = result[keyWithArray];
+            }
+        }
 
-        if (!Array.isArray(dataToParse)) {
+        if (!postsArray) {
             throw new Error('A resposta da API de posts não continha uma lista de publicações.');
         }
 
-        const parsed = z.array(InstagramPostSchema).parse(dataToParse);
+        const parsed = z.array(InstagramPostSchema).parse(postsArray);
         
         return parsed.map(post => ({
             id: post.id,
@@ -334,3 +344,6 @@ export async function getTikTokPosts(username: string): Promise<TikTokPostData[]
     }
 }
 
+
+
+    
