@@ -36,6 +36,7 @@ export type InstagramProfileData = {
     mediaCount: number;
     followersCount: number;
     followingCount: number;
+    followingCount: number;
 }
 
 const InstagramPostSchema = z.object({
@@ -160,7 +161,7 @@ async function fetchFromRapidApi(platform: 'instagram-profile' | 'instagram-post
     }
 
     if (!host) {
-        throw new Error(`O host da API para a plataforma '${platform}' não está configurado.`);
+        throw new Error(`O host da API para a plataforma '${platform.split('-')[0]}' não está configurado.`);
     }
     
     const url = new URL(`https://${host}/${path}`);
@@ -242,7 +243,11 @@ export async function getInstagramPosts(username: string): Promise<InstagramPost
     }
     try {
         const result = await fetchFromRapidApi('instagram-posts', username);
-        const parsed = z.array(InstagramPostSchema).parse(result);
+        
+        // Handle cases where the data is nested under 'result'
+        const dataToParse = result.result || result;
+
+        const parsed = z.array(InstagramPostSchema).parse(dataToParse);
         
         return parsed.map(post => ({
             id: post.id,
@@ -305,6 +310,7 @@ export async function getTikTokPosts(username: string): Promise<TikTokPostData[]
         const parsed = TikTokPostResponseSchema.parse(result);
         
         const recentPosts = parsed.videos.filter(post => {
+            if (!post.create_time) return false;
             const postDate = new Date(Number(post.create_time) * 1000);
             const thirtyOneDaysAgo = new Date();
             thirtyOneDaysAgo.setDate(thirtyOneDaysAgo.getDate() - 31);
