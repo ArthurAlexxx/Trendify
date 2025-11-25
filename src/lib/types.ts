@@ -90,4 +90,14 @@ export interface AnaliseVideo {
     createdAt: Timestamp;
 }
 
+export interface MetricSnapshot {
+    id: string;
+    userId: string;
+    date: Timestamp;
+    platform: 'instagram' | 'tiktok';
+    followers: string;
+    views: string;
+    likes: string;
+    comments: string;
+}
     

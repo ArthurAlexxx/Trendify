@@ -20,7 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2 } from 'lucide-react';
 import { updateProfile } from 'firebase/auth';
@@ -162,7 +162,7 @@ export default function ProfilePage() {
   };
 
   const onProfileSubmit = (values: z.infer<typeof profileFormSchema>) => {
-    if (!user || !userProfileRef) return;
+    if (!user || !userProfileRef || !firestore) return;
     
     startTransition(async () => {
       try {
@@ -176,10 +176,36 @@ export default function ProfilePage() {
                 displayName: values.displayName,
             });
         }
+        
+        // Save metric snapshots
+        const now = new Date();
+        const metricSnapshotsRef = collection(firestore, `users/${user.uid}/metricSnapshots`);
+
+        if (values.instagramHandle) {
+             await addDoc(metricSnapshotsRef, {
+                date: serverTimestamp(),
+                platform: 'instagram',
+                followers: values.instagramFollowers || '0',
+                views: values.instagramAverageViews || '0',
+                likes: values.instagramAverageLikes || '0',
+                comments: values.instagramAverageComments || '0',
+             });
+        }
+        
+        if (values.tiktokHandle) {
+             await addDoc(metricSnapshotsRef, {
+                date: serverTimestamp(),
+                platform: 'tiktok',
+                followers: values.tiktokFollowers || '0',
+                views: values.tiktokAverageViews || '0',
+                likes: values.tiktokAverageLikes || '0',
+                comments: values.tiktokAverageComments || '0',
+             });
+        }
 
         toast({
           title: 'Sucesso!',
-          description: 'Seu perfil foi atualizado.',
+          description: 'Seu perfil e métricas foram salvos.',
         });
       } catch (error: any) {
         console.error('Error updating profile:', error);
@@ -359,5 +385,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
-    

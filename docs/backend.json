@@ -25,14 +25,6 @@
           "format": "date-time",
           "description": "The timestamp when the user profile was created."
         },
-        "instagramHandle": {
-            "type": "string",
-            "description": "User's Instagram handle (e.g., @username)."
-        },
-        "youtubeHandle": {
-            "type": "string",
-            "description": "User's YouTube handle (e.g., @YourChannel)."
-        },
         "niche": {
             "type": "string",
             "description": "The creator's content niche (e.g., 'Lifestyle and sustainable fashion')."
@@ -41,25 +33,49 @@
             "type": "string",
             "description": "A short, professional biography for the media kit."
         },
-        "followers": {
-            "type": "string",
-            "description": "Total number of followers (e.g., '250K')."
-        },
-        "averageViews": {
-            "type": "string",
-            "description": "Average number of views per post (e.g., '15.5K')."
-        },
-        "averageLikes": {
-            "type": "string",
-            "description": "Average number of likes per post (e.g., '890')."
-        },
-        "averageComments": {
-            "type": "string",
-            "description": "Average number of comments per post (e.g., '120')."
-        },
         "audience": {
             "type": "string",
             "description": "Description of the audience demographics."
+        },
+        "instagramHandle": {
+            "type": "string",
+            "description": "User's Instagram handle (e.g., @username)."
+        },
+        "instagramFollowers": {
+            "type": "string",
+            "description": "Total number of Instagram followers (e.g., '250K')."
+        },
+        "instagramAverageViews": {
+            "type": "string",
+            "description": "Average number of views per Instagram post (e.g., '15.5K')."
+        },
+        "instagramAverageLikes": {
+            "type": "string",
+            "description": "Average number of likes per Instagram post (e.g., '890')."
+        },
+        "instagramAverageComments": {
+            "type": "string",
+            "description": "Average number of comments per Instagram post (e.g., '120')."
+        },
+        "tiktokHandle": {
+            "type": "string",
+            "description": "User's TikTok handle (e.g., @YourChannel)."
+        },
+        "tiktokFollowers": {
+            "type": "string",
+            "description": "Total number of TikTok followers (e.g., '1.2M')."
+        },
+        "tiktokAverageViews": {
+            "type": "string",
+            "description": "Average number of views per TikTok video (e.g., '1M')."
+        },
+        "tiktokAverageLikes": {
+            "type": "string",
+            "description": "Average number of likes per TikTok video (e.g., '100K')."
+        },
+        "tiktokAverageComments": {
+            "type": "string",
+            "description": "Average number of comments per TikTok video (e.g., '1.5K')."
         },
         "subscription": {
           "type": "object",
@@ -88,6 +104,44 @@
         }
       },
       "required": ["displayName", "email", "createdAt"]
+    },
+    "MetricSnapshot": {
+        "title": "Metric Snapshot",
+        "description": "A snapshot of a user's social media metrics for a specific day and platform.",
+        "type": "object",
+        "properties": {
+            "userId": {
+                "type": "string",
+                "description": "The ID of the user."
+            },
+            "date": {
+                "type": "string",
+                "format": "date-time",
+                "description": "The timestamp when the snapshot was taken."
+            },
+            "platform": {
+                "type": "string",
+                "enum": ["instagram", "tiktok"],
+                "description": "The social media platform for these metrics."
+            },
+            "followers": {
+                "type": "string",
+                "description": "Total number of followers at the time of the snapshot."
+            },
+            "views": {
+                "type": "string",
+                "description": "Average views at the time of the snapshot."
+            },
+            "likes": {
+                "type": "string",
+                "description": "Average likes at the time of the snapshot."
+            },
+            "comments": {
+                "type": "string",
+                "description": "Average comments at the time of the snapshot."
+            }
+        },
+        "required": ["userId", "date", "platform", "followers"]
     },
     "DailyUsage": {
       "title": "Daily Usage",
@@ -207,6 +261,10 @@
     "/users/{userId}": {
       "schema": { "$ref": "#/entities/UserProfile" },
       "description": "Stores user profile data."
+    },
+    "/users/{userId}/metricSnapshots/{snapshotId}": {
+        "schema": { "$ref": "#/entities/MetricSnapshot" },
+        "description": "Stores daily metric snapshots for a user, per platform."
     },
     "/users/{userId}/dailyUsage/{usageId}": {
         "schema": { "$ref": "#/entities/DailyUsage" },

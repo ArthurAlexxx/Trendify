@@ -39,6 +39,14 @@ service cloud.firestore {
      match /users/{userId}/analisesVideo {
       allow list: if request.auth.uid == userId;
     }
+    
+    // Allow users to manage their own metric snapshots
+    match /users/{userId}/metricSnapshots/{snapshotId} {
+      allow read, create: if request.auth.uid == userId;
+    }
+     match /users/{userId}/metricSnapshots {
+      allow list: if request.auth.uid == userId;
+    }
 
     // Protect all other data to only be accessible by authenticated users
     match /metrica/{metricaId} {
@@ -74,5 +82,3 @@ service firebase.storage {
     }
   }
 }
-
-    

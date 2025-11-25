@@ -4,32 +4,25 @@ import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-  TrendingDown,
-  TrendingUp,
-  Plus,
-  Rocket,
-  Lightbulb,
-  Video,
-  Newspaper,
-  Calendar,
-  ChevronDown,
-  Tag,
-  ClipboardList,
-  AlertTriangle,
-  LayoutGrid,
-  MoreHorizontal,
-  CheckCircle,
   Users,
   Eye,
   Heart,
   MessageSquare,
+  AlertTriangle,
+  LayoutGrid,
+  ClipboardList,
+  Calendar,
+  MoreHorizontal,
+  CheckCircle,
+  Tag,
+  Rocket,
 } from 'lucide-react';
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Legend, Tooltip as RechartsTooltip } from 'recharts';
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
 import { ChartConfig } from '@/components/ui/chart';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
@@ -39,10 +32,11 @@ import type {
   ConteudoAgendado,
   UserProfile,
   PlanoSemanal,
+  MetricSnapshot,
 } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Checkbox } from '@/components/ui/checkbox';
-import { formatDistanceToNow } from 'date-fns';
+import { format, formatDistanceToNow, isToday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
   DropdownMenu,
@@ -56,30 +50,46 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useState, useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { useUser, useFirestore, useCollection, useDoc, useMemoFirebase } from '@/firebase';
 import { collection, doc, query, orderBy, limit, updateDoc, where } from 'firebase/firestore';
 
 
 const chartConfig = {
-  views: { label: "Views", color: "hsl(var(--chart-1))" },
-  likes: { label: "Likes", color: "hsl(var(--chart-2))" },
-  comments: { label: "Comentários", color: "hsl(var(--chart-3))" },
+  followers: { label: "Seguidores", color: "hsl(var(--chart-1))" },
+  views: { label: "Views", color: "hsl(var(--chart-2))" },
+  likes: { label: "Likes", color: "hsl(var(--chart-3))" },
+  comments: { label: "Comentários", color: "hsl(var(--chart-4))" },
 } satisfies ChartConfig;
 
-const ProfileCompletionAlert = ({ userProfile }: { userProfile: UserProfile | null }) => {
-    const isProfileComplete = userProfile?.niche && (userProfile.instagramFollowers || userProfile.tiktokFollowers);
-    if (isProfileComplete) return null;
 
-    return (
-        <Alert>
-            <AlertTriangle className="h-4 w-4 text-primary" />
-            <AlertTitle>Complete seu Perfil!</AlertTitle>
-            <AlertDescription>
-                <Link href="/profile" className='hover:underline font-semibold'>Adicione seu nicho e métricas</Link> para que a IA gere insights mais precisos e os gráficos funcionem.
-            </AlertDescription>
-        </Alert>
-    )
+const ProfileCompletionAlert = ({ userProfile, hasUpdatedToday }: { userProfile: UserProfile | null, hasUpdatedToday: boolean }) => {
+    const isProfileSetup = userProfile?.niche && (userProfile.instagramHandle || userProfile.tiktokHandle);
+
+    if (!isProfileSetup) {
+      return (
+          <Alert>
+              <AlertTriangle className="h-4 w-4 text-primary" />
+              <AlertTitle>Complete seu Perfil!</AlertTitle>
+              <AlertDescription>
+                  <Link href="/profile" className='hover:underline font-semibold'>Adicione seu nicho e @ de usuário</Link> para que a IA gere insights mais precisos.
+              </AlertDescription>
+          </Alert>
+      )
+    }
+
+    if (!hasUpdatedToday) {
+         return (
+            <Alert>
+                <AlertTriangle className="h-4 w-4 text-primary" />
+                <AlertTitle>Atualize suas Métricas!</AlertTitle>
+                <AlertDescription>
+                    <Link href="/profile" className='hover:underline font-semibold'>Vá para a página de perfil</Link> e atualize suas métricas de hoje para manter os gráficos precisos.
+                </AlertDescription>
+            </Alert>
+        )
+    }
+
+    return null;
 }
 
 
@@ -111,42 +121,56 @@ export default function DashboardPage() {
   ), [firestore, user]);
   const { data: upcomingContent, isLoading: isLoadingUpcoming } = useCollection<ConteudoAgendado>(upcomingContentQuery);
 
-  const isLoading = isLoadingProfile || isLoadingRoteiro || isLoadingIdeias || isLoadingUpcoming;
+  const metricSnapshotsQuery = useMemoFirebase(() => (
+    firestore && user ? query(collection(firestore, `users/${user.uid}/metricSnapshots`), orderBy('date', 'desc'), limit(30)) : null
+  ), [firestore, user]);
+  const { data: metricSnapshots, isLoading: isLoadingMetrics } = useCollection<MetricSnapshot>(metricSnapshotsQuery);
 
-  const platformMetrics = useMemo(() => {
-    if (!userProfile) return { followers: '—', handle: 'Adicionar no perfil' };
-    if (selectedPlatform === 'instagram') {
-        return {
-            followers: userProfile.instagramFollowers || '—',
-            handle: userProfile.instagramHandle || 'Adicionar no perfil',
-        }
-    } else {
-        return {
-            followers: userProfile.tiktokFollowers || '—',
-            handle: userProfile.tiktokHandle || 'Adicionar no perfil',
-        }
+  const hasUpdatedToday = useMemo(() => {
+    if (!metricSnapshots || metricSnapshots.length === 0) return false;
+    const lastUpdate = metricSnapshots[0]?.date.toDate();
+    return lastUpdate ? isToday(lastUpdate) : false;
+  }, [metricSnapshots]);
+
+
+  const isLoading = isLoadingProfile || isLoadingRoteiro || isLoadingIdeias || isLoadingUpcoming || isLoadingMetrics;
+  
+  const parseMetric = (value?: string | number) => {
+    if (typeof value === 'number') return value;
+    if (!value) return 0;
+    const num = parseFloat(value.replace('K', '000').replace('M', '000000').replace(',', '.'));
+    return isNaN(num) ? 0 : num;
+  };
+  
+  const latestMetrics = useMemo(() => {
+    if (!userProfile) return null;
+    return selectedPlatform === 'instagram' ? {
+        handle: userProfile.instagramHandle,
+        followers: userProfile.instagramFollowers,
+        views: userProfile.instagramAverageViews,
+        likes: userProfile.instagramAverageLikes,
+        comments: userProfile.instagramAverageComments,
+    } : {
+        handle: userProfile.tiktokHandle,
+        followers: userProfile.tiktokFollowers,
+        views: userProfile.tiktokAverageViews,
+        likes: userProfile.tiktokAverageLikes,
+        comments: userProfile.tiktokAverageComments,
     }
   }, [userProfile, selectedPlatform]);
 
-  const metricsChartData = useMemo(() => {
-     if (!userProfile) return [];
-     
-     const parseMetric = (value?: string) => {
-        if (!value) return 0;
-        const num = parseFloat(value.replace('K', '000').replace('M', '000000').replace(',', '.'));
-        return isNaN(num) ? 0 : num;
-     }
-
-     if (selectedPlatform === 'instagram') {
-        return [
-            { name: 'Métricas', views: parseMetric(userProfile.instagramAverageViews), likes: parseMetric(userProfile.instagramAverageLikes), comments: parseMetric(userProfile.instagramAverageComments) }
-        ]
-     } else {
-         return [
-            { name: 'Métricas', views: parseMetric(userProfile.tiktokAverageViews), likes: parseMetric(userProfile.tiktokAverageLikes), comments: parseMetric(userProfile.tiktokAverageComments) }
-        ]
-     }
-  }, [userProfile, selectedPlatform]);
+  const historicalChartData = useMemo(() => {
+    if (!metricSnapshots) return [];
+    return metricSnapshots
+        .filter(snap => snap.platform === selectedPlatform)
+        .map(snap => ({
+            date: format(snap.date.toDate(), 'dd/MM'),
+            followers: parseMetric(snap.followers),
+            views: parseMetric(snap.views),
+            likes: parseMetric(snap.likes),
+            comments: parseMetric(snap.comments),
+        })).reverse(); // reverse to show oldest to newest
+  }, [metricSnapshots, selectedPlatform]);
 
 
   const handleToggleIdeia = async (ideia: IdeiaSalva) => {
@@ -190,7 +214,6 @@ export default function DashboardPage() {
 
   const visibleItems = roteiro?.items.slice(0, 3);
   const collapsibleItems = roteiro?.items.slice(3);
-  const hasMetricsData = metricsChartData.length > 0 && (metricsChartData[0].views > 0 || metricsChartData[0].likes > 0 || metricsChartData[0].comments > 0);
 
   return (
     <div className="space-y-12">
@@ -203,7 +226,7 @@ export default function DashboardPage() {
       />
 
       <div className="space-y-8">
-        <ProfileCompletionAlert userProfile={userProfile} />
+        <ProfileCompletionAlert userProfile={userProfile} hasUpdatedToday={hasUpdatedToday} />
 
         {/* Métricas Principais */}
         <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card">
@@ -228,63 +251,59 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    <div className="p-6 rounded-lg bg-muted/50 flex flex-col justify-center">
-                        <div className="flex flex-row items-center justify-between space-y-0 pb-2">
-                          <h3 className="text-base font-medium text-muted-foreground">
-                            Seguidores
-                          </h3>
-                          <Users className="h-4 w-4 text-primary" />
-                        </div>
-                         {isLoadingProfile ? <Skeleton className="h-8 w-24" /> :
-                            <>
-                                <div className="text-3xl font-bold font-headline">
-                                    {platformMetrics.followers}
-                                </div>
-                                <p className="text-xs text-muted-foreground">
-                                    {platformMetrics.followers === '—' ? <Link href="/profile" className="hover:underline">Adicionar no perfil</Link> : platformMetrics.handle}
-                                </p>
-                            </>
-                        }
-                    </div>
-                     <div className="lg:col-span-3">
-                        {isLoadingProfile ? <Skeleton className="h-[200px] w-full" /> : 
-                            hasMetricsData ? (
-                                <ChartContainer config={chartConfig} className="h-[200px] w-full">
-                                <BarChart data={metricsChartData} layout="vertical" margin={{ left: -20 }}>
-                                    <CartesianGrid horizontal={false} />
-                                    <YAxis type="category" dataKey="name" hide />
-                                    <XAxis type="number" hide />
-                                    <RechartsTooltip cursor={{ fill: 'hsl(var(--muted))' }} content={<ChartTooltipContent />} />
-                                    <Legend />
-                                    <Bar dataKey="views" name="Views" fill="var(--color-views)" radius={[0, 4, 4, 0]} />
-                                    <Bar dataKey="likes" name="Likes" fill="var(--color-likes)" radius={[0, 4, 4, 0]} />
-                                    <Bar dataKey="comments" name="Comentários" fill="var(--color-comments)" radius={[0, 4, 4, 0]} />
-                                </BarChart>
-                                </ChartContainer>
-                            ) : (
-                                <div className="h-full w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
-                                    <div>
-                                    <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
-                                    <h3 className="font-semibold text-foreground">
-                                        Sem dados de métricas.
-                                    </h3>
-                                    <p className="text-sm text-muted-foreground">
-                                       <Link href="/profile" className="text-primary font-medium hover:underline">Adicione as métricas</Link> para ver o gráfico.
-                                    </p>
-                                    </div>
-                                </div>
-                            )
-                        }
-                    </div>
+                  <MetricCard icon={Users} title="Seguidores" value={latestMetrics?.followers} handle={latestMetrics?.handle} isLoading={isLoading} />
+                  <MetricCard icon={Eye} title="Média de Views" value={latestMetrics?.views} isLoading={isLoading} />
+                  <MetricCard icon={Heart} title="Média de Likes" value={latestMetrics?.likes} isLoading={isLoading} />
+                  <MetricCard icon={MessageSquare} title="Média de Comentários" value={latestMetrics?.comments} isLoading={isLoading} />
                 </div>
             </CardContent>
         </Card>
+        
+        {/* Gráfico Histórico */}
+         <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card">
+              <CardHeader>
+                <CardTitle className="font-headline text-xl">
+                  Evolução das Métricas ({selectedPlatform === 'instagram' ? 'Instagram' : 'TikTok'})
+                </CardTitle>
+                <CardDescription>Acompanhe seu progresso ao longo dos últimos 30 dias.</CardDescription>
+              </CardHeader>
+              <CardContent className="pl-2 pr-6">
+                {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
+                  historicalChartData.length > 1 ? (
+                     <ChartContainer config={chartConfig} className="h-[350px] w-full">
+                       <AreaChart accessibilityLayer data={historicalChartData} margin={{ left: 12, right: 12, top: 5, bottom: 5 }}>
+                          <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                          <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => value} />
+                          <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => typeof value === 'number' && value >= 1000 ? `${value / 1000}k` : value} />
+                          <RechartsTooltip content={<ChartTooltipContent indicator="dot" />} />
+                          <Area type="monotone" dataKey="followers" stroke="var(--color-followers)" fill="var(--color-followers)" fillOpacity={0.1} />
+                          <Area type="monotone" dataKey="views" stroke="var(--color-views)" fill="var(--color-views)" fillOpacity={0.1} />
+                          <Area type="monotone" dataKey="likes" stroke="var(--color-likes)" fill="var(--color-likes)" fillOpacity={0.1} />
+                          <Area type="monotone" dataKey="comments" stroke="var(--color-comments)" fill="var(--color-comments)" fillOpacity={0.1} />
+                       </AreaChart>
+                     </ChartContainer>
+                  ) : (
+                     <div className="h-[350px] w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
+                        <div>
+                        <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+                        <h3 className="font-semibold text-foreground">
+                            Dados insuficientes para o gráfico.
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                            <Link href="/profile" className="text-primary font-medium hover:underline">Atualize suas métricas</Link> por alguns dias para começar.
+                        </p>
+                        </div>
+                    </div>
+                  )
+                }
+              </CardContent>
+            </Card>
 
 
         {/* Layout Principal do Dashboard */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* Coluna Principal (Gráfico e Roteiro) */}
+          {/* Coluna Principal (Roteiro) */}
           <div className="lg:col-span-2 space-y-8 flex flex-col">
             <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card">
               <CardHeader className="text-center sm:text-left">
@@ -557,4 +576,28 @@ export default function DashboardPage() {
   );
 }
 
-    
+
+function MetricCard({ icon: Icon, title, value, handle, isLoading }: { icon: React.ElementType, title: string, value?: string, handle?: string, isLoading: boolean }) {
+    return (
+        <div className="p-6 rounded-lg bg-muted/50 flex flex-col justify-center">
+            <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <h3 className="text-base font-medium text-muted-foreground">
+                {title}
+                </h3>
+                <Icon className="h-4 w-4 text-primary" />
+            </div>
+            {isLoading ? <Skeleton className="h-8 w-24" /> :
+                <>
+                    <div className="text-3xl font-bold font-headline">
+                        {value || '—'}
+                    </div>
+                    {handle && (
+                        <p className="text-xs text-muted-foreground">
+                            {value ? handle : <Link href="/profile" className="hover:underline">Adicionar no perfil</Link>}
+                        </p>
+                    )}
+                </>
+            }
+        </div>
+    )
+}
