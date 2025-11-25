@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "UserProfile": {
@@ -101,9 +102,13 @@
         "videoAnalyses": {
           "type": "number",
           "description": "Number of video analyses performed on this date."
+        },
+        "geracoesAI": {
+          "type": "number",
+          "description": "Number of general AI generations (video ideas, plans, etc.) on this date."
         }
       },
-      "required": ["date", "videoAnalyses"]
+      "required": ["date", "videoAnalyses", "geracoesAI"]
     },
     "PontoDadosGrafico": {
       "title": "Ponto de Dados do Gráfico",
@@ -196,7 +201,7 @@
     }
   },
   "auth": {
-    "providers": ["password"]
+    "providers": ["password", "google.com"]
   },
   "firestore": {
     "/users/{userId}": {
