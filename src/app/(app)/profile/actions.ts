@@ -18,7 +18,7 @@ const ProfileResultSchema = z.object({
   edge_owner_to_timeline_media: CountSchema,
   edge_followed_by: CountSchema,
   edge_follow: CountSchema,
-  is_business_account: z.boolean().optional(), // Tornando o campo opcional
+  is_business_account: z.boolean().optional(),
 });
 
 export type ProfileData = {
@@ -34,16 +34,16 @@ export type ProfileData = {
     isBusiness: boolean;
 }
 
-// Post Schema
+// Post Schema - Made more robust to handle missing data from API
 const PostNodeSchema = z.object({
   id: z.string(),
-  display_url: z.string().url(),
+  display_url: z.string().url().optional(),
   edge_media_to_caption: z.object({
     edges: z.array(z.object({ node: z.object({ text: z.string() }) })),
-  }),
-  edge_media_preview_like: CountSchema,
-  edge_media_to_comment: CountSchema,
-  is_video: z.boolean(),
+  }).optional(),
+  edge_media_preview_like: CountSchema.optional(),
+  edge_media_to_comment: CountSchema.optional(),
+  is_video: z.boolean().optional(),
 });
 
 const PostsResultSchema = z.object({
@@ -112,11 +112,10 @@ export async function getInstagramProfile(username: string): Promise<ProfileData
             mediaCount: parsed.edge_owner_to_timeline_media.count,
             followersCount: parsed.edge_followed_by.count,
             followingCount: parsed.edge_follow.count,
-            isBusiness: parsed.is_business_account || false, // Garante que seja um booleano
+            isBusiness: parsed.is_business_account || false,
         };
     } catch (e: any) {
         console.error(`[ACTION ERROR - getInstagramProfile] ${e.message}`);
-        // Verifica se a mensagem de erro já está formatada como JSON (erro de validação do Zod)
         if (e.message.startsWith('[')) {
             try {
                 const zodError = JSON.parse(e.message);
@@ -137,11 +136,11 @@ export async function getInstagramPosts(username: string): Promise<PostData[]> {
         
         return parsed.edges.map(({ node }) => ({
             id: node.id,
-            displayUrl: node.display_url,
-            caption: node.edge_media_to_caption.edges[0]?.node.text || '',
-            likes: node.edge_media_preview_like.count,
-            comments: node.edge_media_to_comment.count,
-            isVideo: node.is_video,
+            displayUrl: node.display_url || '',
+            caption: node.edge_media_to_caption?.edges[0]?.node.text || '',
+            likes: node.edge_media_preview_like?.count || 0,
+            comments: node.edge_media_to_comment?.count || 0,
+            isVideo: node.is_video || false,
         }));
     } catch (e: any) {
         console.error(`[ACTION ERROR - getInstagramPosts] ${e.message}`);
