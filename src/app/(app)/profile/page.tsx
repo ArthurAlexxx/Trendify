@@ -1,3 +1,4 @@
+
 'use client';
 
 import { PageHeader } from '@/components/page-header';
@@ -237,7 +238,8 @@ export default function ProfilePage() {
                         id="instagramHandle"
                         placeholder="@seu_usuario"
                         {...form.register('instagramHandle')}
-                        className="h-11"
+                        className="h-11 bg-muted/50"
+                        readOnly
                       />
                     </div>
                      <div className="space-y-2">
@@ -274,7 +276,7 @@ export default function ProfilePage() {
                 <div className="grid sm:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <Label htmlFor="followers">Total de Seguidores</Label>
-                      <Input id="followers" {...form.register('followers')} placeholder="Ex: 250K" className="h-11" />
+                      <Input id="followers" {...form.register('followers')} placeholder="Ex: 250K" className="h-11 bg-muted/50" readOnly />
                     </div>
                      <div className="space-y-2">
                        <Label htmlFor="audience">Demografia do Público</Label>

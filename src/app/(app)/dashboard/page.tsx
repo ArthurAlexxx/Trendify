@@ -207,7 +207,7 @@ export default function DashboardPage() {
                             {userProfile?.followers || '—'}
                         </div>
                         <p className="text-xs text-pink-500/80">
-                            {userProfile?.instagramHandle || <Link href="/settings" className="hover:underline">Conecte sua conta</Link>}
+                            {userProfile?.instagramHandle ? `@${userProfile.instagramHandle}` : <Link href="/settings" className="hover:underline">Conecte sua conta</Link>}
                         </p>
                     </>
                   }

@@ -4,13 +4,13 @@
 // 1. Obtenha um Token de Acesso do Usuário válido na ferramenta de Exploração da Graph API.
 //    (https://developers.facebook.com/tools/explorer/)
 //    - Selecione seu App da Meta no menu suspenso.
-//    - No menu "Permissões", adicione todas que seu app precisa (ex: instagram_basic, pages_show_list, instagram_business_management, etc.).
+//    - No menu "Permissões", adicione todas que seu app precisa (ex: instagram_basic, pages_show_list, instagram_manage_insights, etc.).
 //    - Clique em "Gerar Token de Acesso".
 // 2. Cole o token gerado na variável `USER_ACCESS_TOKEN` abaixo.
 // 3. Abra o terminal e execute o script com: node workspace/instagram-test.js
 
 // COLE SEU TOKEN DE ACESSO AQUI DENTRO DAS ASPAS
-const USER_ACCESS_TOKEN = 'COLE_SEU_TOKEN_AQUI';
+const USER_ACCESS_TOKEN = 'IGAAz8oOjNLRhBZAFJkMGYxOGtnWGZAia1N0cklWelNUNGMxNzNYNVp5QWExWG13R01DQlU0Y0dTMk1qN2puYXJNcTlMVmdrby12RnlNbDNjUXc5bTN3ZAXBnblJXdGw3NUlCT3l5YjA5b3NtM3JuSVdXNFhicXFBN1lhemZAEVFk5bwZDZD';
 
 async function testInstagramApi() {
   if (!USER_ACCESS_TOKEN || USER_ACCESS_TOKEN === 'COLE_SEU_TOKEN_AQUI') {
