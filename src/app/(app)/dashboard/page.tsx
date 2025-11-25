@@ -106,15 +106,15 @@ const ProfileCompletionAlert = ({ userProfile, hasUpdatedToday }: { userProfile:
     if (!hasUpdatedToday && userProfile) {
          return (
             <Alert>
-                <div className='flex justify-between items-center'>
-                    <div>
-                        <AlertTitle className="flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-primary" />Atualize suas Métricas!</AlertTitle>
+                <div className='flex flex-col sm:flex-row justify-between items-center gap-4'>
+                    <div className='text-center sm:text-left'>
+                        <AlertTitle className="flex items-center justify-center sm:justify-start gap-2"><AlertTriangle className="h-4 w-4 text-primary" />Atualize suas Métricas!</AlertTitle>
                         <AlertDescription>
                             Registre seus números de hoje para manter os gráficos precisos.
                         </AlertDescription>
                     </div>
                     <UpdateMetricsModal userProfile={userProfile} triggerButton={
-                         <Button>
+                         <Button className='w-full sm:w-auto'>
                             <RefreshCw className="mr-2 h-4 w-4" />
                             Atualizar Métricas Agora
                         </Button>
@@ -452,9 +452,9 @@ export default function DashboardPage() {
                  <CardTitle className="text-base font-medium text-muted-foreground">
                     Visão Geral da Plataforma
                   </CardTitle>
-                  <div className="flex w-full sm:w-auto items-center gap-2">
-                   <Tabs value={selectedPlatform} onValueChange={(value) => setSelectedPlatform(value as any)} className="w-auto">
-                    <TabsList>
+                  <div className="flex w-full flex-col sm:flex-row sm:w-auto items-center gap-2">
+                   <Tabs value={selectedPlatform} onValueChange={(value) => setSelectedPlatform(value as any)} className="w-full sm:w-auto">
+                    <TabsList className='grid w-full grid-cols-3'>
                         <TabsTrigger value="total">Total</TabsTrigger>
                         <TabsTrigger value="instagram">Instagram</TabsTrigger>
                         <TabsTrigger value="tiktok">TikTok</TabsTrigger>
@@ -815,3 +815,5 @@ function MetricCard({ icon: Icon, title, value, handle, isLoading }: { icon: Rea
         </div>
     )
 }
+
+    
