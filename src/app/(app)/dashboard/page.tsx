@@ -113,7 +113,12 @@ const ProfileCompletionAlert = ({ userProfile, hasUpdatedToday }: { userProfile:
                             Registre seus números de hoje para manter os gráficos precisos.
                         </AlertDescription>
                     </div>
-                    <UpdateMetricsModal userProfile={userProfile} />
+                    <UpdateMetricsModal userProfile={userProfile} triggerButton={
+                         <Button>
+                            <RefreshCw className="mr-2 h-4 w-4" />
+                            Atualizar Métricas Agora
+                        </Button>
+                    } />
                 </div>
             </Alert>
         )
@@ -123,7 +128,7 @@ const ProfileCompletionAlert = ({ userProfile, hasUpdatedToday }: { userProfile:
 }
 
 
-const UpdateMetricsModal = ({ userProfile }: { userProfile: UserProfile }) => {
+const UpdateMetricsModal = ({ userProfile, triggerButton }: { userProfile: UserProfile, triggerButton?: React.ReactNode }) => {
     const { user } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
@@ -214,10 +219,11 @@ const UpdateMetricsModal = ({ userProfile }: { userProfile: UserProfile }) => {
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
-                <Button>
+                {triggerButton || 
+                <Button variant="outline" size="sm">
                     <RefreshCw className="mr-2 h-4 w-4" />
-                    Atualizar Métricas Agora
-                </Button>
+                    Atualizar Métricas
+                </Button>}
             </DialogTrigger>
             <DialogContent className="sm:max-w-[650px]">
                 <DialogHeader>
@@ -442,10 +448,11 @@ export default function DashboardPage() {
 
         {/* Métricas Principais */}
         <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card">
-            <CardHeader className="flex-row items-center justify-between pb-4">
+            <CardHeader className="flex flex-col gap-4 sm:flex-row items-center justify-between pb-4">
                  <CardTitle className="text-base font-medium text-muted-foreground">
                     Visão Geral da Plataforma
                   </CardTitle>
+                  <div className="flex w-full sm:w-auto items-center gap-2">
                    <Tabs value={selectedPlatform} onValueChange={(value) => setSelectedPlatform(value as any)} className="w-auto">
                     <TabsList>
                         <TabsTrigger value="total">Total</TabsTrigger>
@@ -453,6 +460,8 @@ export default function DashboardPage() {
                         <TabsTrigger value="tiktok">TikTok</TabsTrigger>
                     </TabsList>
                   </Tabs>
+                  {userProfile && <UpdateMetricsModal userProfile={userProfile} />}
+                  </div>
             </CardHeader>
             <CardContent>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -683,7 +692,7 @@ export default function DashboardPage() {
                         <div className='flex justify-center mt-2'>
                             <Button 
                                 variant="ghost" 
-                                onClick={() => setIsExpanded(false)} 
+                                onClick={()={() => setIsExpanded(false)}} 
                                 className="text-primary hover:text-primary"
                             >
                                 Ver menos
