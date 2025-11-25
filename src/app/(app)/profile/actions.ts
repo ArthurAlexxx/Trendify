@@ -75,11 +75,15 @@ export type InstagramPostData = {
 // --- TikTok Schemas ---
 
 const TikTokStatsSchema = z.object({
-    followerCount: z.number(),
-    followingCount: z.number(),
-    heartCount: z.number(),
-    videoCount: z.number(),
-});
+    followerCount: z.union([z.string(), z.number()]),
+    followingCount: z.union([z.string(), z.number()]),
+    heartCount: z.union([z.string(), z.number()]),
+    videoCount: z.union([z.string(), z.number()]),
+    diggCount: z.union([z.string(), z.number()]).optional(),
+    friendCount: z.union([z.string(), z.number()]).optional(),
+    heart: z.union([z.string(), z.number()]).optional(),
+}).passthrough();
+
 
 const TikTokUserSchema = z.object({
     id: z.string(),
@@ -89,10 +93,17 @@ const TikTokUserSchema = z.object({
     signature: z.string(), // bio
     verified: z.boolean(),
     privateAccount: z.boolean(),
-});
+    bioLink: z.union([
+      z.object({ link: z.string().optional(), risk: z.number().optional() }),
+      z.string(),
+      z.null(),
+    ]).optional(),
+}).passthrough();
+
 
 const TikTokProfileSchema = z.object({
-    stats: TikTokStatsSchema,
+    stats: z.union([TikTokStatsSchema, z.null()]).optional(),
+    statsV2: z.union([TikTokStatsSchema, z.null()]).optional(),
     user: TikTokUserSchema,
 });
 
@@ -306,6 +317,14 @@ export async function getTikTokProfile(username: string): Promise<TikTokProfileD
         if (parsed.user.privateAccount) {
             throw new Error("Este perfil é privado. A integração funciona apenas com perfis públicos.");
         }
+        
+        const stats = parsed.statsV2 || parsed.stats;
+        
+        const toNumber = (val: string | number | undefined | null): number => {
+            if (val === null || val === undefined) return 0;
+            if (typeof val === 'number') return val;
+            return parseInt(val, 10) || 0;
+        };
 
         return {
             id: parsed.user.id,
@@ -315,10 +334,10 @@ export async function getTikTokProfile(username: string): Promise<TikTokProfileD
             bio: parsed.user.signature,
             isVerified: parsed.user.verified,
             isPrivate: parsed.user.privateAccount,
-            followersCount: parsed.stats.followerCount,
-            followingCount: parsed.stats.followingCount,
-            heartsCount: parsed.stats.heartCount,
-            videoCount: parsed.stats.videoCount,
+            followersCount: toNumber(stats?.followerCount),
+            followingCount: toNumber(stats?.followingCount),
+            heartsCount: toNumber(stats?.heartCount),
+            videoCount: toNumber(stats?.videoCount),
         };
     } catch (e: any) {
         console.error(`[ACTION ERROR - getTikTokProfile] ${e.message}`);
@@ -359,5 +378,3 @@ export async function getTikTokPosts(username: string): Promise<TikTokPostData[]
         throw new Error(`Falha ao buscar posts do TikTok: ${e.message}`);
     }
 }
-
-    
