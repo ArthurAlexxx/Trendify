@@ -66,7 +66,7 @@ async function getInstagramAccountInfo(userId: string, accessToken: string) {
         throw new Error(data.error?.message || "Falha ao buscar dados da conta do Instagram.");
     }
     
-    // Corrigido para aceitar MEDIA_CREATOR
+    // CORREÇÃO: Aceitar 'MEDIA_CREATOR' como um tipo de conta válido.
     if (data.account_type !== 'BUSINESS' && data.account_type !== 'MEDIA_CREATOR') {
         throw new Error(`A conta do Instagram (@${data.username}) precisa ser do tipo "Comercial" ou "Criador de Conteúdo" para usar a integração. Tipo encontrado: ${data.account_type}`);
     }
