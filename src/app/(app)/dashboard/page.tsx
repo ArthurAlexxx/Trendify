@@ -83,17 +83,17 @@ const platformChartConfig = {
   },
   instagram: {
     ...chartConfigBase,
-    followers: { ...chartConfigBase.followers, color: "#833AB4" },
-    views: { ...chartConfigBase.views, color: "#C13584" },
-    likes: { ...chartConfigBase.likes, color: "#E1306C" },
-    comments: { ...chartConfigBase.comments, color: "#FD1D1D" },
+    followers: { ...chartConfigBase.followers, color: "hsl(var(--primary))" },
+    views: { ...chartConfigBase.views, color: "hsl(var(--chart-2))" },
+    likes: { ...chartConfigBase.likes, color: "hsl(var(--chart-3))" },
+    comments: { ...chartConfigBase.comments, color: "hsl(var(--chart-4))" },
   },
   tiktok: {
     ...chartConfigBase,
-    followers: { ...chartConfigBase.followers, color: "#00f2ea" },
-    views: { ...chartConfigBase.views, color: "#ff0050" },
-    likes: { ...chartConfigBase.likes, color: "#FFFFFF" },
-    comments: { ...chartConfigBase.comments, color: "#69C9D0" },
+    followers: { ...chartConfigBase.followers, color: "hsl(var(--primary))" },
+    views: { ...chartConfigBase.views, color: "hsl(var(--chart-2))" },
+    likes: { ...chartConfigBase.likes, color: "hsl(var(--chart-3))" },
+    comments: { ...chartConfigBase.comments, color: "hsl(var(--chart-4))" },
   },
 } satisfies Record<string, ChartConfig>;
 

@@ -11,8 +11,8 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { LogOut, ShieldAlert, Crown, Settings as SettingsIcon, Instagram, CheckCircle } from 'lucide-react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { LogOut, ShieldAlert, Crown, Settings as SettingsIcon } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   AlertDialog,
@@ -25,7 +25,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { useState, useTransition, useEffect } from 'react';
+import { useState, useTransition } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { doc, updateDoc } from 'firebase/firestore';
 import { Loader2 } from 'lucide-react';
@@ -38,137 +38,6 @@ import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import Cookies from 'js-cookie';
-
-
-function InstagramIntegration() {
-    const { toast } = useToast();
-    const searchParams = useSearchParams();
-    const router = useRouter();
-    const { user } = useUser();
-    const firestore = useFirestore();
-
-    const userProfileRef = useMemoFirebase(
-        () => (firestore && user ? doc(firestore, 'users', user.uid) : null),
-        [firestore, user]
-    );
-    const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userProfileRef);
-
-    useEffect(() => {
-        const error = searchParams.get('error');
-        const errorDescription = searchParams.get('error_description');
-        if (error) {
-            toast({
-                title: 'Falha na Conexão com Instagram',
-                description: errorDescription || 'Ocorreu um erro desconhecido.',
-                variant: 'destructive',
-            });
-            // Clean up URL
-            router.replace('/settings', undefined);
-        }
-
-        const isConnected = searchParams.get('instagram_connected');
-         if (isConnected === 'true') {
-             toast({
-                title: 'Sucesso!',
-                description: 'Sua conta do Instagram foi conectada.',
-            });
-            router.replace('/settings', undefined);
-         }
-
-    }, [searchParams, toast, router]);
-
-
-    const handleConnect = () => {
-        if (!user) {
-            toast({
-                title: 'Usuário não autenticado',
-                description: 'Você precisa estar logado para conectar sua conta.',
-                variant: 'destructive',
-            });
-            return;
-        }
-
-        const clientId = process.env.NEXT_PUBLIC_META_APP_ID;
-        if (!clientId) {
-            console.error("ERRO: A variável de ambiente NEXT_PUBLIC_META_APP_ID não está definida.");
-            toast({
-                title: 'Erro de Configuração',
-                description: "A integração com o Instagram não pode ser iniciada.",
-                variant: 'destructive'
-            });
-            return;
-        }
-
-        const array = new Uint8Array(16);
-        window.crypto.getRandomValues(array);
-        const csrfToken = Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
-
-        const state = {
-            uid: user.uid,
-            csrf: csrfToken
-        };
-        
-        Cookies.set('csrf_state', JSON.stringify(state), { expires: 1/24, path: '/', sameSite: 'Lax', secure: process.env.NODE_ENV === 'production' });
-
-        const redirectUri = `${window.location.origin}/api/auth/instagram/callback`;
-        const permissions = [
-            'instagram_basic',
-            'pages_show_list',
-            'instagram_manage_insights',
-        ];
-        const scope = permissions.join(',');
-        
-        const authUrl = new URL('https://www.facebook.com/v19.0/dialog/oauth');
-        authUrl.searchParams.set('client_id', clientId);
-        authUrl.searchParams.set('redirect_uri', redirectUri);
-        authUrl.searchParams.set('scope', scope);
-        authUrl.searchParams.set('response_type', 'code');
-        authUrl.searchParams.set('state', JSON.stringify(state));
-        
-        window.location.href = authUrl.toString();
-    };
-
-    const isConnected = !!userProfile?.instagramHandle;
-
-    return (
-         <Card className="shadow-lg shadow-primary/5 border-0 rounded-2xl">
-            <CardHeader>
-                <CardTitle className="flex items-center gap-3 font-headline text-xl">
-                    <Instagram className="h-6 w-6 text-primary" />
-                    <span>Integração com Instagram</span>
-                </CardTitle>
-                <CardDescription>
-                    Conecte sua conta do Instagram para buscar métricas de engajamento automaticamente e aprimorar as sugestões da IA.
-                </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                 {isProfileLoading ? <Skeleton className="h-20 w-full" /> : (
-                    <div className="flex flex-col sm:flex-row items-center justify-between p-6 bg-muted/30 border rounded-lg">
-                        {isConnected ? (
-                            <div className='flex items-center gap-3'>
-                                <CheckCircle className='h-5 w-5 text-green-500' />
-                                <p className="text-muted-foreground text-sm text-center sm:text-left">
-                                    Conectado como <span className='font-bold text-foreground'>@{userProfile.instagramHandle}</span>
-                                </p>
-                            </div>
-                        ) : (
-                             <p className="text-muted-foreground text-sm mb-4 sm:mb-0 text-center sm:text-left">
-                                Clique para iniciar o fluxo de autorização com o Instagram.
-                            </p>
-                        )}
-                        <Button onClick={handleConnect}>
-                            <Instagram className="mr-2 h-4 w-4" />
-                            {isConnected ? 'Reconectar Conta' : 'Conectar com Instagram'}
-                        </Button>
-                    </div>
-                )}
-            </CardContent>
-        </Card>
-    )
-}
-
 
 export default function SettingsPage() {
   const { user } = useUser();
@@ -261,10 +130,9 @@ export default function SettingsPage() {
         description="Gerencie suas informações, assinatura e integrações."
       />
 
-      <Tabs defaultValue="integrations" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+      <Tabs defaultValue="subscription" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="subscription">Assinatura</TabsTrigger>
-          <TabsTrigger value="integrations">Integrações</TabsTrigger>
           <TabsTrigger value="account">Conta</TabsTrigger>
         </TabsList>
 
@@ -339,10 +207,6 @@ export default function SettingsPage() {
            </Card>
         </TabsContent>
         
-        <TabsContent value="integrations" className="mt-6">
-            <InstagramIntegration />
-        </TabsContent>
-
         <TabsContent value="account" className="mt-6">
           <div className="space-y-8">
             <Card className="shadow-lg shadow-primary/5 border-0 rounded-2xl">

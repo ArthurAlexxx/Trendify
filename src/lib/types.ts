@@ -9,12 +9,10 @@ export interface UserProfile {
   email: string;
   photoURL?: string;
   createdAt: Timestamp;
-  instagramHandle?: string;
-  instagramUserId?: string;
-  youtubeHandle?: string;
   niche?: string;
   bio?: string;
   audience?: string;
+  instagramHandle?: string;
   instagramFollowers?: string;
   instagramAverageViews?: string;
   instagramAverageLikes?: string;
@@ -24,7 +22,6 @@ export interface UserProfile {
   tiktokAverageViews?: string;
   tiktokAverageLikes?: string;
   tiktokAverageComments?: string;
-  instagramAccessToken?: string;
   subscription?: {
     status: 'active' | 'inactive';
     plan: Plan;

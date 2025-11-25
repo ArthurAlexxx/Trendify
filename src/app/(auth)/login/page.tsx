@@ -71,6 +71,14 @@ export default function LoginPage() {
       });
   }, [auth, router, toast]);
 
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  });
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsPending(true);
     try {

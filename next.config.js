@@ -1,9 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   /* config options here */
-  env: {
-    NEXT_PUBLIC_META_APP_ID: process.env.META_APP_ID,
-  },
   eslint: {
     ignoreDuringBuilds: true,
   },
