@@ -2,7 +2,7 @@
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Users,
   Eye,
@@ -491,10 +491,10 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 justify-center">
-                  <MetricCard icon={Users} title="Seguidores" value={formatMetricValue(latestMetrics?.followers)} handle={selectedPlatform !== 'total' ? latestMetrics?.handle as string : undefined} isLoading={isLoading} platform={selectedPlatform} />
-                  <MetricCard icon={Eye} title="Média de Views" value={formatMetricValue(latestMetrics?.views)} isLoading={isLoading} platform={selectedPlatform} />
-                  <MetricCard icon={Heart} title="Média de Likes" value={formatMetricValue(latestMetrics?.likes)} isLoading={isLoading} platform={selectedPlatform} />
-                  <MetricCard icon={MessageSquare} title="Média de Comentários" value={formatMetricValue(latestMetrics?.comments)} isLoading={isLoading} platform={selectedPlatform} />
+                  <MetricCard icon={Users} title="Seguidores" value={formatMetricValue(latestMetrics?.followers)} handle={selectedPlatform !== 'total' ? latestMetrics?.handle as string : undefined} isLoading={isLoading} />
+                  <MetricCard icon={Eye} title="Média de Views" value={formatMetricValue(latestMetrics?.views)} isLoading={isLoading} />
+                  <MetricCard icon={Heart} title="Média de Likes" value={formatMetricValue(latestMetrics?.likes)} isLoading={isLoading} />
+                  <MetricCard icon={MessageSquare} title="Média de Comentários" value={formatMetricValue(latestMetrics?.comments)} isLoading={isLoading} />
                 </div>
             </CardContent>
         </Card>
@@ -754,8 +754,6 @@ export default function DashboardPage() {
                   )}
                 </CardContent>
               </Card>
-
-              
             </div>
             
             <div className="lg:col-span-1 space-y-8">
@@ -823,15 +821,9 @@ export default function DashboardPage() {
 }
 
 
-function MetricCard({ icon: Icon, title, value, handle, isLoading, platform }: { icon: React.ElementType, title: string, value?: string, handle?: string, isLoading: boolean, platform: 'total' | 'instagram' | 'tiktok' }) {
-    const platformClasses = {
-      total: "bg-muted/50",
-      instagram: "bg-gradient-to-br from-purple-500/20 via-fuchsia-500/20 to-red-500/20",
-      tiktok: "bg-gradient-to-br from-cyan-400/20 to-blue-500/20",
-    }
-    
+function MetricCard({ icon: Icon, title, value, handle, isLoading }: { icon: React.ElementType, title: string, value?: string, handle?: string, isLoading: boolean }) {
     return (
-        <div className={cn("p-6 rounded-lg flex flex-col justify-center", platformClasses[platform] || platformClasses.total)}>
+        <div className="p-6 rounded-lg bg-muted/50 flex flex-col justify-center">
             <div className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <h3 className="text-base font-medium text-muted-foreground">
                 {title}
