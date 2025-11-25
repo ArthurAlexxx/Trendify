@@ -41,42 +41,19 @@ export type InstagramProfileData = {
 
 // --- TikTok Schemas ---
 
-const TikTokStatsSchema = z.union([
-    z.object({
-        followerCount: z.union([z.string(), z.number()]),
-        followingCount: z.union([z.string(), z.number()]),
-        heartCount: z.union([z.string(), z.number()]),
-        videoCount: z.union([z.string(), z.number()]),
-        diggCount: z.union([z.string(), z.number()]).optional(),
-        friendCount: z.union([z.string(), z.number()]).optional(),
-        heart: z.union([z.string(), z.number()]).optional(),
-    }).passthrough(),
-    z.string().optional(),
-    z.null()
-]);
-
-
-const TikTokUserSchema = z.object({
-    id: z.string(),
-    uniqueId: z.string(),
+const TikTokApi6ProfileSchema = z.object({
+    username: z.string(),
     nickname: z.string(),
-    avatarLarger: z.string().url(),
-    signature: z.string(), // bio
+    user_id: z.string(),
+    profile_image: z.string().url(),
+    followers: z.number(),
+    following: z.number(),
+    total_videos: z.number(),
+    total_heart: z.number(),
     verified: z.boolean(),
-    privateAccount: z.boolean(),
-    secUid: z.string().optional(),
-    bioLink: z.union([
-      z.object({ link: z.string().optional(), risk: z.number().optional() }).passthrough(),
-      z.string(),
-      z.null(),
-    ]).optional(),
-}).passthrough();
-
-
-const TikTokProfileSchema = z.object({
-    stats: TikTokStatsSchema.optional(),
-    statsV2: TikTokStatsSchema.optional(),
-    user: TikTokUserSchema.passthrough(),
+    description: z.string(),
+    secondary_id: z.string().optional(),
+    is_private: z.boolean(),
 }).passthrough();
 
 
@@ -134,7 +111,7 @@ export type TikTokPostData = {
 
 // --- API Fetching Logic ---
 
-async function fetchFromRapidApi(platform: 'instagram' | 'tiktok', endpoint: 'profile' | 'posts', usernameOrSecUid: string) {
+async function fetchFromRapidApi(platform: 'instagram' | 'tiktok-profile' | 'tiktok-posts', usernameOrSecUid: string) {
     const apiKey = process.env.RAPIDAPI_KEY;
     if (!apiKey) {
       throw new Error('A chave da API (RAPIDAPI_KEY) não está configurada no servidor.');
@@ -145,93 +122,84 @@ async function fetchFromRapidApi(platform: 'instagram' | 'tiktok', endpoint: 'pr
         tiktok: process.env.TIKTOK_RAPIDAPI_HOST,
     };
     
-    const host = hosts[platform];
-    if (!host) {
-        throw new Error(`O host da API para a plataforma '${platform}' não está configurado.`);
-    }
-
-    const paths = {
-        instagram: {
-            profile: 'api/instagram/profile',
-            posts: 'v1/user-posts', // Not used anymore but kept for structure
-        },
-        tiktok: {
-            profile: 'user/details',
-            posts: 'api/user/posts',
-        }
-    }
-
-    const path = paths[platform][endpoint];
-    let url: URL;
+    let host: string | undefined;
+    let path: string;
     let options: RequestInit;
 
-    url = new URL(`https://${host}/${path}`);
-    options = {
-        method: 'GET', // Default to GET
-        headers: {
-            'x-rapidapi-key': apiKey,
-            'x-rapidapi-host': host,
-            'Content-Type': 'application/json'
-        },
-    };
-    
-    if (platform === 'tiktok' && endpoint === 'profile') {
-        options.method = 'POST';
-        options.body = JSON.stringify({ username: usernameOrSecUid });
-    } else if (platform === 'tiktok' && endpoint === 'posts') {
-        options.method = 'GET';
+    if (platform === 'instagram') {
+        host = hosts.instagram;
+        path = 'api/instagram/profile';
+        options = {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: usernameOrSecUid }),
+        };
+    } else if (platform === 'tiktok-profile') {
+        host = hosts.tiktok;
+        path = 'user/details';
+        options = {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: usernameOrSecUid }),
+        };
+    } else if (platform === 'tiktok-posts') {
+        host = hosts.tiktok;
+        path = 'api/user/posts';
+        const url = new URL(`https://${host}/${path}`);
         url.searchParams.append('secUid', usernameOrSecUid);
         url.searchParams.append('count', '30');
         url.searchParams.append('cursor', '0');
-    } else if (platform === 'instagram' && endpoint === 'profile') {
-        options.method = 'POST';
-        options.body = JSON.stringify({ username: usernameOrSecUid });
+        options = { method: 'GET', headers: {} };
+        return fetchData(url.toString(), addRapidApiHeaders(options, host, apiKey));
+    } else {
+        throw new Error(`Plataforma '${platform}' desconhecida.`);
     }
 
-    const response = await fetch(url.toString(), options);
+    if (!host) {
+        throw new Error(`O host da API para a plataforma '${platform}' não está configurado.`);
+    }
+    
+    const url = new URL(`https://${host}/${path}`);
+    return fetchData(url.toString(), addRapidApiHeaders(options, host, apiKey));
+}
+
+function addRapidApiHeaders(options: RequestInit, host: string, apiKey: string): RequestInit {
+    options.headers = {
+        ...options.headers,
+        'x-rapidapi-key': apiKey,
+        'x-rapidapi-host': host,
+    };
+    return options;
+}
+
+async function fetchData(url: string, options: RequestInit) {
+    const response = await fetch(url, options);
     
     if (!response.ok) {
         const errorText = await response.text();
-        console.error(`[API ERROR - ${platform}/${endpoint}] Status ${response.status}:`, errorText);
+        console.error(`[API ERROR] Status ${response.status} para ${url}:`, errorText);
         
-        if (response.status === 404) throw new Error(`Endpoint '${path}' não encontrado. Verifique a URL da API.`);
+        if (response.status === 404) throw new Error(`Endpoint não encontrado. Verifique a URL da API.`);
         if (errorText.includes("You are not subscribed to this API")) throw new Error("Você não está inscrito nesta API na RapidAPI. Verifique sua assinatura e chave.");
-        if (errorText.toLowerCase().includes("service unavailable")) throw new Error(`O serviço da API (${platform}) está indisponível. Tente mais tarde.`);
+        if (errorText.toLowerCase().includes("service unavailable")) throw new Error(`O serviço da API está indisponível. Tente mais tarde.`);
         if (errorText.toLowerCase().includes("this page is private")) throw new Error("Este perfil é privado. A integração funciona apenas com perfis públicos.");
         
-        throw new Error(`A API (${platform}) retornou um erro: ${response.statusText} - ${errorText}`);
+        throw new Error(`A API retornou um erro: ${response.statusText} - ${errorText}`);
     }
     
     const data = await response.json();
 
-    if (platform === 'instagram' && data.message) throw new Error(data.message);
-    
-    if (platform === 'tiktok' && endpoint === 'profile') {
-      if (data.status === 'error' || data.message) {
-        throw new Error(data.message || `API do TikTok retornou um erro.`);
-      }
-       // New TikTok API might not nest under 'data'
-       return data;
-    }
+    if (data.message && data.message.includes("Couldn't find user")) throw new Error("Usuário não encontrado. Verifique o nome de usuário e tente novamente.");
+    if (data.error) throw new Error(data.error);
 
-    if (platform === 'tiktok' && endpoint === 'posts') {
-        if (data.statusCode !== 0 && data.status_msg) {
-           throw new Error(data.status_msg || `API do TikTok retornou status ${data.statusCode}`);
-        }
-        return data;
-    }
-    
-    // Instagram nests in `data` in some cases
-    if (platform === 'instagram') return data.data || data;
-    
     return data;
 }
 
 
 export async function getInstagramProfile(username: string): Promise<InstagramProfileData> {
     try {
-        const result = await fetchFromRapidApi('instagram', 'profile', username);
-        const parsed = InstagramProfileResultSchema.parse(result);
+        const result = await fetchFromRapidApi('instagram', username);
+        const parsed = InstagramProfileResultSchema.parse(result.data || result);
 
         if (parsed.is_private) {
             throw new Error("Este perfil é privado. A integração funciona apenas com perfis públicos.");
@@ -265,37 +233,29 @@ export async function getInstagramProfile(username: string): Promise<InstagramPr
 
 export async function getTikTokProfile(username: string): Promise<TikTokProfileData> {
     try {
-        const result = await fetchFromRapidApi('tiktok', 'profile', username);
-        const parsed = TikTokProfileSchema.parse(result);
+        const result = await fetchFromRapidApi('tiktok-profile', username);
+        const parsed = TikTokApi6ProfileSchema.parse(result);
 
-        if (parsed.user.privateAccount) {
+        if (parsed.is_private) {
             throw new Error("Este perfil é privado. A integração funciona apenas com perfis públicos.");
         }
-        
-        const stats: any = parsed.statsV2 || parsed.stats;
-        
-        const toNumber = (val: string | number | undefined | null): number => {
-            if (val === null || val === undefined) return 0;
-            if (typeof val === 'number') return val;
-            return parseInt(val, 10) || 0;
-        };
 
         return {
-            id: parsed.user.id,
-            username: parsed.user.uniqueId,
-            nickname: parsed.user.nickname,
-            avatarUrl: parsed.user.avatarLarger,
-            bio: parsed.user.signature,
-            isVerified: parsed.user.verified,
-            isPrivate: parsed.user.privateAccount,
-            secUid: parsed.user.secUid,
-            followersCount: toNumber(stats?.followerCount),
-            followingCount: toNumber(stats?.followingCount),
-            heartsCount: toNumber(stats?.heartCount),
-            videoCount: toNumber(stats?.videoCount),
+            id: parsed.user_id,
+            username: parsed.username,
+            nickname: parsed.nickname,
+            avatarUrl: parsed.profile_image,
+            bio: parsed.description,
+            isVerified: parsed.verified,
+            isPrivate: parsed.is_private,
+            secUid: parsed.secondary_id,
+            followersCount: parsed.followers,
+            followingCount: parsed.following,
+            heartsCount: parsed.total_heart,
+            videoCount: parsed.total_videos,
         };
     } catch (e: any) {
-        console.error(`[ACTION ERROR - getTikTokProfile] ${e.message}`);
+        console.error(`[ACTION ERROR - getTikTokProfile]`, e);
         if (e.issues) {
              throw new Error(`Falha na validação dos dados do perfil do TikTok: ${e.issues.map((issue: any) => `${issue.path.join('.')} - ${issue.message}`).join(', ')}`);
         }
@@ -309,7 +269,7 @@ export async function getTikTokPosts(secUid: string): Promise<TikTokPostData[]> 
         throw new Error('SEC UID do usuário é necessário para buscar os posts.');
     }
     try {
-        const result = await fetchFromRapidApi('tiktok', 'posts', secUid);
+        const result = await fetchFromRapidApi('tiktok-posts', secUid);
         const parsed = TikTokPostResponseSchema.parse(result);
         const postsArray = parsed.data?.itemList || parsed.aweme_list;
 
@@ -337,5 +297,3 @@ export async function getTikTokPosts(secUid: string): Promise<TikTokPostData[]> 
         throw new Error(`Falha ao buscar posts do TikTok: ${e.message}`);
     }
 }
-
-
