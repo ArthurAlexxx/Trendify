@@ -29,6 +29,10 @@
             "type": "string",
             "description": "User's Instagram handle (e.g., @username)."
         },
+        "instagramUserId": {
+            "type": "string",
+            "description": "The user's unique Instagram User ID."
+        },
         "instagramAccessToken": {
             "type": "string",
             "description": "Long-lived access token for the Instagram Graph API."
@@ -234,3 +238,5 @@
     }
   }
 }
+
+    

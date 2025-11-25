@@ -25,7 +25,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { useState, useTransition, useEffect } from 'react';
+import { useState, useTransition } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { doc, updateDoc } from 'firebase/firestore';
 import { Loader2 } from 'lucide-react';
@@ -46,10 +46,16 @@ function InstagramIntegration() {
     const { toast } = useToast();
     const searchParams = useSearchParams();
     const { user } = useUser();
+    const firestore = useFirestore();
 
+    const userProfileRef = useMemoFirebase(
+        () => (firestore && user ? doc(firestore, 'users', user.uid) : null),
+        [firestore, user]
+    );
+    const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userProfileRef);
 
     const handleConnect = () => {
-         if (!user) {
+        if (!user) {
             toast({
                 title: 'Usuário não autenticado',
                 description: 'Você precisa estar logado para conectar sua conta.',
@@ -69,7 +75,6 @@ function InstagramIntegration() {
             return;
         }
 
-        // Generate a secure random string for CSRF protection
         const array = new Uint8Array(16);
         window.crypto.getRandomValues(array);
         const csrfToken = Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
@@ -79,27 +84,29 @@ function InstagramIntegration() {
             csrf: csrfToken
         };
         
-        // Use js-cookie to set the cookie, which works reliably on the client-side
         Cookies.set('csrf_state', JSON.stringify(state), { expires: 1/24, path: '/', sameSite: 'Lax', secure: process.env.NODE_ENV === 'production' });
-
 
         const redirectUri = `${window.location.origin}/api/auth/instagram/callback`;
         const permissions = [
-            'email', 'instagram_basic', 'instagram_manage_insights', 
-            'instagram_manage_comments', 'pages_manage_metadata', 
-            'pages_read_engagement', 'pages_read_user_content', 'pages_show_list'
+            'instagram_business_basic',
+            'instagram_business_content_publish',
+            'instagram_business_manage_comments',
+            'instagram_business_manage_messages',
+            'instagram_manage_insights' // Adicionado para métricas
         ];
         const scope = permissions.join(',');
         
-        const authUrl = new URL('https://www.facebook.com/v19.0/dialog/oauth');
+        const authUrl = new URL('https://www.instagram.com/oauth/authorize');
         authUrl.searchParams.set('client_id', clientId);
         authUrl.searchParams.set('redirect_uri', redirectUri);
         authUrl.searchParams.set('scope', scope);
         authUrl.searchParams.set('response_type', 'code');
-        authUrl.searchParams.set('state', JSON.stringify(state)); // Pass state to FB
+        authUrl.searchParams.set('state', JSON.stringify(state));
         
         window.location.href = authUrl.toString();
     };
+
+    const isConnected = !!userProfile?.instagramUserId;
 
     return (
          <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
@@ -113,21 +120,32 @@ function InstagramIntegration() {
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-                <div className="flex flex-col sm:flex-row items-center justify-between p-6 bg-muted/30 border rounded-lg">
-                    <p className="text-muted-foreground text-sm mb-4 sm:mb-0 text-center sm:text-left">
-                        Clique para iniciar o fluxo de autorização com a Meta.
-                    </p>
-                    <Button onClick={handleConnect}>
-                        <Instagram className="mr-2 h-4 w-4" />
-                        Conectar com Instagram
-                    </Button>
-                </div>
+                 {isProfileLoading ? <Skeleton className="h-20 w-full" /> : (
+                    <div className="flex flex-col sm:flex-row items-center justify-between p-6 bg-muted/30 border rounded-lg">
+                        {isConnected ? (
+                            <div className='flex items-center gap-3'>
+                                <CheckCircle className='h-5 w-5 text-green-500' />
+                                <p className="text-muted-foreground text-sm text-center sm:text-left">
+                                    Conectado como <span className='font-bold text-foreground'>@{userProfile.instagramHandle}</span>
+                                </p>
+                            </div>
+                        ) : (
+                             <p className="text-muted-foreground text-sm mb-4 sm:mb-0 text-center sm:text-left">
+                                Clique para iniciar o fluxo de autorização com o Instagram.
+                            </p>
+                        )}
+                        <Button onClick={handleConnect}>
+                            <Instagram className="mr-2 h-4 w-4" />
+                            {isConnected ? 'Reconectar Conta' : 'Conectar com Instagram'}
+                        </Button>
+                    </div>
+                )}
 
                 {searchParams.get('error') && (
                      <Alert variant="destructive">
                         <AlertTitle>Falha na Conexão</AlertTitle>
                         <AlertDescription>
-                            {searchParams.get('error') || "Ocorreu um erro desconhecido durante a conexão."}
+                            {searchParams.get('error_description') || searchParams.get('error') || "Ocorreu um erro desconhecido durante a conexão."}
                         </AlertDescription>
                     </Alert>
                 )}
@@ -413,3 +431,5 @@ export default function SettingsPage() {
     </div>
   );
 }
+
+    

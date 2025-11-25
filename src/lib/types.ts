@@ -10,6 +10,7 @@ export interface UserProfile {
   photoURL?: string;
   createdAt: Timestamp;
   instagramHandle?: string;
+  instagramUserId?: string;
   youtubeHandle?: string;
   niche?: string;
   bio?: string;
@@ -86,3 +87,5 @@ export interface AnaliseVideo {
     analysisData: any; // O objeto JSON da análise
     createdAt: Timestamp;
 }
+
+    
