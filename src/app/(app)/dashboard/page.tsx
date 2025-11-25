@@ -20,6 +20,7 @@ import {
   Loader2,
   Instagram,
   Film,
+  Clapperboard,
 } from 'lucide-react';
 import {
   ChartContainer,
@@ -354,7 +355,7 @@ export default function DashboardPage() {
         return {
             handle: hasInsta && hasTiktok ? 'Total' : hasInsta ? userProfile.instagramHandle : hasTiktok ? userProfile.tiktokHandle : 'N/A',
             followers: parseMetric(userProfile.instagramFollowers) + parseMetric(userProfile.tiktokFollowers),
-            views: parseMetric(userProfile.instagramAverageViews) + parseMetric(userProfile.tiktokAverageViews),
+            publications: (userProfile.mediaCount || 0) + 0, // Assuming TikTok media count is not tracked yet
             likes: parseMetric(userProfile.instagramAverageLikes) + parseMetric(userProfile.tiktokAverageLikes),
             comments: parseMetric(userProfile.instagramAverageComments) + parseMetric(userProfile.tiktokAverageComments),
         }
@@ -362,13 +363,13 @@ export default function DashboardPage() {
     return selectedPlatform === 'instagram' ? {
         handle: userProfile.instagramHandle,
         followers: parseMetric(userProfile.instagramFollowers),
-        views: parseMetric(userProfile.instagramAverageViews),
+        publications: userProfile.mediaCount || 0,
         likes: parseMetric(userProfile.instagramAverageLikes),
         comments: parseMetric(userProfile.instagramAverageComments),
     } : {
         handle: userProfile.tiktokHandle,
         followers: parseMetric(userProfile.tiktokFollowers),
-        views: parseMetric(userProfile.tiktokAverageViews),
+        publications: 0, // TikTok media count is not tracked yet
         likes: parseMetric(userProfile.tiktokAverageLikes),
         comments: parseMetric(userProfile.tiktokAverageComments),
     }
@@ -496,7 +497,7 @@ export default function DashboardPage() {
             <CardContent>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 justify-center">
                   <MetricCard icon={Users} title="Seguidores" value={formatMetricValue(latestMetrics?.followers)} handle={selectedPlatform !== 'total' ? latestMetrics?.handle as string : undefined} isLoading={isLoading} />
-                  <MetricCard icon={Eye} title="Média de Views" value={formatMetricValue(latestMetrics?.views)} isLoading={isLoading} />
+                  <MetricCard icon={Clapperboard} title="Publicações" value={formatMetricValue(latestMetrics?.publications)} isLoading={isLoading} />
                   <MetricCard icon={Heart} title="Média de Likes" value={formatMetricValue(latestMetrics?.likes)} isLoading={isLoading} />
                   <MetricCard icon={MessageSquare} title="Média de Comentários" value={formatMetricValue(latestMetrics?.comments)} isLoading={isLoading} />
                 </div>
@@ -850,6 +851,8 @@ function MetricCard({ icon: Icon, title, value, handle, isLoading }: { icon: Rea
         </div>
     )
 }
+    
+
     
 
     

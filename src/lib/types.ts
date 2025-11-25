@@ -17,6 +17,7 @@ export interface UserProfile {
   instagramAverageViews?: string;
   instagramAverageLikes?: string;
   instagramAverageComments?: string;
+  mediaCount?: number;
   tiktokHandle?: string;
   tiktokFollowers?: string;
   tiktokAverageViews?: string;
@@ -101,3 +102,5 @@ export interface MetricSnapshot {
     likes: string;
     comments: string;
 }
+
+    
