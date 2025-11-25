@@ -1,4 +1,3 @@
-
 'use client';
 
 import { PageHeader } from '@/components/page-header';
@@ -88,15 +87,17 @@ function InstagramIntegration() {
 
         const redirectUri = `${window.location.origin}/api/auth/instagram/callback`;
         const permissions = [
-            'instagram_business_basic',
-            'instagram_business_content_publish',
-            'instagram_business_manage_comments',
-            'instagram_business_manage_messages',
-            'instagram_manage_insights'
+            'instagram_basic',
+            'instagram_content_publish',
+            'instagram_manage_comments',
+            'instagram_manage_messages',
+            'instagram_manage_insights',
+            'pages_show_list',
+            'pages_read_engagement',
         ];
         const scope = permissions.join(',');
         
-        const authUrl = new URL('https://www.instagram.com/oauth/authorize');
+        const authUrl = new URL('https://www.facebook.com/v19.0/dialog/oauth');
         authUrl.searchParams.set('client_id', clientId);
         authUrl.searchParams.set('redirect_uri', redirectUri);
         authUrl.searchParams.set('scope', scope);

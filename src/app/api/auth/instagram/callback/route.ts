@@ -1,73 +1,88 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import { initializeFirebaseAdmin } from '@/firebase/admin';
 import { cookies } from 'next/headers';
 
-// --- Funções Auxiliares da Nova API ---
-
-async function getInstagramAccessToken(code: string, redirectUri: string) {
-    console.log('[getInstagramAccessToken] Trocando código por token de acesso...');
+async function exchangeCodeForToken(code: string, redirectUri: string) {
     const appId = process.env.META_APP_ID;
     const appSecret = process.env.META_APP_SECRET;
+
     if (!appId || !appSecret) {
-        console.error("[getInstagramAccessToken] ERRO: Credenciais do aplicativo Meta não configuradas.");
+        console.error("[exchangeCodeForToken] ERRO: Credenciais do aplicativo Meta não configuradas.");
         throw new Error("Credenciais do aplicativo Meta não configuradas no servidor.");
     }
 
-    const url = 'https://api.instagram.com/oauth/access_token';
-    const body = new URLSearchParams({
-        client_id: appId,
-        client_secret: appSecret,
-        grant_type: 'authorization_code',
-        redirect_uri: redirectUri,
-        code: code,
-    });
-
-    const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: body.toString(),
-    });
-
+    const url = new URL('https://graph.facebook.com/v19.0/oauth/access_token');
+    url.searchParams.set('client_id', appId);
+    url.searchParams.set('redirect_uri', redirectUri);
+    url.searchParams.set('client_secret', appSecret);
+    url.searchParams.set('code', code);
+    
+    const response = await fetch(url.toString());
     const data = await response.json();
-    if (data.error_message || data.error) {
-        console.error("[getInstagramAccessToken] Erro da API do Instagram:", data);
-        throw new Error(data.error_message || data.error.message || "Erro desconhecido ao obter token de acesso.");
+    if (data.error) {
+        console.error("[exchangeCodeForToken] Erro da API do Facebook:", data.error);
+        throw new Error(data.error.message || "Erro desconhecido ao obter token de acesso.");
     }
-
-    console.log('[getInstagramAccessToken] Token de acesso e user_id obtidos com sucesso.');
-    return { accessToken: data.access_token, userId: data.user_id };
+    return { accessToken: data.access_token };
 }
 
-async function getLongLivedInstagramToken(shortLivedToken: string) {
-    console.log('[getLongLivedInstagramToken] Trocando por token de longa duração...');
+async function getLongLivedAccessToken(shortLivedToken: string) {
+    const appId = process.env.META_APP_ID;
     const appSecret = process.env.META_APP_SECRET;
-    if (!appSecret) {
-        throw new Error("Client Secret do app não configurado.");
-    }
-    const url = `https://graph.instagram.com/access_token?grant_type=ig_exchange_token&client_secret=${appSecret}&access_token=${shortLivedToken}`;
-    const response = await fetch(url);
+    
+    const url = new URL('https://graph.facebook.com/v19.0/oauth/access_token');
+    url.searchParams.set('grant_type', 'fb_exchange_token');
+    url.searchParams.set('client_id', appId!);
+    url.searchParams.set('client_secret', appSecret!);
+    url.searchParams.set('fb_exchange_token', shortLivedToken);
+
+    const response = await fetch(url.toString());
     const data = await response.json();
     if (data.error) throw new Error(data.error.message);
-    console.log('[getLongLivedInstagramToken] Token de longa duração obtido.');
     return data.access_token;
 }
 
-async function getInstagramAccountInfo(userId: string, accessToken: string) {
-    console.log(`[getInstagramAccountInfo] Buscando informações para o user_id: ${userId}`);
-    const fields = 'id,username,account_type,followers_count,media_count,profile_picture_url,biography';
-    const url = `https://graph.instagram.com/v19.0/${userId}?fields=${fields}&access_token=${accessToken}`;
+async function getConnectedInstagramAccount(accessToken: string) {
+    const pagesUrl = new URL('https://graph.facebook.com/v19.0/me/accounts');
+    pagesUrl.searchParams.set('access_token', accessToken);
+    const pagesResponse = await fetch(pagesUrl.toString());
+    const pagesData = await pagesResponse.json();
 
-    const response = await fetch(url);
+    if (pagesData.error) throw new Error(`Erro ao buscar páginas: ${pagesData.error.message}`);
+    if (!pagesData.data || pagesData.data.length === 0) {
+        throw new Error("Nenhuma página do Facebook encontrada. Você precisa conectar uma página que esteja vinculada à sua conta profissional do Instagram.");
+    }
+
+    const page = pagesData.data[0]; 
+
+    const igUrl = new URL(`https://graph.facebook.com/v19.0/${page.id}`);
+    igUrl.searchParams.set('fields', 'instagram_business_account');
+    igUrl.searchParams.set('access_token', accessToken);
+    const igResponse = await fetch(igUrl.toString());
+    const igData = await igResponse.json();
+    
+    if (igData.error) throw new Error(`Erro ao buscar conta do Instagram: ${igData.error.message}`);
+    if (!igData.instagram_business_account) {
+        throw new Error("Esta página do Facebook não está conectada a uma conta empresarial do Instagram.");
+    }
+
+    return igData.instagram_business_account.id;
+}
+
+
+async function getInstagramAccountInfo(igUserId: string, accessToken: string) {
+    console.log(`[getInstagramAccountInfo] Buscando informações para o user_id: ${igUserId}`);
+    const fields = 'id,username,followers_count,media_count,profile_picture_url,biography';
+    const url = new URL(`https://graph.facebook.com/v19.0/${igUserId}`);
+    url.searchParams.set('fields', fields);
+    url.searchParams.set('access_token', accessToken);
+
+    const response = await fetch(url.toString());
     const data = await response.json();
 
     if (data.error) {
         console.error("[getInstagramAccountInfo] Erro ao buscar dados da conta do Instagram:", data.error);
         throw new Error(data.error?.message || "Falha ao buscar dados da conta do Instagram.");
-    }
-    
-    if (data.account_type !== 'BUSINESS' && data.account_type !== 'MEDIA_CREATOR') {
-        throw new Error(`A conta do Instagram (@${data.username}) precisa ser do tipo "Comercial" ou "Criador de Conteúdo" para usar a integração. Tipo encontrado: ${data.account_type}`);
     }
     
     console.log(`[getInstagramAccountInfo] Informações da conta obtidas:`, data);
@@ -126,9 +141,11 @@ export async function GET(req: NextRequest) {
         cookieStore.delete('csrf_state');
 
         const redirectUri = `${req.nextUrl.origin}/api/auth/instagram/callback`;
-        const { accessToken: shortLivedToken, userId } = await getInstagramAccessToken(code, redirectUri);
-        const longLivedToken = await getLongLivedInstagramToken(shortLivedToken);
-        const accountInfo = await getInstagramAccountInfo(userId, longLivedToken);
+        
+        const { accessToken: shortLivedToken } = await exchangeCodeForToken(code, redirectUri);
+        const longLivedToken = await getLongLivedAccessToken(shortLivedToken);
+        const igUserId = await getConnectedInstagramAccount(longLivedToken);
+        const accountInfo = await getInstagramAccountInfo(igUserId, longLivedToken);
 
         const firestore = initializeFirebaseAdmin().firestore;
         const userRef = firestore.collection('users').doc(uid);
@@ -145,8 +162,7 @@ export async function GET(req: NextRequest) {
             instagramHandle: accountInfo.username,
             followers: accountInfo.followers_count ? formatFollowers(accountInfo.followers_count) : '0',
             bio: accountInfo.biography || null,
-            photoURL: accountInfo.profile_picture_url || null,
-            // Limpa as métricas antigas para serem recalculadas no futuro
+            photoURL: userRef.get().then(doc => doc.data()?.photoURL || accountInfo.profile_picture_url || null), // Keep existing photoURL
             averageViews: null,
             averageLikes: null,
             averageComments: null,
