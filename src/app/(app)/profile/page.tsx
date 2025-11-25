@@ -1,3 +1,4 @@
+
 'use client';
 
 import { PageHeader } from '@/components/page-header';
@@ -14,22 +15,22 @@ import { User as UserIcon, Instagram, Film, Search, Loader2, AlertTriangle, User
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useState, useEffect, useTransition, useRef } from 'react';
+import { useState, useEffect, useTransition } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { doc, updateDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, updateDoc } from 'firebase/firestore';
 import { Textarea } from '@/components/ui/textarea';
 import { updateProfile } from 'firebase/auth';
 import type { UserProfile } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
-import { getInstagramProfile, getInstagramPosts, ProfileData, PostData } from './actions';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import Image from 'next/image';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import type { ProfileData, PostData } from './actions';
+
 
 const profileFormSchema = z.object({
   displayName: z.string().min(2, 'O nome deve ter pelo menos 2 caracteres.'),
@@ -52,6 +53,24 @@ const profileFormSchema = z.object({
 type ProfileFormData = z.infer<typeof profileFormSchema>;
 
 type SearchStatus = 'idle' | 'loading' | 'success' | 'error';
+
+async function fetchFromApiRoute(endpoint: 'profile' | 'posts', username: string) {
+    const response = await fetch(`/api/instagram/${endpoint}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username })
+    });
+
+    const result = await response.json();
+    if (!response.ok) {
+        throw new Error(result.error || `Falha ao buscar dados do endpoint: /api/instagram/${endpoint}`);
+    }
+    
+    return result.data;
+}
+
 
 export default function ProfilePage() {
   const { user } = useUser();
@@ -167,17 +186,19 @@ export default function ProfilePage() {
     setProfile(null);
     setPosts(null);
 
+    const cleanedUsername = username.replace('@', '');
+
     try {
       const [profileResult, postsResult] = await Promise.allSettled([
-        getInstagramProfile(username.replace('@', '')),
-        getInstagramPosts(username.replace('@', ''))
+        fetchFromApiRoute('profile', cleanedUsername),
+        fetchFromApiRoute('posts', cleanedUsername)
       ]);
 
       if (profileResult.status === 'rejected') {
         throw new Error(profileResult.reason.message);
       }
       
-      const fetchedProfile = profileResult.value;
+      const fetchedProfile: ProfileData = profileResult.value;
       setProfile(fetchedProfile);
       
       form.reset({
@@ -453,3 +474,5 @@ function MetricCard({ icon: Icon, label, value }: { icon: React.ElementType, lab
     </Card>
   )
 }
+
+    

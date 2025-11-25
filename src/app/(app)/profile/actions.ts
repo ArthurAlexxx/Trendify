@@ -137,3 +137,5 @@ export async function getInstagramPosts(username: string): Promise<PostData[]> {
         throw new Error(`Falha ao buscar posts do Instagram: ${e.message}`);
     }
 }
+
+    
