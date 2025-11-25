@@ -20,19 +20,20 @@ const ProfileResultSchema = z.object({
     count: z.number().optional(),
   }),
   is_business_account: z.boolean().optional(),
+  account_type: z.number().optional(), // 1: Business, 2: Media Creator, 3: Private/Personal. This is not always present, so we'll rely on is_business_account and is_private.
 });
 
 export type ProfileData = {
     id: string;
     username: string;
     isPrivate: boolean;
+    isBusiness: boolean;
     profilePicUrlHd: string;
     biography: string;
     fullName: string;
     mediaCount: number;
     followersCount: number;
     followingCount: number;
-    isBusiness: boolean;
 }
 
 const PostNodeSchema = z.object({
@@ -52,6 +53,7 @@ const PostNodeSchema = z.object({
   video_versions: z.array(z.object({
     url: z.string().url(),
   })).optional(),
+  view_count: z.number().nullable().optional(),
   caption: z.object({
     text: z.string(),
   }).nullable().optional(),
@@ -72,6 +74,7 @@ export type PostData = {
     displayUrl: string;
     videoUrl?: string;
     caption: string;
+    views?: number;
     likes: number;
     comments: number;
     isVideo: boolean;
@@ -112,6 +115,9 @@ async function fetchFromRapidApi(endpoint: 'profile' | 'posts', username: string
         if (errorText.toLowerCase().includes("service unavailable")) {
              throw new Error("O serviço da API do Instagram está indisponível no momento. Tente novamente mais tarde.");
         }
+        if (errorText.toLowerCase().includes("this page is private")) {
+             throw new Error("Este perfil é privado. A integração funciona apenas com perfis públicos.");
+        }
         
         throw new Error(`A API retornou um erro: ${response.statusText} - ${errorText}`);
     }
@@ -135,17 +141,27 @@ export async function getInstagramProfile(username: string): Promise<ProfileData
         const result = await fetchFromRapidApi('profile', username);
         const parsed = ProfileResultSchema.parse(result);
 
+        if (parsed.is_private) {
+            throw new Error("Este perfil é privado. A integração funciona apenas com perfis públicos.");
+        }
+        
+        // A API da RapidAPI não retorna o `account_type` de forma consistente como a API oficial do FB Graph.
+        // A melhor aproximação é usar `is_business_account`. Se for `false`, é provável que não seja nem Business nem Creator.
+        if (!parsed.is_business_account) {
+            throw new Error("Esta conta não é do tipo 'Comercial' ou 'Criador de Conteúdo'. Altere o tipo de conta nas configurações do Instagram para continuar.");
+        }
+
         return {
             id: parsed.id,
             username: parsed.username,
             isPrivate: parsed.is_private,
+            isBusiness: parsed.is_business_account || false,
             profilePicUrlHd: parsed.profile_pic_url_hd,
             biography: parsed.biography,
             fullName: parsed.full_name,
             mediaCount: parsed.edge_owner_to_timeline_media.count || 0,
             followersCount: parsed.edge_followed_by.count || 0,
             followingCount: parsed.edge_follow.count || 0,
-            isBusiness: parsed.is_business_account || false,
         };
     } catch (e: any) {
         console.error(`[ACTION ERROR - getInstagramProfile] ${e.message}`);
@@ -160,13 +176,13 @@ export async function getInstagramPosts(username: string): Promise<PostData[]> {
      try {
         const result = await fetchFromRapidApi('posts', username);
         const parsed = PostsResultSchema.parse(result);
-
+        
         const thirtyOneDaysAgo = Math.floor(Date.now() / 1000) - (31 * 24 * 60 * 60);
 
         const recentPosts = parsed.edges.filter(({ node }) => {
             return node.taken_at > thirtyOneDaysAgo;
         });
-        
+
         return recentPosts.map(({ node }) => {
             let displayUrl = '';
             // Handle carousel posts
@@ -186,6 +202,7 @@ export async function getInstagramPosts(username: string): Promise<PostData[]> {
                 displayUrl: displayUrl,
                 videoUrl: videoUrl,
                 caption: node.caption?.text || '',
+                views: node.view_count || undefined,
                 likes: node.like_count || 0,
                 comments: node.comment_count || 0,
                 isVideo: isVideo,

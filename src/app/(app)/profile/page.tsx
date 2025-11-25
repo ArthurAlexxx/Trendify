@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { User as UserIcon, Instagram, Film, Search, Loader2, AlertTriangle, Users, Eye, Heart, MessageSquare, Clapperboard, ShoppingBag, PlayCircle } from 'lucide-react';
+import { User as UserIcon, Instagram, Film, Search, Loader2, AlertTriangle, Users, Heart, MessageSquare, Clapperboard, ShoppingBag, PlayCircle, Eye } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -226,6 +226,11 @@ export default function ProfilePage() {
       }
       
        if (userProfileRef) {
+        const videoPosts = fetchedPosts.filter(p => p.isVideo && p.views);
+        const averageViews = videoPosts.length > 0 
+            ? videoPosts.reduce((acc, p) => acc + (p.views || 0), 0) / videoPosts.length 
+            : 0;
+
         const averageLikes = fetchedPosts.length > 0
             ? fetchedPosts.reduce((acc, p) => acc + p.likes, 0) / fetchedPosts.length
             : 0;
@@ -239,6 +244,7 @@ export default function ProfilePage() {
             bio: fetchedProfile.biography,
             photoURL: fetchedProfile.profilePicUrlHd,
             instagramFollowers: formatNumber(fetchedProfile.followersCount),
+            instagramAverageViews: formatNumber(Math.round(averageViews)),
             instagramAverageLikes: formatNumber(Math.round(averageLikes)),
             instagramAverageComments: formatNumber(Math.round(averageComments)),
         }
@@ -287,6 +293,13 @@ export default function ProfilePage() {
             <CardContent>
                 <div className="space-y-4 mb-8">
                   <h3 className="text-lg font-semibold flex items-center gap-2"><Instagram className="h-5 w-5" /> Integração com Instagram</h3>
+                  <Alert>
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>Importante!</AlertTitle>
+                    <AlertDescription>
+                        Para a integração automática funcionar, sua conta do Instagram deve ser pública e estar configurada como {"'Comercial'"} ou {"'Criador de Conteúdo'"}.
+                    </AlertDescription>
+                  </Alert>
                   <Card className='border-0 shadow-none'>
                     <CardContent className="p-4 bg-muted/50 rounded-lg">
                       <div className="flex flex-col sm:flex-row items-end gap-4">
@@ -346,7 +359,7 @@ export default function ProfilePage() {
                       <MetricCard icon={Users} label="Seguidores" value={formatNumber(profile.followersCount)} />
                       <MetricCard icon={Users} label="Seguindo" value={formatNumber(profile.followingCount)} />
                       <MetricCard icon={Clapperboard} label="Publicações" value={formatNumber(profile.mediaCount)} />
-                      {profile.isBusiness && <MetricCard icon={ShoppingBag} label="Conta" value="Comercial" />}
+                      <MetricCard icon={ShoppingBag} label="Conta" value={profile.isBusiness ? "Comercial" : "Pessoal"} />
                     </div>
 
                     {postsError && (
@@ -360,7 +373,7 @@ export default function ProfilePage() {
                     {posts && posts.length > 0 && (
                       <div>
                         <h4 className="text-lg font-semibold text-center mb-4">Posts Recentes (Últimos 31 dias)</h4>
-                        <Carousel opts={{ align: "start", loop: true }} className="w-full max-w-sm mx-auto md:max-w-xl lg:max-w-4xl">
+                        <Carousel opts={{ align: "start", loop: false }} className="w-full max-w-sm mx-auto md:max-w-xl lg:max-w-4xl">
                           <CarouselContent>
                             {posts.map(post => (
                               <CarouselItem key={post.id} className="md:basis-1/2 lg:basis-1/3">
@@ -383,7 +396,10 @@ export default function ProfilePage() {
                                         />
                                         )}
                                   </CardContent>
-                                  <div className="p-3 bg-muted/30 text-xs text-muted-foreground grid grid-cols-2 gap-2 text-center">
+                                  <div className="p-3 bg-muted/30 text-xs text-muted-foreground grid grid-cols-3 gap-1 text-center">
+                                    {post.isVideo && post.views !== undefined ? (
+                                        <span className='flex items-center justify-center gap-1.5'><Eye className='h-4 w-4 text-blue-500' /> {formatNumber(post.views)}</span>
+                                    ) : <span className='flex items-center justify-center gap-1.5'>-</span>}
                                     <span className='flex items-center justify-center gap-1.5'><Heart className='h-4 w-4 text-pink-500' /> {formatNumber(post.likes)}</span>
                                     <span className='flex items-center justify-center gap-1.5'><MessageSquare className='h-4 w-4 text-sky-500' /> {formatNumber(post.comments)}</span>
                                   </div>
