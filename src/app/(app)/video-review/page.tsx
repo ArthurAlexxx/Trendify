@@ -63,7 +63,7 @@ const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
 const PLAN_LIMITS: Record<Exclude<Plan, 'free'>, number> = {
   pro: 3,
-  premium: 7,
+  premium: 10,
 };
 
 function FeatureGuard({ children }: { children: React.ReactNode }) {
@@ -219,85 +219,65 @@ function VideoReviewPageContent() {
   };
 
   const handleAnalyzeVideo = async () => {
-    if (!file || !user) {
-        setAnalysisError("Por favor, selecione um arquivo para analisar.");
-        setAnalysisStatus("error");
-        return;
+    if (!file) {
+      toast({ title: "Nenhum arquivo selecionado", variant: "destructive" });
+      return;
     }
-    if(hasReachedLimit || !usageDocRef) {
-        toast({ title: "Limite atingido", description: "Você atingiu seu limite diário de análises.", variant: "destructive"});
-        return;
+    if (hasReachedLimit) {
+      toast({ title: "Limite diário atingido", variant: "destructive" });
+      return;
+    }
+    if (!user) {
+      toast({ title: "Usuário não autenticado", variant: "destructive" });
+      return;
     }
 
-    setAnalysisStatus("uploading");
+    setAnalysisStatus("loading");
     setAnalysisError("");
-    setAnalysisResult(null);
 
-    // 1. Upload to Storage
-    const storage = getStorage(initializeFirebase().firebaseApp);
-    const videoId = Date.now().toString();
-    const storageRef = ref(storage, `video-reviews/${user.uid}/${videoId}/${file.name}`);
-    const uploadTask = uploadBytesResumable(storageRef, file);
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onloadend = async () => {
+      const base64data = reader.result as string;
+      try {
+        const result = await analyzeVideo({ videoDataUri: base64data });
 
-    uploadTask.on('state_changed',
-        (snapshot) => {
-            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            setUploadProgress(progress);
-        },
-        (error) => {
-            console.error("Upload error:", error);
-            setAnalysisStatus("error");
-            setAnalysisError(`Falha no upload do vídeo: ${error.message}`);
-            toast({ title: 'Erro no Upload', description: error.message, variant: 'destructive' });
-        },
-        async () => {
-            try {
-                const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                setAnalysisStatus("loading");
-                
-                // 2. Read as Data URI for Genkit
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onloadend = async () => {
-                    const base64data = reader.result as string;
-                    
-                    const result = await analyzeVideo({ videoDataUri: base64data });
+        if (result && result.data) {
+          setAnalysisResult(result.data);
+          setAnalysisStatus("success");
 
-                    if (result && result.data) {
-                        setAnalysisResult(result.data);
-                        setAnalysisStatus("success");
-                        
-                        // 3. Save analysis to Firestore
-                        await addDoc(collection(firestore, `users/${user.uid}/analisesVideo`), {
-                            userId: user.uid,
-                            videoUrl: downloadURL,
-                            videoFileName: file.name,
-                            analysisData: result.data,
-                            createdAt: serverTimestamp(),
-                        });
+          if (usageDocRef) {
+            await setDoc(usageDocRef, { videoAnalyses: increment(1) }, { merge: true });
+          }
 
-                        await setDoc(usageDocRef, { videoAnalyses: increment(1), date: todayStr, geracoesAI: increment(0) }, { merge: true });
+          if (user) {
+             await addDoc(collection(firestore, `users/${user.uid}/analisesVideo`), {
+                userId: user.uid,
+                videoUrl: '', // URL não está mais sendo salva
+                videoFileName: file.name,
+                analysisData: result.data,
+                createdAt: serverTimestamp(),
+            });
+          }
 
-                        toast({
-                            title: "Análise Concluída",
-                            description: "A análise do seu vídeo está pronta.",
-                        });
-                    } else {
-                        throw new Error(result?.error || "A análise não produziu um resultado.");
-                    }
-                };
-                 reader.onerror = () => {
-                    throw new Error("Falha ao ler o arquivo de vídeo para análise.");
-                }
-            } catch (e: any) {
-                console.error("Erro na análise:", e);
-                const errorMsg = e.message || "Ocorreu um erro desconhecido durante a análise.";
-                setAnalysisError(errorMsg);
-                setAnalysisStatus("error");
-                toast({ title: "Falha na Análise", description: errorMsg, variant: "destructive" });
-            }
+          toast({
+            title: "Análise Concluída",
+            description: "A análise do seu vídeo está pronta.",
+          });
+        } else {
+          throw new Error(result?.error || "A análise não produziu um resultado.");
         }
-    );
+      } catch (e: any) {
+        setAnalysisError(e.message || "Ocorreu um erro desconhecido.");
+        setAnalysisStatus("error");
+        toast({ title: "Falha na Análise", description: e.message, variant: "destructive" });
+      }
+    };
+    reader.onerror = () => {
+      setAnalysisError("Falha ao ler o arquivo de vídeo.");
+      setAnalysisStatus("error");
+      toast({ title: "Erro", description: "Não foi possível ler o arquivo.", variant: "destructive" });
+    };
   };
 
 
@@ -378,7 +358,7 @@ function VideoReviewPageContent() {
                     Arraste seu vídeo para cá
                 </h3>
                 <p className="mt-2 text-sm text-muted-foreground">
-                    ou clique para selecionar um arquivo. Limite de {MAX_FILE_SIZE_MB}MB por vídeo.
+                    ou clique para selecionar um arquivo. Limite de ${MAX_FILE_SIZE_MB}MB por vídeo.
                 </p>
                 <Button
                 type="button"
@@ -565,7 +545,9 @@ function VideoReviewPageContent() {
                                                 </DialogHeader>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4 max-h-[70vh] overflow-y-auto">
                                                     <div className="space-y-4">
-                                                        <video controls src={analise.videoUrl} className="w-full rounded-lg bg-black"></video>
+                                                         {analise.videoUrl && (
+                                                            <video controls src={analise.videoUrl} className="w-full rounded-lg bg-black"></video>
+                                                         )}
                                                         
                                                         <Card>
                                                             <CardHeader>
@@ -639,3 +621,5 @@ function VideoReviewPageContent() {
     </div>
   );
 }
+
+    
