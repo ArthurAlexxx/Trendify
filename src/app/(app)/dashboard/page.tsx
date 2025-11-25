@@ -52,6 +52,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, useCollection, useDoc, useMemoFirebase } from '@/firebase';
 import { collection, doc, query, orderBy, limit, updateDoc, where } from 'firebase/firestore';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 
 const chartConfig = {
@@ -98,7 +99,7 @@ export default function DashboardPage() {
   const firestore = useFirestore();
   const { toast } = useToast();
   const [isExpanded, setIsExpanded] = useState(false);
-  const [selectedPlatform, setSelectedPlatform] = useState<'instagram' | 'tiktok'>('instagram');
+  const [selectedPlatform, setSelectedPlatform] = useState<'instagram' | 'tiktok' | 'total'>('total');
 
   const userProfileRef = useMemoFirebase(() => (
       firestore && user ? doc(firestore, `users/${user.uid}`) : null
@@ -122,14 +123,14 @@ export default function DashboardPage() {
   const { data: upcomingContent, isLoading: isLoadingUpcoming } = useCollection<ConteudoAgendado>(upcomingContentQuery);
 
   const metricSnapshotsQuery = useMemoFirebase(() => (
-    firestore && user ? query(collection(firestore, `users/${user.uid}/metricSnapshots`), orderBy('date', 'desc'), limit(30)) : null
+    firestore && user ? query(collection(firestore, `users/${user.uid}/metricSnapshots`), orderBy('date', 'desc'), limit(60)) : null // Fetch more to combine
   ), [firestore, user]);
   const { data: metricSnapshots, isLoading: isLoadingMetrics } = useCollection<MetricSnapshot>(metricSnapshotsQuery);
 
   const hasUpdatedToday = useMemo(() => {
     if (!metricSnapshots || metricSnapshots.length === 0) return false;
-    const lastUpdate = metricSnapshots[0]?.date.toDate();
-    return lastUpdate ? isToday(lastUpdate) : false;
+    // Check if there is any snapshot for today
+    return metricSnapshots.some(snap => snap.date && isToday(snap.date.toDate()));
   }, [metricSnapshots]);
 
 
@@ -138,30 +139,67 @@ export default function DashboardPage() {
   const parseMetric = (value?: string | number) => {
     if (typeof value === 'number') return value;
     if (!value) return 0;
-    const num = parseFloat(value.replace('K', '000').replace('M', '000000').replace(',', '.'));
+    const num = parseFloat(value.replace(/K/gi, 'e3').replace(/M/gi, 'e6').replace(',', '.'));
     return isNaN(num) ? 0 : num;
   };
   
   const latestMetrics = useMemo(() => {
     if (!userProfile) return null;
+    if (selectedPlatform === 'total') {
+        return {
+            handle: 'Total',
+            followers: parseMetric(userProfile.instagramFollowers) + parseMetric(userProfile.tiktokFollowers),
+            views: parseMetric(userProfile.instagramAverageViews) + parseMetric(userProfile.tiktokAverageViews),
+            likes: parseMetric(userProfile.instagramAverageLikes) + parseMetric(userProfile.tiktokAverageLikes),
+            comments: parseMetric(userProfile.instagramAverageComments) + parseMetric(userProfile.tiktokAverageComments),
+        }
+    }
     return selectedPlatform === 'instagram' ? {
         handle: userProfile.instagramHandle,
-        followers: userProfile.instagramFollowers,
-        views: userProfile.instagramAverageViews,
-        likes: userProfile.instagramAverageLikes,
-        comments: userProfile.instagramAverageComments,
+        followers: parseMetric(userProfile.instagramFollowers),
+        views: parseMetric(userProfile.instagramAverageViews),
+        likes: parseMetric(userProfile.instagramAverageLikes),
+        comments: parseMetric(userProfile.instagramAverageComments),
     } : {
         handle: userProfile.tiktokHandle,
-        followers: userProfile.tiktokFollowers,
-        views: userProfile.tiktokAverageViews,
-        likes: userProfile.tiktokAverageLikes,
-        comments: userProfile.tiktokAverageComments,
+        followers: parseMetric(userProfile.tiktokFollowers),
+        views: parseMetric(userProfile.tiktokAverageViews),
+        likes: parseMetric(userProfile.tiktokAverageLikes),
+        comments: parseMetric(userProfile.tiktokAverageComments),
     }
   }, [userProfile, selectedPlatform]);
 
+  const formatMetricValue = (value?: string | number): string => {
+    if (value === undefined || value === null) return '—';
+    const num = typeof value === 'string' ? parseMetric(value) : value;
+
+    if (num >= 1000000) return `${(num / 1000000).toFixed(1).replace('.', ',')}M`;
+    if (num >= 1000) return `${(num / 1000).toFixed(1).replace('.', ',')}K`;
+    return num.toLocaleString('pt-BR');
+  };
+
+
   const historicalChartData = useMemo(() => {
     if (!metricSnapshots) return [];
-    return metricSnapshots
+
+    if (selectedPlatform === 'total') {
+      const combinedData: { [date: string]: { followers: number, views: number, likes: number, comments: number } } = {};
+      metricSnapshots.forEach(snap => {
+        const dateStr = format(snap.date.toDate(), 'dd/MM');
+        if (!combinedData[dateStr]) {
+          combinedData[dateStr] = { followers: 0, views: 0, likes: 0, comments: 0 };
+        }
+        combinedData[dateStr].followers += parseMetric(snap.followers);
+        combinedData[dateStr].views += parseMetric(snap.views);
+        combinedData[dateStr].likes += parseMetric(snap.likes);
+        combinedData[dateStr].comments += parseMetric(snap.comments);
+      });
+      return Object.entries(combinedData)
+        .map(([date, metrics]) => ({ date, ...metrics }))
+        .sort((a, b) => new Date(a.date.split('/').reverse().join('-')).getTime() - new Date(b.date.split('/').reverse().join('-')).getTime());
+
+    } else {
+      return metricSnapshots
         .filter(snap => snap.platform === selectedPlatform)
         .map(snap => ({
             date: format(snap.date.toDate(), 'dd/MM'),
@@ -169,7 +207,8 @@ export default function DashboardPage() {
             views: parseMetric(snap.views),
             likes: parseMetric(snap.likes),
             comments: parseMetric(snap.comments),
-        })).reverse(); // reverse to show oldest to newest
+        })).reverse();
+    }
   }, [metricSnapshots, selectedPlatform]);
 
 
@@ -230,147 +269,95 @@ export default function DashboardPage() {
 
         {/* Métricas Principais */}
         <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card">
-            <CardHeader className="flex-row items-center justify-between pb-2">
+            <CardHeader className="flex-row items-center justify-between pb-4">
                  <CardTitle className="text-base font-medium text-muted-foreground">
                     Visão Geral da Plataforma
                   </CardTitle>
-                  <div className="flex items-center space-x-4">
-                      <div className="flex items-center space-x-2">
-                        <Checkbox id="instagram" checked={selectedPlatform === 'instagram'} onCheckedChange={() => setSelectedPlatform('instagram')} />
-                        <label htmlFor="instagram" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                          Instagram
-                        </label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox id="tiktok" checked={selectedPlatform === 'tiktok'} onCheckedChange={() => setSelectedPlatform('tiktok')} />
-                        <label htmlFor="tiktok" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                          TikTok
-                        </label>
-                      </div>
-                  </div>
+                   <Tabs value={selectedPlatform} onValueChange={(value) => setSelectedPlatform(value as any)} className="w-auto">
+                    <TabsList>
+                        <TabsTrigger value="total">Total</TabsTrigger>
+                        <TabsTrigger value="instagram">Instagram</TabsTrigger>
+                        <TabsTrigger value="tiktok">TikTok</TabsTrigger>
+                    </TabsList>
+                  </Tabs>
             </CardHeader>
             <CardContent>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                  <MetricCard icon={Users} title="Seguidores" value={latestMetrics?.followers} handle={latestMetrics?.handle} isLoading={isLoading} />
-                  <MetricCard icon={Eye} title="Média de Views" value={latestMetrics?.views} isLoading={isLoading} />
-                  <MetricCard icon={Heart} title="Média de Likes" value={latestMetrics?.likes} isLoading={isLoading} />
-                  <MetricCard icon={MessageSquare} title="Média de Comentários" value={latestMetrics?.comments} isLoading={isLoading} />
+                  <MetricCard icon={Users} title="Seguidores" value={formatMetricValue(latestMetrics?.followers)} handle={selectedPlatform !== 'total' ? latestMetrics?.handle as string : undefined} isLoading={isLoading} />
+                  <MetricCard icon={Eye} title="Média de Views" value={formatMetricValue(latestMetrics?.views)} isLoading={isLoading} />
+                  <MetricCard icon={Heart} title="Média de Likes" value={formatMetricValue(latestMetrics?.likes)} isLoading={isLoading} />
+                  <MetricCard icon={MessageSquare} title="Média de Comentários" value={formatMetricValue(latestMetrics?.comments)} isLoading={isLoading} />
                 </div>
             </CardContent>
         </Card>
         
-        {/* Gráfico Histórico */}
-         <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card">
-              <CardHeader>
-                <CardTitle className="font-headline text-xl">
-                  Evolução das Métricas ({selectedPlatform === 'instagram' ? 'Instagram' : 'TikTok'})
-                </CardTitle>
-                <CardDescription>Acompanhe seu progresso ao longo dos últimos 30 dias.</CardDescription>
-              </CardHeader>
-              <CardContent className="pl-2 pr-6">
-                {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
-                  historicalChartData.length > 1 ? (
-                     <ChartContainer config={chartConfig} className="h-[350px] w-full">
-                       <AreaChart accessibilityLayer data={historicalChartData} margin={{ left: 12, right: 12, top: 5, bottom: 5 }}>
-                          <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                          <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => value} />
-                          <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => typeof value === 'number' && value >= 1000 ? `${value / 1000}k` : value} />
-                          <RechartsTooltip content={<ChartTooltipContent indicator="dot" />} />
-                          <Area type="monotone" dataKey="followers" stroke="var(--color-followers)" fill="var(--color-followers)" fillOpacity={0.1} />
-                          <Area type="monotone" dataKey="views" stroke="var(--color-views)" fill="var(--color-views)" fillOpacity={0.1} />
-                          <Area type="monotone" dataKey="likes" stroke="var(--color-likes)" fill="var(--color-likes)" fillOpacity={0.1} />
-                          <Area type="monotone" dataKey="comments" stroke="var(--color-comments)" fill="var(--color-comments)" fillOpacity={0.1} />
-                       </AreaChart>
-                     </ChartContainer>
-                  ) : (
-                     <div className="h-[350px] w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
-                        <div>
-                        <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
-                        <h3 className="font-semibold text-foreground">
-                            Dados insuficientes para o gráfico.
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                            <Link href="/profile" className="text-primary font-medium hover:underline">Atualize suas métricas</Link> por alguns dias para começar.
-                        </p>
-                        </div>
-                    </div>
-                  )
-                }
-              </CardContent>
-            </Card>
-
-
-        {/* Layout Principal do Dashboard */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
-          {/* Coluna Principal (Roteiro) */}
-          <div className="lg:col-span-2 space-y-8 flex flex-col">
-            <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card">
-              <CardHeader className="text-center sm:text-left">
-                <CardTitle className="font-headline text-xl">
-                  Roteiro de Conteúdo Semanal
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {isLoadingRoteiro ? <Skeleton className="h-40 w-full" /> : (
-                    roteiro && roteiro.items.length > 0 ? (
-                    <div>
-                        <ul className="space-y-2">
-                            {visibleItems?.map((item, index) => (
-                            <li key={index}>
-                                <div className="flex items-start gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50 text-left">
-                                <Checkbox
-                                    id={`roteiro-${index}`}
-                                    checked={item.concluido}
-                                    onCheckedChange={() => handleToggleRoteiro(item, index)}
-                                    className="h-5 w-5 mt-1"
-                                />
+        <div className="grid grid-cols-1 xl:grid-cols-5 gap-8">
+            <div className="xl:col-span-3 space-y-8">
+                {/* Gráfico Histórico */}
+                <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card h-full">
+                    <CardHeader>
+                        <CardTitle className="font-headline text-xl">
+                        Evolução das Métricas ({selectedPlatform === 'instagram' ? 'Instagram' : selectedPlatform === 'tiktok' ? 'TikTok' : 'Total'})
+                        </CardTitle>
+                        <CardDescription>Acompanhe seu progresso ao longo do tempo.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="pl-2 pr-6">
+                        {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
+                        historicalChartData.length > 0 ? (
+                            <ChartContainer config={chartConfig} className="h-[350px] w-full">
+                            <AreaChart accessibilityLayer data={historicalChartData} margin={{ left: 12, right: 12, top: 5, bottom: 5 }}>
+                                <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                                <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => value} />
+                                <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => typeof value === 'number' && value >= 1000 ? `${value / 1000}k` : value} />
+                                <RechartsTooltip content={<ChartTooltipContent indicator="dot" />} />
+                                <Area type="monotone" dataKey="followers" stroke="var(--color-followers)" fill="var(--color-followers)" fillOpacity={0.1} name="Seguidores" />
+                                <Area type="monotone" dataKey="views" stroke="var(--color-views)" fill="var(--color-views)" fillOpacity={0.1} name="Views"/>
+                                <Area type="monotone" dataKey="likes" stroke="var(--color-likes)" fill="var(--color-likes)" fillOpacity={0.1} name="Likes"/>
+                                <Area type="monotone" dataKey="comments" stroke="var(--color-comments)" fill="var(--color-comments)" fillOpacity={0.1} name="Comentários"/>
+                            </AreaChart>
+                            </ChartContainer>
+                        ) : (
+                            <div className="h-[350px] w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
                                 <div>
-                                    <label
-                                    htmlFor={`roteiro-${index}`}
-                                    className={cn(
-                                        'font-medium text-base transition-colors cursor-pointer',
-                                        item.concluido
-                                        ? 'line-through text-muted-foreground'
-                                        : 'text-foreground'
-                                    )}
-                                    >
-                                    <span className="font-semibold text-primary">
-                                        {item.dia}:
-                                    </span>{' '}
-                                    {item.tarefa}
-                                    </label>
-                                    <p className="text-sm text-muted-foreground">
-                                    {item.detalhes}
-                                    </p>
+                                <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+                                <h3 className="font-semibold text-foreground">
+                                    Dados insuficientes para o gráfico.
+                                </h3>
+                                <p className="text-sm text-muted-foreground">
+                                    <Link href="/profile" className="text-primary font-medium hover:underline">Atualize suas métricas</Link> por alguns dias para começar.
+                                </p>
                                 </div>
-                                </div>
-                                {visibleItems && index < visibleItems.length - 1 && (
-                                <Separator className="my-2" />
-                                )}
-                            </li>
-                            ))}
-                            <AnimatePresence>
-                            {isExpanded && collapsibleItems?.map((item, index) => (
-                                <motion.li 
-                                key={`collapsible-${index}`}
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: 'auto' }}
-                                exit={{ opacity: 0, height: 0 }}
-                                transition={{ duration: 0.3, ease: "easeInOut" }}
-                                className="overflow-hidden"
-                                >
-                                    <Separator className="my-2" />
+                            </div>
+                        )
+                        }
+                    </CardContent>
+                </Card>
+            </div>
+            <div className="xl:col-span-2 space-y-8">
+                 {/* Roteiro */}
+                <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card h-full">
+                <CardHeader className="text-center sm:text-left">
+                    <CardTitle className="font-headline text-xl">
+                    Roteiro de Conteúdo Semanal
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    {isLoadingRoteiro ? <Skeleton className="h-40 w-full" /> : (
+                        roteiro && roteiro.items.length > 0 ? (
+                        <div>
+                            <ul className="space-y-2">
+                                {visibleItems?.map((item, index) => (
+                                <li key={index}>
                                     <div className="flex items-start gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50 text-left">
                                     <Checkbox
-                                        id={`roteiro-collapsible-${index}`}
+                                        id={`roteiro-${index}`}
                                         checked={item.concluido}
-                                        onCheckedChange={() => handleToggleRoteiro(item, 3 + index)}
+                                        onCheckedChange={() => handleToggleRoteiro(item, index)}
                                         className="h-5 w-5 mt-1"
                                     />
                                     <div>
                                         <label
-                                        htmlFor={`roteiro-collapsible-${index}`}
+                                        htmlFor={`roteiro-${index}`}
                                         className={cn(
                                             'font-medium text-base transition-colors cursor-pointer',
                                             item.concluido
@@ -388,58 +375,102 @@ export default function DashboardPage() {
                                         </p>
                                     </div>
                                     </div>
-                                </motion.li>
-                            ))}
-                            </AnimatePresence>
-                        </ul>
-                        {collapsibleItems && collapsibleItems.length > 0 && !isExpanded && (
-                        <div className='flex justify-center mt-2'>
-                            <Button 
-                                variant="ghost" 
-                                onClick={() => setIsExpanded(true)} 
-                                className="text-primary hover:text-primary"
-                            >
-                                Ver restante da semana
-                            </Button>
+                                    {visibleItems && index < visibleItems.length - 1 && (
+                                    <Separator className="my-2" />
+                                    )}
+                                </li>
+                                ))}
+                                <AnimatePresence>
+                                {isExpanded && collapsibleItems?.map((item, index) => (
+                                    <motion.li 
+                                    key={`collapsible-${index}`}
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                                    className="overflow-hidden"
+                                    >
+                                        <Separator className="my-2" />
+                                        <div className="flex items-start gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50 text-left">
+                                        <Checkbox
+                                            id={`roteiro-collapsible-${index}`}
+                                            checked={item.concluido}
+                                            onCheckedChange={() => handleToggleRoteiro(item, 3 + index)}
+                                            className="h-5 w-5 mt-1"
+                                        />
+                                        <div>
+                                            <label
+                                            htmlFor={`roteiro-collapsible-${index}`}
+                                            className={cn(
+                                                'font-medium text-base transition-colors cursor-pointer',
+                                                item.concluido
+                                                ? 'line-through text-muted-foreground'
+                                                : 'text-foreground'
+                                            )}
+                                            >
+                                            <span className="font-semibold text-primary">
+                                                {item.dia}:
+                                            </span>{' '}
+                                            {item.tarefa}
+                                            </label>
+                                            <p className="text-sm text-muted-foreground">
+                                            {item.detalhes}
+                                            </p>
+                                        </div>
+                                        </div>
+                                    </motion.li>
+                                ))}
+                                </AnimatePresence>
+                            </ul>
+                            {collapsibleItems && collapsibleItems.length > 0 && !isExpanded && (
+                            <div className='flex justify-center mt-2'>
+                                <Button 
+                                    variant="ghost" 
+                                    onClick={() => setIsExpanded(true)} 
+                                    className="text-primary hover:text-primary"
+                                >
+                                    Ver restante da semana
+                                </Button>
+                            </div>
+                            )}
+                            {isExpanded && (
+                            <div className='flex justify-center mt-2'>
+                                <Button 
+                                    variant="ghost" 
+                                    onClick={() => setIsExpanded(false)} 
+                                    className="text-primary hover:text-primary"
+                                >
+                                    Ver menos
+                                </Button>
+                            </div>
+                            )}
                         </div>
-                        )}
-                        {isExpanded && (
-                        <div className='flex justify-center mt-2'>
-                            <Button 
-                                variant="ghost" 
-                                onClick={() => setIsExpanded(false)} 
-                                className="text-primary hover:text-primary"
+                        ) : (
+                        <div className="text-center py-8 px-4 rounded-xl bg-muted/50 border border-dashed">
+                            <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+                            <h3 className="font-semibold text-foreground">
+                            Sem roteiro para a semana.
+                            </h3>
+                            <p className="text-sm text-muted-foreground">
+                            Gere um novo no{' '}
+                            <Link
+                                href="/generate-weekly-plan"
+                                className="text-primary font-medium hover:underline"
                             >
-                                Ver menos
-                            </Button>
+                                Planejamento Semanal
+                            </Link>
+                            .
+                            </p>
                         </div>
-                        )}
-                    </div>
-                    ) : (
-                    <div className="text-center py-8 px-4 rounded-xl bg-muted/50 border border-dashed">
-                        <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
-                        <h3 className="font-semibold text-foreground">
-                        Sem roteiro para a semana.
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                        Gere um novo no{' '}
-                        <Link
-                            href="/generate-weekly-plan"
-                            className="text-primary font-medium hover:underline"
-                        >
-                            Planejamento Semanal
-                        </Link>
-                        .
-                        </p>
-                    </div>
-                    )
-                )}
-              </CardContent>
-            </Card>
-          </div>
+                        )
+                    )}
+                </CardContent>
+                </Card>
+            </div>
+        </div>
 
-          {/* Coluna Lateral (Informações Rápidas) */}
-          <div className="lg:col-span-1 space-y-8 flex flex-col">
+        {/* Bottom Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card h-full">
               <CardHeader className="text-center sm:text-left">
                 <CardTitle className="font-headline text-xl">
@@ -566,11 +597,7 @@ export default function DashboardPage() {
                 )}
               </CardContent>
             </Card>
-
-          </div>
-
         </div>
-
       </div>
     </div>
   );
@@ -593,7 +620,7 @@ function MetricCard({ icon: Icon, title, value, handle, isLoading }: { icon: Rea
                     </div>
                     {handle && (
                         <p className="text-xs text-muted-foreground">
-                            {value ? handle : <Link href="/profile" className="hover:underline">Adicionar no perfil</Link>}
+                            {handle ? handle : <Link href="/profile" className="hover:underline">Adicionar no perfil</Link>}
                         </p>
                     )}
                 </>
