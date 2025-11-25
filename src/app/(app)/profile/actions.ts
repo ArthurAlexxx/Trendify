@@ -44,7 +44,7 @@ export type InstagramProfileData = {
 const TikTokStatsSchema = z.union([
     z.object({
         followerCount: z.union([z.string(), z.number()]),
-        followingCount: z.union([z.string(), z.number()]),
+        followingCount: z.union([z: .string(), z.number()]),
         heartCount: z.union([z.string(), z.number()]),
         videoCount: z.union([z.string(), z.number()]),
         diggCount: z.union([z.string(), z.number()]).optional(),
@@ -112,6 +112,14 @@ const TikTokPostSchema = z.object({
     }).passthrough(),
 }).passthrough();
 
+const TikTokPostResponseSchema = z.object({
+  data: z.object({
+    itemList: z.array(TikTokPostSchema).optional().default([]),
+  }).optional(),
+  aweme_list: z.array(TikTokPostSchema).optional().default([]),
+}).passthrough();
+
+
 export type TikTokPostData = {
     id: string;
     description: string;
@@ -144,11 +152,11 @@ async function fetchFromRapidApi(platform: 'instagram' | 'tiktok', endpoint: 'pr
     const paths = {
         instagram: {
             profile: 'api/instagram/profile',
-            posts: 'v1/user-posts', // Not used anymore but kept for structure
+            posts: 'v1/user-posts',
         },
         tiktok: {
             profile: 'api/user/info',
-            posts: 'api/user/videos',
+            posts: 'api/user/posts',
         }
     }
 
@@ -158,14 +166,6 @@ async function fetchFromRapidApi(platform: 'instagram' | 'tiktok', endpoint: 'pr
 
     if (platform === 'tiktok') {
         url = new URL(`https://${host}/${path}`);
-        if (endpoint === 'profile') {
-            url.searchParams.append('uniqueId', usernameOrSecUid);
-        } else { // posts
-            url.searchParams.append('secUid', usernameOrSecUid);
-            url.searchParams.append('count', '30');
-            url.searchParams.append('cursor', '0');
-        }
-        
         options = {
             method: 'GET',
             headers: {
@@ -173,6 +173,13 @@ async function fetchFromRapidApi(platform: 'instagram' | 'tiktok', endpoint: 'pr
                 'x-rapidapi-host': host,
             },
         };
+        if (endpoint === 'profile') {
+            url.searchParams.append('uniqueId', usernameOrSecUid);
+        } else { // posts
+            url.searchParams.append('secUid', usernameOrSecUid);
+            url.searchParams.append('count', '30');
+            url.searchParams.append('cursor', '0');
+        }
     } else { // Instagram
         url = new URL(`https://${host}/${path}`);
         options = {
@@ -210,7 +217,10 @@ async function fetchFromRapidApi(platform: 'instagram' | 'tiktok', endpoint: 'pr
     
     // Instagram nests in `data` in some cases, TikTok has a different structure.
     if (platform === 'instagram') return data.data || data;
-    if (platform === 'tiktok') return data.userInfo || data; // Profile data is in userInfo, posts data is at root
+    if (platform === 'tiktok') {
+        if(endpoint === 'profile') return data.userInfo || data;
+        return data; // For posts, the data is at the root
+    }
     
     return data;
 }
@@ -298,7 +308,9 @@ export async function getTikTokPosts(secUid: string): Promise<TikTokPostData[]> 
     }
     try {
         const result = await fetchFromRapidApi('tiktok', 'posts', secUid);
-        const postsArray = z.array(TikTokPostSchema).parse(result?.aweme_list || []);
+        const parsed = TikTokPostResponseSchema.parse(result);
+        const postsArray = parsed.data?.itemList || parsed.aweme_list;
+
 
         const thirtyOneDaysAgo = Math.floor(Date.now() / 1000) - (31 * 24 * 60 * 60);
 
