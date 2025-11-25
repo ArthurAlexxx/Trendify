@@ -3,7 +3,9 @@
 
 import { z } from 'zod';
 
-const ProfileResultSchema = z.object({
+// --- Instagram Schemas ---
+
+const InstagramProfileResultSchema = z.object({
   id: z.string(),
   username: z.string(),
   is_private: z.boolean(),
@@ -20,10 +22,9 @@ const ProfileResultSchema = z.object({
     count: z.number().optional(),
   }),
   is_business_account: z.boolean().optional(),
-  account_type: z.number().optional(), // 1: Business, 2: Media Creator, 3: Private/Personal. This is not always present, so we'll rely on is_business_account and is_private.
 });
 
-export type ProfileData = {
+export type InstagramProfileData = {
     id: string;
     username: string;
     isPrivate: boolean;
@@ -36,65 +37,141 @@ export type ProfileData = {
     followingCount: number;
 }
 
-const PostNodeSchema = z.object({
+const InstagramPostNodeSchema = z.object({
   id: z.string(),
-  image_versions2: z.object({
-    candidates: z.array(z.object({
-      url: z.string().url(),
+  display_url: z.string().url(),
+  video_url: z.string().url().optional(),
+  edge_media_to_caption: z.object({
+    edges: z.array(z.object({
+        node: z.object({ text: z.string() })
     })).min(1),
-  }).optional(),
-  carousel_media: z.array(z.object({
-    image_versions2: z.object({
-        candidates: z.array(z.object({
-            url: z.string().url(),
-        })).min(1),
-    })
-  })).nullable().optional(),
-  video_versions: z.array(z.object({
-    url: z.string().url(),
-  })).optional(),
-  view_count: z.number().nullable().optional(),
-  caption: z.object({
-    text: z.string(),
-  }).nullable().optional(),
-  like_count: z.number().optional(),
-  comment_count: z.number().optional(),
-  media_type: z.number(), // 1: Image, 2: Video, 8: Carousel
-  taken_at: z.number(),
+  }),
+  edge_media_preview_like: z.object({
+    count: z.number(),
+  }),
+  edge_media_to_comment: z.object({
+    count: z.number(),
+  }),
+  is_video: z.boolean(),
+  taken_at_timestamp: z.number(),
 });
 
-const PostsResultSchema = z.object({
+const InstagramPostsResultSchema = z.object({
     edges: z.array(z.object({
-        node: PostNodeSchema
+        node: InstagramPostNodeSchema
     }))
 })
 
-export type PostData = {
+export type InstagramPostData = {
     id: string;
     displayUrl: string;
     videoUrl?: string;
     caption: string;
-    views?: number;
     likes: number;
     comments: number;
     isVideo: boolean;
 }
 
+// --- TikTok Schemas ---
 
-async function fetchFromRapidApi(endpoint: 'profile' | 'posts', username: string) {
+const TikTokStatsSchema = z.object({
+    followerCount: z.number(),
+    followingCount: z.number(),
+    heartCount: z.number(),
+    videoCount: z.number(),
+});
+
+const TikTokUserSchema = z.object({
+    id: z.string(),
+    uniqueId: z.string(),
+    nickname: z.string(),
+    avatarLarger: z.string().url(),
+    signature: z.string(), // bio
+    verified: z.boolean(),
+    privateAccount: z.boolean(),
+});
+
+const TikTokProfileSchema = z.object({
+    stats: TikTokStatsSchema,
+    user: TikTokUserSchema,
+});
+
+export type TikTokProfileData = {
+    id: string;
+    username: string;
+    nickname: string;
+    avatarUrl: string;
+    bio: string;
+    isVerified: boolean;
+    isPrivate: boolean;
+    followersCount: number;
+    followingCount: number;
+    heartsCount: number;
+    videoCount: number;
+};
+
+const TikTokPostSchema = z.object({
+    id: z.string(),
+    desc: z.string(),
+    createTime: z.number(),
+    video: z.object({
+        cover: z.string().url(),
+        playAddr: z.string().url(),
+    }),
+    author: z.object({
+        uniqueId: z.string(),
+    }),
+    stats: z.object({
+        diggCount: z.number(), // likes
+        commentCount: z.number(),
+        playCount: z.number(), // views
+    }),
+});
+
+export type TikTokPostData = {
+    id: string;
+    description: string;
+    videoUrl: string;
+    coverUrl: string;
+    views: number;
+    likes: number;
+    comments: number;
+};
+
+
+// --- API Fetching Logic ---
+
+async function fetchFromRapidApi(platform: 'instagram' | 'tiktok', endpoint: 'profile' | 'posts', username: string) {
     const apiKey = process.env.RAPIDAPI_KEY;
-    const apiHost = process.env.RAPIDAPI_HOST;
-
-    if (!apiKey || !apiHost) {
-      throw new Error('As credenciais da API não estão configuradas no servidor.');
+    if (!apiKey) {
+      throw new Error('A chave da API (RAPIDAPI_KEY) não está configurada no servidor.');
     }
 
-    const url = `https://instagram130.p.rapidapi.com/api/instagram/${endpoint}`;
+    const hosts = {
+        instagram: 'instagram130.p.rapidapi.com',
+        tiktok: 'tiktok-api23.p.rapidapi.com',
+    };
+
+    const paths = {
+        instagram: {
+            profile: 'v1/user-info',
+            posts: 'v1/user-posts',
+        },
+        tiktok: {
+            profile: '/api/user/info',
+            posts: '/api/user/videos',
+        }
+    }
+
+    const host = hosts[platform];
+    const path = paths[platform][endpoint];
+    const url = `https://${host}${path}`;
+
     const options = {
       method: 'POST',
       headers: {
         'x-rapidapi-key': apiKey,
-        'x-rapidapi-host': apiHost,
+        'x-rapidapi-host': host,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({ username })
@@ -104,49 +181,36 @@ async function fetchFromRapidApi(endpoint: 'profile' | 'posts', username: string
     
     if (!response.ok) {
         const errorText = await response.text();
-        console.error(`[API ERROR - fetchFromRapidApi] Status ${response.status}:`, errorText);
+        console.error(`[API ERROR - ${platform}/${endpoint}] Status ${response.status}:`, errorText);
         
-        if (response.status === 404) {
-            throw new Error(`Endpoint '/${endpoint}' não encontrado. Verifique a URL da API.`);
-        }
-        if (errorText.includes("You are not subscribed to this API")) {
-            throw new Error("Você não está inscrito nesta API na RapidAPI. Verifique sua assinatura e chave.");
-        }
-        if (errorText.toLowerCase().includes("service unavailable")) {
-             throw new Error("O serviço da API do Instagram está indisponível no momento. Tente novamente mais tarde.");
-        }
-        if (errorText.toLowerCase().includes("this page is private")) {
-             throw new Error("Este perfil é privado. A integração funciona apenas com perfis públicos.");
-        }
+        if (response.status === 404) throw new Error(`Endpoint '/${path}' não encontrado. Verifique a URL da API.`);
+        if (errorText.includes("You are not subscribed to this API")) throw new Error("Você não está inscrito nesta API na RapidAPI. Verifique sua assinatura e chave.");
+        if (errorText.toLowerCase().includes("service unavailable")) throw new Error(`O serviço da API (${platform}) está indisponível. Tente mais tarde.`);
+        if (errorText.toLowerCase().includes("this page is private")) throw new Error("Este perfil é privado. A integração funciona apenas com perfis públicos.");
         
-        throw new Error(`A API retornou um erro: ${response.statusText} - ${errorText}`);
+        throw new Error(`A API (${platform}) retornou um erro: ${response.statusText} - ${errorText}`);
     }
     
     const data = await response.json();
 
-    if (data.message) {
-      throw new Error(data.message);
-    }
-
-    if (!data.result) {
-        throw new Error('A resposta da API não contém os dados esperados.');
-    }
+    if (platform === 'instagram' && data.message) throw new Error(data.message);
     
-    return data.result;
+    // The TikTok API nests the result differently
+    if (platform === 'tiktok' && data.statusCode !== 0) throw new Error(data.status_msg || `API do TikTok retornou status ${data.statusCode}`);
+    
+    return platform === 'tiktok' ? data : data.data; // Instagram nests in `data`, TikTok does not
 }
 
 
-export async function getInstagramProfile(username: string): Promise<ProfileData> {
+export async function getInstagramProfile(username: string): Promise<InstagramProfileData> {
     try {
-        const result = await fetchFromRapidApi('profile', username);
-        const parsed = ProfileResultSchema.parse(result);
+        const result = await fetchFromRapidApi('instagram', 'profile', username);
+        const parsed = InstagramProfileResultSchema.parse(result);
 
         if (parsed.is_private) {
             throw new Error("Este perfil é privado. A integração funciona apenas com perfis públicos.");
         }
         
-        // A API da RapidAPI não retorna o `account_type` de forma consistente como a API oficial do FB Graph.
-        // A melhor aproximação é usar `is_business_account`. Se for `false`, é provável que não seja nem Business nem Creator.
         if (!parsed.is_business_account) {
             throw new Error("Esta conta não é do tipo 'Comercial' ou 'Criador de Conteúdo'. Altere o tipo de conta nas configurações do Instagram para continuar.");
         }
@@ -172,42 +236,26 @@ export async function getInstagramProfile(username: string): Promise<ProfileData
     }
 }
 
-export async function getInstagramPosts(username: string): Promise<PostData[]> {
+export async function getInstagramPosts(username: string): Promise<InstagramPostData[]> {
      try {
-        const result = await fetchFromRapidApi('posts', username);
-        const parsed = PostsResultSchema.parse(result);
+        const result = await fetchFromRapidApi('instagram', 'posts', username);
+        const parsed = InstagramPostsResultSchema.parse(result);
         
         const thirtyOneDaysAgo = Math.floor(Date.now() / 1000) - (31 * 24 * 60 * 60);
 
         const recentPosts = parsed.edges.filter(({ node }) => {
-            return node.taken_at > thirtyOneDaysAgo;
+            return node.taken_at_timestamp > thirtyOneDaysAgo;
         });
 
-        return recentPosts.map(({ node }) => {
-            let displayUrl = '';
-            // Handle carousel posts
-            if (node.media_type === 8 && node.carousel_media && node.carousel_media.length > 0) {
-                 displayUrl = node.carousel_media[0].image_versions2.candidates[0].url;
-            } 
-            // Handle single image/video posts
-            else if (node.image_versions2 && node.image_versions2.candidates.length > 0) {
-                displayUrl = node.image_versions2.candidates[0].url;
-            }
-
-            const isVideo = node.media_type === 2;
-            const videoUrl = isVideo && node.video_versions && node.video_versions.length > 0 ? node.video_versions[0].url : undefined;
-
-            return {
-                id: node.id,
-                displayUrl: displayUrl,
-                videoUrl: videoUrl,
-                caption: node.caption?.text || '',
-                views: node.view_count || undefined,
-                likes: node.like_count || 0,
-                comments: node.comment_count || 0,
-                isVideo: isVideo,
-            }
-        });
+        return recentPosts.map(({ node }) => ({
+            id: node.id,
+            displayUrl: node.display_url,
+            videoUrl: node.video_url,
+            caption: node.edge_media_to_caption.edges[0]?.node.text || '',
+            likes: node.edge_media_preview_like.count,
+            comments: node.edge_media_to_comment.count,
+            isVideo: node.is_video,
+        }));
     } catch (e: any) {
         console.error(`[ACTION ERROR - getInstagramPosts] ${e.message}`);
          if (e.issues) {
@@ -215,5 +263,68 @@ export async function getInstagramPosts(username: string): Promise<PostData[]> {
              throw new Error(`Falha na validação dos dados dos posts: ${errorDetails}`);
         }
         throw new Error(`Falha ao buscar posts do Instagram: ${e.message}`);
+    }
+}
+
+
+export async function getTikTokProfile(username: string): Promise<TikTokProfileData> {
+    try {
+        const result = await fetchFromRapidApi('tiktok', 'profile', username);
+        const parsed = TikTokProfileSchema.parse(result);
+
+        if (parsed.user.privateAccount) {
+            throw new Error("Este perfil é privado. A integração funciona apenas com perfis públicos.");
+        }
+
+        return {
+            id: parsed.user.id,
+            username: parsed.user.uniqueId,
+            nickname: parsed.user.nickname,
+            avatarUrl: parsed.user.avatarLarger,
+            bio: parsed.user.signature,
+            isVerified: parsed.user.verified,
+            isPrivate: parsed.user.privateAccount,
+            followersCount: parsed.stats.followerCount,
+            followingCount: parsed.stats.followingCount,
+            heartsCount: parsed.stats.heartCount,
+            videoCount: parsed.stats.videoCount,
+        };
+    } catch (e: any) {
+        console.error(`[ACTION ERROR - getTikTokProfile] ${e.message}`);
+        if (e.issues) {
+             throw new Error(`Falha na validação dos dados do perfil do TikTok: ${e.issues.map((issue: any) => `${issue.path.join('.')} - ${issue.message}`).join(', ')}`);
+        }
+        throw new Error(`Falha ao buscar perfil do TikTok: ${e.message}`);
+    }
+}
+
+
+export async function getTikTokPosts(username: string): Promise<TikTokPostData[]> {
+    try {
+        const result = await fetchFromRapidApi('tiktok', 'posts', username);
+        // TikTok API nests posts in an `aweme_list` array
+        const postsArray = z.array(TikTokPostSchema).parse(result?.aweme_list || []);
+
+        const thirtyOneDaysAgo = Math.floor(Date.now() / 1000) - (31 * 24 * 60 * 60);
+
+        const recentPosts = postsArray.filter(post => post.createTime > thirtyOneDaysAgo);
+        
+        return recentPosts.map(post => ({
+            id: post.id,
+            description: post.desc,
+            videoUrl: post.video.playAddr,
+            coverUrl: post.video.cover,
+            views: post.stats.playCount,
+            likes: post.stats.diggCount,
+            comments: post.stats.commentCount,
+        }));
+
+    } catch (e: any) {
+        console.error(`[ACTION ERROR - getTikTokPosts] ${e.message}`);
+        if (e.issues) {
+             const errorDetails = e.issues.map((issue: any) => `${issue.path.join('.')} - ${issue.message}`).join(', ');
+             throw new Error(`Falha na validação dos dados dos posts do TikTok: ${errorDetails}`);
+        }
+        throw new Error(`Falha ao buscar posts do TikTok: ${e.message}`);
     }
 }
