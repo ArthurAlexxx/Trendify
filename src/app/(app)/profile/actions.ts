@@ -4,7 +4,7 @@ import { z } from 'zod';
 
 // Utility schemas
 const CountSchema = z.object({
-  count: z.number(),
+  count: z.number().optional(),
 });
 
 // Profile Schema
@@ -34,16 +34,27 @@ export type ProfileData = {
     isBusiness: boolean;
 }
 
-// Post Schema - Made more robust to handle missing data from API
+// Post Schema - Updated to match the real API response
 const PostNodeSchema = z.object({
   id: z.string(),
-  display_url: z.string().url().optional(),
-  edge_media_to_caption: z.object({
-    edges: z.array(z.object({ node: z.object({ text: z.string() }) })),
+  image_versions2: z.object({
+    candidates: z.array(z.object({
+      url: z.string().url(),
+    })).min(1),
   }).optional(),
-  edge_media_preview_like: CountSchema.optional(),
-  edge_media_to_comment: CountSchema.optional(),
-  is_video: z.boolean().optional(),
+  carousel_media: z.array(z.object({
+    image_versions2: z.object({
+        candidates: z.array(z.object({
+            url: z.string().url(),
+        })).min(1),
+    })
+  })).optional(),
+  caption: z.object({
+    text: z.string(),
+  }).nullable().optional(),
+  like_count: z.number().optional(),
+  comment_count: z.number().optional(),
+  media_type: z.number(), // 1: Image, 2: Video, 8: Carousel
 });
 
 const PostsResultSchema = z.object({
@@ -109,21 +120,16 @@ export async function getInstagramProfile(username: string): Promise<ProfileData
             profilePicUrlHd: parsed.profile_pic_url_hd,
             biography: parsed.biography,
             fullName: parsed.full_name,
-            mediaCount: parsed.edge_owner_to_timeline_media.count,
-            followersCount: parsed.edge_followed_by.count,
-            followingCount: parsed.edge_follow.count,
+            mediaCount: parsed.edge_owner_to_timeline_media.count || 0,
+            followersCount: parsed.edge_followed_by.count || 0,
+            followingCount: parsed.edge_follow.count || 0,
             isBusiness: parsed.is_business_account || false,
         };
     } catch (e: any) {
         console.error(`[ACTION ERROR - getInstagramProfile] ${e.message}`);
-        if (e.message.startsWith('[')) {
-            try {
-                const zodError = JSON.parse(e.message);
-                const firstIssue = zodError[0];
-                throw new Error(`O dado '${firstIssue.path.join('.')}' falhou na validação: ${firstIssue.message}. Esperado: ${firstIssue.expected}, Recebido: ${firstIssue.received}.`);
-            } catch {
-                 throw new Error(`Falha ao buscar perfil do Instagram: ${e.message}`);
-            }
+        // This is a simple way to propagate Zod errors for debugging
+        if (e.issues) {
+             throw new Error(`Falha na validação dos dados do perfil: ${e.issues.map((issue: any) => `${issue.path.join('.')} - ${issue.message}`).join(', ')}`);
         }
         throw new Error(`Falha ao buscar perfil do Instagram: ${e.message}`);
     }
@@ -134,16 +140,28 @@ export async function getInstagramPosts(username: string): Promise<PostData[]> {
         const result = await fetchFromRapidApi('posts', username);
         const parsed = PostsResultSchema.parse(result);
         
-        return parsed.edges.map(({ node }) => ({
-            id: node.id,
-            displayUrl: node.display_url || '',
-            caption: node.edge_media_to_caption?.edges[0]?.node.text || '',
-            likes: node.edge_media_preview_like?.count || 0,
-            comments: node.edge_media_to_comment?.count || 0,
-            isVideo: node.is_video || false,
-        }));
+        return parsed.edges.map(({ node }) => {
+            let displayUrl = '';
+            if (node.media_type === 8 && node.carousel_media && node.carousel_media.length > 0) {
+                 displayUrl = node.carousel_media[0].image_versions2.candidates[0].url;
+            } else if (node.image_versions2 && node.image_versions2.candidates.length > 0) {
+                displayUrl = node.image_versions2.candidates[0].url;
+            }
+
+            return {
+                id: node.id,
+                displayUrl: displayUrl,
+                caption: node.caption?.text || '',
+                likes: node.like_count || 0,
+                comments: node.comment_count || 0,
+                isVideo: node.media_type === 2,
+            }
+        });
     } catch (e: any) {
         console.error(`[ACTION ERROR - getInstagramPosts] ${e.message}`);
+         if (e.issues) {
+             throw new Error(`Falha na validação dos dados dos posts: ${e.issues.map((issue: any) => `${issue.path.join('.')} - ${issue.message}`).join(', ')}`);
+        }
         throw new Error(`Falha ao buscar posts do Instagram: ${e.message}`);
     }
 }
