@@ -18,6 +18,7 @@ export type VideoAnalysisOutput = z.infer<typeof VideoAnalysisOutputSchema>;
 type ActionState = {
   data?: VideoAnalysisOutput;
   error?: string;
+  isOverloaded?: boolean;
 } | null;
 
 
@@ -58,6 +59,14 @@ export async function analyzeVideo(
     return { data: analysis };
   } catch (e: any) {
     console.error("Falha na execução do fluxo de análise:", e);
+
+    if (e.message && (e.message.includes('503') || e.message.includes('The model is overloaded'))) {
+        return {
+            error: 'Ocorreu uma sobrecarga em nossos servidores de IA. Por favor, aguarde alguns instantes e tente novamente. Sua análise não foi consumida.',
+            isOverloaded: true,
+        };
+    }
+    
     const errorMessage = `Não foi possível acessar o vídeo para análise. Verifique se o caminho do arquivo está correto. Detalhe: ${e.message || "Ocorreu um erro desconhecido durante a análise."}`;
     return { error: errorMessage };
   }

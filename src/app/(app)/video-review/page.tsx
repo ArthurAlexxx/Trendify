@@ -237,7 +237,7 @@ function VideoReviewPageContent() {
 
     const { firebaseApp } = initializeFirebase();
     const storage = getStorage(firebaseApp);
-    const storagePath = `video-reviews/${user.uid}/${Date.now()}-${file.name}`;
+    const storagePath = `video-reviews/${user.uid}/${file.name}`;
     const storageRef = ref(storage, storagePath);
     const uploadTask = uploadBytesResumable(storageRef, file);
 
@@ -262,6 +262,12 @@ function VideoReviewPageContent() {
           setAnalysisStatus("loading");
 
           const result = await analyzeVideo({ videoUrl: downloadURL });
+
+          if (result?.isOverloaded) {
+              setAnalysisError(result.error || "Servidor sobrecarregado.");
+              setAnalysisStatus("error");
+              return;
+          }
 
           if (result && result.data) {
             setAnalysisResult(result.data);
