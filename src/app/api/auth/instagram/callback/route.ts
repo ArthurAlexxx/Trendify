@@ -65,12 +65,15 @@ async function getInstagramAccountInfo(accessToken: string) {
         throw new Error(data.error?.message || "Falha ao buscar dados da conta do Instagram.");
     }
     
-    if (data.account_type !== 'BUSINESS' && data.account_type !== 'MEDIA_CREATOR') {
-        throw new Error(`A conta do Instagram '${data.username}' precisa ser do tipo 'Comercial' ou 'Criador de Conteúdo' para usar a integração.`);
+    // A resposta do /me é um objeto direto, não um array.
+    const accountData = data;
+
+    if (accountData.account_type !== 'BUSINESS' && accountData.account_type !== 'MEDIA_CREATOR') {
+        throw new Error(`A conta do Instagram '${accountData.username}' precisa ser do tipo 'Comercial' ou 'Criador de Conteúdo' para usar a integração.`);
     }
     
-    console.log(`[getInstagramAccountInfo] Informações da conta obtidas:`, data);
-    return data;
+    console.log(`[getInstagramAccountInfo] Informações da conta obtidas:`, accountData);
+    return accountData;
 }
 
 // --- Rota da API (GET) ---
@@ -129,9 +132,8 @@ export async function GET(req: NextRequest) {
         const { accessToken: shortLivedToken } = await exchangeCodeForToken(code, redirectUri);
         const longLivedToken = await getLongLivedAccessToken(shortLivedToken);
 
-        // A chamada crucial: buscar dados do Instagram usando a Graph API do Instagram
         const accountInfo = await getInstagramAccountInfo(longLivedToken);
-        const igUserId = accountInfo.id; // O ID do usuário do Instagram agora vem daqui
+        const igUserId = accountInfo.id; 
 
         const firestore = initializeFirebaseAdmin().firestore;
         const userRef = firestore.collection('users').doc(uid);
