@@ -147,8 +147,8 @@ export default function SignUpPage() {
             Crie sua conta e comece a crescer.
           </p>
         </div>
-        <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20">
-          <CardHeader>
+        <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0">
+          <CardHeader className="text-center">
             <CardTitle className="font-headline text-xl">
               Cadastro gratuito
             </CardTitle>
@@ -166,7 +166,7 @@ export default function SignUpPage() {
                     <Separator className="flex-1" />
                 </div>
                 <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 text-center">
                     <FormField
                     control={form.control}
                     name="name"

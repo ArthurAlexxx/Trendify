@@ -120,8 +120,8 @@ export default function LoginPage() {
             Bem-vindo(a) de volta.
           </p>
         </div>
-        <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20">
-          <CardHeader>
+        <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0">
+          <CardHeader className="text-center">
             <CardTitle className="font-headline text-xl">
               Acesse sua conta
             </CardTitle>
@@ -140,7 +140,7 @@ export default function LoginPage() {
                 </div>
 
                 <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 text-center">
                     <FormField
                     control={form.control}
                     name="email"
