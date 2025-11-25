@@ -54,6 +54,7 @@ const PostNodeSchema = z.object({
   }).nullable().optional(),
   like_count: z.number().optional(),
   comment_count: z.number().optional(),
+  view_count: z.number().nullable().optional(),
   media_type: z.number(), // 1: Image, 2: Video, 8: Carousel
 });
 
@@ -69,6 +70,7 @@ export type PostData = {
     caption: string;
     likes: number;
     comments: number;
+    views?: number;
     isVideo: boolean;
 }
 
@@ -81,7 +83,7 @@ async function fetchFromRapidApi(endpoint: 'profile' | 'posts', username: string
       throw new Error('As credenciais da API não estão configuradas no servidor.');
     }
 
-    const url = `https://${apiHost}/api/instagram/${endpoint}`;
+    const url = `https://instagram-data1.p.rapidapi.com/api/instagram/${endpoint}`;
     const options = {
       method: 'POST',
       headers: {
@@ -96,11 +98,22 @@ async function fetchFromRapidApi(endpoint: 'profile' | 'posts', username: string
     
     if (!response.ok) {
         const errorText = await response.text();
+        console.error(`[API ERROR - fetchFromRapidApi] Status ${response.status}:`, errorText);
+        
+        if (response.status === 404) {
+            throw new Error(`Endpoint '/${endpoint}' não encontrado. Verifique a URL da API.`);
+        }
+        if (errorText.includes("You are not subscribed to this API")) {
+            throw new Error("Você não está inscrito nesta API na RapidAPI. Verifique sua assinatura e chave.");
+        }
+        if (errorText.toLowerCase().includes("service unavailable")) {
+             throw new Error("O serviço da API do Instagram está indisponível no momento. Tente novamente mais tarde.");
+        }
+        
         throw new Error(`A API retornou um erro: ${response.statusText} - ${errorText}`);
     }
     
     const data = await response.json();
-
 
     if (data.message) {
       throw new Error(data.message);
@@ -156,13 +169,16 @@ export async function getInstagramPosts(username: string): Promise<PostData[]> {
                 displayUrl = node.image_versions2.candidates[0].url;
             }
 
+            const isVideo = node.media_type === 2;
+
             return {
                 id: node.id,
                 displayUrl: displayUrl,
                 caption: node.caption?.text || '',
                 likes: node.like_count || 0,
                 comments: node.comment_count || 0,
-                isVideo: node.media_type === 2,
+                views: isVideo ? node.view_count || 0 : 0,
+                isVideo: isVideo,
             }
         });
     } catch (e: any) {

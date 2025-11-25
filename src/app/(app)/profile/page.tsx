@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { User as UserIcon, Instagram, Film, Search, Loader2, AlertTriangle, Users, Eye, Heart, MessageSquare, Clapperboard, ShoppingBag } from 'lucide-react';
+import { User as UserIcon, Instagram, Film, Search, Loader2, AlertTriangle, Users, Eye, Heart, MessageSquare, Clapperboard, ShoppingBag, PlayCircle } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -31,6 +31,7 @@ import Image from 'next/image';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { ProfileData, PostData } from './actions';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { getInstagramPosts, getInstagramProfile } from './actions';
 
 
 const profileFormSchema = z.object({
@@ -54,28 +55,6 @@ const profileFormSchema = z.object({
 type ProfileFormData = z.infer<typeof profileFormSchema>;
 
 type SearchStatus = 'idle' | 'loading' | 'success' | 'error';
-
-async function fetchFromApiRoute(endpoint: 'profile' | 'posts', username: string) {
-    const response = await fetch(`/api/instagram/${endpoint}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ username })
-    });
-    
-    if (!response.ok) {
-        const errorResult = await response.json().catch(() => ({ error: 'Falha ao ler a resposta de erro da API.' }));
-        throw new Error(errorResult.error || `A API retornou um erro: ${response.statusText}`);
-    }
-    
-    const result = await response.json();
-    if (result.error) {
-        throw new Error(result.error);
-    }
-    
-    return result.data;
-}
 
 
 export default function ProfilePage() {
@@ -196,8 +175,8 @@ export default function ProfilePage() {
 
     try {
       const [profileResult, postsResult] = await Promise.allSettled([
-        fetchFromApiRoute('profile', cleanedUsername),
-        fetchFromApiRoute('posts', cleanedUsername)
+        getInstagramProfile(cleanedUsername),
+        getInstagramPosts(cleanedUsername)
       ]);
 
       if (profileResult.status === 'rejected') {
@@ -216,16 +195,28 @@ export default function ProfilePage() {
         setPostsError('Não foi possível carregar os posts recentes. ' + postsResult.reason.message);
       }
       
-      // Update form and database
        if (userProfileRef) {
-        const averageLikes = fetchedPosts.length > 0 ? fetchedPosts.reduce((acc, p) => acc + p.likes, 0) / fetchedPosts.length : 0;
-        const averageComments = fetchedPosts.length > 0 ? fetchedPosts.reduce((acc, p) => acc + p.comments, 0) / fetchedPosts.length : 0;
+        const videoPosts = fetchedPosts.filter(p => p.isVideo);
+        const imagePosts = fetchedPosts.filter(p => !p.isVideo);
+
+        const averageViews = videoPosts.length > 0 
+            ? videoPosts.reduce((acc, p) => acc + (p.views || 0), 0) / videoPosts.length 
+            : 0;
+        
+        const averageLikes = imagePosts.length > 0 
+            ? imagePosts.reduce((acc, p) => acc + p.likes, 0) / imagePosts.length 
+            : 0;
+
+        const averageComments = imagePosts.length > 0 
+            ? imagePosts.reduce((acc, p) => acc + p.comments, 0) / imagePosts.length 
+            : 0;
         
         const updateData: Partial<ProfileFormData> = {
             instagramHandle: `@${fetchedProfile.username}`,
             bio: fetchedProfile.biography,
             photoURL: fetchedProfile.profilePicUrlHd,
             instagramFollowers: formatNumber(fetchedProfile.followersCount),
+            instagramAverageViews: formatNumber(Math.round(averageViews)),
             instagramAverageLikes: formatNumber(Math.round(averageLikes)),
             instagramAverageComments: formatNumber(Math.round(averageComments)),
         }
@@ -349,12 +340,19 @@ export default function ProfilePage() {
                             {posts.map(post => (
                               <CarouselItem key={post.id} className="md:basis-1/2 lg:basis-1/3">
                                 <Card className="overflow-hidden rounded-xl">
-                                  <CardContent className="p-0 aspect-square">
+                                  <CardContent className="p-0 aspect-square relative">
                                     <Image src={post.displayUrl} alt={post.caption.slice(0, 50)} width={400} height={400} className="w-full h-full object-cover rounded-t-md" />
+                                    {post.isVideo && <div className="absolute inset-0 bg-black/20 flex items-center justify-center"><PlayCircle className="h-10 w-10 text-white/80" /></div>}
                                   </CardContent>
                                   <div className="p-3 bg-muted/30 text-xs text-muted-foreground flex justify-between">
-                                    <span className='flex items-center gap-1.5'><Heart className='h-4 w-4 text-pink-500' /> {formatNumber(post.likes)}</span>
-                                    <span className='flex items-center gap-1.5'><MessageSquare className='h-4 w-4 text-sky-500' /> {formatNumber(post.comments)}</span>
+                                    {post.isVideo ? (
+                                      <span className='flex items-center gap-1.5'><Eye className='h-4 w-4 text-primary' /> {formatNumber(post.views || 0)}</span>
+                                    ) : (
+                                      <>
+                                        <span className='flex items-center gap-1.5'><Heart className='h-4 w-4 text-pink-500' /> {formatNumber(post.likes)}</span>
+                                        <span className='flex items-center gap-1.5'><MessageSquare className='h-4 w-4 text-sky-500' /> {formatNumber(post.comments)}</span>
+                                      </>
+                                    )}
                                   </div>
                                 </Card>
                               </CarouselItem>
@@ -517,5 +515,3 @@ function MetricCard({ icon: Icon, label, value }: { icon: React.ElementType, lab
     </Card>
   )
 }
-
-    
