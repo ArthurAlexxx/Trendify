@@ -1,4 +1,3 @@
-
 // Este é um script de teste para depurar a chamada à API do Instagram Graph.
 // Para usar:
 // 1. Obtenha um Token de Acesso do Usuário válido na ferramenta de Exploração da Graph API.
@@ -10,10 +9,10 @@
 // 3. Abra o terminal e execute o script com: node workspace/instagram-test.js
 
 // COLE SEU TOKEN DE ACESSO AQUI DENTRO DAS ASPAS
-const USER_ACCESS_TOKEN = 'COLE_SEU_TOKEN_DE_ACESSO_DE_USUARIO_AQUI';
+const USER_ACCESS_TOKEN = 'COLE_SEU_TOKEN_AQUI';
 
 async function testInstagramApi() {
-  if (!USER_ACCESS_TOKEN || USER_ACCESS_TOKEN.startsWith('COLE_SEU_TOKEN')) {
+  if (!USER_ACCESS_TOKEN || USER_ACCESS_TOKEN === 'COLE_SEU_TOKEN_AQUI') {
     console.error('\x1b[31m%s\x1b[0m', 'ERRO: Por favor, insira um Token de Acesso do Usuário válido na variável USER_ACCESS_TOKEN.');
     return;
   }
@@ -54,7 +53,7 @@ async function testInstagramApi() {
 }
 
 async function testFacebookApi() {
-  if (!USER_ACCESS_TOKEN || USER_ACCESS_TOKEN.startsWith('COLE_SEU_TOKEN')) {
+  if (!USER_ACCESS_TOKEN || USER_ACCESS_TOKEN === 'COLE_SEU_TOKEN_AQUI') {
     console.error('\x1b[31m%s\x1b[0m', 'ERRO: Por favor, insira um Token de Acesso do Usuário válido na variável USER_ACCESS_TOKEN.');
     return;
   }
@@ -92,7 +91,7 @@ async function testFacebookApi() {
 
 // --- ESCOLHA QUAL TESTE EXECUTAR ---
 // Para testar a API do Instagram, deixe a linha abaixo como está.
-testInstagramApi();
+// testInstagramApi();
 
 // Para testar a API do Facebook, comente a linha acima e descomente a linha abaixo.
-// testFacebookApi();
+testFacebookApi();
