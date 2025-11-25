@@ -9,17 +9,12 @@ export interface UserProfile {
   email: string;
   photoURL?: string;
   createdAt: Timestamp;
-<<<<<<< HEAD
-=======
   instagramHandle?: string;
   instagramUserId?: string;
   youtubeHandle?: string;
->>>>>>> 1f12964f54e43ffc0dca3d68c7b788661f61de7c
   niche?: string;
   bio?: string;
   audience?: string;
-<<<<<<< HEAD
-  instagramHandle?: string;
   instagramFollowers?: string;
   instagramAverageViews?: string;
   instagramAverageLikes?: string;
@@ -29,9 +24,7 @@ export interface UserProfile {
   tiktokAverageViews?: string;
   tiktokAverageLikes?: string;
   tiktokAverageComments?: string;
-=======
   instagramAccessToken?: string;
->>>>>>> 1f12964f54e43ffc0dca3d68c7b788661f61de7c
   subscription?: {
     status: 'active' | 'inactive';
     plan: Plan;
@@ -100,7 +93,6 @@ export interface AnaliseVideo {
     createdAt: Timestamp;
 }
 
-<<<<<<< HEAD
 export interface MetricSnapshot {
     id: string;
     userId: string;
@@ -112,6 +104,3 @@ export interface MetricSnapshot {
     comments: string;
 }
     
-=======
-    
->>>>>>> 1f12964f54e43ffc0dca3d68c7b788661f61de7c

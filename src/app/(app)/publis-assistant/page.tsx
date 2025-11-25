@@ -37,11 +37,7 @@ import {
   Eye,
   Crown,
 } from 'lucide-react';
-<<<<<<< HEAD
-import { useEffect, useActionState, useTransition, useState, useMemo } from 'react';
-=======
-import { useEffect, useTransition, useState } from 'react';
->>>>>>> 1f12964f54e43ffc0dca3d68c7b788661f61de7c
+import { useEffect, useTransition, useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { generatePubliProposalsAction, GeneratePubliProposalsOutput } from './actions';

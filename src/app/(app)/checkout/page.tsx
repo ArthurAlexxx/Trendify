@@ -81,7 +81,7 @@ const planDetails = {
 function CheckoutPageContent() {
   const { user, isUserLoading } = useUser();
   const { subscription, isLoading: isSubscriptionLoading } = useSubscription();
-  const { toast } } from useToast();
+  const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
   

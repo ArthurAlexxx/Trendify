@@ -133,7 +133,7 @@ function InstagramIntegration() {
     const isConnected = !!userProfile?.instagramHandle;
 
     return (
-         <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
+         <Card className="shadow-lg shadow-primary/5 border-0 rounded-2xl">
             <CardHeader>
                 <CardTitle className="flex items-center gap-3 font-headline text-xl">
                     <Instagram className="h-6 w-6 text-primary" />

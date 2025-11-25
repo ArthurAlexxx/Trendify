@@ -8,7 +8,6 @@ import {
   Eye,
   Heart,
   MessageSquare,
-<<<<<<< HEAD
   AlertTriangle,
   LayoutGrid,
   ClipboardList,
@@ -21,9 +20,6 @@ import {
   Loader2,
   Instagram,
   Film,
-=======
-  Instagram,
->>>>>>> 1f12964f54e43ffc0dca3d68c7b788661f61de7c
 } from 'lucide-react';
 import {
   ChartContainer,
@@ -101,7 +97,6 @@ const platformChartConfig = {
   },
 } satisfies Record<string, ChartConfig>;
 
-<<<<<<< HEAD
 
 const profileMetricsSchema = z.object({
   instagramHandle: z.string().optional(),
@@ -154,20 +149,6 @@ const ProfileCompletionAlert = ({ userProfile, hasUpdatedToday }: { userProfile:
     }
 
     return null;
-=======
-    return (
-        <Alert>
-            <AlertTriangle className="h-4 w-4 text-primary" />
-            <AlertTitle>Complete seu Perfil!</AlertTitle>
-            <AlertDescription>
-                {userProfile?.instagramHandle 
-                 ? <Link href="/profile" className='hover:underline font-semibold'>Adicione seu nicho no perfil</Link>
-                 : <Link href="/settings" className='hover:underline font-semibold'>Conecte seu Instagram</Link>
-                } para que a IA gere insights mais precisos.
-            </AlertDescription>
-        </Alert>
-    )
->>>>>>> 1f12964f54e43ffc0dca3d68c7b788661f61de7c
 }
 
 
@@ -492,7 +473,6 @@ export default function DashboardPage() {
         <ProfileCompletionAlert userProfile={userProfile} hasUpdatedToday={hasUpdatedToday} />
 
         {/* Métricas Principais */}
-<<<<<<< HEAD
         <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0">
             <CardHeader className="flex flex-col gap-4 sm:flex-row items-center justify-between pb-4">
                  <CardTitle className="text-base font-medium text-muted-foreground">
@@ -546,197 +526,6 @@ export default function DashboardPage() {
                             </ChartContainer>
                         ) : (
                             <div className="h-[350px] w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
-=======
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <Card
-                className="rounded-2xl shadow-lg shadow-pink-500/5 border-pink-500/20 bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 text-center sm:text-left"
-              >
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-base font-medium text-pink-600">
-                    Seguidores no Instagram
-                  </CardTitle>
-                  <Instagram className="h-5 w-5 text-pink-500" />
-                </CardHeader>
-                <CardContent>
-                  {isLoadingProfile ? <Skeleton className="h-8 w-24 mx-auto sm:mx-0" /> :
-                    <>
-                        <div className="text-3xl font-bold font-headline text-pink-600">
-                            {userProfile?.followers || '—'}
-                        </div>
-                        <p className="text-xs text-pink-500/80">
-                            {userProfile?.instagramHandle ? `@${userProfile.instagramHandle}` : <Link href="/settings" className="hover:underline">Conecte sua conta</Link>}
-                        </p>
-                    </>
-                  }
-                </CardContent>
-            </Card>
-
-            <Card
-                className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card text-center sm:text-left"
-              >
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-base font-medium text-muted-foreground">
-                    Média de Views
-                  </CardTitle>
-                  <Eye className="h-4 w-4 text-primary" />
-                </CardHeader>
-                <CardContent>
-                  {isLoadingProfile ? <Skeleton className="h-8 w-24 mx-auto sm:mx-0" /> :
-                    <>
-                        <div className="text-3xl font-bold font-headline">
-                            {userProfile?.averageViews || '—'}
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                            {userProfile?.averageViews ? "Por post/vídeo" : <Link href="/settings" className="hover:underline">Conectar conta</Link>}
-                        </p>
-                    </>
-                  }
-                </CardContent>
-            </Card>
-            
-            <Card
-                className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card text-center sm:text-left"
-              >
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-base font-medium text-muted-foreground">
-                    Média de Likes
-                  </CardTitle>
-                  <Heart className="h-4 w-4 text-primary" />
-                </CardHeader>
-                <CardContent>
-                  {isLoadingProfile ? <Skeleton className="h-8 w-24 mx-auto sm:mx-0" /> :
-                    <>
-                        <div className="text-3xl font-bold font-headline">
-                            {userProfile?.averageLikes || '—'}
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                             {userProfile?.averageLikes ? "Por post/vídeo" : <Link href="/settings" className="hover:underline">Conectar conta</Link>}
-                        </p>
-                    </>
-                  }
-                </CardContent>
-            </Card>
-
-            <Card
-                className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card text-center sm:text-left"
-              >
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-base font-medium text-muted-foreground">
-                    Média de Comentários
-                  </CardTitle>
-                  <MessageSquare className="h-4 w-4 text-primary" />
-                </CardHeader>
-                <CardContent>
-                  {isLoadingProfile ? <Skeleton className="h-8 w-24 mx-auto sm:mx-0" /> :
-                    <>
-                        <div className="text-3xl font-bold font-headline">
-                            {userProfile?.averageComments || '—'}
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                            {userProfile?.averageComments ? "Por post/vídeo" : <Link href="/settings" className="hover:underline">Conectar conta</Link>}
-                        </p>
-                    </>
-                  }
-                </CardContent>
-            </Card>
-            
-        </div>
-
-        {/* Layout Principal do Dashboard */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
-          {/* Coluna Principal (Gráfico e Roteiro) */}
-          <div className="lg:col-span-2 space-y-8 flex flex-col">
-             <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card flex flex-col">
-              <CardHeader className="text-center sm:text-left">
-                <CardTitle className="font-headline text-xl">
-                  Desempenho Semanal (Simulado)
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pl-2 flex-grow flex flex-col">
-                {isLoadingRoteiro ? <Skeleton className="h-[300px] w-full" /> : (
-                    roteiro && roteiro.desempenhoSimulado.length > 0 ? (
-                    <ChartContainer
-                        config={chartConfig}
-                        className="h-[300px] w-full"
-                    >
-                        <BarChart accessibilityLayer data={roteiro.desempenhoSimulado}>
-                        <CartesianGrid
-                            vertical={false}
-                            strokeDasharray="3 3"
-                            stroke="hsl(var(--border) / 0.5)"
-                        />
-                        <XAxis
-                            dataKey="data"
-                            tickLine={false}
-                            tickMargin={10}
-                            axisLine={false}
-                            tickFormatter={(value) => value.slice(0, 3)}
-                        />
-                        <YAxis
-                            tickLine={false}
-                            axisLine={false}
-                            tickMargin={10}
-                            tickFormatter={(value) =>
-                            typeof value === 'number' && value >= 1000
-                                ? `${value / 1000}k`
-                                : value
-                            }
-                        />
-                        <ChartTooltip
-                            cursor={false}
-                            content={<ChartTooltipContent indicator="dot" />}
-                        />
-                        <Bar
-                            dataKey="alcance"
-                            fill="var(--color-alcance)"
-                            radius={8}
-                        />
-                        <Bar
-                            dataKey="engajamento"
-                            fill="var(--color-engajamento)"
-                            radius={8}
-                        />
-                        </BarChart>
-                    </ChartContainer>
-                    ) : (
-                    <div className="h-full w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
-                        <div>
-                        <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
-                        <h3 className="font-semibold text-foreground">
-                            Sem dados de desempenho.
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                            Gere um roteiro para ver uma simulação.
-                        </p>
-                        </div>
-                    </div>
-                    )
-                )}
-              </CardContent>
-            </Card>
-
-            <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card">
-              <CardHeader className="text-center sm:text-left">
-                <CardTitle className="font-headline text-xl">
-                  Roteiro de Conteúdo Semanal
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {isLoadingRoteiro ? <Skeleton className="h-40 w-full" /> : (
-                    roteiro && roteiro.items.length > 0 ? (
-                    <div>
-                        <ul className="space-y-2">
-                            {visibleItems?.map((item, index) => (
-                            <li key={index}>
-                                <div className="flex items-start gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50 text-left">
-                                <Checkbox
-                                    id={`roteiro-${index}`}
-                                    checked={item.concluido}
-                                    onCheckedChange={() => handleToggleRoteiro(item, index)}
-                                    className="h-5 w-5 mt-1"
-                                />
->>>>>>> 1f12964f54e43ffc0dca3d68c7b788661f61de7c
                                 <div>
                                 <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
                                 <h3 className="font-semibold text-foreground">
@@ -1031,7 +820,6 @@ export default function DashboardPage() {
   );
 }
 
-<<<<<<< HEAD
 
 function MetricCard({ icon: Icon, title, value, handle, isLoading }: { icon: React.ElementType, title: string, value?: string, handle?: string, isLoading: boolean }) {
     return (
@@ -1057,8 +845,4 @@ function MetricCard({ icon: Icon, title, value, handle, isLoading }: { icon: Rea
         </div>
     )
 }
-=======
     
-
-    
->>>>>>> 1f12964f54e43ffc0dca3d68c7b788661f61de7c

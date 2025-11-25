@@ -25,25 +25,14 @@
           "format": "date-time",
           "description": "The timestamp when the user profile was created."
         },
-<<<<<<< HEAD
-=======
         "instagramHandle": {
             "type": "string",
             "description": "User's Instagram handle (e.g., @username)."
-        },
-        "instagramUserId": {
-            "type": "string",
-            "description": "The user's unique Instagram User ID."
-        },
-        "instagramAccessToken": {
-            "type": "string",
-            "description": "Long-lived access token for the Instagram Graph API."
         },
         "youtubeHandle": {
             "type": "string",
             "description": "User's YouTube handle (e.g., @YourChannel)."
         },
->>>>>>> 1f12964f54e43ffc0dca3d68c7b788661f61de7c
         "niche": {
             "type": "string",
             "description": "The creator's content niche (e.g., 'Lifestyle and sustainable fashion')."
@@ -123,6 +112,44 @@
         }
       },
       "required": ["displayName", "email", "createdAt"]
+    },
+    "MetricSnapshot": {
+        "title": "Metric Snapshot",
+        "description": "A snapshot of a user's social media metrics for a specific day and platform.",
+        "type": "object",
+        "properties": {
+            "userId": {
+                "type": "string",
+                "description": "The ID of the user."
+            },
+            "date": {
+                "type": "string",
+                "format": "date-time",
+                "description": "The timestamp when the snapshot was taken."
+            },
+            "platform": {
+                "type": "string",
+                "enum": ["instagram", "tiktok"],
+                "description": "The social media platform for these metrics."
+            },
+            "followers": {
+                "type": "string",
+                "description": "Total number of followers at the time of the snapshot."
+            },
+            "views": {
+                "type": "string",
+                "description": "Average views at the time of the snapshot."
+            },
+            "likes": {
+                "type": "string",
+                "description": "Average likes at the time of the snapshot."
+            },
+            "comments": {
+                "type": "string",
+                "description": "Average comments at the time of the snapshot."
+            }
+        },
+        "required": ["userId", "date", "platform", "followers"]
     },
     "DailyUsage": {
       "title": "Daily Usage",
@@ -243,6 +270,10 @@
       "schema": { "$ref": "#/entities/UserProfile" },
       "description": "Stores user profile data."
     },
+    "/users/{userId}/metricSnapshots/{snapshotId}": {
+        "schema": { "$ref": "#/entities/MetricSnapshot" },
+        "description": "Stores daily metric snapshots for a user, per platform."
+    },
     "/users/{userId}/dailyUsage/{usageId}": {
         "schema": { "$ref": "#/entities/DailyUsage" },
         "description": "Tracks daily usage of features for a specific user. The document ID is the date in YYYY-MM-DD format."
@@ -265,5 +296,3 @@
     }
   }
 }
-
-    
