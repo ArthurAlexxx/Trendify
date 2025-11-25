@@ -1,3 +1,4 @@
+
 'use client';
 
 import { PageHeader } from '@/components/page-header';
@@ -92,7 +93,7 @@ function InstagramIntegration() {
             'instagram_manage_comments',
             'instagram_manage_messages',
             'instagram_manage_insights',
-            'pages_show_list', // <-- PERMISSÃO CRUCIAL
+            'pages_show_list',
             'pages_read_engagement',
         ];
         const scope = permissions.join(',');
@@ -107,7 +108,7 @@ function InstagramIntegration() {
         window.location.href = authUrl.toString();
     };
 
-    const isConnected = !!userProfile?.instagramUserId;
+    const isConnected = !!userProfile?.instagramHandle;
 
     return (
          <Card className="shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">

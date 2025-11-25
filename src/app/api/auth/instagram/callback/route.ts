@@ -12,7 +12,6 @@ async function exchangeCodeForToken(code: string, redirectUri: string) {
         throw new Error("Credenciais do aplicativo Meta não configuradas no servidor.");
     }
 
-    // A troca de código por token ainda usa a API do Facebook
     const url = new URL('https://graph.facebook.com/v19.0/oauth/access_token');
     url.searchParams.set('client_id', appId);
     url.searchParams.set('redirect_uri', redirectUri);
@@ -71,14 +70,12 @@ async function getInstagramAccountInfo(accessToken: string) {
         throw new Error(data.error?.message || "Falha ao buscar dados da conta do Instagram.");
     }
     
-    const accountData = data;
-
-    if (accountData.account_type !== 'BUSINESS' && accountData.account_type !== 'MEDIA_CREATOR') {
-        throw new Error(`A conta do Instagram '${accountData.username}' precisa ser do tipo 'Comercial' ou 'Criador de Conteúdo' para usar a integração.`);
+    if (data.account_type !== 'BUSINESS' && data.account_type !== 'MEDIA_CREATOR') {
+        throw new Error(`A conta do Instagram '${data.username}' precisa ser do tipo 'Comercial' ou 'Criador de Conteúdo' para usar a integração.`);
     }
     
-    console.log(`[getInstagramAccountInfo] Informações da conta obtidas:`, accountData);
-    return accountData;
+    console.log(`[getInstagramAccountInfo] Informações da conta obtidas:`, data);
+    return data;
 }
 
 // --- Rota da API (GET) ---
@@ -159,7 +156,6 @@ export async function GET(req: NextRequest) {
             followers: accountInfo.followers_count ? formatFollowers(accountInfo.followers_count) : null,
             bio: accountInfo.biography || existingData?.bio || null,
             photoURL: existingData?.photoURL || accountInfo.profile_picture_url || null,
-            // Limpa as médias para serem recalculadas no futuro
             averageViews: null,
             averageLikes: null,
             averageComments: null,
