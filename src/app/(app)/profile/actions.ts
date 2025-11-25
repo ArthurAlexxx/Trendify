@@ -36,7 +36,6 @@ export type InstagramProfileData = {
     mediaCount: number;
     followersCount: number;
     followingCount: number;
-    followingCount: number;
 }
 
 const InstagramPostSchema = z.object({
@@ -96,9 +95,9 @@ const TikTokPostSchema = z.object({
     description: z.string(),
     cover: z.string().url(),
     statistics: z.object({
-        number_of_plays: z.number(),
-        number_of_hearts: z.number(),
-        number_of_comments: z.number(),
+        play_count: z.number(),
+        digg_count: z.number(),
+        comment_count: z.number(),
     }).passthrough(),
 }).passthrough();
 
@@ -244,14 +243,14 @@ export async function getInstagramPosts(username: string): Promise<InstagramPost
     try {
         const result = await fetchFromRapidApi('instagram-posts', username);
         
-        // Handle cases where the data is nested under 'result'
-        const dataToParse = result.result || result;
+        // The API returns an object with a 'result' key containing the array of posts.
+        const dataToParse = result.result;
 
         const parsed = z.array(InstagramPostSchema).parse(dataToParse);
         
         return parsed.map(post => ({
             id: post.id,
-            caption: post.caption,
+            caption: post.caption || null,
             mediaUrl: post.media_url,
             likes: post.like_count,
             comments: post.comment_count,
@@ -321,9 +320,9 @@ export async function getTikTokPosts(username: string): Promise<TikTokPostData[]
             id: post.video_id,
             description: post.description,
             coverUrl: post.cover,
-            views: post.statistics.number_of_plays,
-            likes: post.statistics.number_of_hearts,
-            comments: post.statistics.number_of_comments,
+            views: post.statistics.play_count,
+            likes: post.statistics.digg_count,
+            comments: post.statistics.comment_count,
         }));
 
     } catch (e: any) {
