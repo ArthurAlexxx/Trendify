@@ -93,10 +93,17 @@ async function fetchFromRapidApi(endpoint: 'profile' | 'posts', username: string
     };
 
     const response = await fetch(url, options);
+    
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`A API retornou um erro: ${response.statusText} - ${errorText}`);
+    }
+    
     const data = await response.json();
 
-    if (!response.ok || data.message) {
-      throw new Error(data.message || `A API retornou um erro: ${response.statusText}`);
+
+    if (data.message) {
+      throw new Error(data.message);
     }
 
     if (!data.result) {
