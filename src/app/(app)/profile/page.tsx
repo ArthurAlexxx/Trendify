@@ -98,6 +98,28 @@ export default function ProfilePage() {
     },
   });
   
+  useEffect(() => {
+    try {
+      const savedProfile = localStorage.getItem('lastInstagramProfile');
+      const savedPosts = localStorage.getItem('lastInstagramPosts');
+
+      if (savedProfile) {
+        const parsedProfile: ProfileData = JSON.parse(savedProfile);
+        setProfile(parsedProfile);
+        setUsername(parsedProfile.username); // Pre-fill search input
+        setStatus('success');
+      }
+      if (savedPosts) {
+        setPosts(JSON.parse(savedPosts));
+      }
+    } catch (e) {
+      console.error("Failed to parse persisted Instagram data from localStorage", e);
+      // Clear potentially corrupted data
+      localStorage.removeItem('lastInstagramProfile');
+      localStorage.removeItem('lastInstagramPosts');
+    }
+  }, []);
+
   const formatNumber = (num: number): string => {
     if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(1).replace('.', ',')}M`;
     if (num >= 1000) return `${(num / 1000).toFixed(0)}K`;
@@ -123,14 +145,17 @@ export default function ProfilePage() {
         tiktokAverageLikes: userProfile.tiktokAverageLikes || '',
         tiktokAverageComments: userProfile.tiktokAverageComments || '',
       });
-      setUsername(userProfile.instagramHandle || '');
+      // Don't overwrite the search username if it was loaded from localStorage
+      if (!username) {
+        setUsername(userProfile.instagramHandle || '');
+      }
     } else if (user) {
         form.reset({
             displayName: user.displayName || '',
             photoURL: user.photoURL || null,
         });
     }
-  }, [userProfile, user, form]);
+  }, [userProfile, user, form, username]);
 
   const onProfileSubmit = (values: ProfileFormData) => {
     if (!user || !userProfileRef) return;
@@ -186,13 +211,18 @@ export default function ProfilePage() {
       const fetchedProfile: ProfileData = profileResult.value;
       setProfile(fetchedProfile);
       setStatus('success');
+      localStorage.setItem('lastInstagramProfile', JSON.stringify(fetchedProfile));
+
       
       let fetchedPosts: PostData[] = [];
       if (postsResult.status === 'fulfilled') {
         fetchedPosts = postsResult.value;
         setPosts(fetchedPosts);
+        localStorage.setItem('lastInstagramPosts', JSON.stringify(fetchedPosts));
       } else {
-        setPostsError('Não foi possível carregar os posts recentes. ' + postsResult.reason.message);
+        const postErrorMessage = 'Não foi possível carregar os posts recentes. ' + postsResult.reason.message;
+        setPostsError(postErrorMessage);
+        localStorage.removeItem('lastInstagramPosts');
       }
       
        if (userProfileRef) {
@@ -236,8 +266,11 @@ export default function ProfilePage() {
 
 
     } catch (e: any) {
-      setError(e.message || 'Ocorreu um erro desconhecido.');
+      const errorMessage = e.message || 'Ocorreu um erro desconhecido.';
+      setError(errorMessage);
       setStatus('error');
+      localStorage.removeItem('lastInstagramProfile');
+      localStorage.removeItem('lastInstagramPosts');
     }
   };
 
