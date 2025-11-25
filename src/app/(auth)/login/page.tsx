@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -21,7 +21,7 @@ import { Loader2, ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/firebase';
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithRedirect, getRedirectResult } from 'firebase/auth';
 import { Separator } from '@/components/ui/separator';
 
 const formSchema = z.object({
@@ -46,13 +46,30 @@ export default function LoginPage() {
   const [isPending, setIsPending] = useState(false);
   const [isGooglePending, setIsGooglePending] = useState(false);
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      email: '',
-      password: '',
-    },
-  });
+  useEffect(() => {
+    setIsGooglePending(true);
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result) {
+          toast({
+            title: 'Login com Google bem-sucedido!',
+            description: 'Redirecionando para o painel...',
+          });
+          router.push('/dashboard');
+        } else {
+            setIsGooglePending(false);
+        }
+      })
+      .catch((error) => {
+        console.error("Google redirect result error", error);
+        toast({
+          title: 'Erro no login com Google',
+          description: 'Não foi possível completar o login com o Google. Tente novamente.',
+          variant: 'destructive',
+        });
+        setIsGooglePending(false);
+      });
+  }, [auth, router, toast]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsPending(true);
@@ -81,30 +98,17 @@ export default function LoginPage() {
   async function handleGoogleSignIn() {
     setIsGooglePending(true);
     const provider = new GoogleAuthProvider();
-    try {
-      await signInWithPopup(auth, provider);
-      toast({
-        title: 'Login com Google bem-sucedido!',
-        description: 'Redirecionando para o painel...',
-      });
-      router.push('/dashboard');
-    } catch (error: any) {
-      console.error("Google sign in error", error);
-      toast({
-        title: 'Erro no login com Google',
-        description: error.code === 'auth/popup-closed-by-user' 
-            ? 'A janela de login foi fechada. Tente novamente.'
-            : 'Não foi possível fazer login com o Google.',
-        variant: 'destructive',
-      });
-    } finally {
-        setIsGooglePending(false);
-    }
+    await signInWithRedirect(auth, provider);
   }
 
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
+       {(isPending || isGooglePending) && (
+        <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        </div>
+      )}
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link
@@ -146,7 +150,7 @@ export default function LoginPage() {
                     name="email"
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel>E-mail</FormLabel>
+                        <FormLabel className="text-center">E-mail</FormLabel>
                         <FormControl>
                             <Input
                             placeholder="seu@email.com"
@@ -164,7 +168,7 @@ export default function LoginPage() {
                     name="password"
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel>Senha</FormLabel>
+                        <FormLabel className="text-center">Senha</FormLabel>
                         <FormControl>
                             <Input
                             placeholder="••••••••"
