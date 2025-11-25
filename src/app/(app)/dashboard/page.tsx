@@ -29,7 +29,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Legend, Tooltip as RechartsTooltip } from 'recharts';
 import { ChartConfig } from '@/components/ui/chart';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
@@ -62,18 +62,13 @@ import { collection, doc, query, orderBy, limit, updateDoc, where } from 'fireba
 
 
 const chartConfig = {
-  alcance: {
-    label: 'Alcance',
-    color: 'hsl(var(--chart-1))',
-  },
-  engajamento: {
-    label: 'Engajamento',
-    color: 'hsl(var(--chart-2))',
-  },
+  views: { label: "Views", color: "hsl(var(--chart-1))" },
+  likes: { label: "Likes", color: "hsl(var(--chart-2))" },
+  comments: { label: "Comentários", color: "hsl(var(--chart-3))" },
 } satisfies ChartConfig;
 
 const ProfileCompletionAlert = ({ userProfile }: { userProfile: UserProfile | null }) => {
-    const isProfileComplete = userProfile?.niche && userProfile.followers;
+    const isProfileComplete = userProfile?.niche && (userProfile.instagramFollowers || userProfile.tiktokFollowers);
     if (isProfileComplete) return null;
 
     return (
@@ -81,7 +76,7 @@ const ProfileCompletionAlert = ({ userProfile }: { userProfile: UserProfile | nu
             <AlertTriangle className="h-4 w-4 text-primary" />
             <AlertTitle>Complete seu Perfil!</AlertTitle>
             <AlertDescription>
-                <Link href="/profile" className='hover:underline font-semibold'>Adicione seu nicho e métricas</Link> para que a IA gere insights mais precisos.
+                <Link href="/profile" className='hover:underline font-semibold'>Adicione seu nicho e métricas</Link> para que a IA gere insights mais precisos e os gráficos funcionem.
             </AlertDescription>
         </Alert>
     )
@@ -93,9 +88,7 @@ export default function DashboardPage() {
   const firestore = useFirestore();
   const { toast } = useToast();
   const [isExpanded, setIsExpanded] = useState(false);
-  const isMobile = useIsMobile();
-
-  // --- BUSCA DE DADOS DINÂMICOS ---
+  const [selectedPlatform, setSelectedPlatform] = useState<'instagram' | 'tiktok'>('instagram');
 
   const userProfileRef = useMemoFirebase(() => (
       firestore && user ? doc(firestore, `users/${user.uid}`) : null
@@ -120,15 +113,41 @@ export default function DashboardPage() {
 
   const isLoading = isLoadingProfile || isLoadingRoteiro || isLoadingIdeias || isLoadingUpcoming;
 
+  const platformMetrics = useMemo(() => {
+    if (!userProfile) return { followers: '—', handle: 'Adicionar no perfil' };
+    if (selectedPlatform === 'instagram') {
+        return {
+            followers: userProfile.instagramFollowers || '—',
+            handle: userProfile.instagramHandle || 'Adicionar no perfil',
+        }
+    } else {
+        return {
+            followers: userProfile.tiktokFollowers || '—',
+            handle: userProfile.tiktokHandle || 'Adicionar no perfil',
+        }
+    }
+  }, [userProfile, selectedPlatform]);
 
-  const userMetrics = useMemo(() => {
-      return [
-          { icon: Users, label: "Seguidores", value: userProfile?.followers, description: "Total de seguidores" },
-          { icon: Eye, label: "Média de Views", value: userProfile?.averageViews, description: "Por post/vídeo" },
-          { icon: Heart, label: "Média de Likes", value: userProfile?.averageLikes, description: "Por post/vídeo" },
-          { icon: MessageSquare, label: "Média de Comentários", value: userProfile?.averageComments, description: "Por post/vídeo" },
-      ];
-  }, [userProfile]);
+  const metricsChartData = useMemo(() => {
+     if (!userProfile) return [];
+     
+     const parseMetric = (value?: string) => {
+        if (!value) return 0;
+        const num = parseFloat(value.replace('K', '000').replace('M', '000000').replace(',', '.'));
+        return isNaN(num) ? 0 : num;
+     }
+
+     if (selectedPlatform === 'instagram') {
+        return [
+            { name: 'Métricas', views: parseMetric(userProfile.instagramAverageViews), likes: parseMetric(userProfile.instagramAverageLikes), comments: parseMetric(userProfile.instagramAverageComments) }
+        ]
+     } else {
+         return [
+            { name: 'Métricas', views: parseMetric(userProfile.tiktokAverageViews), likes: parseMetric(userProfile.tiktokAverageLikes), comments: parseMetric(userProfile.tiktokAverageComments) }
+        ]
+     }
+  }, [userProfile, selectedPlatform]);
+
 
   const handleToggleIdeia = async (ideia: IdeiaSalva) => {
     if (!firestore || !user) return;
@@ -171,6 +190,7 @@ export default function DashboardPage() {
 
   const visibleItems = roteiro?.items.slice(0, 3);
   const collapsibleItems = roteiro?.items.slice(3);
+  const hasMetricsData = metricsChartData.length > 0 && (metricsChartData[0].views > 0 || metricsChartData[0].likes > 0 || metricsChartData[0].comments > 0);
 
   return (
     <div className="space-y-12">
@@ -186,108 +206,86 @@ export default function DashboardPage() {
         <ProfileCompletionAlert userProfile={userProfile} />
 
         {/* Métricas Principais */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {userMetrics.map((metric) => (
-              <Card
-                key={metric.label}
-                className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card text-center sm:text-left"
-              >
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-base font-medium text-muted-foreground">
-                    {metric.label}
+        <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card">
+            <CardHeader className="flex-row items-center justify-between pb-2">
+                 <CardTitle className="text-base font-medium text-muted-foreground">
+                    Visão Geral da Plataforma
                   </CardTitle>
-                  <metric.icon className="h-4 w-4 text-primary" />
-                </CardHeader>
-                <CardContent>
-                  {isLoadingProfile ? <Skeleton className="h-8 w-24 mx-auto sm:mx-0" /> :
-                    <>
-                        <div className="text-3xl font-bold font-headline">
-                            {metric.value || '—'}
+                  <div className="flex items-center space-x-4">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="instagram" checked={selectedPlatform === 'instagram'} onCheckedChange={() => setSelectedPlatform('instagram')} />
+                        <label htmlFor="instagram" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                          Instagram
+                        </label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="tiktok" checked={selectedPlatform === 'tiktok'} onCheckedChange={() => setSelectedPlatform('tiktok')} />
+                        <label htmlFor="tiktok" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                          TikTok
+                        </label>
+                      </div>
+                  </div>
+            </CardHeader>
+            <CardContent>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <div className="p-6 rounded-lg bg-muted/50 flex flex-col justify-center">
+                        <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+                          <h3 className="text-base font-medium text-muted-foreground">
+                            Seguidores
+                          </h3>
+                          <Users className="h-4 w-4 text-primary" />
                         </div>
-                        <p className="text-xs text-muted-foreground">
-                            {metric.value ? metric.description : <Link href="/profile" className="hover:underline">Adicionar no perfil</Link>}
-                        </p>
-                    </>
-                  }
-                </CardContent>
-              </Card>
-            ))}
-        </div>
+                         {isLoadingProfile ? <Skeleton className="h-8 w-24" /> :
+                            <>
+                                <div className="text-3xl font-bold font-headline">
+                                    {platformMetrics.followers}
+                                </div>
+                                <p className="text-xs text-muted-foreground">
+                                    {platformMetrics.followers === '—' ? <Link href="/profile" className="hover:underline">Adicionar no perfil</Link> : platformMetrics.handle}
+                                </p>
+                            </>
+                        }
+                    </div>
+                     <div className="lg:col-span-3">
+                        {isLoadingProfile ? <Skeleton className="h-[200px] w-full" /> : 
+                            hasMetricsData ? (
+                                <ChartContainer config={chartConfig} className="h-[200px] w-full">
+                                <BarChart data={metricsChartData} layout="vertical" margin={{ left: -20 }}>
+                                    <CartesianGrid horizontal={false} />
+                                    <YAxis type="category" dataKey="name" hide />
+                                    <XAxis type="number" hide />
+                                    <RechartsTooltip cursor={{ fill: 'hsl(var(--muted))' }} content={<ChartTooltipContent />} />
+                                    <Legend />
+                                    <Bar dataKey="views" name="Views" fill="var(--color-views)" radius={[0, 4, 4, 0]} />
+                                    <Bar dataKey="likes" name="Likes" fill="var(--color-likes)" radius={[0, 4, 4, 0]} />
+                                    <Bar dataKey="comments" name="Comentários" fill="var(--color-comments)" radius={[0, 4, 4, 0]} />
+                                </BarChart>
+                                </ChartContainer>
+                            ) : (
+                                <div className="h-full w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
+                                    <div>
+                                    <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+                                    <h3 className="font-semibold text-foreground">
+                                        Sem dados de métricas.
+                                    </h3>
+                                    <p className="text-sm text-muted-foreground">
+                                       <Link href="/profile" className="text-primary font-medium hover:underline">Adicione as métricas</Link> para ver o gráfico.
+                                    </p>
+                                    </div>
+                                </div>
+                            )
+                        }
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+
 
         {/* Layout Principal do Dashboard */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
           {/* Coluna Principal (Gráfico e Roteiro) */}
           <div className="lg:col-span-2 space-y-8 flex flex-col">
-             <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card flex flex-col">
-              <CardHeader className="text-center sm:text-left">
-                <CardTitle className="font-headline text-xl">
-                  Desempenho Semanal (Simulado)
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pl-2 flex-grow flex flex-col">
-                {isLoadingRoteiro ? <Skeleton className="h-[300px] w-full" /> : (
-                    roteiro && roteiro.desempenhoSimulado.length > 0 ? (
-                    <ChartContainer
-                        config={chartConfig}
-                        className="h-[300px] w-full"
-                    >
-                        <BarChart accessibilityLayer data={roteiro.desempenhoSimulado}>
-                        <CartesianGrid
-                            vertical={false}
-                            strokeDasharray="3 3"
-                            stroke="hsl(var(--border) / 0.5)"
-                        />
-                        <XAxis
-                            dataKey="data"
-                            tickLine={false}
-                            tickMargin={10}
-                            axisLine={false}
-                            tickFormatter={(value) => value.slice(0, 3)}
-                        />
-                        <YAxis
-                            tickLine={false}
-                            axisLine={false}
-                            tickMargin={10}
-                            tickFormatter={(value) =>
-                            typeof value === 'number' && value >= 1000
-                                ? `${value / 1000}k`
-                                : value
-                            }
-                        />
-                        <ChartTooltip
-                            cursor={false}
-                            content={<ChartTooltipContent indicator="dot" />}
-                        />
-                        <Bar
-                            dataKey="alcance"
-                            fill="var(--color-alcance)"
-                            radius={8}
-                        />
-                        <Bar
-                            dataKey="engajamento"
-                            fill="var(--color-engajamento)"
-                            radius={8}
-                        />
-                        </BarChart>
-                    </ChartContainer>
-                    ) : (
-                    <div className="h-full w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
-                        <div>
-                        <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
-                        <h3 className="font-semibold text-foreground">
-                            Sem dados de desempenho.
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                            Gere um roteiro para ver uma simulação.
-                        </p>
-                        </div>
-                    </div>
-                    )
-                )}
-              </CardContent>
-            </Card>
-
             <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card">
               <CardHeader className="text-center sm:text-left">
                 <CardTitle className="font-headline text-xl">
@@ -558,3 +556,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    

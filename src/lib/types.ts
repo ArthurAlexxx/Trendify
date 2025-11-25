@@ -9,15 +9,19 @@ export interface UserProfile {
   email: string;
   photoURL?: string;
   createdAt: Timestamp;
-  instagramHandle?: string;
-  youtubeHandle?: string;
   niche?: string;
   bio?: string;
-  followers?: string;
-  averageViews?: string;
-  averageLikes?: string;
-  averageComments?: string;
   audience?: string;
+  instagramHandle?: string;
+  instagramFollowers?: string;
+  instagramAverageViews?: string;
+  instagramAverageLikes?: string;
+  instagramAverageComments?: string;
+  tiktokHandle?: string;
+  tiktokFollowers?: string;
+  tiktokAverageViews?: string;
+  tiktokAverageLikes?: string;
+  tiktokAverageComments?: string;
   subscription?: {
     status: 'active' | 'inactive';
     plan: Plan;
@@ -85,3 +89,5 @@ export interface AnaliseVideo {
     analysisData: any; // O objeto JSON da análise
     createdAt: Timestamp;
 }
+
+    

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { PageHeader } from '@/components/page-header';
@@ -10,7 +11,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useUser, useFirestore, useDoc, useMemoFirebase, useAuth, initializeFirebase } from '@/firebase';
-import { User as UserIcon } from 'lucide-react';
+import { User as UserIcon, Instagram, Film } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -26,20 +27,25 @@ import { updateProfile } from 'firebase/auth';
 import type { UserProfile } from '@/lib/types';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { Progress } from '@/components/ui/progress';
+import { Separator } from '@/components/ui/separator';
 
 
 const profileFormSchema = z.object({
   displayName: z.string().min(2, 'O nome deve ter pelo menos 2 caracteres.'),
   photoURL: z.string().url().optional().nullable(),
-  instagramHandle: z.string().optional(),
-  youtubeHandle: z.string().optional(),
   niche: z.string().optional(),
   bio: z.string().optional(),
-  followers: z.string().optional(),
-  averageViews: z.string().optional(),
-  averageLikes: z.string().optional(),
-  averageComments: z.string().optional(),
   audience: z.string().optional(),
+  instagramHandle: z.string().optional(),
+  instagramFollowers: z.string().optional(),
+  instagramAverageViews: z.string().optional(),
+  instagramAverageLikes: z.string().optional(),
+  instagramAverageComments: z.string().optional(),
+  tiktokHandle: z.string().optional(),
+  tiktokFollowers: z.string().optional(),
+  tiktokAverageViews: z.string().optional(),
+  tiktokAverageLikes: z.string().optional(),
+  tiktokAverageComments: z.string().optional(),
 });
 
 
@@ -65,15 +71,19 @@ export default function ProfilePage() {
     defaultValues: {
       displayName: '',
       photoURL: null,
-      instagramHandle: '',
-      youtubeHandle: '',
       niche: '',
       bio: '',
-      followers: '',
-      averageViews: '',
-      averageLikes: '',
-      averageComments: '',
       audience: '',
+      instagramHandle: '',
+      instagramFollowers: '',
+      instagramAverageViews: '',
+      instagramAverageLikes: '',
+      instagramAverageComments: '',
+      tiktokHandle: '',
+      tiktokFollowers: '',
+      tiktokAverageViews: '',
+      tiktokAverageLikes: '',
+      tiktokAverageComments: '',
     },
   });
 
@@ -82,15 +92,19 @@ export default function ProfilePage() {
       form.reset({
         displayName: userProfile.displayName || '',
         photoURL: userProfile.photoURL || null,
-        instagramHandle: userProfile.instagramHandle || '',
-        youtubeHandle: userProfile.youtubeHandle || '',
         niche: userProfile.niche || '',
         bio: userProfile.bio || '',
-        followers: userProfile.followers || '',
-        averageViews: userProfile.averageViews || '',
-        averageLikes: userProfile.averageLikes || '',
-        averageComments: userProfile.averageComments || '',
         audience: userProfile.audience || '',
+        instagramHandle: userProfile.instagramHandle || '',
+        instagramFollowers: userProfile.instagramFollowers || '',
+        instagramAverageViews: userProfile.instagramAverageViews || '',
+        instagramAverageLikes: userProfile.instagramAverageLikes || '',
+        instagramAverageComments: userProfile.instagramAverageComments || '',
+        tiktokHandle: userProfile.tiktokHandle || '',
+        tiktokFollowers: userProfile.tiktokFollowers || '',
+        tiktokAverageViews: userProfile.tiktokAverageViews || '',
+        tiktokAverageLikes: userProfile.tiktokAverageLikes || '',
+        tiktokAverageComments: userProfile.tiktokAverageComments || '',
       });
       setLocalPhotoUrl(userProfile.photoURL || user?.photoURL || null);
     } else if (user) {
@@ -189,10 +203,10 @@ export default function ProfilePage() {
             <CardHeader className="text-center sm:text-left">
               <CardTitle className="flex items-center justify-center sm:justify-start gap-3 font-headline text-xl">
                 <UserIcon className="h-6 w-6 text-primary" />
-                <span>Perfil & Mídia Kit</span>
+                <span>Perfil & Métricas</span>
               </CardTitle>
               <CardDescription>
-                Essas informações serão exibidas em seu Mídia Kit e usadas pela IA.
+                Essas informações serão exibidas em seu Mídia Kit e usadas pela IA para criar estratégias.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -229,28 +243,7 @@ export default function ProfilePage() {
                         )}
                     </div>
                   </div>
-
-                 <div className="grid sm:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="instagramHandle">Instagram Handle</Label>
-                      <Input
-                        id="instagramHandle"
-                        placeholder="@seu_usuario"
-                        {...form.register('instagramHandle')}
-                        className="h-11"
-                      />
-                    </div>
-                     <div className="space-y-2">
-                      <Label htmlFor="youtubeHandle">YouTube Handle</Label>
-                      <Input
-                        id="youtubeHandle"
-                        placeholder="@SeuCanal"
-                        {...form.register('youtubeHandle')}
-                        className="h-11"
-                      />
-                    </div>
-                  </div>
-
+                
                  <div className="space-y-2">
                     <Label htmlFor="niche">Seu Nicho</Label>
                     <Input
@@ -270,35 +263,86 @@ export default function ProfilePage() {
                       className="min-h-[120px] rounded-xl"
                     />
                   </div>
+                  
+                <div className="space-y-2">
+                    <Label htmlFor="audience">Demografia do Público</Label>
+                    <Input
+                        id="audience"
+                        placeholder="Ex: 75% Mulheres, 18-24 anos, localizadas no Brasil"
+                        {...form.register('audience')}
+                        className="h-11"
+                    />
+                </div>
+                
+                <Separator />
 
-                <div className="grid sm:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="followers">Total de Seguidores</Label>
-                      <Input id="followers" {...form.register('followers')} placeholder="Ex: 250K" className="h-11" />
+                {/* Instagram */}
+                <div className="space-y-6">
+                    <h3 className="text-lg font-semibold flex items-center gap-2"><Instagram className="h-5 w-5" /> Instagram</h3>
+                    <div className="grid sm:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                        <Label htmlFor="instagramHandle">Handle do Instagram</Label>
+                        <Input
+                            id="instagramHandle"
+                            placeholder="@seu_usuario"
+                            {...form.register('instagramHandle')}
+                            className="h-11"
+                        />
+                        </div>
+                        <div className="space-y-2">
+                        <Label htmlFor="instagramFollowers">Seguidores no Instagram</Label>
+                        <Input id="instagramFollowers" {...form.register('instagramFollowers')} placeholder="Ex: 250K" className="h-11" />
+                        </div>
                     </div>
-                     <div className="space-y-2">
-                       <Label htmlFor="audience">Demografia do Público</Label>
-                       <Input
-                         id="audience"
-                         placeholder="Ex: 75% Mulheres, 18-24 anos"
-                         {...form.register('audience')}
-                         className="h-11"
-                       />
+                    <div className="grid sm:grid-cols-3 gap-6">
+                        <div className="space-y-2">
+                        <Label htmlFor="instagramAverageViews">Média de Views (Reels)</Label>
+                        <Input id="instagramAverageViews" {...form.register('instagramAverageViews')} placeholder="Ex: 15.5K" className="h-11" />
+                        </div>
+                        <div className="space-y-2">
+                        <Label htmlFor="instagramAverageLikes">Média de Likes</Label>
+                        <Input id="instagramAverageLikes" {...form.register('instagramAverageLikes')} placeholder="Ex: 890" className="h-11" />
+                        </div>
+                        <div className="space-y-2">
+                        <Label htmlFor="instagramAverageComments">Média de Comentários</Label>
+                        <Input id="instagramAverageComments" {...form.register('instagramAverageComments')} placeholder="Ex: 120" className="h-11" />
+                        </div>
                     </div>
                 </div>
 
-                 <div className="grid sm:grid-cols-3 gap-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="averageViews">Média de Views</Label>
-                      <Input id="averageViews" {...form.register('averageViews')} placeholder="Ex: 15.5K" className="h-11" />
+                <Separator />
+
+                {/* TikTok */}
+                <div className="space-y-6">
+                    <h3 className="text-lg font-semibold flex items-center gap-2"><Film className="h-5 w-5" /> TikTok</h3>
+                     <div className="grid sm:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                        <Label htmlFor="tiktokHandle">Handle do TikTok</Label>
+                        <Input
+                            id="tiktokHandle"
+                            placeholder="@seu_usuario"
+                            {...form.register('tiktokHandle')}
+                            className="h-11"
+                        />
+                        </div>
+                        <div className="space-y-2">
+                        <Label htmlFor="tiktokFollowers">Seguidores no TikTok</Label>
+                        <Input id="tiktokFollowers" {...form.register('tiktokFollowers')} placeholder="Ex: 1.2M" className="h-11" />
+                        </div>
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="averageLikes">Média de Likes</Label>
-                      <Input id="averageLikes" {...form.register('averageLikes')} placeholder="Ex: 890" className="h-11" />
-                    </div>
-                     <div className="space-y-2">
-                      <Label htmlFor="averageComments">Média de Comentários</Label>
-                      <Input id="averageComments" {...form.register('averageComments')} placeholder="Ex: 120" className="h-11" />
+                    <div className="grid sm:grid-cols-3 gap-6">
+                        <div className="space-y-2">
+                        <Label htmlFor="tiktokAverageViews">Média de Views</Label>
+                        <Input id="tiktokAverageViews" {...form.register('tiktokAverageViews')} placeholder="Ex: 1M" className="h-11" />
+                        </div>
+                        <div className="space-y-2">
+                        <Label htmlFor="tiktokAverageLikes">Média de Likes</Label>
+                        <Input id="tiktokAverageLikes" {...form.register('tiktokAverageLikes')} placeholder="Ex: 100K" className="h-11" />
+                        </div>
+                        <div className="space-y-2">
+                        <Label htmlFor="tiktokAverageComments">Média de Comentários</Label>
+                        <Input id="tiktokAverageComments" {...form.register('tiktokAverageComments')} placeholder="Ex: 1.5K" className="h-11" />
+                        </div>
                     </div>
                 </div>
 
@@ -315,3 +359,5 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+    
