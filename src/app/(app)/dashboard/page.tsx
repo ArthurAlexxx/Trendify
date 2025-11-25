@@ -506,7 +506,11 @@ export default function DashboardPage() {
                                     Dados insuficientes para o gráfico.
                                 </h3>
                                 <p className="text-sm text-muted-foreground">
-                                    <span className="text-primary font-medium hover:underline cursor-pointer" onClick={() => userProfile && document.querySelector<HTMLButtonElement>('#update-metrics-trigger')?.click()}>Atualize suas métricas</span> por alguns dias para começar.
+                                    <UpdateMetricsModal userProfile={userProfile!} triggerButton={
+                                        <span className="text-primary font-medium hover:underline cursor-pointer">
+                                            Atualize suas métricas
+                                        </span>
+                                    } /> por alguns dias para começar.
                                 </p>
                                 </div>
                             </div>
@@ -692,7 +696,7 @@ export default function DashboardPage() {
                         <div className='flex justify-center mt-2'>
                             <Button 
                                 variant="ghost" 
-                                onClick={()={() => setIsExpanded(false)}} 
+                                onClick={() => setIsExpanded(false)} 
                                 className="text-primary hover:text-primary"
                             >
                                 Ver menos
@@ -809,5 +813,3 @@ function MetricCard({ icon: Icon, title, value, handle, isLoading }: { icon: Rea
         </div>
     )
 }
-
-    
