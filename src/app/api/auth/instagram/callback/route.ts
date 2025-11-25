@@ -1,3 +1,4 @@
+
 import { NextRequest, NextResponse } from 'next/server';
 import { initializeFirebaseAdmin } from '@/firebase/admin';
 import { cookies } from 'next/headers';
@@ -45,7 +46,7 @@ async function getLongLivedAccessToken(shortLivedToken: string) {
 async function getConnectedInstagramAccount(accessToken: string) {
     const pagesUrl = new URL('https://graph.facebook.com/v19.0/me/accounts');
     pagesUrl.searchParams.set('access_token', accessToken);
-    pagesUrl.searchParams.set('fields', 'instagram_business_account'); // Pedir o campo aqui
+    pagesUrl.searchParams.set('fields', 'instagram_business_account');
 
     console.log('[getConnectedInstagramAccount] Buscando páginas do Facebook conectadas...');
     const pagesResponse = await fetch(pagesUrl.toString());
@@ -59,7 +60,6 @@ async function getConnectedInstagramAccount(accessToken: string) {
         throw new Error("Nenhuma página do Facebook encontrada. Você precisa conectar uma página que esteja vinculada à sua conta profissional do Instagram.");
     }
     
-    // Encontra a primeira página que tem uma conta do Instagram vinculada
     const pageWithIg = pagesData.data.find((page: any) => page.instagram_business_account);
     
     if (!pageWithIg) {
@@ -70,11 +70,11 @@ async function getConnectedInstagramAccount(accessToken: string) {
     return pageWithIg.instagram_business_account.id;
 }
 
-
 async function getInstagramAccountInfo(igUserId: string, accessToken: string) {
-    console.log(`[getInstagramAccountInfo] Buscando informações para o user_id: ${igUserId}`);
+    console.log(`[getInstagramAccountInfo] Buscando informações para o user_id: ${igUserId} com o endpoint /me do Instagram.`);
+    
     const fields = 'id,username,followers_count,media_count,profile_picture_url,biography,account_type';
-    const url = new URL(`https://graph.facebook.com/v19.0/${igUserId}`);
+    const url = new URL(`https://graph.instagram.com/v24.0/me`);
     url.searchParams.set('fields', fields);
     url.searchParams.set('access_token', accessToken);
 
@@ -85,7 +85,7 @@ async function getInstagramAccountInfo(igUserId: string, accessToken: string) {
         console.error("[getInstagramAccountInfo] Erro ao buscar dados da conta do Instagram:", data.error);
         throw new Error(data.error?.message || "Falha ao buscar dados da conta do Instagram.");
     }
-
+    
     if (data.account_type !== 'BUSINESS' && data.account_type !== 'MEDIA_CREATOR') {
         throw new Error(`A conta do Instagram '${data.username}' precisa ser do tipo 'Comercial' ou 'Criador de Conteúdo' para usar a integração.`);
     }
@@ -149,7 +149,11 @@ export async function GET(req: NextRequest) {
         
         const { accessToken: shortLivedToken } = await exchangeCodeForToken(code, redirectUri);
         const longLivedToken = await getLongLivedAccessToken(shortLivedToken);
+        
+        // A chamada para `getConnectedInstagramAccount` continua necessária para obter o IG User ID através da página do FB.
         const igUserId = await getConnectedInstagramAccount(longLivedToken);
+
+        // Usamos o token de longa duração para buscar as informações diretamente da API do Instagram.
         const accountInfo = await getInstagramAccountInfo(igUserId, longLivedToken);
 
         const firestore = initializeFirebaseAdmin().firestore;
@@ -170,7 +174,7 @@ export async function GET(req: NextRequest) {
             instagramHandle: accountInfo.username,
             followers: accountInfo.followers_count ? formatFollowers(accountInfo.followers_count) : '0',
             bio: accountInfo.biography || existingData?.bio || null,
-            photoURL: existingData?.photoURL || accountInfo.profile_picture_url || null, // Keep existing photoURL
+            photoURL: existingData?.photoURL || accountInfo.profile_picture_url || null,
             averageViews: null,
             averageLikes: null,
             averageComments: null,

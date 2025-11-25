@@ -1,15 +1,16 @@
+
 // Este é um script de teste para depurar a chamada à API do Instagram Graph.
 // Para usar:
 // 1. Obtenha um Token de Acesso do Usuário válido na ferramenta de Exploração da Graph API.
 //    (https://developers.facebook.com/tools/explorer/)
 //    - Selecione seu App da Meta no menu suspenso.
-//    - No menu "Permissões", adicione todas que seu app precisa (ex: instagram_business_basic, instagram_manage_insights, etc.).
+//    - No menu "Permissões", adicione todas que seu app precisa (ex: instagram_basic, pages_show_list, instagram_business_management, etc.).
 //    - Clique em "Gerar Token de Acesso".
 // 2. Cole o token gerado na variável `USER_ACCESS_TOKEN` abaixo.
 // 3. Abra o terminal e execute o script com: node workspace/instagram-test.js
 
 // COLE SEU TOKEN DE ACESSO AQUI DENTRO DAS ASPAS
-const USER_ACCESS_TOKEN = 'IGAAz8oOjNLRhBZAFNPNWNwbE9mQjl6ZAy1KZAE14SU1CNHlubnBkYzZAiM1B0QkMyMmQxaTFlR0ZAoZA0dpQTFrUjZAMb1dZAeDlIM0VCdUVZAVUpkTXdVa2xjWnVOSU9RR0xsVVB0cUgycjRSU2I1OURGUGpEZA1VKNnBmZAWwxNWFVRU12dwZDZD';
+const USER_ACCESS_TOKEN = 'COLE_SEU_TOKEN_AQUI';
 
 async function testInstagramApi() {
   if (!USER_ACCESS_TOKEN || USER_ACCESS_TOKEN === 'COLE_SEU_TOKEN_AQUI') {
@@ -19,9 +20,9 @@ async function testInstagramApi() {
 
   console.log('Iniciando teste com a API do Instagram Graph...');
   
-  // Este endpoint busca o perfil do usuário logado na API do Instagram.
-  // É o primeiro passo para verificar se o token é válido e tem a permissão 'instagram_business_basic'.
-  const url = `https://graph.instagram.com/me?fields=id,username,account_type,followers_count&access_token=${USER_ACCESS_TOKEN}`;
+  // Este endpoint busca o perfil do usuário logado através da API do Instagram.
+  // É o passo final para verificar se o token tem acesso aos dados da conta profissional do Instagram.
+  const url = `https://graph.instagram.com/me?fields=id,username,account_type,followers_count,media_count,profile_picture_url,biography&access_token=${USER_ACCESS_TOKEN}`;
 
   try {
     console.log(`\nFazendo requisição para: ${url.replace(USER_ACCESS_TOKEN, '[TOKEN_OMITIDO]')}\n`);
@@ -44,7 +45,7 @@ async function testInstagramApi() {
           console.warn('\x1b[33m%s\x1b[0m', `AVISO: A conta é do tipo "${data.account_type}". A integração exige uma conta "BUSINESS" ou "MEDIA_CREATOR".`);
       }
     } else {
-        console.warn('\x1b[33m%s\x1b[0m', 'AVISO: A resposta não contém os dados esperados (id, username). Verifique se o token tem as permissões corretas (pelo menos instagram_business_basic).');
+        console.warn('\x1b[33m%s\x1b[0m', 'AVISO: A resposta não contém os dados esperados (id, username). Verifique se o token tem as permissões corretas (pelo menos instagram_basic e pages_show_list).');
     }
 
   } catch (error) {
