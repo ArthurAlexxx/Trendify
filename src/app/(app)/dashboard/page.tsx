@@ -755,7 +755,11 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
 
-              <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card h-full">
+              
+            </div>
+            
+            <div className="lg:col-span-1 space-y-8">
+                <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card h-full">
                 <CardHeader className="text-center sm:text-left">
                   <CardTitle className="font-headline text-xl">
                     Ideias e Tarefas
@@ -811,10 +815,6 @@ export default function DashboardPage() {
                   )}
                 </CardContent>
               </Card>
-            </div>
-            
-            <div className="lg:col-span-1">
-                {/* This space is intentionally left blank for the new layout */}
             </div>
         </div>
       </div>

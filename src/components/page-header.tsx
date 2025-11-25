@@ -18,7 +18,7 @@ export function PageHeader({ title, description, icon, children }: PageHeaderPro
         </div>
       }
       <div className="grid gap-1">
-        <h1 className="text-3xl md:text-4xl font-bold font-headline tracking-tight text-gradient bg-gradient-to-br from-purple-600 to-indigo-600">
+        <h1 className="text-3xl md:text-4xl font-bold font-headline tracking-tight text-gradient bg-gradient-to-br from-foreground to-foreground/60">
           {title}
         </h1>
         {description && (
