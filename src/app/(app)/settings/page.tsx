@@ -92,7 +92,7 @@ function InstagramIntegration() {
             'instagram_business_content_publish',
             'instagram_business_manage_comments',
             'instagram_business_manage_messages',
-            'instagram_manage_insights' // Adicionado para métricas
+            'instagram_manage_insights'
         ];
         const scope = permissions.join(',');
         
@@ -431,5 +431,3 @@ export default function SettingsPage() {
     </div>
   );
 }
-
-    

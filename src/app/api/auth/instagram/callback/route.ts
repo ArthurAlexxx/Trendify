@@ -30,9 +30,9 @@ async function getInstagramAccessToken(code: string, redirectUri: string) {
     });
 
     const data = await response.json();
-    if (data.error_message) {
+    if (data.error_message || data.error) {
         console.error("[getInstagramAccessToken] Erro da API do Instagram:", data);
-        throw new Error(data.error_message);
+        throw new Error(data.error_message || data.error.message || "Erro desconhecido ao obter token de acesso.");
     }
 
     console.log('[getInstagramAccessToken] Token de acesso e user_id obtidos com sucesso.');
@@ -55,7 +55,7 @@ async function getLongLivedInstagramToken(shortLivedToken: string) {
 
 async function getInstagramAccountInfo(userId: string, accessToken: string) {
     console.log(`[getInstagramAccountInfo] Buscando informações para o user_id: ${userId}`);
-    const fields = 'id,username,account_type,followers_count,media_count';
+    const fields = 'id,username,account_type,followers_count';
     const url = `https://graph.instagram.com/v19.0/${userId}?fields=${fields}&access_token=${accessToken}`;
 
     const response = await fetch(url);
@@ -66,8 +66,9 @@ async function getInstagramAccountInfo(userId: string, accessToken: string) {
         throw new Error(data.error?.message || "Falha ao buscar dados da conta do Instagram.");
     }
     
-    if (data.account_type !== 'BUSINESS' && data.account_type !== 'CREATOR') {
-        throw new Error(`A conta do Instagram (@${data.username}) precisa ser do tipo "Comercial" ou "Criador de Conteúdo" para usar a integração.`);
+    // Corrigido para aceitar MEDIA_CREATOR
+    if (data.account_type !== 'BUSINESS' && data.account_type !== 'MEDIA_CREATOR') {
+        throw new Error(`A conta do Instagram (@${data.username}) precisa ser do tipo "Comercial" ou "Criador de Conteúdo" para usar a integração. Tipo encontrado: ${data.account_type}`);
     }
     
     console.log(`[getInstagramAccountInfo] Informações da conta obtidas:`, data);
@@ -143,7 +144,6 @@ export async function GET(req: NextRequest) {
             instagramUserId: accountInfo.id,
             instagramHandle: accountInfo.username,
             followers: accountInfo.followers_count ? formatFollowers(accountInfo.followers_count) : '0',
-            // Limpa dados antigos da API do Facebook para evitar confusão
             averageViews: null,
             averageLikes: null,
             averageComments: null,
@@ -160,5 +160,3 @@ export async function GET(req: NextRequest) {
         return NextResponse.redirect(settingsUrl);
     }
 }
-
-    

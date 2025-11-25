@@ -9,7 +9,7 @@
 // 2. Cole o token gerado na variável `USER_ACCESS_TOKEN` abaixo.
 // 3. Abra o terminal e execute o script com: node workspace/instagram-test.js
 
-const USER_ACCESS_TOKEN = 'COLE_SEU_TOKEN_DE_ACESSO_DE_LONGA_DURACAO_AQUI';
+const USER_ACCESS_TOKEN = 'IGAAz8oOjNLRhBZAFF5NlZA1Rms2QXM1TFVZAMHN4amFQa2ZAWNlVsbjRqMGpEdWFmVGZA6QXpfSUxjLTFfbGVNTkFYQ1hPQU5SdEM1cTJ2ZAERyS3dJMWowbHpETGJlQVFRbC1ITFM5RlkxM09kaU5PVU0tOHVZAN3lUSUh2UU5nOHBXWQZDZD';
 
 async function testInstagramApi() {
   if (!USER_ACCESS_TOKEN || USER_ACCESS_TOKEN.startsWith('COLE_SEU_TOKEN')) {
