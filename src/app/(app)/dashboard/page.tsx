@@ -202,7 +202,7 @@ const UpdateMetricsModal = ({ userProfile, triggerButton }: { userProfile: UserP
 
                 const metricSnapshotsRef = collection(firestore, `users/${user.uid}/metricSnapshots`);
 
-                if (values.instagramHandle) {
+                if (values.instagramHandle && values.instagramFollowers) {
                     await addDoc(metricSnapshotsRef, {
                         userId: user.uid,
                         date: serverTimestamp(),
@@ -213,7 +213,7 @@ const UpdateMetricsModal = ({ userProfile, triggerButton }: { userProfile: UserP
                         comments: values.instagramAverageComments || '0',
                     });
                 }
-                if (values.tiktokHandle) {
+                if (values.tiktokHandle && values.tiktokFollowers) {
                     await addDoc(metricSnapshotsRef, {
                         userId: user.uid,
                         date: serverTimestamp(),
@@ -348,8 +348,11 @@ export default function DashboardPage() {
   const latestMetrics = useMemo(() => {
     if (!userProfile) return null;
     if (selectedPlatform === 'total') {
+        const hasInsta = !!userProfile.instagramHandle;
+        const hasTiktok = !!userProfile.tiktokHandle;
+
         return {
-            handle: 'Total',
+            handle: hasInsta && hasTiktok ? 'Total' : hasInsta ? userProfile.instagramHandle : hasTiktok ? userProfile.tiktokHandle : 'N/A',
             followers: parseMetric(userProfile.instagramFollowers) + parseMetric(userProfile.tiktokFollowers),
             views: parseMetric(userProfile.instagramAverageViews) + parseMetric(userProfile.tiktokAverageViews),
             likes: parseMetric(userProfile.instagramAverageLikes) + parseMetric(userProfile.tiktokAverageLikes),
@@ -374,9 +377,10 @@ export default function DashboardPage() {
   const formatMetricValue = (value?: string | number): string => {
     if (value === undefined || value === null) return '—';
     const num = typeof value === 'string' ? parseMetric(value) : value;
+    if (num === 0 && (selectedPlatform === 'instagram' || selectedPlatform === 'tiktok')) return 'N/A';
 
     if (num >= 1000000) return `${(num / 1000000).toFixed(1).replace('.', ',')}M`;
-    if (num >= 1000) return `${(num / 1000).toFixed(1).replace('.', ',')}K`;
+    if (num >= 1000) return `${(num / 1000).toFixed(0)}K`;
     return num.toLocaleString('pt-BR');
   };
 
@@ -529,7 +533,7 @@ export default function DashboardPage() {
                                 <div>
                                 <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
                                 <h3 className="font-semibold text-foreground">
-                                    {historicalChartData.length > 0 ? "" : "Dados insuficientes para o gráfico."}
+                                    {userProfile?.instagramHandle || userProfile?.tiktokHandle ? "Dados insuficientes para o gráfico." : "Nenhuma plataforma conectada."}
                                 </h3>
                                 <p className="text-sm text-muted-foreground">
                                     {userProfile && (
@@ -538,7 +542,8 @@ export default function DashboardPage() {
                                                 Atualize suas métricas
                                             </span>
                                         } />
-                                    )} por alguns dias para começar.
+                                    )}
+                                    {userProfile?.instagramHandle || userProfile?.tiktokHandle ? " por alguns dias para começar." : " para começar a ver seus dados."}
                                 </p>
                                 </div>
                             </div>
@@ -823,20 +828,20 @@ export default function DashboardPage() {
 
 function MetricCard({ icon: Icon, title, value, handle, isLoading }: { icon: React.ElementType, title: string, value?: string, handle?: string, isLoading: boolean }) {
     return (
-        <div className="p-6 rounded-lg bg-muted/50 flex flex-col justify-center">
-            <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <div className="p-6 rounded-lg bg-muted/50 flex flex-col justify-center text-center sm:text-left">
+            <div className="flex flex-col sm:flex-row items-center justify-between space-y-2 sm:space-y-0 pb-2">
                 <h3 className="text-base font-medium text-muted-foreground">
                 {title}
                 </h3>
                 <Icon className="h-4 w-4 text-primary" />
             </div>
-            {isLoading ? <Skeleton className="h-8 w-24" /> :
+            {isLoading ? <Skeleton className="h-8 w-24 mt-1" /> :
                 <>
                     <div className="text-3xl font-bold font-headline">
                         {value || '—'}
                     </div>
                     {handle && (
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs text-muted-foreground truncate">
                             {handle ? handle : <Link href="/profile" className="hover:underline">Adicionar no perfil</Link>}
                         </p>
                     )}
@@ -845,4 +850,6 @@ function MetricCard({ icon: Icon, title, value, handle, isLoading }: { icon: Rea
         </div>
     )
 }
+    
+
     

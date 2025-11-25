@@ -30,6 +30,7 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import Image from 'next/image';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { ProfileData, PostData } from './actions';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 
 const profileFormSchema = z.object({
@@ -62,10 +63,15 @@ async function fetchFromApiRoute(endpoint: 'profile' | 'posts', username: string
         },
         body: JSON.stringify({ username })
     });
-
-    const result = await response.json();
+    
     if (!response.ok) {
-        throw new Error(result.error || `Falha ao buscar dados do endpoint: /api/instagram/${endpoint}`);
+        const errorResult = await response.json().catch(() => ({ error: 'Falha ao ler a resposta de erro da API.' }));
+        throw new Error(errorResult.error || `A API retornou um erro: ${response.statusText}`);
+    }
+    
+    const result = await response.json();
+    if (result.error) {
+        throw new Error(result.error);
     }
     
     return result.data;
@@ -115,7 +121,7 @@ export default function ProfilePage() {
   
   const formatNumber = (num: number): string => {
     if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(1).replace('.', ',')}M`;
-    if (num >= 1000) return `${(num / 1000).toFixed(1).replace('.', ',')}K`;
+    if (num >= 1000) return `${(num / 1000).toFixed(0)}K`;
     return num.toLocaleString('pt-BR');
   };
 
@@ -200,23 +206,43 @@ export default function ProfilePage() {
       
       const fetchedProfile: ProfileData = profileResult.value;
       setProfile(fetchedProfile);
+      setStatus('success');
       
-      form.reset({
-        ...form.getValues(),
-        instagramHandle: `@${fetchedProfile.username}`,
-        displayName: form.getValues('displayName') || fetchedProfile.fullName,
-        bio: form.getValues('bio') || fetchedProfile.biography,
-        instagramFollowers: formatNumber(fetchedProfile.followersCount),
-        photoURL: fetchedProfile.profilePicUrlHd,
-      });
-
+      let fetchedPosts: PostData[] = [];
       if (postsResult.status === 'fulfilled') {
-        setPosts(postsResult.value);
+        fetchedPosts = postsResult.value;
+        setPosts(fetchedPosts);
       } else {
         setPostsError('Não foi possível carregar os posts recentes. ' + postsResult.reason.message);
       }
+      
+      // Update form and database
+       if (userProfileRef) {
+        const averageLikes = fetchedPosts.length > 0 ? fetchedPosts.reduce((acc, p) => acc + p.likes, 0) / fetchedPosts.length : 0;
+        const averageComments = fetchedPosts.length > 0 ? fetchedPosts.reduce((acc, p) => acc + p.comments, 0) / fetchedPosts.length : 0;
+        
+        const updateData: Partial<ProfileFormData> = {
+            instagramHandle: `@${fetchedProfile.username}`,
+            bio: fetchedProfile.biography,
+            photoURL: fetchedProfile.profilePicUrlHd,
+            instagramFollowers: formatNumber(fetchedProfile.followersCount),
+            instagramAverageLikes: formatNumber(Math.round(averageLikes)),
+            instagramAverageComments: formatNumber(Math.round(averageComments)),
+        }
 
-      setStatus('success');
+        form.reset({
+            ...form.getValues(),
+            ...updateData,
+        });
+
+        await updateDoc(userProfileRef, updateData);
+
+        toast({
+            title: "Perfil Atualizado!",
+            description: "Os dados do Instagram foram salvos no seu perfil."
+        })
+       }
+
 
     } catch (e: any) {
       setError(e.message || 'Ocorreu um erro desconhecido.');
@@ -243,7 +269,6 @@ export default function ProfilePage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {/* Instagram Integration */}
                 <div className="space-y-4 mb-8">
                   <h3 className="text-lg font-semibold flex items-center gap-2"><Instagram className="h-5 w-5" /> Integração com Instagram</h3>
                   <Card className='border-0 shadow-none'>
@@ -259,12 +284,28 @@ export default function ProfilePage() {
                               className="h-11 mt-1"
                           />
                         </div>
-                        <Button type="button" onClick={handleSearch} disabled={status === 'loading'} className="w-full sm:w-auto">
-                          {status === 'loading' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
-                           Buscar Dados
-                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button type="button" disabled={status === 'loading' || !username} className="w-full sm:w-auto">
+                              <Search className="mr-2 h-4 w-4" />
+                              Buscar Dados
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Confirmação de Busca</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Você confirma que é o proprietário ou tem permissão para buscar os dados do perfil <strong>@{username.replace('@', '')}</strong>? Esta ação usará recursos da sua assinatura.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction onClick={handleSearch}>Sim, confirmar e buscar</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
-                      <p className='text-xs text-muted-foreground mt-2'>Isso irá buscar e preencher sua foto, @, bio e número de seguidores. Os dados não serão salvos até que você clique em "Salvar Alterações".</p>
+                      <p className='text-xs text-muted-foreground mt-2'>Isso irá buscar e preencher sua foto, @, bio e métricas. Os dados serão salvos automaticamente no seu perfil.</p>
                     </CardContent>
                   </Card>
                 </div>
@@ -303,24 +344,24 @@ export default function ProfilePage() {
                     {posts && posts.length > 0 && (
                       <div>
                         <h4 className="text-lg font-semibold text-center mb-4">Posts Recentes</h4>
-                        <Carousel opts={{ align: "start", loop: true }} className="w-full">
+                        <Carousel opts={{ align: "start", loop: true }} className="w-full max-w-sm mx-auto md:max-w-xl lg:max-w-4xl">
                           <CarouselContent>
                             {posts.map(post => (
                               <CarouselItem key={post.id} className="md:basis-1/2 lg:basis-1/3">
-                                <Card>
-                                  <CardContent className="p-2 aspect-square">
-                                    <Image src={post.displayUrl} alt={post.caption.slice(0, 50)} width={400} height={400} className="w-full h-full object-cover rounded-md" />
+                                <Card className="overflow-hidden rounded-xl">
+                                  <CardContent className="p-0 aspect-square">
+                                    <Image src={post.displayUrl} alt={post.caption.slice(0, 50)} width={400} height={400} className="w-full h-full object-cover rounded-t-md" />
                                   </CardContent>
-                                  <div className="p-2 text-xs text-muted-foreground flex justify-between">
-                                    <span className='flex items-center gap-1'><Heart className='h-3 w-3' /> {formatNumber(post.likes)}</span>
-                                    <span className='flex items-center gap-1'><MessageSquare className='h-3 w-3' /> {formatNumber(post.comments)}</span>
+                                  <div className="p-3 bg-muted/30 text-xs text-muted-foreground flex justify-between">
+                                    <span className='flex items-center gap-1.5'><Heart className='h-4 w-4 text-pink-500' /> {formatNumber(post.likes)}</span>
+                                    <span className='flex items-center gap-1.5'><MessageSquare className='h-4 w-4 text-sky-500' /> {formatNumber(post.comments)}</span>
                                   </div>
                                 </Card>
                               </CarouselItem>
                             ))}
                           </CarouselContent>
-                          <CarouselPrevious className="ml-12" />
-                          <CarouselNext className="mr-12" />
+                          <CarouselPrevious className="ml-12 hidden sm:flex" />
+                          <CarouselNext className="mr-12 hidden sm:flex" />
                         </Carousel>
                       </div>
                     )}
@@ -467,9 +508,11 @@ export default function ProfilePage() {
 
 function MetricCard({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value: string | number }) {
   return (
-    <Card className='text-center p-4 bg-muted/50'>
-      <Icon className="h-6 w-6 text-primary mx-auto mb-2" />
-      <p className="text-xl font-bold">{value}</p>
+    <Card className='text-center p-4 bg-muted/50 border-border/50'>
+        <div className="flex justify-center items-center h-12 w-12 rounded-full bg-primary/10 text-primary mx-auto mb-3">
+          <Icon className="h-6 w-6" />
+        </div>
+      <p className="text-2xl font-bold font-headline">{value}</p>
       <p className="text-xs text-muted-foreground">{label}</p>
     </Card>
   )
