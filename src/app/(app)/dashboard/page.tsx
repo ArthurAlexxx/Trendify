@@ -20,6 +20,7 @@ import {
   Loader2,
   Instagram,
   Film,
+  Clapperboard,
 } from 'lucide-react';
 import {
   ChartContainer,
@@ -496,7 +497,7 @@ export default function DashboardPage() {
             <CardContent>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 justify-center">
                   <MetricCard icon={Users} title="Seguidores" value={formatMetricValue(latestMetrics?.followers)} handle={selectedPlatform !== 'total' ? latestMetrics?.handle as string : undefined} isLoading={isLoading} />
-                  <MetricCard icon={Eye} title="Views (Manual)" value={formatMetricValue(latestMetrics?.views)} isManual={!latestMetrics?.views && selectedPlatform !== 'tiktok'} isLoading={isLoading} />
+                  <MetricCard icon={Eye} title="Views (Manual)" value={latestMetrics?.views ? formatMetricValue(latestMetrics?.views) : undefined} isManual={true} isLoading={isLoading} />
                   <MetricCard icon={Heart} title="Média de Likes" value={formatMetricValue(latestMetrics?.likes)} isLoading={isLoading} />
                   <MetricCard icon={MessageSquare} title="Média de Comentários" value={formatMetricValue(latestMetrics?.comments)} isLoading={isLoading} />
                 </div>
