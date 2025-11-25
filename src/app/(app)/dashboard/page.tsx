@@ -378,10 +378,10 @@ export default function DashboardPage() {
   const formatMetricValue = (value?: string | number): string => {
     if (value === undefined || value === null) return '—';
     const num = typeof value === 'string' ? parseMetric(value) : value;
-    if (num === 0 && (selectedPlatform === 'instagram' || selectedPlatform === 'tiktok')) return 'N/A';
+    if (num === 0 && (selectedPlatform === 'instagram' || selectedPlatform === 'tiktok') && title !== 'Seguidores') return 'N/A';
 
     if (num >= 1000000) return `${(num / 1000000).toFixed(1).replace('.', ',')}M`;
-    if (num >= 1000) return `${(num / 1000).toFixed(0)}K`;
+    if (num >= 10000) return `${(num / 1000).toFixed(1).replace('.', ',')}K`;
     return num.toLocaleString('pt-BR');
   };
 
@@ -837,7 +837,7 @@ function MetricCard({ icon: Icon, title, value, handle, isLoading, isManual }: {
                 <Icon className="h-4 w-4 text-primary" />
             </div>
             {isLoading ? <Skeleton className="h-8 w-24 mt-1" /> :
-                (isManual && !value) ? (
+                (isManual && (!value || value === "0")) ? (
                      <div className="flex items-center gap-2 mt-1">
                         <AlertTriangle className="h-5 w-5 text-amber-500" />
                         <Link href="/profile" className="text-sm text-muted-foreground hover:underline">
