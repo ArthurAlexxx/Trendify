@@ -40,13 +40,18 @@ export type InstagramProfileData = {
 
 const InstagramPostSchema = z.object({
     id: z.string(),
-    shortcode: z.string(),
-    caption: z.string().optional().nullable(),
-    media_url: z.string().url(),
-    thumbnail_url: z.string().url().optional().nullable(),
+    caption: z.object({
+        text: z.string(),
+    }).optional().nullable(),
+    image_versions2: z.object({
+        candidates: z.array(z.object({
+            url: z.string().url(),
+        })),
+    }),
     like_count: z.number(),
     comment_count: z.number(),
 }).passthrough();
+
 
 export type InstagramPostData = {
     id: string;
@@ -239,28 +244,18 @@ export async function getInstagramPosts(username: string): Promise<InstagramPost
     try {
         const result = await fetchFromRapidApi('instagram-posts', username);
         
-        // Flexibly find the array of posts within the response object
-        let postsArray = null;
-        if (Array.isArray(result)) {
-            postsArray = result;
-        } else if (typeof result === 'object' && result !== null) {
-            // Find the first key that holds an array
-            const keyWithArray = Object.keys(result).find(key => Array.isArray(result[key]));
-            if (keyWithArray) {
-                postsArray = result[keyWithArray];
-            }
-        }
+        const postsData = result?.result?.edges;
 
-        if (!postsArray) {
+        if (!Array.isArray(postsData)) {
             throw new Error('A resposta da API de posts não continha uma lista de publicações.');
         }
 
-        const parsed = z.array(InstagramPostSchema).parse(postsArray);
+        const parsedPosts = postsData.map((edge: any) => InstagramPostSchema.parse(edge.node));
         
-        return parsed.map(post => ({
+        return parsedPosts.map(post => ({
             id: post.id,
-            caption: post.caption || null,
-            mediaUrl: post.media_url,
+            caption: post.caption?.text || null,
+            mediaUrl: post.image_versions2.candidates[0].url,
             likes: post.like_count,
             comments: post.comment_count,
         }));
