@@ -10,12 +10,12 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { User as UserIcon, Instagram, Film, Search, Loader2, AlertTriangle, Users, Heart, MessageSquare, Clapperboard, ShoppingBag, PlayCircle, Eye } from 'lucide-react';
+import { useUser, useFirestore, useDoc, useMemoFirebase, initializeFirebase } from '@/firebase';
+import { User as UserIcon, Instagram, Film, Search, Loader2, AlertTriangle, Users, Heart, MessageSquare, Clapperboard, PlayCircle, Eye, Upload } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useState, useEffect, useTransition } from 'react';
+import { useState, useEffect, useTransition, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -32,6 +32,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import type { ProfileData, PostData } from './actions';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { getInstagramPosts, getInstagramProfile } from './actions';
+import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { Progress } from '@/components/ui/progress';
 
 
 const profileFormSchema = z.object({
@@ -63,6 +65,8 @@ export default function ProfilePage() {
   const { toast } = useToast();
   const [isSaving, startSavingTransition] = useTransition();
   const [username, setUsername] = useState('');
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [status, setStatus] = useState<SearchStatus>('idle');
   const [profile, setProfile] = useState<ProfileData | null>(null);
@@ -122,8 +126,9 @@ export default function ProfilePage() {
 
   const formatNumber = (num: number): string => {
     if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(1).replace('.', ',')}M`;
-    if (num >= 1000) return `${(num / 1000).toFixed(0)}K`;
-    return num.toLocaleString('pt-BR');
+    if (num >= 10000) return `${(num / 1000).toFixed(1).replace('.', ',')}K`;
+    if (num >= 1000) return num.toLocaleString('pt-BR');
+    return String(num);
   };
 
   useEffect(() => {
@@ -142,7 +147,7 @@ export default function ProfilePage() {
         tiktokHandle: userProfile.tiktokHandle || '',
         tiktokFollowers: userProfile.tiktokFollowers || '',
         tiktokAverageViews: userProfile.tiktokAverageViews || '',
-        tiktokAverageLikes: userProfile.tiktokAverageLikes || '',
+        tiktokAverageLikes: userProfile.tiktokAverageComments || '',
         tiktokAverageComments: userProfile.tiktokAverageComments || '',
       });
       // Don't overwrite the search username if it was loaded from localStorage
@@ -184,6 +189,53 @@ export default function ProfilePage() {
       }
     });
   };
+
+  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user || !user.auth.currentUser) return;
+
+    if (!file.type.startsWith('image/')) {
+        toast({ title: 'Arquivo inválido', description: 'Por favor, selecione um arquivo de imagem.', variant: 'destructive'});
+        return;
+    }
+
+    const { firebaseApp } = initializeFirebase();
+    const storage = getStorage(firebaseApp);
+    const storagePath = `profile-pictures/${user.uid}/${file.name}`;
+    const storageRef = ref(storage, storagePath);
+    const uploadTask = uploadBytesResumable(storageRef, file);
+
+    setUploadProgress(0);
+
+    uploadTask.on(
+        'state_changed',
+        (snapshot) => {
+            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            setUploadProgress(progress);
+        },
+        (error) => {
+            console.error('Upload error:', error);
+            toast({ title: 'Erro no Upload', description: 'Não foi possível enviar sua foto.', variant: 'destructive'});
+            setUploadProgress(null);
+        },
+        async () => {
+            try {
+                const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                await updateProfile(user.auth.currentUser!, { photoURL: downloadURL });
+                if (userProfileRef) {
+                    await updateDoc(userProfileRef, { photoURL: downloadURL });
+                }
+                form.setValue('photoURL', downloadURL);
+                toast({ title: 'Sucesso!', description: 'Sua foto de perfil foi atualizada.' });
+            } catch (e: any) {
+                toast({ title: 'Erro ao Atualizar', description: `Não foi possível salvar a nova foto. ${e.message}`, variant: 'destructive' });
+            } finally {
+                setUploadProgress(null);
+            }
+        }
+    );
+};
+
 
   const handleSearch = async () => {
     if (!username) {
@@ -287,12 +339,18 @@ export default function ProfilePage() {
             <CardContent>
               <form onSubmit={form.handleSubmit(onProfileSubmit)} className="space-y-8 text-left">
                   <div className="flex flex-col sm:flex-row items-center gap-6">
-                      <Avatar className="h-24 w-24">
+                    <div className="relative group">
+                      <Avatar className="h-24 w-24 cursor-pointer" onClick={() => fileInputRef.current?.click()}>
                         <AvatarImage src={form.watch('photoURL') ?? undefined} alt="User Avatar" />
                         <AvatarFallback>
                           {user?.displayName?.[0].toUpperCase() ?? user?.email?.[0].toUpperCase() ?? 'U'}
                         </AvatarFallback>
                       </Avatar>
+                      <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                        <Upload className="h-8 w-8 text-white" />
+                      </div>
+                      <input type="file" ref={fileInputRef} onChange={handlePhotoUpload} accept="image/*" className="hidden" />
+                    </div>
                     <div className="flex-1 w-full space-y-2">
                         <Label htmlFor="displayName">Nome de Exibição</Label>
                         <Input
@@ -300,6 +358,12 @@ export default function ProfilePage() {
                           {...form.register('displayName')}
                           className="h-11"
                         />
+                         {uploadProgress !== null && (
+                          <div className="space-y-1">
+                            <Progress value={uploadProgress} className="h-2" />
+                            <p className="text-xs text-muted-foreground">{uploadProgress < 100 ? `Enviando... ${uploadProgress.toFixed(0)}%` : 'Finalizando...'}</p>
+                          </div>
+                        )}
                         {form.formState.errors.displayName && <p className="text-sm font-medium text-destructive">{form.formState.errors.displayName.message}</p>}
                     </div>
                   </div>
@@ -493,7 +557,7 @@ export default function ProfilePage() {
                         <MetricCard icon={Users} label="Seguidores" value={formatNumber(profile.followersCount)} />
                         <MetricCard icon={Users} label="Seguindo" value={formatNumber(profile.followingCount)} />
                         <MetricCard icon={Clapperboard} label="Publicações" value={formatNumber(profile.mediaCount)} />
-                        <MetricCard icon={ShoppingBag} label="Conta" value={profile.isBusiness ? "Comercial" : "Pessoal"} />
+                        <MetricCard icon={Heart} label="Conta" value={profile.isBusiness ? "Comercial" : "Pessoal"} />
                       </div>
 
                       {postsError && (
@@ -517,9 +581,17 @@ export default function ProfilePage() {
                                         <div className='relative w-full h-full'>
                                           <video
                                             src={post.videoUrl}
-                                            controls
+                                            muted
                                             className="w-full h-full object-cover"
                                           />
+                                           <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <button onClick={(e) => {
+                                                    const video = e.currentTarget.parentElement?.previousElementSibling as HTMLVideoElement;
+                                                    video.paused ? video.play() : video.pause();
+                                                }}>
+                                                    <PlayCircle className="h-12 w-12 text-white/80" />
+                                                </button>
+                                            </div>
                                         </div>
                                       ) : (
                                         <Image
