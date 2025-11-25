@@ -157,32 +157,52 @@ async function fetchFromRapidApi(platform: 'instagram' | 'tiktok', endpoint: 'pr
         throw new Error(`O host da API para a plataforma '${platform}' não está configurado.`);
     }
 
-
     const paths = {
         instagram: {
             profile: 'v1/user-info',
             posts: 'v1/user-posts',
         },
         tiktok: {
-            profile: '/api/user/info',
-            posts: '/api/user/videos',
+            profile: 'api/user/info',
+            posts: 'api/user/videos',
         }
     }
 
     const path = paths[platform][endpoint];
-    const url = `https://${host}${path}`;
+    let url: URL;
+    let options: RequestInit;
 
-    const options = {
-      method: 'POST',
-      headers: {
-        'x-rapidapi-key': apiKey,
-        'x-rapidapi-host': host,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ username })
-    };
+    if (platform === 'tiktok') {
+        // TikTok API uses GET with query params
+        url = new URL(`https://${host}/${path}`);
+        if (endpoint === 'profile') {
+            url.searchParams.append('uniqueId', username);
+        } else { // posts
+            url.searchParams.append('unique_id', username);
+        }
+        
+        options = {
+            method: 'GET',
+            headers: {
+                'x-rapidapi-key': apiKey,
+                'x-rapidapi-host': host,
+            },
+        };
+    } else { // Instagram
+        // Instagram API uses POST with a JSON body
+        url = new URL(`https://${host}/${path}`);
+        options = {
+            method: 'POST',
+            headers: {
+                'x-rapidapi-key': apiKey,
+                'x-rapidapi-host': host,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username })
+        };
+    }
 
-    const response = await fetch(url, options);
+    const response = await fetch(url.toString(), options);
     
     if (!response.ok) {
         const errorText = await response.text();
@@ -201,9 +221,15 @@ async function fetchFromRapidApi(platform: 'instagram' | 'tiktok', endpoint: 'pr
     if (platform === 'instagram' && data.message) throw new Error(data.message);
     
     // The TikTok API nests the result differently
-    if (platform === 'tiktok' && data.statusCode !== 0) throw new Error(data.status_msg || `API do TikTok retornou status ${data.statusCode}`);
+    if (platform === 'tiktok' && data.statusCode !== 0 && data.status_msg) {
+        throw new Error(data.status_msg || `API do TikTok retornou status ${data.statusCode}`);
+    }
     
-    return platform === 'tiktok' ? data : data.data; // Instagram nests in `data`, TikTok does not
+    // Instagram nests in `data` in some cases, TikTok has a different structure.
+    if (platform === 'instagram') return data.data;
+    if (platform === 'tiktok') return data.userInfo || data; // Profile data is in userInfo, posts data is at root
+    
+    return data;
 }
 
 
@@ -333,3 +359,5 @@ export async function getTikTokPosts(username: string): Promise<TikTokPostData[]
         throw new Error(`Falha ao buscar posts do TikTok: ${e.message}`);
     }
 }
+
+    
