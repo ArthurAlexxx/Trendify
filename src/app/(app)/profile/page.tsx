@@ -48,6 +48,46 @@ const profileFormSchema = z.object({
   tiktokAverageComments: z.string().optional(),
 });
 
+type ProfileFormData = z.infer<typeof profileFormSchema>;
+
+async function saveMetrics(
+    firestore: any,
+    userId: string,
+    profileData: ProfileFormData,
+    profileRef: any
+) {
+  // Update the main user profile document
+  await updateDoc(profileRef, profileData);
+
+  // Create new metric snapshots for today
+  const metricSnapshotsRef = collection(firestore, `users/${userId}/metricSnapshots`);
+  const timestamp = serverTimestamp();
+
+  if (profileData.instagramHandle && profileData.instagramFollowers) {
+    await addDoc(metricSnapshotsRef, {
+      userId,
+      date: timestamp,
+      platform: 'instagram',
+      followers: profileData.instagramFollowers || '0',
+      views: profileData.instagramAverageViews || '0',
+      likes: profileData.instagramAverageLikes || '0',
+      comments: profileData.instagramAverageComments || '0',
+    });
+  }
+
+  if (profileData.tiktokHandle && profileData.tiktokFollowers) {
+    await addDoc(metricSnapshotsRef, {
+      userId,
+      date: timestamp,
+      platform: 'tiktok',
+      followers: profileData.tiktokFollowers || '0',
+      views: profileData.tiktokAverageViews || '0',
+      likes: profileData.tiktokAverageLikes || '0',
+      comments: profileData.tiktokAverageComments || '0',
+    });
+  }
+}
+
 
 export default function ProfilePage() {
   const { user } = useUser();
@@ -66,7 +106,7 @@ export default function ProfilePage() {
   );
   const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userProfileRef);
 
-  const form = useForm<z.infer<typeof profileFormSchema>>({
+  const form = useForm<ProfileFormData>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
       displayName: '',
@@ -161,49 +201,20 @@ export default function ProfilePage() {
     );
   };
 
-  const onProfileSubmit = (values: z.infer<typeof profileFormSchema>) => {
+  const onProfileSubmit = (values: ProfileFormData) => {
     if (!user || !userProfileRef || !firestore) return;
     
     startTransition(async () => {
       try {
-        const { photoURL, ...firestoreData } = values;
-        // Update Firestore document
-        await updateDoc(userProfileRef, firestoreData);
+        await saveMetrics(firestore, user.uid, values, userProfileRef);
         
-        // Update Firebase Auth profile if necessary
+        // Update Firebase Auth profile if displayName changed
         if (user.displayName !== values.displayName && auth.currentUser) {
             await updateProfile(auth.currentUser, {
                 displayName: values.displayName,
             });
         }
         
-        // Save metric snapshots
-        const metricSnapshotsRef = collection(firestore, `users/${user.uid}/metricSnapshots`);
-
-        if (values.instagramHandle) {
-             await addDoc(metricSnapshotsRef, {
-                userId: user.uid,
-                date: serverTimestamp(),
-                platform: 'instagram',
-                followers: values.instagramFollowers || '0',
-                views: values.instagramAverageViews || '0',
-                likes: values.instagramAverageLikes || '0',
-                comments: values.instagramAverageComments || '0',
-             });
-        }
-        
-        if (values.tiktokHandle) {
-             await addDoc(metricSnapshotsRef, {
-                userId: user.uid,
-                date: serverTimestamp(),
-                platform: 'tiktok',
-                followers: values.tiktokFollowers || '0',
-                views: values.tiktokAverageViews || '0',
-                likes: values.tiktokAverageLikes || '0',
-                comments: values.tiktokAverageComments || '0',
-             });
-        }
-
         toast({
           title: 'Sucesso!',
           description: 'Seu perfil e métricas foram salvos.',

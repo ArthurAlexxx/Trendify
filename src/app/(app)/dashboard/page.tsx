@@ -506,11 +506,13 @@ export default function DashboardPage() {
                                     Dados insuficientes para o gráfico.
                                 </h3>
                                 <p className="text-sm text-muted-foreground">
-                                    <UpdateMetricsModal userProfile={userProfile!} triggerButton={
-                                        <span className="text-primary font-medium hover:underline cursor-pointer">
-                                            Atualize suas métricas
-                                        </span>
-                                    } /> por alguns dias para começar.
+                                    {userProfile && (
+                                        <UpdateMetricsModal userProfile={userProfile} triggerButton={
+                                            <span className="text-primary font-medium hover:underline cursor-pointer">
+                                                Atualize suas métricas
+                                            </span>
+                                        } />
+                                    )} por alguns dias para começar.
                                 </p>
                                 </div>
                             </div>
@@ -813,3 +815,5 @@ function MetricCard({ icon: Icon, title, value, handle, isLoading }: { icon: Rea
         </div>
     )
 }
+
+    
