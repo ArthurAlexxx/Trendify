@@ -22,7 +22,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
+import { BarChart, Bar, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
 import { ChartConfig } from '@/components/ui/chart';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
@@ -118,7 +118,7 @@ export default function DashboardPage() {
   const { data: ideiasSalvas, isLoading: isLoadingIdeias } = useCollection<IdeiaSalva>(ideiasQuery);
   
   const upcomingContentQuery = useMemoFirebase(() => (
-      firestore && user ? query(collection(firestore, `users/${user.uid}/conteudoAgendado`), where('status', '==', 'Agendado'), orderBy('date', 'asc'), limit(2)) : null
+      firestore && user ? query(collection(firestore, `users/${user.uid}/conteudoAgendado`), where('status', '==', 'Agendado'), orderBy('date', 'asc'), limit(3)) : null
   ), [firestore, user]);
   const { data: upcomingContent, isLoading: isLoadingUpcoming } = useCollection<ConteudoAgendado>(upcomingContentQuery);
 
@@ -305,16 +305,16 @@ export default function DashboardPage() {
                         {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
                         historicalChartData.length > 0 ? (
                             <ChartContainer config={chartConfig} className="h-[350px] w-full">
-                            <AreaChart accessibilityLayer data={historicalChartData} margin={{ left: 12, right: 12, top: 5, bottom: 5 }}>
+                            <BarChart accessibilityLayer data={historicalChartData} margin={{ left: 12, right: 12, top: 5, bottom: 5 }}>
                                 <CartesianGrid vertical={false} strokeDasharray="3 3" />
                                 <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => value} />
                                 <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => typeof value === 'number' && value >= 1000 ? `${value / 1000}k` : value} />
                                 <RechartsTooltip content={<ChartTooltipContent indicator="dot" />} />
-                                <Area type="monotone" dataKey="followers" stroke="var(--color-followers)" fill="var(--color-followers)" fillOpacity={0.1} name="Seguidores" />
-                                <Area type="monotone" dataKey="views" stroke="var(--color-views)" fill="var(--color-views)" fillOpacity={0.1} name="Views"/>
-                                <Area type="monotone" dataKey="likes" stroke="var(--color-likes)" fill="var(--color-likes)" fillOpacity={0.1} name="Likes"/>
-                                <Area type="monotone" dataKey="comments" stroke="var(--color-comments)" fill="var(--color-comments)" fillOpacity={0.1} name="Comentários"/>
-                            </AreaChart>
+                                <Bar dataKey="followers" fill="var(--color-followers)" radius={4} name="Seguidores" />
+                                <Bar dataKey="views" fill="var(--color-views)" radius={4} name="Views"/>
+                                <Bar dataKey="likes" fill="var(--color-likes)" radius={4} name="Likes"/>
+                                <Bar dataKey="comments" fill="var(--color-comments)" radius={4} name="Comentários"/>
+                            </BarChart>
                             </ChartContainer>
                         ) : (
                             <div className="h-[350px] w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
@@ -334,30 +334,146 @@ export default function DashboardPage() {
                 </Card>
             </div>
             <div className="xl:col-span-2 space-y-8">
-                 {/* Roteiro */}
-                <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card h-full">
-                <CardHeader className="text-center sm:text-left">
+                 <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card flex flex-col h-full">
+                  <CardHeader className="text-center sm:text-left">
                     <CardTitle className="font-headline text-xl">
-                    Roteiro de Conteúdo Semanal
+                      Próximos Posts Agendados
                     </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    {isLoadingRoteiro ? <Skeleton className="h-40 w-full" /> : (
-                        roteiro && roteiro.items.length > 0 ? (
-                        <div>
-                            <ul className="space-y-2">
-                                {visibleItems?.map((item, index) => (
-                                <li key={index}>
+                  </CardHeader>
+                  <CardContent className='flex-grow flex flex-col'>
+                    {isLoadingUpcoming ? <Skeleton className="h-28 w-full" /> : (
+                        upcomingContent && upcomingContent.length > 0 ? (
+                        <div className="space-y-4 flex-grow flex flex-col">
+                            {upcomingContent.map((post) => (
+                            <div
+                                key={post.id}
+                                className="p-3 rounded-lg border bg-background/50 flex items-start justify-between gap-4 text-left"
+                            >
+                                <div className="flex items-start gap-3 flex-1 overflow-hidden">
+                                <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                                    <Tag className="h-5 w-5 text-primary" />
+                                </div>
+                                <div className="flex-1 overflow-hidden">
+                                    <p className="font-semibold text-foreground text-sm leading-tight truncate">
+                                    {post.title}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                    {post.contentType} •{' '}
+                                    {formatDistanceToNow(post.date.toDate(), {
+                                        addSuffix: true,
+                                        locale: ptBR,
+                                    })}
+                                    </p>
+                                </div>
+                                </div>
+                                <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+                                        <MoreHorizontal className="h-4 w-4" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => handleMarkAsPublished(post.id)}>
+                                    <CheckCircle className="mr-2 h-4 w-4" />
+                                    <span>Marcar como Publicado</span>
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
+                            ))}
+                            <div className='mt-auto pt-4'>
+                            <Button variant="link" asChild className="w-full">
+                                <Link href="/content-calendar">
+                                Ver calendário completo
+                                </Link>
+                            </Button>
+                            </div>
+                        </div>
+                        ) : (
+                        <div className="text-center py-8 px-4 rounded-xl bg-muted/50 border border-dashed flex-grow flex flex-col items-center justify-center">
+                            <Calendar className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+                            <h3 className="font-semibold text-foreground">
+                            Nenhum post futuro.
+                            </h3>
+                            <p className="text-sm text-muted-foreground">
+                            Agende seu próximo conteúdo no calendário.
+                            </p>
+                        </div>
+                        )
+                    )}
+                  </CardContent>
+                </Card>
+            </div>
+        </div>
+
+        {/* Bottom Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card h-full">
+              <CardHeader className="text-center sm:text-left">
+                <CardTitle className="font-headline text-xl">
+                  Roteiro de Conteúdo Semanal
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isLoadingRoteiro ? <Skeleton className="h-40 w-full" /> : (
+                    roteiro && roteiro.items.length > 0 ? (
+                    <div>
+                        <ul className="space-y-2">
+                            {visibleItems?.map((item, index) => (
+                            <li key={index}>
+                                <div className="flex items-start gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50 text-left">
+                                <Checkbox
+                                    id={`roteiro-${index}`}
+                                    checked={item.concluido}
+                                    onCheckedChange={() => handleToggleRoteiro(item, index)}
+                                    className="h-5 w-5 mt-1"
+                                />
+                                <div>
+                                    <label
+                                    htmlFor={`roteiro-${index}`}
+                                    className={cn(
+                                        'font-medium text-base transition-colors cursor-pointer',
+                                        item.concluido
+                                        ? 'line-through text-muted-foreground'
+                                        : 'text-foreground'
+                                    )}
+                                    >
+                                    <span className="font-semibold text-primary">
+                                        {item.dia}:
+                                    </span>{' '}
+                                    {item.tarefa}
+                                    </label>
+                                    <p className="text-sm text-muted-foreground">
+                                    {item.detalhes}
+                                    </p>
+                                </div>
+                                </div>
+                                {visibleItems && index < visibleItems.length - 1 && (
+                                <Separator className="my-2" />
+                                )}
+                            </li>
+                            ))}
+                            <AnimatePresence>
+                            {isExpanded && collapsibleItems?.map((item, index) => (
+                                <motion.li 
+                                key={`collapsible-${index}`}
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                exit={{ opacity: 0, height: 0 }}
+                                transition={{ duration: 0.3, ease: "easeInOut" }}
+                                className="overflow-hidden"
+                                >
+                                    <Separator className="my-2" />
                                     <div className="flex items-start gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50 text-left">
                                     <Checkbox
-                                        id={`roteiro-${index}`}
+                                        id={`roteiro-collapsible-${index}`}
                                         checked={item.concluido}
-                                        onCheckedChange={() => handleToggleRoteiro(item, index)}
+                                        onCheckedChange={() => handleToggleRoteiro(item, 3 + index)}
                                         className="h-5 w-5 mt-1"
                                     />
                                     <div>
                                         <label
-                                        htmlFor={`roteiro-${index}`}
+                                        htmlFor={`roteiro-collapsible-${index}`}
                                         className={cn(
                                             'font-medium text-base transition-colors cursor-pointer',
                                             item.concluido
@@ -375,102 +491,55 @@ export default function DashboardPage() {
                                         </p>
                                     </div>
                                     </div>
-                                    {visibleItems && index < visibleItems.length - 1 && (
-                                    <Separator className="my-2" />
-                                    )}
-                                </li>
-                                ))}
-                                <AnimatePresence>
-                                {isExpanded && collapsibleItems?.map((item, index) => (
-                                    <motion.li 
-                                    key={`collapsible-${index}`}
-                                    initial={{ opacity: 0, height: 0 }}
-                                    animate={{ opacity: 1, height: 'auto' }}
-                                    exit={{ opacity: 0, height: 0 }}
-                                    transition={{ duration: 0.3, ease: "easeInOut" }}
-                                    className="overflow-hidden"
-                                    >
-                                        <Separator className="my-2" />
-                                        <div className="flex items-start gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50 text-left">
-                                        <Checkbox
-                                            id={`roteiro-collapsible-${index}`}
-                                            checked={item.concluido}
-                                            onCheckedChange={() => handleToggleRoteiro(item, 3 + index)}
-                                            className="h-5 w-5 mt-1"
-                                        />
-                                        <div>
-                                            <label
-                                            htmlFor={`roteiro-collapsible-${index}`}
-                                            className={cn(
-                                                'font-medium text-base transition-colors cursor-pointer',
-                                                item.concluido
-                                                ? 'line-through text-muted-foreground'
-                                                : 'text-foreground'
-                                            )}
-                                            >
-                                            <span className="font-semibold text-primary">
-                                                {item.dia}:
-                                            </span>{' '}
-                                            {item.tarefa}
-                                            </label>
-                                            <p className="text-sm text-muted-foreground">
-                                            {item.detalhes}
-                                            </p>
-                                        </div>
-                                        </div>
-                                    </motion.li>
-                                ))}
-                                </AnimatePresence>
-                            </ul>
-                            {collapsibleItems && collapsibleItems.length > 0 && !isExpanded && (
-                            <div className='flex justify-center mt-2'>
-                                <Button 
-                                    variant="ghost" 
-                                    onClick={() => setIsExpanded(true)} 
-                                    className="text-primary hover:text-primary"
-                                >
-                                    Ver restante da semana
-                                </Button>
-                            </div>
-                            )}
-                            {isExpanded && (
-                            <div className='flex justify-center mt-2'>
-                                <Button 
-                                    variant="ghost" 
-                                    onClick={() => setIsExpanded(false)} 
-                                    className="text-primary hover:text-primary"
-                                >
-                                    Ver menos
-                                </Button>
-                            </div>
-                            )}
-                        </div>
-                        ) : (
-                        <div className="text-center py-8 px-4 rounded-xl bg-muted/50 border border-dashed">
-                            <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
-                            <h3 className="font-semibold text-foreground">
-                            Sem roteiro para a semana.
-                            </h3>
-                            <p className="text-sm text-muted-foreground">
-                            Gere um novo no{' '}
-                            <Link
-                                href="/generate-weekly-plan"
-                                className="text-primary font-medium hover:underline"
+                                </motion.li>
+                            ))}
+                            </AnimatePresence>
+                        </ul>
+                        {collapsibleItems && collapsibleItems.length > 0 && !isExpanded && (
+                        <div className='flex justify-center mt-2'>
+                            <Button 
+                                variant="ghost" 
+                                onClick={() => setIsExpanded(true)} 
+                                className="text-primary hover:text-primary"
                             >
-                                Planejamento Semanal
-                            </Link>
-                            .
-                            </p>
+                                Ver restante da semana
+                            </Button>
                         </div>
-                        )
-                    )}
-                </CardContent>
-                </Card>
-            </div>
-        </div>
+                        )}
+                        {isExpanded && (
+                        <div className='flex justify-center mt-2'>
+                            <Button 
+                                variant="ghost" 
+                                onClick={() => setIsExpanded(false)} 
+                                className="text-primary hover:text-primary"
+                            >
+                                Ver menos
+                            </Button>
+                        </div>
+                        )}
+                    </div>
+                    ) : (
+                    <div className="text-center py-8 px-4 rounded-xl bg-muted/50 border border-dashed">
+                        <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+                        <h3 className="font-semibold text-foreground">
+                        Sem roteiro para a semana.
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                        Gere um novo no{' '}
+                        <Link
+                            href="/generate-weekly-plan"
+                            className="text-primary font-medium hover:underline"
+                        >
+                            Planejamento Semanal
+                        </Link>
+                        .
+                        </p>
+                    </div>
+                    )
+                )}
+              </CardContent>
+            </Card>
 
-        {/* Bottom Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card h-full">
               <CardHeader className="text-center sm:text-left">
                 <CardTitle className="font-headline text-xl">
@@ -527,76 +596,6 @@ export default function DashboardPage() {
                 )}
               </CardContent>
             </Card>
-
-            <Card className="rounded-2xl shadow-lg shadow-primary/5 border-border/20 bg-card flex flex-col h-full">
-              <CardHeader className="text-center sm:text-left">
-                <CardTitle className="font-headline text-xl">
-                  Próximos Posts Agendados
-                </CardTitle>
-              </CardHeader>
-              <CardContent className='flex-grow flex flex-col'>
-                {isLoadingUpcoming ? <Skeleton className="h-28 w-full" /> : (
-                    upcomingContent && upcomingContent.length > 0 ? (
-                    <div className="space-y-4 flex-grow flex flex-col">
-                        {upcomingContent.map((post) => (
-                        <div
-                            key={post.id}
-                            className="p-3 rounded-lg border bg-background/50 flex items-start justify-between gap-4 text-left"
-                        >
-                            <div className="flex items-start gap-3 flex-1 overflow-hidden">
-                            <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
-                                <Tag className="h-5 w-5 text-primary" />
-                            </div>
-                            <div className="flex-1 overflow-hidden">
-                                <p className="font-semibold text-foreground text-sm leading-tight truncate">
-                                {post.title}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                {post.contentType} •{' '}
-                                {formatDistanceToNow(post.date.toDate(), {
-                                    addSuffix: true,
-                                    locale: ptBR,
-                                })}
-                                </p>
-                            </div>
-                            </div>
-                            <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
-                                    <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => handleMarkAsPublished(post.id)}>
-                                <CheckCircle className="mr-2 h-4 w-4" />
-                                <span>Marcar como Publicado</span>
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                            </DropdownMenu>
-                        </div>
-                        ))}
-                        <div className='mt-auto pt-4'>
-                        <Button variant="link" asChild className="w-full">
-                            <Link href="/content-calendar">
-                            Ver calendário completo
-                            </Link>
-                        </Button>
-                        </div>
-                    </div>
-                    ) : (
-                    <div className="text-center py-8 px-4 rounded-xl bg-muted/50 border border-dashed flex-grow flex flex-col items-center justify-center">
-                        <Calendar className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
-                        <h3 className="font-semibold text-foreground">
-                        Nenhum post futuro.
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                        Agende seu próximo conteúdo no calendário.
-                        </p>
-                    </div>
-                    )
-                )}
-              </CardContent>
-            </Card>
         </div>
       </div>
     </div>
@@ -628,5 +627,3 @@ function MetricCard({ icon: Icon, title, value, handle, isLoading }: { icon: Rea
         </div>
     )
 }
-
-    
