@@ -18,7 +18,7 @@ const ProfileResultSchema = z.object({
   edge_owner_to_timeline_media: CountSchema,
   edge_followed_by: CountSchema,
   edge_follow: CountSchema,
-  is_business_account: z.boolean(),
+  is_business_account: z.boolean().optional(), // Tornando o campo opcional
 });
 
 export type ProfileData = {
@@ -85,6 +85,7 @@ async function fetchFromRapidApi(endpoint: 'profile' | 'posts', username: string
     const data = await response.json();
 
     if (!response.ok || data.message) {
+      // Prioritize the message from the API body if it exists
       throw new Error(data.message || `A API retornou um erro: ${response.statusText}`);
     }
 
@@ -111,10 +112,20 @@ export async function getInstagramProfile(username: string): Promise<ProfileData
             mediaCount: parsed.edge_owner_to_timeline_media.count,
             followersCount: parsed.edge_followed_by.count,
             followingCount: parsed.edge_follow.count,
-            isBusiness: parsed.is_business_account,
+            isBusiness: parsed.is_business_account || false, // Garante que seja um booleano
         };
     } catch (e: any) {
         console.error(`[ACTION ERROR - getInstagramProfile] ${e.message}`);
+        // Verifica se a mensagem de erro já está formatada como JSON (erro de validação do Zod)
+        if (e.message.startsWith('[')) {
+            try {
+                const zodError = JSON.parse(e.message);
+                const firstIssue = zodError[0];
+                throw new Error(`O dado '${firstIssue.path.join('.')}' falhou na validação: ${firstIssue.message}. Esperado: ${firstIssue.expected}, Recebido: ${firstIssue.received}.`);
+            } catch {
+                 throw new Error(`Falha ao buscar perfil do Instagram: ${e.message}`);
+            }
+        }
         throw new Error(`Falha ao buscar perfil do Instagram: ${e.message}`);
     }
 }
@@ -137,5 +148,3 @@ export async function getInstagramPosts(username: string): Promise<PostData[]> {
         throw new Error(`Falha ao buscar posts do Instagram: ${e.message}`);
     }
 }
-
-    
