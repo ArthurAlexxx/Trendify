@@ -25,6 +25,7 @@ export interface UserProfile {
   subscription?: {
     status: 'active' | 'inactive';
     plan: Plan;
+    cycle?: 'monthly' | 'annual';
     expiresAt?: Timestamp | null;
     paymentId?: string | null;
   }
@@ -100,4 +101,3 @@ export interface MetricSnapshot {
     likes: string;
     comments: string;
 }
-    

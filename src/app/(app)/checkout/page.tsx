@@ -1,3 +1,4 @@
+
 'use client';
 
 import { PageHeader } from '@/components/page-header';
@@ -9,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Loader2, Copy, RefreshCw, ArrowLeft, Check, Star, ShieldAlert, Crown } from 'lucide-react';
+import { Loader2, Copy, ArrowLeft, Check, Star, ShieldAlert, Crown } from 'lucide-react';
 import { useUser } from '@/firebase';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -45,7 +46,7 @@ const formSchema = z.object({
   taxId: z.string().min(11, 'O CPF é obrigatório.'),
   cellphone: z.string().min(10, 'O celular é obrigatório.'),
   userId: z.string().min(1, 'O ID do usuário é obrigatório.'),
-  plan: z.enum(['pro', 'premium']),
+  planId: z.string().min(1, 'O ID do plano é obrigatório.'),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -56,25 +57,27 @@ type ActionState = {
 } | null;
 
 
-const planDetails = {
-  pro: {
-    name: 'Plano Pro',
-    price: 'R$29',
-    features: [
+const planDetails: Record<string, { name: string; price: string; cycle: string; features: string[] }> = {
+    'pro-monthly': { name: 'Plano Pro', price: 'R$29', cycle: 'mês', features: [
       'Gerações de IA ilimitadas',
       'Mídia kit e propostas automáticas',
       'Planejamento semanal com IA',
-    ],
-  },
-  premium: {
-    name: 'Plano Premium',
-    price: 'R$39',
-    features: [
+    ] },
+    'premium-monthly': { name: 'Plano Premium', price: 'R$39', cycle: 'mês', features: [
       'Tudo do plano PRO',
       'Acesso antecipado a novas ferramentas',
       'Suporte prioritário via WhatsApp',
-    ],
-  },
+    ]},
+    'pro-annual': { name: 'Plano Pro Anual', price: 'R$299', cycle: 'ano', features: [
+      'Gerações de IA ilimitadas',
+      'Mídia kit e propostas automáticas',
+      'Planejamento semanal com IA',
+    ]},
+    'premium-annual': { name: 'Plano Premium Anual', price: 'R$399', cycle: 'ano', features: [
+      'Tudo do plano PRO',
+      'Acesso antecipado a novas ferramentas',
+      'Suporte prioritário via WhatsApp',
+    ]},
 };
 
 
@@ -85,8 +88,8 @@ function CheckoutPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   
-  const plan = searchParams.get('plan') as 'pro' | 'premium' | null;
-  const selectedPlanDetails = plan ? planDetails[plan] : null;
+  const planId = searchParams.get('planId');
+  const selectedPlanDetails = planId ? planDetails[planId] : null;
 
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [isGenerating, startTransition] = useTransition();
@@ -100,7 +103,7 @@ function CheckoutPageContent() {
       taxId: '',
       cellphone: '',
       userId: '',
-      plan: plan || 'pro',
+      planId: planId || '',
     },
   });
 
@@ -124,16 +127,16 @@ function CheckoutPageContent() {
         taxId: '',
         cellphone: '',
         userId: user.uid,
-        plan: plan || 'pro',
+        planId: planId || '',
       });
     }
-  }, [user, plan, form]);
+  }, [user, planId, form]);
   
   useEffect(() => {
-    if (plan) {
-      form.setValue('plan', plan);
+    if (planId) {
+      form.setValue('planId', planId);
     }
-  }, [plan, form]);
+  }, [planId, form]);
 
 
   useEffect(() => {
@@ -147,17 +150,18 @@ function CheckoutPageContent() {
   }, [state, toast]);
   
   useEffect(() => {
-    if (!isUserLoading && !plan) {
+    if (!isUserLoading && !planId) {
       router.replace('/subscribe');
     }
-  }, [plan, isUserLoading, router]);
+  }, [planId, isUserLoading, router]);
 
   // Effect to watch for subscription activation
   useEffect(() => {
-    if (subscription?.status === 'active' && subscription.plan === plan) {
+    const planFromId = planId?.split('-')[0];
+    if (subscription?.status === 'active' && subscription.plan === planFromId) {
       setShowSuccessModal(true);
     }
-  }, [subscription, plan]);
+  }, [subscription, planId]);
 
   const copyToClipboard = useCallback(
     (text: string) => {
@@ -190,9 +194,10 @@ function CheckoutPageContent() {
   );
 
   const result = state?.data;
-  const isAlreadySubscribedToThisPlan = subscription?.plan === plan && subscription?.status === 'active';
+  const planFromId = planId?.split('-')[0];
+  const isAlreadySubscribedToThisPlan = subscription?.plan === planFromId && subscription?.status === 'active';
 
-  if (isUserLoading || !plan || !selectedPlanDetails || isSubscriptionLoading) {
+  if (isUserLoading || !planId || !selectedPlanDetails || isSubscriptionLoading) {
     return (
       <div className="space-y-12">
         <Skeleton className="h-10 w-1/2" />
@@ -217,7 +222,7 @@ function CheckoutPageContent() {
              <Crown className="h-10 w-10 text-primary animate-pulse" />
            </div>
           <AlertDialogTitle className="text-2xl font-bold font-headline">
-            {plan === 'premium' ? 'Parabéns, você agora é Premium!' : 'Parabéns, você agora é Pro!'}
+            {planFromId === 'premium' ? 'Parabéns, você agora é Premium!' : 'Parabéns, você agora é Pro!'}
           </AlertDialogTitle>
           <AlertDialogDescription>
             Sua assinatura foi ativada com sucesso. Explore todas as ferramentas e comece a acelerar seu crescimento agora mesmo.
@@ -280,7 +285,7 @@ function CheckoutPageContent() {
                   >
                     <FormField
                       control={form.control}
-                      name="plan"
+                      name="planId"
                       render={({ field }) => (
                         <input type="hidden" {...field} />
                       )}
@@ -417,12 +422,12 @@ function CheckoutPageContent() {
                             <p className='text-muted-foreground'>Plano</p>
                             <p className='font-semibold flex items-center gap-2'>
                                 {selectedPlanDetails.name}
-                                {plan === 'premium' && <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />}
+                                {planFromId === 'premium' && <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />}
                             </p>
                         </div>
                         <div className='flex justify-between items-center'>
                             <p className='text-muted-foreground'>Valor</p>
-                            <p className='font-semibold'>{selectedPlanDetails.price}/mês</p>
+                            <p className='font-semibold'>{selectedPlanDetails.price}/{selectedPlanDetails.cycle}</p>
                         </div>
                         <ul className="space-y-2 text-sm text-muted-foreground pt-4 border-t text-left">
                             {selectedPlanDetails.features.map((feature, index) => (

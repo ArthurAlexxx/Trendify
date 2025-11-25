@@ -4,15 +4,13 @@
 import { z } from 'zod';
 import { Plan } from '@/lib/types';
 
-console.log('[actions.ts] Módulo carregado.');
-
 const formSchema = z.object({
   name: z.string().min(3, 'O nome completo é obrigatório.'),
   email: z.string().email('O e-mail é inválido.'),
   taxId: z.string().min(11, 'O CPF/CNPJ é obrigatório.'),
   cellphone: z.string().min(10, 'O celular é obrigatório.'),
   userId: z.string().min(1, 'O ID do usuário é obrigatório.'),
-  plan: z.enum(['pro', 'premium']),
+  planId: z.string().min(1, 'O ID do plano é obrigatório.'),
 });
 
 const PixChargeResponseSchema = z.object({
@@ -29,35 +27,30 @@ type ActionState = {
   error?: string;
 } | null;
 
-
-const planDetails: Record<Exclude<Plan, 'free'>, { amount: number; description: string }> = {
-    pro: {
-        amount: 2900, // R$29,00
-        description: 'Assinatura Trendify PRO - 1 Mês'
-    },
-    premium: {
-        amount: 3900, // R$39,00
-        description: 'Assinatura Trendify PREMIUM - 1 Mês'
-    }
-}
+const planDetails: Record<string, { amount: number; description: string; plan: Plan, cycle: 'monthly' | 'annual' }> = {
+    'pro-monthly': { amount: 2900, description: 'Assinatura Trendify PRO - Mensal', plan: 'pro', cycle: 'monthly' },
+    'premium-monthly': { amount: 3900, description: 'Assinatura Trendify PREMIUM - Mensal', plan: 'premium', cycle: 'monthly' },
+    'pro-annual': { amount: 29900, description: 'Assinatura Trendify PRO - Anual', plan: 'pro', cycle: 'annual' },
+    'premium-annual': { amount: 39900, description: 'Assinatura Trendify PREMIUM - Anual', plan: 'premium', cycle: 'annual' },
+};
 
 
 async function createPixCharge(
   input: z.infer<typeof formSchema>
 ): Promise<PixChargeResponse> {
   const userId = input.userId;
-  console.log(`[createPixCharge] Iniciando para userId: ${userId} no plano ${input.plan}`);
   const ABACATE_API_KEY = process.env.ABACATE_API_KEY;
 
   if (!ABACATE_API_KEY) {
-    console.error('[createPixCharge] ERRO CRÍTICO: Chave de API do Abacate Pay (ABACATE_API_KEY) não encontrada nas variáveis de ambiente.');
     throw new Error('Gateway de pagamento não configurado. Chave de API ausente.');
   }
-   console.log('[createPixCharge] Chave de API do Abacate Pay encontrada.');
 
+  const selectedPlan = planDetails[input.planId];
+  if (!selectedPlan) {
+    throw new Error('Plano selecionado inválido.');
+  }
+   
   const url = 'https://api.abacatepay.com/v1/pixQrCode/create';
-  
-  const selectedPlan = planDetails[input.plan];
 
   const payload = {
     amount: selectedPlan.amount,
@@ -71,12 +64,11 @@ async function createPixCharge(
     },
     metadata: {
       externalId: userId, // Passa o Firebase UID
-      product: `trendify-${input.plan}-monthly`,
-      plan: input.plan,
+      plan: selectedPlan.plan,
+      cycle: selectedPlan.cycle,
+      planId: input.planId
     },
   };
-
-  console.log('[createPixCharge] Payload a ser enviado para Abacate Pay:', JSON.stringify(payload, null, 2));
 
   const options = {
     method: 'POST',
@@ -91,19 +83,14 @@ async function createPixCharge(
     const response = await fetch(url, options);
     const result = await response.json();
 
-    console.log(`[createPixCharge] Resposta da API Abacate Pay (Status: ${response.status}):`, JSON.stringify(result, null, 2));
-
     if (!response.ok || result.error) {
       const errorMessage = result.error?.message || `Erro ${response.status} ao se comunicar com o gateway.`;
-      console.error(`[createPixCharge] Erro da API Abacate Pay: ${errorMessage}`);
       throw new Error(errorMessage);
     }
 
     const validatedData = PixChargeResponseSchema.parse(result.data);
-    console.log('[createPixCharge] Cobrança PIX criada e validada com sucesso.');
     return validatedData;
   } catch (error) {
-    console.error('[createPixCharge] Erro crítico na chamada da API:', error);
     if (error instanceof Error) {
       throw new Error(`Falha ao criar cobrança PIX: ${error.message}`);
     }
@@ -115,26 +102,20 @@ export async function createPixChargeAction(
   prevState: ActionState,
   formData: z.infer<typeof formSchema>
 ): Promise<ActionState> {
-  console.log('[createPixChargeAction] Ação iniciada.');
 
   const parsed = formSchema.safeParse(formData);
 
   if (!parsed.success) {
-    console.error('[createPixChargeAction] Erro de validação do formulário:', parsed.error.issues);
     return {
       error: 'Dados do formulário inválidos. Verifique os campos e tente novamente.',
     };
   }
 
-  console.log(`[createPixChargeAction] Dados do formulário validados com sucesso para o usuário ${parsed.data.userId}.`);
-
   try {
     const result = await createPixCharge(parsed.data);
-    console.log('[createPixChargeAction] Ação concluída com sucesso, retornando dados do PIX.');
     return { data: result };
   } catch (e) {
     const errorMessage = e instanceof Error ? e.message : 'Ocorreu um erro desconhecido.';
-    console.error(`[createPixChargeAction] Erro ao chamar createPixCharge: ${errorMessage}`);
     return { error: errorMessage };
   }
 }
