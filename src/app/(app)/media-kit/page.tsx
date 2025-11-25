@@ -164,8 +164,8 @@ function MediaKitPageContent() {
    useEffect(() => {
     if (userProfile) {
       const metrics = [
-        userProfile.followers ? `${userProfile.followers} seguidores` : '',
-        userProfile.averageViews ? `${userProfile.averageViews} de média de views` : '',
+        userProfile.instagramFollowers ? `${userProfile.instagramFollowers} seguidores` : '',
+        userProfile.instagramAverageViews ? `${userProfile.instagramAverageViews} de média de views` : '',
         userProfile.audience ? `Público: ${userProfile.audience}` : '',
       ].filter(Boolean).join(', ');
 
