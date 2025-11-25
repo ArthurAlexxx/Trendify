@@ -92,7 +92,7 @@ function InstagramIntegration() {
             'instagram_manage_comments',
             'instagram_manage_messages',
             'instagram_manage_insights',
-            'pages_show_list',
+            'pages_show_list', // <-- PERMISSÃO CRUCIAL
             'pages_read_engagement',
         ];
         const scope = permissions.join(',');

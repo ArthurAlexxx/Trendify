@@ -45,34 +45,35 @@ async function getLongLivedAccessToken(shortLivedToken: string) {
 async function getConnectedInstagramAccount(accessToken: string) {
     const pagesUrl = new URL('https://graph.facebook.com/v19.0/me/accounts');
     pagesUrl.searchParams.set('access_token', accessToken);
+    pagesUrl.searchParams.set('fields', 'instagram_business_account'); // Pedir o campo aqui
+
+    console.log('[getConnectedInstagramAccount] Buscando páginas do Facebook conectadas...');
     const pagesResponse = await fetch(pagesUrl.toString());
     const pagesData = await pagesResponse.json();
 
     if (pagesData.error) throw new Error(`Erro ao buscar páginas: ${pagesData.error.message}`);
+    
+    console.log('[getConnectedInstagramAccount] Resposta da API de Páginas:', JSON.stringify(pagesData, null, 2));
+
     if (!pagesData.data || pagesData.data.length === 0) {
         throw new Error("Nenhuma página do Facebook encontrada. Você precisa conectar uma página que esteja vinculada à sua conta profissional do Instagram.");
     }
-
-    const page = pagesData.data[0]; 
-
-    const igUrl = new URL(`https://graph.facebook.com/v19.0/${page.id}`);
-    igUrl.searchParams.set('fields', 'instagram_business_account');
-    igUrl.searchParams.set('access_token', accessToken);
-    const igResponse = await fetch(igUrl.toString());
-    const igData = await igResponse.json();
     
-    if (igData.error) throw new Error(`Erro ao buscar conta do Instagram: ${igData.error.message}`);
-    if (!igData.instagram_business_account) {
-        throw new Error("Esta página do Facebook não está conectada a uma conta empresarial do Instagram.");
+    // Encontra a primeira página que tem uma conta do Instagram vinculada
+    const pageWithIg = pagesData.data.find((page: any) => page.instagram_business_account);
+    
+    if (!pageWithIg) {
+        throw new Error("Nenhuma das suas Páginas do Facebook está conectada a uma conta empresarial do Instagram.");
     }
 
-    return igData.instagram_business_account.id;
+    console.log(`[getConnectedInstagramAccount] Encontrada conta do Instagram ID: ${pageWithIg.instagram_business_account.id}`);
+    return pageWithIg.instagram_business_account.id;
 }
 
 
 async function getInstagramAccountInfo(igUserId: string, accessToken: string) {
     console.log(`[getInstagramAccountInfo] Buscando informações para o user_id: ${igUserId}`);
-    const fields = 'id,username,followers_count,media_count,profile_picture_url,biography';
+    const fields = 'id,username,followers_count,media_count,profile_picture_url,biography,account_type';
     const url = new URL(`https://graph.facebook.com/v19.0/${igUserId}`);
     url.searchParams.set('fields', fields);
     url.searchParams.set('access_token', accessToken);
@@ -83,6 +84,10 @@ async function getInstagramAccountInfo(igUserId: string, accessToken: string) {
     if (data.error) {
         console.error("[getInstagramAccountInfo] Erro ao buscar dados da conta do Instagram:", data.error);
         throw new Error(data.error?.message || "Falha ao buscar dados da conta do Instagram.");
+    }
+
+    if (data.account_type !== 'BUSINESS' && data.account_type !== 'MEDIA_CREATOR') {
+        throw new Error(`A conta do Instagram '${data.username}' precisa ser do tipo 'Comercial' ou 'Criador de Conteúdo' para usar a integração.`);
     }
     
     console.log(`[getInstagramAccountInfo] Informações da conta obtidas:`, data);
@@ -149,6 +154,9 @@ export async function GET(req: NextRequest) {
 
         const firestore = initializeFirebaseAdmin().firestore;
         const userRef = firestore.collection('users').doc(uid);
+        
+        const existingDoc = await userRef.get();
+        const existingData = existingDoc.data();
 
         const formatFollowers = (num: number) => {
             if (num >= 1000000) return (num / 1000000).toFixed(1).replace('.', ',') + 'M';
@@ -161,8 +169,8 @@ export async function GET(req: NextRequest) {
             instagramUserId: accountInfo.id,
             instagramHandle: accountInfo.username,
             followers: accountInfo.followers_count ? formatFollowers(accountInfo.followers_count) : '0',
-            bio: accountInfo.biography || null,
-            photoURL: userRef.get().then(doc => doc.data()?.photoURL || accountInfo.profile_picture_url || null), // Keep existing photoURL
+            bio: accountInfo.biography || existingData?.bio || null,
+            photoURL: existingData?.photoURL || accountInfo.profile_picture_url || null, // Keep existing photoURL
             averageViews: null,
             averageLikes: null,
             averageComments: null,
