@@ -57,7 +57,6 @@ const PostNodeSchema = z.object({
   }).nullable().optional(),
   like_count: z.number().optional(),
   comment_count: z.number().optional(),
-  view_count: z.number().nullable().optional(),
   media_type: z.number(), // 1: Image, 2: Video, 8: Carousel
   taken_at: z.number(),
 });
@@ -75,7 +74,6 @@ export type PostData = {
     caption: string;
     likes: number;
     comments: number;
-    views?: number;
     isVideo: boolean;
 }
 
@@ -88,7 +86,7 @@ async function fetchFromRapidApi(endpoint: 'profile' | 'posts', username: string
       throw new Error('As credenciais da API não estão configuradas no servidor.');
     }
 
-    const url = `https://instagram-data1.p.rapidapi.com/api/instagram/${endpoint}`;
+    const url = `https://instagram130.p.rapidapi.com/api/instagram/${endpoint}`;
     const options = {
       method: 'POST',
       headers: {
@@ -190,7 +188,6 @@ export async function getInstagramPosts(username: string): Promise<PostData[]> {
                 caption: node.caption?.text || '',
                 likes: node.like_count || 0,
                 comments: node.comment_count || 0,
-                views: isVideo ? node.view_count || 0 : 0,
                 isVideo: isVideo,
             }
         });

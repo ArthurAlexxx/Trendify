@@ -226,13 +226,6 @@ export default function ProfilePage() {
       }
       
        if (userProfileRef) {
-        const videoPosts = fetchedPosts.filter(p => p.isVideo);
-        const imagePosts = fetchedPosts.filter(p => !p.isVideo);
-
-        const averageViews = videoPosts.length > 0 
-            ? videoPosts.reduce((acc, p) => acc + (p.views || 0), 0) / videoPosts.length 
-            : 0;
-        
         const averageLikes = fetchedPosts.length > 0
             ? fetchedPosts.reduce((acc, p) => acc + p.likes, 0) / fetchedPosts.length
             : 0;
@@ -246,7 +239,6 @@ export default function ProfilePage() {
             bio: fetchedProfile.biography,
             photoURL: fetchedProfile.profilePicUrlHd,
             instagramFollowers: formatNumber(fetchedProfile.followersCount),
-            instagramAverageViews: formatNumber(Math.round(averageViews)),
             instagramAverageLikes: formatNumber(Math.round(averageLikes)),
             instagramAverageComments: formatNumber(Math.round(averageComments)),
         }
@@ -367,7 +359,7 @@ export default function ProfilePage() {
                     
                     {posts && posts.length > 0 && (
                       <div>
-                        <h4 className="text-lg font-semibold text-center mb-4">Posts Recentes</h4>
+                        <h4 className="text-lg font-semibold text-center mb-4">Posts Recentes (Últimos 31 dias)</h4>
                         <Carousel opts={{ align: "start", loop: true }} className="w-full max-w-sm mx-auto md:max-w-xl lg:max-w-4xl">
                           <CarouselContent>
                             {posts.map(post => (
@@ -375,11 +367,13 @@ export default function ProfilePage() {
                                 <Card className="overflow-hidden rounded-xl">
                                   <CardContent className="p-0 aspect-square relative group">
                                      {post.isVideo && post.videoUrl ? (
-                                        <video
-                                            src={post.videoUrl}
-                                            controls
-                                            className="w-full h-full object-cover"
-                                        />
+                                        <div className='relative w-full h-full'>
+                                            <video
+                                                src={post.videoUrl}
+                                                controls
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </div>
                                         ) : (
                                         <Image 
                                             src={post.displayUrl} 
@@ -389,10 +383,7 @@ export default function ProfilePage() {
                                         />
                                         )}
                                   </CardContent>
-                                  <div className="p-3 bg-muted/30 text-xs text-muted-foreground grid grid-cols-3 gap-2 text-center">
-                                    {post.isVideo ? (
-                                        <span className='flex items-center justify-center gap-1.5'><Eye className='h-4 w-4 text-primary' /> {formatNumber(post.views || 0)}</span>
-                                    ) : null}
+                                  <div className="p-3 bg-muted/30 text-xs text-muted-foreground grid grid-cols-2 gap-2 text-center">
                                     <span className='flex items-center justify-center gap-1.5'><Heart className='h-4 w-4 text-pink-500' /> {formatNumber(post.likes)}</span>
                                     <span className='flex items-center justify-center gap-1.5'><MessageSquare className='h-4 w-4 text-sky-500' /> {formatNumber(post.comments)}</span>
                                   </div>
@@ -482,7 +473,7 @@ export default function ProfilePage() {
                     <div className="grid sm:grid-cols-3 gap-6">
                         <div className="space-y-2">
                         <Label htmlFor="instagramAverageViews">Média de Views (Reels)</Label>
-                        <Input id="instagramAverageViews" {...form.register('instagramAverageViews')} placeholder="Ex: 15.5K" className="h-11" />
+                        <Input id="instagramAverageViews" {...form.register('instagramAverageViews')} placeholder="Ex: 15.5K (manual)" className="h-11" />
                         </div>
                         <div className="space-y-2">
                         <Label htmlFor="instagramAverageLikes">Média de Likes</Label>

@@ -68,7 +68,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 
 const chartConfigBase = {
   followers: { label: "Seguidores" },
-  views: { label: "Views" },
+  views: { label: "Views (Manual)" },
   likes: { label: "Likes" },
   comments: { label: "Comentários" },
 } satisfies ChartConfig;
@@ -265,7 +265,7 @@ const UpdateMetricsModal = ({ userProfile, triggerButton }: { userProfile: UserP
                             <FormField control={form.control} name="instagramFollowers" render={({ field }) => ( <FormItem><FormLabel>Seguidores</FormLabel><FormControl><Input placeholder="Ex: 250K" {...field} /></FormControl></FormItem> )}/>
                         </div>
                         <div className="grid sm:grid-cols-3 gap-4">
-                            <FormField control={form.control} name="instagramAverageViews" render={({ field }) => ( <FormItem><FormLabel>Views (Média)</FormLabel><FormControl><Input placeholder="Ex: 15.5K" {...field} /></FormControl></FormItem> )}/>
+                            <FormField control={form.control} name="instagramAverageViews" render={({ field }) => ( <FormItem><FormLabel>Views (Média)</FormLabel><FormControl><Input placeholder="Ex: 15.5K (manual)" {...field} /></FormControl></FormItem> )}/>
                             <FormField control={form.control} name="instagramAverageLikes" render={({ field }) => ( <FormItem><FormLabel>Likes (Média)</FormLabel><FormControl><Input placeholder="Ex: 890" {...field} /></FormControl></FormItem> )}/>
                             <FormField control={form.control} name="instagramAverageComments" render={({ field }) => ( <FormItem><FormLabel>Comentários (Média)</FormLabel><FormControl><Input placeholder="Ex: 120" {...field} /></FormControl></FormItem> )}/>
                         </div>
@@ -523,7 +523,7 @@ export default function DashboardPage() {
                                 <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => typeof value === 'number' && value >= 1000 ? `${value / 1000}k` : value} />
                                 <RechartsTooltip content={<ChartTooltipContent indicator="dot" />} />
                                 <Bar dataKey="followers" fill="var(--color-followers)" radius={4} name="Seguidores" />
-                                <Bar dataKey="views" fill="var(--color-views)" radius={4} name="Views"/>
+                                <Bar dataKey="views" fill="var(--color-views)" radius={4} name="Views (Manual)"/>
                                 <Bar dataKey="likes" fill="var(--color-likes)" radius={4} name="Likes"/>
                                 <Bar dataKey="comments" fill="var(--color-comments)" radius={4} name="Comentários"/>
                             </BarChart>
