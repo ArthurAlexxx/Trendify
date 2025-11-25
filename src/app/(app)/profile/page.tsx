@@ -178,11 +178,11 @@ export default function ProfilePage() {
         }
         
         // Save metric snapshots
-        const now = new Date();
         const metricSnapshotsRef = collection(firestore, `users/${user.uid}/metricSnapshots`);
 
         if (values.instagramHandle) {
              await addDoc(metricSnapshotsRef, {
+                userId: user.uid,
                 date: serverTimestamp(),
                 platform: 'instagram',
                 followers: values.instagramFollowers || '0',
@@ -194,6 +194,7 @@ export default function ProfilePage() {
         
         if (values.tiktokHandle) {
              await addDoc(metricSnapshotsRef, {
+                userId: user.uid,
                 date: serverTimestamp(),
                 platform: 'tiktok',
                 followers: values.tiktokFollowers || '0',
@@ -385,3 +386,5 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+    

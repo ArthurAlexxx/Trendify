@@ -103,7 +103,7 @@ const ProfileCompletionAlert = ({ userProfile, hasUpdatedToday }: { userProfile:
       )
     }
 
-    if (!hasUpdatedToday) {
+    if (!hasUpdatedToday && userProfile) {
          return (
             <Alert>
                 <div className='flex justify-between items-center'>
@@ -175,6 +175,7 @@ const UpdateMetricsModal = ({ userProfile }: { userProfile: UserProfile }) => {
 
                 if (values.instagramHandle) {
                     await addDoc(metricSnapshotsRef, {
+                        userId: user.uid,
                         date: serverTimestamp(),
                         platform: 'instagram',
                         followers: values.instagramFollowers || '0',
@@ -185,6 +186,7 @@ const UpdateMetricsModal = ({ userProfile }: { userProfile: UserProfile }) => {
                 }
                 if (values.tiktokHandle) {
                     await addDoc(metricSnapshotsRef, {
+                        userId: user.uid,
                         date: serverTimestamp(),
                         platform: 'tiktok',
                         followers: values.tiktokFollowers || '0',
@@ -366,7 +368,8 @@ export default function DashboardPage() {
       });
       return Object.entries(combinedData)
         .map(([date, metrics]) => ({ date, ...metrics }))
-        .sort((a, b) => new Date(a.date.split('/').reverse().join('-')).getTime() - new Date(b.date.split('/').reverse().join('-')).getTime());
+        .sort((a, b) => new Date(a.date.split('/').reverse().join('-')).getTime() - new Date(b.date.split('/').reverse().join('-')).getTime())
+        .slice(-30);
 
     } else {
       return metricSnapshots
@@ -377,7 +380,7 @@ export default function DashboardPage() {
             views: parseMetric(snap.views),
             likes: parseMetric(snap.likes),
             comments: parseMetric(snap.comments),
-        })).reverse();
+        })).reverse().slice(-30);
     }
   }, [metricSnapshots, selectedPlatform]);
 
@@ -469,7 +472,7 @@ export default function DashboardPage() {
                         <CardTitle className="font-headline text-xl">
                         Evolução das Métricas ({selectedPlatform === 'instagram' ? 'Instagram' : selectedPlatform === 'tiktok' ? 'TikTok' : 'Total'})
                         </CardTitle>
-                        <CardDescription>Acompanhe seu progresso ao longo do tempo.</CardDescription>
+                        <CardDescription>Acompanhe seu progresso ao longo dos últimos 30 dias.</CardDescription>
                     </CardHeader>
                     <CardContent className="pl-2 pr-6">
                         {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
@@ -494,7 +497,7 @@ export default function DashboardPage() {
                                     Dados insuficientes para o gráfico.
                                 </h3>
                                 <p className="text-sm text-muted-foreground">
-                                    <Link href="/profile" className="text-primary font-medium hover:underline">Atualize suas métricas</Link> por alguns dias para começar.
+                                    <span className="text-primary font-medium hover:underline cursor-pointer" onClick={() => userProfile && document.querySelector<HTMLButtonElement>('#update-metrics-trigger')?.click()}>Atualize suas métricas</span> por alguns dias para começar.
                                 </p>
                                 </div>
                             </div>
@@ -797,3 +800,5 @@ function MetricCard({ icon: Icon, title, value, handle, isLoading }: { icon: Rea
         </div>
     )
 }
+
+    
