@@ -1,3 +1,4 @@
+
 'use server';
 import { z } from 'zod';
 
@@ -69,7 +70,7 @@ async function fetchFromRapidApi(endpoint: 'profile' | 'posts', username: string
       throw new Error('As credenciais da API não estão configuradas no servidor.');
     }
 
-    const url = `https://${apiHost}/${endpoint}/`;
+    const url = `https://${apiHost}/${endpoint}`;
     const options = {
       method: 'POST',
       headers: {
