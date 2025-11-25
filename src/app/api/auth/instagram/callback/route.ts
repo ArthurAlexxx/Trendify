@@ -30,21 +30,27 @@ async function exchangeCodeForToken(code: string, redirectUri: string) {
     return { accessToken: data.access_token };
 }
 
-async function getLongLivedAccessToken(shortLivedToken: string) {
+async function getLongLivedAccessToken(shortLivedToken: string): Promise<string> {
     const appId = process.env.META_APP_ID;
     const appSecret = process.env.META_APP_SECRET;
-    
+
+    if (!appId || !appSecret) {
+        console.error("[getLongLivedAccessToken] ERRO: Credenciais do aplicativo Meta não configuradas.");
+        throw new Error("Credenciais do aplicativo Meta não configuradas no servidor.");
+    }
+
     const url = new URL('https://graph.facebook.com/v19.0/oauth/access_token');
     url.searchParams.set('grant_type', 'fb_exchange_token');
-    url.searchParams.set('client_id', appId!);
-    url.searchParams.set('client_secret', appSecret!);
+    url.searchParams.set('client_id', appId);
+    url.searchParams.set('client_secret', appSecret);
     url.searchParams.set('fb_exchange_token', shortLivedToken);
 
     const response = await fetch(url.toString());
     const data = await response.json();
+
     if (data.error) {
-         console.error("[getLongLivedAccessToken] Erro da API do Facebook ao obter token de longa duração:", data.error);
-        throw new Error(data.error.message);
+        console.error("[getLongLivedAccessToken] Erro da API do Facebook ao obter token de longa duração:", data.error);
+        throw new Error(data.error.message || "Erro ao obter token de longa duração.");
     }
     return data.access_token;
 }
@@ -53,7 +59,7 @@ async function getInstagramAccountInfo(accessToken: string) {
     console.log(`[getInstagramAccountInfo] Buscando informações da conta do Instagram.`);
     
     const fields = 'id,username,account_type,followers_count,media_count,profile_picture_url,biography';
-    const url = new URL(`https://graph.instagram.com/v24.0/me`);
+    const url = new URL(`https://graph.instagram.com/me`);
     url.searchParams.set('fields', fields);
     url.searchParams.set('access_token', accessToken);
 
@@ -65,7 +71,6 @@ async function getInstagramAccountInfo(accessToken: string) {
         throw new Error(data.error?.message || "Falha ao buscar dados da conta do Instagram.");
     }
     
-    // A resposta do /me é um objeto direto, não um array.
     const accountData = data;
 
     if (accountData.account_type !== 'BUSINESS' && accountData.account_type !== 'MEDIA_CREATOR') {
@@ -151,7 +156,7 @@ export async function GET(req: NextRequest) {
             instagramAccessToken: longLivedToken,
             instagramUserId: igUserId,
             instagramHandle: accountInfo.username,
-            followers: accountInfo.followers_count ? formatFollowers(accountInfo.followers_count) : '0',
+            followers: accountInfo.followers_count ? formatFollowers(accountInfo.followers_count) : null,
             bio: accountInfo.biography || existingData?.bio || null,
             photoURL: existingData?.photoURL || accountInfo.profile_picture_url || null,
             // Limpa as médias para serem recalculadas no futuro
