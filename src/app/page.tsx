@@ -394,7 +394,7 @@ export default function LandingPage() {
                   transition={{ duration: 0.5 }}
                   viewport={{ once: true, amount: 0.3 }}
                 >
-                  <Card className="text-left h-full bg-card/50 shadow-lg transition-all duration-300 rounded-2xl border border-border/50 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/10 hover:-translate-y-1">
+                  <Card className="text-left h-full bg-card/50 rounded-2xl border border-border/50 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/10 hover:-translate-y-1 transition-all duration-300">
                     <CardHeader className="flex flex-row items-center justify-between">
                        <div className="bg-primary/10 text-primary p-3 rounded-lg">
                         <feature.icon className="h-6 w-6" />
@@ -943,7 +943,7 @@ export default function LandingPage() {
 
       <footer className="border-t border-border">
         <div className="container py-8 text-center text-sm text-muted-foreground">
-          <div className="flex justify-center items-center gap-4">
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-2 sm:gap-4">
              <p>
                 &copy; {new Date().getFullYear()} trendify. Todos os direitos
                 reservados.

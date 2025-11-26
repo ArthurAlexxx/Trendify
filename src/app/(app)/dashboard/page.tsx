@@ -175,6 +175,15 @@ const ProfileCompletionAlert = ({ userProfile, hasUpdatedToday, isPremium }: { u
             </Alert>
          )
     }
+    
+    // Do not show manual update alert if API sync happened today
+    if (userProfile?.lastInstagramSync && isToday(userProfile.lastInstagramSync.toDate())) {
+      return null;
+    }
+    if (userProfile?.lastTikTokSync && isToday(userProfile.lastTikTokSync.toDate())) {
+      return null;
+    }
+
 
     if (!hasUpdatedToday && userProfile) {
          return (
@@ -488,9 +497,11 @@ export default function DashboardPage() {
   const historicalChartData = useMemo(() => {
     if (!metricSnapshots) return [];
 
+    const validSnapshots = metricSnapshots.filter(snap => snap.date);
+
     if (selectedPlatform === 'total') {
       const combinedData: { [date: string]: { followers: number, views: number, likes: number, comments: number } } = {};
-      metricSnapshots.forEach(snap => {
+      validSnapshots.forEach(snap => {
         const dateStr = format(snap.date.toDate(), 'dd/MM');
         if (!combinedData[dateStr]) {
           combinedData[dateStr] = { followers: 0, views: 0, likes: 0, comments: 0 };
@@ -506,7 +517,7 @@ export default function DashboardPage() {
         .slice(-30);
 
     } else {
-      return metricSnapshots
+      return validSnapshots
         .filter(snap => snap.platform === selectedPlatform)
         .map(snap => ({
             date: format(snap.date.toDate(), 'dd/MM'),

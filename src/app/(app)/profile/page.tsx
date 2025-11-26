@@ -28,7 +28,7 @@ import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { getInstagramProfile, getTikTokPosts, getTikTokProfile, getInstagramPosts } from './actions';
+import { getInstagramProfile, getTikTokPosts, getTikTokProfile, getInstagramPosts } from '@/app/(app)/profile/actions';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -36,6 +36,7 @@ import { useSubscription } from '@/hooks/useSubscription';
 import Link from 'next/link';
 import { InstagramProfileResults, TikTokProfileResults } from '@/components/dashboard/platform-results';
 import { initializeFirebase } from '@/firebase';
+import { isToday } from 'date-fns';
 
 
 const profileFormSchema = z.object({
@@ -233,6 +234,8 @@ export default function ProfilePage() {
 
 
   const isLoading = isProfileLoading;
+  const instaSyncedToday = !!userProfile?.lastInstagramSync && isToday(userProfile.lastInstagramSync.toDate());
+  const tiktokSyncedToday = !!userProfile?.lastTikTokSync && isToday(userProfile.lastTikTokSync.toDate());
 
 
   return (
@@ -323,8 +326,10 @@ export default function ProfilePage() {
                 <Separator />
 
                 {/* Instagram */}
-                <div className="space-y-6">
-                    <h3 className="text-lg font-semibold flex items-center gap-2"><Instagram className="h-5 w-5" /> Métricas do Instagram</h3>
+                <fieldset disabled={instaSyncedToday} className="space-y-6 group">
+                    <h3 className="text-lg font-semibold flex items-center gap-2"><Instagram className="h-5 w-5" /> Métricas do Instagram
+                     {instaSyncedToday && <span className="text-xs font-normal text-muted-foreground">(Sincronizado hoje)</span>}
+                    </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         <div className="space-y-2">
                         <Label htmlFor="instagramHandle">Handle do Instagram</Label>
@@ -332,35 +337,37 @@ export default function ProfilePage() {
                             id="instagramHandle"
                             placeholder="@seu_usuario"
                             {...form.register('instagramHandle')}
-                            className="h-11"
+                            className="h-11 disabled:bg-muted/50"
                         />
                         </div>
                         <div className="space-y-2">
                         <Label htmlFor="instagramFollowers">Seguidores no Instagram</Label>
-                        <Input id="instagramFollowers" {...form.register('instagramFollowers')} placeholder="Ex: 250K" className="h-11" />
+                        <Input id="instagramFollowers" {...form.register('instagramFollowers')} placeholder="Ex: 250K" className="h-11 disabled:bg-muted/50" />
                         </div>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                         <div className="space-y-2">
                         <Label htmlFor="instagramAverageViews">Média de Views</Label>
-                        <Input id="instagramAverageViews" {...form.register('instagramAverageViews')} placeholder="Ex: 15.5K" className="h-11" />
+                        <Input id="instagramAverageViews" {...form.register('instagramAverageViews')} placeholder="Ex: 15.5K" className="h-11 disabled:bg-muted/50" />
                         </div>
                         <div className="space-y-2">
                         <Label htmlFor="instagramAverageLikes">Média de Likes</Label>
-                        <Input id="instagramAverageLikes" {...form.register('instagramAverageLikes')} placeholder="Ex: 890" className="h-11" />
+                        <Input id="instagramAverageLikes" {...form.register('instagramAverageLikes')} placeholder="Ex: 890" className="h-11 disabled:bg-muted/50" />
                         </div>
                         <div className="space-y-2">
                         <Label htmlFor="instagramAverageComments">Média de Comentários</Label>
-                        <Input id="instagramAverageComments" {...form.register('instagramAverageComments')} placeholder="Ex: 120" className="h-11" />
+                        <Input id="instagramAverageComments" {...form.register('instagramAverageComments')} placeholder="Ex: 120" className="h-11 disabled:bg-muted/50" />
                         </div>
                     </div>
-                </div>
+                </fieldset>
 
                 <Separator />
 
                 {/* TikTok */}
-                <div className="space-y-6">
-                    <h3 className="text-lg font-semibold flex items-center gap-2"><Film className="h-5 w-5" /> Métricas do TikTok</h3>
+                <fieldset disabled={tiktokSyncedToday} className="space-y-6 group">
+                    <h3 className="text-lg font-semibold flex items-center gap-2"><Film className="h-5 w-5" /> Métricas do TikTok
+                        {tiktokSyncedToday && <span className="text-xs font-normal text-muted-foreground">(Sincronizado hoje)</span>}
+                    </h3>
                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         <div className="space-y-2">
                         <Label htmlFor="tiktokHandle">Handle do TikTok</Label>
@@ -368,29 +375,29 @@ export default function ProfilePage() {
                             id="tiktokHandle"
                             placeholder="@seu_usuario"
                             {...form.register('tiktokHandle')}
-                            className="h-11"
+                            className="h-11 disabled:bg-muted/50"
                         />
                         </div>
                         <div className="space-y-2">
                         <Label htmlFor="tiktokFollowers">Seguidores no TikTok</Label>
-                        <Input id="tiktokFollowers" {...form.register('tiktokFollowers')} placeholder="Ex: 1.2M" className="h-11" />
+                        <Input id="tiktokFollowers" {...form.register('tiktokFollowers')} placeholder="Ex: 1.2M" className="h-11 disabled:bg-muted/50" />
                         </div>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                         <div className="space-y-2">
                         <Label htmlFor="tiktokAverageViews">Média de Views</Label>
-                        <Input id="tiktokAverageViews" {...form.register('tiktokAverageViews')} placeholder="Ex: 1M" className="h-11" />
+                        <Input id="tiktokAverageViews" {...form.register('tiktokAverageViews')} placeholder="Ex: 1M" className="h-11 disabled:bg-muted/50" />
                         </div>
                         <div className="space-y-2">
                         <Label htmlFor="tiktokAverageLikes">Média de Likes</Label>
-                        <Input id="tiktokAverageLikes" {...form.register('tiktokAverageLikes')} placeholder="Ex: 100K" className="h-11" />
+                        <Input id="tiktokAverageLikes" {...form.register('tiktokAverageLikes')} placeholder="Ex: 100K" className="h-11 disabled:bg-muted/50" />
                         </div>
                         <div className="space-y-2">
                         <Label htmlFor="tiktokAverageComments">Média de Comentários</Label>
-                        <Input id="tiktokAverageComments" {...form.register('tiktokAverageComments')} placeholder="Ex: 1.5K" className="h-11" />
+                        <Input id="tiktokAverageComments" {...form.register('tiktokAverageComments')} placeholder="Ex: 1.5K" className="h-11 disabled:bg-muted/50" />
                         </div>
                     </div>
-                </div>
+                </fieldset>
 
 
                 <div className="flex justify-end pt-2">

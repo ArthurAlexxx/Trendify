@@ -80,7 +80,7 @@ export default function SupportPage() {
         description="Precisa de ajuda ou tem alguma sugestão? Preencha o formulário abaixo."
       />
 
-      <Card className="max-w-2xl mx-auto border-border/20 bg-card rounded-2xl">
+      <Card className="max-w-2xl mx-auto border-0 rounded-2xl">
         <CardHeader>
           <CardTitle className="font-headline text-xl">
             Formulário de Contato

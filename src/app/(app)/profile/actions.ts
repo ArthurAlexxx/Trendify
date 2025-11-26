@@ -141,13 +141,15 @@ async function fetchData(url: string, options: RequestInit) {
         if (errorText.includes("You are not subscribed to this API")) throw new Error("Você não está inscrito nesta API na RapidAPI. Verifique sua assinatura e chave.");
         if (errorText.toLowerCase().includes("service unavailable")) throw new Error(`O serviço da API está indisponível. Tente mais tarde.`);
         if (errorText.toLowerCase().includes("this page is private")) throw new Error("Este perfil é privado. A integração funciona apenas com perfis públicos.");
+        if (data.message && (data.message.includes("Couldn't find user") || data.message.includes("User not found"))) throw new Error("Usuário não encontrado. Verifique o nome de usuário e tente novamente.");
+
         
         throw new Error(`A API retornou um erro: ${response.statusText} - ${errorText}`);
     }
     
     const data = await response.json();
 
-    if (data.message && data.message.includes("Couldn't find user")) throw new Error("Usuário não encontrado. Verifique o nome de usuário e tente novamente.");
+    if (data.message && (data.message.includes("Couldn't find user") || data.message.includes("User not found"))) throw new Error("Usuário não encontrado. Verifique o nome de usuário e tente novamente.");
     if (data.error) throw new Error(data.error);
     if (data.status === 'fail' || data.data?.user === null) throw new Error("Usuário não encontrado ou perfil indisponível.");
 
