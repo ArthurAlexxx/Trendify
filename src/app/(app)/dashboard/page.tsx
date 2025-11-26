@@ -42,7 +42,6 @@ import type {
   UserProfile,
   PlanoSemanal,
   MetricSnapshot,
-  InstagramProfileData,
   InstagramPostData,
   TikTokProfileData,
   TikTokPostData,
@@ -73,7 +72,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { getInstagramProfile, getTikTokPosts, getTikTokProfile, getInstagramPosts } from '../profile/actions';
+import { getTikTokPosts, getInstagramPosts } from '../profile/actions';
 import { useSubscription } from '@/hooks/useSubscription';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import Image from 'next/image';
@@ -159,7 +158,14 @@ const ProfileCompletionAlert = ({ userProfile, hasUpdatedToday, isPremium }: { u
                            }
                         </AlertDescription>
                     </div>
-                   {userProfile && isPremium && <PlatformIntegrationModal userProfile={userProfile} />}
+                   {userProfile && isPremium && (
+                        <Button asChild className='w-full sm:w-auto'>
+                           <Link href="/profile/integrations">
+                                <RefreshCw className="mr-2 h-4 w-4" />
+                                Conectar Plataformas
+                           </Link>
+                        </Button>
+                   )}
                    {!isPremium && (
                        <Button asChild className='w-full sm:w-auto'>
                            <Link href="/subscribe">Ver Planos</Link>
@@ -334,248 +340,6 @@ const UpdateMetricsModal = ({ userProfile, triggerButton }: { userProfile: UserP
                     </DialogFooter>
                 </form>
                 </Form>
-            </DialogContent>
-        </Dialog>
-    )
-}
-
-const PlatformIntegrationModal = ({ userProfile }: { userProfile: UserProfile }) => {
-    type SearchStatus = 'idle' | 'loading' | 'success' | 'error';
-    const { user } = useUser();
-    const firestore = useFirestore();
-    const { toast } = useToast();
-    const [isOpen, setIsOpen] = useState(false);
-
-    const [username, setUsername] = useState(userProfile.instagramHandle || '');
-    const [tiktokUsername, setTiktokUsername] = useState(userProfile.tiktokHandle || '');
-
-    const [instaStatus, setInstaStatus] = useState<SearchStatus>('idle');
-    const [instaProfile, setInstaProfile] = useState<InstagramProfileData | null>(null);
-    const [instaPosts, setInstaPosts] = useState<InstagramPostData[] | null>(null);
-    const [instaError, setInstaError] = useState<string | null>(null);
-
-    const [tiktokStatus, setTiktokStatus] = useState<SearchStatus>('idle');
-    const [tiktokProfile, setTiktokProfile] = useState<TikTokProfileData | null>(null);
-    const [tiktokPosts, setTiktokPosts] = useState<TikTokPostData[] | null>(null);
-    const [tiktokError, setTiktokError] = useState<string | null>(null);
-
-    const formatNumber = (num: number): string => {
-        if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(1).replace('.', ',')}M`;
-        if (num >= 10000) return `${(num / 1000).toFixed(1).replace('.', ',')}K`;
-        if (num >= 1000) return num.toLocaleString('pt-BR');
-        return String(num);
-    };
-
-    const handleInstagramSearch = async () => {
-        if (!username) {
-            toast({ title: 'Atenção', description: 'Por favor, insira um nome de usuário do Instagram.', variant: 'destructive' });
-            return;
-        }
-        setInstaStatus('loading');
-        setInstaError(null);
-        setInstaProfile(null);
-        setInstaPosts(null);
-
-        const cleanedUsername = username.replace('@', '');
-
-        try {
-            const [profileResult, postsResult] = await Promise.all([
-                getInstagramProfile(cleanedUsername),
-                getInstagramPosts(cleanedUsername)
-            ]);
-
-            setInstaProfile(profileResult);
-            setInstaPosts(postsResult);
-            setInstaStatus('success');
-
-            if (user && firestore) {
-                const userProfileRef = doc(firestore, 'users', user.uid);
-                const videoPosts = postsResult.filter(p => p.is_video && p.video_view_count);
-                const averageLikes = postsResult.length > 0 ? postsResult.reduce((acc, p) => acc + p.likes, 0) / postsResult.length : 0;
-                const averageComments = postsResult.length > 0 ? postsResult.reduce((acc, p) => acc + p.comments, 0) / postsResult.length : 0;
-                const averageViews = videoPosts.length > 0 ? videoPosts.reduce((acc, p) => acc + (p.video_view_count ?? 0), 0) / videoPosts.length : 0;
-
-                const updateData: Partial<UserProfile> = {
-                    instagramHandle: `@${profileResult.username}`,
-                    bio: userProfile.bio || profileResult.biography,
-                    photoURL: userProfile.photoURL || profileResult.profilePicUrlHd,
-                    instagramFollowers: formatNumber(profileResult.followersCount),
-                    instagramAverageViews: formatNumber(Math.round(averageViews)),
-                    instagramAverageLikes: formatNumber(Math.round(averageLikes)),
-                    instagramAverageComments: formatNumber(Math.round(averageComments)),
-                    lastInstagramSync: serverTimestamp() as any,
-                }
-                await updateDoc(userProfileRef, updateData);
-                toast({ title: "Perfil Atualizado!", description: "Os dados do Instagram foram salvos no seu perfil." });
-            }
-        } catch (e: any) {
-            setInstaError(e.message || 'Ocorreu um erro desconhecido.');
-            setInstaStatus('error');
-        }
-    };
-    
-    const handleTiktokSearch = async () => {
-    if (!tiktokUsername) {
-      toast({ title: 'Atenção', description: 'Por favor, insira um nome de usuário do TikTok.', variant: 'destructive'});
-      return;
-    }
-    setTiktokStatus('loading');
-    setTiktokError(null);
-    setTiktokProfile(null);
-    setTiktokPosts(null);
-
-    const cleanedUsername = tiktokUsername.replace('@', '');
-
-    try {
-      const profileResult = await getTikTokProfile(cleanedUsername);
-      setTiktokProfile(profileResult);
-
-      let fetchedPosts: TikTokPostData[] = [];
-      try {
-          fetchedPosts = await getTikTokPosts(cleanedUsername);
-          setTiktokPosts(fetchedPosts);
-      } catch(postsError: any) {
-          setTiktokError('Perfil encontrado, mas não foi possível carregar os vídeos recentes. ' + postsError.message);
-      }
-
-      setTiktokStatus('success');
-
-      if (user && firestore) {
-        const userProfileRef = doc(firestore, 'users', user.uid);
-        const averageLikes = fetchedPosts.length > 0 ? fetchedPosts.reduce((acc, p) => acc + p.likes, 0) / fetchedPosts.length : 0;
-        const averageComments = fetchedPosts.length > 0 ? fetchedPosts.reduce((acc, p) => acc + p.comments, 0) / fetchedPosts.length : 0;
-        const averageViews = fetchedPosts.length > 0 ? fetchedPosts.reduce((acc, p) => acc + p.views, 0) / fetchedPosts.length : 0;
-
-        const updateData: Partial<UserProfile> = {
-            tiktokHandle: `@${profileResult.username}`,
-            bio: userProfile.bio || profileResult.bio,
-            photoURL: userProfile.photoURL || profileResult.avatarUrl,
-            tiktokFollowers: formatNumber(profileResult.followersCount),
-            tiktokAverageLikes: formatNumber(Math.round(averageLikes)),
-            tiktokAverageComments: formatNumber(Math.round(averageComments)),
-            tiktokAverageViews: formatNumber(Math.round(averageViews)),
-            lastTikTokSync: serverTimestamp() as any,
-        };
-        await updateDoc(userProfileRef, updateData);
-        toast({ title: "Perfil Atualizado!", description: "Os dados do TikTok foram salvos no seu perfil." });
-      }
-    } catch (e: any) {
-      setTiktokError(e.message || 'Ocorreu um erro desconhecido.');
-      setTiktokStatus('error');
-    }
-  };
-
-
-    return (
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogTrigger asChild>
-                <Button className='w-full sm:w-auto'>
-                    <RefreshCw className="mr-2 h-4 w-4" />
-                    Conectar Plataformas
-                </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-2xl">
-                <DialogHeader>
-                    <DialogTitle className="font-headline text-xl">Conectar Plataformas</DialogTitle>
-                    <DialogDescription>
-                        Busque dados públicos de um perfil para preencher ou atualizar suas métricas. A sincronização pode ser feita uma vez por dia.
-                    </DialogDescription>
-                </DialogHeader>
-                <div className="mt-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <Card className='border-0 shadow-none'>
-                          <CardContent className="p-4 bg-muted/50 rounded-lg">
-                          <div className="flex flex-col items-start gap-4">
-                              <div className="w-full">
-                                <Label htmlFor="instagramHandleApi" className="mb-1 flex items-center gap-2 font-semibold"><Instagram className='h-4 w-4'/> Instagram</Label>
-                                <Input
-                                    id="instagramHandleApi"
-                                    placeholder="@seu_usuario"
-                                    value={username}
-                                    onChange={(e) => setUsername(e.target.value)}
-                                    className="h-11 mt-1"
-                                />
-                              </div>
-                              <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                    <Button
-                                        type="button"
-                                        disabled={instaStatus === 'loading' || !username}
-                                        className="w-full"
-                                    >
-                                        {
-                                         instaStatus === 'loading' ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Buscando...</> :
-                                         userProfile.instagramHandle ? <><RefreshCw className="mr-2 h-4 w-4" />Sincronizar Dados</> : 
-                                         <><Search className="mr-2 h-4 w-4" />Buscar Dados</>}
-                                    </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                  <AlertDialogTitle>Confirmação de Busca</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                      Você confirma que é o proprietário ou tem permissão para buscar os dados do perfil <strong>@{username.replace('@', '')}</strong>?
-                                  </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                  <AlertDialogAction onClick={handleInstagramSearch}>Sim, confirmar e buscar</AlertDialogAction>
-                                  </AlertDialogFooter>
-                              </AlertDialogContent>
-                              </AlertDialog>
-                          </div>
-                          </CardContent>
-                      </Card>
-                      <Card className='border-0 shadow-none'>
-                            <CardContent className="p-4 bg-muted/50 rounded-lg">
-                            <div className="flex flex-col items-start gap-4">
-                                <div className="w-full">
-                                  <Label htmlFor="tiktokHandleApi" className="mb-1 flex items-center gap-2 font-semibold"><Film className='h-4 w-4'/> TikTok</Label>
-                                  <Input
-                                      id="tiktokHandleApi"
-                                      placeholder="@seu_usuario"
-                                      value={tiktokUsername}
-                                      onChange={(e) => setTiktokUsername(e.target.value)}
-                                      className="h-11 mt-1"
-                                  />
-                                </div>
-                                <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                     <Button
-                                        type="button"
-                                        disabled={tiktokStatus === 'loading' || !tiktokUsername}
-                                        className="w-full"
-                                    >
-                                        {
-                                         tiktokStatus === 'loading' ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Buscando...</> :
-                                         userProfile.tiktokHandle ? <><RefreshCw className="mr-2 h-4 w-4" />Sincronizar Dados</> : 
-                                         <><Search className="mr-2 h-4 w-4" />Buscar Dados</>}
-                                    </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                    <AlertDialogTitle>Confirmação de Busca</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                        Você confirma que é o proprietário ou tem permissão para buscar os dados do perfil <strong>@{tiktokUsername.replace('@', '')}</strong>?
-                                    </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                    <AlertDialogAction onClick={handleTiktokSearch}>Sim, confirmar e buscar</AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                                </AlertDialog>
-                            </div>
-                            </CardContent>
-                        </Card>
-                  </div>
-                </div>
-                 {instaStatus === 'loading' && <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>}
-                 {instaStatus === 'error' && instaError && <Alert variant="destructive" className="mt-4"><AlertTriangle className="h-4 w-4" /><AlertTitle>Erro ao Buscar Perfil</AlertTitle><AlertDescription>{instaError}</AlertDescription></Alert>}
-                 {instaStatus === 'success' && instaProfile && <InstagramProfileResults profile={instaProfile} posts={instaPosts} error={instaError} formatNumber={formatNumber}/>}
-                
-                 {tiktokStatus === 'loading' && <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>}
-                 {tiktokStatus === 'error' && tiktokError && <Alert variant="destructive" className="mt-4"><AlertTriangle className="h-4 w-4" /><AlertTitle>Erro ao Buscar Perfil</AlertTitle><AlertDescription>{tiktokError}</AlertDescription></Alert>}
-                 {tiktokStatus === 'success' && tiktokProfile && <TikTokProfileResults profile={tiktokProfile} posts={tiktokPosts} error={tiktokError} formatNumber={formatNumber}/>}
             </DialogContent>
         </Dialog>
     )
@@ -859,16 +623,16 @@ export default function DashboardPage() {
                 <CardContent>
                     <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                         <MetricCard icon={Users} title="Seguidores" value={formatMetricValue(latestMetrics?.followers)} handle={selectedPlatform !== 'total' ? latestMetrics?.handle as string : undefined} isLoading={isLoading} />
-                        <MetricCard icon={Eye} title="Média de Views" value={formatMetricValue(latestMetrics?.views)} isLoading={isLoading} isManual={!userProfile?.lastInstagramSync} />
-                        <MetricCard icon={Heart} title="Média de Likes" value={formatMetricValue(latestMetrics?.likes)} isLoading={isLoading} isManual={!userProfile?.lastInstagramSync} />
-                        <MetricCard icon={MessageSquare} title="Média de Comentários" value={formatMetricValue(latestMetrics?.comments)} isLoading={isLoading} isManual={!userProfile?.lastInstagramSync} />
+                        <MetricCard icon={Eye} title="Média de Views" value={formatMetricValue(latestMetrics?.views)} isLoading={isLoading} />
+                        <MetricCard icon={Heart} title="Média de Likes" value={formatMetricValue(latestMetrics?.likes)} isLoading={isLoading} />
+                        <MetricCard icon={MessageSquare} title="Média de Comentários" value={formatMetricValue(latestMetrics?.comments)} isLoading={isLoading} />
                     </div>
                 </CardContent>
             </Card>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-             <div className="lg:col-span-2 space-y-8">
+            <div className="lg:col-span-2 space-y-8">
                  <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0 h-full">
                     <CardHeader>
                         <CardTitle className="font-headline text-xl">
@@ -914,7 +678,138 @@ export default function DashboardPage() {
                         }
                     </CardContent>
                 </Card>
-             </div>
+                 <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0 h-full">
+                    <CardHeader className="text-center sm:text-left">
+                    <CardTitle className="font-headline text-xl">
+                        Roteiro de Conteúdo Semanal
+                    </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                    {isLoadingRoteiro ? <Skeleton className="h-40 w-full" /> : (
+                        roteiro && roteiro.items.length > 0 ? (
+                        <div>
+                            <ul className="space-y-2">
+                                {visibleItems?.map((item, index) => (
+                                <li key={index}>
+                                    <div className="flex items-start gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50 text-left">
+                                    <Checkbox
+                                        id={`roteiro-${index}`}
+                                        checked={item.concluido}
+                                        onCheckedChange={() => handleToggleRoteiro(item, index)}
+                                        className="h-5 w-5 mt-1"
+                                    />
+                                    <div>
+                                        <label
+                                        htmlFor={`roteiro-${index}`}
+                                        className={cn(
+                                            'font-medium text-base transition-colors cursor-pointer',
+                                            item.concluido
+                                            ? 'line-through text-muted-foreground'
+                                            : 'text-foreground'
+                                        )}
+                                        >
+                                        <span className="font-semibold text-primary">
+                                            {item.dia}:
+                                        </span>{' '}
+                                        {item.tarefa}
+                                        </label>
+                                        <p className="text-sm text-muted-foreground">
+                                        {item.detalhes}
+                                        </p>
+                                    </div>
+                                    </div>
+                                    {visibleItems && index < visibleItems.length - 1 && (
+                                    <Separator className="my-2" />
+                                    )}
+                                </li>
+                                ))}
+                                <AnimatePresence>
+                                {isExpanded && collapsibleItems?.map((item, index) => (
+                                    <motion.li 
+                                    key={`collapsible-${index}`}
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                                    className="overflow-hidden"
+                                    >
+                                        <Separator className="my-2" />
+                                        <div className="flex items-start gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50 text-left">
+                                        <Checkbox
+                                            id={`roteiro-collapsible-${index}`}
+                                            checked={item.concluido}
+                                            onCheckedChange={() => handleToggleRoteiro(item, 3 + index)}
+                                            className="h-5 w-5 mt-1"
+                                        />
+                                        <div>
+                                            <label
+                                            htmlFor={`roteiro-collapsible-${index}`}
+                                            className={cn(
+                                                'font-medium text-base transition-colors cursor-pointer',
+                                                item.concluido
+                                                ? 'line-through text-muted-foreground'
+                                                : 'text-foreground'
+                                            )}
+                                            >
+                                            <span className="font-semibold text-primary">
+                                                {item.dia}:
+                                            </span>{' '}
+                                            {item.tarefa}
+                                            </label>
+                                            <p className="text-sm text-muted-foreground">
+                                            {item.detalhes}
+                                            </p>
+                                        </div>
+                                        </div>
+                                    </motion.li>
+                                ))}
+                                </AnimatePresence>
+                            </ul>
+                            {collapsibleItems && collapsibleItems.length > 0 && !isExpanded && (
+                            <div className='flex justify-center mt-2'>
+                                <Button 
+                                    variant="ghost" 
+                                    onClick={() => setIsExpanded(true)} 
+                                    className="text-primary hover:text-primary"
+                                >
+                                    Ver restante da semana
+                                </Button>
+                            </div>
+                            )}
+                            {isExpanded && (
+                            <div className='flex justify-center mt-2'>
+                                <Button 
+                                    variant="ghost" 
+                                    onClick={() => setIsExpanded(false)} 
+                                    className="text-primary hover:text-primary"
+                                >
+                                    Ver menos
+                                </Button>
+                            </div>
+                            )}
+                        </div>
+                        ) : (
+                        <div className="text-center py-8 px-4 rounded-xl bg-muted/50 border border-dashed">
+                            <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+                            <h3 className="font-semibold text-foreground">
+                            Sem roteiro para a semana.
+                            </h3>
+                            <p className="text-sm text-muted-foreground">
+                            Gere um novo no{' '}
+                            <Link
+                                href="/generate-weekly-plan"
+                                className="text-primary font-medium hover:underline"
+                            >
+                                Planejamento Semanal
+                            </Link>
+                            .
+                            </p>
+                        </div>
+                        )
+                    )}
+                    </CardContent>
+                </Card>
+            </div>
              <div className="lg:col-span-1 space-y-8">
                   <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0 flex flex-col h-full">
                   <CardHeader className="text-center sm:text-left">
@@ -985,199 +880,64 @@ export default function DashboardPage() {
                     )}
                   </CardContent>
                 </Card>
-             </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-              <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0 h-full">
-                <CardHeader className="text-center sm:text-left">
-                <CardTitle className="font-headline text-xl">
-                    Roteiro de Conteúdo Semanal
-                </CardTitle>
-                </CardHeader>
-                <CardContent>
-                {isLoadingRoteiro ? <Skeleton className="h-40 w-full" /> : (
-                    roteiro && roteiro.items.length > 0 ? (
-                    <div>
-                        <ul className="space-y-2">
-                            {visibleItems?.map((item, index) => (
-                            <li key={index}>
-                                <div className="flex items-start gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50 text-left">
+                <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0 h-full">
+                    <CardHeader className="text-center sm:text-left">
+                    <CardTitle className="font-headline text-xl">
+                        Ideias e Tarefas
+                    </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                    {isLoadingIdeias ? <Skeleton className="h-24 w-full" /> : (
+                        ideiasSalvas && ideiasSalvas.length > 0 ? (
+                        <ul className="space-y-3">
+                            {ideiasSalvas.map((ideia) => (
+                            <li key={ideia.id} className="flex items-start gap-3 text-left">
                                 <Checkbox
-                                    id={`roteiro-${index}`}
-                                    checked={item.concluido}
-                                    onCheckedChange={() => handleToggleRoteiro(item, index)}
-                                    className="h-5 w-5 mt-1"
+                                id={`ideia-${ideia.id}`}
+                                checked={ideia.concluido}
+                                onCheckedChange={() => handleToggleIdeia(ideia)}
+                                className="h-5 w-5 mt-0.5"
                                 />
-                                <div>
-                                    <label
-                                    htmlFor={`roteiro-${index}`}
+                                <div className="grid gap-0.5">
+                                <label
+                                    htmlFor={`ideia-${ideia.id}`}
                                     className={cn(
-                                        'font-medium text-base transition-colors cursor-pointer',
-                                        item.concluido
+                                    'font-medium transition-colors cursor-pointer',
+                                    ideia.concluido
                                         ? 'line-through text-muted-foreground'
                                         : 'text-foreground'
                                     )}
-                                    >
-                                    <span className="font-semibold text-primary">
-                                        {item.dia}:
-                                    </span>{' '}
-                                    {item.tarefa}
-                                    </label>
-                                    <p className="text-sm text-muted-foreground">
-                                    {item.detalhes}
-                                    </p>
+                                >
+                                    {ideia.titulo}
+                                </label>
+                                <p className="text-xs text-muted-foreground">
+                                    Salvo de "{ideia.origem}"{' '}
+                                    {ideia.createdAt &&
+                                    formatDistanceToNow(ideia.createdAt.toDate(), {
+                                        addSuffix: true,
+                                        locale: ptBR,
+                                    })}
+                                </p>
                                 </div>
-                                </div>
-                                {visibleItems && index < visibleItems.length - 1 && (
-                                <Separator className="my-2" />
-                                )}
                             </li>
                             ))}
-                            <AnimatePresence>
-                            {isExpanded && collapsibleItems?.map((item, index) => (
-                                <motion.li 
-                                key={`collapsible-${index}`}
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: 'auto' }}
-                                exit={{ opacity: 0, height: 0 }}
-                                transition={{ duration: 0.3, ease: "easeInOut" }}
-                                className="overflow-hidden"
-                                >
-                                    <Separator className="my-2" />
-                                    <div className="flex items-start gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50 text-left">
-                                    <Checkbox
-                                        id={`roteiro-collapsible-${index}`}
-                                        checked={item.concluido}
-                                        onCheckedChange={() => handleToggleRoteiro(item, 3 + index)}
-                                        className="h-5 w-5 mt-1"
-                                    />
-                                    <div>
-                                        <label
-                                        htmlFor={`roteiro-collapsible-${index}`}
-                                        className={cn(
-                                            'font-medium text-base transition-colors cursor-pointer',
-                                            item.concluido
-                                            ? 'line-through text-muted-foreground'
-                                            : 'text-foreground'
-                                        )}
-                                        >
-                                        <span className="font-semibold text-primary">
-                                            {item.dia}:
-                                        </span>{' '}
-                                        {item.tarefa}
-                                        </label>
-                                        <p className="text-sm text-muted-foreground">
-                                        {item.detalhes}
-                                        </p>
-                                    </div>
-                                    </div>
-                                </motion.li>
-                            ))}
-                            </AnimatePresence>
                         </ul>
-                        {collapsibleItems && collapsibleItems.length > 0 && !isExpanded && (
-                        <div className='flex justify-center mt-2'>
-                            <Button 
-                                variant="ghost" 
-                                onClick={() => setIsExpanded(true)} 
-                                className="text-primary hover:text-primary"
-                            >
-                                Ver restante da semana
-                            </Button>
-                        </div>
-                        )}
-                        {isExpanded && (
-                        <div className='flex justify-center mt-2'>
-                            <Button 
-                                variant="ghost" 
-                                onClick={() => setIsExpanded(false)} 
-                                className="text-primary hover:text-primary"
-                            >
-                                Ver menos
-                            </Button>
-                        </div>
-                        )}
-                    </div>
-                    ) : (
-                    <div className="text-center py-8 px-4 rounded-xl bg-muted/50 border border-dashed">
-                        <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
-                        <h3 className="font-semibold text-foreground">
-                        Sem roteiro para a semana.
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                        Gere um novo no{' '}
-                        <Link
-                            href="/generate-weekly-plan"
-                            className="text-primary font-medium hover:underline"
-                        >
-                            Planejamento Semanal
-                        </Link>
-                        .
-                        </p>
-                    </div>
-                    )
-                )}
-                </CardContent>
-            </Card>
-              <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0 h-full">
-                <CardHeader className="text-center sm:text-left">
-                <CardTitle className="font-headline text-xl">
-                    Ideias e Tarefas
-                </CardTitle>
-                </CardHeader>
-                <CardContent>
-                {isLoadingIdeias ? <Skeleton className="h-24 w-full" /> : (
-                    ideiasSalvas && ideiasSalvas.length > 0 ? (
-                    <ul className="space-y-3">
-                        {ideiasSalvas.map((ideia) => (
-                        <li key={ideia.id} className="flex items-start gap-3 text-left">
-                            <Checkbox
-                            id={`ideia-${ideia.id}`}
-                            checked={ideia.concluido}
-                            onCheckedChange={() => handleToggleIdeia(ideia)}
-                            className="h-5 w-5 mt-0.5"
-                            />
-                            <div className="grid gap-0.5">
-                            <label
-                                htmlFor={`ideia-${ideia.id}`}
-                                className={cn(
-                                'font-medium transition-colors cursor-pointer',
-                                ideia.concluido
-                                    ? 'line-through text-muted-foreground'
-                                    : 'text-foreground'
-                                )}
-                            >
-                                {ideia.titulo}
-                            </label>
-                            <p className="text-xs text-muted-foreground">
-                                Salvo de "{ideia.origem}"{' '}
-                                {ideia.createdAt &&
-                                formatDistanceToNow(ideia.createdAt.toDate(), {
-                                    addSuffix: true,
-                                    locale: ptBR,
-                                })}
+                        ) : (
+                        <div className="text-center py-8 px-4 rounded-xl bg-muted/50 border border-dashed h-full flex flex-col justify-center">
+                            <Rocket className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+                            <h3 className="font-semibold text-foreground">
+                            Comece a Gerar Ideias!
+                            </h3>
+                            <p className="text-sm text-muted-foreground">
+                            Suas ideias e tarefas salvas aparecerão aqui.
                             </p>
-                            </div>
-                        </li>
-                        ))}
-                    </ul>
-                    ) : (
-                    <div className="text-center py-8 px-4 rounded-xl bg-muted/50 border border-dashed h-full flex flex-col justify-center">
-                        <Rocket className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
-                        <h3 className="font-semibold text-foreground">
-                        Comece a Gerar Ideias!
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                        Suas ideias e tarefas salvas aparecerão aqui.
-                        </p>
-                    </div>
-                    )
-                )}
-                </CardContent>
-            </Card>
+                        </div>
+                        )
+                    )}
+                    </CardContent>
+                </Card>
+             </div>
         </div>
-
 
          {/* Recent Posts Section */}
         <div className="grid grid-cols-1 gap-8">

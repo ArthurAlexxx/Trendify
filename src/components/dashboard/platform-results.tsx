@@ -10,7 +10,7 @@ import type { InstagramProfileData, TikTokProfileData, InstagramPostData, TikTok
 import { Heart, MessageSquare, PlayCircle, AlertTriangle } from 'lucide-react';
 import { Skeleton } from '../ui/skeleton';
 
-export function MetricCard({ icon: Icon, title, value, handle, isLoading, isManual }: { icon: React.ElementType, title: string, value?: string, handle?: string, isLoading: boolean, isManual?: boolean }) {
+export function MetricCard({ icon: Icon, title, value, handle, isLoading }: { icon: React.ElementType, title: string, value?: string, handle?: string, isLoading: boolean }) {
     if (isLoading) {
         return (
              <div className="p-4 rounded-lg bg-muted/50">
@@ -28,25 +28,16 @@ export function MetricCard({ icon: Icon, title, value, handle, isLoading, isManu
                 </h3>
                 <Icon className="h-4 w-4 text-primary" />
             </div>
-            {(isManual && (!value || value === "N/A")) ? (
-                    <div className="flex items-center gap-2 mt-1">
-                    <AlertTriangle className="h-5 w-5 text-amber-500" />
-                    <Link href="/profile" className="text-sm text-muted-foreground hover:underline">
-                        Atualize
-                    </Link>
+            <div>
+                <div className="text-2xl font-bold font-headline">
+                    {value || '—'}
                 </div>
-            ) : (
-                <div>
-                    <div className="text-2xl font-bold font-headline">
-                        {value || '—'}
-                    </div>
-                    {handle && (
-                        <p className="text-xs text-muted-foreground truncate">
-                            {handle ? handle : <Link href="/profile" className="hover:underline">Adicionar no perfil</Link>}
-                        </p>
-                    )}
-                </div>
-            )}
+                {handle && (
+                    <p className="text-xs text-muted-foreground truncate">
+                        {handle ? handle : <Link href="/profile" className="hover:underline">Adicionar no perfil</Link>}
+                    </p>
+                )}
+            </div>
         </div>
     )
 }

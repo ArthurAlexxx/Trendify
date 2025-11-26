@@ -19,7 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, updateDoc, serverTimestamp, addDoc, collection } from 'firebase/firestore';
 import type { UserProfile, InstagramProfileData, InstagramPostData, TikTokProfileData, TikTokPostData } from '@/lib/types';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -29,6 +29,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useSubscription } from '@/hooks/useSubscription';
 import Link from 'next/link';
 import { InstagramProfileResults, TikTokProfileResults } from '@/components/dashboard/platform-results';
+import { useRouter } from 'next/navigation';
 
 
 const profileFormSchema = z.object({
@@ -49,6 +50,7 @@ export default function IntegrationsPage() {
   const { toast } = useToast();
   const { subscription, isLoading: isSubscriptionLoading } = useSubscription();
   const isPremium = subscription?.plan === 'premium' && subscription.status === 'active';
+  const router = useRouter();
   
   const [instaStatus, setInstaStatus] = useState<SearchStatus>('idle');
   const [instaError, setInstaError] = useState<string | null>(null);
@@ -116,7 +118,7 @@ export default function IntegrationsPage() {
         form.setValue('instagramHandle', `@${profileResult.username}`);
         
         if (user && userProfileRef) {
-          const dataToSave = {
+          const dataToSave: Partial<UserProfile> = {
              instagramHandle: `@${profileResult.username}`,
              bio: userProfile?.bio || profileResult.biography,
              photoURL: userProfile?.photoURL || profileResult.profilePicUrlHd,
@@ -126,13 +128,24 @@ export default function IntegrationsPage() {
              instagramAverageComments: formatNumber(Math.round(averageComments)),
              lastInstagramSync: serverTimestamp() as any,
           };
-           Object.keys(dataToSave).forEach(key => {
-            const k = key as keyof typeof dataToSave;
-            if ((dataToSave as any)[k] === undefined) {
-                (dataToSave as any)[k] = null;
+           Object.keys(dataToSave).forEach(keyStr => {
+            const key = keyStr as keyof typeof dataToSave;
+            if (dataToSave[key] === undefined) {
+                (dataToSave as any)[key] = null;
             }
           });
           await updateDoc(userProfileRef, dataToSave);
+          
+          const metricSnapshotsRef = collection(firestore, `users/${user.uid}/metricSnapshots`);
+          await addDoc(metricSnapshotsRef, {
+            userId: user.uid,
+            date: serverTimestamp(),
+            platform: 'instagram',
+            followers: dataToSave.instagramFollowers || '0',
+            views: dataToSave.instagramAverageViews || '0',
+            likes: dataToSave.instagramAverageLikes || '0',
+            comments: dataToSave.instagramAverageComments || '0',
+          });
         }
         
         setInstaStatus('success');
@@ -175,7 +188,7 @@ export default function IntegrationsPage() {
         form.setValue('tiktokHandle', `@${profileResult.username}`);
        
         if (user && userProfileRef) {
-          const dataToSave = {
+          const dataToSave: Partial<UserProfile> = {
              tiktokHandle: `@${profileResult.username}`,
              photoURL: userProfile?.photoURL || profileResult.avatarUrl,
              bio: userProfile?.bio || profileResult.bio,
@@ -185,13 +198,24 @@ export default function IntegrationsPage() {
              tiktokAverageViews: formatNumber(Math.round(averageViews)),
              lastTikTokSync: serverTimestamp() as any,
           };
-           Object.keys(dataToSave).forEach(key => {
-            const k = key as keyof typeof dataToSave;
-            if ((dataToSave as any)[k] === undefined) {
-                (dataToSave as any)[k] = null;
+           Object.keys(dataToSave).forEach(keyStr => {
+            const key = keyStr as keyof typeof dataToSave;
+            if (dataToSave[key] === undefined) {
+                (dataToSave as any)[key] = null;
             }
           });
           await updateDoc(userProfileRef, dataToSave);
+          
+          const metricSnapshotsRef = collection(firestore, `users/${user.uid}/metricSnapshots`);
+          await addDoc(metricSnapshotsRef, {
+            userId: user.uid,
+            date: serverTimestamp(),
+            platform: 'tiktok',
+            followers: dataToSave.tiktokFollowers || '0',
+            views: dataToSave.tiktokAverageViews || '0',
+            likes: dataToSave.tiktokAverageLikes || '0',
+            comments: dataToSave.tiktokAverageComments || '0',
+          });
         }
         setTiktokStatus('success');
 
