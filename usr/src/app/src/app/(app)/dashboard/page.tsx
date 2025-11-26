@@ -432,10 +432,15 @@ export default function DashboardPage() {
 
   const isLoading = isLoadingProfile || isLoadingRoteiro || isLoadingIdeias || isLoadingUpcoming || isLoadingMetrics || isSubscriptionLoading;
   
-  const parseMetric = (value?: string | number) => {
+  const parseMetric = (value?: string | number): number => {
     if (typeof value === 'number') return value;
-    if (!value) return 0;
-    const num = parseFloat(value.replace(/K/gi, 'e3').replace(/M/gi, 'e6').replace(',', '.'));
+    if (!value || typeof value !== 'string') return 0;
+  
+    // Replace comma with dot for decimal conversion, remove dots for thousands
+    const cleanedValue = value.replace(/\./g, '').replace(',', '.');
+    const num = parseFloat(
+      cleanedValue.replace(/K/gi, 'e3').replace(/M/gi, 'e6')
+    );
     return isNaN(num) ? 0 : num;
   };
   
@@ -474,17 +479,20 @@ export default function DashboardPage() {
      if (num === 0) return 'N/A';
 
     if (num >= 1000000) return `${(num / 1000000).toFixed(1).replace('.', ',')}M`;
-    if (num >= 10000) return `${(num / 1000).toFixed(1).replace('.', ',')}K`;
-    return num.toLocaleString('pt-BR');
+    if (num >= 10000) return `${(num / 1000).toFixed(0)}K`;
+    if (num >= 1000) return num.toLocaleString('pt-BR');
+    return String(num);
   };
 
 
   const historicalChartData = useMemo(() => {
     if (!metricSnapshots) return [];
 
+    const validSnapshots = metricSnapshots.filter(snap => snap.date);
+
     if (selectedPlatform === 'total') {
       const combinedData: { [date: string]: { followers: number, views: number, likes: number, comments: number } } = {};
-      metricSnapshots.forEach(snap => {
+      validSnapshots.forEach(snap => {
         const dateStr = format(snap.date.toDate(), 'dd/MM');
         if (!combinedData[dateStr]) {
           combinedData[dateStr] = { followers: 0, views: 0, likes: 0, comments: 0 };
@@ -500,7 +508,7 @@ export default function DashboardPage() {
         .slice(-30);
 
     } else {
-      return metricSnapshots
+      return validSnapshots
         .filter(snap => snap.platform === selectedPlatform)
         .map(snap => ({
             date: format(snap.date.toDate(), 'dd/MM'),
@@ -993,3 +1001,5 @@ export default function DashboardPage() {
     </>
   );
 }
+
+    
