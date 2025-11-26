@@ -1,4 +1,3 @@
-
 import type { Timestamp } from 'firebase/firestore';
 
 export type Plan = 'pro' | 'free' | 'premium';
@@ -34,6 +33,16 @@ export interface UserProfile {
     expiresAt?: Timestamp | null;
     paymentId?: string | null;
   }
+}
+
+export interface WebhookLog {
+  id: string;
+  receivedAt: Timestamp;
+  eventType: string;
+  payload: any;
+  isSuccess: boolean;
+  amount?: number;
+  customerEmail?: string;
 }
 
 export interface DailyUsage {

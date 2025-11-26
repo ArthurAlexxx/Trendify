@@ -1,4 +1,3 @@
-
 {
   "entities": {
     "UserProfile": {
@@ -106,6 +105,11 @@
               "enum": ["pro", "free", "premium"],
               "description": "The subscribed plan."
             },
+             "cycle": {
+              "type": "string",
+              "enum": ["monthly", "annual"],
+              "description": "The billing cycle of the subscription."
+            },
             "expiresAt": {
               "type": "string",
               "format": "date-time",
@@ -119,6 +123,39 @@
         }
       },
       "required": ["displayName", "email", "createdAt"]
+    },
+     "WebhookLog": {
+      "title": "Webhook Log",
+      "description": "Stores a record of every webhook event received from the payment gateway.",
+      "type": "object",
+      "properties": {
+        "receivedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp when the webhook was received by our server."
+        },
+        "eventType": {
+          "type": "string",
+          "description": "The type of event (e.g., 'billing.paid')."
+        },
+        "payload": {
+          "type": "object",
+          "description": "The full JSON payload received from the webhook."
+        },
+        "isSuccess": {
+          "type": "boolean",
+          "description": "Indicates if the event represents a successful transaction."
+        },
+        "amount": {
+          "type": "number",
+          "description": "The transaction amount in cents (if applicable)."
+        },
+        "customerEmail": {
+          "type": "string",
+          "description": "The email of the customer involved in the transaction."
+        }
+      },
+      "required": ["receivedAt", "eventType", "payload"]
     },
     "MetricSnapshot": {
         "title": "Metric Snapshot",
@@ -276,6 +313,10 @@
     "/users/{userId}": {
       "schema": { "$ref": "#/entities/UserProfile" },
       "description": "Stores user profile data."
+    },
+    "/webhookLogs/{logId}": {
+      "schema": { "$ref": "#/entities/WebhookLog" },
+      "description": "Logs all incoming webhook events from the payment gateway."
     },
     "/users/{userId}/metricSnapshots/{snapshotId}": {
         "schema": { "$ref": "#/entities/MetricSnapshot" },
