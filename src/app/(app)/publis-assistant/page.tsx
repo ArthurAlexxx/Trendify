@@ -40,7 +40,7 @@ import {
 import { useEffect, useTransition, useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { generatePubliProposalsAction, GeneratePubliProposalsOutput } from './actions';
+import { generatePubliProposalsAction, GeneratePubliProposalsOutput } from '@/app/(app)/publis-assistant/actions';
 import { useFirestore, useUser, useDoc, useMemoFirebase } from '@/firebase';
 import { collection, addDoc, serverTimestamp, doc, setDoc, increment } from 'firebase/firestore';
 import { SavedIdeasSheet } from '@/components/saved-ideas-sheet';

@@ -32,7 +32,7 @@ import {
   useTransition,
 } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { createPixChargeAction, PixChargeResponse } from '../subscribe/actions';
+import { createPixChargeAction, PixChargeResponse } from '@/app/(app)/subscribe/actions';
 import { Skeleton } from '@/components/ui/skeleton';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';

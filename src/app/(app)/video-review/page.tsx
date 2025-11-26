@@ -30,7 +30,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { analyzeVideo, type VideoAnalysisOutput } from "./actions";
+import { analyzeVideo, type VideoAnalysisOutput } from "@/app/(app)/video-review/actions";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PageHeader } from "@/components/page-header";
 import {

@@ -43,7 +43,7 @@ import {
 import { useEffect, useTransition, useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { generateVideoIdeasAction, GenerateVideoIdeasOutput } from './actions';
+import { generateVideoIdeasAction, GenerateVideoIdeasOutput } from '@/app/(app)/video-ideas/actions';
 import { useCollection, useFirestore, useMemoFirebase, useUser, useDoc } from '@/firebase';
 import { collection, addDoc, serverTimestamp, where, query, orderBy, setDoc, doc, increment } from 'firebase/firestore';
 import { SavedIdeasSheet } from '@/components/saved-ideas-sheet';

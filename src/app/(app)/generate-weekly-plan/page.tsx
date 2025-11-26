@@ -25,7 +25,7 @@ import { Bot, Loader2, Sparkles, Trash2, Check, History, ClipboardList, BrainCir
 import { useEffect, useTransition, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { generateWeeklyPlanAction, GenerateWeeklyPlanOutput } from './actions';
+import { generateWeeklyPlanAction, GenerateWeeklyPlanOutput } from '@/app/(app)/generate-weekly-plan/actions';
 import { Separator } from '@/components/ui/separator';
 import { useDoc, useFirestore, useMemoFirebase, useUser, useCollection } from '@/firebase';
 import type { UserProfile, ItemRoteiro, PlanoSemanal } from '@/lib/types';

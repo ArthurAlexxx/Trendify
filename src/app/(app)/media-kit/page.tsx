@@ -33,7 +33,7 @@ import { z } from 'zod';
 import {
   getAiCareerPackageAction,
   AiCareerPackageOutput,
-} from './actions';
+} from '@/app/(app)/media-kit/actions';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { collection, addDoc, serverTimestamp, doc } from 'firebase/firestore';
@@ -298,6 +298,7 @@ function MediaKitPageContent() {
                                 placeholder="Defina seu nicho em Configurações > Perfil"
                                 className="h-11"
                                 {...field}
+                                readOnly
                               />
                             }
                           </FormControl>
@@ -321,6 +322,7 @@ function MediaKitPageContent() {
                                   placeholder="Defina suas métricas em Configurações > Perfil"
                                   className="h-11"
                                   {...field}
+                                  readOnly
                                 />
                               }
                             </FormControl>
