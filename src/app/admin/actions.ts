@@ -4,7 +4,7 @@
 import { z } from 'zod';
 import { initializeFirebaseAdmin } from '@/firebase/admin';
 import { getAuth } from 'firebase-admin/auth';
-import { Timestamp } from 'firebase-admin/firestore';
+import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { Plan, UserRole } from '@/lib/types';
 
 // Schema for changing a user's plan
@@ -39,7 +39,7 @@ interface ActionState {
  * @param adminUserId - The UID of the user making the request.
  * @returns {Promise<boolean>} - True if the user is an admin.
  */
-async function verifyAdminStatus(auth: ReturnType<typeof getAuth>, firestore: ReturnType<typeof Timestamp.firestore>, adminUserId: string): Promise<boolean> {
+async function verifyAdminStatus(auth: ReturnType<typeof getAuth>, firestore: ReturnType<typeof getFirestore>, adminUserId: string): Promise<boolean> {
     const userDoc = await firestore.collection('users').doc(adminUserId).get();
     if (!userDoc.exists || userDoc.data()?.role !== 'admin') {
       return false;
