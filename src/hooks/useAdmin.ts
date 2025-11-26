@@ -4,54 +4,52 @@ import { useEffect, useState } from 'react';
 import { useUser } from '@/firebase';
 
 /**
- * A hook to determine if the currently authenticated user has an 'admin' role.
- * This hook inspects the user's ID token claims.
+ * A hook to determine if the currently authenticated user has an 'admin' role
+ * by checking the custom claims on their Firebase ID token.
  *
  * @returns An object with `isAdmin` and `isLoading` properties.
  */
 export function useAdmin() {
-  const { user, isUserLoading } = useUser();
+  const { user, isUserLoading: isAuthLoading } = useUser();
   const [isAdmin, setIsAdmin] = useState(false);
-  
-  // The loading state is true if the auth state is loading OR if the user exists but we haven't checked their token yet.
-  const [isCheckingClaims, setIsCheckingClaims] = useState(true);
+  const [isClaimsLoading, setIsClaimsLoading] = useState(true);
 
   useEffect(() => {
-    // If the auth state is still loading, we can't do anything yet.
-    if (isUserLoading) {
+    // If auth is still loading, we can't check claims yet.
+    if (isAuthLoading) {
       return;
     }
     
     // If there is no user, they are definitely not an admin.
     if (!user) {
       setIsAdmin(false);
-      setIsCheckingClaims(false);
+      setIsClaimsLoading(false);
       return;
     }
 
-    // If a user exists, check their ID token for the custom claim.
-    user.getIdTokenResult()
+    // When the user object is available, get their ID token result.
+    // The `true` argument forces a refresh of the token to get the latest claims.
+    user.getIdTokenResult(true)
       .then((idTokenResult) => {
-        // The custom claims are located in the `claims` object.
+        // Custom claims are on the `claims` object.
+        // Check for the 'role' claim.
         const userClaims = idTokenResult.claims;
-        
-        // Check if the 'role' claim exists and is set to 'admin'.
         setIsAdmin(userClaims.role === 'admin');
       })
       .catch((error) => {
-        console.error("Error getting user claims:", error);
+        console.error("Erro ao buscar as permissões do usuário:", error);
         setIsAdmin(false);
       })
       .finally(() => {
-        // Mark the claim check as complete.
-        setIsCheckingClaims(false);
+        // Mark claims checking as complete.
+        setIsClaimsLoading(false);
       });
 
-  }, [user, isUserLoading]);
+  }, [user, isAuthLoading]);
 
   return {
     isAdmin,
-    // The final loading state depends on both the auth state and the claim checking process.
-    isLoading: isUserLoading || isCheckingClaims,
+    // The overall loading state is true until both auth and claims are resolved.
+    isLoading: isAuthLoading || isClaimsLoading,
   };
 }
