@@ -23,18 +23,17 @@ service cloud.firestore {
     }
 
     // Regra específica para a collectionGroup 'dailyUsage'
+    // Esta regra permite que um admin leia os dados de uso de todos os usuários.
+    // É crucial que a lógica no app (useAdmin hook) já tenha verificado se
+    // o usuário é admin ANTES de executar esta query.
     match /{path=**}/dailyUsage/{usageId} {
-      // Admin pode ler os dados de uso de todos os usuários para o dashboard
-      allow read: if request.auth != null && isAdmin();
+      allow read: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
-    // Subcoleções do usuário
-    match /users/{userId}/{subcollection=**} {
+    // Subcoleções do usuário (exceto dailyUsage, que tem regra própria acima)
+    match /users/{userId}/{subcollection}/{docId} {
       // O usuário pode ler e escrever em suas próprias subcoleções
       allow read, write: if request.auth != null && request.auth.uid == userId;
-      // Admin pode LER QUALQUER subcoleção de QUALQUER usuário.
-      // Isso permite collectionGroup queries seguras para admins.
-      allow read: if request.auth != null && isAdmin();
     }
 
     // Coleção roteiro (livre)

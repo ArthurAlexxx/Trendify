@@ -7,13 +7,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { DailyUsage, UserProfile } from '@/lib/types';
 import { collection, collectionGroup, orderBy, query, limit, getDoc, doc } from 'firebase/firestore';
-import { format, formatDistanceToNow, parseISO } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Video, Lightbulb, User, Loader2, Inbox } from 'lucide-react';
 import { useEffect, useState, useMemo } from 'react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import Link from 'next/link';
+import { useAdmin } from '@/hooks/useAdmin';
 
 interface EnrichedUsage extends DailyUsage {
   user?: UserProfile;
@@ -22,23 +22,26 @@ interface EnrichedUsage extends DailyUsage {
 
 export default function UsageAdminPage() {
   const firestore = useFirestore();
+  const { isAdmin, isLoading: isAdminLoading } = useAdmin();
   const [enrichedUsage, setEnrichedUsage] = useState<EnrichedUsage[]>([]);
   const [isEnriching, setIsEnriching] = useState(true);
 
-  // 1. Fetch all usage documents using a collectionGroup query
+  // 1. Fetch all usage documents using a collectionGroup query, only if user is an admin
   const usageQuery = useMemoFirebase(
-    () => firestore ? query(collectionGroup(firestore, 'dailyUsage'), orderBy('date', 'desc'), limit(50)) : null,
-    [firestore]
+    () => firestore && isAdmin ? query(collectionGroup(firestore, 'dailyUsage'), orderBy('date', 'desc'), limit(50)) : null,
+    [firestore, isAdmin]
   );
-  const { data: usageData, isLoading: isLoadingUsage } = useCollection<DailyUsage>(usageQuery);
+  const { data: usageData, isLoading: isLoadingUsage, error } = useCollection<DailyUsage>(usageQuery);
   
   // 2. Enrich usage data with user profiles
   useEffect(() => {
-    if (isLoadingUsage || !firestore) {
+    if (!isAdmin || isLoadingUsage || !firestore) {
+      if (!isAdmin && !isAdminLoading) {
+        setIsEnriching(false);
+      }
       return;
     }
     
-    // Handle the case where there is no usage data
     if (!usageData) {
         setIsEnriching(false);
         setEnrichedUsage([]);
@@ -51,9 +54,8 @@ export default function UsageAdminPage() {
       const userCache = new Map<string, UserProfile>();
 
       for (const usage of usageData) {
-        // Correctly get the user ID from the document's path
         const pathSegments = usage.ref.path.split('/');
-        const realUserId = pathSegments[pathSegments.length - 3]; // .../users/{userId}/dailyUsage/{date}
+        const realUserId = pathSegments[pathSegments.length - 3]; 
 
         if (!realUserId) continue;
 
@@ -74,7 +76,6 @@ export default function UsageAdminPage() {
         enriched.push({
             ...usage,
             user: userProfile,
-            // The document ID from a subcollection query IS the subcollection doc id.
             dateStr: usage.id
         });
       }
@@ -83,7 +84,7 @@ export default function UsageAdminPage() {
     };
 
     enrichData();
-  }, [usageData, isLoadingUsage, firestore]);
+  }, [usageData, isLoadingUsage, firestore, isAdmin, isAdminLoading]);
 
   const totalVideoAnalyses = useMemo(() => {
     return usageData?.reduce((acc, usage) => acc + (usage.videoAnalyses || 0), 0) || 0;
@@ -93,7 +94,7 @@ export default function UsageAdminPage() {
     return usageData?.reduce((acc, usage) => acc + (usage.geracoesAI || 0), 0) || 0;
   }, [usageData]);
   
-  const isLoading = isLoadingUsage || isEnriching;
+  const isLoading = isAdminLoading || isLoadingUsage || isEnriching;
 
   return (
     <div className="space-y-8">
