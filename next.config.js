@@ -48,7 +48,14 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'p77-sign-va.tiktokcdn.com',
       },
+      {
+        protocol: 'https',
+        hostname: '**.fbcdn.net',
+      },
     ],
+  },
+  serverActions: {
+    bodySizeLimit: '80mb',
   },
 };
 
