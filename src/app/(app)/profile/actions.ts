@@ -72,17 +72,17 @@ export type InstagramPostData = {
 
 const TikTokApi6ProfileSchema = z.object({
     username: z.string(),
-    nickname: z.string(),
+    nickname: z.string().optional(),
     user_id: z.string(),
-    profile_image: z.string().url(),
-    followers: z.number(),
-    following: z.number(),
-    total_videos: z.number(),
-    total_heart: z.number(),
-    verified: z.boolean(),
-    description: z.string(),
+    profile_image: z.string().url().optional(),
+    followers: z.number().optional(),
+    following: z.number().optional(),
+    total_videos: z.number().optional(),
+    total_heart: z.number().optional(),
+    verified: z.boolean().optional(),
+    description: z.string().optional(),
     secondary_id: z.string().optional(),
-    is_private: z.boolean(),
+    is_private: z.boolean().optional(),
 }).passthrough();
 
 
@@ -103,14 +103,14 @@ export type TikTokProfileData = {
 
 const TikTokPostSchema = z.object({
     video_id: z.string(),
-    description: z.string(),
+    description: z.string().optional(),
     cover: z.string().url(),
     create_time: z.number().optional(),
     statistics: z.object({
         number_of_plays: z.number().or(z.string()).transform(val => Number(val)).optional(),
         number_of_hearts: z.number().or(z.string()).transform(val => Number(val)).optional(),
         number_of_comments: z.number().or(z.string()).transform(val => Number(val)).optional(),
-    }).passthrough(),
+    }).passthrough().optional(),
 }).passthrough();
 
 
@@ -252,6 +252,18 @@ export async function getInstagramPosts(username: string): Promise<InstagramPost
         const postsData = result?.result?.edges;
         
         if (!Array.isArray(postsData)) {
+            // Find the first value in the result object that is an array
+            const potentialArray = Object.values(result).find(value => Array.isArray(value));
+            if (Array.isArray(potentialArray)) {
+                 const parsedPosts = potentialArray.map((item: any) => InstagramPostSchema.parse(item.node || item));
+                 return parsedPosts.map(post => ({
+                    id: post.id,
+                    caption: post.caption?.text || null,
+                    mediaUrl: post.image_versions2.candidates[0].url,
+                    likes: post.like_count,
+                    comments: post.comment_count,
+                }));
+            }
             throw new Error('A resposta da API de posts não continha uma lista de publicações.');
         }
 
@@ -288,16 +300,16 @@ export async function getTikTokProfile(username: string): Promise<TikTokProfileD
         return {
             id: parsed.user_id,
             username: parsed.username,
-            nickname: parsed.nickname,
-            avatarUrl: parsed.profile_image,
-            bio: parsed.description,
-            isVerified: parsed.verified,
-            isPrivate: parsed.is_private,
+            nickname: parsed.nickname || '',
+            avatarUrl: parsed.profile_image || '',
+            bio: parsed.description || '',
+            isVerified: parsed.verified || false,
+            isPrivate: parsed.is_private || false,
             secUid: parsed.secondary_id,
-            followersCount: parsed.followers,
-            followingCount: parsed.following,
-            heartsCount: parsed.total_heart,
-            videoCount: parsed.total_videos,
+            followersCount: parsed.followers || 0,
+            followingCount: parsed.following || 0,
+            heartsCount: parsed.total_heart || 0,
+            videoCount: parsed.total_videos || 0,
         };
     } catch (e: any) {
         console.error(`[ACTION ERROR - getTikTokProfile]`, e);
@@ -327,11 +339,11 @@ export async function getTikTokPosts(username: string): Promise<TikTokPostData[]
 
         return recentPosts.map(post => ({
             id: post.video_id,
-            description: post.description,
+            description: post.description || '',
             coverUrl: post.cover,
-            views: post.statistics.number_of_plays ?? 0,
-            likes: post.statistics.number_of_hearts ?? 0,
-            comments: post.statistics.number_of_comments ?? 0,
+            views: post.statistics?.number_of_plays ?? 0,
+            likes: post.statistics?.number_of_hearts ?? 0,
+            comments: post.statistics?.number_of_comments ?? 0,
         }));
 
     } catch (e: any) {
