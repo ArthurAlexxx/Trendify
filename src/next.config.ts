@@ -43,19 +43,11 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'scontent-fco2-1.cdninstagram.com',
+        hostname: 'scontent*.cdninstagram.com',
       },
       {
         protocol: 'https',
-        hostname: 'scontent-*.cdninstagram.com',
-      },
-      {
-        protocol: 'https',
-        hostname: '**.cdninstagram.com',
-      },
-      {
-        protocol: 'https',
-        hostname: '*.fna.fbcdn.net',
+        hostname: '**.fbcdn.net',
       },
     ],
   },
