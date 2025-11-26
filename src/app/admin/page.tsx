@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
@@ -23,7 +22,7 @@ export default function AdminPage() {
   // The isLoading state from useCollection will be true until isAdmin is true and the query runs
   const { data: users, isLoading: isUsersLoading } = useCollection<UserProfile>(usersQuery);
 
-  const isLoading = isAdminLoading || isUsersLoading;
+  const isLoading = isAdminLoading || (isAdmin && isUsersLoading);
 
   return (
     <div className="space-y-8">

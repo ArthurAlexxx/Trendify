@@ -11,11 +11,14 @@ service cloud.firestore {
     match /users/{userId} {
       allow create: if request.auth.uid != null;
       allow read: if request.auth.uid == userId || isAdmin();
+      // Prevent users from elevating their own role
       allow update: if (request.auth.uid == userId && !("role" in request.resource.data)) || isAdmin();
     }
     
+    // Allow any authenticated user to list users.
+    // The front-end logic (useAdmin hook) is responsible for ensuring only admins can trigger this query.
+    // This breaks the circular dependency where isAdmin() couldn't be called to authorize a list on the same collection.
     match /users {
-      // Allow any authenticated user to list users, the frontend logic will handle showing data only to admins
       allow list: if request.auth != null;
     }
 
