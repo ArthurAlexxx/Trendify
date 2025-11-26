@@ -72,7 +72,7 @@ import { z } from 'zod';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { getInstagramProfile, getTikTokPosts, getTikTokProfile, getInstagramPosts } from '../profile/actions';
 import { useSubscription } from '@/hooks/useSubscription';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
@@ -1195,3 +1195,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    
