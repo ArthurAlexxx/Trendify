@@ -6,46 +6,37 @@ import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { UserProfile } from '@/lib/types';
 import { collection, query, where } from 'firebase/firestore';
-import { UserTable } from '@/components/admin/user-table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAdmin } from '@/hooks/useAdmin';
-import { useState } from 'react';
 import { Users, Crown, Sparkles } from 'lucide-react';
 
 export default function AdminPage() {
   const firestore = useFirestore();
   const { isAdmin, isLoading: isAdminLoading } = useAdmin();
-  const [planFilter, setPlanFilter] = useState<'all' | 'free' | 'pro' | 'premium'>('all');
 
-  const usersQuery = useMemoFirebase(
-    () => {
-      if (!firestore || !isAdmin) return null;
-      
-      const baseQuery = collection(firestore, 'users');
-      if (planFilter === 'all') {
-        return baseQuery;
-      }
-      return query(baseQuery, where('subscription.plan', '==', planFilter));
-    },
-    [firestore, isAdmin, planFilter]
+  // Query for all users, only if the current user is an admin
+  const allUsersQuery = useMemoFirebase(
+    () => (firestore && isAdmin ? collection(firestore, 'users') : null),
+    [firestore, isAdmin]
   );
-  
-  const { data: users, isLoading: isUsersLoading } = useCollection<UserProfile>(usersQuery);
+  const { data: users, isLoading: isUsersLoading } = useCollection<UserProfile>(allUsersQuery);
 
   const isLoading = isAdminLoading || (isAdmin && isUsersLoading);
 
   const totalUsers = users?.length || 0;
-  const proUsers = users?.filter(u => u.subscription?.plan === 'pro').length || 0;
-  const premiumUsers = users?.filter(u => u.subscription?.plan === 'premium').length || 0;
+  const proUsers = users?.filter(u => u.subscription?.plan === 'pro' && u.subscription.status === 'active').length || 0;
+  const premiumUsers = users?.filter(u => u.subscription?.plan === 'premium' && u.subscription.status === 'active').length || 0;
+  const freeUsers = totalUsers - proUsers - premiumUsers;
+
 
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Painel de Administração"
-        description="Gerencie usuários e veja as estatísticas da plataforma."
+        title="Dashboard de Administração"
+        description="Métricas e visão geral da plataforma."
       />
 
-       <div className="grid gap-4 md:grid-cols-3">
+       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total de Usuários</CardTitle>
@@ -53,6 +44,7 @@ export default function AdminPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{isLoading ? <Skeleton className='h-8 w-16' /> : totalUsers}</div>
+            <p className="text-xs text-muted-foreground">{freeUsers} gratuitos</p>
           </CardContent>
         </Card>
         <Card>
@@ -62,6 +54,7 @@ export default function AdminPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{isLoading ? <Skeleton className='h-8 w-16' /> : proUsers}</div>
+            <p className="text-xs text-muted-foreground">Plano Pro ativo</p>
           </CardContent>
         </Card>
         <Card>
@@ -71,26 +64,32 @@ export default function AdminPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{isLoading ? <Skeleton className='h-8 w-16' /> : premiumUsers}</div>
+            <p className="text-xs text-muted-foreground">Plano Premium ativo</p>
           </CardContent>
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Gerenciamento de Usuários</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="space-y-2">
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-            </div>
-          ) : (
-            <UserTable data={users || []} />
-          )}
-        </CardContent>
-      </Card>
+       {/* Placeholder for future charts */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Crescimento de Usuários</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-64 w-full" />
+             <p className="text-xs text-muted-foreground mt-2 text-center">Gráfico de crescimento de usuários (em breve).</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Receita Mensal (MRR)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-64 w-full" />
+             <p className="text-xs text-muted-foreground mt-2 text-center">Gráfico de receita mensal recorrente (em breve).</p>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
