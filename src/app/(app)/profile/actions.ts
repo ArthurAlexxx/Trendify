@@ -139,9 +139,7 @@ async function fetchFromRapidApi(platform: 'instagram-profile' | 'instagram-post
 
     let host: string | undefined;
     let path: string;
-    let options: RequestInit = { method: 'GET' };
-    const url = new URL('https://' + host);
-
+    let options: RequestInit;
 
     switch (platform) {
         case 'instagram-profile':
@@ -157,13 +155,11 @@ async function fetchFromRapidApi(platform: 'instagram-profile' | 'instagram-post
         case 'tiktok-profile':
             host = process.env.TIKTOK_RAPIDAPI_HOST;
             path = 'user/details';
-            url.searchParams.set('username', username);
             options = { method: 'GET' };
             break;
         case 'tiktok-posts':
             host = process.env.TIKTOK_RAPIDAPI_HOST;
             path = 'user/videos';
-            url.searchParams.set('username', username);
             options = { method: 'GET' };
             break;
         default:
@@ -176,7 +172,7 @@ async function fetchFromRapidApi(platform: 'instagram-profile' | 'instagram-post
     
     const finalUrl = new URL(`https://${host}/${path}`);
     if (options.method === 'GET') {
-      finalUrl.search = url.search;
+      finalUrl.searchParams.set('username', username);
     }
 
     return fetchData(finalUrl.toString(), addRapidApiHeaders(options, host, apiKey));
@@ -260,18 +256,7 @@ export async function getInstagramPosts(username: string): Promise<InstagramPost
         const postsData = result?.result?.edges;
         
         if (!Array.isArray(postsData)) {
-            const potentialArray = Object.values(result).find(value => Array.isArray(value));
-            if (Array.isArray(potentialArray)) {
-                 const parsedPosts = potentialArray.map((item: any) => InstagramPostSchema.parse(item.node || item));
-                 return parsedPosts.map(post => ({
-                    id: post.id,
-                    caption: post.caption?.text || null,
-                    mediaUrl: post.image_versions2.candidates[0].url,
-                    likes: post.like_count,
-                    comments: post.comment_count,
-                }));
-            }
-            throw new Error('A resposta da API de posts não continha uma lista de publicações.');
+             throw new Error('A resposta da API de posts não continha uma lista de publicações em `result.edges`.');
         }
 
         const parsedPosts = postsData.map((edge: any) => InstagramPostSchema.parse(edge.node));
@@ -361,4 +346,3 @@ export async function getTikTokPosts(username: string): Promise<TikTokPostData[]
         }
         throw new Error(`Falha ao buscar posts do TikTok: ${e.message}`);
     }
-}
