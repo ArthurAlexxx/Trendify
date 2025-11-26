@@ -23,11 +23,10 @@ import { z } from 'zod';
 import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { Textarea } from '@/components/ui/textarea';
 import { updateProfile } from 'firebase/auth';
-import type { UserProfile } from '@/lib/types';
+import type { UserProfile, InstagramProfileData, InstagramPostData, TikTokProfileData, TikTokPostData } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { InstagramProfileData, InstagramPostData, TikTokProfileData, TikTokPostData } from './actions';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { getInstagramProfile, getTikTokPosts, getTikTokProfile, getInstagramPosts } from './actions';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
@@ -438,7 +437,7 @@ export default function ProfilePage() {
                 {/* Instagram */}
                 <div className="space-y-6">
                     <h3 className="text-lg font-semibold flex items-center gap-2"><Instagram className="h-5 w-5" /> Métricas do Instagram</h3>
-                    <div className="grid sm:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         <div className="space-y-2">
                         <Label htmlFor="instagramHandle">Handle do Instagram</Label>
                         <Input
@@ -453,7 +452,7 @@ export default function ProfilePage() {
                         <Input id="instagramFollowers" {...form.register('instagramFollowers')} placeholder="Ex: 250K" className="h-11" />
                         </div>
                     </div>
-                    <div className="grid sm:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                         <div className="space-y-2">
                         <Label htmlFor="instagramAverageViews">Média de Views (Manual)</Label>
                         <Input id="instagramAverageViews" {...form.register('instagramAverageViews')} placeholder="Ex: 15.5K" className="h-11" />
@@ -474,7 +473,7 @@ export default function ProfilePage() {
                 {/* TikTok */}
                 <div className="space-y-6">
                     <h3 className="text-lg font-semibold flex items-center gap-2"><Film className="h-5 w-5" /> Métricas do TikTok</h3>
-                     <div className="grid sm:grid-cols-2 gap-6">
+                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         <div className="space-y-2">
                         <Label htmlFor="tiktokHandle">Handle do TikTok</Label>
                         <Input
@@ -489,7 +488,7 @@ export default function ProfilePage() {
                         <Input id="tiktokFollowers" {...form.register('tiktokFollowers')} placeholder="Ex: 1.2M" className="h-11" />
                         </div>
                     </div>
-                    <div className="grid sm:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                         <div className="space-y-2">
                         <Label htmlFor="tiktokAverageViews">Média de Views</Label>
                         <Input id="tiktokAverageViews" {...form.register('tiktokAverageViews')} placeholder="Ex: 1M" className="h-11" />
@@ -662,5 +661,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
-    

@@ -90,13 +90,15 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
   const isUserActive = subscription?.status === 'active';
 
   const getPlanName = () => {
-    if (!isUserActive) return "Upgrade";
+    if (!subscription || isLoading) return "Carregando...";
+    if (!isUserActive && userPlan === 'free') return "Fazer Upgrade";
     if (userPlan === 'premium') return 'Premium';
     if (userPlan === 'pro') return 'Pro';
-    return "Upgrade";
+    return "Gratuito";
   }
   
   const getPlanIcon = () => {
+    if (!subscription || isLoading) return <Skeleton className="h-5 w-5 rounded-full" />;
     if (isUserActive && (userPlan === 'pro' || userPlan === 'premium')) return <Sparkles className="h-5 w-5" />;
     return <Crown className="h-5 w-5" />;
   }
@@ -124,7 +126,7 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
         <div className='relative'>
              <Link href="/subscribe" onClick={handleLinkClick} className="block w-full text-left p-4 rounded-xl bg-gradient-to-br from-primary via-purple-500 to-violet-600 text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-shadow">
                 <div className='flex items-center gap-3'>
-                    {isSubscriptionLoading ? <Skeleton className="h-6 w-6 rounded-full" /> : getPlanIcon()}
+                    {getPlanIcon()}
                     <div className='flex flex-col'>
                         {isSubscriptionLoading ? <Skeleton className="h-5 w-20" /> : <span className='font-semibold text-lg leading-tight'>{getPlanName()}</span>}
                         <span className='text-sm opacity-80'>Gerenciar assinatura</span>

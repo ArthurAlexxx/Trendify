@@ -13,6 +13,9 @@ const formSchema = z.object({
   planId: z.string().min(1, 'O ID do plano é obrigatório.'),
 });
 
+type FormSchemaType = z.infer<typeof formSchema>;
+
+
 const PixChargeResponseSchema = z.object({
   id: z.string(),
   brCode: z.string(),
@@ -36,7 +39,7 @@ const planDetails: Record<string, { amount: number; description: string; plan: P
 
 
 async function createPixCharge(
-  input: z.infer<typeof formSchema>
+  input: FormSchemaType
 ): Promise<PixChargeResponse> {
   const userId = input.userId;
   const ABACATE_API_KEY = process.env.ABACATE_API_KEY;
@@ -100,7 +103,7 @@ async function createPixCharge(
 
 export async function createPixChargeAction(
   prevState: ActionState,
-  formData: z.infer<typeof formSchema>
+  formData: FormSchemaType
 ): Promise<ActionState> {
 
   const parsed = formSchema.safeParse(formData);

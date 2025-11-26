@@ -807,7 +807,7 @@ export default function DashboardPage() {
       />
 
       <div className="space-y-8">
-        <ProfileCompletionAlert userProfile={userProfile} hasUpdatedToday={hasUpdatedToday} isPremium={isPremium} />
+        {userProfile && <ProfileCompletionAlert userProfile={userProfile} hasUpdatedToday={hasUpdatedToday} isPremium={isPremium} />}
 
         {/* Métricas e Publicações */}
         <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0">
@@ -1195,7 +1195,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-    
-
-    

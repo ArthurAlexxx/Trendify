@@ -42,6 +42,8 @@ const formSchema = z.object({
   currentStats: z.string().min(3, 'Suas estatísticas são necessárias.'),
 });
 
+type FormSchemaType = z.infer<typeof formSchema>;
+
 type WeeklyPlanState = {
   data?: GenerateWeeklyPlanOutput;
   error?: string;
@@ -70,7 +72,7 @@ function extractJson(text: string) {
 }
 
 async function generateWeeklyPlan(
-  input: z.infer<typeof formSchema>
+  input: FormSchemaType
 ): Promise<GenerateWeeklyPlanOutput> {
   const systemPrompt = `Você é um "AI Growth Strategist" para criadores de conteúdo. Sua tarefa é criar um plano de conteúdo semanal completo e acionável, além de uma simulação de desempenho correspondente.
   Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON deve se conformar estritamente ao schema fornecido.`;
