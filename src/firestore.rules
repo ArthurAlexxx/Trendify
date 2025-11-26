@@ -10,14 +10,6 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
-    // --- Admin-only rules ---
-
-    // Admins can read the entire 'users' collection.
-    match /users/{userId} {
-      allow list: if isAdmin();
-    }
-
-
     // --- User-specific rules ---
 
     match /users/{userId} {
@@ -31,6 +23,13 @@ service cloud.firestore {
       // This prevents a user from making themselves an admin.
       allow update: if request.auth.uid == userId && !("role" in request.resource.data);
     }
+    
+    // --- Admin-only Collection Rules ---
+    match /users {
+      // Admins can read the entire 'users' collection.
+      allow list: if isAdmin();
+    }
+
 
     // Allow users to manage their own saved ideas subcollection
     match /users/{userId}/ideiasSalvas/{ideiaId} {
