@@ -14,11 +14,16 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Badge } from '../ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import { Crown, MoreHorizontal, Edit } from 'lucide-react';
+import { Crown, MoreHorizontal, Edit, Shield } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { Button } from '../ui/button';
 import { ChangePlanDialog } from './change-plan-dialog';
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '../ui/alert-dialog';
+import { changeUserRoleAction } from '@/app/admin/actions';
+import { useUser } from '@/firebase';
+import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 interface UserTableProps {
   data: UserProfile[];
@@ -34,19 +39,42 @@ const getPlanName = (plan: 'free' | 'pro' | 'premium' | undefined) => {
 
 export function UserTable({ data }: UserTableProps) {
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isPlanDialogOpen, setIsPlanDialogOpen] = useState(false);
+  const [isRoleTransitioning, startRoleTransition] = useTransition();
+  const { user: adminUser } = useUser();
+  const { toast } = useToast();
 
-  const handleOpenDialog = (user: UserProfile) => {
+  const handleOpenPlanDialog = (user: UserProfile) => {
     setSelectedUser(user);
-    setIsDialogOpen(true);
+    setIsPlanDialogOpen(true);
   };
+  
+  const handlePromoteToAdmin = (userToPromote: UserProfile) => {
+    if (!adminUser) {
+        toast({ title: "Erro", description: "Ação não permitida.", variant: "destructive" });
+        return;
+    }
+    startRoleTransition(async () => {
+        const result = await changeUserRoleAction({
+            targetUserId: userToPromote.id,
+            newRole: 'admin',
+            adminUserId: adminUser.uid
+        });
+
+        if (result.success) {
+            toast({ title: 'Sucesso!', description: `${userToPromote.displayName} agora é um administrador.` });
+        } else {
+            toast({ title: 'Erro', description: result.error, variant: 'destructive' });
+        }
+    });
+  }
 
   return (
     <>
     {selectedUser && (
       <ChangePlanDialog 
-        isOpen={isDialogOpen} 
-        setIsOpen={setIsDialogOpen}
+        isOpen={isPlanDialogOpen} 
+        setIsOpen={setIsPlanDialogOpen}
         user={selectedUser}
       />
     )}
@@ -101,10 +129,38 @@ export function UserTable({ data }: UserTableProps) {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => handleOpenDialog(user)}>
+                        <DropdownMenuItem onClick={() => handleOpenPlanDialog(user)}>
                             <Edit className="mr-2 h-4 w-4" />
                             <span>Alterar Plano</span>
                         </DropdownMenuItem>
+                         {user.role !== 'admin' && (
+                            <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}
+                                    className="text-amber-600 focus:bg-amber-100 focus:text-amber-700">
+                                    <Shield className="mr-2 h-4 w-4" />
+                                    <span>Promover a Admin</span>
+                                </DropdownMenuItem>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Promover a Administrador?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            Esta ação concederá a <strong>{user.displayName}</strong> acesso total ao painel de administração. Você tem certeza?
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                        <AlertDialogAction
+                                            className={cn(buttonVariants({ variant: 'default' }), "bg-amber-600 hover:bg-amber-700")}
+                                            onClick={() => handlePromoteToAdmin(user)}
+                                        >
+                                            Sim, promover
+                                        </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                         )}
                     </DropdownMenuContent>
                 </DropdownMenu>
             </TableCell>
@@ -115,4 +171,3 @@ export function UserTable({ data }: UserTableProps) {
     </>
   );
 }
-
