@@ -10,17 +10,23 @@ export function initializeFirebaseAdmin(): { app: App; auth: ReturnType<typeof g
     return { app, auth: getAuth(app), firestore: getFirestore(app) };
   }
 
-  // Check if running in Vercel production environment and GOOGLE_APPLICATION_CREDENTIALS_JSON is set
-  if (process.env.VERCEL_ENV === 'production' && process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
-    const serviceAccount = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
-    const app = initializeApp({
-      credential: cert(serviceAccount),
-    });
-    return { app, auth: getAuth(app), firestore: getFirestore(app) };
-  } else {
-    // Fallback for local development or other environments where Application Default Credentials are set
-    // e.g., via `gcloud auth application-default login`
-    const app = initializeApp();
-    return { app, auth: getAuth(app), firestore: getFirestore(app) };
+  // Check if running in a server environment where GOOGLE_APPLICATION_CREDENTIALS_JSON is set (e.g., Vercel)
+  const creds = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
+  if (creds) {
+    try {
+        const serviceAccount = JSON.parse(creds);
+        const app = initializeApp({
+            credential: cert(serviceAccount),
+        });
+        return { app, auth: getAuth(app), firestore: getFirestore(app) };
+    } catch (e) {
+        console.error("Failed to parse GOOGLE_APPLICATION_CREDENTIALS_JSON:", e);
+        // Fallback or throw an error
+    }
   }
+
+  // Fallback for local development or other environments where Application Default Credentials are set
+  // e.g., via `gcloud auth application-default login`
+  const app = initializeApp();
+  return { app, auth: getAuth(app), firestore: getFirestore(app) };
 }
