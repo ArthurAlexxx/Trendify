@@ -51,6 +51,8 @@ const formSchema = z.object({
   targetBrand: z.string().min(3, 'A marca alvo deve ter pelo menos 3 caracteres.'),
 });
 
+type FormSchemaType = z.infer<typeof formSchema>;
+
 type CareerPackageState = {
   data?: AiCareerPackageOutput;
   error?: string;
@@ -145,7 +147,7 @@ function MediaKitPageContent() {
   );
   const { data: userProfile, isLoading: isLoadingProfile } = useDoc<UserProfile>(userProfileRef);
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       niche: '',
@@ -154,7 +156,7 @@ function MediaKitPageContent() {
     },
   });
 
-  const formAction = async (formData: FormData) => {
+  const formAction = async (formData: FormSchemaType) => {
     startTransition(async () => {
       const result = await getAiCareerPackageAction(null, formData);
       setState(result);
@@ -281,7 +283,7 @@ function MediaKitPageContent() {
             <CardContent>
               <Form {...form}>
                 <form
-                  onSubmit={form.handleSubmit(data => formAction(data as any))}
+                  onSubmit={form.handleSubmit(formAction)}
                   className="space-y-8 text-left"
                 >
                   <div className="space-y-6">

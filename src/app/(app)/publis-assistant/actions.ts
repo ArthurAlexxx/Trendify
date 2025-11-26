@@ -32,6 +32,8 @@ const formSchema = z.object({
   extraInfo: z.string().optional(),
 });
 
+type FormSchemaType = z.infer<typeof formSchema>;
+
 
 type PubliProposalsState = {
   data?: GeneratePubliProposalsOutput;
@@ -118,9 +120,9 @@ Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON d
 
 export async function generatePubliProposalsAction(
   prevState: PubliProposalsState,
-  formData: FormData
+  formData: FormSchemaType
 ): Promise<PubliProposalsState> {
-  const parsed = formSchema.safeParse(Object.fromEntries(formData));
+  const parsed = formSchema.safeParse(formData);
 
   if (!parsed.success) {
     const issues = parsed.error.issues.map((i) => i.message).join(', ');

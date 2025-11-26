@@ -65,6 +65,8 @@ const formSchema = z.object({
     .min(3, 'A marca alvo deve ter pelo menos 3 caracteres.'),
 });
 
+type FormSchemaType = z.infer<typeof formSchema>;
+
 type CareerPackageState = {
   data?: AiCareerPackageOutput;
   error?: string;
@@ -156,13 +158,9 @@ Sua resposta DEVE ser um bloco de código JSON válido, e NADA MAIS. O JSON deve
 
 export async function getAiCareerPackageAction(
   prevState: CareerPackageState,
-  formData: FormData
+  formData: FormSchemaType
 ): Promise<CareerPackageState> {
-  const parsed = formSchema.safeParse({
-    niche: formData.get('niche'),
-    keyMetrics: formData.get('keyMetrics'),
-    targetBrand: formData.get('targetBrand'),
-  });
+  const parsed = formSchema.safeParse(formData);
 
   if (!parsed.success) {
     const issues = parsed.error.issues.map((i) => i.message).join(', ');

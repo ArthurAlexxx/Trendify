@@ -127,9 +127,9 @@ async function generateWeeklyPlan(
 
 export async function generateWeeklyPlanAction(
   prevState: WeeklyPlanState,
-  formData: FormData
+  formData: FormSchemaType
 ): Promise<WeeklyPlanState> {
-  const parsed = formSchema.safeParse(Object.fromEntries(formData));
+  const parsed = formSchema.safeParse(formData);
 
   if (!parsed.success) {
     return { error: 'Por favor, preencha todos os campos obrigatórios.' };

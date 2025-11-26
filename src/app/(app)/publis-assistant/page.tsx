@@ -66,6 +66,8 @@ const formSchema = z.object({
   extraInfo: z.string().optional(),
 });
 
+type FormSchemaType = z.infer<typeof formSchema>;
+
 type PubliProposalsState = {
   data?: GeneratePubliProposalsOutput;
   error?: string;
@@ -164,7 +166,7 @@ function PublisAssistantPageContent() {
   const hasReachedFreeLimit = isTrialActive && generationsToday >= 2;
 
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       product: 'Tênis de corrida "Velocity"',
@@ -177,7 +179,7 @@ function PublisAssistantPageContent() {
   
   const result = state?.data;
 
-  const formAction = async (formData: FormData) => {
+  const formAction = async (formData: FormSchemaType) => {
     startTransition(async () => {
       const result = await generatePubliProposalsAction(null, formData);
       setState(result);
@@ -295,7 +297,7 @@ function PublisAssistantPageContent() {
         <CardContent>
           <Form {...form}>
             <form
-              onSubmit={form.handleSubmit(data => formAction(data as any))}
+              onSubmit={form.handleSubmit(formAction)}
               className="space-y-8 text-left"
             >
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-6">

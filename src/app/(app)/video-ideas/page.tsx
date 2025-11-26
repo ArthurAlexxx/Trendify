@@ -64,6 +64,8 @@ const formSchema = z.object({
   objective: z.string().min(1, 'O objetivo é obrigatório.'),
 });
 
+type FormSchemaType = z.infer<typeof formSchema>;
+
 type VideoIdeasState = {
   data?: GenerateVideoIdeasOutput;
   error?: string;
@@ -113,7 +115,7 @@ export default function VideoIdeasPage() {
   const hasReachedFreeLimit = isTrialActive && generationsToday >= 2;
 
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       topic: 'Como fazer o melhor café coado',
@@ -122,7 +124,7 @@ export default function VideoIdeasPage() {
     },
   });
 
-  const formAction = async (formData: FormData) => {
+  const formAction = async (formData: FormSchemaType) => {
     startTransition(async () => {
       const result = await generateVideoIdeasAction(null, formData);
       setState(result);
@@ -247,7 +249,7 @@ export default function VideoIdeasPage() {
         <CardContent>
           <Form {...form}>
             <form
-              onSubmit={form.handleSubmit(data => formAction(data as any))}
+              onSubmit={form.handleSubmit(formAction)}
               className="space-y-8 text-left"
             >
               <div className="grid md:grid-cols-2 gap-x-6 gap-y-6">

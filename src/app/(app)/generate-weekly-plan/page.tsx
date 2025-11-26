@@ -70,6 +70,8 @@ const formSchema = z.object({
   currentStats: z.string().min(1, 'As estatísticas são obrigatórias.'),
 });
 
+type FormSchemaType = z.infer<typeof formSchema>;
+
 type WeeklyPlanState = {
   data?: GenerateWeeklyPlanOutput;
   error?: string;
@@ -133,7 +135,7 @@ export default function GenerateWeeklyPlanPage() {
   const currentDesempenho = currentPlan?.desempenhoSimulado;
 
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       objective: '',
@@ -142,7 +144,7 @@ export default function GenerateWeeklyPlanPage() {
     },
   });
   
-  const formAction = async (formData: FormData) => {
+  const formAction = async (formData: FormSchemaType) => {
     startTransition(async () => {
       const result = await generateWeeklyPlanAction(null, formData);
       setState(result);
@@ -273,7 +275,7 @@ export default function GenerateWeeklyPlanPage() {
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(data => formAction(data as any))} className="space-y-8 text-left">
+            <form onSubmit={form.handleSubmit(formAction)} className="space-y-8 text-left">
               <div className="space-y-6">
                 <FormField
                   control={form.control}

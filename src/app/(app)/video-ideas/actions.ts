@@ -31,6 +31,9 @@ const formSchema = z.object({
   objective: z.string().min(1, 'Objective is required.'),
 });
 
+type FormSchemaType = z.infer<typeof formSchema>;
+
+
 type VideoIdeasState = {
   data?: GenerateVideoIdeasOutput;
   error?: string;
@@ -121,9 +124,9 @@ Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON d
 
 export async function generateVideoIdeasAction(
   prevState: VideoIdeasState,
-  formData: FormData
+  formData: FormSchemaType,
 ): Promise<VideoIdeasState> {
-  const parsed = formSchema.safeParse(Object.fromEntries(formData));
+  const parsed = formSchema.safeParse(formData);
 
   if (!parsed.success) {
     const issues = parsed.error.issues.map((i) => i.message).join(', ');
