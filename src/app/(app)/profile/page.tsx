@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useUser, useFirestore, useDoc, useMemoFirebase, initializeFirebase } from '@/firebase';
-import { User as UserIcon, Instagram, Film, Search, Loader2, AlertTriangle, Users, Heart, MessageSquare, Clapperboard, PlayCircle, Eye, Upload, Crown } from 'lucide-react';
+import { User as UserIcon, Instagram, Film, Search, Loader2, AlertTriangle, Users, Heart, MessageSquare, Clapperboard, PlayCircle, Eye, Upload, Crown, Check, RefreshCw } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,14 +20,12 @@ import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { Textarea } from '@/components/ui/textarea';
 import { updateProfile } from 'firebase/auth';
 import type { UserProfile } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import Image from 'next/image';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { InstagramProfileData, InstagramPostData, TikTokProfileData, TikTokPostData } from './actions';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
@@ -38,6 +36,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useSubscription } from '@/hooks/useSubscription';
 import Link from 'next/link';
 import { InstagramProfileResults, TikTokProfileResults } from '../dashboard/page';
+import { isToday } from 'date-fns';
 
 
 const profileFormSchema = z.object({
@@ -271,7 +270,14 @@ export default function ProfilePage() {
         form.setValue('instagramAverageLikes', formatNumber(Math.round(averageLikes)));
         form.setValue('instagramAverageComments', formatNumber(Math.round(averageComments)));
         
-        onProfileSubmit(form.getValues());
+        // This will trigger a save with the new data
+        if (user && userProfileRef) {
+          await updateDoc(userProfileRef, {
+             ...form.getValues(),
+             lastInstagramSync: serverTimestamp(),
+          });
+        }
+        
         setInstaStatus('success');
 
     } catch (e: any) {
@@ -316,7 +322,12 @@ export default function ProfilePage() {
         form.setValue('tiktokAverageComments', formatNumber(Math.round(averageComments)));
         form.setValue('tiktokAverageViews', formatNumber(Math.round(averageViews)));
        
-        onProfileSubmit(form.getValues());
+        if (user && userProfileRef) {
+          await updateDoc(userProfileRef, {
+             ...form.getValues(),
+             lastTikTokSync: serverTimestamp(),
+          });
+        }
         setTiktokStatus('success');
 
     } catch (e: any) {
@@ -324,6 +335,14 @@ export default function ProfilePage() {
       setTiktokStatus('error');
     }
   };
+
+  const hasSyncedToday = (lastSync: any) => {
+    if (!lastSync) return false;
+    return isToday(lastSync.toDate());
+  };
+
+  const isInstaSyncedToday = hasSyncedToday(userProfile?.lastInstagramSync);
+  const isTiktokSyncedToday = hasSyncedToday(userProfile?.lastTikTokSync);
 
   const isLoading = isProfileLoading || isSubscriptionLoading;
 
@@ -505,7 +524,7 @@ export default function ProfilePage() {
                   <span>Integração de Plataformas</span>
                 </CardTitle>
                 <CardDescription>
-                  Busque dados públicos de um perfil para preencher automaticamente suas métricas e foto.
+                  Busque dados públicos de um perfil para preencher ou atualizar suas métricas e foto (disponível uma vez por dia).
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -541,9 +560,15 @@ export default function ProfilePage() {
                                 </div>
                                 <AlertDialog>
                                 <AlertDialogTrigger asChild>
-                                    <Button type="button" disabled={instaStatus === 'loading' || !form.watch('instagramHandle')} className="w-full sm:w-auto">
-                                    <Search className="mr-2 h-4 w-4" />
-                                    Buscar Dados
+                                    <Button
+                                        type="button"
+                                        disabled={instaStatus === 'loading' || !form.watch('instagramHandle') || isInstaSyncedToday}
+                                        className="w-full sm:w-auto"
+                                    >
+                                        {isInstaSyncedToday ? <><Check className="mr-2 h-4 w-4" />Sincronizado Hoje</> :
+                                         instaStatus === 'loading' ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Buscando...</> :
+                                         userProfile?.instagramHandle ? <><RefreshCw className="mr-2 h-4 w-4" />Sincronizar Dados</> : 
+                                         <><Search className="mr-2 h-4 w-4" />Buscar Dados</>}
                                     </Button>
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
@@ -565,7 +590,7 @@ export default function ProfilePage() {
                         </Card>
                          {instaStatus === 'loading' && <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>}
                          {instaStatus === 'error' && instaError && <Alert variant="destructive" className="mt-4"><AlertTriangle className="h-4 w-4" /><AlertTitle>Erro ao Buscar Perfil</AlertTitle><AlertDescription>{instaError}</AlertDescription></Alert>}
-                         {instaStatus === 'success' && form.watch('instagramProfile') && <InstagramProfileResults profile={form.watch('instagramProfile')!} posts={form.watch('instagramPosts') ?? null} formatNumber={formatNumber} error={instaError} />}
+                         {instaStatus === 'success' && <InstagramProfileResults profile={form.watch('instagramProfile')!} posts={form.watch('instagramPosts') ?? null} formatNumber={formatNumber} error={instaError} />}
                     </TabsContent>
                     <TabsContent value="tiktok" className="mt-4">
                         <Card className='border-0 shadow-none'>
@@ -582,9 +607,15 @@ export default function ProfilePage() {
                                 </div>
                                 <AlertDialog>
                                 <AlertDialogTrigger asChild>
-                                    <Button type="button" disabled={tiktokStatus === 'loading' || !form.watch('tiktokHandle')} className="w-full sm:w-auto">
-                                    <Search className="mr-2 h-4 w-4" />
-                                    Buscar Dados
+                                    <Button
+                                        type="button"
+                                        disabled={tiktokStatus === 'loading' || !form.watch('tiktokHandle') || isTiktokSyncedToday}
+                                        className="w-full sm:w-auto"
+                                    >
+                                        {isTiktokSyncedToday ? <><Check className="mr-2 h-4 w-4" />Sincronizado Hoje</> :
+                                         tiktokStatus === 'loading' ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Buscando...</> :
+                                         userProfile?.tiktokHandle ? <><RefreshCw className="mr-2 h-4 w-4" />Sincronizar Dados</> : 
+                                         <><Search className="mr-2 h-4 w-4" />Buscar Dados</>}
                                     </Button>
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
@@ -606,7 +637,7 @@ export default function ProfilePage() {
                         </Card>
                          {tiktokStatus === 'loading' && <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>}
                          {tiktokStatus === 'error' && tiktokError && <Alert variant="destructive" className="mt-4"><AlertTriangle className="h-4 w-4" /><AlertTitle>Erro ao Buscar Perfil</AlertTitle><AlertDescription>{tiktokError}</AlertDescription></Alert>}
-                         {tiktokStatus === 'success' && form.watch('tiktokProfile') && <TikTokProfileResults profile={form.watch('tiktokProfile')!} posts={form.watch('tiktokPosts') ?? null} formatNumber={formatNumber} error={tiktokError} />}
+                         {tiktokStatus === 'success' && <TikTokProfileResults profile={form.watch('tiktokProfile')!} posts={form.watch('tiktokPosts') ?? null} formatNumber={formatNumber} error={tiktokError} />}
                     </TabsContent>
                   </Tabs>
                 </>
@@ -644,5 +675,3 @@ function MetricCard({ icon: Icon, label, value }: { icon: React.ElementType, lab
     </Card>
   )
 }
-
-      

@@ -24,6 +24,7 @@ import {
   Search,
   Crown,
   PlayCircle,
+  Check,
 } from 'lucide-react';
 import {
   ChartContainer,
@@ -364,6 +365,14 @@ const PlatformIntegrationModal = ({ userProfile }: { userProfile: UserProfile })
         return String(num);
     };
 
+    const hasSyncedToday = (lastSync: any) => {
+        if (!lastSync) return false;
+        return isToday(lastSync.toDate());
+    };
+
+    const isInstaSyncedToday = hasSyncedToday(userProfile.lastInstagramSync);
+    const isTiktokSyncedToday = hasSyncedToday(userProfile.lastTikTokSync);
+
     const handleInstagramSearch = async () => {
         if (!username) {
             toast({ title: 'Atenção', description: 'Por favor, insira um nome de usuário do Instagram.', variant: 'destructive' });
@@ -398,6 +407,7 @@ const PlatformIntegrationModal = ({ userProfile }: { userProfile: UserProfile })
                     instagramFollowers: formatNumber(profileResult.followersCount),
                     instagramAverageLikes: formatNumber(Math.round(averageLikes)),
                     instagramAverageComments: formatNumber(Math.round(averageComments)),
+                    lastInstagramSync: serverTimestamp() as any,
                 }
                 await updateDoc(userProfileRef, updateData);
                 toast({ title: "Perfil Atualizado!", description: "Os dados do Instagram foram salvos no seu perfil." });
@@ -448,6 +458,7 @@ const PlatformIntegrationModal = ({ userProfile }: { userProfile: UserProfile })
             tiktokAverageLikes: formatNumber(Math.round(averageLikes)),
             tiktokAverageComments: formatNumber(Math.round(averageComments)),
             tiktokAverageViews: formatNumber(Math.round(averageViews)),
+            lastTikTokSync: serverTimestamp() as any,
         };
         await updateDoc(userProfileRef, updateData);
         toast({ title: "Perfil Atualizado!", description: "Os dados do TikTok foram salvos no seu perfil." });
@@ -471,7 +482,7 @@ const PlatformIntegrationModal = ({ userProfile }: { userProfile: UserProfile })
                 <DialogHeader>
                     <DialogTitle className="font-headline text-xl">Conectar Plataformas</DialogTitle>
                     <DialogDescription>
-                        Busque dados públicos de um perfil para preencher automaticamente suas métricas.
+                        Busque dados públicos de um perfil para preencher ou atualizar suas métricas. A sincronização pode ser feita uma vez por dia.
                     </DialogDescription>
                 </DialogHeader>
                 <div className="mt-4">
@@ -491,10 +502,16 @@ const PlatformIntegrationModal = ({ userProfile }: { userProfile: UserProfile })
                               </div>
                               <AlertDialog>
                               <AlertDialogTrigger asChild>
-                                  <Button type="button" disabled={instaStatus === 'loading' || !username} className="w-full">
-                                  <Search className="mr-2 h-4 w-4" />
-                                  Buscar Dados
-                                  </Button>
+                                    <Button
+                                        type="button"
+                                        disabled={instaStatus === 'loading' || !username || isInstaSyncedToday}
+                                        className="w-full"
+                                    >
+                                        {isInstaSyncedToday ? <><Check className="mr-2 h-4 w-4" />Sincronizado Hoje</> :
+                                         instaStatus === 'loading' ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Buscando...</> :
+                                         userProfile.instagramHandle ? <><RefreshCw className="mr-2 h-4 w-4" />Sincronizar Dados</> : 
+                                         <><Search className="mr-2 h-4 w-4" />Buscar Dados</>}
+                                    </Button>
                               </AlertDialogTrigger>
                               <AlertDialogContent>
                                   <AlertDialogHeader>
@@ -527,9 +544,15 @@ const PlatformIntegrationModal = ({ userProfile }: { userProfile: UserProfile })
                                 </div>
                                 <AlertDialog>
                                 <AlertDialogTrigger asChild>
-                                    <Button type="button" disabled={tiktokStatus === 'loading' || !tiktokUsername} className="w-full">
-                                    <Search className="mr-2 h-4 w-4" />
-                                    Buscar Dados
+                                     <Button
+                                        type="button"
+                                        disabled={tiktokStatus === 'loading' || !tiktokUsername || isTiktokSyncedToday}
+                                        className="w-full"
+                                    >
+                                        {isTiktokSyncedToday ? <><Check className="mr-2 h-4 w-4" />Sincronizado Hoje</> :
+                                         tiktokStatus === 'loading' ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Buscando...</> :
+                                         userProfile.tiktokHandle ? <><RefreshCw className="mr-2 h-4 w-4" />Sincronizar Dados</> : 
+                                         <><Search className="mr-2 h-4 w-4" />Buscar Dados</>}
                                     </Button>
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
@@ -1298,18 +1321,4 @@ export function TikTokProfileResults({ profile, posts, error, formatNumber }: { 
         </div>
     );
 }
-    
-
-    
-
-    
-
-    
-
-    
-
-
-
-    
-
     

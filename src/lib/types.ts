@@ -17,11 +17,13 @@ export interface UserProfile {
   instagramAverageViews?: string;
   instagramAverageLikes?: string;
   instagramAverageComments?: string;
+  lastInstagramSync?: Timestamp;
   tiktokHandle?: string;
   tiktokFollowers?: string;
   tiktokAverageViews?: string;
   tiktokAverageLikes?: string;
   tiktokAverageComments?: string;
+  lastTikTokSync?: Timestamp;
   subscription?: {
     status: 'active' | 'inactive';
     plan: Plan;
