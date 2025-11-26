@@ -1,11 +1,12 @@
 
 'use client';
 
-import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
+import React, { createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
 import { FirebaseApp } from 'firebase/app';
 import { Firestore, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { Auth, User, onAuthStateChanged } from 'firebase/auth';
+import { Auth, User, onAuthStateChanged, getRedirectResult } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
+import { useToast } from '@/hooks/use-toast';
 
 interface FirebaseProviderProps {
   children: ReactNode;
@@ -44,7 +45,7 @@ export interface FirebaseServicesAndUser {
 }
 
 // Return type for useUser() - specific to user auth state
-export interface UserHookResult { // Renamed from UserAuthHookResult for consistency if desired, or keep as UserAuthHookResult
+export interface UserHookResult {
   user: User | null;
   isUserLoading: boolean;
   userError: Error | null;
@@ -52,6 +53,32 @@ export interface UserHookResult { // Renamed from UserAuthHookResult for consist
 
 // React Context
 export const FirebaseContext = createContext<FirebaseContextState | undefined>(undefined);
+
+/**
+ * Ensures a user profile exists in Firestore.
+ * @param firestore The Firestore instance.
+ * @param user The authenticated Firebase user.
+ */
+async function ensureUserProfile(firestore: Firestore, user: User) {
+    const userRef = doc(firestore, `users/${user.uid}`);
+    const docSnap = await getDoc(userRef);
+
+    if (!docSnap.exists()) {
+        console.log(`[FirebaseProvider] Creating new user profile for UID: ${user.uid}`);
+        const { displayName, email, photoURL } = user;
+        await setDoc(userRef, {
+            displayName,
+            email,
+            photoURL,
+            createdAt: serverTimestamp(),
+            subscription: {
+                status: 'inactive',
+                plan: 'free',
+            },
+        });
+    }
+}
+
 
 /**
  * FirebaseProvider manages and provides Firebase services and user authentication state.
@@ -62,15 +89,35 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   firestore,
   auth,
 }) => {
+  const { toast } = useToast();
   const [userAuthState, setUserAuthState] = useState<UserAuthState>({
     user: null,
     isUserLoading: true, // Start loading until first auth event is fully processed
     userError: null,
   });
 
-  // Effect to subscribe to Firebase auth state changes
+  // This effect handles the result of a Google Sign-In redirect.
+  // It runs once on mount.
   useEffect(() => {
-    if (!auth) { // If no Auth service instance, cannot determine user state
+    getRedirectResult(auth)
+      .then(async (result) => {
+        if (result) {
+          // This means a user has just signed in via redirect.
+          // The onAuthStateChanged listener will handle the profile creation.
+          toast({ title: 'Login bem-sucedido!', description: 'Finalizando a autenticação...' });
+        }
+      })
+      .catch((error) => {
+        console.error("FirebaseProvider: Google redirect result error:", error);
+        toast({ title: 'Erro no Login', description: 'Não foi possível completar o login com Google.', variant: 'destructive' });
+      });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auth]);
+
+
+  // This effect subscribes to Firebase auth state changes.
+  useEffect(() => {
+    if (!auth) {
       setUserAuthState({ user: null, isUserLoading: false, userError: new Error("Auth service not provided.") });
       return;
     }
@@ -79,37 +126,13 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       auth,
       async (firebaseUser: User | null) => {
         if (firebaseUser) {
-          // User is signed in. Start loading state as we need to check/create profile.
-          setUserAuthState(prevState => ({ ...prevState, isUserLoading: true }));
-          
-          const userRef = doc(firestore, `users/${firebaseUser.uid}`);
-          
           try {
-            const docSnap = await getDoc(userRef);
-
-            if (!docSnap.exists()) {
-              // Document does not exist, it's a new user. Create it.
-              const { displayName, email, photoURL } = firebaseUser;
-              await setDoc(userRef, {
-                displayName,
-                email,
-                photoURL,
-                createdAt: serverTimestamp(),
-                subscription: {
-                  status: 'inactive',
-                  plan: 'free',
-                }
-              });
-            }
-            // If doc exists, we assume it's up-to-date or handled by profile page.
-            // No need to merge basic info on every login.
-            
-            // Profile is now guaranteed to exist. Finalize auth state.
+            // User is signed in. Ensure their profile exists before we stop loading.
+            await ensureUserProfile(firestore, firebaseUser);
+            // Now that profile is guaranteed, set the user and finish loading.
             setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
-
           } catch (error) {
-            console.error('Error in user profile handling:', error);
-            // Even if profile creation fails, we set the user but also flag an error.
+            console.error('[FirebaseProvider] Error ensuring user profile:', error);
             setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: error as Error });
           }
         } else {
@@ -122,7 +145,8 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
         setUserAuthState({ user: null, isUserLoading: false, userError: error });
       }
     );
-    return () => unsubscribe(); // Cleanup
+
+    return () => unsubscribe(); // Cleanup subscription on unmount
   }, [auth, firestore]);
 
   // Memoize the context value
@@ -192,7 +216,7 @@ export const useFirebaseApp = (): FirebaseApp => {
 
 type MemoFirebase <T> = T & {__memo?: boolean};
 
-export function useMemoFirebase<T>(factory: () => T, deps: DependencyList): T | (MemoFirebase<T>) {
+export function useMemoFirebase<T>(factory: () => T, deps: React.DependencyList): T | (MemoFirebase<T>) {
   const memoized = useMemo(factory, deps);
   
   if(typeof memoized !== 'object' || memoized === null) return memoized;
@@ -206,7 +230,7 @@ export function useMemoFirebase<T>(factory: () => T, deps: DependencyList): T | 
  * This provides the User object, loading status, and any auth errors.
  * @returns {UserHookResult} Object with user, isUserLoading, userError.
  */
-export const useUser = (): UserHookResult => { // Renamed from useAuthUser
-  const { user, isUserLoading, userError } = useFirebase(); // Leverages the main hook
+export const useUser = (): UserHookResult => {
+  const { user, isUserLoading, userError } = useFirebase();
   return { user, isUserLoading, userError };
 };

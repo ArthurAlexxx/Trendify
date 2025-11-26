@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useUser } from '@/firebase';
@@ -10,6 +11,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   const router = useRouter();
 
   useEffect(() => {
+    // Redirect to dashboard if loading is complete and user is logged in
     if (!isUserLoading && user) {
       router.push('/dashboard');
     }

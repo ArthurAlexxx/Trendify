@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -19,9 +19,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@/firebase';
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithRedirect, getRedirectResult } from 'firebase/auth';
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithRedirect } from 'firebase/auth';
 import { Separator } from '@/components/ui/separator';
 
 const formSchema = z.object({
@@ -41,38 +40,8 @@ const GoogleIcon = () => (
 
 export default function LoginPage() {
   const { toast } = useToast();
-  const router = useRouter();
   const auth = useAuth();
   const [isPending, setIsPending] = useState(false);
-  const [isGooglePending, setIsGooglePending] = useState(true); // Start true to handle initial check
-
-  useEffect(() => {
-    getRedirectResult(auth)
-      .then((result) => {
-        if (result) {
-          // A user has successfully signed in. The onAuthStateChanged listener in FirebaseProvider
-          // will handle profile creation and state update. We just need to wait.
-          toast({
-            title: 'Login com Google bem-sucedido!',
-            description: 'Finalizando login...',
-          });
-          // Do not redirect here. Let the AppLayout handle it based on user state.
-        } else {
-          // No redirect result, so we are not in a Google login callback.
-          setIsGooglePending(false);
-        }
-      })
-      .catch((error) => {
-        console.error("Google redirect result error", error);
-        toast({
-          title: 'Erro no login com Google',
-          description: error.message || 'Não foi possível completar o login com o Google.',
-          variant: 'destructive',
-        });
-        setIsGooglePending(false);
-      });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [auth]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -86,7 +55,7 @@ export default function LoginPage() {
     setIsPending(true);
     try {
       await signInWithEmailAndPassword(auth, values.email, values.password);
-      // Let AppLayout handle the redirect
+      // AuthLayout will handle the redirect.
     } catch (error: any) {
       console.error(error);
       toast({
@@ -97,20 +66,22 @@ export default function LoginPage() {
             : 'Ocorreu um erro. Tente novamente.',
         variant: 'destructive',
       });
-       setIsPending(false);
+    } finally {
+      setIsPending(false);
     }
   }
 
   async function handleGoogleSignIn() {
-    setIsGooglePending(true);
+    setIsPending(true); // Show loader while redirecting
     const provider = new GoogleAuthProvider();
+    // The FirebaseProvider will handle the redirect result.
     await signInWithRedirect(auth, provider);
   }
 
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
-       {(isPending || isGooglePending) && (
+       {isPending && (
         <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
           <Loader2 className="h-10 w-10 animate-spin text-primary" />
         </div>
@@ -138,7 +109,7 @@ export default function LoginPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-                <Button variant="outline" className="w-full h-11" onClick={handleGoogleSignIn} disabled={isPending || isGooglePending}>
+                <Button variant="outline" className="w-full h-11" onClick={handleGoogleSignIn} disabled={isPending}>
                     <GoogleIcon />
                     Entrar com Google
                 </Button>
@@ -189,7 +160,7 @@ export default function LoginPage() {
                     />
                     <Button
                     type="submit"
-                    disabled={isPending || isGooglePending}
+                    disabled={isPending}
                     className="w-full font-manrope h-11 text-base font-bold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-shadow"
                     >
                     {isPending && (
