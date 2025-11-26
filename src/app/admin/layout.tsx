@@ -18,13 +18,13 @@ export default function AdminLayout({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    // Apenas redireciona quando o carregamento estiver completo e o usuário NÃO for admin.
+    // Only redirect when loading is complete and the user is explicitly NOT an admin.
     if (!isLoading && !isAdmin) {
       router.replace('/dashboard');
     }
   }, [isAdmin, isLoading, router]);
 
-  // Durante o carregamento, mostra um loader em tela cheia.
+  // While checking for admin status, show a full-screen loader.
   if (isLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
@@ -33,8 +33,9 @@ export default function AdminLayout({
     );
   }
 
-  // Se o carregamento terminou e o usuário é admin, renderiza o layout.
-  // Caso contrário (não é admin), renderiza null enquanto o useEffect cuida do redirecionamento.
+  // If loading is done and the user is an admin, render the layout.
+  // Otherwise (not an admin), render null while the useEffect handles the redirect.
+  // This prevents flashing the admin UI to non-admin users.
   return isAdmin ? (
     <div className="flex min-h-screen w-full bg-background">
         <AppSidebar isMobile={false} setIsMobileMenuOpen={setIsMobileMenuOpen} />

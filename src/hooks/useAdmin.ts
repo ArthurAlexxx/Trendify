@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useDoc, useFirestore, useUser, useMemoFirebase } from '@/firebase';
@@ -22,26 +21,24 @@ export function useAdmin(): UseAdminResult {
 
   // Reference to the user's document in the 'admins' collection.
   const adminDocRef = useMemoFirebase(
-    () => (user ? doc(firestore, `admins/${user.uid}`) : null),
+    () => (user && firestore ? doc(firestore, `admins/${user.uid}`) : null),
     [user, firestore]
   );
 
   // useDoc will return data if the document exists, and null if it doesn't.
-  // It also handles loading states for us.
-  const { data: adminDoc, isLoading: isAdminDocLoading } = useDoc(adminDocRef);
+  // The 'error' will be non-null if the read is disallowed (e.g., rules deny read for non-admins).
+  const { data: adminDoc, isLoading: isAdminDocLoading, error } = useDoc(adminDocRef);
 
   const result = useMemo(() => {
-    // The overall loading state is true if auth is loading or the admin doc check is loading.
+    // Overall loading is true if auth is loading or the admin doc check is still in progress.
     const isLoading = isAuthLoading || isAdminDocLoading;
     
-    // An admin is someone who is not loading and has a document in the 'admins' collection.
-    // 'adminDoc' will be non-null if the document exists.
-    const isAdmin = !isLoading && adminDoc !== null;
+    // If we're done loading and there was no permission error, check if the doc exists.
+    // The existence of the document (`adminDoc !== null`) confirms admin status.
+    const isAdmin = !isLoading && error === null && adminDoc !== null;
 
     return { isAdmin, isLoading };
-  }, [isAuthLoading, isAdminDocLoading, adminDoc]);
+  }, [isAuthLoading, isAdminDocLoading, adminDoc, error]);
 
   return result;
 }
-
-    
