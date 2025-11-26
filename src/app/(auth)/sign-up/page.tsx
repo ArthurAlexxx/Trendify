@@ -93,22 +93,12 @@ export default function SignUpPage() {
       );
       const user = userCredential.user;
 
+      // The FirebaseProvider now handles profile creation.
+      // We only need to update the display name here.
       await updateProfile(user, {
         displayName: values.name,
       });
 
-      const userRef = doc(firestore, `users/${user.uid}`);
-      await setDoc(userRef, {
-        displayName: values.name,
-        email: values.email,
-        createdAt: serverTimestamp(),
-        photoURL: user.photoURL,
-        subscription: {
-            status: 'inactive',
-            plan: 'free',
-        }
-      }, { merge: true });
-      
       toast({
         title: 'Conta criada com sucesso!',
         description: 'Redirecionando para o painel...',
