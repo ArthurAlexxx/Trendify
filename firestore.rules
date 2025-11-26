@@ -7,19 +7,17 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
+    // USERS
     match /users/{userId} {
 
-      // Usuário pode criar o próprio doc
-      allow create: if request.auth != null && request.auth.uid == userId;
-
-      // Usuário pode ler e editar o próprio doc
+      // O usuário sempre pode ler e escrever seu próprio documento
       allow read, write: if request.auth != null && request.auth.uid == userId;
 
-      // Admin pode ler QUALQUER doc
+      // Admin pode ler qualquer documento
       allow read: if request.auth != null && isAdmin();
     }
 
-    // Admin pode listar todos os usuários
+    // Listar toda a coleção de users (somente admin)
     match /users/{document=**} {
       allow list: if request.auth != null && isAdmin();
     }
@@ -29,7 +27,7 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Coleção roteiro (livre para qualquer user logado)
+    // Coleção roteiro (livre)
     match /roteiro/{itemRoteiroId} {
       allow read, write: if request.auth != null;
     }
