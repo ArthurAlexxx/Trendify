@@ -110,18 +110,18 @@ async function generateWeeklyPlan(
     });
 
     const content = response.choices[0].message.content;
-    if (!content) throw new Error('No content returned from OpenAI.');
+    if (!content) throw new Error('A IA não retornou nenhum conteúdo.');
 
     const jsonString = extractJson(content);
-    if (!jsonString) throw new Error('No valid JSON block found in the AI response.');
+    if (!jsonString) throw new Error('Não foi possível encontrar um bloco JSON válido na resposta da IA.');
 
     const parsedJson = JSON.parse(jsonString);
     return GenerateWeeklyPlanOutputSchema.parse(parsedJson);
   } catch (error) {
     console.error('Error in generateWeeklyPlan:', error);
     const errorMessage =
-      error instanceof Error ? error.message : 'Unknown error.';
-    throw new Error(`Failed to generate plan from AI: ${errorMessage}`);
+      error instanceof Error ? error.message : 'Erro desconhecido.';
+    throw new Error(`Falha ao gerar plano com a IA: ${errorMessage}`);
   }
 }
 
@@ -141,7 +141,7 @@ export async function generateWeeklyPlanAction(
     return { data: result };
   } catch (e) {
     const errorMessage =
-      e instanceof Error ? e.message : 'An unknown error occurred.';
-    return { error: `Failed to generate plan: ${errorMessage}` };
+      e instanceof Error ? e.message : 'Ocorreu um erro desconhecido.';
+    return { error: `Falha ao gerar plano: ${errorMessage}` };
   }
 }

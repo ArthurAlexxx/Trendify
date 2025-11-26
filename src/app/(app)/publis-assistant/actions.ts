@@ -101,20 +101,20 @@ Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON d
 
     const content = response.choices[0].message.content;
     if (!content) {
-      throw new Error('No content returned from OpenAI.');
+      throw new Error('A IA não retornou nenhum conteúdo.');
     }
 
     const jsonString = extractJson(content);
     if (!jsonString) {
-      throw new Error('No valid JSON block found in the AI response.');
+      throw new Error('Não foi possível encontrar um bloco JSON válido na resposta da IA.');
     }
 
     const parsedJson = JSON.parse(jsonString);
     return GeneratePubliProposalsOutputSchema.parse(parsedJson);
   } catch (error) {
     console.error('Error calling OpenAI or parsing response:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error.';
-    throw new Error(`Failed to generate proposals from AI: ${errorMessage}`);
+    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido.';
+    throw new Error(`Falha ao gerar propostas com a IA: ${errorMessage}`);
   }
 }
 
@@ -126,7 +126,7 @@ export async function generatePubliProposalsAction(
 
   if (!parsed.success) {
     const issues = parsed.error.issues.map((i) => i.message).join(', ');
-    return { error: issues || 'Invalid input.' };
+    return { error: issues || 'Input inválido.' };
   }
 
   try {
@@ -134,9 +134,7 @@ export async function generatePubliProposalsAction(
     return { data: result };
   } catch (e) {
     const errorMessage =
-      e instanceof Error ? e.message : 'An unknown error occurred.';
-    return { error: `Failed to generate proposals: ${errorMessage}` };
+      e instanceof Error ? e.message : 'Ocorreu um erro desconhecido.';
+    return { error: `Falha ao gerar propostas: ${errorMessage}` };
   }
 }
-
-    

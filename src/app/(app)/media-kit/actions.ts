@@ -134,12 +134,12 @@ Sua resposta DEVE ser um bloco de código JSON válido, e NADA MAIS. O JSON deve
 
     const content = response.choices[0].message.content;
     if (!content) {
-      throw new Error('No content returned from OpenAI.');
+      throw new Error('A IA não retornou nenhum conteúdo.');
     }
 
     const jsonString = extractJson(content);
     if (!jsonString) {
-      throw new Error('No valid JSON block found in the AI response.');
+      throw new Error('Não foi possível encontrar um bloco JSON válido na resposta da IA.');
     }
 
     const parsedJson = JSON.parse(jsonString);
@@ -149,9 +149,9 @@ Sua resposta DEVE ser um bloco de código JSON válido, e NADA MAIS. O JSON deve
   } catch (error) {
     console.error('Error calling OpenAI or parsing response:', error);
     const errorMessage =
-      error instanceof Error ? error.message : 'Unknown error.';
+      error instanceof Error ? error.message : 'Erro desconhecido.';
     throw new Error(
-      `Failed to generate career package from AI: ${errorMessage}`
+      `Falha ao gerar pacote com a IA: ${errorMessage}`
     );
   }
 }
@@ -164,7 +164,7 @@ export async function getAiCareerPackageAction(
 
   if (!parsed.success) {
     const issues = parsed.error.issues.map((i) => i.message).join(', ');
-    return { error: issues || 'Invalid input.' };
+    return { error: issues || 'Input inválido.' };
   }
 
   try {
@@ -172,7 +172,7 @@ export async function getAiCareerPackageAction(
     return { data: result };
   } catch (e) {
     const errorMessage =
-      e instanceof Error ? e.message : 'An unknown error occurred.';
-    return { error: `Failed to generate package: ${errorMessage}` };
+      e instanceof Error ? e.message : 'Ocorreu um erro desconhecido.';
+    return { error: `Falha ao gerar pacote: ${errorMessage}` };
   }
 }

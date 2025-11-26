@@ -29,7 +29,7 @@ const formSchema = z.object({
 async function urlToDataUri(url: string): Promise<string> {
     const response = await fetch(url);
     if (!response.ok) {
-        throw new Error(`Failed to fetch video from URL: ${response.statusText}`);
+        throw new Error(`Falha ao buscar o vídeo da URL: ${response.statusText}`);
     }
     const contentType = response.headers.get('content-type') || 'video/mp4';
     const buffer = await response.arrayBuffer();
@@ -48,7 +48,7 @@ export async function analyzeVideo(
   const parsed = formSchema.safeParse(input);
 
   if (!parsed.success) {
-    const error = 'Dados de entrada inválidos.';
+    const error = 'URL do vídeo inválida.';
     console.error(error, parsed.error.issues);
     return { error };
   }
@@ -58,16 +58,19 @@ export async function analyzeVideo(
     const analysis = await analyzeVideoFlow({ videoDataUri: videoDataUri });
     return { data: analysis };
   } catch (e: any) {
-    console.error("Falha na execução do fluxo de análise:", e);
+    console.error("Falha na execução do fluxo de análise de vídeo:", e);
 
-    if (e.message && (e.message.includes('503') || e.message.includes('The model is overloaded'))) {
+    if (e.message && (e.message.includes('503') || e.message.toLowerCase().includes('overloaded'))) {
         return {
             error: 'Ocorreu uma sobrecarga em nossos servidores de IA. Por favor, aguarde alguns instantes e tente novamente. Sua análise não foi consumida.',
             isOverloaded: true,
         };
     }
     
-    const errorMessage = `Não foi possível acessar o vídeo para análise. Verifique se o caminho do arquivo está correto. Detalhe: ${e.message || "Ocorreu um erro desconhecido durante a análise."}`;
+    const errorMessage = e.message.includes('fetch') 
+      ? `Não foi possível acessar o vídeo para análise. Verifique se a URL está correta e publicamente acessível. Detalhe: ${e.message}`
+      : `Ocorreu um erro durante a análise: ${e.message || "Erro desconhecido."}`;
+
     return { error: errorMessage };
   }
 }
@@ -123,10 +126,8 @@ const analyzeVideoFlow = ai.defineFlow(
   async input => {
     const { output } = await prompt(input);
     if (!output) {
-      throw new Error("A plataforma não retornou uma análise.");
+      throw new Error("A plataforma de IA não retornou uma análise. Tente novamente.");
     }
     return output;
   }
 );
-
-    

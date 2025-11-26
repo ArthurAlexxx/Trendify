@@ -191,7 +191,7 @@ export async function getInstagramProfile(username: string): Promise<InstagramPr
         if (e.issues) {
              throw new Error(`Falha na validação dos dados do perfil: ${e.issues.map((issue: any) => `${issue.path.join('.')} - ${issue.message}`).join(', ')}`);
         }
-        throw new Error(`Falha ao buscar perfil do Instagram: ${e.message}`);
+        throw e;
     }
 }
 
@@ -227,7 +227,7 @@ export async function getInstagramPosts(username: string): Promise<InstagramPost
              const errorDetails = e.issues.map((issue: any) => `${issue.path.join('.')} - ${issue.message}`).join(', ');
              throw new Error(`Falha na validação dos dados dos posts do Instagram: ${errorDetails}`);
         }
-        throw new Error(`Falha ao buscar posts do Instagram: ${e.message}`);
+        throw e;
     }
 }
 
@@ -261,7 +261,7 @@ export async function getTikTokProfile(username: string): Promise<TikTokProfileD
         if (e.issues) {
              throw new Error(`Falha na validação dos dados do perfil do TikTok: ${e.issues.map((issue: any) => `${issue.path.join('.')} - ${issue.message}`).join(', ')}`);
         }
-        throw new Error(`Falha ao buscar perfil do TikTok: ${e.message}`);
+        throw e;
     }
 }
 
@@ -290,6 +290,6 @@ export async function getTikTokPosts(username: string): Promise<TikTokPostData[]
              const errorDetails = e.issues.map((issue: any) => `${issue.path.join('.')} - ${issue.message}`).join(', ');
              throw new Error(`Falha na validação dos dados dos posts do TikTok: ${errorDetails}`);
         }
-        throw new Error(`Falha ao buscar posts do TikTok: ${e.message}`);
+        throw e;
     }
 }
