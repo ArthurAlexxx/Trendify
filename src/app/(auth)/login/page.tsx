@@ -127,7 +127,7 @@ export default function LoginPage() {
                     name="email"
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel className="text-center">E-mail</FormLabel>
+                        <FormLabel className="sr-only">E-mail</FormLabel>
                         <FormControl>
                             <Input
                             placeholder="seu@email.com"
@@ -145,7 +145,7 @@ export default function LoginPage() {
                     name="password"
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel className="text-center">Senha</FormLabel>
+                        <FormLabel className="sr-only">Senha</FormLabel>
                         <FormControl>
                             <Input
                             placeholder="••••••••"

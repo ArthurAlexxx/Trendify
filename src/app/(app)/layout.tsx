@@ -1,3 +1,4 @@
+
 'use client';
 
 import { AppSidebar } from '@/components/app-sidebar';
@@ -15,14 +16,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
 
   useEffect(() => {
-    // This effect now correctly handles redirection *after* the initial auth check is complete.
+    // If loading is finished and there's no user, redirect to login.
     if (!isUserLoading && !user) {
       router.push('/login');
     }
   }, [user, isUserLoading, router]);
 
-  // isUserLoading is true on first load AND during the async profile creation.
-  // We show a loader until the entire process is finished.
+  // While checking for user auth, show a full-screen loader.
   if (isUserLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
@@ -31,12 +31,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // If loading is finished and there's still no user, it means login failed or is required.
-  // We render null here because the useEffect above will trigger the redirect.
+  // If loading is done and there's no user, we render nothing because the
+  // useEffect above will handle the redirect. This prevents showing a glimpse
+  // of the app layout before redirecting.
   if (!user) {
       return null;
   }
 
+  // If we reach here, user is logged in and not loading. Render the app.
   return (
     <div className="flex min-h-screen w-full bg-background">
         <AppSidebar isMobile={false} setIsMobileMenuOpen={setIsMobileMenuOpen} />

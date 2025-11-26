@@ -137,9 +137,9 @@ export default function SignUpPage() {
                     name="name"
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel className="text-center">Nome Completo</FormLabel>
+                        <FormLabel className="sr-only">Nome Completo</FormLabel>
                         <FormControl>
-                            <Input placeholder="Seu nome" {...field} className="h-11 bg-muted/30" />
+                            <Input placeholder="Seu nome completo" {...field} className="h-11 bg-muted/30" />
                         </FormControl>
                         <FormMessage />
                         </FormItem>
@@ -150,7 +150,7 @@ export default function SignUpPage() {
                     name="email"
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel className="text-center">E-mail</FormLabel>
+                        <FormLabel className="sr-only">E-mail</FormLabel>
                         <FormControl>
                             <Input
                             placeholder="seu@email.com"
@@ -168,7 +168,7 @@ export default function SignUpPage() {
                     name="password"
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel className="text-center">Senha</FormLabel>
+                        <FormLabel className="sr-only">Senha</FormLabel>
                         <FormControl>
                             <Input
                             placeholder="Crie uma senha forte"

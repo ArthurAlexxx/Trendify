@@ -55,7 +55,7 @@ export interface UserHookResult {
 export const FirebaseContext = createContext<FirebaseContextState | undefined>(undefined);
 
 /**
- * Ensures a user profile exists in Firestore.
+ * Ensures a user profile exists in Firestore. If not, it creates one.
  * @param firestore The Firestore instance.
  * @param user The authenticated Firebase user.
  */
@@ -64,7 +64,7 @@ async function ensureUserProfile(firestore: Firestore, user: User) {
     const docSnap = await getDoc(userRef);
 
     if (!docSnap.exists()) {
-        console.log(`[FirebaseProvider] Creating new user profile for UID: ${user.uid}`);
+        console.log(`[FirebaseProvider] No profile found for UID: ${user.uid}. Creating new one.`);
         const { displayName, email, photoURL } = user;
         await setDoc(userRef, {
             displayName,
@@ -76,6 +76,7 @@ async function ensureUserProfile(firestore: Firestore, user: User) {
                 plan: 'free',
             },
         });
+        console.log(`[FirebaseProvider] New user profile created for UID: ${user.uid}`);
     }
 }
 
@@ -96,26 +97,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     userError: null,
   });
 
-  // This effect handles the result of a Google Sign-In redirect.
-  // It runs once on mount.
-  useEffect(() => {
-    getRedirectResult(auth)
-      .then(async (result) => {
-        if (result) {
-          // This means a user has just signed in via redirect.
-          // The onAuthStateChanged listener will handle the profile creation.
-          toast({ title: 'Login bem-sucedido!', description: 'Finalizando a autenticação...' });
-        }
-      })
-      .catch((error) => {
-        console.error("FirebaseProvider: Google redirect result error:", error);
-        toast({ title: 'Erro no Login', description: 'Não foi possível completar o login com Google.', variant: 'destructive' });
-      });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [auth]);
-
-
-  // This effect subscribes to Firebase auth state changes.
+  // This effect handles the auth state changes.
   useEffect(() => {
     if (!auth) {
       setUserAuthState({ user: null, isUserLoading: false, userError: new Error("Auth service not provided.") });
@@ -125,18 +107,19 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     const unsubscribe = onAuthStateChanged(
       auth,
       async (firebaseUser: User | null) => {
+        // This is the primary listener for auth state.
         if (firebaseUser) {
           try {
-            // User is signed in. Ensure their profile exists before we stop loading.
+            // A user is detected. Now we ensure their profile exists in Firestore.
             await ensureUserProfile(firestore, firebaseUser);
-            // Now that profile is guaranteed, set the user and finish loading.
+            // ONLY after the profile is guaranteed to exist, we update the state.
             setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
           } catch (error) {
-            console.error('[FirebaseProvider] Error ensuring user profile:', error);
+            console.error('[FirebaseProvider] Error during profile creation:', error);
             setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: error as Error });
           }
         } else {
-          // No user is signed in.
+          // No user is signed in. Stop loading.
           setUserAuthState({ user: null, isUserLoading: false, userError: null });
         }
       },
@@ -145,9 +128,16 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
         setUserAuthState({ user: null, isUserLoading: false, userError: error });
       }
     );
+    
+    // Separately, handle the result from a Google Sign-In redirect.
+    // This runs once after a redirect and lets onAuthStateChanged handle the final state.
+    getRedirectResult(auth).catch((error) => {
+      console.error("FirebaseProvider: Google redirect result error:", error);
+      toast({ title: 'Erro no Login', description: 'Não foi possível completar o login com Google.', variant: 'destructive' });
+    });
 
     return () => unsubscribe(); // Cleanup subscription on unmount
-  }, [auth, firestore]);
+  }, [auth, firestore, toast]);
 
   // Memoize the context value
   const contextValue = useMemo((): FirebaseContextState => {
