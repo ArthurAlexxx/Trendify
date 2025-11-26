@@ -135,7 +135,7 @@ const ProfileCompletionAlert = ({ userProfile, isPremium }: { userProfile: UserP
               <AlertTriangle className="h-4 w-4 text-primary" />
               <AlertTitle>Complete seu Perfil!</AlertTitle>
               <AlertDescription>
-                  <Link href="/profile" className='hover:underline font-semibold'>Adicione seu nicho de atuação</Link> para que a IA gere insights mais precisos.
+                  <Link href="/profile" className='hover:underline font-semibold'>Adicione seu nicho</Link> para a IA gerar insights melhores.
               </AlertDescription>
           </Alert>
       )
@@ -148,12 +148,12 @@ const ProfileCompletionAlert = ({ userProfile, isPremium }: { userProfile: UserP
                     <div className='text-center sm:text-left'>
                         <AlertTitle className="flex items-center justify-center sm:justify-start gap-2">
                            {isPremium ? <AlertTriangle className="h-4 w-4 text-primary" /> : <Crown className="h-4 w-4 text-yellow-500" />}
-                           {isPremium ? 'Conecte suas Plataformas!' : 'Recurso Premium Disponível'}
+                           {isPremium ? 'Conecte suas Plataformas' : 'Recurso Premium Disponível'}
                         </AlertTitle>
                         <AlertDescription>
                            {isPremium 
-                               ? 'Integre seu Instagram ou TikTok para começar a acompanhar suas métricas.'
-                               : 'Faça upgrade para o Premium e conecte suas redes para atualizar métricas automaticamente.'
+                               ? 'Conecte suas redes para acompanhar as métricas.'
+                               : 'Faça upgrade e conecte suas redes para atualizar métricas automaticamente.'
                            }
                         </AlertDescription>
                     </div>
@@ -161,7 +161,7 @@ const ProfileCompletionAlert = ({ userProfile, isPremium }: { userProfile: UserP
                         <Button asChild className='w-full sm:w-auto'>
                            <Link href="/profile/integrations">
                                 <RefreshCw className="mr-2 h-4 w-4" />
-                                Conectar Plataformas
+                                Conectar
                            </Link>
                         </Button>
                    )}
@@ -424,7 +424,7 @@ export default function DashboardPage() {
         title={`Bem-vindo(a) de volta, ${
           userProfile?.displayName?.split(' ')[0] || user?.displayName?.split(' ')[0] || 'Criador'
         }!`}
-        description="Seu centro de comando para crescimento e monetização."
+        description="Visão geral do seu desempenho e tarefas."
       />
 
       <div className="space-y-8">
@@ -436,9 +436,9 @@ export default function DashboardPage() {
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                         <div>
                             <CardTitle className="text-base font-medium text-muted-foreground">
-                                Visão Geral da Plataforma
+                                Visão Geral
                             </CardTitle>
-                            <CardDescription>Métricas manuais ou sincronizadas do seu perfil.</CardDescription>
+                            <CardDescription>Suas principais métricas.</CardDescription>
                         </div>
                         <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
                             <div className='w-full sm:w-64'>
@@ -472,9 +472,9 @@ export default function DashboardPage() {
                  <Card className="rounded-2xl border-0 h-full">
                     <CardHeader>
                         <CardTitle className="font-headline text-xl">
-                        Evolução das Métricas ({selectedPlatform === 'instagram' ? 'Instagram' : selectedPlatform === 'tiktok' ? 'TikTok' : 'Total'})
+                        Evolução das Métricas
                         </CardTitle>
-                        <CardDescription>Acompanhe seu progresso ao longo dos últimos 15 dias.</CardDescription>
+                        <CardDescription>Progresso dos últimos 15 dias.</CardDescription>
                     </CardHeader>
                     <CardContent className="pl-2 pr-6">
                         {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
@@ -496,7 +496,7 @@ export default function DashboardPage() {
                                 <div>
                                 <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
                                 <h3 className="font-semibold text-foreground">
-                                    {userProfile?.instagramHandle || userProfile?.tiktokHandle ? "Dados insuficientes para o gráfico." : "Nenhuma plataforma conectada."}
+                                    {userProfile?.instagramHandle || userProfile?.tiktokHandle ? "Dados insuficientes." : "Nenhuma plataforma conectada."}
                                 </h3>
                                 <p className="text-sm text-muted-foreground">
                                     {userProfile && (
@@ -504,7 +504,7 @@ export default function DashboardPage() {
                                             Atualize suas métricas
                                         </Link>
                                     )}
-                                    {userProfile?.instagramHandle || userProfile?.tiktokHandle ? " por alguns dias para começar." : " para começar a ver seus dados."}
+                                    {userProfile?.instagramHandle || userProfile?.tiktokHandle ? " por alguns dias para começar." : " para ver seus dados."}
                                 </p>
                                 </div>
                             </div>
@@ -576,7 +576,7 @@ export default function DashboardPage() {
                             Nenhum post futuro.
                             </h3>
                             <p className="text-sm text-muted-foreground">
-                            Agende seu próximo conteúdo no calendário.
+                            Agende seu próximo conteúdo.
                             </p>
                         </div>
                         )
@@ -590,7 +590,7 @@ export default function DashboardPage() {
              <Card className="rounded-2xl border-0 h-full">
                 <CardHeader>
                 <CardTitle className="font-headline text-xl">
-                    Roteiro de Conteúdo Semanal
+                    Roteiro Semanal
                 </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -704,7 +704,7 @@ export default function DashboardPage() {
                         Sem roteiro para a semana.
                         </h3>
                         <p className="text-sm text-muted-foreground">
-                        Gere um novo no{' '}
+                        Gere um novo em{' '}
                         <Link
                             href="/generate-weekly-plan"
                             className="text-primary font-medium hover:underline"
@@ -768,7 +768,7 @@ export default function DashboardPage() {
                         Comece a Gerar Ideias!
                         </h3>
                         <p className="text-sm text-muted-foreground">
-                        Suas ideias e tarefas salvas aparecerão aqui.
+                        Suas ideias salvas aparecerão aqui.
                         </p>
                     </div>
                     )
@@ -782,8 +782,8 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 gap-8">
             <Card className="rounded-2xl border-0">
                 <CardHeader>
-                    <CardTitle>Atividade Recente nas Plataformas</CardTitle>
-                    <CardDescription>Uma visão geral das suas últimas publicações.</CardDescription>
+                    <CardTitle>Atividade Recente</CardTitle>
+                    <CardDescription>Suas últimas publicações.</CardDescription>
                 </CardHeader>
                 <CardContent>
                      {isFetchingPosts ? (
@@ -828,5 +828,3 @@ export default function DashboardPage() {
     </>
   );
 }
-
-    

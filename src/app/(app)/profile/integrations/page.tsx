@@ -189,7 +189,7 @@ export default function IntegrationsPage() {
       try {
           fetchedPosts = await getTikTokPosts(cleanedUsername);
       } catch(postsError: any) {
-          setTiktokError('Perfil encontrado, mas não foi possível carregar os vídeos recentes. ' + postsError.message);
+          setTiktokError('Perfil encontrado, mas não foi possível carregar os vídeos. ' + postsError.message);
       }
 
         const averageLikes = fetchedPosts.length > 0 ? fetchedPosts.reduce((acc, p) => acc + p.likes, 0) / fetchedPosts.length : 0;
@@ -255,8 +255,8 @@ export default function IntegrationsPage() {
     <div className="space-y-8">
       <div className="flex justify-between items-center">
         <PageHeader
-          title="Integração de Plataformas"
-          description="Sincronize seus dados do Instagram e TikTok para obter métricas automáticas."
+          title="Integrações"
+          description="Sincronize seus dados para obter métricas automáticas."
         />
          <Button variant="ghost" asChild>
           <Link href="/profile">
@@ -276,7 +276,7 @@ export default function IntegrationsPage() {
                     <AlertTriangle className="h-4 w-4" />
                     <AlertTitle>Importante!</AlertTitle>
                     <AlertDescription>
-                        Para a integração automática funcionar, sua conta do Instagram deve ser pública e estar configurada como {"'Comercial'"} ou {"'Criador de Conteúdo'"}. A integração com TikTok funciona com qualquer conta pública.
+                        Para a integração funcionar, sua conta do Instagram deve ser {'"Comercial"'} ou {'"Criador de Conteúdo"'}. A do TikTok deve ser pública.
                     </AlertDescription>
                   </Alert>
 
@@ -307,15 +307,15 @@ export default function IntegrationsPage() {
                                     >
                                         {
                                          instaStatus === 'loading' ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Buscando...</> :
-                                         userProfile?.instagramHandle ? <><RefreshCw className="mr-2 h-4 w-4" />Sincronizar Dados</> : 
-                                         <><Search className="mr-2 h-4 w-4" />Buscar Dados</>}
+                                         userProfile?.instagramHandle ? <><RefreshCw className="mr-2 h-4 w-4" />Sincronizar</> : 
+                                         <><Search className="mr-2 h-4 w-4" />Buscar</>}
                                     </Button>
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
                                     <AlertDialogHeader>
                                     <AlertDialogTitle>Confirmação de Busca</AlertDialogTitle>
                                     <AlertDialogDescription>
-                                        Você confirma que é o proprietário ou tem permissão para buscar os dados do perfil <strong>@{form.watch('instagramHandle')?.replace('@', '')}</strong>?
+                                        Você confirma que tem permissão para buscar os dados do perfil <strong>@{form.watch('instagramHandle')?.replace('@', '')}</strong>?
                                     </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
@@ -328,7 +328,7 @@ export default function IntegrationsPage() {
                             <p className='text-xs text-muted-foreground mt-2'>
                                 {instaAlreadySyncedToday 
                                     ? 'Você já sincronizou hoje. Volte amanhã para uma nova atualização.'
-                                    : 'Isso irá buscar e preencher sua foto, @, bio e métricas de seguidores, curtidas e comentários.'
+                                    : 'Isso irá buscar seus dados públicos e métricas de posts recentes.'
                                 }
                             </p>
                             </CardContent>
@@ -359,15 +359,15 @@ export default function IntegrationsPage() {
                                     >
                                         {
                                          tiktokStatus === 'loading' ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Buscando...</> :
-                                         userProfile?.tiktokHandle ? <><RefreshCw className="mr-2 h-4 w-4" />Sincronizar Dados</> : 
-                                         <><Search className="mr-2 h-4 w-4" />Buscar Dados</>}
+                                         userProfile?.tiktokHandle ? <><RefreshCw className="mr-2 h-4 w-4" />Sincronizar</> : 
+                                         <><Search className="mr-2 h-4 w-4" />Buscar</>}
                                     </Button>
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
                                     <AlertDialogHeader>
                                     <AlertDialogTitle>Confirmação de Busca</AlertDialogTitle>
                                     <AlertDialogDescription>
-                                        Você confirma que é o proprietário ou tem permissão para buscar os dados do perfil <strong>@{form.watch('tiktokHandle')?.replace('@', '')}</strong>?
+                                        Você confirma que tem permissão para buscar os dados do perfil <strong>@{form.watch('tiktokHandle')?.replace('@', '')}</strong>?
                                     </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
@@ -380,7 +380,7 @@ export default function IntegrationsPage() {
                             <p className='text-xs text-muted-foreground mt-2'>
                                 {tiktokAlreadySyncedToday 
                                     ? 'Você já sincronizou hoje. Volte amanhã para uma nova atualização.'
-                                    : 'Isso irá buscar e preencher sua foto, @, bio e métricas do TikTok.'
+                                    : 'Isso irá buscar seus dados públicos e métricas de vídeos recentes.'
                                 }
                             </p>
                             </CardContent>
@@ -400,7 +400,7 @@ export default function IntegrationsPage() {
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <p className="text-muted-foreground">A integração automática com redes sociais é um recurso exclusivo para assinantes do plano Premium.</p>
+                            <p className="text-muted-foreground">A integração automática é um recurso para assinantes Premium.</p>
                             <Button asChild>
                                 <Link href="/subscribe">Ver Planos</Link>
                             </Button>

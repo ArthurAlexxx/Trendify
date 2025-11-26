@@ -76,22 +76,22 @@ const analysisCriteria = [
     {
         icon: BrainCircuit,
         title: "Estrategista Viral",
-        description: "A plataforma foca em ideias com alto potencial de engajamento e alcance para o seu nicho, pensando como um especialista em conteúdo viral."
+        description: "A IA foca em ideias com alto potencial de engajamento e alcance para o seu nicho."
     },
     {
         icon: Target,
         title: "Gancho Magnético",
-        description: "Criamos ganchos de 2-3 segundos para capturar a atenção imediatamente, quebrando padrões e gerando curiosidade."
+        description: "Criamos ganchos de 2-3 segundos para capturar a atenção imediatamente e gerar curiosidade."
     },
      {
         icon: BarChart,
         title: "Otimizado para Algoritmo",
-        description: "Geramos roteiros estruturados para reter a atenção e sugerimos músicas em alta, aumentando as chances de ser favorecido pelo algoritmo."
+        description: "Geramos roteiros estruturados para reter a atenção e sugerimos músicas em alta."
     },
     {
         icon: Eye,
         title: "Foco no Objetivo",
-        description: "Cada elemento, do roteiro ao CTA, é pensado para atingir seu objetivo principal, seja ele vendas, engajamento ou alcance."
+        description: "Cada elemento, do roteiro ao CTA, é pensado para atingir seu objetivo principal."
     },
   ]
 
@@ -233,7 +233,7 @@ export default function VideoIdeasPage() {
     <div className="space-y-8">
       <PageHeader
         title="Gerador de Vídeos Virais"
-        description="Nunca mais fique sem ideias. Crie roteiros completos e otimizados para viralizar."
+        description="Crie roteiros completos e otimizados para viralizar."
       >
         <SavedIdeasSheet />
       </PageHeader>
@@ -244,7 +244,7 @@ export default function VideoIdeasPage() {
                     <Sparkles className="text-primary h-6 w-6" />
                     Como Criamos Suas Ideias?
                 </CardTitle>
-                 <CardDescription>Nossa plataforma foi treinada para pensar como uma estrategista de conteúdo viral. Analisamos sua necessidade em busca de 4 pilares:</CardDescription>
+                 <CardDescription>Nossa IA foi treinada para pensar como uma estrategista de conteúdo viral e analisa 4 pilares:</CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -268,7 +268,7 @@ export default function VideoIdeasPage() {
             <Sparkles className="h-6 w-6 text-primary" />
             <span>Descreva sua necessidade</span>
           </CardTitle>
-          <CardDescription>Quanto mais detalhes você fornecer, mais criativa e precisa será a ideia gerada.</CardDescription>
+          <CardDescription>Quanto mais detalhes, mais criativa e precisa será a ideia gerada.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -308,7 +308,7 @@ export default function VideoIdeasPage() {
                           {...field}
                         />
                       </FormControl>
-                      <FormDescription>Para quem você está criando este conteúdo?</FormDescription>
+                      <FormDescription>Para quem é este conteúdo?</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -353,7 +353,7 @@ export default function VideoIdeasPage() {
                   type="submit"
                   disabled={isButtonDisabled}
                   size="lg"
-                  className="font-manrope w-full sm:w-auto h-12 px-10 rounded-full text-base font-bold"
+                  className="w-full sm:w-auto"
                 >
                   {isGenerating ? (
                     <>
@@ -370,7 +370,7 @@ export default function VideoIdeasPage() {
                   {isFreePlan && (
                   <p className="text-sm text-muted-foreground text-center sm:text-left">
                     {isLoadingUsage ? <Skeleton className="h-4 w-32" /> : hasReachedFreeLimit 
-                      ? 'Você atingiu seu limite de gerações gratuitas por hoje.'
+                      ? 'Você atingiu seu limite de hoje.'
                       : `Gerações restantes hoje: ${2 - generationsToday}/2.`
                     }
                     {' '}
@@ -391,7 +391,7 @@ export default function VideoIdeasPage() {
                 Resultado Gerado
               </h2>
               <p className="text-muted-foreground">
-                Aqui está um plano de conteúdo completo para seu próximo vídeo.
+                Um plano de conteúdo completo para seu próximo vídeo.
               </p>
             </div>
             {result && (
@@ -399,7 +399,7 @@ export default function VideoIdeasPage() {
                 <Button
                   onClick={() => handleSave(result)}
                   disabled={isSaving}
-                  className="w-full sm:w-auto rounded-full font-manrope"
+                  className="w-full sm:w-auto"
                 >
                   {isSaving ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -416,7 +416,7 @@ export default function VideoIdeasPage() {
             <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-96">
               <Loader2 className="h-10 w-10 animate-spin text-primary" />
               <p className="mt-4 text-muted-foreground">
-                Estamos criando algo incrível para você...
+                Criando algo incrível para você...
               </p>
             </div>
           ) : result ? (

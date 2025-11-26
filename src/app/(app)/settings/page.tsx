@@ -45,6 +45,7 @@ export default function SettingsPage() {
   const firestore = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
+  const [deleteConfirmationText, setDeleteConfirmationText] = useState('');
   const [isCancelling, startCancellingTransition] = useTransition();
 
   const userProfileRef = useMemoFirebase(
@@ -82,6 +83,30 @@ export default function SettingsPage() {
 };
 
 
+  const handleDeleteAccount = async () => {
+    if (user) {
+      try {
+        await user.delete();
+        toast({
+          title: 'Conta Excluída',
+          description: 'Sua conta foi excluída permanentemente.',
+        });
+        router.push('/login');
+      } catch (error: any) {
+        console.error('Error deleting account:', error);
+        toast({
+          title: 'Erro ao Excluir Conta',
+          description:
+            'Por segurança, pode ser necessário fazer login novamente antes de excluir a conta. ' +
+            error.message,
+          variant: 'destructive',
+        });
+      }
+    }
+  };
+  
+  const isDeleteButtonDisabled = deleteConfirmationText !== 'excluir minha conta';
+
   const getPlanName = (plan: 'free' | 'pro' | 'premium') => {
     switch(plan) {
       case 'pro': return 'PRO';
@@ -94,18 +119,18 @@ export default function SettingsPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Configurações da Conta"
-        description="Gerencie sua assinatura e informações do plano."
+        title="Configurações"
+        description="Gerencie sua assinatura e informações da conta."
       />
 
        <Card className="border-0 rounded-2xl">
           <CardHeader>
             <CardTitle className="flex items-center gap-3 font-headline text-xl">
                 <Crown className="h-6 w-6 text-primary" />
-                <span>Seu Plano e Assinatura</span>
+                <span>Seu Plano</span>
             </CardTitle>
             <CardDescription>
-                Veja os detalhes do seu plano atual e gerencie sua assinatura.
+                Detalhes do seu plano atual e gerenciamento da assinatura.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -124,17 +149,17 @@ export default function SettingsPage() {
                         </h4>
                         {isTrialActive && (
                            <p className="text-sm text-muted-foreground">
-                                Seu teste gratuito do plano Pro termina em {trialDaysLeft} {trialDaysLeft === 1 ? 'dia' : 'dias'}.
+                                Seu teste gratuito termina em {trialDaysLeft} {trialDaysLeft === 1 ? 'dia' : 'dias'}.
                            </p>
                         )}
                         {subscription.status === 'active' && !isTrialActive && userProfile?.subscription?.expiresAt && userProfile.subscription.expiresAt.toDate && (
                             <p className="text-sm text-muted-foreground">
-                                Seu acesso termina em {format(userProfile.subscription.expiresAt.toDate(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}.
+                                Acesso até {format(userProfile.subscription.expiresAt.toDate(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}.
                             </p>
                         )}
                          {subscription.plan === 'free' && !isTrialActive && (
                             <p className="text-sm text-muted-foreground">
-                                Faça o upgrade para desbloquear todas as funcionalidades.
+                                Faça upgrade para desbloquear todas as funcionalidades.
                             </p>
                         )}
                     </div>
@@ -154,13 +179,13 @@ export default function SettingsPage() {
                                     <AlertDialogHeader>
                                         <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
                                         <AlertDialogDescription>
-                                            Esta ação cancelará sua assinatura. Você continuará com acesso aos recursos do seu plano até o final do período de faturamento atual. Após isso, sua conta será revertida para o plano gratuito.
+                                            Seu acesso continuará até o final do período de faturamento. Após isso, sua conta será revertida para o plano gratuito.
                                         </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
                                         <AlertDialogCancel>Manter Assinatura</AlertDialogCancel>
                                         <AlertDialogAction onClick={handleCancelSubscription}>
-                                            Sim, quero cancelar
+                                            Sim, cancelar
                                         </AlertDialogAction>
                                     </AlertDialogFooter>
                                 </AlertDialogContent>
@@ -171,8 +196,70 @@ export default function SettingsPage() {
             ) : null}
           </CardContent>
        </Card>
+
+        <Card className="border-destructive/50 bg-destructive/5 rounded-2xl">
+            <CardHeader>
+            <CardTitle className="flex items-center gap-3 font-headline text-xl text-destructive">
+                <ShieldAlert className="h-6 w-6" />
+                <span>Zona de Perigo</span>
+            </CardTitle>
+            <CardDescription className="text-destructive/80">
+                Ações nesta área são permanentes e não podem ser desfeitas.
+            </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col sm:flex-row items-center justify-between">
+            <div className="text-center sm:text-left">
+                <p className="font-semibold text-foreground">Excluir Conta</p>
+                <p className="text-muted-foreground">
+                Isto irá apagar permanentemente sua conta e todos os dados.
+                </p>
+            </div>
+            <AlertDialog>
+                <AlertDialogTrigger asChild>
+                <Button
+                    variant="destructive"
+                    className="w-full sm:w-auto mt-4 sm:mt-0"
+                >
+                    Excluir minha conta
+                </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>
+                    Você tem certeza absoluta?
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                    Esta ação não pode ser desfeita. Para confirmar, digite{' '}
+                    <strong className="text-foreground">
+                        excluir minha conta
+                    </strong>{' '}
+                    abaixo.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <div className="py-2">
+                    <Input
+                    id="delete-confirm"
+                    value={deleteConfirmationText}
+                    onChange={(e) =>
+                        setDeleteConfirmationText(e.target.value)
+                    }
+                    placeholder="excluir minha conta"
+                    />
+                </div>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction
+                    onClick={handleDeleteAccount}
+                    disabled={isDeleteButtonDisabled}
+                    className={cn(buttonVariants({ variant: "destructive" }))}
+                    >
+                    Eu entendo, exclua minha conta
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+            </CardContent>
+        </Card>
     </div>
   );
 }
-
-    

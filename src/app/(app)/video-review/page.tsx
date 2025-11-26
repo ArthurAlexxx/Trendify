@@ -88,9 +88,9 @@ function FeatureGuard({ children }: { children: React.ReactNode }) {
                    <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mb-2 border-2 border-primary/20">
                      <Crown className="h-8 w-8 text-primary" />
                    </div>
-                  <AlertDialogTitle className="font-headline text-xl">Funcionalidade indisponível</AlertDialogTitle>
+                  <AlertDialogTitle className="font-headline text-xl">Funcionalidade Indisponível</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Seu período de teste gratuito acabou. A Análise de Vídeo é um recurso para assinantes dos planos Pro ou Premium. Faça o upgrade para continuar usando!
+                    Seu teste gratuito acabou. A Análise de Vídeo é um recurso para assinantes Pro ou Premium.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -137,7 +137,7 @@ function VideoReviewPageContent() {
 
   useEffect(() => {
     if (!user || !firestore) return;
-    const usageDocRef = doc(firestore, 'usageLogs', `${user.uid}_${todayStr}`);
+    const usageDocRef = doc(firestore, 'users', user.uid, 'dailyUsage', todayStr);
     
     const unsubscribe = onSnapshot(usageDocRef, (doc) => {
         setUsageData(doc.exists() ? doc.data() as DailyUsage : null);
@@ -285,13 +285,12 @@ function VideoReviewPageContent() {
             setAnalysisStatus("success");
 
             // Update usage log
-            const usageDocRef = doc(firestore, 'usageLogs', `${user.uid}_${todayStr}`);
+            const usageDocRef = doc(firestore, `users/${user.uid}/dailyUsage/${todayStr}`);
             const usageDocSnap = await getDoc(usageDocRef);
             if(usageDocSnap.exists()){
                 await updateDoc(usageDocRef, { videoAnalyses: increment(1) });
             } else {
                 await setDoc(usageDocRef, {
-                    userId: user.uid,
                     date: todayStr,
                     videoAnalyses: 1,
                     geracoesAI: 0,
@@ -332,22 +331,22 @@ function VideoReviewPageContent() {
     {
         icon: Eye,
         title: "Retenção e Gancho",
-        description: "Avaliamos os 3 primeiros segundos para ver se o gancho é forte o suficiente para parar a rolagem e gerar curiosidade."
+        description: "Avaliamos os 3 primeiros segundos para ver se o gancho é forte o suficiente para parar a rolagem."
     },
     {
         icon: BrainCircuit,
         title: "Ritmo e Conteúdo",
-        description: "Analisamos a estrutura do vídeo, o ritmo da edição e a clareza da mensagem para identificar pontos que podem causar a perda de interesse."
+        description: "Analisamos a estrutura do vídeo e a clareza da mensagem para identificar pontos de perda de interesse."
     },
     {
         icon: Target,
         title: "Eficácia do CTA",
-        description: "Verificamos se a chamada para ação (CTA) é clara, convincente e está alinhada com o objetivo do vídeo (vendas, seguidores, etc.)."
+        description: "Verificamos se a chamada para ação é clara e está alinhada com o objetivo do vídeo."
     },
      {
         icon: BarChart,
         title: "Potencial de Viralização",
-        description: "Com base em todos os fatores, atribuímos uma nota e um checklist de melhorias para aumentar o potencial de alcance do seu vídeo."
+        description: "Com base em todos os fatores, atribuímos uma nota e um checklist de melhorias para seu vídeo."
     }
   ]
   
@@ -355,7 +354,7 @@ function VideoReviewPageContent() {
     <div className="space-y-8">
         <PageHeader
             title="Diagnóstico de Vídeo"
-            description="Receba uma análise completa do potencial de viralização do seu vídeo e um plano de ação para melhorá-lo."
+            description="Receba uma análise do potencial de viralização e um plano de ação para seu vídeo."
         />
         
         <Card className="rounded-2xl border-0">
@@ -364,7 +363,7 @@ function VideoReviewPageContent() {
                     <Sparkles className="h-6 w-6 text-primary" />
                     Como Avaliamos Seu Vídeo?
                 </CardTitle>
-                 <CardDescription>Nossa plataforma foi treinada para pensar como um estrategista de conteúdo viral. Analisamos seu vídeo em busca de 4 pilares fundamentais:</CardDescription>
+                 <CardDescription>Nossa IA atua como uma estrategista de conteúdo viral e analisa 4 pilares:</CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -400,12 +399,12 @@ function VideoReviewPageContent() {
                     Arraste seu vídeo para cá
                 </h3>
                 <p className="mt-2 text-sm text-muted-foreground">
-                    ou clique para selecionar um arquivo. Limite de ${MAX_FILE_SIZE_MB}MB por vídeo.
+                    ou clique para selecionar. Limite de ${MAX_FILE_SIZE_MB}MB.
                 </p>
                 <Button
                 type="button"
                 variant="outline"
-                className="mt-6 rounded-full font-manrope"
+                className="mt-6"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={hasReachedLimit}
                 >
@@ -434,10 +433,10 @@ function VideoReviewPageContent() {
                             <p className="text-sm text-muted-foreground">{new Intl.NumberFormat('pt-BR', { style: 'unit', unit: 'megabyte', unitDisplay: 'short' }).format(file.size / 1024 / 1024)}</p>
                         </div>
                         <div className="flex w-full sm:w-auto flex-col sm:flex-row gap-2">
-                            <Button onClick={handleAnalyzeVideo} disabled={analysisStatus === 'loading' || analysisStatus === 'uploading' || hasReachedLimit} className="w-full sm:w-auto rounded-full font-manrope">
+                            <Button onClick={handleAnalyzeVideo} disabled={analysisStatus === 'loading' || analysisStatus === 'uploading' || hasReachedLimit} className="w-full sm:w-auto">
                             {analysisStatus === 'uploading' ? <><Loader2 className="mr-2 animate-spin" />Enviando...</> : analysisStatus === 'loading' ? <><Loader2 className="mr-2 animate-spin" />Analisando...</> : <><Sparkles className="mr-2" />Analisar Vídeo</>}
                             </Button>
-                            <Button onClick={handleReset} variant="outline" className="w-full sm:w-auto rounded-full font-manrope">
+                            <Button onClick={handleReset} variant="outline" className="w-full sm:w-auto">
                                 Trocar Vídeo
                             </Button>
                         </div>
@@ -445,7 +444,7 @@ function VideoReviewPageContent() {
                      {analysisStatus === 'uploading' && (
                         <div className="mt-4 space-y-2">
                             <Progress value={uploadProgress} />
-                            <p className="text-xs text-muted-foreground text-center">Enviando vídeo para análise segura...</p>
+                            <p className="text-xs text-muted-foreground text-center">Enviando vídeo para análise...</p>
                         </div>
                     )}
                 </CardContent>
@@ -456,7 +455,7 @@ function VideoReviewPageContent() {
             <p className="text-sm text-muted-foreground">
                 {isLoadingUsage ? <div className="h-4 bg-muted rounded w-48 inline-block animate-pulse" /> : 
                 <>
-                Análises de vídeo restantes hoje: <span className="font-bold text-primary">{analysesLeft} de {limitCount}</span>
+                Análises restantes hoje: <span className="font-bold text-primary">{analysesLeft} de {limitCount}</span>
                 </>}
             </p>
              {hasReachedLimit && currentPlan !== 'premium' && (
@@ -480,7 +479,7 @@ function VideoReviewPageContent() {
                 {analysisStatus === 'loading' && (
                     <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-96">
                         <Loader2 className="h-10 w-10 animate-spin text-primary" />
-                        <p className="mt-4 text-muted-foreground">Estamos processando seu vídeo...</p>
+                        <p className="mt-4 text-muted-foreground">Processando seu vídeo...</p>
                         <p className="text-sm text-muted-foreground">Isso pode levar alguns instantes.</p>
                     </div>
                 )}
@@ -666,5 +665,3 @@ function VideoReviewPageContent() {
     </div>
   );
 }
-
-    

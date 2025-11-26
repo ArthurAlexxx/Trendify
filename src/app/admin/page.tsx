@@ -3,12 +3,16 @@
 
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { PageHeader } from '@/components/page-header';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import type { UserProfile } from '@/lib/types';
 import { collection, query, where } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAdmin } from '@/hooks/useAdmin';
-import { Users, Crown, Sparkles } from 'lucide-react';
+import { Users, Crown, Sparkles, DollarSign, LineChart } from 'lucide-react';
+import { useMemo } from 'react';
+import { AreaChart, Area, CartesianGrid, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
+import { format } from 'date-fns';
 
 export default function AdminPage() {
   const firestore = useFirestore();
@@ -27,6 +31,34 @@ export default function AdminPage() {
   const proUsers = users?.filter(u => u.subscription?.plan === 'pro' && u.subscription.status === 'active').length || 0;
   const premiumUsers = users?.filter(u => u.subscription?.plan === 'premium' && u.subscription.status === 'active').length || 0;
   const freeUsers = totalUsers - proUsers - premiumUsers;
+  
+  const mrr = useMemo(() => {
+    if (!users) return 0;
+    return users.reduce((acc, user) => {
+        if (user.subscription?.status === 'active') {
+            if (user.subscription.plan === 'pro') {
+                return acc + (user.subscription.cycle === 'annual' ? 299 / 12 : 29);
+            }
+            if (user.subscription.plan === 'premium') {
+                return acc + (user.subscription.cycle === 'annual' ? 399 / 12 : 39);
+            }
+        }
+        return acc;
+    }, 0);
+  }, [users]);
+  
+  const userGrowthData = useMemo(() => {
+    if (!users) return [];
+    const sortedUsers = [...users].sort((a,b) => a.createdAt.toMillis() - b.createdAt.toMillis());
+    const data: { date: string, users: number }[] = [];
+    sortedUsers.forEach((user, index) => {
+        data.push({
+            date: format(user.createdAt.toDate(), 'dd/MM'),
+            users: index + 1
+        });
+    });
+    return data;
+  }, [users]);
 
 
   return (
@@ -67,26 +99,43 @@ export default function AdminPage() {
             <p className="text-xs text-muted-foreground">Plano Premium ativo</p>
           </CardContent>
         </Card>
-      </div>
-
-       {/* Placeholder for future charts */}
-      <div className="grid gap-4 md:grid-cols-2">
         <Card>
-          <CardHeader>
-            <CardTitle>Crescimento de Usuários</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Receita Mensal (MRR)</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <Skeleton className="h-64 w-full" />
-             <p className="text-xs text-muted-foreground mt-2 text-center">Gráfico de crescimento de usuários (em breve).</p>
+            <div className="text-2xl font-bold">{isLoading ? <Skeleton className='h-8 w-24' /> : mrr.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>
+             <p className="text-xs text-muted-foreground">Receita mensal recorrente estimada.</p>
           </CardContent>
         </Card>
+      </div>
+
+      <div className="grid gap-4">
         <Card>
           <CardHeader>
-            <CardTitle>Receita Mensal (MRR)</CardTitle>
+            <CardTitle className="flex items-center gap-2"><LineChart className="h-5 w-5 text-primary" /> Crescimento de Usuários</CardTitle>
+             <CardDescription>Número total de usuários ao longo do tempo.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Skeleton className="h-64 w-full" />
-             <p className="text-xs text-muted-foreground mt-2 text-center">Gráfico de receita mensal recorrente (em breve).</p>
+            {isLoading ? <Skeleton className="h-64 w-full" /> : 
+            <div className="h-64 w-full">
+              <ResponsiveContainer>
+                  <AreaChart data={userGrowthData}>
+                    <defs>
+                        <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                        </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} />
+                    <Tooltip content={<ChartTooltipContent indicator="dot" />} />
+                    <Area type="monotone" dataKey="users" stroke="hsl(var(--primary))" fillOpacity={1} fill="url(#colorUsers)" />
+                  </AreaChart>
+              </ResponsiveContainer>
+            </div>
+            }
           </CardContent>
         </Card>
       </div>

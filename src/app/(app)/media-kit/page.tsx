@@ -63,22 +63,22 @@ const analysisCriteria = [
     {
         icon: BrainCircuit,
         title: "Gerente de Talentos",
-        description: "A plataforma atua como uma gerente de talentos, usando suas métricas e nicho para criar um pacote de prospecção profissional."
+        description: "A IA atua como uma gerente de talentos, usando suas métricas para criar um pacote de prospecção profissional."
     },
     {
         icon: FileText,
         title: "Apresentação Impactante",
-        description: "Cria um parágrafo de apresentação em primeira pessoa, focado em como você agrega valor para marcas dentro do seu nicho."
+        description: "Cria um parágrafo de apresentação em primeira pessoa, focado em como você agrega valor para marcas."
     },
      {
         icon: DollarSign,
         title: "Preços Realistas",
-        description: "Com base nas suas métricas, calculamos faixas de preço realistas para o mercado, te dando um ponto de partida para negociações."
+        description: "Calculamos faixas de preço realistas com base nas suas métricas, te dando um ponto de partida para negociações."
     },
     {
         icon: Lightbulb,
         title: "Ideias Criativas",
-        description: "Gera 3 ideias de colaboração autênticas e alinhadas tanto com seu nicho quanto com a marca alvo que você definir."
+        description: "Gera 3 ideias de colaboração autênticas e alinhadas tanto com seu nicho quanto com a marca alvo."
     }
   ]
 
@@ -108,7 +108,7 @@ function PremiumFeatureGuard({ children }: { children: React.ReactNode }) {
                   </div>
                   <AlertDialogTitle className="font-headline text-xl">Funcionalidade Premium</AlertDialogTitle>
                   <AlertDialogDescription>
-                    O Mídia Kit é um recurso exclusivo para assinantes do plano Premium. Faça o upgrade para ter acesso!
+                    O Mídia Kit é um recurso exclusivo para assinantes Premium. Faça o upgrade para ter acesso!
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -240,8 +240,8 @@ function MediaKitPageContent() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Pacote de Prospecção para Marcas"
-        description="Gere propostas, calcule preços e crie seu mídia kit profissional em um só lugar."
+        title="Pacote de Prospecção"
+        description="Gere propostas, preços e seu mídia kit profissional."
       >
         <SavedIdeasSheet />
       </PageHeader>
@@ -250,9 +250,9 @@ function MediaKitPageContent() {
             <CardHeader>
                 <CardTitle className="flex items-center gap-3 font-headline text-xl">
                     <Sparkles className="h-6 w-6 text-primary" />
-                    Como Criamos seu Pacote de Prospecção?
+                    Como Criamos seu Pacote?
                 </CardTitle>
-                 <CardDescription>Nossa plataforma atua como uma gerente de talentos para monetizar sua influência. Focamos em 4 pilares:</CardDescription>
+                 <CardDescription>Nossa IA atua como sua gerente de talentos e foca em 4 pilares:</CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -303,7 +303,7 @@ function MediaKitPageContent() {
                             }
                           </FormControl>
                           <FormDescription>
-                            Ex: "Moda sustentável", "Finanças para autônomos", "Receitas veganas".
+                            Ex: "Moda sustentável", "Finanças", "Receitas veganas".
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -319,7 +319,7 @@ function MediaKitPageContent() {
                             <FormControl>
                               {isLoadingProfile ? <Skeleton className="h-11 w-full" /> :
                                 <Input
-                                  placeholder="Defina suas métricas em Configurações > Perfil"
+                                  placeholder="Defina em Configurações > Perfil"
                                   className="h-11"
                                   {...field}
                                   readOnly
@@ -327,7 +327,7 @@ function MediaKitPageContent() {
                               }
                             </FormControl>
                              <FormDescription>
-                                Os números que as marcas querem ver. Ex: "10 mil seguidores, 5k de views em média".
+                                Ex: "10k seguidores, 5k de views".
                              </FormDescription>
                             <FormMessage />
                           </FormItem>
@@ -347,7 +347,7 @@ function MediaKitPageContent() {
                               />
                             </FormControl>
                              <FormDescription>
-                                A plataforma usará esta marca para criar ideias de colaboração mais relevantes.
+                                A IA usará a marca para criar ideias relevantes.
                              </FormDescription>
                             <FormMessage />
                           </FormItem>
@@ -360,7 +360,7 @@ function MediaKitPageContent() {
                       type="submit"
                       disabled={isGenerating || isLoadingProfile}
                       size="lg"
-                      className="font-manrope w-full sm:w-auto h-12 px-10 rounded-full text-base font-bold"
+                      className="w-full sm:w-auto"
                     >
                       {isGenerating ? (
                         <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Gerando...</>
@@ -379,10 +379,10 @@ function MediaKitPageContent() {
               <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                 <div className='flex-1'>
                   <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Resultado Gerado</h2>
-                  <p className="text-muted-foreground">Um pacote completo para sua prospecção de marcas.</p>
+                  <p className="text-muted-foreground">Um pacote completo para sua prospecção.</p>
                 </div>
                 {result && (
-                  <Button onClick={() => handleSave(result)} disabled={isSaving} className="w-full sm:w-auto rounded-full font-manrope">
+                  <Button onClick={() => handleSave(result)} disabled={isSaving} className="w-full sm:w-auto">
                     {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                     Salvar Pacote
                   </Button>
@@ -392,7 +392,7 @@ function MediaKitPageContent() {
               {isGenerating && !result ? (
                 <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-96">
                   <Loader2 className="h-10 w-10 animate-spin text-primary" />
-                  <p className="mt-4 text-muted-foreground">Estamos criando seu pacote de prospecção...</p>
+                  <p className="mt-4 text-muted-foreground">Criando seu pacote de prospecção...</p>
                 </div>
               ) : result ? (
                  <div className="grid gap-8">
@@ -493,7 +493,7 @@ function PricingCard({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <p className='text-xs text-muted-foreground mb-4'>Valores baseados nas suas métricas. Use como ponto de partida para negociações.</p>
+        <p className='text-xs text-muted-foreground mb-4'>Valores baseados em suas métricas. Use como ponto de partida.</p>
         <Table>
           <TableHeader>
             <TableRow>

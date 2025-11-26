@@ -241,8 +241,8 @@ export default function ProfilePage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Gerencie seu Perfil"
-        description="Mantenha suas informações atualizadas para a IA gerar estratégias mais precisas."
+        title="Gerenciar Perfil"
+        description="Mantenha suas informações atualizadas para a IA."
       />
           <Card className="rounded-2xl border-0">
             <CardHeader>
@@ -251,7 +251,7 @@ export default function ProfilePage() {
                 <span>Perfil & Métricas Manuais</span>
               </CardTitle>
               <CardDescription>
-                Essas informações serão exibidas em seu Mídia Kit e usadas pela IA para criar estratégias.
+                Essas informações serão usadas pela IA para criar estratégias.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -317,7 +317,7 @@ export default function ProfilePage() {
                     <Label htmlFor="audience">Demografia do Público</Label>
                     <Input
                         id="audience"
-                        placeholder="Ex: 75% Mulheres, 18-24 anos, localizadas no Brasil"
+                        placeholder="Ex: 75% Mulheres, 18-24 anos, Brasil"
                         {...form.register('audience')}
                         className="h-11"
                     />
@@ -401,7 +401,7 @@ export default function ProfilePage() {
 
 
                 <div className="flex justify-end pt-2">
-                  <Button type="submit" disabled={isSaving || isProfileLoading} className="font-manrope rounded-full w-full sm:w-auto">
+                  <Button type="submit" disabled={isSaving || isProfileLoading} className="w-full sm:w-auto">
                      {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Salvar Alterações
                   </Button>
@@ -418,7 +418,7 @@ export default function ProfilePage() {
                   <span>Integração de Plataformas</span>
                 </CardTitle>
                 <CardDescription>
-                  Sincronize seus dados do Instagram e TikTok para obter métricas automáticas e atualizadas.
+                  Sincronize seus dados para obter métricas automáticas.
                 </CardDescription>
             </CardHeader>
             <CardContent>
@@ -426,7 +426,7 @@ export default function ProfilePage() {
                     <AlertTriangle className="h-4 w-4" />
                     <AlertTitle>Funcionalidade Premium</AlertTitle>
                     <AlertDescription>
-                        A integração automática de plataformas é um recurso exclusivo para assinantes Premium. Isso permite que a IA tenha acesso aos dados mais recentes para gerar insights e estratégias de alta precisão.
+                        A integração automática é um recurso exclusivo para assinantes Premium.
                     </AlertDescription>
                 </Alert>
                 <Button asChild className="mt-4">

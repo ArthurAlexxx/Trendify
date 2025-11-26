@@ -78,22 +78,22 @@ const analysisCriteria = [
     {
         icon: BrainCircuit,
         title: "Diretora Criativa",
-        description: "A plataforma atua como uma diretora criativa, gerando 5 roteiros distintos que exploram diferentes ângulos de comunicação para o seu produto."
+        description: "A IA gera 5 roteiros distintos, explorando diferentes ângulos de comunicação para seu produto."
     },
     {
         icon: Target,
         title: "Foco em Conversão",
-        description: "Cada roteiro inclui um gancho forte, desenvolvimento rápido e um CTA claro, todos alinhados com seu objetivo principal (vendas, leads, etc.)."
+        description: "Cada roteiro inclui gancho, desenvolvimento e CTA alinhados com seu objetivo principal (vendas, leads, etc.)."
     },
      {
         icon: Zap,
         title: "Adaptado para Trends",
-        description: "A plataforma sugere como adaptar as ideias para tendências e áudios que estão em alta no momento, aumentando o potencial de alcance."
+        description: "Sugerimos como adaptar as ideias para tendências e áudios em alta, aumentando o potencial de alcance."
     },
     {
         icon: Check,
         title: "Checklist de Sucesso",
-        description: "Para garantir que nada seja esquecido, fornecemos um checklist prático para maximizar a conversão dos seus vídeos."
+        description: "Fornecemos um checklist prático para maximizar a conversão dos seus vídeos."
     }
   ]
 
@@ -123,7 +123,7 @@ function PremiumFeatureGuard({ children }: { children: React.ReactNode }) {
                   </div>
                   <AlertDialogTitle className="font-headline text-xl">Funcionalidade Premium</AlertDialogTitle>
                   <AlertDialogDescription>
-                    O Assistente de Publis é um recurso exclusivo para assinantes do plano Premium. Faça o upgrade para ter acesso!
+                    O Assistente de Publis é um recurso exclusivo para assinantes Premium. Faça o upgrade para ter acesso.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -278,8 +278,8 @@ function PublisAssistantPageContent() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Assistente de Publis & Parcerias"
-        description="Crie pacotes de conteúdo para marcas com foco em conversão e tendências."
+        title="Assistente de Publis"
+        description="Crie pacotes de conteúdo para marcas com foco em conversão."
       >
         <SavedIdeasSheet />
       </PageHeader>
@@ -290,7 +290,7 @@ function PublisAssistantPageContent() {
                     <Sparkles className="h-6 w-6 text-primary" />
                     Como Criamos Sua Campanha?
                 </CardTitle>
-                 <CardDescription>Nossa plataforma atua como uma diretora de criação, combinando estratégia com criatividade. Focamos em 4 pilares:</CardDescription>
+                 <CardDescription>Nossa IA atua como sua diretora de criação, combinando estratégia e criatividade.</CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -314,7 +314,7 @@ function PublisAssistantPageContent() {
             <Bot className="h-6 w-6 text-primary" />
             <span>Briefing da Campanha</span>
           </CardTitle>
-          <CardDescription>Quanto mais informações, mais alinhados à sua marca serão os roteiros e estratégias.</CardDescription>
+          <CardDescription>Quanto mais detalhes, mais alinhados à marca serão os roteiros.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -337,7 +337,7 @@ function PublisAssistantPageContent() {
                               {...field}
                             />
                           </FormControl>
-                          <FormDescription>Qual o foco principal da campanha?</FormDescription>
+                          <FormDescription>Qual o foco da campanha?</FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -350,12 +350,12 @@ function PublisAssistantPageContent() {
                           <FormLabel>Público-Alvo</FormLabel>
                           <FormControl>
                             <Textarea
-                              placeholder="Ex: 'Mulheres de 25-35 anos, interessadas em vida saudável e que já praticam corrida.'"
+                              placeholder="Ex: 'Mulheres de 25-35 anos, interessadas em vida saudável.'"
                               className="min-h-[120px]"
                               {...field}
                             />
                           </FormControl>
-                          <FormDescription>Com quem você quer falar? Seja específico.</FormDescription>
+                          <FormDescription>Com quem você quer falar?</FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -367,15 +367,15 @@ function PublisAssistantPageContent() {
                       name="differentiators"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Diferenciais do Produto/Marca</FormLabel>
+                          <FormLabel>Diferenciais do Produto</FormLabel>
                           <FormControl>
                            <Textarea
-                              placeholder="Ex: 'Feito com material reciclado, super leve, tecnologia de absorção de impacto, design moderno.'"
+                              placeholder="Ex: 'Material reciclado, leve, absorção de impacto, design moderno.'"
                               className="min-h-[120px]"
                               {...field}
                             />
                           </FormControl>
-                          <FormDescription>O que torna este produto/marca único?</FormDescription>
+                          <FormDescription>O que torna o produto único?</FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -431,7 +431,7 @@ function PublisAssistantPageContent() {
                   type="submit"
                   disabled={isButtonDisabled}
                   size="lg"
-                  className="font-manrope w-full sm:w-auto h-12 px-10 rounded-full text-base font-bold"
+                  className="w-full sm:w-auto"
                 >
                   {isGenerating ? (
                     <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Gerando Pacote...</>
@@ -462,7 +462,7 @@ function PublisAssistantPageContent() {
               </p>
             </div>
             {result && (
-               <Button onClick={() => handleSave(result)} disabled={isSaving} className="w-full sm:w-auto rounded-full font-manrope">
+               <Button onClick={() => handleSave(result)} disabled={isSaving} className="w-full sm:w-auto">
                 {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                 Salvar Pacote
               </Button>
@@ -473,7 +473,7 @@ function PublisAssistantPageContent() {
             <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-96">
               <Loader2 className="h-10 w-10 animate-spin text-primary" />
               <p className="mt-4 text-muted-foreground">
-                Estamos montando sua próxima campanha...
+                Montando sua próxima campanha...
               </p>
             </div>
           ) : result ? (

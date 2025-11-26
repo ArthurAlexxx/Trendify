@@ -1,3 +1,4 @@
+
 'use client';
 
 import { PageHeader } from '@/components/page-header';
@@ -53,15 +54,15 @@ export default function FinancialAdminPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Relatórios Financeiros"
-        description="Visualize as métricas financeiras e o histórico de transações da plataforma."
+        title="Financeiro"
+        description="Histórico de transações da plataforma."
       />
 
       <Card>
         <CardHeader>
           <CardTitle>Histórico de Transações</CardTitle>
           <CardDescription>
-            Logs de todos os eventos recebidos pelo gateway de pagamento.
+            Logs de eventos recebidos pelo gateway de pagamento.
           </CardDescription>
         </CardHeader>
         <CardContent>

@@ -38,7 +38,7 @@ export default function AdminUsersPage() {
     <div className="space-y-8">
       <PageHeader
         title="Gerenciamento de Usuários"
-        description="Visualize, filtre e gerencie todos os usuários da plataforma."
+        description="Visualize, filtre e gerencie todos os usuários."
       />
 
       <Card>

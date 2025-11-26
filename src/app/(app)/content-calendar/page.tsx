@@ -317,7 +317,7 @@ export default function ContentCalendarPage() {
     <div className="space-y-8">
       <PageHeader
         title="Calendário de Conteúdo"
-        description="Visualize, organize e agende suas publicações em um só lugar."
+        description="Visualize e organize suas publicações."
       />
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
@@ -528,7 +528,7 @@ export default function ContentCalendarPage() {
                             <AlertDialogHeader>
                                 <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                    Esta ação não pode ser desfeita. Isso excluirá permanentemente o agendamento do post.
+                                    Esta ação não pode ser desfeita e irá excluir permanentemente o agendamento.
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>

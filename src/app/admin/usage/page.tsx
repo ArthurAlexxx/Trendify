@@ -25,14 +25,12 @@ export default function UsageAdminPage() {
   const [enrichedUsage, setEnrichedUsage] = useState<EnrichedUsage[]>([]);
   const [isEnriching, setIsEnriching] = useState(true);
 
-  // 1. Fetch all usage documents from the root collection, only if user is an admin
   const usageQuery = useMemoFirebase(
     () => firestore && isAdmin ? query(collection(firestore, 'usageLogs'), orderBy('date', 'desc'), limit(50)) : null,
     [firestore, isAdmin]
   );
   const { data: usageData, isLoading: isLoadingUsage } = useCollection<DailyUsage>(usageQuery);
   
-  // 2. Enrich usage data with user profiles
   useEffect(() => {
     if (!isAdmin || isLoadingUsage || !firestore) {
       if (!isAdmin && !isAdminLoading) {
@@ -53,7 +51,6 @@ export default function UsageAdminPage() {
       const userCache = new Map<string, UserProfile>();
 
       for (const usage of usageData) {
-        // The document ID is now a composite: 'userId_YYYY-MM-DD'
         const userId = usage.id.split('_')[0];
         if (!userId) continue;
 
@@ -96,29 +93,29 @@ export default function UsageAdminPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Uso das Funcionalidades de IA"
-        description="Acompanhe o consumo das principais ferramentas de IA da plataforma."
+        title="Uso das Ferramentas de IA"
+        description="Acompanhe o consumo das principais ferramentas da plataforma."
       />
       
        <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Análises de Vídeo</CardTitle>
+            <CardTitle className="text-sm font-medium">Análises de Vídeo</CardTitle>
             <Video className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{isLoading ? <Skeleton className='h-8 w-16' /> : totalVideoAnalyses}</div>
-            <p className="text-xs text-muted-foreground">Nos últimos 50 registros de uso.</p>
+            <p className="text-xs text-muted-foreground">Nos últimos 50 registros.</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Gerações de IA</CardTitle>
+            <CardTitle className="text-sm font-medium">Gerações de IA</CardTitle>
             <Lightbulb className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{isLoading ? <Skeleton className='h-8 w-16' /> : totalGeracoesAI}</div>
-            <p className="text-xs text-muted-foreground">Nos últimos 50 registros de uso.</p>
+            <p className="text-xs text-muted-foreground">Nos últimos 50 registros.</p>
           </CardContent>
         </Card>
       </div>
@@ -126,7 +123,7 @@ export default function UsageAdminPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Atividade de Uso Recente</CardTitle>
+          <CardTitle>Atividade Recente</CardTitle>
           <CardDescription>
             Logs de uso das ferramentas de IA pelos usuários.
           </CardDescription>
@@ -182,7 +179,7 @@ export default function UsageAdminPage() {
                             <TableCell colSpan={4} className="h-24 text-center">
                                 <div className="flex flex-col items-center justify-center gap-2">
                                     <Inbox className="h-8 w-8 text-muted-foreground" />
-                                    <p className="text-muted-foreground">Nenhuma atividade de uso encontrada.</p>
+                                    <p className="text-muted-foreground">Nenhuma atividade encontrada.</p>
                                 </div>
                             </TableCell>
                         </TableRow>
@@ -195,4 +192,3 @@ export default function UsageAdminPage() {
     </div>
   );
 }
-    

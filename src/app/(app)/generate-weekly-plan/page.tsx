@@ -88,22 +88,22 @@ const analysisCriteria = [
     {
         icon: BrainCircuit,
         title: "Estrategista de Crescimento",
-        description: "A plataforma atua como uma estrategista, analisando seu nicho, estatísticas e objetivo para criar um plano de ação semanal focado em crescimento."
+        description: "Análise de nicho, estatísticas e objetivo para criar um plano de ação semanal focado em crescimento."
     },
     {
         icon: Target,
         title: "Tarefas Acionáveis",
-        description: "Para cada dia da semana, definimos tarefas de conteúdo claras e práticas, com detalhes sobre o que fazer e como fazer."
+        description: "Para cada dia, definimos tarefas de conteúdo claras e práticas, com detalhes sobre o que e como fazer."
     },
      {
         icon: BarChartIcon,
         title: "Simulação de Desempenho",
-        description: "Com base nas tarefas, projetamos uma simulação realista de alcance e engajamento para você visualizar o impacto potencial do seu esforço."
+        description: "Projetamos uma simulação de alcance e engajamento para você visualizar o impacto potencial do seu esforço."
     },
     {
         icon: Eye,
         title: "Foco no Objetivo",
-        description: "Todo o plano, desde as tarefas diárias até a simulação, é construído com base no objetivo principal que você definiu para a semana."
+        description: "Todo o plano é construído com base no seu objetivo principal para a semana."
     }
   ]
 
@@ -188,12 +188,12 @@ export default function GenerateWeeklyPlanPage() {
           toast({
             title: 'Sucesso!',
             description:
-              'Seu novo roteiro e simulação de desempenho foram salvos e estão no dashboard.',
+              'Seu novo roteiro foi salvo e está no dashboard.',
           });
         } catch (e: any) {
           toast({
             title: 'Erro ao Salvar Plano',
-            description: `Não foi possível salvar os dados no Firestore: ${e.message}`,
+            description: `Não foi possível salvar os dados: ${e.message}`,
             variant: 'destructive',
           });
         }
@@ -232,7 +232,7 @@ export default function GenerateWeeklyPlanPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Crie seu Plano Semanal"
+        title="Plano Semanal"
         description="Transforme seu objetivo da semana em um roteiro de conteúdo acionável."
       >
         <PreviousPlansSheet />
@@ -244,7 +244,7 @@ export default function GenerateWeeklyPlanPage() {
                     <Sparkles className="h-6 w-6 text-primary" />
                     Como Montamos seu Plano Estratégico?
                 </CardTitle>
-                 <CardDescription>Nossa plataforma foi treinada para atuar como uma estrategista de crescimento. Ela analisa sua necessidade em busca de 4 pilares:</CardDescription>
+                 <CardDescription>Nossa plataforma foi treinada para atuar como uma estrategista de crescimento. Ela analisa 4 pilares:</CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -269,7 +269,7 @@ export default function GenerateWeeklyPlanPage() {
             <span>Briefing da Semana</span>
           </CardTitle>
           <CardDescription>
-            Quanto mais detalhes você fornecer, melhor será o plano gerado.
+            Forneça mais detalhes para um plano melhor.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -291,7 +291,7 @@ export default function GenerateWeeklyPlanPage() {
                           {...field}
                         />
                       </FormControl>
-                      <FormDescription>Seja específico. Ex: "ganhar 500 seguidores", "aumentar o alcance em 20%", "divulgar meu e-book".</FormDescription>
+                      <FormDescription>Ex: "ganhar 500 seguidores", "aumentar o alcance em 20%", "divulgar meu e-book".</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -349,12 +349,12 @@ export default function GenerateWeeklyPlanPage() {
                   type="submit"
                   disabled={isGenerating || isSaving || isLoadingProfile}
                   size="lg"
-                  className="font-manrope w-full sm:w-auto h-12 px-10 rounded-full text-base font-bold"
+                  className="w-full sm:w-auto"
                 >
                   {isGenerating || isSaving ? (
                     <>
                       <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      {isSaving ? 'Salvando...' : 'Gerando Plano...'}
+                      {isSaving ? 'Salvando...' : 'Gerando...'}
                     </>
                   ) : (
                     <>
@@ -472,8 +472,7 @@ export default function GenerateWeeklyPlanPage() {
                 Plano Gerado
               </h2>
               <p className="text-muted-foreground">
-                Revise o plano abaixo. Se estiver bom, ele será salvo e
-                substituirá o plano atual.
+                Revise o plano abaixo. Ele será salvo automaticamente.
               </p>
             </div>
           </div>
@@ -482,7 +481,7 @@ export default function GenerateWeeklyPlanPage() {
             <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-96">
               <Loader2 className="h-10 w-10 animate-spin text-primary" />
               <p className="mt-4 text-muted-foreground">
-                Nossa plataforma está montando sua estratégia...
+                Nossa IA está montando sua estratégia...
               </p>
             </div>
           ) : result ? (
