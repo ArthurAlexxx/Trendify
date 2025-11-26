@@ -42,10 +42,10 @@ import type {
   UserProfile,
   PlanoSemanal,
   MetricSnapshot,
-  InstagramProfileData, 
-  InstagramPostData, 
-  TikTokProfileData, 
-  TikTokPostData
+  InstagramProfileData,
+  InstagramPostData,
+  TikTokProfileData,
+  TikTokPostData,
 } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -1195,6 +1195,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-    
-
-    

@@ -2,6 +2,8 @@
 'use server';
 
 import { z } from 'zod';
+import type { InstagramProfileData, InstagramPostData, TikTokProfileData, TikTokPostData } from '@/lib/types';
+
 
 // --- Instagram Schemas ---
 
@@ -25,19 +27,6 @@ const InstagramProfileResultSchema = z.object({
 }).passthrough();
 
 
-export type InstagramProfileData = {
-    id: string;
-    username: string;
-    isPrivate: boolean;
-    isBusiness: boolean;
-    profilePicUrlHd: string;
-    biography: string;
-    fullName: string;
-    mediaCount: number;
-    followersCount: number;
-    followingCount: number;
-}
-
 const InstagramPostSchema = z.object({
   id: z.string(),
   caption: z.object({
@@ -59,15 +48,6 @@ const InstagramPostResponseSchema = z.object({
 });
 
 
-export type InstagramPostData = {
-    id: string;
-    caption: string | null;
-    mediaUrl: string;
-    likes: number;
-    comments: number;
-};
-
-
 // --- TikTok Schemas ---
 
 const TikTokApi6ProfileSchema = z.object({
@@ -86,21 +66,6 @@ const TikTokApi6ProfileSchema = z.object({
 }).passthrough();
 
 
-export type TikTokProfileData = {
-    id: string;
-    username: string;
-    nickname: string;
-    avatarUrl: string;
-    bio: string;
-    isVerified: boolean;
-    isPrivate: boolean;
-    secUid?: string;
-    followersCount: number;
-    followingCount: number;
-    heartsCount: number;
-    videoCount: number;
-};
-
 const TikTokPostSchema = z.object({
     video_id: z.string(),
     description: z.string().optional(),
@@ -118,15 +83,6 @@ const TikTokPostResponseSchema = z.object({
   videos: z.array(TikTokPostSchema).optional().default([]),
 }).passthrough();
 
-
-export type TikTokPostData = {
-    id: string;
-    description: string;
-    coverUrl: string;
-    views: number;
-    likes: number;
-    comments: number;
-};
 
 
 // --- API Fetching Logic ---

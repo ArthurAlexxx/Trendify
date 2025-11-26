@@ -104,6 +104,47 @@ export interface MetricSnapshot {
     comments: string;
 }
 
-    
+export type InstagramProfileData = {
+    id: string;
+    username: string;
+    isPrivate: boolean;
+    isBusiness: boolean;
+    profilePicUrlHd: string;
+    biography: string;
+    fullName: string;
+    mediaCount: number;
+    followersCount: number;
+    followingCount: number;
+}
 
-    
+export type InstagramPostData = {
+    id: string;
+    caption: string | null;
+    mediaUrl: string;
+    likes: number;
+    comments: number;
+};
+
+export type TikTokProfileData = {
+    id: string;
+    username: string;
+    nickname: string;
+    avatarUrl: string;
+    bio: string;
+    isVerified: boolean;
+    isPrivate: boolean;
+    secUid?: string;
+    followersCount: number;
+    followingCount: number;
+    heartsCount: number;
+    videoCount: number;
+};
+
+export type TikTokPostData = {
+    id: string;
+    description: string;
+    coverUrl: string;
+    views: number;
+    likes: number;
+    comments: number;
+};
