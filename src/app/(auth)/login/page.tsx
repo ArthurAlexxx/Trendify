@@ -20,7 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/firebase';
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithRedirect } from 'firebase/auth';
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { Separator } from '@/components/ui/separator';
 
 const formSchema = z.object({
@@ -72,10 +72,26 @@ export default function LoginPage() {
   }
 
   async function handleGoogleSignIn() {
-    setIsPending(true); // Show loader while redirecting
+    setIsPending(true);
     const provider = new GoogleAuthProvider();
-    // The FirebaseProvider will handle the redirect result.
-    await signInWithRedirect(auth, provider);
+    try {
+      await signInWithPopup(auth, provider);
+      // After successful sign-in, the onAuthStateChanged listener in
+      // FirebaseProvider will handle profile creation and AuthLayout will redirect.
+    } catch (error: any) {
+      // Handle errors here, such as user closing the popup.
+      if (error.code !== 'auth/popup-closed-by-user') {
+        toast({
+            title: 'Erro no Login com Google',
+            description: 'Não foi possível completar o login. Tente novamente.',
+            variant: 'destructive'
+        });
+      }
+      console.error("Google Sign-In error:", error.code);
+    } finally {
+      // The loader is stopped by the AuthLayout redirect or here if an error occurs.
+      setIsPending(false);
+    }
   }
 
 
