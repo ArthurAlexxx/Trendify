@@ -64,7 +64,6 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, useCollection, useDoc, useMemoFirebase } from '@/firebase';
 import { collection, doc, query, orderBy, limit, updateDoc, where, addDoc, serverTimestamp } from 'firebase/firestore';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -77,6 +76,7 @@ import { getInstagramProfile, getTikTokPosts, getTikTokProfile, getInstagramPost
 import { useSubscription } from '@/hooks/useSubscription';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import Image from 'next/image';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 
 const chartConfigBase = {
@@ -474,17 +474,13 @@ const PlatformIntegrationModal = ({ userProfile }: { userProfile: UserProfile })
                         Busque dados públicos de um perfil para preencher automaticamente suas métricas.
                     </DialogDescription>
                 </DialogHeader>
-                 <Tabs defaultValue="instagram" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="instagram"><Instagram className="mr-2 h-4 w-4" /> Instagram</TabsTrigger>
-                        <TabsTrigger value="tiktok"><Film className="mr-2 h-4 w-4" /> TikTok</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="instagram" className="mt-4">
-                        <Card className='border-0 shadow-none'>
-                            <CardContent className="p-4 bg-muted/50 rounded-lg">
-                            <div className="flex flex-col sm:flex-row items-end gap-4">
-                                <div className="flex-1 w-full">
-                                <Label htmlFor="instagramHandleApi">Usuário do Instagram</Label>
+                <div className="mt-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <Card className='border-0 shadow-none'>
+                          <CardContent className="p-4 bg-muted/50 rounded-lg">
+                          <div className="flex flex-col items-start gap-4">
+                              <div className="w-full">
+                                <Label htmlFor="instagramHandleApi" className="mb-1 flex items-center gap-2 font-semibold"><Instagram className='h-4 w-4'/> Instagram</Label>
                                 <Input
                                     id="instagramHandleApi"
                                     placeholder="@seu_usuario"
@@ -492,51 +488,46 @@ const PlatformIntegrationModal = ({ userProfile }: { userProfile: UserProfile })
                                     onChange={(e) => setUsername(e.target.value)}
                                     className="h-11 mt-1"
                                 />
-                                </div>
-                                <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                    <Button type="button" disabled={instaStatus === 'loading' || !username} className="w-full sm:w-auto">
-                                    <Search className="mr-2 h-4 w-4" />
-                                    Buscar Dados
-                                    </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                    <AlertDialogTitle>Confirmação de Busca</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                        Você confirma que é o proprietário ou tem permissão para buscar os dados do perfil <strong>@{username.replace('@', '')}</strong>?
-                                    </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                    <AlertDialogAction onClick={handleInstagramSearch}>Sim, confirmar e buscar</AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                                </AlertDialog>
-                            </div>
-                            </CardContent>
-                        </Card>
-                         {instaStatus === 'loading' && <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>}
-                         {instaStatus === 'error' && instaError && <Alert variant="destructive" className="mt-4"><AlertTriangle className="h-4 w-4" /><AlertTitle>Erro ao Buscar Perfil</AlertTitle><AlertDescription>{instaError}</AlertDescription></Alert>}
-                         {instaStatus === 'success' && instaProfile && <InstagramProfileResults profile={instaProfile} posts={instaPosts} error={instaError} formatNumber={formatNumber}/>}
-                    </TabsContent>
-                    <TabsContent value="tiktok" className="mt-4">
-                        <Card className='border-0 shadow-none'>
+                              </div>
+                              <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                  <Button type="button" disabled={instaStatus === 'loading' || !username} className="w-full">
+                                  <Search className="mr-2 h-4 w-4" />
+                                  Buscar Dados
+                                  </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                  <AlertDialogTitle>Confirmação de Busca</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                      Você confirma que é o proprietário ou tem permissão para buscar os dados do perfil <strong>@{username.replace('@', '')}</strong>?
+                                  </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                  <AlertDialogAction onClick={handleInstagramSearch}>Sim, confirmar e buscar</AlertDialogAction>
+                                  </AlertDialogFooter>
+                              </AlertDialogContent>
+                              </AlertDialog>
+                          </div>
+                          </CardContent>
+                      </Card>
+                      <Card className='border-0 shadow-none'>
                             <CardContent className="p-4 bg-muted/50 rounded-lg">
-                            <div className="flex flex-col sm:flex-row items-end gap-4">
-                                <div className="flex-1 w-full">
-                                <Label htmlFor="tiktokHandleApi">Usuário do TikTok</Label>
-                                <Input
-                                    id="tiktokHandleApi"
-                                    placeholder="@seu_usuario"
-                                    value={tiktokUsername}
-                                    onChange={(e) => setTiktokUsername(e.target.value)}
-                                    className="h-11 mt-1"
-                                />
+                            <div className="flex flex-col items-start gap-4">
+                                <div className="w-full">
+                                  <Label htmlFor="tiktokHandleApi" className="mb-1 flex items-center gap-2 font-semibold"><Film className='h-4 w-4'/> TikTok</Label>
+                                  <Input
+                                      id="tiktokHandleApi"
+                                      placeholder="@seu_usuario"
+                                      value={tiktokUsername}
+                                      onChange={(e) => setTiktokUsername(e.target.value)}
+                                      className="h-11 mt-1"
+                                  />
                                 </div>
                                 <AlertDialog>
                                 <AlertDialogTrigger asChild>
-                                    <Button type="button" disabled={tiktokStatus === 'loading' || !tiktokUsername} className="w-full sm:w-auto">
+                                    <Button type="button" disabled={tiktokStatus === 'loading' || !tiktokUsername} className="w-full">
                                     <Search className="mr-2 h-4 w-4" />
                                     Buscar Dados
                                     </Button>
@@ -557,11 +548,15 @@ const PlatformIntegrationModal = ({ userProfile }: { userProfile: UserProfile })
                             </div>
                             </CardContent>
                         </Card>
-                         {tiktokStatus === 'loading' && <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>}
-                         {tiktokStatus === 'error' && tiktokError && <Alert variant="destructive" className="mt-4"><AlertTriangle className="h-4 w-4" /><AlertTitle>Erro ao Buscar Perfil</AlertTitle><AlertDescription>{tiktokError}</AlertDescription></Alert>}
-                         {tiktokStatus === 'success' && tiktokProfile && <TikTokProfileResults profile={tiktokProfile} posts={tiktokPosts} error={tiktokError} formatNumber={formatNumber}/>}
-                    </TabsContent>
-                  </Tabs>
+                  </div>
+                </div>
+                 {instaStatus === 'loading' && <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>}
+                 {instaStatus === 'error' && instaError && <Alert variant="destructive" className="mt-4"><AlertTriangle className="h-4 w-4" /><AlertTitle>Erro ao Buscar Perfil</AlertTitle><AlertDescription>{instaError}</AlertDescription></Alert>}
+                 {instaStatus === 'success' && instaProfile && <InstagramProfileResults profile={instaProfile} posts={instaPosts} error={instaError} formatNumber={formatNumber}/>}
+                
+                 {tiktokStatus === 'loading' && <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>}
+                 {tiktokStatus === 'error' && tiktokError && <Alert variant="destructive" className="mt-4"><AlertTriangle className="h-4 w-4" /><AlertTitle>Erro ao Buscar Perfil</AlertTitle><AlertDescription>{tiktokError}</AlertDescription></Alert>}
+                 {tiktokStatus === 'success' && tiktokProfile && <TikTokProfileResults profile={tiktokProfile} posts={tiktokPosts} error={tiktokError} formatNumber={formatNumber}/>}
             </DialogContent>
         </Dialog>
     )
@@ -572,7 +567,7 @@ export default function DashboardPage() {
   const firestore = useFirestore();
   const { toast } = useToast();
   const [isExpanded, setIsExpanded] = useState(false);
-  const [selectedPlatform, setSelectedPlatform] = useState<'instagram' | 'tiktok' | 'total'>('total');
+  const [selectedPlatform, setSelectedPlatform] = useState<'total' | 'instagram' | 'tiktok'>('total');
 
   const { subscription, isLoading: isSubscriptionLoading } = useSubscription();
   const isPremium = subscription?.plan === 'premium' && subscription.status === 'active';
@@ -684,7 +679,7 @@ export default function DashboardPage() {
   const formatMetricValue = (value?: string | number): string => {
     if (value === undefined || value === null) return '—';
     const num = typeof value === 'string' ? parseMetric(value) : value;
-    if (num === 0) return 'N/A';
+     if (num === 0) return 'N/A';
 
     if (num >= 1000000) return `${(num / 1000000).toFixed(1).replace('.', ',')}M`;
     if (num >= 10000) return `${(num / 1000).toFixed(1).replace('.', ',')}K`;
@@ -792,73 +787,64 @@ export default function DashboardPage() {
 
         {/* Métricas e Publicações */}
         <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0">
-            <Tabs value={selectedPlatform} onValueChange={(value) => setSelectedPlatform(value as any)} className="w-full">
-              <CardHeader className="flex flex-col gap-4 sm:flex-row items-start sm:items-center justify-between pb-4">
-                  <CardTitle className="text-base font-medium text-muted-foreground">
-                    Visão Geral da Plataforma
-                  </CardTitle>
-                  <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
-                    <TabsList className='grid w-full grid-cols-3 sm:w-auto'>
-                        <TabsTrigger value="total">Total</TabsTrigger>
-                        <TabsTrigger value="instagram">Instagram</TabsTrigger>
-                        <TabsTrigger value="tiktok">TikTok</TabsTrigger>
-                    </TabsList>
-                    {userProfile && <UpdateMetricsModal userProfile={userProfile} />}
+            <CardHeader className="flex flex-col gap-4 sm:flex-row items-start sm:items-center justify-between pb-4">
+                <CardTitle className="text-base font-medium text-muted-foreground">
+                  Visão Geral da Plataforma
+                </CardTitle>
+                <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+                   <Select value={selectedPlatform} onValueChange={(value) => setSelectedPlatform(value as any)}>
+                      <SelectTrigger className="w-full sm:w-[180px]">
+                        <SelectValue placeholder="Selecione a plataforma" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="total">Total</SelectItem>
+                        <SelectItem value="instagram">Instagram</SelectItem>
+                        <SelectItem value="tiktok">TikTok</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  {userProfile && <UpdateMetricsModal userProfile={userProfile} />}
+                </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+                 <div className="grid gap-4 grid-cols-2 lg:grid-cols-4 justify-center">
+                      <MetricCard icon={Users} title="Seguidores" value={formatMetricValue(latestMetrics?.followers)} handle={selectedPlatform !== 'total' ? latestMetrics?.handle as string : undefined} isLoading={isLoading} />
+                      <MetricCard icon={Eye} title={selectedPlatform === 'tiktok' ? "Média de Views" : "Views (Manual)"} value={formatMetricValue(latestMetrics?.views)} isManual={selectedPlatform !== 'tiktok'} isLoading={isLoading} />
+                      <MetricCard icon={Heart} title="Média de Likes" value={formatMetricValue(latestMetrics?.likes)} isLoading={isLoading} />
+                      <MetricCard icon={MessageSquare} title="Média de Comentários" value={formatMetricValue(latestMetrics?.comments)} isLoading={isLoading} />
                   </div>
-              </CardHeader>
-              <CardContent>
-                  <TabsContent value="total" className="mt-0">
-                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 justify-center">
-                        <MetricCard icon={Users} title="Seguidores" value={formatMetricValue(latestMetrics?.followers)} handle={selectedPlatform !== 'total' ? latestMetrics?.handle as string : undefined} isLoading={isLoading} />
-                        <MetricCard icon={Eye} title="Views (Manual)" value={formatMetricValue(latestMetrics?.views)} isManual={true} isLoading={isLoading} />
-                        <MetricCard icon={Heart} title="Média de Likes" value={formatMetricValue(latestMetrics?.likes)} isLoading={isLoading} />
-                        <MetricCard icon={MessageSquare} title="Média de Comentários" value={formatMetricValue(latestMetrics?.comments)} isLoading={isLoading} />
-                      </div>
-                  </TabsContent>
-                  <TabsContent value="instagram" className="mt-0 space-y-6">
-                      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 justify-center">
-                        <MetricCard icon={Users} title="Seguidores" value={formatMetricValue(latestMetrics?.followers)} handle={userProfile?.instagramHandle} isLoading={isLoading} />
-                        <MetricCard icon={Eye} title="Views (Manual)" value={formatMetricValue(latestMetrics?.views)} isManual={true} isLoading={isLoading} />
-                        <MetricCard icon={Heart} title="Média de Likes" value={formatMetricValue(latestMetrics?.likes)} isLoading={isLoading} />
-                        <MetricCard icon={MessageSquare} title="Média de Comentários" value={formatMetricValue(latestMetrics?.comments)} isLoading={isLoading} />
-                      </div>
-                       {isFetchingPosts ? (
-                          <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>
-                      ) : instaPosts && userProfile?.instagramHandle ? (
-                          <InstagramProfileResults profile={{
-                              id: '', username: userProfile.instagramHandle,
-                              followersCount: parseMetric(userProfile.instagramFollowers),
-                              isPrivate: false, isBusiness: true, profilePicUrlHd: '', biography: '', fullName: '', mediaCount: 0, followingCount: 0
-                          }} posts={instaPosts} formatNumber={formatNumber} error={null} />
-                      ) : (
-                          <div className="text-center py-10">
-                              <p className="text-muted-foreground">Integre sua conta do Instagram no seu <Link href="/profile" className='text-primary font-semibold hover:underline'>perfil</Link> para ver seus posts aqui.</p>
-                          </div>
-                      )}
-                  </TabsContent>
-                   <TabsContent value="tiktok" className="mt-0 space-y-6">
-                      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 justify-center">
-                        <MetricCard icon={Users} title="Seguidores" value={formatMetricValue(latestMetrics?.followers)} handle={userProfile?.tiktokHandle} isLoading={isLoading} />
-                        <MetricCard icon={Eye} title="Média de Views" value={formatMetricValue(latestMetrics?.views)} isLoading={isLoading} />
-                        <MetricCard icon={Heart} title="Média de Likes" value={formatMetricValue(latestMetrics?.likes)} isLoading={isLoading} />
-                        <MetricCard icon={MessageSquare} title="Média de Comentários" value={formatMetricValue(latestMetrics?.comments)} isLoading={isLoading} />
-                      </div>
-                       {isFetchingPosts ? (
-                          <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>
-                      ) : tiktokPosts && userProfile?.tiktokHandle ? (
-                          <TikTokProfileResults profile={{
-                              id: '', username: userProfile.tiktokHandle,
-                              followersCount: parseMetric(userProfile.tiktokFollowers),
-                              nickname: '', avatarUrl: '', bio: '', isVerified: false, isPrivate: false, heartsCount: 0, videoCount: 0, followingCount: 0
-                          }} posts={tiktokPosts} formatNumber={formatNumber} error={null} />
-                      ) : (
-                          <div className="text-center py-10">
-                              <p className="text-muted-foreground">Integre sua conta do TikTok no seu <Link href="/profile" className='text-primary font-semibold hover:underline'>perfil</Link> para ver seus vídeos aqui.</p>
-                          </div>
-                      )}
-                  </TabsContent>
-              </CardContent>
-            </Tabs>
+
+                  {selectedPlatform === 'instagram' && (
+                    isFetchingPosts ? (
+                        <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>
+                    ) : instaPosts && userProfile?.instagramHandle ? (
+                        <InstagramProfileResults profile={{
+                            id: '', username: userProfile.instagramHandle,
+                            followersCount: parseMetric(userProfile.instagramFollowers),
+                            isPrivate: false, isBusiness: true, profilePicUrlHd: '', biography: '', fullName: '', mediaCount: 0, followingCount: 0
+                        }} posts={instaPosts} formatNumber={formatNumber} error={null} />
+                    ) : (
+                        <div className="text-center py-10">
+                            <p className="text-muted-foreground">Integre sua conta do Instagram no seu <Link href="/profile" className='text-primary font-semibold hover:underline'>perfil</Link> para ver seus posts aqui.</p>
+                        </div>
+                    )
+                  )}
+
+                  {selectedPlatform === 'tiktok' && (
+                     isFetchingPosts ? (
+                        <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>
+                    ) : tiktokPosts && userProfile?.tiktokHandle ? (
+                        <TikTokProfileResults profile={{
+                            id: '', username: userProfile.tiktokHandle,
+                            followersCount: parseMetric(userProfile.tiktokFollowers),
+                            nickname: '', avatarUrl: '', bio: '', isVerified: false, isPrivate: false, heartsCount: 0, videoCount: 0, followingCount: 0
+                        }} posts={tiktokPosts} formatNumber={formatNumber} error={null} />
+                    ) : (
+                        <div className="text-center py-10">
+                            <p className="text-muted-foreground">Integre sua conta do TikTok no seu <Link href="/profile" className='text-primary font-semibold hover:underline'>perfil</Link> para ver seus vídeos aqui.</p>
+                        </div>
+                    )
+                  )}
+            </CardContent>
         </Card>
         
         <div className="grid grid-cols-1 xl:grid-cols-5 gap-8">
@@ -1196,9 +1182,9 @@ export function MetricCard({ icon: Icon, title, value, handle, isLoading, isManu
     }
 
     return (
-        <div className="p-6 rounded-lg bg-muted/50 flex flex-col justify-center text-center sm:text-left">
+        <div className="p-4 sm:p-6 rounded-lg bg-muted/50 flex flex-col justify-center text-center sm:text-left">
             <div className="flex flex-col sm:flex-row items-center justify-between space-y-2 sm:space-y-0 pb-2">
-                <h3 className="text-base font-medium text-muted-foreground">
+                <h3 className="text-sm sm:text-base font-medium text-muted-foreground">
                 {title}
                 </h3>
                 <Icon className="h-4 w-4 text-primary" />
@@ -1212,7 +1198,7 @@ export function MetricCard({ icon: Icon, title, value, handle, isLoading, isManu
                 </div>
             ) : (
                 <>
-                    <div className="text-3xl font-bold font-headline">
+                    <div className="text-2xl sm:text-3xl font-bold font-headline">
                         {value || '—'}
                     </div>
                     {handle && (
@@ -1229,9 +1215,6 @@ export function MetricCard({ icon: Icon, title, value, handle, isLoading, isManu
 export function InstagramProfileResults({ profile, posts, error, formatNumber }: { profile: Partial<InstagramProfileData>, posts: InstagramPostData[] | null, error: string | null, formatNumber: (n: number) => string }) {
     if (!profile) return null;
 
-    const averageLikes = posts && posts.length > 0 ? posts.reduce((acc, p) => acc + p.likes, 0) / posts.length : 0;
-    const averageComments = posts && posts.length > 0 ? posts.reduce((acc, p) => acc + p.comments, 0) / posts.length : 0;
-
     return (
         <div className="mt-6 space-y-6">
             <h3 className="text-lg font-semibold text-center sm:text-left">Últimas Publicações</h3>
@@ -1245,7 +1228,7 @@ export function InstagramProfileResults({ profile, posts, error, formatNumber }:
                 >
                     <CarouselContent>
                         {posts.map((post) => (
-                            <CarouselItem key={post.id} className="md:basis-1/2 lg:basis-1/3">
+                            <CarouselItem key={post.id} className="basis-full sm:basis-1/2 lg:basis-1/3">
                                 <Card className="overflow-hidden">
                                     <div className="relative aspect-square">
                                         <Image src={post.mediaUrl} alt={post.caption || 'Instagram Post'} fill style={{ objectFit: 'cover' }} />
@@ -1261,8 +1244,8 @@ export function InstagramProfileResults({ profile, posts, error, formatNumber }:
                             </CarouselItem>
                         ))}
                     </CarouselContent>
-                    <CarouselPrevious className="ml-12" />
-                    <CarouselNext className="mr-12" />
+                    <CarouselPrevious className="ml-12 hidden sm:flex" />
+                    <CarouselNext className="mr-12 hidden sm:flex" />
                 </Carousel>
             ) : posts ? (
                  <div className="text-center py-10">
@@ -1276,11 +1259,6 @@ export function InstagramProfileResults({ profile, posts, error, formatNumber }:
 export function TikTokProfileResults({ profile, posts, error, formatNumber }: { profile: Partial<TikTokProfileData>, posts: TikTokPostData[] | null, error: string | null, formatNumber: (n: number) => string }) {
     if (!profile) return null;
     
-    const averageLikes = posts && posts.length > 0 ? posts.reduce((acc, p) => acc + p.likes, 0) / posts.length : 0;
-    const averageComments = posts && posts.length > 0 ? posts.reduce((acc, p) => acc + p.comments, 0) / posts.length : 0;
-    const averageViews = posts && posts.length > 0 ? posts.reduce((acc, p) => acc + p.views, 0) / posts.length : 0;
-
-
     return (
         <div className="mt-6 space-y-6">
             <h3 className="text-lg font-semibold text-center sm:text-left">Últimos Vídeos</h3>
@@ -1290,7 +1268,7 @@ export function TikTokProfileResults({ profile, posts, error, formatNumber }: { 
                 <Carousel opts={{ align: "start" }} className="w-full">
                     <CarouselContent>
                         {posts.map((post) => (
-                            <CarouselItem key={post.id} className="md:basis-1/2 lg:basis-1/3">
+                            <CarouselItem key={post.id} className="basis-full sm:basis-1/2 lg:basis-1/3">
                                 <Card className="overflow-hidden">
                                     <div className="relative aspect-[9/16]">
                                         <Image src={post.coverUrl} alt={post.description || 'TikTok Video'} fill style={{ objectFit: 'cover' }} />
@@ -1307,8 +1285,8 @@ export function TikTokProfileResults({ profile, posts, error, formatNumber }: { 
                             </CarouselItem>
                         ))}
                     </CarouselContent>
-                    <CarouselPrevious className="ml-12" />
-                    <CarouselNext className="mr-12" />
+                     <CarouselPrevious className="ml-12 hidden sm:flex" />
+                    <CarouselNext className="mr-12 hidden sm:flex" />
                 </Carousel>
             ) : posts ? (
                 <div className="text-center py-10">
@@ -1328,3 +1306,6 @@ export function TikTokProfileResults({ profile, posts, error, formatNumber }: { 
 
     
 
+
+
+    
