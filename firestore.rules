@@ -3,36 +3,33 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper function to check for admin role from the user's document
     function isAdmin() {
-      // Allow reading the user's own role field to check for admin status
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
-    // --- USERS COLLECTION RULES ---
     match /users/{userId} {
-      // A user can read and write to their own profile.
+
+      // Usuário pode criar o próprio doc
+      allow create: if request.auth != null && request.auth.uid == userId;
+
+      // Usuário pode ler e editar o próprio doc
       allow read, write: if request.auth != null && request.auth.uid == userId;
 
-      // An admin can read any user's profile.
-      allow read: if isAdmin();
+      // Admin pode ler QUALQUER doc
+      allow read: if request.auth != null && isAdmin();
     }
 
-    // An admin can list the entire users collection.
-    // NOTE: This rule is permissive but relies on client-side checks to prevent
-    // non-admins from ever attempting this query. The AdminLayout enforces this.
+    // Admin pode listar todos os usuários
     match /users/{document=**} {
-      allow list: if request.auth != null;
-    }
-    
-    // --- GENERAL SUBCOLLECTION RULES ---
-    // Users can manage their own subcollections (ideiasSalvas, conteudoAgendado, etc.)
-    match /users/{userId}/{subcollection=**} {
-      allow read, write: if request.auth.uid == userId;
+      allow list: if request.auth != null && isAdmin();
     }
 
-    // --- ROTEIRO COLLECTION RULES ---
-    // Any authenticated user can read and write to the roteiro collection.
+    // Subcoleções do usuário
+    match /users/{userId}/{subcollection=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Coleção roteiro (livre para qualquer user logado)
     match /roteiro/{itemRoteiroId} {
       allow read, write: if request.auth != null;
     }
