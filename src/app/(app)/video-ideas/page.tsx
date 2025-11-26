@@ -76,22 +76,22 @@ const analysisCriteria = [
     {
         icon: BrainCircuit,
         title: "Estrategista Viral",
-        description: "A IA foca em ideias com alto potencial de engajamento e alcance para o seu nicho."
+        description: "Análise de nicho para gerar ideias com alto potencial de engajamento."
     },
     {
         icon: Target,
         title: "Gancho Magnético",
-        description: "Criamos ganchos de 2-3 segundos para capturar a atenção imediatamente e gerar curiosidade."
+        description: "Criação de ganchos de 2-3 segundos para capturar a atenção imediatamente."
     },
      {
         icon: BarChart,
         title: "Otimizado para Algoritmo",
-        description: "Geramos roteiros estruturados para reter a atenção e sugerimos músicas em alta."
+        description: "Roteiros estruturados para reter a atenção e sugestões de músicas em alta."
     },
     {
         icon: Eye,
         title: "Foco no Objetivo",
-        description: "Cada elemento, do roteiro ao CTA, é pensado para atingir seu objetivo principal."
+        description: "Cada elemento, do roteiro ao CTA, é pensado para atingir seu objetivo."
     },
   ]
 
@@ -130,8 +130,8 @@ export default function VideoIdeasPage() {
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      topic: 'Como fazer o melhor café coado',
-      targetAudience: 'Amantes de café que querem melhorar suas técnicas em casa',
+      topic: '',
+      targetAudience: '',
       objective: 'Engajamento',
     },
   });
@@ -212,7 +212,7 @@ export default function VideoIdeasPage() {
 
         toast({
           title: 'Sucesso!',
-          description: 'Sua ideia foi salva no painel.',
+          description: 'Sua ideia foi salva.',
         });
       } catch (error) {
         console.error('Failed to save idea:', error);
@@ -244,7 +244,7 @@ export default function VideoIdeasPage() {
                     <Sparkles className="text-primary h-6 w-6" />
                     Como Criamos Suas Ideias?
                 </CardTitle>
-                 <CardDescription>Nossa IA foi treinada para pensar como uma estrategista de conteúdo viral e analisa 4 pilares:</CardDescription>
+                 <CardDescription>A IA atua como uma estrategista de conteúdo viral e analisa 4 pilares:</CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -268,7 +268,7 @@ export default function VideoIdeasPage() {
             <Sparkles className="h-6 w-6 text-primary" />
             <span>Descreva sua necessidade</span>
           </CardTitle>
-          <CardDescription>Quanto mais detalhes, mais criativa e precisa será a ideia gerada.</CardDescription>
+          <CardDescription>Quanto mais detalhes, mais criativa e precisa será a ideia.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -285,12 +285,11 @@ export default function VideoIdeasPage() {
                       <FormLabel>Tópico Principal</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="Ex: 'Rotina de skincare para pele oleosa'"
+                          placeholder="Ex: Rotina de skincare para pele oleosa"
                           className="h-11"
                           {...field}
                         />
                       </FormControl>
-                       <FormDescription>Sobre o que será o vídeo?</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -303,12 +302,11 @@ export default function VideoIdeasPage() {
                       <FormLabel>Público-Alvo</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="Ex: 'Mulheres de 25-35 anos interessadas em beleza'"
+                          placeholder="Ex: Mulheres de 25-35 anos"
                           className="h-11"
                           {...field}
                         />
                       </FormControl>
-                      <FormDescription>Para quem é este conteúdo?</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -423,12 +421,12 @@ export default function VideoIdeasPage() {
             <div className="grid gap-6">
               <div className="grid lg:grid-cols-2 gap-6">
                 <InfoCard
-                  title="O Gancho Perfeito"
+                  title="Gancho"
                   icon={Mic}
                   content={result.gancho}
                 />
                 <InfoCard
-                  title="Chamada para Ação (CTA)"
+                  title="CTA"
                   icon={Heart}
                   content={result.cta}
                 />

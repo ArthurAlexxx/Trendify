@@ -63,22 +63,22 @@ const analysisCriteria = [
     {
         icon: BrainCircuit,
         title: "Gerente de Talentos",
-        description: "A IA atua como uma gerente de talentos, usando suas métricas para criar um pacote de prospecção profissional."
+        description: "A IA atua como sua gerente, usando suas métricas para criar um pacote de prospecção."
     },
     {
         icon: FileText,
         title: "Apresentação Impactante",
-        description: "Cria um parágrafo de apresentação em primeira pessoa, focado em como você agrega valor para marcas."
+        description: "Cria um parágrafo de apresentação em primeira pessoa, focado em como você agrega valor."
     },
      {
         icon: DollarSign,
         title: "Preços Realistas",
-        description: "Calculamos faixas de preço realistas com base nas suas métricas, te dando um ponto de partida para negociações."
+        description: "Calculamos faixas de preço realistas com base nas suas métricas para suas negociações."
     },
     {
         icon: Lightbulb,
         title: "Ideias Criativas",
-        description: "Gera 3 ideias de colaboração autênticas e alinhadas tanto com seu nicho quanto com a marca alvo."
+        description: "Gera ideias de colaboração autênticas e alinhadas ao seu nicho e à marca alvo."
     }
   ]
 
@@ -108,7 +108,7 @@ function PremiumFeatureGuard({ children }: { children: React.ReactNode }) {
                   </div>
                   <AlertDialogTitle className="font-headline text-xl">Funcionalidade Premium</AlertDialogTitle>
                   <AlertDialogDescription>
-                    O Mídia Kit é um recurso exclusivo para assinantes Premium. Faça o upgrade para ter acesso!
+                    O Mídia Kit é um recurso exclusivo para assinantes Premium.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -152,7 +152,7 @@ function MediaKitPageContent() {
     defaultValues: {
       niche: '',
       keyMetrics: '',
-      targetBrand: 'Sallve',
+      targetBrand: '',
     },
   });
 
@@ -174,7 +174,7 @@ function MediaKitPageContent() {
       form.reset({
         niche: userProfile.niche || '',
         keyMetrics: metrics,
-        targetBrand: 'Sallve',
+        targetBrand: form.getValues('targetBrand') || '',
       });
     }
   }, [userProfile, form]);
@@ -222,7 +222,7 @@ function MediaKitPageContent() {
 
         toast({
           title: 'Sucesso!',
-          description: 'Seu pacote de prospecção foi salvo no painel.',
+          description: 'Seu pacote de prospecção foi salvo.',
         });
       } catch (error) {
         console.error('Failed to save idea:', error);
@@ -252,7 +252,7 @@ function MediaKitPageContent() {
                     <Sparkles className="h-6 w-6 text-primary" />
                     Como Criamos seu Pacote?
                 </CardTitle>
-                 <CardDescription>Nossa IA atua como sua gerente de talentos e foca em 4 pilares:</CardDescription>
+                 <CardDescription>A IA atua como sua gerente de talentos e foca em 4 pilares:</CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -291,20 +291,17 @@ function MediaKitPageContent() {
                       name="niche"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Seu Nicho de Atuação</FormLabel>
+                          <FormLabel>Seu Nicho</FormLabel>
                           <FormControl>
                              {isLoadingProfile ? <Skeleton className="h-11 w-full" /> : 
                               <Input
-                                placeholder="Defina seu nicho em Configurações > Perfil"
+                                placeholder="Defina em seu Perfil"
                                 className="h-11"
                                 {...field}
                                 readOnly
                               />
                             }
                           </FormControl>
-                          <FormDescription>
-                            Ex: "Moda sustentável", "Finanças", "Receitas veganas".
-                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -315,20 +312,17 @@ function MediaKitPageContent() {
                         name="keyMetrics"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Suas Métricas Chave</FormLabel>
+                            <FormLabel>Métricas Chave</FormLabel>
                             <FormControl>
                               {isLoadingProfile ? <Skeleton className="h-11 w-full" /> :
                                 <Input
-                                  placeholder="Defina em Configurações > Perfil"
+                                  placeholder="Defina em seu Perfil"
                                   className="h-11"
                                   {...field}
                                   readOnly
                                 />
                               }
                             </FormControl>
-                             <FormDescription>
-                                Ex: "10k seguidores, 5k de views".
-                             </FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -338,17 +332,14 @@ function MediaKitPageContent() {
                         name="targetBrand"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Marca Alvo (para contexto)</FormLabel>
+                            <FormLabel>Marca Alvo</FormLabel>
                             <FormControl>
                               <Input
-                                placeholder="Ex: 'Sallve', 'Natura', 'Nike'"
+                                placeholder="Ex: Sallve, Natura, Nike"
                                 className="h-11"
                                 {...field}
                               />
                             </FormControl>
-                             <FormDescription>
-                                A IA usará a marca para criar ideias relevantes.
-                             </FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -392,7 +383,7 @@ function MediaKitPageContent() {
               {isGenerating && !result ? (
                 <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-96">
                   <Loader2 className="h-10 w-10 animate-spin text-primary" />
-                  <p className="mt-4 text-muted-foreground">Criando seu pacote de prospecção...</p>
+                  <p className="mt-4 text-muted-foreground">Criando seu pacote...</p>
                 </div>
               ) : result ? (
                  <div className="grid gap-8">

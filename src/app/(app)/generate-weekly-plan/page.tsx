@@ -88,17 +88,17 @@ const analysisCriteria = [
     {
         icon: BrainCircuit,
         title: "Estrategista de Crescimento",
-        description: "Análise de nicho, estatísticas e objetivo para criar um plano de ação semanal focado em crescimento."
+        description: "Análise de nicho, estatísticas e objetivo para criar um plano de ação semanal."
     },
     {
         icon: Target,
         title: "Tarefas Acionáveis",
-        description: "Para cada dia, definimos tarefas de conteúdo claras e práticas, com detalhes sobre o que e como fazer."
+        description: "Para cada dia, definimos tarefas claras e práticas, com detalhes sobre o que fazer."
     },
      {
         icon: BarChartIcon,
         title: "Simulação de Desempenho",
-        description: "Projetamos uma simulação de alcance e engajamento para você visualizar o impacto potencial do seu esforço."
+        description: "Projeção de alcance e engajamento para visualizar o impacto potencial."
     },
     {
         icon: Eye,
@@ -159,7 +159,7 @@ export default function GenerateWeeklyPlanPage() {
       ].filter(Boolean).join(', ');
 
       form.reset({
-        objective: 'Aumentar o engajamento em 15% com conteúdo de valor',
+        objective: form.getValues('objective') || '',
         niche: userProfile.niche || '',
         currentStats: stats,
       });
@@ -188,12 +188,12 @@ export default function GenerateWeeklyPlanPage() {
           toast({
             title: 'Sucesso!',
             description:
-              'Seu novo roteiro foi salvo e está no dashboard.',
+              'Seu novo roteiro foi salvo.',
           });
         } catch (e: any) {
           toast({
             title: 'Erro ao Salvar Plano',
-            description: `Não foi possível salvar os dados: ${e.message}`,
+            description: `Não foi possível salvar: ${e.message}`,
             variant: 'destructive',
           });
         }
@@ -233,7 +233,7 @@ export default function GenerateWeeklyPlanPage() {
     <div className="space-y-8">
       <PageHeader
         title="Plano Semanal"
-        description="Transforme seu objetivo da semana em um roteiro de conteúdo acionável."
+        description="Transforme seu objetivo em um roteiro de conteúdo acionável."
       >
         <PreviousPlansSheet />
       </PageHeader>
@@ -242,9 +242,9 @@ export default function GenerateWeeklyPlanPage() {
             <CardHeader>
                 <CardTitle className="flex items-center gap-3 font-headline text-xl">
                     <Sparkles className="h-6 w-6 text-primary" />
-                    Como Montamos seu Plano Estratégico?
+                    Como Montamos seu Plano?
                 </CardTitle>
-                 <CardDescription>Nossa plataforma foi treinada para atuar como uma estrategista de crescimento. Ela analisa 4 pilares:</CardDescription>
+                 <CardDescription>A IA atua como sua estrategista e analisa 4 pilares:</CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -269,7 +269,7 @@ export default function GenerateWeeklyPlanPage() {
             <span>Briefing da Semana</span>
           </CardTitle>
           <CardDescription>
-            Forneça mais detalhes para um plano melhor.
+            Forneça os detalhes para um plano melhor.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -282,16 +282,15 @@ export default function GenerateWeeklyPlanPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        Qual seu principal objetivo para esta semana?
+                        Qual seu principal objetivo para a semana?
                       </FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="Ex: 'Aumentar o engajamento com Reels de humor'"
+                          placeholder="Ex: Aumentar o engajamento com Reels de humor"
                           className="h-11"
                           {...field}
                         />
                       </FormControl>
-                      <FormDescription>Ex: "ganhar 500 seguidores", "aumentar o alcance em 20%", "divulgar meu e-book".</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -308,7 +307,7 @@ export default function GenerateWeeklyPlanPage() {
                             <Skeleton className="h-11 w-full" />
                           ) : (
                             <Input
-                              placeholder="Defina em Configurações > Perfil"
+                              placeholder="Defina em seu Perfil"
                               className="h-11"
                               {...field}
                               readOnly
@@ -330,7 +329,7 @@ export default function GenerateWeeklyPlanPage() {
                             <Skeleton className="h-11 w-full" />
                           ) : (
                             <Input
-                              placeholder="Defina em Configurações > Perfil"
+                              placeholder="Defina em seu Perfil"
                               className="h-11"
                               {...field}
                               readOnly
@@ -375,8 +374,7 @@ export default function GenerateWeeklyPlanPage() {
                     <AlertDialogHeader>
                       <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Esta ação irá deletar o plano semanal atual. Ele não poderá ser recuperado. 
-                        Planos anteriores no histórico não serão afetados.
+                        Esta ação irá deletar o plano semanal atual. Ele não poderá ser recuperado.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -442,7 +440,7 @@ export default function GenerateWeeklyPlanPage() {
                   </CardContent>
                 </Card>
                 <Card className="rounded-2xl border-0">
-                  <CardHeader><CardTitle className="font-headline text-xl">Desempenho Semanal (Simulado)</CardTitle></CardHeader>
+                  <CardHeader><CardTitle className="font-headline text-xl">Desempenho (Simulado)</CardTitle></CardHeader>
                   <CardContent className="pl-2">
                     {isLoadingRoteiro ? <Skeleton className="h-[350px] w-full" /> : 
                      <ChartContainer config={chartConfig} className="h-[350px] w-full">

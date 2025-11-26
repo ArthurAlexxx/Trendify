@@ -78,22 +78,22 @@ const analysisCriteria = [
     {
         icon: BrainCircuit,
         title: "Diretora Criativa",
-        description: "A IA gera 5 roteiros distintos, explorando diferentes ângulos de comunicação para seu produto."
+        description: "Geração de 5 roteiros distintos, explorando diferentes ângulos de comunicação."
     },
     {
         icon: Target,
         title: "Foco em Conversão",
-        description: "Cada roteiro inclui gancho, desenvolvimento e CTA alinhados com seu objetivo principal (vendas, leads, etc.)."
+        description: "Roteiros com gancho, desenvolvimento e CTA alinhados ao seu objetivo principal."
     },
      {
         icon: Zap,
         title: "Adaptado para Trends",
-        description: "Sugerimos como adaptar as ideias para tendências e áudios em alta, aumentando o potencial de alcance."
+        description: "Sugestões para adaptar as ideias para tendências e áudios em alta."
     },
     {
         icon: Check,
         title: "Checklist de Sucesso",
-        description: "Fornecemos um checklist prático para maximizar a conversão dos seus vídeos."
+        description: "Um checklist prático para maximizar a conversão dos seus vídeos."
     }
   ]
 
@@ -123,7 +123,7 @@ function PremiumFeatureGuard({ children }: { children: React.ReactNode }) {
                   </div>
                   <AlertDialogTitle className="font-headline text-xl">Funcionalidade Premium</AlertDialogTitle>
                   <AlertDialogDescription>
-                    O Assistente de Publis é um recurso exclusivo para assinantes Premium. Faça o upgrade para ter acesso.
+                    O Assistente de Publis é um recurso exclusivo para assinantes Premium.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -164,7 +164,7 @@ function PublisAssistantPageContent() {
 
   useEffect(() => {
     if (!user || !firestore) return;
-    const usageDocRef = doc(firestore, 'usageLogs', `${user.uid}_${todayStr}`);
+    const usageDocRef = doc(firestore, 'users', user.uid, 'dailyUsage', todayStr);
     
     const unsubscribe = onSnapshot(usageDocRef, (doc) => {
         setUsageData(doc.exists() ? doc.data() as DailyUsage : null);
@@ -181,11 +181,11 @@ function PublisAssistantPageContent() {
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      product: 'Tênis de corrida "Velocity"',
-      targetAudience: 'Mulheres de 25-35 anos, interessadas em vida saudável e que já praticam corrida.',
-      differentiators: 'Feito com material reciclado, super leve, tecnologia de absorção de impacto, design moderno.',
+      product: '',
+      targetAudience: '',
+      differentiators: '',
       objective: 'Gerar Vendas',
-      extraInfo: 'Evitar comparações diretas com outras marcas. Focar na sensação de liberdade ao correr.',
+      extraInfo: '',
     },
   });
   
@@ -207,7 +207,7 @@ function PublisAssistantPageContent() {
       });
     }
      if (result && user && firestore) {
-      const usageDocRef = doc(firestore, 'usageLogs', `${user.uid}_${todayStr}`);
+      const usageDocRef = doc(firestore, `users/${user.uid}/dailyUsage/${todayStr}`);
       getDoc(usageDocRef).then(docSnap => {
           if (docSnap.exists()) {
               updateDoc(usageDocRef, { geracoesAI: increment(1) });
@@ -258,7 +258,7 @@ function PublisAssistantPageContent() {
 
         toast({
           title: 'Sucesso!',
-          description: 'Sua campanha foi salva no painel.',
+          description: 'Sua campanha foi salva.',
         });
       } catch (error) {
         console.error('Failed to save idea:', error);
@@ -290,7 +290,7 @@ function PublisAssistantPageContent() {
                     <Sparkles className="h-6 w-6 text-primary" />
                     Como Criamos Sua Campanha?
                 </CardTitle>
-                 <CardDescription>Nossa IA atua como sua diretora de criação, combinando estratégia e criatividade.</CardDescription>
+                 <CardDescription>A IA atua como sua diretora de criação, combinando estratégia e criatividade.</CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -332,12 +332,11 @@ function PublisAssistantPageContent() {
                           <FormLabel>Produto ou Marca</FormLabel>
                           <FormControl>
                             <Input
-                              placeholder="Ex: 'Tênis de corrida da Nike'"
+                              placeholder="Ex: Tênis de corrida da Nike"
                               className="h-11"
                               {...field}
                             />
                           </FormControl>
-                          <FormDescription>Qual o foco da campanha?</FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -350,12 +349,11 @@ function PublisAssistantPageContent() {
                           <FormLabel>Público-Alvo</FormLabel>
                           <FormControl>
                             <Textarea
-                              placeholder="Ex: 'Mulheres de 25-35 anos, interessadas em vida saudável.'"
+                              placeholder="Ex: Mulheres de 25-35 anos, interessadas em vida saudável."
                               className="min-h-[120px]"
                               {...field}
                             />
                           </FormControl>
-                          <FormDescription>Com quem você quer falar?</FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -370,12 +368,11 @@ function PublisAssistantPageContent() {
                           <FormLabel>Diferenciais do Produto</FormLabel>
                           <FormControl>
                            <Textarea
-                              placeholder="Ex: 'Material reciclado, leve, absorção de impacto, design moderno.'"
+                              placeholder="Ex: Material reciclado, leve, absorção de impacto, design moderno."
                               className="min-h-[120px]"
                               {...field}
                             />
                           </FormControl>
-                          <FormDescription>O que torna o produto único?</FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -414,12 +411,11 @@ function PublisAssistantPageContent() {
                         <FormLabel>Informações Adicionais (Opcional)</FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="Ex: 'Evitar falar sobre X, link de referência...'"
+                            placeholder="Restrições, cupons, links, etc."
                             className="h-11"
                             {...field}
                           />
                         </FormControl>
-                        <FormDescription>Restrições, cupons, links, etc.</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -458,7 +454,7 @@ function PublisAssistantPageContent() {
                 Pacote de Conteúdo Gerado
               </h2>
               <p className="text-muted-foreground">
-                Ideias, roteiros e estratégias para uma campanha de sucesso.
+                Ideias, roteiros e estratégias para a campanha.
               </p>
             </div>
             {result && (
