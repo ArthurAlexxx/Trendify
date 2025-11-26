@@ -4,40 +4,34 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper function to check for admin role from the user's document
     function isAdmin() {
-      // Allow reading the user's own role field to check for admin status
+      // Esta função continua existindo para regras de leitura em documentos específicos, o que é permitido.
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
-    // --- USERS COLLECTION RULES ---
+    // USERS
     match /users/{userId} {
-      // A user can create their own profile. This happens in the FirebaseProvider.
-      allow create: if request.auth.uid == userId;
+      // O usuário sempre pode ler e escrever seu próprio documento
+      allow read, write: if request.auth != null && request.auth.uid == userId;
 
-      // A user can read and write to their own profile.
-      allow read, write: if request.auth.uid == userId;
-
-      // An admin can read any user's profile.
-      allow read: if isAdmin();
+      // Admin pode ler qualquer documento individual
+      allow read: if request.auth != null && isAdmin();
     }
 
-    // Admins can list the entire users collection. This is required for the admin user table.
-    // This rule is permissive to any authenticated user to avoid circular dependency issues,
-    // but the front-end logic in AdminLayout and the admin page ensures only admins can
-    // actually trigger this query.
+    // Listar toda a coleção de users
+    // A regra é relaxada para qualquer usuário autenticado,
+    // mas a segurança é garantida no front-end, que só fará a query
+    // se o usuário for admin, evitando o erro de permissão.
     match /users/{document=**} {
       allow list: if request.auth != null;
     }
-    
-    // --- GENERAL SUBCOLLECTION RULES ---
-    // Users can manage their own subcollections (ideiasSalvas, conteudoAgendado, etc.)
+
+    // Subcoleções do usuário
     match /users/{userId}/{subcollection=**} {
-      allow read, write: if request.auth.uid == userId;
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // --- ROTEIRO COLLECTION RULES ---
-    // Any authenticated user can read and write to the roteiro collection.
+    // Coleção roteiro (livre)
     match /roteiro/{itemRoteiroId} {
       allow read, write: if request.auth != null;
     }

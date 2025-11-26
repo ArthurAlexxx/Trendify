@@ -14,13 +14,14 @@ export default function AdminPage() {
   const firestore = useFirestore();
   const { isAdmin, isLoading: isAdminLoading } = useAdmin();
 
-  // Only execute the query if the user is confirmed to be an admin
+  // A consulta só será construída e executada se o usuário for um administrador.
+  // Isso evita que usuários não-admin disparem a consulta e causem um erro de permissão.
   const usersQuery = useMemoFirebase(
     () => (firestore && isAdmin ? collection(firestore, 'users') : null),
     [firestore, isAdmin]
   );
   
-  // The isLoading state from useCollection will be true until isAdmin is true and the query runs
+  // O hook useCollection agora só receberá uma consulta válida quando o usuário for admin.
   const { data: users, isLoading: isUsersLoading } = useCollection<UserProfile>(usersQuery);
 
   const isLoading = isAdminLoading || (isAdmin && isUsersLoading);
