@@ -78,7 +78,7 @@ export async function analyzeVideo(
 // 1. Define o prompt para a IA
 const prompt = ai.definePrompt({
   name: 'videoAnalysisExpert',
-  model: 'googleai/gemini-1.5-flash',
+  model: 'googleai/gemini-2.5-flash',
   input: { schema: z.object({ videoDataUri: z.string() }) },
   output: { schema: VideoAnalysisOutputSchema },
   prompt: `Você é uma consultora de conteúdo viral e estrategista para criadores de conteúdo. Sua tarefa é fornecer uma análise profunda, profissional e acionável em português do Brasil.
