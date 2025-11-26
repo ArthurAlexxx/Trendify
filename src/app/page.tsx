@@ -872,10 +872,6 @@ export default function LandingPage() {
                         <Check className="h-4 w-4 text-primary" />
                         <span>Acesso antecipado a novas ferramentas</span>
                     </li>
-                     <li className="flex items-center gap-2">
-                        <Check className="h-4 w-4 text-primary" />
-                        <span>Suporte prioritário via WhatsApp</span>
-                    </li>
                 </ul>
                 <Button className="w-full h-11 text-base font-bold bg-yellow-500 hover:bg-yellow-500/90 text-black mt-auto shadow-lg shadow-yellow-500/50" asChild>
                   <Link href="/subscribe?plan=premium">Assinar o Premium</Link>
