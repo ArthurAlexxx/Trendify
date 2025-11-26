@@ -55,6 +55,11 @@ const profileFormSchema = z.object({
   tiktokAverageViews: z.string().optional(),
   tiktokAverageLikes: z.string().optional(),
   tiktokAverageComments: z.string().optional(),
+  // --- Campos para dados da API que não são salvos diretamente no Firestore, mas usados na UI ---
+  instagramProfile: z.custom<InstagramProfileData>().optional(),
+  instagramPosts: z.custom<InstagramPostData[]>().optional(),
+  tiktokProfile: z.custom<TikTokProfileData>().optional(),
+  tiktokPosts: z.custom<TikTokPostData[]>().optional(),
 });
 
 type ProfileFormData = z.infer<typeof profileFormSchema>;
@@ -67,8 +72,6 @@ export default function ProfilePage() {
   const firestore = useFirestore();
   const { toast } = useToast();
   const [isSaving, startSavingTransition] = useTransition();
-  const [username, setUsername] = useState('');
-  const [tiktokUsername, setTiktokUsername] = useState('');
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { subscription, isLoading: isSubscriptionLoading } = useSubscription();
@@ -76,13 +79,9 @@ export default function ProfilePage() {
   const isPremium = subscription?.plan === 'premium' && subscription.status === 'active';
   
   const [instaStatus, setInstaStatus] = useState<SearchStatus>('idle');
-  const [instaProfile, setInstaProfile] = useState<InstagramProfileData | null>(null);
-  const [instaPosts, setInstaPosts] = useState<InstagramPostData[] | null>(null);
   const [instaError, setInstaError] = useState<string | null>(null);
 
   const [tiktokStatus, setTiktokStatus] = useState<SearchStatus>('idle');
-  const [tiktokProfile, setTiktokProfile] = useState<TikTokProfileData | null>(null);
-  const [tiktokPosts, setTiktokPosts] = useState<TikTokPostData[] | null>(null);
   const [tiktokError, setTiktokError] = useState<string | null>(null);
 
 
@@ -114,42 +113,6 @@ export default function ProfilePage() {
   });
   
   useEffect(() => {
-    if (!isPremium) return;
-    try {
-      const savedInstaProfile = localStorage.getItem('lastInstagramProfile');
-      const savedInstaPosts = localStorage.getItem('lastInstagramPosts');
-      if (savedInstaProfile) {
-        const parsedProfile: InstagramProfileData = JSON.parse(savedInstaProfile);
-        setInstaProfile(parsedProfile);
-        setUsername(parsedProfile.username);
-        setInstaStatus('success');
-      }
-      if (savedInstaPosts) setInstaPosts(JSON.parse(savedInstaPosts));
-      
-      const savedTiktokProfile = localStorage.getItem('lastTikTokProfile');
-      const savedTiktokPosts = localStorage.getItem('lastTikTokPosts');
-       if (savedTiktokProfile) {
-        const parsedProfile: TikTokProfileData = JSON.parse(savedTiktokProfile);
-        setTiktokProfile(parsedProfile);
-        setTiktokUsername(parsedProfile.username);
-        setTiktokStatus('success');
-      }
-      if (savedTiktokPosts) setTiktokPosts(JSON.parse(savedTiktokPosts));
-
-    } catch (e) {
-      console.error("Failed to parse persisted data from localStorage", e);
-      localStorage.clear();
-    }
-  }, [isPremium]);
-
-  const formatNumber = (num: number): string => {
-    if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(1).replace('.', ',')}M`;
-    if (num >= 10000) return `${(num / 1000).toFixed(1).replace('.', ',')}K`;
-    if (num >= 1000) return num.toLocaleString('pt-BR');
-    return String(num);
-  };
-
-  useEffect(() => {
     if (userProfile) {
       form.reset({
         displayName: userProfile.displayName || '',
@@ -168,23 +131,38 @@ export default function ProfilePage() {
         tiktokAverageLikes: userProfile.tiktokAverageLikes || '',
         tiktokAverageComments: userProfile.tiktokAverageComments || '',
       });
-      if (!username) setUsername(userProfile.instagramHandle || '');
-      if (!tiktokUsername) setTiktokUsername(userProfile.tiktokHandle || '');
-
     } else if (user) {
         form.reset({
             displayName: user.displayName || '',
             photoURL: user.photoURL || null,
         });
     }
-  }, [userProfile, user, form, username, tiktokUsername]);
+  }, [userProfile, user, form]);
 
   const onProfileSubmit = (values: ProfileFormData) => {
     if (!user || !userProfileRef) return;
     
     startSavingTransition(async () => {
       try {
-        await updateDoc(userProfileRef, values);
+        const dataToSave: Partial<UserProfile> = {
+            displayName: values.displayName,
+            photoURL: values.photoURL,
+            niche: values.niche,
+            bio: values.bio,
+            audience: values.audience,
+            instagramHandle: values.instagramHandle,
+            instagramFollowers: values.instagramFollowers,
+            instagramAverageViews: values.instagramAverageViews,
+            instagramAverageLikes: values.instagramAverageLikes,
+            instagramAverageComments: values.instagramAverageComments,
+            tiktokHandle: values.tiktokHandle,
+            tiktokFollowers: values.tiktokFollowers,
+            tiktokAverageViews: values.tiktokAverageViews,
+            tiktokAverageLikes: values.tiktokAverageLikes,
+            tiktokAverageComments: values.tiktokAverageComments,
+        };
+
+        await updateDoc(userProfileRef, dataToSave);
         
         if (user.displayName !== values.displayName && user.auth.currentUser) {
             await updateProfile(user.auth.currentUser, {
@@ -253,16 +231,24 @@ export default function ProfilePage() {
     );
 };
 
+  const formatNumber = (num: number): string => {
+    if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(1).replace('.', ',')}M`;
+    if (num >= 10000) return `${(num / 1000).toFixed(1).replace('.', ',')}K`;
+    if (num >= 1000) return num.toLocaleString('pt-BR');
+    return String(num);
+  };
+
 
   const handleInstagramSearch = async () => {
+    const username = form.getValues('instagramHandle') || '';
     if (!username) {
       toast({ title: 'Atenção', description: 'Por favor, insira um nome de usuário do Instagram.', variant: 'destructive'});
       return;
     }
     setInstaStatus('loading');
     setInstaError(null);
-    setInstaProfile(null);
-    setInstaPosts(null);
+    form.setValue('instagramProfile', undefined);
+    form.setValue('instagramPosts', undefined);
 
     const cleanedUsername = username.replace('@', '');
 
@@ -272,87 +258,69 @@ export default function ProfilePage() {
         getInstagramPosts(cleanedUsername)
       ]);
       
-      setInstaProfile(profileResult);
-      setInstaPosts(postsResult);
-      setInstaStatus('success');
-      localStorage.setItem('lastInstagramProfile', JSON.stringify(profileResult));
-      localStorage.setItem('lastInstagramPosts', JSON.stringify(postsResult));
-      
-       if (userProfileRef) {
-         const averageLikes = postsResult.length > 0 ? postsResult.reduce((acc, p) => acc + p.likes, 0) / postsResult.length : 0;
-         const averageComments = postsResult.length > 0 ? postsResult.reduce((acc, p) => acc + p.comments, 0) / postsResult.length : 0;
+       const averageLikes = postsResult.length > 0 ? postsResult.reduce((acc, p) => acc + p.likes, 0) / postsResult.length : 0;
+       const averageComments = postsResult.length > 0 ? postsResult.reduce((acc, p) => acc + p.comments, 0) / postsResult.length : 0;
 
-        const updateData: Partial<ProfileFormData> = {
-            instagramHandle: `@${profileResult.username}`,
-            bio: profileResult.biography,
-            photoURL: form.getValues('photoURL') || profileResult.profilePicUrlHd,
-            instagramFollowers: formatNumber(profileResult.followersCount),
-            instagramAverageLikes: formatNumber(Math.round(averageLikes)),
-            instagramAverageComments: formatNumber(Math.round(averageComments)),
-        }
-        form.reset({ ...form.getValues(), ...updateData });
-        await updateDoc(userProfileRef, updateData);
-        toast({ title: "Perfil Atualizado!", description: "Os dados do Instagram foram salvos no seu perfil." });
-       }
+        form.setValue('instagramProfile', profileResult);
+        form.setValue('instagramPosts', postsResult);
+        form.setValue('instagramHandle', `@${profileResult.username}`);
+        form.setValue('bio', form.getValues('bio') || profileResult.biography);
+        form.setValue('photoURL', form.getValues('photoURL') || profileResult.profilePicUrlHd);
+        form.setValue('instagramFollowers', formatNumber(profileResult.followersCount));
+        form.setValue('instagramAverageLikes', formatNumber(Math.round(averageLikes)));
+        form.setValue('instagramAverageComments', formatNumber(Math.round(averageComments)));
+        
+        onProfileSubmit(form.getValues());
+        setInstaStatus('success');
+
     } catch (e: any) {
       setInstaError(e.message || 'Ocorreu um erro desconhecido.');
       setInstaStatus('error');
-      localStorage.removeItem('lastInstagramProfile');
-      localStorage.removeItem('lastInstagramPosts');
     }
   };
 
     const handleTiktokSearch = async () => {
+    const tiktokUsername = form.getValues('tiktokHandle') || '';
     if (!tiktokUsername) {
       toast({ title: 'Atenção', description: 'Por favor, insira um nome de usuário do TikTok.', variant: 'destructive'});
       return;
     }
     setTiktokStatus('loading');
     setTiktokError(null);
-    setTiktokProfile(null);
-    setTiktokPosts(null);
+    form.setValue('tiktokProfile', undefined);
+    form.setValue('tiktokPosts', undefined);
 
     const cleanedUsername = tiktokUsername.replace('@', '');
 
     try {
       const profileResult = await getTikTokProfile(cleanedUsername);
-      setTiktokProfile(profileResult);
-      localStorage.setItem('lastTikTokProfile', JSON.stringify(profileResult));
-
+      
       let fetchedPosts: TikTokPostData[] = [];
       try {
           fetchedPosts = await getTikTokPosts(cleanedUsername);
-          setTiktokPosts(fetchedPosts);
-          localStorage.setItem('lastTikTokPosts', JSON.stringify(fetchedPosts));
       } catch(postsError: any) {
           setTiktokError('Perfil encontrado, mas não foi possível carregar os vídeos recentes. ' + postsError.message);
-          localStorage.removeItem('lastTikTokPosts');
       }
 
-      setTiktokStatus('success');
-
-      if (userProfileRef) {
         const averageLikes = fetchedPosts.length > 0 ? fetchedPosts.reduce((acc, p) => acc + p.likes, 0) / fetchedPosts.length : 0;
         const averageComments = fetchedPosts.length > 0 ? fetchedPosts.reduce((acc, p) => acc + p.comments, 0) / fetchedPosts.length : 0;
         const averageViews = fetchedPosts.length > 0 ? fetchedPosts.reduce((acc, p) => acc + p.views, 0) / fetchedPosts.length : 0;
 
-        const updateData: Partial<ProfileFormData> = {
-            tiktokHandle: `@${profileResult.username}`,
-            photoURL: form.getValues('photoURL') || profileResult.avatarUrl,
-            tiktokFollowers: formatNumber(profileResult.followersCount),
-            tiktokAverageLikes: formatNumber(Math.round(averageLikes)),
-            tiktokAverageComments: formatNumber(Math.round(averageComments)),
-            tiktokAverageViews: formatNumber(Math.round(averageViews)),
-        };
-        form.reset({ ...form.getValues(), ...updateData });
-        await updateDoc(userProfileRef, updateData);
-        toast({ title: "Perfil Atualizado!", description: "Os dados do TikTok foram salvos no seu perfil." });
-      }
+        form.setValue('tiktokProfile', profileResult);
+        form.setValue('tiktokPosts', fetchedPosts);
+        form.setValue('tiktokHandle', `@${profileResult.username}`);
+        form.setValue('photoURL', form.getValues('photoURL') || profileResult.avatarUrl);
+        form.setValue('tiktokFollowers', formatNumber(profileResult.followersCount));
+        form.setValue('tiktokAverageLikes', formatNumber(Math.round(averageLikes)));
+        form.setValue('tiktokAverageComments', formatNumber(Math.round(averageComments)));
+        form.setValue('tiktokAverageViews', formatNumber(Math.round(averageViews)));
+       
+        onProfileSubmit(form.getValues());
+        setTiktokStatus('success');
+
     } catch (e: any) {
       setTiktokError(e.message || 'Ocorreu um erro desconhecido.');
       setTiktokStatus('error');
-      localStorage.removeItem('lastTikTokProfile');
-      localStorage.removeItem('lastTikTokPosts');
     }
   };
 
@@ -566,14 +534,13 @@ export default function ProfilePage() {
                                 <Input
                                     id="instagramHandleApi"
                                     placeholder="@seu_usuario"
-                                    value={username}
-                                    onChange={(e) => setUsername(e.target.value)}
+                                    {...form.register('instagramHandle')}
                                     className="h-11 mt-1"
                                 />
                                 </div>
                                 <AlertDialog>
                                 <AlertDialogTrigger asChild>
-                                    <Button type="button" disabled={instaStatus === 'loading' || !username} className="w-full sm:w-auto">
+                                    <Button type="button" disabled={instaStatus === 'loading' || !form.watch('instagramHandle')} className="w-full sm:w-auto">
                                     <Search className="mr-2 h-4 w-4" />
                                     Buscar Dados
                                     </Button>
@@ -582,7 +549,7 @@ export default function ProfilePage() {
                                     <AlertDialogHeader>
                                     <AlertDialogTitle>Confirmação de Busca</AlertDialogTitle>
                                     <AlertDialogDescription>
-                                        Você confirma que é o proprietário ou tem permissão para buscar os dados do perfil <strong>@{username.replace('@', '')}</strong>?
+                                        Você confirma que é o proprietário ou tem permissão para buscar os dados do perfil <strong>@{form.watch('instagramHandle')?.replace('@', '')}</strong>?
                                     </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
@@ -597,7 +564,7 @@ export default function ProfilePage() {
                         </Card>
                          {instaStatus === 'loading' && <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>}
                          {instaStatus === 'error' && instaError && <Alert variant="destructive" className="mt-4"><AlertTriangle className="h-4 w-4" /><AlertTitle>Erro ao Buscar Perfil</AlertTitle><AlertDescription>{instaError}</AlertDescription></Alert>}
-                         {instaStatus === 'success' && instaProfile && <InstagramProfileResults profile={instaProfile} posts={instaPosts} error={instaError} formatNumber={formatNumber}/>}
+                         {instaStatus === 'success' && form.watch('instagramProfile') && <InstagramProfileResults form={form} formatNumber={formatNumber} error={instaError} />}
                     </TabsContent>
                     <TabsContent value="tiktok" className="mt-4">
                         <Card className='border-0 shadow-none'>
@@ -608,14 +575,13 @@ export default function ProfilePage() {
                                 <Input
                                     id="tiktokHandleApi"
                                     placeholder="@seu_usuario"
-                                    value={tiktokUsername}
-                                    onChange={(e) => setTiktokUsername(e.target.value)}
+                                    {...form.register('tiktokHandle')}
                                     className="h-11 mt-1"
                                 />
                                 </div>
                                 <AlertDialog>
                                 <AlertDialogTrigger asChild>
-                                    <Button type="button" disabled={tiktokStatus === 'loading' || !tiktokUsername} className="w-full sm:w-auto">
+                                    <Button type="button" disabled={tiktokStatus === 'loading' || !form.watch('tiktokHandle')} className="w-full sm:w-auto">
                                     <Search className="mr-2 h-4 w-4" />
                                     Buscar Dados
                                     </Button>
@@ -624,7 +590,7 @@ export default function ProfilePage() {
                                     <AlertDialogHeader>
                                     <AlertDialogTitle>Confirmação de Busca</AlertDialogTitle>
                                     <AlertDialogDescription>
-                                        Você confirma que é o proprietário ou tem permissão para buscar os dados do perfil <strong>@{tiktokUsername.replace('@', '')}</strong>?
+                                        Você confirma que é o proprietário ou tem permissão para buscar os dados do perfil <strong>@{form.watch('tiktokHandle')?.replace('@', '')}</strong>?
                                     </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
@@ -639,7 +605,7 @@ export default function ProfilePage() {
                         </Card>
                          {tiktokStatus === 'loading' && <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>}
                          {tiktokStatus === 'error' && tiktokError && <Alert variant="destructive" className="mt-4"><AlertTriangle className="h-4 w-4" /><AlertTitle>Erro ao Buscar Perfil</AlertTitle><AlertDescription>{tiktokError}</AlertDescription></Alert>}
-                         {tiktokStatus === 'success' && tiktokProfile && <TikTokProfileResults profile={tiktokProfile} posts={tiktokPosts} error={tiktokError} formatNumber={formatNumber}/>}
+                         {tiktokStatus === 'success' && form.watch('tiktokProfile') && <TikTokProfileResults form={form} formatNumber={formatNumber} error={tiktokError} />}
                     </TabsContent>
                   </Tabs>
                 </>
@@ -667,16 +633,17 @@ export default function ProfilePage() {
 
 // --- Instagram Components ---
 
-export function InstagramProfileResults({ profile, posts, error, formatNumber }: { profile: InstagramProfileData, posts: InstagramPostData[] | null, error: string | null, formatNumber: (n: number) => string }) {
-    const averageLikes = posts && posts.length > 0 ? posts.reduce((acc, p) => acc + p.likes, 0) / posts.length : 0;
-    const averageComments = posts && posts.length > 0 ? posts.reduce((acc, p) => acc + p.comments, 0) / posts.length : 0;
+export function InstagramProfileResults({ form, error, formatNumber }: { form: any, error: string | null, formatNumber: (n: number) => string }) {
+    const profile = form.watch('instagramProfile');
+    const posts = form.watch('instagramPosts');
+    if (!profile) return null;
 
     return (
         <div className="space-y-8 animate-in fade-in-50">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <MetricCard icon={Users} label="Seguidores" value={formatNumber(profile.followersCount)} />
-                <MetricCard icon={Heart} label="Média de Likes" value={formatNumber(Math.round(averageLikes))} />
-                <MetricCard icon={MessageSquare} label="Média de Comentários" value={formatNumber(Math.round(averageComments))} />
+                <MetricCard icon={Users} label="Seguidores" value={form.watch('instagramFollowers')} />
+                <MetricCard icon={Heart} label="Média de Likes" value={form.watch('instagramAverageLikes')} />
+                <MetricCard icon={MessageSquare} label="Média de Comentários" value={form.watch('instagramAverageComments')} />
                 <MetricCard icon={Clapperboard} label="Conta" value={profile.isBusiness ? "Comercial" : "Pessoal"} />
             </div>
 
@@ -693,7 +660,7 @@ export function InstagramProfileResults({ profile, posts, error, formatNumber }:
                 <h4 className="text-lg font-semibold text-center mb-4">Posts Recentes</h4>
                 <Carousel opts={{ align: "start", loop: false }} className="w-full max-w-sm mx-auto md:max-w-xl lg:max-w-4xl">
                     <CarouselContent>
-                    {posts.map(post => (
+                    {posts.map((post: InstagramPostData) => (
                         <CarouselItem key={post.id} className="md:basis-1/2 lg:basis-1/3">
                         <Card className="overflow-hidden rounded-xl">
                             <CardContent className="p-0 aspect-square relative group">
@@ -718,18 +685,18 @@ export function InstagramProfileResults({ profile, posts, error, formatNumber }:
 
 // --- TikTok Components ---
 
-export function TikTokProfileResults({ profile, posts, error, formatNumber }: { profile: TikTokProfileData, posts: TikTokPostData[] | null, error: string | null, formatNumber: (n: number) => string }) {
-    const averageLikes = posts && posts.length > 0 ? posts.reduce((acc, p) => acc + p.likes, 0) / posts.length : 0;
-    const averageComments = posts && posts.length > 0 ? posts.reduce((acc, p) => acc + p.comments, 0) / posts.length : 0;
-    const averageViews = posts && posts.length > 0 ? posts.reduce((acc, p) => acc + p.views, 0) / posts.length : 0;
+export function TikTokProfileResults({ form, error, formatNumber }: { form: any, error: string | null, formatNumber: (n: number) => string }) {
+    const profile = form.watch('tiktokProfile');
+    const posts = form.watch('tiktokPosts');
+    if (!profile) return null;
 
     return (
         <div className="space-y-8 animate-in fade-in-50">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <MetricCard icon={Users} label="Seguidores" value={formatNumber(profile.followersCount)} />
-                <MetricCard icon={Eye} label="Média de Views" value={formatNumber(Math.round(averageViews))} />
-                <MetricCard icon={Heart} label="Média de Likes" value={formatNumber(Math.round(averageLikes))} />
-                <MetricCard icon={MessageSquare} label="Média de Comentários" value={formatNumber(Math.round(averageComments))} />
+                <MetricCard icon={Users} label="Seguidores" value={form.watch('tiktokFollowers')} />
+                <MetricCard icon={Eye} label="Média de Views" value={form.watch('tiktokAverageViews')} />
+                <MetricCard icon={Heart} label="Média de Likes" value={form.watch('tiktokAverageLikes')} />
+                <MetricCard icon={MessageSquare} label="Média de Comentários" value={form.watch('tiktokAverageComments')} />
             </div>
 
             {error && (
@@ -745,7 +712,7 @@ export function TikTokProfileResults({ profile, posts, error, formatNumber }: { 
                 <h4 className="text-lg font-semibold text-center mb-4">Vídeos Recentes</h4>
                 <Carousel opts={{ align: "start", loop: false }} className="w-full max-w-sm mx-auto md:max-w-xl lg:max-w-4xl">
                     <CarouselContent>
-                    {posts.map(post => (
+                    {posts.map((post: TikTokPostData) => (
                         <CarouselItem key={post.id} className="md:basis-1/2 lg:basis-1/3">
                         <Card className="overflow-hidden rounded-xl">
                             <CardContent className="p-0 aspect-[9/16] relative group">
