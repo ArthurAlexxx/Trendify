@@ -20,6 +20,7 @@ import {
   Sparkles,
   Link2,
   Shield,
+  DollarSign,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -37,7 +38,7 @@ import { Separator } from './ui/separator';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useAdmin } from '@/hooks/useAdmin';
 
-const menuItems: {
+const userMenuItems: {
   category: string;
   items: { href: string; icon: React.ElementType; label: string; plan: Plan }[];
 }[] = [
@@ -58,6 +59,19 @@ const menuItems: {
       { href: '/publis-assistant', icon: Newspaper, label: 'Ideias para Publis', plan: 'premium' },
     ],
   },
+];
+
+const adminMenuItems: {
+  category: string;
+  items: { href: string; icon: React.ElementType; label: string }[];
+}[] = [
+    {
+        category: 'Admin',
+        items: [
+            { href: '/admin', icon: Shield, label: 'Gerenciamento' },
+            { href: '/admin/financial', icon: DollarSign, label: 'Financeiro' },
+        ]
+    }
 ];
 
 
@@ -113,6 +127,8 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
     ? "h-full w-full flex flex-col" 
     : "h-screen w-64 flex-col fixed inset-y-0 left-0 z-50 bg-card border-r hidden md:flex";
 
+  const currentMenuItems = isAdmin ? adminMenuItems : userMenuItems;
+
   return (
      <aside className={sidebarClass}>
       <div className="flex items-center gap-2 px-6 h-20 border-b">
@@ -142,15 +158,15 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
         </div>
         
         <div className="flex flex-col gap-4 mt-6">
-          {menuItems.map(group => (
+          {currentMenuItems.map(group => (
             <div key={group.category} className='px-2'>
               <h3 className="text-xs font-semibold text-muted-foreground tracking-wider uppercase mb-2">
                 {group.category}
               </h3>
                <ul className="space-y-1">
-                 {group.items.map(item => {
+                 {(group.items as any).map((item: any) => {
                    const isActive = pathname === item.href;
-                   const canAccess = isAdmin || hasAccess(userPlan, item.plan);
+                   const canAccess = isAdmin || hasAccess(userPlan, item.plan || 'free');
 
                    const content = (
                       <div className={cn(
@@ -164,7 +180,7 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
                       )}>
                         <item.icon className={cn("h-5 w-5", isActive || !canAccess ? "text-primary" : "text-foreground/60")} />
                         <span>{item.label}</span>
-                         {!canAccess && item.plan !== 'free' && (
+                         {!isAdmin && !canAccess && item.plan !== 'free' && (
                            <Crown className="h-4 w-4 ml-auto text-yellow-400 fill-yellow-400" />
                         )}
                       </div>
@@ -172,7 +188,7 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
 
                    return (
                      <li key={item.label}>
-                       <Link href={canAccess ? item.href : '/subscribe'} onClick={handleLinkClick}>
+                       <Link href={isAdmin || canAccess ? item.href : '/subscribe'} onClick={handleLinkClick}>
                          {content}
                        </Link>
                      </li>
@@ -181,30 +197,6 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
                </ul>
             </div>
           ))}
-
-          {isAdmin && (
-            <div className='px-2'>
-              <h3 className="text-xs font-semibold text-muted-foreground tracking-wider uppercase mb-2">
-                Admin
-              </h3>
-              <ul className="space-y-1">
-                <li>
-                  <Link href="/admin" onClick={handleLinkClick}>
-                     <div className={cn(
-                        "flex items-center gap-3 p-3 rounded-lg transition-colors text-sm",
-                        pathname.startsWith('/admin')
-                            ? "bg-primary/10 text-primary font-semibold" 
-                            : "text-foreground/70 hover:bg-muted hover:text-foreground"
-                      )}>
-                        <Shield className="h-5 w-5" />
-                        <span>Gerenciamento</span>
-                      </div>
-                  </Link>
-                </li>
-              </ul>
-            </div>
-          )}
-
         </div>
       </nav>
       
