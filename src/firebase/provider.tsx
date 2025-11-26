@@ -3,7 +3,7 @@
 
 import React, { createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
 import { FirebaseApp } from 'firebase/app';
-import { Firestore, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { Firestore, doc, getDoc, setDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged, getRedirectResult } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
 import { useToast } from '@/hooks/use-toast';
@@ -55,7 +55,7 @@ export interface UserHookResult {
 export const FirebaseContext = createContext<FirebaseContextState | undefined>(undefined);
 
 /**
- * Ensures a user profile exists in Firestore. If not, it creates one.
+ * Ensures a user profile exists in Firestore and has a role. If not, it creates or updates one.
  * @param firestore The Firestore instance.
  * @param user The authenticated Firebase user.
  */
@@ -78,6 +78,15 @@ async function ensureUserProfile(firestore: Firestore, user: User) {
             },
         });
         console.log(`[FirebaseProvider] New user profile created for UID: ${user.uid}`);
+    } else {
+      // If the document exists, check if the 'role' field is missing.
+      if (docSnap.data().role === undefined) {
+        console.log(`[FirebaseProvider] Profile for UID: ${user.uid} is missing 'role'. Updating.`);
+        await updateDoc(userRef, {
+          role: 'user'
+        });
+        console.log(`[FirebaseProvider] 'role' field added to existing profile for UID: ${user.uid}`);
+      }
     }
 }
 
@@ -116,7 +125,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
             // ONLY after the profile is guaranteed to exist, we update the state.
             setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
           } catch (error) {
-            console.error('[FirebaseProvider] Error during profile creation:', error);
+            console.error('[FirebaseProvider] Error during profile creation/update:', error);
             setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: error as Error });
           }
         } else {

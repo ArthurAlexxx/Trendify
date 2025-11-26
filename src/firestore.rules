@@ -18,8 +18,8 @@ service cloud.firestore {
     match /users/{userId} {
       // Users can create their own profile
       allow create: if request.auth.uid != null;
-      // Users can read their own profile
-      allow read: if request.auth.uid == userId;
+      // Users can read their own profile. Admins can read any profile.
+      allow read: if request.auth.uid == userId || isAdmin();
       // Users can update their profile, but NOT their own role
       allow update: if request.auth.uid == userId && !("role" in request.resource.data);
     }
