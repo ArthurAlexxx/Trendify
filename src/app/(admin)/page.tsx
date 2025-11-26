@@ -3,12 +3,31 @@
 
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { PageHeader } from '@/components/page-header';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import type { UserProfile } from '@/lib/types';
 import { collection, query, where } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAdmin } from '@/hooks/useAdmin';
-import { Users, Crown, Sparkles } from 'lucide-react';
+import { Users, Crown, Sparkles, DollarSign } from 'lucide-react';
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from '@/components/ui/chart';
+import { Area, AreaChart, CartesianGrid, XAxis } from 'recharts';
+import { useMemo } from 'react';
+import { format, startOfDay } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+
+
+const chartConfig = {
+  users: {
+    label: 'Usuários',
+    color: 'hsl(var(--primary))',
+  },
+} satisfies ChartConfig;
+
+const PLAN_PRICES = {
+    pro: { monthly: 29, annual: 299 },
+    premium: { monthly: 39, annual: 399 },
+};
+
 
 export default function AdminPage() {
   const firestore = useFirestore();
@@ -27,6 +46,49 @@ export default function AdminPage() {
   const proUsers = users?.filter(u => u.subscription?.plan === 'pro' && u.subscription.status === 'active').length || 0;
   const premiumUsers = users?.filter(u => u.subscription?.plan === 'premium' && u.subscription.status === 'active').length || 0;
   const freeUsers = totalUsers - proUsers - premiumUsers;
+  
+  const userGrowthData = useMemo(() => {
+    if (!users) return [];
+
+    const sortedUsers = [...users].sort((a, b) => a.createdAt.toDate().getTime() - b.createdAt.toDate().getTime());
+    
+    const dailyCounts: { [date: string]: number } = {};
+    sortedUsers.forEach(user => {
+      const date = format(startOfDay(user.createdAt.toDate()), 'yyyy-MM-dd');
+      dailyCounts[date] = (dailyCounts[date] || 0) + 1;
+    });
+
+    let cumulativeUsers = 0;
+    const chartData = Object.keys(dailyCounts).sort().map(dateStr => {
+        cumulativeUsers += dailyCounts[dateStr];
+        return {
+            date: format(new Date(dateStr), 'dd/MM'),
+            users: cumulativeUsers,
+        }
+    });
+
+    return chartData;
+
+  }, [users]);
+  
+  const monthlyRecurringRevenue = useMemo(() => {
+    if (!users) return 0;
+    
+    return users.reduce((total, user) => {
+        if (user.subscription?.status === 'active') {
+            const plan = user.subscription.plan;
+            const cycle = user.subscription.cycle;
+
+            if (plan === 'pro') {
+                return total + (cycle === 'annual' ? PLAN_PRICES.pro.annual / 12 : PLAN_PRICES.pro.monthly);
+            }
+            if (plan === 'premium') {
+                return total + (cycle === 'annual' ? PLAN_PRICES.premium.annual / 12 : PLAN_PRICES.premium.monthly);
+            }
+        }
+        return total;
+    }, 0);
+  }, [users]);
 
 
   return (
@@ -67,26 +129,64 @@ export default function AdminPage() {
             <p className="text-xs text-muted-foreground">Plano Premium ativo</p>
           </CardContent>
         </Card>
+         <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Receita Mensal (MRR)</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+                {isLoading ? <Skeleton className='h-8 w-24' /> : 
+                    monthlyRecurringRevenue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL'})
+                }
+            </div>
+            <p className="text-xs text-muted-foreground">Estimativa de receita recorrente</p>
+          </CardContent>
+        </Card>
       </div>
 
        {/* Placeholder for future charts */}
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-1">
         <Card>
           <CardHeader>
             <CardTitle>Crescimento de Usuários</CardTitle>
+            <CardDescription>Visualização do número cumulativo de usuários ao longo do tempo.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Skeleton className="h-64 w-full" />
-             <p className="text-xs text-muted-foreground mt-2 text-center">Gráfico de crescimento de usuários (em breve).</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Receita Mensal (MRR)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Skeleton className="h-64 w-full" />
-             <p className="text-xs text-muted-foreground mt-2 text-center">Gráfico de receita mensal recorrente (em breve).</p>
+             {isLoading ? (
+                <Skeleton className="h-80 w-full" />
+             ) : (
+                <ChartContainer config={chartConfig} className="h-80 w-full">
+                <AreaChart
+                    accessibilityLayer
+                    data={userGrowthData}
+                    margin={{
+                        left: 12,
+                        right: 12,
+                    }}
+                >
+                    <CartesianGrid vertical={false} />
+                    <XAxis
+                    dataKey="date"
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                    tickFormatter={(value) => value}
+                    />
+                    <ChartTooltip
+                    cursor={false}
+                    content={<ChartTooltipContent indicator="dot" />}
+                    />
+                    <Area
+                    dataKey="users"
+                    type="natural"
+                    fill="var(--color-users)"
+                    fillOpacity={0.4}
+                    stroke="var(--color-users)"
+                    />
+                </AreaChart>
+                </ChartContainer>
+             )}
           </CardContent>
         </Card>
       </div>
