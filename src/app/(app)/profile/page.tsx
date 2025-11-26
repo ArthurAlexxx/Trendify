@@ -631,12 +631,15 @@ export default function ProfilePage() {
 // --- Instagram Components ---
 
 function InstagramProfileResults({ profile, posts, error, formatNumber }: { profile: InstagramProfileData, posts: InstagramPostData[] | null, error: string | null, formatNumber: (n: number) => string }) {
+    const averageLikes = posts && posts.length > 0 ? posts.reduce((acc, p) => acc + p.likes, 0) / posts.length : 0;
+    const averageComments = posts && posts.length > 0 ? posts.reduce((acc, p) => acc + p.comments, 0) / posts.length : 0;
+
     return (
         <div className="space-y-8 animate-in fade-in-50">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <MetricCard icon={Users} label="Seguidores" value={formatNumber(profile.followersCount)} />
-                <MetricCard icon={Users} label="Seguindo" value={formatNumber(profile.followingCount)} />
-                <MetricCard icon={Clapperboard} label="Publicações" value={formatNumber(profile.mediaCount)} />
+                <MetricCard icon={Heart} label="Média de Likes" value={formatNumber(Math.round(averageLikes))} />
+                <MetricCard icon={MessageSquare} label="Média de Comentários" value={formatNumber(Math.round(averageComments))} />
                 <MetricCard icon={Heart} label="Conta" value={profile.isBusiness ? "Comercial" : "Pessoal"} />
             </div>
 
@@ -742,3 +745,4 @@ function MetricCard({ icon: Icon, label, value }: { icon: React.ElementType, lab
 }
 
     
+
