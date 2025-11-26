@@ -189,7 +189,7 @@ export function AppSidebar() {
                                     {user?.email}
                                 </p>
                             </div>
-                            <LogOut className="h-4 w-4 ml-auto text-muted-foreground" />
+                            <MoreHorizontal className="h-4 w-4 ml-auto text-muted-foreground" />
                         </div>
                     )}
                 </Button>
