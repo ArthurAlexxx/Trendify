@@ -4,6 +4,7 @@
 import { useDoc, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/types';
+import { useMemo } from 'react';
 
 interface UseAdminResult {
   isAdmin: boolean;
@@ -17,10 +18,9 @@ interface UseAdminResult {
  * @returns {UseAdminResult} An object containing the admin status and loading state.
  */
 export function useAdmin(): UseAdminResult {
-  const { user, isUserLoading } = useUser();
+  const { user, isUserLoading: isAuthLoading } = useUser();
   const firestore = useFirestore();
 
-  // Memoize the document reference to prevent re-renders
   const userProfileRef = useMemoFirebase(
     () => (user ? doc(firestore, `users/${user.uid}`) : null),
     [user, firestore]
@@ -28,10 +28,16 @@ export function useAdmin(): UseAdminResult {
 
   const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userProfileRef);
 
-  const isLoading = isUserLoading || isProfileLoading;
-  
-  // The user is an admin if their profile document has role === 'admin'.
-  const isAdmin = userProfile?.role === 'admin';
+  const result = useMemo(() => {
+    // The overall loading state is true if auth is loading or profile is loading.
+    const isLoading = isAuthLoading || isProfileLoading;
+    
+    // Determine admin status only if not loading.
+    const isAdmin = !isLoading && userProfile?.role === 'admin';
 
-  return { isAdmin, isLoading };
+    return { isAdmin, isLoading };
+  }, [isAuthLoading, isProfileLoading, userProfile]);
+
+  return result;
 }
+
