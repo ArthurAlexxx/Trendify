@@ -48,7 +48,7 @@ export default function SettingsPage() {
   const [isCancelling, startCancellingTransition] = useTransition();
 
   const userProfileRef = useMemoFirebase(
-    () => (firestore && user ? doc(firestore, 'users', user.uid) : null),
+    () => (firestore && user ? doc(firestore, `users/${user.uid}`) : null),
     [firestore, user]
   );
   const { data: userProfile } = useDoc<UserProfile>(userProfileRef);
@@ -127,7 +127,7 @@ export default function SettingsPage() {
                                 Seu teste gratuito do plano Pro termina em {trialDaysLeft} {trialDaysLeft === 1 ? 'dia' : 'dias'}.
                            </p>
                         )}
-                        {subscription.status === 'active' && !isTrialActive && userProfile?.subscription?.expiresAt && (
+                        {subscription.status === 'active' && !isTrialActive && userProfile?.subscription?.expiresAt && userProfile.subscription.expiresAt.toDate && (
                             <p className="text-sm text-muted-foreground">
                                 Seu acesso termina em {format(userProfile.subscription.expiresAt.toDate(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}.
                             </p>
@@ -174,3 +174,5 @@ export default function SettingsPage() {
     </div>
   );
 }
+
+    

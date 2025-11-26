@@ -126,8 +126,7 @@ const profileMetricsSchema = z.object({
 });
 
 
-const ProfileCompletionAlert = ({ userProfile, hasUpdatedToday, isPremium }: { userProfile: UserProfile | null, hasUpdatedToday: boolean, isPremium: boolean }) => {
-    const isProfileSetup = userProfile?.niche && (userProfile.instagramHandle || userProfile.tiktokHandle);
+const ProfileCompletionAlert = ({ userProfile, isPremium }: { userProfile: UserProfile | null, isPremium: boolean }) => {
     const hasAnyPlatform = userProfile?.instagramHandle || userProfile?.tiktokHandle;
 
     if (!userProfile?.niche) {
@@ -176,183 +175,9 @@ const ProfileCompletionAlert = ({ userProfile, hasUpdatedToday, isPremium }: { u
          )
     }
     
-    // Do not show manual update alert if API sync happened today
-    if (userProfile?.lastInstagramSync && isToday(userProfile.lastInstagramSync.toDate())) {
-      return null;
-    }
-    if (userProfile?.lastTikTokSync && isToday(userProfile.lastTikTokSync.toDate())) {
-      return null;
-    }
-
-
-    if (!hasUpdatedToday && userProfile) {
-         return (
-            <Alert>
-                <div className='flex flex-col sm:flex-row justify-between items-center gap-4'>
-                    <div className='text-center sm:text-left'>
-                        <AlertTitle className="flex items-center justify-center sm:justify-start gap-2"><AlertTriangle className="h-4 w-4 text-primary" />Atualize suas Métricas!</AlertTitle>
-                        <AlertDescription>
-                            Registre seus números de hoje para manter os gráficos precisos.
-                        </AlertDescription>
-                    </div>
-                    <UpdateMetricsModal userProfile={userProfile} triggerButton={
-                         <Button className='w-full sm:w-auto'>
-                            <RefreshCw className="mr-2 h-4 w-4" />
-                            Atualizar Métricas Agora
-                        </Button>
-                    } />
-                </div>
-            </Alert>
-        )
-    }
-
     return null;
 }
 
-
-const UpdateMetricsModal = ({ userProfile, triggerButton }: { userProfile: UserProfile, triggerButton?: React.ReactNode }) => {
-    const { user } = useUser();
-    const firestore = useFirestore();
-    const { toast } = useToast();
-    const [isPending, startTransition] = useTransition();
-    const [isOpen, setIsOpen] = useState(false);
-
-    const form = useForm<z.infer<typeof profileMetricsSchema>>({
-        resolver: zodResolver(profileMetricsSchema),
-        defaultValues: {
-            instagramHandle: userProfile?.instagramHandle || '',
-            instagramFollowers: userProfile?.instagramFollowers || '',
-            instagramAverageViews: userProfile?.instagramAverageViews || '',
-            instagramAverageLikes: userProfile?.instagramAverageLikes || '',
-            instagramAverageComments: userProfile?.instagramAverageComments || '',
-            tiktokHandle: userProfile?.tiktokHandle || '',
-            tiktokFollowers: userProfile?.tiktokFollowers || '',
-            tiktokAverageViews: userProfile?.tiktokAverageViews || '',
-            tiktokAverageLikes: userProfile?.tiktokAverageLikes || '',
-            tiktokAverageComments: userProfile?.tiktokAverageComments || '',
-        }
-    });
-
-    useEffect(() => {
-        if (userProfile && isOpen) {
-            form.reset({
-                instagramHandle: userProfile.instagramHandle || '',
-                instagramFollowers: userProfile.instagramFollowers || '',
-                instagramAverageViews: userProfile.instagramAverageViews || '',
-                instagramAverageLikes: userProfile.instagramAverageLikes || '',
-                instagramAverageComments: userProfile.instagramAverageComments || '',
-                tiktokHandle: userProfile.tiktokHandle || '',
-                tiktokFollowers: userProfile.tiktokFollowers || '',
-                tiktokAverageViews: userProfile.tiktokAverageViews || '',
-                tiktokAverageLikes: userProfile.tiktokAverageLikes || '',
-                tiktokAverageComments: userProfile.tiktokAverageComments || '',
-            });
-        }
-    }, [userProfile, isOpen, form]);
-
-    const onSubmit = (values: z.infer<typeof profileMetricsSchema>) => {
-        if (!user || !firestore) return;
-        const userProfileRef = doc(firestore, 'users', user.uid);
-
-        startTransition(async () => {
-            try {
-                await updateDoc(userProfileRef, values);
-
-                const metricSnapshotsRef = collection(firestore, `users/${user.uid}/metricSnapshots`);
-
-                if (values.instagramHandle && values.instagramFollowers) {
-                    await addDoc(metricSnapshotsRef, {
-                        userId: user.uid,
-                        date: serverTimestamp(),
-                        platform: 'instagram',
-                        followers: values.instagramFollowers || '0',
-                        views: values.instagramAverageViews || '0',
-                        likes: values.instagramAverageLikes || '0',
-                        comments: values.instagramAverageComments || '0',
-                    });
-                }
-                if (values.tiktokHandle && values.tiktokFollowers) {
-                    await addDoc(metricSnapshotsRef, {
-                        userId: user.uid,
-                        date: serverTimestamp(),
-                        platform: 'tiktok',
-                        followers: values.tiktokFollowers || '0',
-                        views: values.tiktokAverageViews || '0',
-                        likes: values.tiktokAverageLikes || '0',
-                        comments: values.tiktokAverageComments || '0',
-                    });
-                }
-
-                toast({
-                    title: 'Sucesso!',
-                    description: 'Suas métricas foram salvas.',
-                });
-                setIsOpen(false);
-            } catch (error: any) {
-                toast({
-                    title: 'Erro ao Atualizar',
-                    description: 'Não foi possível salvar suas métricas. ' + error.message,
-                    variant: 'destructive',
-                });
-            }
-        });
-    }
-
-    return (
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogTrigger asChild>
-                {triggerButton || 
-                <Button variant="outline" size="sm">
-                    <RefreshCw className="mr-2 h-4 w-4" />
-                    Atualizar Métricas
-                </Button>}
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                    <DialogTitle className="font-headline text-xl">Atualizar Métricas Diárias</DialogTitle>
-                    <DialogDescription>
-                        Insira seus números mais recentes para manter o gráfico de evolução preciso.
-                    </DialogDescription>
-                </DialogHeader>
-                <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-4">
-                    <div className="space-y-6">
-                        <h3 className="text-lg font-semibold flex items-center gap-2"><Instagram className="h-5 w-5" /> Instagram</h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <FormField control={form.control} name="instagramHandle" render={({ field }) => ( <FormItem><FormLabel>Handle</FormLabel><FormControl><Input placeholder="@seu_usuario" {...field} /></FormControl></FormItem> )}/>
-                            <FormField control={form.control} name="instagramFollowers" render={({ field }) => ( <FormItem><FormLabel>Seguidores</FormLabel><FormControl><Input placeholder="Ex: 250K" {...field} /></FormControl></FormItem> )}/>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <FormField control={form.control} name="instagramAverageViews" render={({ field }) => ( <FormItem><FormLabel>Média de Views</FormLabel><FormControl><Input placeholder="Ex: 15.5K" {...field} /></FormControl></FormItem> )}/>
-                            <FormField control={form.control} name="instagramAverageLikes" render={({ field }) => ( <FormItem><FormLabel>Média de Likes</FormLabel><FormControl><Input placeholder="Ex: 890" {...field} /></FormControl></FormItem> )}/>
-                            <FormField control={form.control} name="instagramAverageComments" render={({ field }) => ( <FormItem><FormLabel>Média de Comentários</FormLabel><FormControl><Input placeholder="Ex: 120" {...field} /></FormControl></FormItem> )}/>
-                        </div>
-                    </div>
-                    <Separator />
-                     <div className="space-y-6">
-                        <h3 className="text-lg font-semibold flex items-center gap-2"><Film className="h-5 w-5" /> TikTok</h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <FormField control={form.control} name="tiktokHandle" render={({ field }) => ( <FormItem><FormLabel>Handle</FormLabel><FormControl><Input placeholder="@seu_usuario" {...field} /></FormControl></FormItem> )}/>
-                            <FormField control={form.control} name="tiktokFollowers" render={({ field }) => ( <FormItem><FormLabel>Seguidores</FormLabel><FormControl><Input placeholder="Ex: 1.2M" {...field} /></FormControl></FormItem> )}/>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <FormField control={form.control} name="tiktokAverageViews" render={({ field }) => ( <FormItem><FormLabel>Média de Views</FormLabel><FormControl><Input placeholder="Ex: 1M" {...field} /></FormControl></FormItem> )}/>
-                            <FormField control={form.control} name="tiktokAverageLikes" render={({ field }) => ( <FormItem><FormLabel>Média de Likes</FormLabel><FormControl><Input placeholder="Ex: 100K" {...field} /></FormControl></FormItem> )}/>
-                            <FormField control={form.control} name="tiktokAverageComments" render={({ field }) => ( <FormItem><FormLabel>Média de Comentários</FormLabel><FormControl><Input placeholder="Ex: 1.5K" {...field} /></FormControl></FormItem> )}/>
-                        </div>
-                    </div>
-                    <DialogFooter className="pt-4 flex-col sm:flex-row">
-                        <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
-                            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Salvar Métricas
-                        </Button>
-                    </DialogFooter>
-                </form>
-                </Form>
-            </DialogContent>
-        </Dialog>
-    )
-}
 
 export default function DashboardPage() {
   const { user } = useUser();
@@ -400,7 +225,9 @@ export default function DashboardPage() {
         setIsFetchingPosts(false);
     };
 
-    fetchPosts();
+    if (userProfile) {
+        fetchPosts();
+    }
   }, [userProfile]);
 
   const handleTikTokClick = (post: TikTokPostData) => {
@@ -431,13 +258,6 @@ export default function DashboardPage() {
     firestore && user ? query(collection(firestore, `users/${user.uid}/metricSnapshots`), orderBy('date', 'desc'), limit(60)) : null // Fetch more to combine
   ), [firestore, user]);
   const { data: metricSnapshots, isLoading: isLoadingMetrics } = useCollection<MetricSnapshot>(metricSnapshotsQuery);
-
-  const hasUpdatedToday = useMemo(() => {
-    if (!metricSnapshots || metricSnapshots.length === 0) return false;
-    // Check if there is any snapshot for today
-    return metricSnapshots.some(snap => snap.date && isToday(snap.date.toDate()));
-  }, [metricSnapshots]);
-
 
   const isLoading = isLoadingProfile || isLoadingRoteiro || isLoadingIdeias || isLoadingUpcoming || isLoadingMetrics || isSubscriptionLoading;
   
@@ -502,6 +322,7 @@ export default function DashboardPage() {
     if (selectedPlatform === 'total') {
       const combinedData: { [date: string]: { followers: number, views: number, likes: number, comments: number } } = {};
       validSnapshots.forEach(snap => {
+        if (!snap.date) return;
         const dateStr = format(snap.date.toDate(), 'dd/MM');
         if (!combinedData[dateStr]) {
           combinedData[dateStr] = { followers: 0, views: 0, likes: 0, comments: 0 };
@@ -514,18 +335,18 @@ export default function DashboardPage() {
       return Object.entries(combinedData)
         .map(([date, metrics]) => ({ date, ...metrics }))
         .sort((a, b) => new Date(a.date.split('/').reverse().join('-')).getTime() - new Date(b.date.split('/').reverse().join('-')).getTime())
-        .slice(-30);
+        .slice(-15);
 
     } else {
       return validSnapshots
-        .filter(snap => snap.platform === selectedPlatform)
+        .filter(snap => snap.platform === selectedPlatform && snap.date)
         .map(snap => ({
             date: format(snap.date.toDate(), 'dd/MM'),
             followers: parseMetric(snap.followers),
             views: parseMetric(snap.views),
             likes: parseMetric(snap.likes),
             comments: parseMetric(snap.comments),
-        })).reverse().slice(-30);
+        })).reverse().slice(-15);
     }
   }, [metricSnapshots, selectedPlatform]);
 
@@ -607,7 +428,7 @@ export default function DashboardPage() {
       />
 
       <div className="space-y-8">
-        {userProfile && <ProfileCompletionAlert userProfile={userProfile} hasUpdatedToday={hasUpdatedToday} isPremium={isPremium} />}
+        {userProfile && <ProfileCompletionAlert userProfile={userProfile} isPremium={isPremium} />}
 
         <div className="grid grid-cols-1 gap-8">
             <Card className="rounded-2xl border-0">
@@ -632,7 +453,6 @@ export default function DashboardPage() {
                                 </SelectContent>
                                 </Select>
                             </div>
-                            {userProfile && <UpdateMetricsModal userProfile={userProfile} />}
                         </div>
                     </div>
                 </CardHeader>
@@ -654,7 +474,7 @@ export default function DashboardPage() {
                         <CardTitle className="font-headline text-xl">
                         Evolução das Métricas ({selectedPlatform === 'instagram' ? 'Instagram' : selectedPlatform === 'tiktok' ? 'TikTok' : 'Total'})
                         </CardTitle>
-                        <CardDescription>Acompanhe seu progresso ao longo dos últimos 30 dias.</CardDescription>
+                        <CardDescription>Acompanhe seu progresso ao longo dos últimos 15 dias.</CardDescription>
                     </CardHeader>
                     <CardContent className="pl-2 pr-6">
                         {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
@@ -680,11 +500,9 @@ export default function DashboardPage() {
                                 </h3>
                                 <p className="text-sm text-muted-foreground">
                                     {userProfile && (
-                                        <UpdateMetricsModal userProfile={userProfile} triggerButton={
-                                            <span className="text-primary font-medium hover:underline cursor-pointer">
-                                                Atualize suas métricas
-                                            </span>
-                                        } />
+                                        <Link href="/profile" className="text-primary font-medium hover:underline cursor-pointer">
+                                            Atualize suas métricas
+                                        </Link>
                                     )}
                                     {userProfile?.instagramHandle || userProfile?.tiktokHandle ? " por alguns dias para começar." : " para começar a ver seus dados."}
                                 </p>
@@ -721,7 +539,7 @@ export default function DashboardPage() {
                                     </p>
                                     <p className="text-xs text-muted-foreground">
                                     {post.contentType} •{' '}
-                                    {formatDistanceToNow(post.date.toDate(), {
+                                    {post.date && formatDistanceToNow(post.date.toDate(), {
                                         addSuffix: true,
                                         locale: ptBR,
                                     })}
@@ -1010,3 +828,5 @@ export default function DashboardPage() {
     </>
   );
 }
+
+    
