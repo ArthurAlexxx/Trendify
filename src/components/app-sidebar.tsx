@@ -68,7 +68,7 @@ const hasAccess = (userPlan: Plan, itemPlan: Plan): boolean => {
     return planHierarchy[userPlan] >= planHierarchy[itemPlan];
 }
 
-export function AppSidebar({ isMobile = false }: { isMobile?: boolean }) {
+export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile?: boolean, setIsMobileMenuOpen?: (isOpen: boolean) => void }) {
   const pathname = usePathname();
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
@@ -78,6 +78,12 @@ export function AppSidebar({ isMobile = false }: { isMobile?: boolean }) {
   const handleSignOut = () => {
     auth.signOut();
     router.push('/login');
+  };
+
+  const handleLinkClick = () => {
+    if (isMobile && setIsMobileMenuOpen) {
+      setIsMobileMenuOpen(false);
+    }
   };
   
   const userPlan = subscription?.plan || 'free';
@@ -104,6 +110,7 @@ export function AppSidebar({ isMobile = false }: { isMobile?: boolean }) {
       <div className="flex items-center gap-2 px-6 h-20 border-b">
          <Link
             href="/"
+            onClick={handleLinkClick}
             className="flex items-center gap-2 text-xl font-bold font-headline tracking-tighter text-foreground"
         >
             <div className="bg-foreground text-background h-8 w-8 flex items-center justify-center rounded-full">
@@ -115,7 +122,7 @@ export function AppSidebar({ isMobile = false }: { isMobile?: boolean }) {
 
       <nav className="flex-1 px-4 py-4">
         <div className='relative'>
-             <Link href="/subscribe" className="block w-full text-left p-4 rounded-xl bg-gradient-to-br from-primary via-purple-500 to-violet-600 text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-shadow">
+             <Link href="/subscribe" onClick={handleLinkClick} className="block w-full text-left p-4 rounded-xl bg-gradient-to-br from-primary via-purple-500 to-violet-600 text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-shadow">
                 <div className='flex items-center gap-3'>
                     {isSubscriptionLoading ? <Skeleton className="h-6 w-6 rounded-full" /> : getPlanIcon()}
                     <div className='flex flex-col'>
@@ -157,7 +164,7 @@ export function AppSidebar({ isMobile = false }: { isMobile?: boolean }) {
 
                    return (
                      <li key={item.label}>
-                       <Link href={canAccess ? item.href : '/subscribe'}>
+                       <Link href={canAccess ? item.href : '/subscribe'} onClick={handleLinkClick}>
                          {content}
                        </Link>
                      </li>
@@ -202,19 +209,19 @@ export function AppSidebar({ isMobile = false }: { isMobile?: boolean }) {
                 <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                    <Link href="/profile">
+                    <Link href="/profile" onClick={handleLinkClick}>
                         <User className="mr-2 h-4 w-4" />
                         <span>Meu Perfil</span>
                     </Link>
                 </DropdownMenuItem>
                  <DropdownMenuItem asChild>
-                    <Link href="/settings">
+                    <Link href="/settings" onClick={handleLinkClick}>
                         <Settings className="mr-2 h-4 w-4" />
                         <span>Configurações</span>
                     </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                    <Link href="/support">
+                    <Link href="/support" onClick={handleLinkClick}>
                         <Hammer className="mr-2 h-4 w-4" />
                         <span>Suporte</span>
                     </Link>
