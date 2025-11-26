@@ -144,9 +144,9 @@ export default function ProfilePage() {
     
     startSavingTransition(async () => {
       try {
-        const dataToSave: Partial<Omit<UserProfile, 'id' | 'createdAt'>> = {
+        const dataToSave: Partial<UserProfile> = {
             displayName: values.displayName,
-            photoURL: values.photoURL,
+            photoURL: values.photoURL || null,
             niche: values.niche,
             bio: values.bio,
             audience: values.audience,
@@ -163,10 +163,10 @@ export default function ProfilePage() {
         };
 
         // Firestore does not accept 'undefined' values.
-        Object.keys(dataToSave).forEach(key => {
-            const k = key as keyof typeof dataToSave;
-            if (dataToSave[k] === undefined) {
-                (dataToSave as any)[k] = null;
+        Object.keys(dataToSave).forEach(keyStr => {
+            const key = keyStr as keyof typeof dataToSave;
+            if (dataToSave[key] === undefined) {
+                (dataToSave as any)[key] = null;
             }
         });
 
@@ -224,7 +224,9 @@ export default function ProfilePage() {
         async () => {
             try {
                 const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                await updateProfile(auth.currentUser!, { photoURL: downloadURL });
+                if (auth.currentUser) {
+                  await updateProfile(auth.currentUser, { photoURL: downloadURL });
+                }
                 if (userProfileRef) {
                     await updateDoc(userProfileRef, { photoURL: downloadURL });
                 }
@@ -293,10 +295,10 @@ export default function ProfilePage() {
              instagramAverageComments: values.instagramAverageComments,
              lastInstagramSync: serverTimestamp() as any,
           };
-           Object.keys(dataToSave).forEach(key => {
-            const k = key as keyof typeof dataToSave;
-            if (dataToSave[k] === undefined) {
-                (dataToSave as any)[k] = null;
+           Object.keys(dataToSave).forEach(keyStr => {
+            const key = keyStr as keyof typeof dataToSave;
+            if (dataToSave[key] === undefined) {
+                (dataToSave as any)[key] = null;
             }
           });
           await updateDoc(userProfileRef, dataToSave);
@@ -343,7 +345,7 @@ export default function ProfilePage() {
         form.setValue('photoURL', form.getValues('photoURL') || profileResult.avatarUrl);
         form.setValue('tiktokFollowers', formatNumber(profileResult.followersCount));
         form.setValue('tiktokAverageLikes', formatNumber(Math.round(averageLikes)));
-        formsetValue('tiktokAverageComments', formatNumber(Math.round(averageComments)));
+        form.setValue('tiktokAverageComments', formatNumber(Math.round(averageComments)));
         form.setValue('tiktokAverageViews', formatNumber(Math.round(averageViews)));
        
         if (user && userProfileRef) {
@@ -361,10 +363,10 @@ export default function ProfilePage() {
              tiktokAverageComments: values.tiktokAverageComments,
              lastTikTokSync: serverTimestamp() as any,
           };
-           Object.keys(dataToSave).forEach(key => {
-            const k = keyof typeof dataToSave;
-            if (dataToSave[k] === undefined) {
-                (dataToSave as any)[k] = null;
+           Object.keys(dataToSave).forEach(keyStr => {
+            const key = keyStr as keyof typeof dataToSave;
+            if (dataToSave[key] === undefined) {
+                (dataToSave as any)[key] = null;
             }
           });
           await updateDoc(userProfileRef, dataToSave);
@@ -558,7 +560,7 @@ export default function ProfilePage() {
                   <span>Integração de Plataformas</span>
                 </CardTitle>
                 <CardDescription>
-                  Busque dados públicos de um perfil para preencher ou atualizar suas métricas e foto (disponível uma vez por dia).
+                  Busque dados públicos de um perfil para preencher ou atualizar suas métricas e foto.
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -697,4 +699,3 @@ export default function ProfilePage() {
   );
 }
 
-    

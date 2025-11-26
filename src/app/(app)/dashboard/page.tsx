@@ -505,7 +505,7 @@ const PlatformIntegrationModal = ({ userProfile }: { userProfile: UserProfile })
                               <AlertDialogTrigger asChild>
                                     <Button
                                         type="button"
-                                        disabled={instaStatus === 'loading' || !username || isInstaSyncedToday}
+                                        disabled={instaStatus === 'loading' || !username}
                                         className="w-full"
                                     >
                                         {isInstaSyncedToday ? <><Check className="mr-2 h-4 w-4" />Sincronizado Hoje</> :
@@ -547,7 +547,7 @@ const PlatformIntegrationModal = ({ userProfile }: { userProfile: UserProfile })
                                 <AlertDialogTrigger asChild>
                                      <Button
                                         type="button"
-                                        disabled={tiktokStatus === 'loading' || !tiktokUsername || isTiktokSyncedToday}
+                                        disabled={tiktokStatus === 'loading' || !tiktokUsername}
                                         className="w-full"
                                     >
                                         {isTiktokSyncedToday ? <><Check className="mr-2 h-4 w-4" />Sincronizado Hoje</> :
