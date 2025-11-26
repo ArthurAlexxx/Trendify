@@ -60,11 +60,11 @@ export default function AdminPage() {
         });
     }
 
-    const sortedUsers = [...users].sort((a, b) => a.createdAt.toDate().getTime() - b.createdAt.toDate().getTime());
+    const sortedUsers = [...users].sort((a, b) => (a.createdAt as any).toDate().getTime() - (b.createdAt as any).toDate().getTime());
     
     const dailyCounts: { [date: string]: number } = {};
     sortedUsers.forEach(user => {
-      const date = format(startOfDay(user.createdAt.toDate()), 'yyyy-MM-dd');
+      const date = format(startOfDay((user.createdAt as any).toDate()), 'yyyy-MM-dd');
       dailyCounts[date] = (dailyCounts[date] || 0) + 1;
     });
 
