@@ -6,7 +6,8 @@ service cloud.firestore {
     
     // Admins can read/write anywhere
     function isAdmin() {
-      return exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+      // Check for the 'admin' role on the user's own profile document
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
     match /{document=**} {
@@ -22,11 +23,6 @@ service cloud.firestore {
       allow read: if request.auth.uid == userId || isAdmin();
       // Users can update their profile, but NOT their own role
       allow update: if request.auth.uid == userId && !("role" in request.resource.data);
-    }
-    
-    // A user can read from the admins collection to check their own status, but not list or write
-    match /admins/{userId} {
-      allow get: if request.auth.uid == userId;
     }
 
     // Allow users to manage their own saved ideas

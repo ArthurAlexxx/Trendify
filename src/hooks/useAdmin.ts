@@ -3,6 +3,7 @@
 
 import { useDoc, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
+import type { UserProfile } from '@/lib/types';
 
 interface UseAdminResult {
   isAdmin: boolean;
@@ -11,8 +12,7 @@ interface UseAdminResult {
 
 /**
  * A hook to check if the current user has admin privileges.
- * It checks for the existence of a document in the 'admins' collection
- * with the user's UID as the document ID.
+ * It checks for `role === 'admin'` on the user's own profile document.
  *
  * @returns {UseAdminResult} An object containing the admin status and loading state.
  */
@@ -21,18 +21,17 @@ export function useAdmin(): UseAdminResult {
   const firestore = useFirestore();
 
   // Memoize the document reference to prevent re-renders
-  const adminDocRef = useMemoFirebase(
-    () => (user ? doc(firestore, `admins/${user.uid}`) : null),
+  const userProfileRef = useMemoFirebase(
+    () => (user ? doc(firestore, `users/${user.uid}`) : null),
     [user, firestore]
   );
 
-  const { data: adminDoc, isLoading: isAdminDocLoading } = useDoc(adminDocRef);
+  const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userProfileRef);
 
-  const isLoading = isUserLoading || isAdminDocLoading;
+  const isLoading = isUserLoading || isProfileLoading;
   
-  // The user is an admin if the document exists.
-  // We don't need to check the content of the document.
-  const isAdmin = !!adminDoc;
+  // The user is an admin if their profile document has role === 'admin'.
+  const isAdmin = userProfile?.role === 'admin';
 
   return { isAdmin, isLoading };
 }

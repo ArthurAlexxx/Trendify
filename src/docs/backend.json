@@ -277,10 +277,6 @@
       "schema": { "$ref": "#/entities/UserProfile" },
       "description": "Stores user profile data."
     },
-    "/admins/{userId}": {
-      "schema": { "type": "object" },
-      "description": "A collection to grant admin privileges. If a user's UID exists as a document ID here, they are an admin."
-    },
     "/users/{userId}/metricSnapshots/{snapshotId}": {
         "schema": { "$ref": "#/entities/MetricSnapshot" },
         "description": "Stores daily metric snapshots for a user, per platform."
