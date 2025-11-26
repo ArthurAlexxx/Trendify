@@ -40,11 +40,11 @@ import {
   BarChart,
   Eye,
 } from 'lucide-react';
-import { useEffect, useTransition, useState, useMemo } from 'react';
+import { useEffect, useTransition, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { generateVideoIdeasAction, GenerateVideoIdeasOutput } from '@/app/(app)/video-ideas/actions';
-import { useCollection, useFirestore, useUser, useDoc } from '@/firebase';
+import { useCollection, useFirestore, useUser, useDoc, useMemoFirebase } from '@/firebase';
 import { collection, addDoc, serverTimestamp, where, query, orderBy, setDoc, doc, increment, getDoc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { SavedIdeasSheet } from '@/components/saved-ideas-sheet';
 import type { DailyUsage, IdeiaSalva } from '@/lib/types';
@@ -113,7 +113,7 @@ export default function VideoIdeasPage() {
 
   useEffect(() => {
     if (!user || !firestore) return;
-    const usageDocRef = doc(firestore, 'usageLogs', `${user.uid}_${todayStr}`);
+    const usageDocRef = doc(firestore, `users/${user.uid}/dailyUsage/${todayStr}`);
     
     const unsubscribe = onSnapshot(usageDocRef, (doc) => {
         setUsageData(doc.exists() ? doc.data() as DailyUsage : null);
@@ -143,7 +143,7 @@ export default function VideoIdeasPage() {
     });
   };
   
-  const completedIdeasQuery = useMemo(
+  const completedIdeasQuery = useMemoFirebase(
     () =>
       firestore && user
         ? query(
@@ -167,7 +167,7 @@ export default function VideoIdeasPage() {
       });
     }
      if (result && user && firestore) {
-      const usageDocRef = doc(firestore, 'usageLogs', `${user.uid}_${todayStr}`);
+      const usageDocRef = doc(firestore, `users/${user.uid}/dailyUsage/${todayStr}`);
       getDoc(usageDocRef).then(docSnap => {
           if (docSnap.exists()) {
               updateDoc(usageDocRef, { geracoesAI: increment(1) });
