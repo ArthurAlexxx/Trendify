@@ -238,22 +238,21 @@ function MediaKitPageContent() {
   const result = state?.data;
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-8">
       <PageHeader
-        icon={<Briefcase className="text-primary" />}
         title="Pacote de Prospecção para Marcas"
         description="Gere propostas, calcule preços e crie seu mídia kit profissional em um só lugar."
       >
         <SavedIdeasSheet />
       </PageHeader>
       
-        <Card className="shadow-lg shadow-primary/5 border-0 rounded-2xl">
+        <Card className="border-0 rounded-2xl">
             <CardHeader>
-                <CardTitle className="flex items-center gap-3 font-headline text-xl text-center sm:text-left">
+                <CardTitle className="flex items-center gap-3 font-headline text-xl">
                     <Sparkles className="h-6 w-6 text-primary" />
                     Como Criamos seu Pacote de Prospecção?
                 </CardTitle>
-                 <CardDescription className="text-center sm:text-left">Nossa plataforma atua como uma gerente de talentos para monetizar sua influência. Focamos em 4 pilares:</CardDescription>
+                 <CardDescription>Nossa plataforma atua como uma gerente de talentos para monetizar sua influência. Focamos em 4 pilares:</CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -271,11 +270,11 @@ function MediaKitPageContent() {
         </Card>
 
 
-      <div className="space-y-12">
+      <div className="space-y-8">
           
-          <Card className="shadow-lg shadow-primary/5 border-0 rounded-2xl">
-            <CardHeader className="text-center sm:text-left">
-              <CardTitle className="flex items-center justify-center sm:justify-start gap-3 font-headline text-xl">
+          <Card className="border-0 rounded-2xl">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3 font-headline text-xl">
                 <Bot className="h-6 w-6 text-primary" />
                 <span>Assistente de Carreira</span>
               </CardTitle>
@@ -284,7 +283,7 @@ function MediaKitPageContent() {
               <Form {...form}>
                 <form
                   onSubmit={form.handleSubmit(formAction)}
-                  className="space-y-8 text-left"
+                  className="space-y-8"
                 >
                   <div className="space-y-6">
                      <FormField
@@ -354,12 +353,12 @@ function MediaKitPageContent() {
                       />
                      </div>
                   </div>
-                  <div className="pt-2 flex justify-center sm:justify-start">
+                  <div className="pt-2 flex justify-start">
                     <Button
                       type="submit"
                       disabled={isGenerating || isLoadingProfile}
                       size="lg"
-                      className="font-manrope w-full sm:w-auto h-12 px-10 rounded-full text-base font-bold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-shadow"
+                      className="font-manrope w-full sm:w-auto h-12 px-10 rounded-full text-base font-bold"
                     >
                       {isGenerating ? (
                         <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Gerando...</>
@@ -375,7 +374,7 @@ function MediaKitPageContent() {
 
           {(isGenerating || result) && (
             <div className="space-y-8 animate-fade-in">
-              <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                 <div className='flex-1'>
                   <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Resultado Gerado</h2>
                   <p className="text-muted-foreground">Um pacote completo para sua prospecção de marcas.</p>
@@ -420,16 +419,16 @@ function InfoCard({
 }) {
   return (
     <Card
-      className="shadow-lg shadow-primary/5 border-0 rounded-2xl h-full"
+      className="border-0 rounded-2xl h-full"
     >
-      <CardHeader className="text-center sm:text-left">
-        <CardTitle className="flex items-center justify-center sm:justify-start gap-3 text-lg font-semibold text-foreground">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary" />
           <span>{title}</span>
         </CardTitle>
       </CardHeader>
       <CardContent>
-         <div className="p-4 rounded-xl border bg-muted/30 text-base text-foreground whitespace-pre-wrap text-left">
+         <div className="p-4 rounded-xl border bg-muted/30 text-base text-foreground whitespace-pre-wrap">
             {content}
           </div>
       </CardContent>
@@ -448,15 +447,15 @@ function InfoList({
   items: string[];
 }) {
   return (
-    <Card className="shadow-lg shadow-primary/5 border-0 rounded-2xl h-full">
-      <CardHeader className="text-center sm:text-left">
-        <CardTitle className="flex items-center justify-center sm:justify-start gap-3 text-lg font-semibold text-foreground">
+    <Card className="border-0 rounded-2xl h-full">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary" />
           <span>{title}</span>
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-3 text-left">
+        <div className="space-y-3">
           {items.map((item, index) => (
             <div
               key={index}
@@ -483,16 +482,16 @@ function PricingCard({
 }) {
   return (
     <Card
-      className="shadow-lg shadow-primary/5 border-0 rounded-2xl h-full"
+      className="border-0 rounded-2xl h-full"
     >
-      <CardHeader className="text-center sm:text-left">
-        <CardTitle className="flex items-center justify-center sm:justify-start gap-3 text-lg font-semibold text-foreground">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary" />
           <span>{title}</span>
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <p className='text-xs text-muted-foreground mb-4 text-center sm:text-left'>Valores baseados nas suas métricas. Use como ponto de partida para negociações.</p>
+        <p className='text-xs text-muted-foreground mb-4'>Valores baseados nas suas métricas. Use como ponto de partida para negociações.</p>
         <Table>
           <TableHeader>
             <TableRow>

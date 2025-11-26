@@ -249,20 +249,20 @@ export default function IntegrationsPage() {
 
   return (
     <div className="space-y-8">
-      <Button variant="ghost" asChild className="-ml-4 self-start">
-        <Link href="/profile">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Voltar para o Perfil
-        </Link>
-      </Button>
-
-      <PageHeader
-        icon={<Link2 className="text-primary" />}
-        title="Integração de Plataformas"
-        description="Sincronize seus dados do Instagram e TikTok para obter métricas automáticas e atualizadas."
-      />
+      <div className="flex justify-between items-center">
+        <PageHeader
+          title="Integração de Plataformas"
+          description="Sincronize seus dados do Instagram e TikTok para obter métricas automáticas."
+        />
+         <Button variant="ghost" asChild>
+          <Link href="/profile">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Voltar para o Perfil
+          </Link>
+        </Button>
+      </div>
           
-          <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0">
+          <Card className="rounded-2xl border-0">
             <CardContent className="pt-6 space-y-6">
                 {isLoading ? (
                     <Skeleton className="h-64 w-full" />
@@ -378,7 +378,7 @@ export default function IntegrationsPage() {
                   </Tabs>
                 </>
                 ) : (
-                    <Card className="border-yellow-400/50 bg-yellow-400/5 shadow-lg shadow-yellow-500/5 rounded-2xl text-center">
+                    <Card className="border-yellow-400/50 bg-yellow-400/5 rounded-2xl text-center">
                         <CardHeader>
                             <CardTitle className="flex items-center justify-center gap-3 font-headline text-xl text-yellow-600">
                                 <Crown className="h-6 w-6" />

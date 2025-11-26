@@ -34,7 +34,7 @@ export default function SubscribePage() {
     monthly: [
       {
         id: 'pro-monthly',
-        plan: 'pro',
+        plan: 'pro' as Plan,
         title: 'Plano Pro',
         price: 'R$29',
         priceSuffix: '/mês',
@@ -50,11 +50,11 @@ export default function SubscribePage() {
       },
       {
         id: 'premium-monthly',
-        plan: 'premium',
+        plan: 'premium' as Plan,
         title: 'Plano Premium',
         price: 'R$39',
         priceSuffix: '/mês',
-        description: 'Acesso total, automação e suporte prioritário.',
+        description: 'Acesso total, automação e monetização.',
         features: [
           '<b>Tudo do plano PRO</b>',
           '<b>Sincronização automática</b> de métricas',
@@ -69,7 +69,7 @@ export default function SubscribePage() {
     annual: [
       {
         id: 'pro-annual',
-        plan: 'pro',
+        plan: 'pro' as Plan,
         title: 'Plano Pro Anual',
         price: 'R$299',
         priceSuffix: '/ano',
@@ -85,7 +85,7 @@ export default function SubscribePage() {
       },
       {
         id: 'premium-annual',
-        plan: 'premium',
+        plan: 'premium' as Plan,
         title: 'Plano Premium Anual',
         price: 'R$399',
         priceSuffix: '/ano',
@@ -113,12 +113,12 @@ export default function SubscribePage() {
       
       return (
         <Card className={cn(
-            "rounded-2xl shadow-lg shadow-primary/5 border-0 flex flex-col h-full text-center sm:text-left",
+            "rounded-2xl border-0 flex flex-col h-full",
             isCurrentPlan && 'border-primary ring-2 ring-primary',
             planDetails.isPremium && 'border-yellow-400'
         )}>
           <CardHeader>
-            <CardTitle className="font-headline text-xl flex items-center justify-center sm:justify-start gap-2">
+            <CardTitle className="font-headline text-xl flex items-center gap-2">
               {planDetails.title}
               {planDetails.isPremium && <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />}
             </CardTitle>
@@ -150,7 +150,7 @@ export default function SubscribePage() {
   }
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-8">
       <PageHeader
         title="Selecione seu Plano"
         description="Escolha o plano ideal para o seu momento e acelere seu crescimento."

@@ -199,7 +199,7 @@ function CheckoutPageContent() {
 
   if (isUserLoading || !planId || !selectedPlanDetails || isSubscriptionLoading) {
     return (
-      <div className="space-y-12">
+      <div className="space-y-8">
         <Skeleton className="h-10 w-1/2" />
         <div className="grid md:grid-cols-5 gap-8 items-start">
           <div className="md:col-span-3">
@@ -237,22 +237,23 @@ function CheckoutPageContent() {
     </AlertDialog>
 
     <div className="space-y-8">
-      <Button variant="ghost" asChild className="-ml-4 self-center sm:self-start">
-        <Link href="/subscribe">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Voltar para os planos
-        </Link>
-      </Button>
-
-      <PageHeader
-        title="Finalizar Assinatura"
-        description={`Você está a um passo de desbloquear o ${selectedPlanDetails.name}.`}
-      />
+      <div className="flex justify-between items-center">
+        <PageHeader
+          title="Finalizar Assinatura"
+          description={`Você está a um passo de desbloquear o ${selectedPlanDetails.name}.`}
+        />
+        <Button variant="ghost" asChild>
+          <Link href="/subscribe">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Voltar para os planos
+          </Link>
+        </Button>
+      </div>
 
       <div className="grid lg:grid-cols-5 gap-8 items-start">
         <div className="lg:col-span-3">
-          <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0">
-            <CardHeader className="text-center sm:text-left">
+          <Card className="rounded-2xl border-0">
+            <CardHeader>
               <CardTitle className="font-headline text-xl">
                 Pagamento via PIX
               </CardTitle>
@@ -281,7 +282,7 @@ function CheckoutPageContent() {
                 <Form {...form}>
                   <form 
                      onSubmit={form.handleSubmit(data => formAction(data))}
-                    className="space-y-6 text-left"
+                    className="space-y-6"
                   >
                     <FormField
                       control={form.control}
@@ -345,7 +346,7 @@ function CheckoutPageContent() {
                         )}
                       />
                     </div>
-                    <Button type="submit" className="w-full shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-shadow" disabled={isGenerating}>
+                    <Button type="submit" className="w-full" disabled={isGenerating}>
                       {isGenerating && (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       )}
@@ -354,7 +355,7 @@ function CheckoutPageContent() {
                   </form>
                 </Form>
               ) : isGenerating && !result ? (
-                <div className="flex flex-col items-center justify-center h-96 text-center">
+                <div className="flex flex-col items-center justify-center h-96">
                   <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
                   <p className="font-semibold">Gerando seu PIX...</p>
                   <p className="text-sm text-muted-foreground">
@@ -412,11 +413,11 @@ function CheckoutPageContent() {
           </Card>
         </div>
         <div className="lg:col-span-2">
-            <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0 sticky top-24">
-                 <CardHeader className="text-center sm:text-left">
+            <Card className="rounded-2xl border-0 sticky top-24">
+                 <CardHeader>
                     <CardTitle className='font-headline text-xl'>Resumo do Pedido</CardTitle>
                  </CardHeader>
-                 <CardContent className="text-center sm:text-left">
+                 <CardContent>
                     <div className="space-y-4">
                         <div className='flex justify-between items-center'>
                             <p className='text-muted-foreground'>Plano</p>
@@ -429,7 +430,7 @@ function CheckoutPageContent() {
                             <p className='text-muted-foreground'>Valor</p>
                             <p className='font-semibold'>{selectedPlanDetails.price}/{selectedPlanDetails.cycle}</p>
                         </div>
-                        <ul className="space-y-2 text-sm text-muted-foreground pt-4 border-t text-left">
+                        <ul className="space-y-2 text-sm text-muted-foreground pt-4 border-t">
                             {selectedPlanDetails.features.map((feature, index) => (
                                 <li key={index} className="flex items-start gap-2">
                                     <Check className="h-4 w-4 text-primary mt-1 shrink-0" />

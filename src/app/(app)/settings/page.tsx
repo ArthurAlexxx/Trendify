@@ -125,7 +125,6 @@ export default function SettingsPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        icon={<SettingsIcon className="text-primary h-8 w-8" />}
         title="Configurações da Conta"
         description="Gerencie suas informações, assinatura e integrações."
       />
@@ -137,9 +136,9 @@ export default function SettingsPage() {
         </TabsList>
 
         <TabsContent value="subscription" className="mt-6">
-           <Card className="shadow-lg shadow-primary/5 border-0 rounded-2xl">
-              <CardHeader className="text-center sm:text-left">
-                <CardTitle className="flex items-center justify-center sm:justify-start gap-3 font-headline text-xl">
+           <Card className="border-0 rounded-2xl">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3 font-headline text-xl">
                     <Crown className="h-6 w-6 text-primary" />
                     <span>Seu Plano e Assinatura</span>
                 </CardTitle>
@@ -209,9 +208,9 @@ export default function SettingsPage() {
         
         <TabsContent value="account" className="mt-6">
           <div className="space-y-8">
-            <Card className="shadow-lg shadow-primary/5 border-0 rounded-2xl">
-              <CardHeader className="text-center sm:text-left">
-                <CardTitle className="flex items-center justify-center sm:justify-start gap-3 font-headline text-xl">
+            <Card className="border-0 rounded-2xl">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3 font-headline text-xl">
                   <LogOut className="h-6 w-6 text-primary" />
                   <span>Sessão</span>
                 </CardTitle>
@@ -230,9 +229,9 @@ export default function SettingsPage() {
               </CardContent>
             </Card>
 
-            <Card className="border-destructive/50 bg-destructive/5 shadow-lg shadow-destructive/5 rounded-2xl">
-              <CardHeader className="text-center sm:text-left">
-                <CardTitle className="flex items-center justify-center sm:justify-start gap-3 font-headline text-xl text-destructive">
+            <Card className="border-destructive/50 bg-destructive/5 rounded-2xl">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3 font-headline text-xl text-destructive">
                   <ShieldAlert className="h-6 w-6" />
                   <span>Zona de Perigo</span>
                 </CardTitle>

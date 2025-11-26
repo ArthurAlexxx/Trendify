@@ -306,7 +306,7 @@ const UpdateMetricsModal = ({ userProfile, triggerButton }: { userProfile: UserP
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-4 text-left">
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-4">
                     <div className="space-y-6">
                         <h3 className="text-lg font-semibold flex items-center gap-2"><Instagram className="h-5 w-5" /> Instagram</h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -581,9 +581,8 @@ export default function DashboardPage() {
         </DialogContent>
     </Dialog>
 
-    <div className="space-y-12">
+    <div className="space-y-8">
       <PageHeader
-        icon={<LayoutGrid className="text-primary" />}
         title={`Bem-vindo(a) de volta, ${
           userProfile?.displayName?.split(' ')[0] || user?.displayName?.split(' ')[0] || 'Criador'
         }!`}
@@ -594,10 +593,10 @@ export default function DashboardPage() {
         {userProfile && <ProfileCompletionAlert userProfile={userProfile} hasUpdatedToday={hasUpdatedToday} isPremium={isPremium} />}
 
         <div className="grid grid-cols-1 gap-8">
-            <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0">
+            <Card className="rounded-2xl border-0">
                 <CardHeader>
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                        <div className="text-center sm:text-left">
+                        <div>
                             <CardTitle className="text-base font-medium text-muted-foreground">
                                 Visão Geral da Plataforma
                             </CardTitle>
@@ -633,7 +632,7 @@ export default function DashboardPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             <div className="lg:col-span-2 space-y-8">
-                 <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0 h-full">
+                 <Card className="rounded-2xl border-0 h-full">
                     <CardHeader>
                         <CardTitle className="font-headline text-xl">
                         Evolução das Métricas ({selectedPlatform === 'instagram' ? 'Instagram' : selectedPlatform === 'tiktok' ? 'TikTok' : 'Total'})
@@ -680,8 +679,8 @@ export default function DashboardPage() {
                 </Card>
             </div>
              <div className="lg:col-span-1 space-y-8">
-                  <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0 flex flex-col h-full">
-                  <CardHeader className="text-center sm:text-left">
+                  <Card className="rounded-2xl border-0 flex flex-col h-full">
+                  <CardHeader>
                     <CardTitle className="font-headline text-xl">
                       Próximos Posts
                     </CardTitle>
@@ -693,7 +692,7 @@ export default function DashboardPage() {
                             {upcomingContent.map((post) => (
                             <div
                                 key={post.id}
-                                className="p-3 rounded-lg border bg-background/50 flex items-start justify-between gap-4 text-left"
+                                className="p-3 rounded-lg border bg-background/50 flex items-start justify-between gap-4"
                             >
                                 <div className="flex items-start gap-3 flex-1 overflow-hidden">
                                 <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
@@ -753,8 +752,8 @@ export default function DashboardPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-             <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0 h-full">
-                <CardHeader className="text-center sm:text-left">
+             <Card className="rounded-2xl border-0 h-full">
+                <CardHeader>
                 <CardTitle className="font-headline text-xl">
                     Roteiro de Conteúdo Semanal
                 </CardTitle>
@@ -766,7 +765,7 @@ export default function DashboardPage() {
                         <ul className="space-y-2">
                             {visibleItems?.map((item, index) => (
                             <li key={index}>
-                                <div className="flex items-start gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50 text-left">
+                                <div className="flex items-start gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50">
                                 <Checkbox
                                     id={`roteiro-${index}`}
                                     checked={item.concluido}
@@ -809,7 +808,7 @@ export default function DashboardPage() {
                                 className="overflow-hidden"
                                 >
                                     <Separator className="my-2" />
-                                    <div className="flex items-start gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50 text-left">
+                                    <div className="flex items-start gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50">
                                     <Checkbox
                                         id={`roteiro-collapsible-${index}`}
                                         checked={item.concluido}
@@ -885,8 +884,8 @@ export default function DashboardPage() {
                 </CardContent>
             </Card>
 
-            <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0 h-full">
-                <CardHeader className="text-center sm:text-left">
+            <Card className="rounded-2xl border-0 h-full">
+                <CardHeader>
                 <CardTitle className="font-headline text-xl">
                     Ideias e Tarefas
                 </CardTitle>
@@ -896,7 +895,7 @@ export default function DashboardPage() {
                     ideiasSalvas && ideiasSalvas.length > 0 ? (
                     <ul className="space-y-3">
                         {ideiasSalvas.map((ideia) => (
-                        <li key={ideia.id} className="flex items-start gap-3 text-left">
+                        <li key={ideia.id} className="flex items-start gap-3">
                             <Checkbox
                             id={`ideia-${ideia.id}`}
                             checked={ideia.concluido}
@@ -946,7 +945,7 @@ export default function DashboardPage() {
 
          {/* Recent Posts Section */}
         <div className="grid grid-cols-1 gap-8">
-            <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0">
+            <Card className="rounded-2xl border-0">
                 <CardHeader>
                     <CardTitle>Atividade Recente nas Plataformas</CardTitle>
                     <CardDescription>Uma visão geral das suas últimas publicações.</CardDescription>

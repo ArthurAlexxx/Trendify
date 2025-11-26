@@ -205,22 +205,21 @@ export default function VideoIdeasPage() {
 
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-8">
       <PageHeader
-        icon={<Lightbulb className="text-primary" />}
         title="Gerador de Vídeos Virais"
         description="Nunca mais fique sem ideias. Crie roteiros completos e otimizados para viralizar."
       >
         <SavedIdeasSheet />
       </PageHeader>
       
-      <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0">
+      <Card className="rounded-2xl border-0">
             <CardHeader>
-                <CardTitle className="flex items-center gap-3 font-headline text-xl text-center sm:text-left">
+                <CardTitle className="flex items-center gap-3 font-headline text-xl">
                     <Sparkles className="text-primary h-6 w-6" />
                     Como Criamos Suas Ideias?
                 </CardTitle>
-                 <CardDescription className="text-center sm:text-left">Nossa plataforma foi treinada para pensar como uma estrategista de conteúdo viral. Analisamos sua necessidade em busca de 4 pilares:</CardDescription>
+                 <CardDescription>Nossa plataforma foi treinada para pensar como uma estrategista de conteúdo viral. Analisamos sua necessidade em busca de 4 pilares:</CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -238,9 +237,9 @@ export default function VideoIdeasPage() {
       </Card>
 
 
-      <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0">
-        <CardHeader className="text-center sm:text-left">
-          <CardTitle className="flex items-center justify-center sm:justify-start gap-3 font-headline text-xl">
+      <Card className="rounded-2xl border-0">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-3 font-headline text-xl">
             <Sparkles className="h-6 w-6 text-primary" />
             <span>Descreva sua necessidade</span>
           </CardTitle>
@@ -250,7 +249,7 @@ export default function VideoIdeasPage() {
           <Form {...form}>
             <form
               onSubmit={form.handleSubmit(formAction)}
-              className="space-y-8 text-left"
+              className="space-y-8"
             >
               <div className="grid md:grid-cols-2 gap-x-6 gap-y-6">
                 <FormField
@@ -329,7 +328,7 @@ export default function VideoIdeasPage() {
                   type="submit"
                   disabled={isButtonDisabled}
                   size="lg"
-                  className="font-manrope w-full sm:w-auto h-12 px-10 rounded-full text-base font-bold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-shadow"
+                  className="font-manrope w-full sm:w-auto h-12 px-10 rounded-full text-base font-bold"
                 >
                   {isGenerating ? (
                     <>
@@ -361,7 +360,7 @@ export default function VideoIdeasPage() {
 
       {(isGenerating || result) && (
         <div className="space-y-8 animate-fade-in">
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="flex-1">
               <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">
                 Resultado Gerado
@@ -447,7 +446,7 @@ export default function VideoIdeasPage() {
             Aqui estão as ideias que você já marcou como concluídas.
           </p>
         </div>
-        <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0">
+        <Card className="rounded-2xl border-0">
           <CardContent className='pt-6'>
             {isLoadingCompleted ? (
               <div className="space-y-4">
@@ -457,7 +456,7 @@ export default function VideoIdeasPage() {
             ) : completedIdeas && completedIdeas.length > 0 ? (
               <ul className="space-y-4">
                 {completedIdeas.map((idea) => (
-                  <li key={idea.id} className="flex items-center gap-4 p-4 rounded-xl border bg-muted/30 text-left">
+                  <li key={idea.id} className="flex items-center gap-4 p-4 rounded-xl border bg-muted/30">
                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-500/10 text-green-500">
                         <Check className="h-5 w-5" />
                      </div>
@@ -496,10 +495,10 @@ function InfoCard({
 }) {
   return (
     <Card
-      className={cn("shadow-lg shadow-primary/5 border-0 rounded-2xl", className)}
+      className={cn("border-0 rounded-2xl", className)}
     >
-      <CardHeader className="text-center sm:text-left">
-        <CardTitle className="flex items-center justify-center sm:justify-start gap-3 text-lg font-semibold text-foreground">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary" />
           <span>{title}</span>
         </CardTitle>
@@ -509,10 +508,10 @@ function InfoCard({
           <Textarea
             readOnly
             value={content}
-            className="h-48 bg-muted/30 text-base leading-relaxed resize-none rounded-xl text-left"
+            className="h-48 bg-muted/30 text-base leading-relaxed resize-none rounded-xl"
           />
         ) : (
-          <p className="p-4 rounded-xl border bg-muted/30 text-base text-foreground text-left">
+          <p className="p-4 rounded-xl border bg-muted/30 text-base text-foreground">
             {content}
           </p>
         )}
@@ -531,9 +530,9 @@ function InfoListCard({
   content: string[];
 }) {
   return (
-    <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0">
-      <CardHeader className="text-center sm:text-left">
-        <CardTitle className="flex items-center justify-center sm:justify-start gap-3 text-lg font-semibold text-foreground">
+    <Card className="rounded-2xl border-0">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary" />
           <span>{title}</span>
         </CardTitle>
@@ -542,7 +541,7 @@ function InfoListCard({
         <Textarea
           readOnly
           value={content.map((take, index) => `${index + 1}. ${take}`).join('\n')}
-          className="h-48 bg-muted/30 text-base leading-relaxed resize-none rounded-xl text-left"
+          className="h-48 bg-muted/30 text-base leading-relaxed resize-none rounded-xl"
         />
       </CardContent>
     </Card>

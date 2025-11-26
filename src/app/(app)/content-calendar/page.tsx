@@ -316,7 +316,6 @@ export default function ContentCalendarPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        icon={<CalendarIcon className="text-primary" />}
         title="Calendário de Conteúdo"
         description="Visualize, organize e agende suas publicações em um só lugar."
       />
@@ -331,7 +330,7 @@ export default function ContentCalendarPage() {
           <Form {...form}>
             <form
               onSubmit={form.handleSubmit(onSubmit)}
-              className="space-y-6 pt-4 text-left"
+              className="space-y-6 pt-4"
             >
               <FormField
                 control={form.control}

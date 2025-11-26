@@ -230,22 +230,21 @@ export default function GenerateWeeklyPlanPage() {
 
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-8">
       <PageHeader
-        icon={<ClipboardList className="text-primary" />}
         title="Crie seu Plano Semanal"
         description="Transforme seu objetivo da semana em um roteiro de conteúdo acionável."
       >
         <PreviousPlansSheet />
       </PageHeader>
       
-        <Card className="shadow-lg shadow-primary/5 border-0 rounded-2xl">
+        <Card className="border-0 rounded-2xl">
             <CardHeader>
-                <CardTitle className="flex items-center gap-3 font-headline text-xl text-center sm:text-left">
+                <CardTitle className="flex items-center gap-3 font-headline text-xl">
                     <Sparkles className="h-6 w-6 text-primary" />
                     Como Montamos seu Plano Estratégico?
                 </CardTitle>
-                 <CardDescription className="text-center sm:text-left">Nossa plataforma foi treinada para atuar como uma estrategista de crescimento. Ela analisa sua necessidade em busca de 4 pilares:</CardDescription>
+                 <CardDescription>Nossa plataforma foi treinada para atuar como uma estrategista de crescimento. Ela analisa sua necessidade em busca de 4 pilares:</CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -263,9 +262,9 @@ export default function GenerateWeeklyPlanPage() {
         </Card>
 
 
-      <Card className="shadow-lg shadow-primary/5 border-0 rounded-2xl">
-        <CardHeader className="text-center sm:text-left">
-          <CardTitle className="flex items-center justify-center sm:justify-start gap-3 font-headline text-xl">
+      <Card className="border-0 rounded-2xl">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-3 font-headline text-xl">
             <Bot className="h-6 w-6 text-primary" />
             <span>Briefing da Semana</span>
           </CardTitle>
@@ -275,7 +274,7 @@ export default function GenerateWeeklyPlanPage() {
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(formAction)} className="space-y-8 text-left">
+            <form onSubmit={form.handleSubmit(formAction)} className="space-y-8">
               <div className="space-y-6">
                 <FormField
                   control={form.control}
@@ -350,7 +349,7 @@ export default function GenerateWeeklyPlanPage() {
                   type="submit"
                   disabled={isGenerating || isSaving || isLoadingProfile}
                   size="lg"
-                  className="font-manrope w-full sm:w-auto h-12 px-10 rounded-full text-base font-bold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-shadow"
+                  className="font-manrope w-full sm:w-auto h-12 px-10 rounded-full text-base font-bold"
                 >
                   {isGenerating || isSaving ? (
                     <>
@@ -410,9 +409,9 @@ export default function GenerateWeeklyPlanPage() {
               <p className="text-muted-foreground">Este é o roteiro que está ativo no seu painel.</p>
             </div>
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
-                <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0">
-                  <CardHeader><CardTitle className="font-headline text-xl text-center sm:text-left">Roteiro de Conteúdo</CardTitle></CardHeader>
-                  <CardContent className="text-left">
+                <Card className="rounded-2xl border-0">
+                  <CardHeader><CardTitle className="font-headline text-xl">Roteiro de Conteúdo</CardTitle></CardHeader>
+                  <CardContent>
                     <ul className="space-y-2">
                       {currentRoteiroItems.map((item, index) => (
                         <li key={index}>
@@ -442,8 +441,8 @@ export default function GenerateWeeklyPlanPage() {
                     </ul>
                   </CardContent>
                 </Card>
-                <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0">
-                  <CardHeader><CardTitle className="font-headline text-xl text-center sm:text-left">Desempenho Semanal (Simulado)</CardTitle></CardHeader>
+                <Card className="rounded-2xl border-0">
+                  <CardHeader><CardTitle className="font-headline text-xl">Desempenho Semanal (Simulado)</CardTitle></CardHeader>
                   <CardContent className="pl-2">
                     {isLoadingRoteiro ? <Skeleton className="h-[350px] w-full" /> : 
                      <ChartContainer config={chartConfig} className="h-[350px] w-full">
@@ -488,13 +487,13 @@ export default function GenerateWeeklyPlanPage() {
             </div>
           ) : result ? (
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
-              <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0">
+              <Card className="rounded-2xl border-0">
                 <CardHeader>
-                  <CardTitle className="font-headline text-xl text-center sm:text-left">
+                  <CardTitle className="font-headline text-xl">
                     Novo Roteiro de Conteúdo
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="text-left">
+                <CardContent>
                   <ul className="space-y-2">
                     {result.roteiro.map((item, index) => (
                       <li key={index}>
@@ -523,9 +522,9 @@ export default function GenerateWeeklyPlanPage() {
                 </CardContent>
               </Card>
 
-              <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0">
+              <Card className="rounded-2xl border-0">
                 <CardHeader>
-                  <CardTitle className="font-headline text-xl text-center sm:text-left">
+                  <CardTitle className="font-headline text-xl">
                     Nova Simulação de Desempenho
                   </CardTitle>
                 </CardHeader>

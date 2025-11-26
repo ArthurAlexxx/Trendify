@@ -238,13 +238,12 @@ export default function ProfilePage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        icon={<UserIcon className="text-primary" />}
         title="Gerencie seu Perfil"
         description="Mantenha suas informações atualizadas para a IA gerar estratégias mais precisas."
       />
-          <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0">
-            <CardHeader className="text-center sm:text-left">
-              <CardTitle className="flex items-center justify-center sm:justify-start gap-3 font-headline text-xl">
+          <Card className="rounded-2xl border-0">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3 font-headline text-xl">
                 <UserIcon className="h-6 w-6 text-primary" />
                 <span>Perfil & Métricas Manuais</span>
               </CardTitle>
@@ -260,7 +259,7 @@ export default function ProfilePage() {
                     <Skeleton className="h-10 w-full" />
                 </div>
              ) : (
-              <form onSubmit={form.handleSubmit(onProfileSubmit)} className="space-y-8 text-left">
+              <form onSubmit={form.handleSubmit(onProfileSubmit)} className="space-y-8">
                   <div className="flex flex-col sm:flex-row items-center gap-6">
                     <div className="relative group">
                       <Avatar className="h-24 w-24 cursor-pointer" onClick={() => fileInputRef.current?.click()}>
@@ -394,7 +393,7 @@ export default function ProfilePage() {
                 </div>
 
 
-                <div className="flex justify-center sm:justify-end pt-2">
+                <div className="flex justify-end pt-2">
                   <Button type="submit" disabled={isSaving || isProfileLoading} className="font-manrope rounded-full w-full sm:w-auto">
                      {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Salvar Alterações
@@ -405,7 +404,7 @@ export default function ProfilePage() {
             </CardContent>
           </Card>
           
-          <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0">
+          <Card className="rounded-2xl border-0">
             <CardHeader>
                 <CardTitle className="flex items-center gap-3 font-headline text-xl">
                   <Link2 className="h-6 w-6 text-primary" />

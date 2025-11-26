@@ -1,3 +1,4 @@
+
 'use client';
 
 import { PageHeader } from '@/components/page-header';
@@ -75,13 +76,12 @@ export default function SupportPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        icon={<Hammer className="text-primary" />}
         title="Suporte & Contato"
         description="Precisa de ajuda ou tem alguma sugestão? Preencha o formulário abaixo."
       />
 
-      <Card className="max-w-2xl mx-auto shadow-lg shadow-primary/5 border-border/20 bg-card rounded-2xl">
-        <CardHeader className="text-center sm:text-left">
+      <Card className="max-w-2xl mx-auto border-border/20 bg-card rounded-2xl">
+        <CardHeader>
           <CardTitle className="font-headline text-xl">
             Formulário de Contato
           </CardTitle>
@@ -94,7 +94,7 @@ export default function SupportPage() {
           <Form {...form}>
             <form
               onSubmit={form.handleSubmit(onSubmit)}
-              className="space-y-6 text-left"
+              className="space-y-6"
             >
               <div className="grid sm:grid-cols-2 gap-6">
                 <FormField
