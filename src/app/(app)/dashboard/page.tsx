@@ -1,3 +1,4 @@
+
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -22,6 +23,7 @@ import {
   Clapperboard,
   Search,
   Crown,
+  PlayCircle,
 } from 'lucide-react';
 import {
   ChartContainer,
@@ -72,8 +74,9 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { getInstagramProfile, getTikTokPosts, getTikTokProfile, getInstagramPosts } from '../profile/actions';
-import { InstagramProfileResults, TikTokProfileResults } from '../profile/page';
 import { useSubscription } from '@/hooks/useSubscription';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import Image from 'next/image';
 
 
 const chartConfigBase = {
@@ -1182,7 +1185,7 @@ export default function DashboardPage() {
 }
 
 
-function MetricCard({ icon: Icon, title, value, handle, isLoading, isManual }: { icon: React.ElementType, title: string, value?: string, handle?: string, isLoading: boolean, isManual?: boolean }) {
+export function MetricCard({ icon: Icon, title, value, handle, isLoading, isManual }: { icon: React.ElementType, title: string, value?: string, handle?: string, isLoading: boolean, isManual?: boolean }) {
     if (isLoading) {
         return (
              <div className="p-6 rounded-lg bg-muted/50">
@@ -1222,6 +1225,99 @@ function MetricCard({ icon: Icon, title, value, handle, isLoading, isManual }: {
         </div>
     )
 }
+
+export function InstagramProfileResults({ profile, posts, error, formatNumber }: { profile: Partial<InstagramProfileData>, posts: InstagramPostData[] | null, error: string | null, formatNumber: (n: number) => string }) {
+    if (!profile) return null;
+
+    const averageLikes = posts && posts.length > 0 ? posts.reduce((acc, p) => acc + p.likes, 0) / posts.length : 0;
+    const averageComments = posts && posts.length > 0 ? posts.reduce((acc, p) => acc + p.comments, 0) / posts.length : 0;
+
+    return (
+        <div className="mt-6 space-y-6">
+            <h3 className="text-lg font-semibold text-center sm:text-left">Últimas Publicações</h3>
+            {error && !posts && <Alert variant="destructive"><AlertTriangle className="h-4 w-4" /><AlertTitle>Erro ao buscar posts</AlertTitle><AlertDescription>{error}</AlertDescription></Alert>}
+            {posts && posts.length > 0 ? (
+                <Carousel
+                    opts={{
+                        align: "start",
+                    }}
+                    className="w-full"
+                >
+                    <CarouselContent>
+                        {posts.map((post) => (
+                            <CarouselItem key={post.id} className="md:basis-1/2 lg:basis-1/3">
+                                <Card className="overflow-hidden">
+                                    <div className="relative aspect-square">
+                                        <Image src={post.mediaUrl} alt={post.caption || 'Instagram Post'} fill style={{ objectFit: 'cover' }} />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+                                        <div className="absolute bottom-0 left-0 p-4 text-white">
+                                            <div className="flex items-center gap-4 text-sm">
+                                                <div className="flex items-center gap-1.5"><Heart className="h-4 w-4" /> {formatNumber(post.likes)}</div>
+                                                <div className="flex items-center gap-1.5"><MessageSquare className="h-4 w-4" /> {formatNumber(post.comments)}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </Card>
+                            </CarouselItem>
+                        ))}
+                    </CarouselContent>
+                    <CarouselPrevious className="ml-12" />
+                    <CarouselNext className="mr-12" />
+                </Carousel>
+            ) : posts ? (
+                 <div className="text-center py-10">
+                    <p className="text-muted-foreground">Nenhuma publicação recente encontrada para este perfil.</p>
+                </div>
+            ) : null}
+        </div>
+    );
+}
+
+export function TikTokProfileResults({ profile, posts, error, formatNumber }: { profile: Partial<TikTokProfileData>, posts: TikTokPostData[] | null, error: string | null, formatNumber: (n: number) => string }) {
+    if (!profile) return null;
+    
+    const averageLikes = posts && posts.length > 0 ? posts.reduce((acc, p) => acc + p.likes, 0) / posts.length : 0;
+    const averageComments = posts && posts.length > 0 ? posts.reduce((acc, p) => acc + p.comments, 0) / posts.length : 0;
+    const averageViews = posts && posts.length > 0 ? posts.reduce((acc, p) => acc + p.views, 0) / posts.length : 0;
+
+
+    return (
+        <div className="mt-6 space-y-6">
+            <h3 className="text-lg font-semibold text-center sm:text-left">Últimos Vídeos</h3>
+            {error && !posts && <Alert variant="destructive" className="mt-4"><AlertTriangle className="h-4 w-4" /><AlertTitle>Erro ao Buscar Vídeos</AlertTitle><AlertDescription>{error}</AlertDescription></Alert>}
+            
+            {posts && posts.length > 0 ? (
+                <Carousel opts={{ align: "start" }} className="w-full">
+                    <CarouselContent>
+                        {posts.map((post) => (
+                            <CarouselItem key={post.id} className="md:basis-1/2 lg:basis-1/3">
+                                <Card className="overflow-hidden">
+                                    <div className="relative aspect-[9/16]">
+                                        <Image src={post.coverUrl} alt={post.description || 'TikTok Video'} fill style={{ objectFit: 'cover' }} />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+                                        <div className="absolute bottom-0 left-0 p-4 text-white">
+                                            <div className="flex items-center gap-4 text-sm">
+                                                <div className="flex items-center gap-1.5"><PlayCircle className="h-4 w-4" /> {formatNumber(post.views)}</div>
+                                                <div className="flex items-center gap-1.5"><Heart className="h-4 w-4" /> {formatNumber(post.likes)}</div>
+                                                <div className="flex items-center gap-1.5"><MessageSquare className="h-4 w-4" /> {formatNumber(post.comments)}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </Card>
+                            </CarouselItem>
+                        ))}
+                    </CarouselContent>
+                    <CarouselPrevious className="ml-12" />
+                    <CarouselNext className="mr-12" />
+                </Carousel>
+            ) : posts ? (
+                <div className="text-center py-10">
+                    <p className="text-muted-foreground">Nenhum vídeo recente encontrado para este perfil.</p>
+                </div>
+            ) : null}
+        </div>
+    );
+}
     
 
     
@@ -1231,3 +1327,4 @@ function MetricCard({ icon: Icon, title, value, handle, isLoading, isManual }: {
     
 
     
+

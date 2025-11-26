@@ -565,7 +565,7 @@ export default function ProfilePage() {
                         </Card>
                          {instaStatus === 'loading' && <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>}
                          {instaStatus === 'error' && instaError && <Alert variant="destructive" className="mt-4"><AlertTriangle className="h-4 w-4" /><AlertTitle>Erro ao Buscar Perfil</AlertTitle><AlertDescription>{instaError}</AlertDescription></Alert>}
-                         {instaStatus === 'success' && form.watch('instagramProfile') && <InstagramProfileResults profile={form.watch('instagramProfile')} posts={form.watch('instagramPosts')} formatNumber={formatNumber} error={instaError} />}
+                         {instaStatus === 'success' && form.watch('instagramProfile') && <InstagramProfileResults profile={form.watch('instagramProfile')!} posts={form.watch('instagramPosts') ?? null} formatNumber={formatNumber} error={instaError} />}
                     </TabsContent>
                     <TabsContent value="tiktok" className="mt-4">
                         <Card className='border-0 shadow-none'>
@@ -606,7 +606,7 @@ export default function ProfilePage() {
                         </Card>
                          {tiktokStatus === 'loading' && <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>}
                          {tiktokStatus === 'error' && tiktokError && <Alert variant="destructive" className="mt-4"><AlertTriangle className="h-4 w-4" /><AlertTitle>Erro ao Buscar Perfil</AlertTitle><AlertDescription>{tiktokError}</AlertDescription></Alert>}
-                         {tiktokStatus === 'success' && form.watch('tiktokProfile') && <TikTokProfileResults profile={form.watch('tiktokProfile')} posts={form.watch('tiktokPosts')} formatNumber={formatNumber} error={tiktokError} />}
+                         {tiktokStatus === 'success' && form.watch('tiktokProfile') && <TikTokProfileResults profile={form.watch('tiktokProfile')!} posts={form.watch('tiktokPosts') ?? null} formatNumber={formatNumber} error={tiktokError} />}
                     </TabsContent>
                   </Tabs>
                 </>
