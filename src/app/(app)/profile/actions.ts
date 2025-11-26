@@ -323,15 +323,7 @@ export async function getTikTokPosts(username: string): Promise<TikTokPostData[]
         const result = await fetchFromRapidApi('tiktok-posts', username);
         const parsed = TikTokPostResponseSchema.parse(result);
         
-        const recentPosts = parsed.videos.filter(post => {
-            if (!post.create_time) return false;
-            const postDate = new Date(Number(post.create_time) * 1000);
-            const thirtyOneDaysAgo = new Date();
-            thirtyOneDaysAgo.setDate(thirtyOneDaysAgo.getDate() - 31);
-            return postDate > thirtyOneDaysAgo;
-        });
-
-        return recentPosts.map(post => ({
+        return parsed.videos.map(post => ({
             id: post.video_id,
             description: post.description || '',
             coverUrl: post.cover,
@@ -349,3 +341,5 @@ export async function getTikTokPosts(username: string): Promise<TikTokPostData[]
         throw new Error(`Falha ao buscar posts do TikTok: ${e.message}`);
     }
 }
+
+    
