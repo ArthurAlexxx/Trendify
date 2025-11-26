@@ -808,7 +808,7 @@ export default function LandingPage() {
                     </li>
                     <li className="flex items-center gap-2">
                         <Check className="h-4 w-4 text-primary" />
-                        <span>Gerações de IA **ilimitadas**</span>
+                        <span>Gerações de IA <b>ilimitadas</b></span>
                     </li>
                     <li className="flex items-center gap-2">
                         <Check className="h-4 w-4 text-primary" />
@@ -820,7 +820,7 @@ export default function LandingPage() {
                     </li>
                     <li className="flex items-center gap-2">
                         <Check className="h-4 w-4 text-primary" />
-                        <span>Análise de performance de vídeos</span>
+                        <span>Análise de Vídeo (3/dia)</span>
                     </li>
                     <li className="flex items-center gap-2">
                         <Check className="h-4 w-4 text-primary" />
@@ -851,6 +851,14 @@ export default function LandingPage() {
                     <li className="flex items-center gap-2">
                         <Check className="h-4 w-4 text-primary" />
                         <span className='font-semibold'>Tudo do plano Pro, e mais:</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-primary" />
+                        <span><b>Sincronização automática</b> de métricas</span>
+                    </li>
+                     <li className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-primary" />
+                        <span>Análise de Vídeo (10/dia)</span>
                     </li>
                     <li className="flex items-center gap-2">
                         <Check className="h-4 w-4 text-primary" />
