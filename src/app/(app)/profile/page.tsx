@@ -630,7 +630,7 @@ export default function ProfilePage() {
 
 // --- Instagram Components ---
 
-function InstagramProfileResults({ profile, posts, error, formatNumber }: { profile: InstagramProfileData, posts: InstagramPostData[] | null, error: string | null, formatNumber: (n: number) => string }) {
+export function InstagramProfileResults({ profile, posts, error, formatNumber }: { profile: InstagramProfileData, posts: InstagramPostData[] | null, error: string | null, formatNumber: (n: number) => string }) {
     const averageLikes = posts && posts.length > 0 ? posts.reduce((acc, p) => acc + p.likes, 0) / posts.length : 0;
     const averageComments = posts && posts.length > 0 ? posts.reduce((acc, p) => acc + p.comments, 0) / posts.length : 0;
 
@@ -681,7 +681,7 @@ function InstagramProfileResults({ profile, posts, error, formatNumber }: { prof
 
 // --- TikTok Components ---
 
-function TikTokProfileResults({ profile, posts, error, formatNumber }: { profile: TikTokProfileData, posts: TikTokPostData[] | null, error: string | null, formatNumber: (n: number) => string }) {
+export function TikTokProfileResults({ profile, posts, error, formatNumber }: { profile: TikTokProfileData, posts: TikTokPostData[] | null, error: string | null, formatNumber: (n: number) => string }) {
     const averageLikes = posts && posts.length > 0 ? posts.reduce((acc, p) => acc + p.likes, 0) / posts.length : 0;
     const averageComments = posts && posts.length > 0 ? posts.reduce((acc, p) => acc + p.comments, 0) / posts.length : 0;
     const averageViews = posts && posts.length > 0 ? posts.reduce((acc, p) => acc + p.views, 0) / posts.length : 0;

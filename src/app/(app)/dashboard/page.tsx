@@ -21,6 +21,7 @@ import {
   Instagram,
   Film,
   Clapperboard,
+  Search,
 } from 'lucide-react';
 import {
   ChartContainer,
@@ -38,6 +39,10 @@ import type {
   UserProfile,
   PlanoSemanal,
   MetricSnapshot,
+  InstagramProfileData, 
+  InstagramPostData, 
+  TikTokProfileData, 
+  TikTokPostData
 } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -57,7 +62,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, useCollection, useDoc, useMemoFirebase } from '@/firebase';
 import { collection, doc, query, orderBy, limit, updateDoc, where, addDoc, serverTimestamp } from 'firebase/firestore';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -65,6 +70,9 @@ import { z } from 'zod';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { getInstagramProfile, getTikTokPosts, getTikTokProfile, getInstagramPosts } from '../profile/actions';
+import { InstagramProfileResults, TikTokProfileResults } from '../profile/page';
 
 
 const chartConfigBase = {
@@ -115,17 +123,34 @@ const profileMetricsSchema = z.object({
 
 const ProfileCompletionAlert = ({ userProfile, hasUpdatedToday }: { userProfile: UserProfile | null, hasUpdatedToday: boolean }) => {
     const isProfileSetup = userProfile?.niche && (userProfile.instagramHandle || userProfile.tiktokHandle);
+    const hasAnyPlatform = userProfile?.instagramHandle || userProfile?.tiktokHandle;
 
-    if (!isProfileSetup) {
+    if (!userProfile?.niche) {
       return (
           <Alert>
               <AlertTriangle className="h-4 w-4 text-primary" />
               <AlertTitle>Complete seu Perfil!</AlertTitle>
               <AlertDescription>
-                  <Link href="/profile" className='hover:underline font-semibold'>Adicione seu nicho e @ de usuário</Link> para que a IA gere insights mais precisos.
+                  <Link href="/profile" className='hover:underline font-semibold'>Adicione seu nicho de atuação</Link> para que a IA gere insights mais precisos.
               </AlertDescription>
           </Alert>
       )
+    }
+
+    if (!hasAnyPlatform) {
+         return (
+             <Alert>
+                <div className='flex flex-col sm:flex-row justify-between items-center gap-4'>
+                    <div className='text-center sm:text-left'>
+                        <AlertTitle className="flex items-center justify-center sm:justify-start gap-2"><AlertTriangle className="h-4 w-4 text-primary" />Conecte suas Plataformas!</AlertTitle>
+                        <AlertDescription>
+                           Integre seu Instagram ou TikTok para começar a acompanhar suas métricas.
+                        </AlertDescription>
+                    </div>
+                   {userProfile && <PlatformIntegrationModal userProfile={userProfile} />}
+                </div>
+            </Alert>
+         )
     }
 
     if (!hasUpdatedToday && userProfile) {
@@ -292,6 +317,236 @@ const UpdateMetricsModal = ({ userProfile, triggerButton }: { userProfile: UserP
                     </DialogFooter>
                 </form>
                 </Form>
+            </DialogContent>
+        </Dialog>
+    )
+}
+
+const PlatformIntegrationModal = ({ userProfile }: { userProfile: UserProfile }) => {
+    type SearchStatus = 'idle' | 'loading' | 'success' | 'error';
+    const { user } = useUser();
+    const firestore = useFirestore();
+    const { toast } = useToast();
+    const [isOpen, setIsOpen] = useState(false);
+
+    const [username, setUsername] = useState(userProfile.instagramHandle || '');
+    const [tiktokUsername, setTiktokUsername] = useState(userProfile.tiktokHandle || '');
+
+    const [instaStatus, setInstaStatus] = useState<SearchStatus>('idle');
+    const [instaProfile, setInstaProfile] = useState<InstagramProfileData | null>(null);
+    const [instaPosts, setInstaPosts] = useState<InstagramPostData[] | null>(null);
+    const [instaError, setInstaError] = useState<string | null>(null);
+
+    const [tiktokStatus, setTiktokStatus] = useState<SearchStatus>('idle');
+    const [tiktokProfile, setTiktokProfile] = useState<TikTokProfileData | null>(null);
+    const [tiktokPosts, setTiktokPosts] = useState<TikTokPostData[] | null>(null);
+    const [tiktokError, setTiktokError] = useState<string | null>(null);
+
+    const formatNumber = (num: number): string => {
+        if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(1).replace('.', ',')}M`;
+        if (num >= 10000) return `${(num / 1000).toFixed(1).replace('.', ',')}K`;
+        if (num >= 1000) return num.toLocaleString('pt-BR');
+        return String(num);
+    };
+
+    const handleInstagramSearch = async () => {
+        if (!username) {
+            toast({ title: 'Atenção', description: 'Por favor, insira um nome de usuário do Instagram.', variant: 'destructive' });
+            return;
+        }
+        setInstaStatus('loading');
+        setInstaError(null);
+        setInstaProfile(null);
+        setInstaPosts(null);
+
+        const cleanedUsername = username.replace('@', '');
+
+        try {
+            const [profileResult, postsResult] = await Promise.all([
+                getInstagramProfile(cleanedUsername),
+                getInstagramPosts(cleanedUsername)
+            ]);
+
+            setInstaProfile(profileResult);
+            setInstaPosts(postsResult);
+            setInstaStatus('success');
+
+            if (user && firestore) {
+                const userProfileRef = doc(firestore, 'users', user.uid);
+                const averageLikes = postsResult.length > 0 ? postsResult.reduce((acc, p) => acc + p.likes, 0) / postsResult.length : 0;
+                const averageComments = postsResult.length > 0 ? postsResult.reduce((acc, p) => acc + p.comments, 0) / postsResult.length : 0;
+
+                const updateData: Partial<UserProfile> = {
+                    instagramHandle: `@${profileResult.username}`,
+                    bio: userProfile.bio || profileResult.biography,
+                    photoURL: userProfile.photoURL || profileResult.profilePicUrlHd,
+                    instagramFollowers: formatNumber(profileResult.followersCount),
+                    instagramAverageLikes: formatNumber(Math.round(averageLikes)),
+                    instagramAverageComments: formatNumber(Math.round(averageComments)),
+                }
+                await updateDoc(userProfileRef, updateData);
+                toast({ title: "Perfil Atualizado!", description: "Os dados do Instagram foram salvos no seu perfil." });
+            }
+        } catch (e: any) {
+            setInstaError(e.message || 'Ocorreu um erro desconhecido.');
+            setInstaStatus('error');
+        }
+    };
+    
+    const handleTiktokSearch = async () => {
+    if (!tiktokUsername) {
+      toast({ title: 'Atenção', description: 'Por favor, insira um nome de usuário do TikTok.', variant: 'destructive'});
+      return;
+    }
+    setTiktokStatus('loading');
+    setTiktokError(null);
+    setTiktokProfile(null);
+    setTiktokPosts(null);
+
+    const cleanedUsername = tiktokUsername.replace('@', '');
+
+    try {
+      const profileResult = await getTikTokProfile(cleanedUsername);
+      setTiktokProfile(profileResult);
+
+      let fetchedPosts: TikTokPostData[] = [];
+      try {
+          fetchedPosts = await getTikTokPosts(cleanedUsername);
+          setTiktokPosts(fetchedPosts);
+      } catch(postsError: any) {
+          setTiktokError('Perfil encontrado, mas não foi possível carregar os vídeos recentes. ' + postsError.message);
+      }
+
+      setTiktokStatus('success');
+
+      if (user && firestore) {
+        const userProfileRef = doc(firestore, 'users', user.uid);
+        const averageLikes = fetchedPosts.length > 0 ? fetchedPosts.reduce((acc, p) => acc + p.likes, 0) / fetchedPosts.length : 0;
+        const averageComments = fetchedPosts.length > 0 ? fetchedPosts.reduce((acc, p) => acc + p.comments, 0) / fetchedPosts.length : 0;
+        const averageViews = fetchedPosts.length > 0 ? fetchedPosts.reduce((acc, p) => acc + p.views, 0) / fetchedPosts.length : 0;
+
+        const updateData: Partial<UserProfile> = {
+            tiktokHandle: `@${profileResult.username}`,
+            bio: userProfile.bio || profileResult.bio,
+            photoURL: userProfile.photoURL || profileResult.avatarUrl,
+            tiktokFollowers: formatNumber(profileResult.followersCount),
+            tiktokAverageLikes: formatNumber(Math.round(averageLikes)),
+            tiktokAverageComments: formatNumber(Math.round(averageComments)),
+            tiktokAverageViews: formatNumber(Math.round(averageViews)),
+        };
+        await updateDoc(userProfileRef, updateData);
+        toast({ title: "Perfil Atualizado!", description: "Os dados do TikTok foram salvos no seu perfil." });
+      }
+    } catch (e: any) {
+      setTiktokError(e.message || 'Ocorreu um erro desconhecido.');
+      setTiktokStatus('error');
+    }
+  };
+
+
+    return (
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogTrigger asChild>
+                <Button className='w-full sm:w-auto'>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Conectar Plataformas
+                </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-2xl">
+                <DialogHeader>
+                    <DialogTitle className="font-headline text-xl">Conectar Plataformas</DialogTitle>
+                    <DialogDescription>
+                        Busque dados públicos de um perfil para preencher automaticamente suas métricas.
+                    </DialogDescription>
+                </DialogHeader>
+                 <Tabs defaultValue="instagram" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="instagram"><Instagram className="mr-2 h-4 w-4" /> Instagram</TabsTrigger>
+                        <TabsTrigger value="tiktok"><Film className="mr-2 h-4 w-4" /> TikTok</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="instagram" className="mt-4">
+                        <Card className='border-0 shadow-none'>
+                            <CardContent className="p-4 bg-muted/50 rounded-lg">
+                            <div className="flex flex-col sm:flex-row items-end gap-4">
+                                <div className="flex-1 w-full">
+                                <Label htmlFor="instagramHandleApi">Usuário do Instagram</Label>
+                                <Input
+                                    id="instagramHandleApi"
+                                    placeholder="@seu_usuario"
+                                    value={username}
+                                    onChange={(e) => setUsername(e.target.value)}
+                                    className="h-11 mt-1"
+                                />
+                                </div>
+                                <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button type="button" disabled={instaStatus === 'loading' || !username} className="w-full sm:w-auto">
+                                    <Search className="mr-2 h-4 w-4" />
+                                    Buscar Dados
+                                    </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                    <AlertDialogTitle>Confirmação de Busca</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        Você confirma que é o proprietário ou tem permissão para buscar os dados do perfil <strong>@{username.replace('@', '')}</strong>?
+                                    </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction onClick={handleInstagramSearch}>Sim, confirmar e buscar</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                                </AlertDialog>
+                            </div>
+                            </CardContent>
+                        </Card>
+                         {instaStatus === 'loading' && <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>}
+                         {instaStatus === 'error' && instaError && <Alert variant="destructive" className="mt-4"><AlertTriangle className="h-4 w-4" /><AlertTitle>Erro ao Buscar Perfil</AlertTitle><AlertDescription>{instaError}</AlertDescription></Alert>}
+                         {instaStatus === 'success' && instaProfile && <InstagramProfileResults profile={instaProfile} posts={instaPosts} error={instaError} formatNumber={formatNumber}/>}
+                    </TabsContent>
+                    <TabsContent value="tiktok" className="mt-4">
+                        <Card className='border-0 shadow-none'>
+                            <CardContent className="p-4 bg-muted/50 rounded-lg">
+                            <div className="flex flex-col sm:flex-row items-end gap-4">
+                                <div className="flex-1 w-full">
+                                <Label htmlFor="tiktokHandleApi">Usuário do TikTok</Label>
+                                <Input
+                                    id="tiktokHandleApi"
+                                    placeholder="@seu_usuario"
+                                    value={tiktokUsername}
+                                    onChange={(e) => setTiktokUsername(e.target.value)}
+                                    className="h-11 mt-1"
+                                />
+                                </div>
+                                <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button type="button" disabled={tiktokStatus === 'loading' || !tiktokUsername} className="w-full sm:w-auto">
+                                    <Search className="mr-2 h-4 w-4" />
+                                    Buscar Dados
+                                    </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                    <AlertDialogTitle>Confirmação de Busca</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        Você confirma que é o proprietário ou tem permissão para buscar os dados do perfil <strong>@{tiktokUsername.replace('@', '')}</strong>?
+                                    </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction onClick={handleTiktokSearch}>Sim, confirmar e buscar</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                                </AlertDialog>
+                            </div>
+                            </CardContent>
+                        </Card>
+                         {tiktokStatus === 'loading' && <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>}
+                         {tiktokStatus === 'error' && tiktokError && <Alert variant="destructive" className="mt-4"><AlertTriangle className="h-4 w-4" /><AlertTitle>Erro ao Buscar Perfil</AlertTitle><AlertDescription>{tiktokError}</AlertDescription></Alert>}
+                         {tiktokStatus === 'success' && tiktokProfile && <TikTokProfileResults profile={tiktokProfile} posts={tiktokPosts} error={tiktokError} formatNumber={formatNumber}/>}
+                    </TabsContent>
+                  </Tabs>
             </DialogContent>
         </Dialog>
     )
