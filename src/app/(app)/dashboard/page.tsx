@@ -1,4 +1,3 @@
-
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -788,31 +787,75 @@ export default function DashboardPage() {
       <div className="space-y-8">
         <ProfileCompletionAlert userProfile={userProfile} hasUpdatedToday={hasUpdatedToday} isPremium={isPremium} />
 
-        {/* Métricas Principais */}
+        {/* Métricas e Publicações */}
         <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0">
-            <CardHeader className="flex flex-col gap-4 sm:flex-row items-center justify-between pb-4">
-                 <CardTitle className="text-base font-medium text-muted-foreground">
+            <Tabs value={selectedPlatform} onValueChange={(value) => setSelectedPlatform(value as any)} className="w-full">
+              <CardHeader className="flex flex-col gap-4 sm:flex-row items-start sm:items-center justify-between pb-4">
+                  <CardTitle className="text-base font-medium text-muted-foreground">
                     Visão Geral da Plataforma
                   </CardTitle>
-                  <div className="flex w-full flex-col sm:flex-row sm:w-auto items-center gap-2">
-                   <Tabs value={selectedPlatform} onValueChange={(value) => setSelectedPlatform(value as any)} className="w-full sm:w-auto">
-                    <TabsList className='grid w-full grid-cols-3'>
+                  <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+                    <TabsList className='grid w-full grid-cols-3 sm:w-auto'>
                         <TabsTrigger value="total">Total</TabsTrigger>
                         <TabsTrigger value="instagram">Instagram</TabsTrigger>
                         <TabsTrigger value="tiktok">TikTok</TabsTrigger>
                     </TabsList>
-                  </Tabs>
-                  {userProfile && <UpdateMetricsModal userProfile={userProfile} />}
+                    {userProfile && <UpdateMetricsModal userProfile={userProfile} />}
                   </div>
-            </CardHeader>
-            <CardContent>
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 justify-center">
-                  <MetricCard icon={Users} title="Seguidores" value={formatMetricValue(latestMetrics?.followers)} handle={selectedPlatform !== 'total' ? latestMetrics?.handle as string : undefined} isLoading={isLoading} />
-                  <MetricCard icon={Eye} title="Views (Manual)" value={formatMetricValue(latestMetrics?.views)} isManual={true} isLoading={isLoading} />
-                  <MetricCard icon={Heart} title="Média de Likes" value={formatMetricValue(latestMetrics?.likes)} isLoading={isLoading} />
-                  <MetricCard icon={MessageSquare} title="Média de Comentários" value={formatMetricValue(latestMetrics?.comments)} isLoading={isLoading} />
-                </div>
-            </CardContent>
+              </CardHeader>
+              <CardContent>
+                  <TabsContent value="total" className="mt-0">
+                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 justify-center">
+                        <MetricCard icon={Users} title="Seguidores" value={formatMetricValue(latestMetrics?.followers)} handle={selectedPlatform !== 'total' ? latestMetrics?.handle as string : undefined} isLoading={isLoading} />
+                        <MetricCard icon={Eye} title="Views (Manual)" value={formatMetricValue(latestMetrics?.views)} isManual={true} isLoading={isLoading} />
+                        <MetricCard icon={Heart} title="Média de Likes" value={formatMetricValue(latestMetrics?.likes)} isLoading={isLoading} />
+                        <MetricCard icon={MessageSquare} title="Média de Comentários" value={formatMetricValue(latestMetrics?.comments)} isLoading={isLoading} />
+                      </div>
+                  </TabsContent>
+                  <TabsContent value="instagram" className="mt-0 space-y-6">
+                      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 justify-center">
+                        <MetricCard icon={Users} title="Seguidores" value={formatMetricValue(latestMetrics?.followers)} handle={userProfile?.instagramHandle} isLoading={isLoading} />
+                        <MetricCard icon={Eye} title="Views (Manual)" value={formatMetricValue(latestMetrics?.views)} isManual={true} isLoading={isLoading} />
+                        <MetricCard icon={Heart} title="Média de Likes" value={formatMetricValue(latestMetrics?.likes)} isLoading={isLoading} />
+                        <MetricCard icon={MessageSquare} title="Média de Comentários" value={formatMetricValue(latestMetrics?.comments)} isLoading={isLoading} />
+                      </div>
+                       {isFetchingPosts ? (
+                          <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>
+                      ) : instaPosts && userProfile?.instagramHandle ? (
+                          <InstagramProfileResults profile={{
+                              id: '', username: userProfile.instagramHandle,
+                              followersCount: parseMetric(userProfile.instagramFollowers),
+                              isPrivate: false, isBusiness: true, profilePicUrlHd: '', biography: '', fullName: '', mediaCount: 0, followingCount: 0
+                          }} posts={instaPosts} formatNumber={formatNumber} error={null} />
+                      ) : (
+                          <div className="text-center py-10">
+                              <p className="text-muted-foreground">Integre sua conta do Instagram no seu <Link href="/profile" className='text-primary font-semibold hover:underline'>perfil</Link> para ver seus posts aqui.</p>
+                          </div>
+                      )}
+                  </TabsContent>
+                   <TabsContent value="tiktok" className="mt-0 space-y-6">
+                      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 justify-center">
+                        <MetricCard icon={Users} title="Seguidores" value={formatMetricValue(latestMetrics?.followers)} handle={userProfile?.tiktokHandle} isLoading={isLoading} />
+                        <MetricCard icon={Eye} title="Média de Views" value={formatMetricValue(latestMetrics?.views)} isLoading={isLoading} />
+                        <MetricCard icon={Heart} title="Média de Likes" value={formatMetricValue(latestMetrics?.likes)} isLoading={isLoading} />
+                        <MetricCard icon={MessageSquare} title="Média de Comentários" value={formatMetricValue(latestMetrics?.comments)} isLoading={isLoading} />
+                      </div>
+                       {isFetchingPosts ? (
+                          <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>
+                      ) : tiktokPosts && userProfile?.tiktokHandle ? (
+                          <TikTokProfileResults profile={{
+                              id: '', username: userProfile.tiktokHandle,
+                              followersCount: parseMetric(userProfile.tiktokFollowers),
+                              nickname: '', avatarUrl: '', bio: '', isVerified: false, isPrivate: false, heartsCount: 0, videoCount: 0, followingCount: 0
+                          }} posts={tiktokPosts} formatNumber={formatNumber} error={null} />
+                      ) : (
+                          <div className="text-center py-10">
+                              <p className="text-muted-foreground">Integre sua conta do TikTok no seu <Link href="/profile" className='text-primary font-semibold hover:underline'>perfil</Link> para ver seus vídeos aqui.</p>
+                          </div>
+                      )}
+                  </TabsContent>
+              </CardContent>
+            </Tabs>
         </Card>
         
         <div className="grid grid-cols-1 xl:grid-cols-5 gap-8">
@@ -936,55 +979,6 @@ export default function DashboardPage() {
                 </Card>
             </div>
         </div>
-
-        <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0">
-            <CardHeader>
-                <CardTitle className="font-headline text-xl">Suas Publicações</CardTitle>
-                <CardDescription>Veja aqui suas publicações mais recentes do Instagram e TikTok.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                {isFetchingPosts ? (
-                     <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>
-                ) : (
-                    <Tabs defaultValue="instagram">
-                        <TabsList className="grid w-full grid-cols-2">
-                            <TabsTrigger value="instagram" disabled={!userProfile?.instagramHandle}>
-                                <Instagram className="mr-2 h-4 w-4" /> Instagram
-                            </TabsTrigger>
-                            <TabsTrigger value="tiktok" disabled={!userProfile?.tiktokHandle}>
-                                <Film className="mr-2 h-4 w-4" /> TikTok
-                            </TabsTrigger>
-                        </TabsList>
-                        <TabsContent value="instagram" className="mt-4">
-                            {instaPosts && userProfile?.instagramHandle ? (
-                                <InstagramProfileResults profile={{
-                                    id: '', username: userProfile.instagramHandle,
-                                    followersCount: parseMetric(userProfile.instagramFollowers),
-                                    isPrivate: false, isBusiness: true, profilePicUrlHd: '', biography: '', fullName: '', mediaCount: 0, followingCount: 0
-                                }} posts={instaPosts} formatNumber={formatNumber} error={null} />
-                            ) : (
-                                <div className="text-center py-10">
-                                    <p className="text-muted-foreground">Integre sua conta do Instagram no seu <Link href="/profile" className='text-primary font-semibold hover:underline'>perfil</Link> para ver seus posts aqui.</p>
-                                </div>
-                            )}
-                        </TabsContent>
-                        <TabsContent value="tiktok" className="mt-4">
-                              {tiktokPosts && userProfile?.tiktokHandle ? (
-                                <TikTokProfileResults profile={{
-                                    id: '', username: userProfile.tiktokHandle,
-                                    followersCount: parseMetric(userProfile.tiktokFollowers),
-                                    nickname: '', avatarUrl: '', bio: '', isVerified: false, isPrivate: false, heartsCount: 0, videoCount: 0, followingCount: 0
-                                }} posts={tiktokPosts} formatNumber={formatNumber} error={null} />
-                            ) : (
-                                <div className="text-center py-10">
-                                    <p className="text-muted-foreground">Integre sua conta do TikTok no seu <Link href="/profile" className='text-primary font-semibold hover:underline'>perfil</Link> para ver seus vídeos aqui.</p>
-                                </div>
-                            )}
-                        </TabsContent>
-                    </Tabs>
-                )}
-            </CardContent>
-        </Card>
 
 
         {/* Bottom Row */}
@@ -1189,6 +1183,15 @@ export default function DashboardPage() {
 
 
 function MetricCard({ icon: Icon, title, value, handle, isLoading, isManual }: { icon: React.ElementType, title: string, value?: string, handle?: string, isLoading: boolean, isManual?: boolean }) {
+    if (isLoading) {
+        return (
+             <div className="p-6 rounded-lg bg-muted/50">
+                <Skeleton className="h-6 w-1/2 mb-2" />
+                <Skeleton className="h-8 w-1/4" />
+            </div>
+        )
+    }
+
     return (
         <div className="p-6 rounded-lg bg-muted/50 flex flex-col justify-center text-center sm:text-left">
             <div className="flex flex-col sm:flex-row items-center justify-between space-y-2 sm:space-y-0 pb-2">
@@ -1197,15 +1200,14 @@ function MetricCard({ icon: Icon, title, value, handle, isLoading, isManual }: {
                 </h3>
                 <Icon className="h-4 w-4 text-primary" />
             </div>
-            {isLoading ? <Skeleton className="h-8 w-24 mt-1" /> :
-                (isManual && (!value || value === "N/A")) ? (
-                     <div className="flex items-center gap-2 mt-1">
-                        <AlertTriangle className="h-5 w-5 text-amber-500" />
-                        <Link href="/profile" className="text-sm text-muted-foreground hover:underline">
-                            Atualize no perfil
-                        </Link>
-                    </div>
-                ) : (
+            {(isManual && (!value || value === "N/A")) ? (
+                    <div className="flex items-center gap-2 mt-1">
+                    <AlertTriangle className="h-5 w-5 text-amber-500" />
+                    <Link href="/profile" className="text-sm text-muted-foreground hover:underline">
+                        Atualize no perfil
+                    </Link>
+                </div>
+            ) : (
                 <>
                     <div className="text-3xl font-bold font-headline">
                         {value || '—'}
