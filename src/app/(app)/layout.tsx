@@ -24,12 +24,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       router.push('/login');
     }
 
-    // If user is an admin and they land on the regular dashboard, redirect them to the admin panel.
-    if (!isAdminLoading && isAdmin && pathname === '/dashboard') {
-        router.replace('/admin');
-    }
-
-  }, [user, isUserLoading, router, isAdmin, isAdminLoading, pathname]);
+  }, [user, isUserLoading, router]);
 
   // Global error handler for ChunkLoadError
   useEffect(() => {
@@ -62,6 +57,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   // of the app layout before redirecting.
   if (!user) {
       return null;
+  }
+
+  // Redirect admin users from non-admin pages to the admin dashboard
+  if (isAdmin && !pathname.startsWith('/admin')) {
+      router.replace('/admin');
+      return (
+        <div className="flex h-screen w-full items-center justify-center bg-background">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      );
   }
 
   // If we reach here, user is logged in and not loading. Render the app.

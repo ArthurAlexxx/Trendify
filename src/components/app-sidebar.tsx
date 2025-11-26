@@ -21,6 +21,7 @@ import {
   Link2,
   Shield,
   DollarSign,
+  LayoutDashboard,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -68,7 +69,8 @@ const adminMenuItems: {
     {
         category: 'Admin',
         items: [
-            { href: '/admin', icon: Shield, label: 'Gerenciamento' },
+            { href: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
+            { href: '/admin/users', icon: User, label: 'Usuários' },
             { href: '/admin/financial', icon: DollarSign, label: 'Financeiro' },
         ]
     }
@@ -251,6 +253,15 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
                     </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
+                 {isAdmin && (
+                    <>
+                    <DropdownMenuItem onClick={() => router.push('/dashboard')}>
+                      <LayoutDashboard className="mr-2 h-4 w-4" />
+                      <span>Ir para App</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    </>
+                 )}
                 <DropdownMenuItem onClick={handleSignOut} className='text-red-500 focus:text-red-500 focus:bg-red-500/10'>
                      <LogOut className="mr-2 h-4 w-4" />
                      <span>Sair</span>
