@@ -55,7 +55,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: '**.fna.fbcdn.net',
+        hostname: '*.fna.fbcdn.net',
       },
     ],
   },
