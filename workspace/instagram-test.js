@@ -1,20 +1,25 @@
 
 // Este é um script de teste para depurar a chamada à API do Instagram Graph.
 // Para usar:
-// 1. Obtenha um Token de Acesso do Usuário válido na ferramenta de Exploração da Graph API.
+// 1. Crie um arquivo .env na raiz do projeto, se ainda não existir.
+// 2. Adicione a seguinte linha ao seu arquivo .env:
+//    INSTAGRAM_USER_ACCESS_TOKEN="SEU_TOKEN_DE_LONGA_DURAÇÃO_AQUI"
+// 3. Obtenha um Token de Acesso do Usuário válido na ferramenta de Exploração da Graph API.
 //    (https://developers.facebook.com/tools/explorer/)
 //    - Selecione seu App da Meta no menu suspenso.
 //    - No menu "Permissões", adicione todas que seu app precisa (ex: instagram_basic, pages_show_list, instagram_manage_insights, etc.).
 //    - Clique em "Gerar Token de Acesso".
-// 2. Cole o token gerado na variável `USER_ACCESS_TOKEN` abaixo.
-// 3. Abra o terminal e execute o script com: node workspace/instagram-test.js
+//    - Troque este token por um de longa duração.
+// 4. Cole o token de longa duração no seu arquivo .env.
+// 5. Abra o terminal e execute o script com: node -r dotenv/config workspace/instagram-test.js
 
-// COLE SEU TOKEN DE ACESSO AQUI DENTRO DAS ASPAS
-const USER_ACCESS_TOKEN = 'IGAAz8oOjNLRhBZAFJkMGYxOGtnWGZAia1N0cklWelNUNGMxNzNYNVp5QWExWG13R01DQlU0Y0dTMk1qN2puYXJNcTlMVmdrby12RnlNbDNjUXc5bTN3ZAXBnblJXdGw3NUlCT3l5YjA5b3NtM3JuSVdXNFhicXFBN1lhemZAEVFk5bwZDZD';
+require('dotenv').config();
+
+const USER_ACCESS_TOKEN = process.env.INSTAGRAM_USER_ACCESS_TOKEN;
 
 async function testInstagramApi() {
-  if (!USER_ACCESS_TOKEN || USER_ACCESS_TOKEN === 'COLE_SEU_TOKEN_AQUI') {
-    console.error('\x1b[31m%s\x1b[0m', 'ERRO: Por favor, insira um Token de Acesso do Usuário válido na variável USER_ACCESS_TOKEN.');
+  if (!USER_ACCESS_TOKEN || USER_ACCESS_TOKEN === 'SEU_TOKEN_DE_LONGA_DURAÇÃO_AQUI') {
+    console.error('\x1b[31m%s\x1b[0m', 'ERRO: Por favor, configure a variável INSTAGRAM_USER_ACCESS_TOKEN no seu arquivo .env.');
     return;
   }
 
@@ -54,8 +59,8 @@ async function testInstagramApi() {
 }
 
 async function testFacebookApi() {
-  if (!USER_ACCESS_TOKEN || USER_ACCESS_TOKEN === 'COLE_SEU_TOKEN_AQUI') {
-    console.error('\x1b[31m%s\x1b[0m', 'ERRO: Por favor, insira um Token de Acesso do Usuário válido na variável USER_ACCESS_TOKEN.');
+  if (!USER_ACCESS_TOKEN || USER_ACCESS_TOKEN === 'SEU_TOKEN_DE_LONGA_DURAÇÃO_AQUI') {
+    console.error('\x1b[31m%s\x1b[0m', 'ERRO: Por favor, configure a variável INSTAGRAM_USER_ACCESS_TOKEN no seu arquivo .env.');
     return;
   }
 
