@@ -22,6 +22,7 @@ import {
   Shield,
   DollarSign,
   LayoutDashboard,
+  Activity,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -72,6 +73,7 @@ const adminMenuItems: {
             { href: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
             { href: '/admin/users', icon: User, label: 'Usuários' },
             { href: '/admin/financial', icon: DollarSign, label: 'Financeiro' },
+            { href: '/admin/usage', icon: Activity, label: 'Uso da IA' },
         ]
     }
 ];

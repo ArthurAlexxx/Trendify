@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "UserProfile": {
@@ -214,7 +215,7 @@
           "description": "Number of general AI generations (video ideas, plans, etc.) on this date."
         }
       },
-      "required": ["date", "videoAnalyses", "geracoesAI"]
+      "required": ["date"]
     },
     "PontoDadosGrafico": {
       "title": "Ponto de Dados do Gráfico",
@@ -324,7 +325,8 @@
     },
     "/users/{userId}/dailyUsage/{usageId}": {
         "schema": { "$ref": "#/entities/DailyUsage" },
-        "description": "Tracks daily usage of features for a specific user. The document ID is the date in YYYY-MM-DD format."
+        "description": "Tracks daily usage of features for a specific user. The document ID is the date in YYYY-MM-DD format.",
+        "isCollectionGroup": true
     },
     "/users/{userId}/ideiasSalvas/{ideiaId}": {
       "schema": { "$ref": "#/entities/IdeiaSalva" },
