@@ -7,7 +7,7 @@ export interface UserProfile {
   id: string;
   displayName: string;
   email: string;
-  photoURL?: string;
+  photoURL?: string | null;
   createdAt: Timestamp;
   niche?: string;
   bio?: string;

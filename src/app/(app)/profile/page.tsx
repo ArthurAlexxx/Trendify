@@ -145,7 +145,7 @@ export default function ProfilePage() {
       try {
         const dataToSave: Partial<UserProfile> = {
             displayName: values.displayName,
-            photoURL: values.photoURL,
+            photoURL: values.photoURL || null,
             niche: values.niche,
             bio: values.bio,
             audience: values.audience,
