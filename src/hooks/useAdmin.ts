@@ -1,50 +1,57 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useUser, useFirestore } from '@/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { useUser } from '@/firebase';
 
+/**
+ * A hook to determine if the currently authenticated user has an 'admin' role.
+ * This hook inspects the user's ID token claims.
+ *
+ * @returns An object with `isAdmin` and `isLoading` properties.
+ */
 export function useAdmin() {
   const { user, isUserLoading } = useUser();
-  const firestore = useFirestore();
   const [isAdmin, setIsAdmin] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  
+  // The loading state is true if the auth state is loading OR if the user exists but we haven't checked their token yet.
+  const [isCheckingClaims, setIsCheckingClaims] = useState(true);
 
   useEffect(() => {
-    // If the main auth status is loading, we are also loading.
+    // If the auth state is still loading, we can't do anything yet.
     if (isUserLoading) {
-      setIsLoading(true);
       return;
     }
     
-    // If there's no user, they can't be an admin.
-    if (!user || !firestore) {
+    // If there is no user, they are definitely not an admin.
+    if (!user) {
       setIsAdmin(false);
-      setIsLoading(false);
+      setIsCheckingClaims(false);
       return;
     }
 
-    async function checkAdminStatus() {
-      try {
-        const userDocRef = doc(firestore, 'users', user.uid);
-        const userDocSnap = await getDoc(userDocRef);
-
-        if (userDocSnap.exists() && userDocSnap.data().role === 'admin') {
-          setIsAdmin(true);
-        } else {
-          setIsAdmin(false);
-        }
-      } catch (error) {
-        console.error("Error checking admin status:", error);
+    // If a user exists, check their ID token for the custom claim.
+    user.getIdTokenResult()
+      .then((idTokenResult) => {
+        // The custom claims are located in the `claims` object.
+        const userClaims = idTokenResult.claims;
+        
+        // Check if the 'role' claim exists and is set to 'admin'.
+        setIsAdmin(userClaims.role === 'admin');
+      })
+      .catch((error) => {
+        console.error("Error getting user claims:", error);
         setIsAdmin(false);
-      } finally {
-        setIsLoading(false);
-      }
-    }
+      })
+      .finally(() => {
+        // Mark the claim check as complete.
+        setIsCheckingClaims(false);
+      });
 
-    checkAdminStatus();
-  }, [user, firestore, isUserLoading]);
+  }, [user, isUserLoading]);
 
-  return { isAdmin, isLoading };
+  return {
+    isAdmin,
+    // The final loading state depends on both the auth state and the claim checking process.
+    isLoading: isUserLoading || isCheckingClaims,
+  };
 }
