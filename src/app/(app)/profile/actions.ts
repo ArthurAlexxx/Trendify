@@ -139,7 +139,9 @@ async function fetchFromRapidApi(platform: 'instagram-profile' | 'instagram-post
 
     let host: string | undefined;
     let path: string;
-    let options: RequestInit;
+    let options: RequestInit = { method: 'GET' };
+    const url = new URL('https://' + host);
+
 
     switch (platform) {
         case 'instagram-profile':
@@ -155,12 +157,14 @@ async function fetchFromRapidApi(platform: 'instagram-profile' | 'instagram-post
         case 'tiktok-profile':
             host = process.env.TIKTOK_RAPIDAPI_HOST;
             path = 'user/details';
-            options = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username }) };
+            url.searchParams.set('username', username);
+            options = { method: 'GET' };
             break;
         case 'tiktok-posts':
             host = process.env.TIKTOK_RAPIDAPI_HOST;
             path = 'user/videos';
-            options = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username }) };
+            url.searchParams.set('username', username);
+            options = { method: 'GET' };
             break;
         default:
             throw new Error(`Plataforma '${platform}' desconhecida.`);
@@ -170,8 +174,12 @@ async function fetchFromRapidApi(platform: 'instagram-profile' | 'instagram-post
         throw new Error(`O host da API para a plataforma '${platform.split('-')[0]}' não está configurado.`);
     }
     
-    const url = new URL(`https://${host}/${path}`);
-    return fetchData(url.toString(), addRapidApiHeaders(options, host, apiKey));
+    const finalUrl = new URL(`https://${host}/${path}`);
+    if (options.method === 'GET') {
+      finalUrl.search = url.search;
+    }
+
+    return fetchData(finalUrl.toString(), addRapidApiHeaders(options, host, apiKey));
 }
 
 function addRapidApiHeaders(options: RequestInit, host: string, apiKey: string): RequestInit {
@@ -252,7 +260,6 @@ export async function getInstagramPosts(username: string): Promise<InstagramPost
         const postsData = result?.result?.edges;
         
         if (!Array.isArray(postsData)) {
-            // Find the first value in the result object that is an array
             const potentialArray = Object.values(result).find(value => Array.isArray(value));
             if (Array.isArray(potentialArray)) {
                  const parsedPosts = potentialArray.map((item: any) => InstagramPostSchema.parse(item.node || item));
