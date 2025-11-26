@@ -1,43 +1,50 @@
 
 'use client';
 
-import { useDoc, useFirestore, useUser, useMemoFirebase } from '@/firebase';
-import { doc } from 'firebase/firestore';
-import { useMemo } from 'react';
-import type { UserProfile } from '@/lib/types';
+import { useEffect, useState } from 'react';
+import { useUser, useFirestore } from '@/firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
-interface UseAdminResult {
-  isAdmin: boolean;
-  isLoading: boolean;
-}
-
-/**
- * A hook to check if the current user has admin privileges.
- * It checks for the `role` field in the user's profile document.
- *
- * @returns {UseAdminResult} An object containing the admin status and loading state.
- */
-export function useAdmin(): UseAdminResult {
-  const { user, isUserLoading: isAuthLoading } = useUser();
+export function useAdmin() {
+  const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Reference to the user's profile document in the 'users' collection.
-  const userProfileRef = useMemoFirebase(
-    () => (user && firestore ? doc(firestore, `users/${user.uid}`) : null),
-    [user, firestore]
-  );
-
-  const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userProfileRef);
-
-  const result = useMemo(() => {
-    // Loading is true if auth is loading or the profile document is still loading.
-    const isLoading = isAuthLoading || isProfileLoading;
+  useEffect(() => {
+    // If the main auth status is loading, we are also loading.
+    if (isUserLoading) {
+      setIsLoading(true);
+      return;
+    }
     
-    // If not loading, check if the userProfile data exists and has the admin role.
-    const isAdmin = !isLoading && !!userProfile && userProfile.role === 'admin';
+    // If there's no user, they can't be an admin.
+    if (!user || !firestore) {
+      setIsAdmin(false);
+      setIsLoading(false);
+      return;
+    }
 
-    return { isAdmin, isLoading };
-  }, [isAuthLoading, isProfileLoading, userProfile]);
+    async function checkAdminStatus() {
+      try {
+        const userDocRef = doc(firestore, 'users', user.uid);
+        const userDocSnap = await getDoc(userDocRef);
 
-  return result;
+        if (userDocSnap.exists() && userDocSnap.data().role === 'admin') {
+          setIsAdmin(true);
+        } else {
+          setIsAdmin(false);
+        }
+      } catch (error) {
+        console.error("Error checking admin status:", error);
+        setIsAdmin(false);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    checkAdminStatus();
+  }, [user, firestore, isUserLoading]);
+
+  return { isAdmin, isLoading };
 }
