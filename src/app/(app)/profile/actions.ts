@@ -5,46 +5,40 @@ import { z } from 'zod';
 import type { InstagramProfileData, InstagramPostData, TikTokProfileData, TikTokPostData } from '@/lib/types';
 
 
-// --- Instagram Schemas ---
+// --- Instagram Schemas (New: instagram-looter2) ---
 
-const InstagramProfileResultSchema = z.object({
+const InstagramLooterPostSchema = z.object({
+  __typename: z.string(), // "GraphImage", "GraphVideo", "GraphSidecar"
+  id: z.string(),
+  display_url: z.string().url(),
+  edge_media_to_comment: z.object({ count: z.number() }),
+  edge_liked_by: z.object({ count: z.number() }),
+  is_video: z.boolean(),
+  video_view_count: z.number().optional().nullable(),
+  edge_media_to_caption: z.object({
+    edges: z.array(z.object({ node: z.object({ text: z.string() }) })),
+  }),
+});
+
+
+const InstagramLooterProfileSchema = z.object({
   id: z.string(),
   username: z.string(),
-  is_private: z.boolean().optional().default(false),
+  is_private: z.boolean(),
+  is_professional_account: z.boolean(),
   profile_pic_url_hd: z.string().url(),
   biography: z.string(),
   full_name: z.string(),
   edge_owner_to_timeline_media: z.object({
-    count: z.number().optional(),
-  }).optional(),
-  edge_followed_by: z.object({
-    count: z.number().optional(),
-  }).optional(),
-  edge_follow: z.object({
-    count: z.number().optional(),
-  }).optional(),
-  is_business_account: z.boolean().optional(),
-}).passthrough();
-
-
-const InstagramPostSchema = z.object({
-  id: z.string(),
-  caption: z.object({
-      text: z.string(),
-  }).optional().nullable(),
-  image_versions2: z.object({
-      candidates: z.array(z.object({
-          url: z.string().url(),
-      })),
+    count: z.number(),
+    edges: z.array(z.object({ node: InstagramLooterPostSchema })),
   }),
-  like_count: z.number(),
-  comment_count: z.number(),
-  taken_at: z.number(),
-}).passthrough();
-
-
-const InstagramPostResponseSchema = z.object({
-  edges: z.array(z.object({ node: InstagramPostSchema })),
+  edge_followed_by: z.object({
+    count: z.number(),
+  }),
+  edge_follow: z.object({
+    count: z.number(),
+  }),
 });
 
 
@@ -87,7 +81,7 @@ const TikTokPostResponseSchema = z.object({
 
 // --- API Fetching Logic ---
 
-async function fetchFromRapidApi(platform: 'instagram-profile' | 'instagram-posts' | 'tiktok-profile' | 'tiktok-posts', username: string) {
+async function fetchFromRapidApi(platform: 'instagram-profile' | 'tiktok-profile' | 'tiktok-posts', username: string) {
     const apiKey = process.env.RAPIDAPI_KEY;
     if (!apiKey) {
       throw new Error('A chave da API (RAPIDAPI_KEY) não está configurada no servidor.');
@@ -95,29 +89,21 @@ async function fetchFromRapidApi(platform: 'instagram-profile' | 'instagram-post
 
     let host: string | undefined;
     let path: string;
-    let options: RequestInit;
+    let options: RequestInit = { method: 'GET' };
     let finalUrl: URL;
 
     switch (platform) {
         case 'instagram-profile':
             host = process.env.INSTAGRAM_RAPIDAPI_HOST;
-            path = 'api/instagram/profile';
-            options = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username }) };
+            path = 'web-profile';
             break;
-        case 'instagram-posts':
-             host = process.env.INSTAGRAM_RAPIDAPI_HOST;
-             path = 'api/instagram/posts';
-             options = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, maxId: '' }) };
-             break;
         case 'tiktok-profile':
             host = process.env.TIKTOK_RAPIDAPI_HOST;
             path = 'user/details';
-            options = { method: 'GET' };
             break;
         case 'tiktok-posts':
             host = process.env.TIKTOK_RAPIDAPI_HOST;
             path = 'user/videos';
-            options = { method: 'GET' };
             break;
         default:
             throw new Error(`Plataforma '${platform}' desconhecida.`);
@@ -128,9 +114,7 @@ async function fetchFromRapidApi(platform: 'instagram-profile' | 'instagram-post
     }
     
     finalUrl = new URL(`https://${host}/${path}`);
-    if (options.method === 'GET') {
-      finalUrl.searchParams.set('username', username);
-    }
+    finalUrl.searchParams.set('username', username);
 
     return fetchData(finalUrl.toString(), addRapidApiHeaders(options, host, apiKey));
 }
@@ -163,6 +147,8 @@ async function fetchData(url: string, options: RequestInit) {
 
     if (data.message && data.message.includes("Couldn't find user")) throw new Error("Usuário não encontrado. Verifique o nome de usuário e tente novamente.");
     if (data.error) throw new Error(data.error);
+    if (data.status === 'fail' || data.data?.user === null) throw new Error("Usuário não encontrado ou perfil indisponível.");
+
 
     return data;
 }
@@ -171,28 +157,32 @@ async function fetchData(url: string, options: RequestInit) {
 export async function getInstagramProfile(username: string): Promise<InstagramProfileData> {
     try {
         const result = await fetchFromRapidApi('instagram-profile', username);
-        const dataToParse = result.result || result;
-        const parsed = InstagramProfileResultSchema.parse(dataToParse);
+        const dataToParse = result.data?.user;
+        if (!dataToParse) {
+            throw new Error("A resposta da API não continha os dados do usuário em 'data.user'.");
+        }
+        
+        const parsed = InstagramLooterProfileSchema.parse(dataToParse);
 
         if (parsed.is_private) {
             throw new Error("Este perfil é privado. A integração funciona apenas com perfis públicos.");
         }
         
-        if (parsed.is_business_account === false) { // Explicitly check for false
+        if (parsed.is_professional_account === false) { // Explicitly check for false
             throw new Error("Esta conta não é do tipo 'Comercial' ou 'Criador de Conteúdo'. Altere o tipo de conta nas configurações do Instagram para continuar.");
         }
 
         return {
             id: parsed.id,
             username: parsed.username,
-            isPrivate: parsed.is_private || false,
-            isBusiness: parsed.is_business_account || false,
+            isPrivate: parsed.is_private,
+            isBusiness: parsed.is_professional_account,
             profilePicUrlHd: parsed.profile_pic_url_hd,
             biography: parsed.biography,
             fullName: parsed.full_name,
-            mediaCount: parsed.edge_owner_to_timeline_media?.count || 0,
-            followersCount: parsed.edge_followed_by?.count || 0,
-            followingCount: parsed.edge_follow?.count || 0,
+            mediaCount: parsed.edge_owner_to_timeline_media.count,
+            followersCount: parsed.edge_followed_by.count,
+            followingCount: parsed.edge_follow.count,
         };
     } catch (e: any) {
         console.error(`[ACTION ERROR - getInstagramProfile] ${e.message}`);
@@ -209,22 +199,24 @@ export async function getInstagramPosts(username: string): Promise<InstagramPost
         throw new Error('Nome de usuário é necessário para buscar os posts.');
     }
     try {
-        const result = await fetchFromRapidApi('instagram-posts', username);
+        const result = await fetchFromRapidApi('instagram-profile', username);
         
-        const postsArray = result?.result?.edges;
+        const postsArray = result?.data?.user?.edge_owner_to_timeline_media?.edges;
 
         if (!Array.isArray(postsArray)) {
-             throw new Error('A resposta da API de posts não continha uma lista de publicações em `result.edges`.');
+             throw new Error('A resposta da API de posts não continha uma lista de publicações.');
         }
 
-        const parsedPosts = postsArray.map((edge: any) => InstagramPostSchema.parse(edge.node));
+        const parsedPosts = postsArray.map((edge: any) => InstagramLooterPostSchema.parse(edge.node));
         
         return parsedPosts.map(post => ({
             id: post.id,
-            caption: post.caption?.text || null,
-            mediaUrl: post.image_versions2.candidates[0].url,
-            likes: post.like_count,
-            comments: post.comment_count,
+            caption: post.edge_media_to_caption.edges[0]?.node.text || null,
+            mediaUrl: post.display_url,
+            likes: post.edge_liked_by.count,
+            comments: post.edge_media_to_comment.count,
+            video_view_count: post.video_view_count ?? 0,
+            is_video: post.is_video,
         }));
     } catch (e: any) {
         console.error(`[ACTION ERROR - getInstagramPosts] ${e.message}`);

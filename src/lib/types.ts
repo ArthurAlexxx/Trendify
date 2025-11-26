@@ -123,6 +123,8 @@ export type InstagramPostData = {
     mediaUrl: string;
     likes: number;
     comments: number;
+    is_video: boolean;
+    video_view_count?: number;
 };
 
 export type TikTokProfileData = {

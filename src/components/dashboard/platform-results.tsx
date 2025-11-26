@@ -76,6 +76,7 @@ export function InstagramProfileResults({ profile, posts, error, formatNumber }:
                                             <div className="flex items-center gap-4 text-sm">
                                                 <div className="flex items-center gap-1.5"><Heart className="h-4 w-4" /> {formatNumber(post.likes)}</div>
                                                 <div className="flex items-center gap-1.5"><MessageSquare className="h-4 w-4" /> {formatNumber(post.comments)}</div>
+                                                {post.is_video && <div className="flex items-center gap-1.5"><PlayCircle className="h-4 w-4" /> {formatNumber(post.video_view_count ?? 0)}</div>}
                                             </div>
                                         </div>
                                     </div>
