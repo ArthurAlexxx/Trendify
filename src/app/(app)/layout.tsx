@@ -26,6 +26,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // If the user is an admin, their main page is /admin, not /dashboard.
+    // This is checked only when loading is done.
     if (!isAdminLoading && isAdmin) {
       router.replace('/admin');
     }
@@ -48,7 +49,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  // While checking for user auth, show a full-screen loader.
+  // While checking for user auth or admin status, show a full-screen loader.
   if (isUserLoading || isAdminLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">

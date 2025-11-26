@@ -1,8 +1,10 @@
+
 'use client';
 
 import { useDoc, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { useMemo } from 'react';
+import type { UserProfile } from '@/lib/types';
 
 interface UseAdminResult {
   isAdmin: boolean;
@@ -11,7 +13,7 @@ interface UseAdminResult {
 
 /**
  * A hook to check if the current user has admin privileges.
- * It checks for the existence of a document in `/admins/{userId}`.
+ * It checks for the `role` field in the user's profile document.
  *
  * @returns {UseAdminResult} An object containing the admin status and loading state.
  */
@@ -19,26 +21,23 @@ export function useAdmin(): UseAdminResult {
   const { user, isUserLoading: isAuthLoading } = useUser();
   const firestore = useFirestore();
 
-  // Reference to the user's document in the 'admins' collection.
-  const adminDocRef = useMemoFirebase(
-    () => (user && firestore ? doc(firestore, `admins/${user.uid}`) : null),
+  // Reference to the user's profile document in the 'users' collection.
+  const userProfileRef = useMemoFirebase(
+    () => (user && firestore ? doc(firestore, `users/${user.uid}`) : null),
     [user, firestore]
   );
 
-  // useDoc will return data if the document exists, and null if it doesn't.
-  // The 'error' will be non-null if the read is disallowed (e.g., rules deny read for non-admins).
-  const { data: adminDoc, isLoading: isAdminDocLoading, error } = useDoc(adminDocRef);
+  const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userProfileRef);
 
   const result = useMemo(() => {
-    // Overall loading is true if auth is loading or the admin doc check is still in progress.
-    const isLoading = isAuthLoading || isAdminDocLoading;
+    // Loading is true if auth is loading or the profile document is still loading.
+    const isLoading = isAuthLoading || isProfileLoading;
     
-    // If we're done loading and there was no permission error, check if the doc exists.
-    // The existence of the document (`adminDoc !== null`) confirms admin status.
-    const isAdmin = !isLoading && error === null && adminDoc !== null;
+    // If not loading, check if the userProfile data exists and has the admin role.
+    const isAdmin = !isLoading && !!userProfile && userProfile.role === 'admin';
 
     return { isAdmin, isLoading };
-  }, [isAuthLoading, isAdminDocLoading, adminDoc, error]);
+  }, [isAuthLoading, isProfileLoading, userProfile]);
 
   return result;
 }

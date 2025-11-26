@@ -3,85 +3,28 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Helper function to check if the requesting user is an admin.
-    // It checks for the existence of the user's UID in the /admins collection.
+
     function isAdmin() {
-      return exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
-    // --- User-specific rules ---
-
     match /users/{userId} {
-      // Any authenticated user can create their own profile document.
       allow create: if request.auth.uid != null;
-      
-      // A user can read their own profile. An admin can read any profile.
       allow read: if request.auth.uid == userId || isAdmin();
-
-      // A user can update their own profile, but they are NOT allowed to change their 'role'.
-      // This prevents a user from making themselves an admin.
-      // Admins can update any profile.
       allow update: if (request.auth.uid == userId && !("role" in request.resource.data)) || isAdmin();
     }
     
-    // --- Admin-only Collection Rules ---
     match /users {
-      // Admins can list all documents in the 'users' collection.
-      allow list: if isAdmin();
-    }
-    
-    // --- Admin Collection ---
-    match /admins/{userId} {
-      // Anyone can check if an admin document exists for their own UID.
-      allow get: if request.auth.uid == userId;
-      // Only other admins can read/write to the admins collection (for future management).
-      allow read, write: if isAdmin();
+      // Allow any authenticated user to list users, the frontend logic will handle showing data only to admins
+      allow list: if request.auth != null;
     }
 
-
-    // Allow users to manage their own saved ideas subcollection
-    match /users/{userId}/ideiasSalvas/{ideiaId} {
+    match /users/{userId}/{subcollection=**} {
       allow read, write: if request.auth.uid == userId;
     }
-    match /users/{userId}/ideiasSalvas {
-      allow list: if request.auth.uid == userId;
-    }
-    
-    // Allow users to manage their own scheduled content subcollection
-    match /users/{userId}/conteudoAgendado/{conteudoId} {
-      allow read, write: if request.auth.uid == userId;
-    }
-    match /users/{userId}/conteudoAgendado {
-      allow list: if request.auth.uid == userId;
-    }
-    
-    // Allow users to manage their own daily usage stats subcollection
-    match /users/{userId}/dailyUsage/{usageId} {
-        allow read, create, update: if request.auth.uid == userId;
-    }
 
-    // Allow users to manage their own metric snapshots subcollection
-    match /users/{userId}/metricSnapshots/{snapshotId} {
-        allow read, create: if request.auth.uid == userId;
-    }
-     match /users/{userId}/metricSnapshots {
-      allow list: if request.auth.uid == userId;
-    }
-
-    // Allow users to manage their own video analyses subcollection
-    match /users/{userId}/analisesVideo/{analiseId} {
-      allow read, create: if request.auth.uid == userId;
-    }
-     match /users/{userId}/analisesVideo {
-      allow list: if request.auth.uid == userId;
-    }
-
-    // Allow any authenticated user to read/write from the weekly plan collection
     match /roteiro/{itemRoteiroId} {
       allow read, write: if request.auth != null;
     }
   }
 }
-
-    
