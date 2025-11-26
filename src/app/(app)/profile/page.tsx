@@ -37,6 +37,7 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useSubscription } from '@/hooks/useSubscription';
 import Link from 'next/link';
+import { InstagramProfileResults, TikTokProfileResults } from '../dashboard/page';
 
 
 const profileFormSchema = z.object({
@@ -564,7 +565,7 @@ export default function ProfilePage() {
                         </Card>
                          {instaStatus === 'loading' && <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>}
                          {instaStatus === 'error' && instaError && <Alert variant="destructive" className="mt-4"><AlertTriangle className="h-4 w-4" /><AlertTitle>Erro ao Buscar Perfil</AlertTitle><AlertDescription>{instaError}</AlertDescription></Alert>}
-                         {instaStatus === 'success' && form.watch('instagramProfile') && <InstagramProfileResults form={form} formatNumber={formatNumber} error={instaError} />}
+                         {instaStatus === 'success' && form.watch('instagramProfile') && <InstagramProfileResults profile={form.watch('instagramProfile')} posts={form.watch('instagramPosts')} formatNumber={formatNumber} error={instaError} />}
                     </TabsContent>
                     <TabsContent value="tiktok" className="mt-4">
                         <Card className='border-0 shadow-none'>
@@ -605,7 +606,7 @@ export default function ProfilePage() {
                         </Card>
                          {tiktokStatus === 'loading' && <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>}
                          {tiktokStatus === 'error' && tiktokError && <Alert variant="destructive" className="mt-4"><AlertTriangle className="h-4 w-4" /><AlertTitle>Erro ao Buscar Perfil</AlertTitle><AlertDescription>{tiktokError}</AlertDescription></Alert>}
-                         {tiktokStatus === 'success' && form.watch('tiktokProfile') && <TikTokProfileResults form={form} formatNumber={formatNumber} error={tiktokError} />}
+                         {tiktokStatus === 'success' && form.watch('tiktokProfile') && <TikTokProfileResults profile={form.watch('tiktokProfile')} posts={form.watch('tiktokPosts')} formatNumber={formatNumber} error={tiktokError} />}
                     </TabsContent>
                   </Tabs>
                 </>
@@ -631,114 +632,6 @@ export default function ProfilePage() {
   );
 }
 
-// --- Instagram Components ---
-
-export function InstagramProfileResults({ form, error, formatNumber }: { form: any, error: string | null, formatNumber: (n: number) => string }) {
-    const profile = form.watch('instagramProfile');
-    const posts = form.watch('instagramPosts');
-    if (!profile) return null;
-
-    return (
-        <div className="space-y-8 animate-in fade-in-50">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <MetricCard icon={Users} label="Seguidores" value={form.watch('instagramFollowers')} />
-                <MetricCard icon={Heart} label="Média de Likes" value={form.watch('instagramAverageLikes')} />
-                <MetricCard icon={MessageSquare} label="Média de Comentários" value={form.watch('instagramAverageComments')} />
-                <MetricCard icon={Clapperboard} label="Conta" value={profile.isBusiness ? "Comercial" : "Pessoal"} />
-            </div>
-
-            {error && (
-                <Alert variant="destructive">
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle>Posts Recentes</AlertTitle>
-                    <AlertDescription>{error}</AlertDescription>
-                </Alert>
-            )}
-
-            {posts && posts.length > 0 && (
-                <div>
-                <h4 className="text-lg font-semibold text-center mb-4">Posts Recentes</h4>
-                <Carousel opts={{ align: "start", loop: false }} className="w-full max-w-sm mx-auto md:max-w-xl lg:max-w-4xl">
-                    <CarouselContent>
-                    {posts.map((post: InstagramPostData) => (
-                        <CarouselItem key={post.id} className="md:basis-1/2 lg:basis-1/3">
-                        <Card className="overflow-hidden rounded-xl">
-                            <CardContent className="p-0 aspect-square relative group">
-                                <Image src={post.mediaUrl} alt={post.caption || 'Instagram post'} fill style={{objectFit: 'cover'}} />
-                            </CardContent>
-                            <div className="p-3 bg-muted/30 text-xs text-muted-foreground grid grid-cols-2 gap-1 text-center">
-                                <span className='flex items-center justify-center gap-1.5'><Heart className='h-4 w-4 text-pink-500' /> {formatNumber(post.likes)}</span>
-                                <span className='flex items-center justify-center gap-1.5'><MessageSquare className='h-4 w-4 text-sky-500' /> {formatNumber(post.comments)}</span>
-                            </div>
-                        </Card>
-                        </CarouselItem>
-                    ))}
-                    </CarouselContent>
-                    <CarouselPrevious className="ml-12 hidden sm:flex" />
-                    <CarouselNext className="mr-12 hidden sm:flex" />
-                </Carousel>
-                </div>
-            )}
-        </div>
-    )
-}
-
-// --- TikTok Components ---
-
-export function TikTokProfileResults({ form, error, formatNumber }: { form: any, error: string | null, formatNumber: (n: number) => string }) {
-    const profile = form.watch('tiktokProfile');
-    const posts = form.watch('tiktokPosts');
-    if (!profile) return null;
-
-    return (
-        <div className="space-y-8 animate-in fade-in-50">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <MetricCard icon={Users} label="Seguidores" value={form.watch('tiktokFollowers')} />
-                <MetricCard icon={Eye} label="Média de Views" value={form.watch('tiktokAverageViews')} />
-                <MetricCard icon={Heart} label="Média de Likes" value={form.watch('tiktokAverageLikes')} />
-                <MetricCard icon={MessageSquare} label="Média de Comentários" value={form.watch('tiktokAverageComments')} />
-            </div>
-
-            {error && (
-                <Alert variant="destructive">
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle>Vídeos Recentes</AlertTitle>
-                    <AlertDescription>{error}</AlertDescription>
-                </Alert>
-            )}
-            
-            {posts && posts.length > 0 && (
-                <div>
-                <h4 className="text-lg font-semibold text-center mb-4">Vídeos Recentes</h4>
-                <Carousel opts={{ align: "start", loop: false }} className="w-full max-w-sm mx-auto md:max-w-xl lg:max-w-4xl">
-                    <CarouselContent>
-                    {posts.map((post: TikTokPostData) => (
-                        <CarouselItem key={post.id} className="md:basis-1/2 lg:basis-1/3">
-                        <Card className="overflow-hidden rounded-xl">
-                            <CardContent className="p-0 aspect-[9/16] relative group">
-                                <Image src={post.coverUrl} alt={post.description} fill style={{objectFit: 'cover'}} />
-                                <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <PlayCircle className="h-12 w-12 text-white/80" />
-                                </div>
-                            </CardContent>
-                            <div className="p-3 bg-muted/30 text-xs text-muted-foreground grid grid-cols-3 gap-1 text-center">
-                                <span className='flex items-center justify-center gap-1.5'><Eye className='h-4 w-4 text-blue-500' /> {formatNumber(post.views)}</span>
-                                <span className='flex items-center justify-center gap-1.5'><Heart className='h-4 w-4 text-pink-500' /> {formatNumber(post.likes)}</span>
-                                <span className='flex items-center justify-center gap-1.5'><MessageSquare className='h-4 w-4 text-sky-500' /> {formatNumber(post.comments)}</span>
-                            </div>
-                        </Card>
-                        </CarouselItem>
-                    ))}
-                    </CarouselContent>
-                    <CarouselPrevious className="ml-12 hidden sm:flex" />
-                    <CarouselNext className="mr-12 hidden sm:flex" />
-                </Carousel>
-                </div>
-            )}
-        </div>
-    )
-}
-
 
 function MetricCard({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value: string | number }) {
   return (
@@ -751,3 +644,5 @@ function MetricCard({ icon: Icon, label, value }: { icon: React.ElementType, lab
     </Card>
   )
 }
+
+      
