@@ -682,13 +682,17 @@ function InstagramProfileResults({ profile, posts, error, formatNumber }: { prof
 // --- TikTok Components ---
 
 function TikTokProfileResults({ profile, posts, error, formatNumber }: { profile: TikTokProfileData, posts: TikTokPostData[] | null, error: string | null, formatNumber: (n: number) => string }) {
+    const averageLikes = posts && posts.length > 0 ? posts.reduce((acc, p) => acc + p.likes, 0) / posts.length : 0;
+    const averageComments = posts && posts.length > 0 ? posts.reduce((acc, p) => acc + p.comments, 0) / posts.length : 0;
+    const averageViews = posts && posts.length > 0 ? posts.reduce((acc, p) => acc + p.views, 0) / posts.length : 0;
+
     return (
         <div className="space-y-8 animate-in fade-in-50">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <MetricCard icon={Users} label="Seguidores" value={formatNumber(profile.followersCount)} />
-                <MetricCard icon={Clapperboard} label="Vídeos" value={formatNumber(profile.videoCount)} />
-                <MetricCard icon={Heart} label="Curtidas Totais" value={formatNumber(profile.heartsCount)} />
-                <MetricCard icon={Users} label="Seguindo" value={formatNumber(profile.followingCount)} />
+                <MetricCard icon={Eye} label="Média de Views" value={formatNumber(Math.round(averageViews))} />
+                <MetricCard icon={Heart} label="Média de Likes" value={formatNumber(Math.round(averageLikes))} />
+                <MetricCard icon={MessageSquare} label="Média de Comentários" value={formatNumber(Math.round(averageComments))} />
             </div>
 
             {error && (
