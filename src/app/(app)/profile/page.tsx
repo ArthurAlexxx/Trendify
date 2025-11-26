@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { useUser, useFirestore, useDoc, useMemoFirebase, initializeFirebase, useAuth } from '@/firebase';
+import { useUser, useFirestore, useDoc, useMemoFirebase, useAuth } from '@/firebase';
 import { User as UserIcon, Instagram, Film, Search, Loader2, AlertTriangle, Users, Heart, MessageSquare, Clapperboard, PlayCircle, Eye, Upload, Crown, Check, RefreshCw } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
@@ -165,14 +165,15 @@ export default function ProfilePage() {
         // Firestore does not accept 'undefined' values.
         Object.keys(dataToSave).forEach(key => {
             const k = key as keyof typeof dataToSave;
-            if (dataToSave[k] === undefined) {
-                (dataToSave as any)[k] = null;
+            const dataToSaveAsAny = dataToSave as any;
+            if (dataToSaveAsAny[k] === undefined) {
+                dataToSaveAsAny[k] = null;
             }
         });
 
         await updateDoc(userProfileRef, dataToSave);
         
-        if (user && auth.currentUser && user.displayName !== values.displayName) {
+        if (auth.currentUser && user.displayName !== values.displayName) {
             await updateProfile(auth.currentUser, {
                 displayName: values.displayName,
             });
@@ -281,7 +282,7 @@ export default function ProfilePage() {
         // This will trigger a save with the new data
         if (user && userProfileRef) {
           const values = form.getValues();
-          const dataToSave = {
+          const dataToSave: Partial<UserProfile> = {
              displayName: values.displayName,
              photoURL: values.photoURL,
              niche: values.niche,
@@ -297,12 +298,13 @@ export default function ProfilePage() {
              tiktokAverageViews: values.tiktokAverageViews,
              tiktokAverageLikes: values.tiktokAverageLikes,
              tiktokAverageComments: values.tiktokAverageComments,
-             lastInstagramSync: serverTimestamp(),
+             lastInstagramSync: serverTimestamp() as any,
           };
            Object.keys(dataToSave).forEach(key => {
             const k = key as keyof typeof dataToSave;
-            if (dataToSave[k] === undefined) {
-                (dataToSave as any)[k] = null;
+            const dataToSaveAsAny = dataToSave as any;
+            if (dataToSaveAsAny[k] === undefined) {
+                dataToSaveAsAny[k] = null;
             }
           });
           await updateDoc(userProfileRef, dataToSave);
@@ -354,7 +356,7 @@ export default function ProfilePage() {
        
         if (user && userProfileRef) {
           const values = form.getValues();
-          const dataToSave = {
+          const dataToSave: Partial<UserProfile> = {
              displayName: values.displayName,
              photoURL: values.photoURL,
              niche: values.niche,
@@ -370,19 +372,20 @@ export default function ProfilePage() {
              tiktokAverageViews: values.tiktokAverageViews,
              tiktokAverageLikes: values.tiktokAverageLikes,
              tiktokAverageComments: values.tiktokAverageComments,
-             lastTikTokSync: serverTimestamp(),
+             lastTikTokSync: serverTimestamp() as any,
           };
            Object.keys(dataToSave).forEach(key => {
             const k = key as keyof typeof dataToSave;
-            if (dataToSave[k] === undefined) {
-                (dataToSave as any)[k] = null;
+            const dataToSaveAsAny = dataToSave as any;
+            if (dataToSaveAsAny[k] === undefined) {
+                dataToSaveAsAny[k] = null;
             }
           });
           await updateDoc(userProfileRef, dataToSave);
         }
         setTiktokStatus('success');
 
-    } catch (e: any) {
+    } catch (e: any) => {
       setTiktokError(e.message || 'Ocorreu um erro desconhecido.');
       setTiktokStatus('error');
     }
@@ -614,7 +617,7 @@ export default function ProfilePage() {
                                 <AlertDialogTrigger asChild>
                                     <Button
                                         type="button"
-                                        disabled={instaStatus === 'loading' || !form.watch('instagramHandle') || isInstaSyncedToday}
+                                        disabled={instaStatus === 'loading' || !form.watch('instagramHandle')}
                                         className="w-full sm:w-auto"
                                     >
                                         {isInstaSyncedToday ? <><Check className="mr-2 h-4 w-4" />Sincronizado Hoje</> :
@@ -659,9 +662,9 @@ export default function ProfilePage() {
                                 </div>
                                 <AlertDialog>
                                 <AlertDialogTrigger asChild>
-                                    <Button
+                                     <Button
                                         type="button"
-                                        disabled={tiktokStatus === 'loading' || !form.watch('tiktokHandle') || isTiktokSyncedToday}
+                                        disabled={tiktokStatus === 'loading' || !form.watch('tiktokHandle')}
                                         className="w-full sm:w-auto"
                                     >
                                         {isTiktokSyncedToday ? <><Check className="mr-2 h-4 w-4" />Sincronizado Hoje</> :
