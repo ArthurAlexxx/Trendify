@@ -368,7 +368,8 @@ const PlatformIntegrationModal = ({ userProfile }: { userProfile: UserProfile })
 
     const hasSyncedToday = (lastSync: any) => {
         if (!lastSync) return false;
-        return false; //isToday(lastSync.toDate());
+        // Temporarily disable same-day sync blocking for testing
+        return false;
     };
 
     const isInstaSyncedToday = hasSyncedToday(userProfile.lastInstagramSync);
@@ -508,7 +509,7 @@ const PlatformIntegrationModal = ({ userProfile }: { userProfile: UserProfile })
                               <AlertDialogTrigger asChild>
                                     <Button
                                         type="button"
-                                        disabled={instaStatus === 'loading' || !username}
+                                        disabled={instaStatus === 'loading' || !username || isInstaSyncedToday}
                                         className="w-full"
                                     >
                                         {isInstaSyncedToday ? <><Check className="mr-2 h-4 w-4" />Sincronizado Hoje</> :
@@ -550,7 +551,7 @@ const PlatformIntegrationModal = ({ userProfile }: { userProfile: UserProfile })
                                 <AlertDialogTrigger asChild>
                                      <Button
                                         type="button"
-                                        disabled={tiktokStatus === 'loading' || !tiktokUsername}
+                                        disabled={tiktokStatus === 'loading' || !tiktokUsername || isTiktokSyncedToday}
                                         className="w-full"
                                     >
                                         {isTiktokSyncedToday ? <><Check className="mr-2 h-4 w-4" />Sincronizado Hoje</> :
@@ -812,74 +813,44 @@ export default function DashboardPage() {
       <div className="space-y-8">
         {userProfile && <ProfileCompletionAlert userProfile={userProfile} hasUpdatedToday={hasUpdatedToday} isPremium={isPremium} />}
 
-        {/* Métricas e Publicações */}
-        <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0">
-            <CardHeader className="flex flex-col gap-4 sm:flex-row items-start sm:items-center justify-between pb-4">
-                <CardTitle className="text-base font-medium text-muted-foreground">
-                  Visão Geral da Plataforma
-                </CardTitle>
-                <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
-                   <div className='w-full sm:w-auto'>
-                     <Select value={selectedPlatform} onValueChange={(value) => setSelectedPlatform(value as any)}>
-                        <SelectTrigger className="w-full sm:w-[180px]">
-                          <SelectValue placeholder="Selecione a plataforma" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="total">Total</SelectItem>
-                          <SelectItem value="instagram">Instagram</SelectItem>
-                          <SelectItem value="tiktok">TikTok</SelectItem>
-                        </SelectContent>
-                      </Select>
-                   </div>
-                  {userProfile && <UpdateMetricsModal userProfile={userProfile} />}
-                </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
-                 <div className="grid gap-4 grid-cols-2 lg:grid-cols-4 justify-center">
-                      <MetricCard icon={Users} title="Seguidores" value={formatMetricValue(latestMetrics?.followers)} handle={selectedPlatform !== 'total' ? latestMetrics?.handle as string : undefined} isLoading={isLoading} />
-                      <MetricCard icon={Eye} title="Média de Views" value={formatMetricValue(latestMetrics?.views)} isLoading={isLoading} />
-                      <MetricCard icon={Heart} title="Média de Likes" value={formatMetricValue(latestMetrics?.likes)} isLoading={isLoading} />
-                      <MetricCard icon={MessageSquare} title="Média de Comentários" value={formatMetricValue(latestMetrics?.comments)} isLoading={isLoading} />
-                  </div>
-
-                  {selectedPlatform === 'instagram' && (
-                    isFetchingPosts ? (
-                        <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>
-                    ) : instaPosts && userProfile?.instagramHandle ? (
-                        <InstagramProfileResults profile={{
-                            id: '', username: userProfile.instagramHandle,
-                            followersCount: parseMetric(userProfile.instagramFollowers),
-                            isPrivate: false, isBusiness: true, profilePicUrlHd: '', biography: '', fullName: '', mediaCount: 0, followingCount: 0
-                        }} posts={instaPosts} formatNumber={formatNumber} error={null} />
-                    ) : (
-                        <div className="text-center py-10">
-                            <p className="text-muted-foreground">Integre sua conta do Instagram no seu <Link href="/profile" className='text-primary font-semibold hover:underline'>perfil</Link> para ver seus posts aqui.</p>
+        <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-8 items-start">
+            {/* Left Column - Metrics */}
+            <div className="lg:col-span-1 xl:col-span-1 space-y-8">
+                 <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0 sticky top-24">
+                    <CardHeader>
+                        <CardTitle className="text-base font-medium text-muted-foreground">
+                        Visão Geral da Plataforma
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        <div className="flex flex-col sm:flex-row items-center gap-2 w-full">
+                            <div className='w-full'>
+                                <Select value={selectedPlatform} onValueChange={(value) => setSelectedPlatform(value as any)}>
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Selecione a plataforma" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="total">Total</SelectItem>
+                                    <SelectItem value="instagram">Instagram</SelectItem>
+                                    <SelectItem value="tiktok">TikTok</SelectItem>
+                                </SelectContent>
+                                </Select>
+                            </div>
+                            {userProfile && <UpdateMetricsModal userProfile={userProfile} />}
                         </div>
-                    )
-                  )}
-
-                  {selectedPlatform === 'tiktok' && (
-                     isFetchingPosts ? (
-                        <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>
-                    ) : tiktokPosts && userProfile?.tiktokHandle ? (
-                        <TikTokProfileResults profile={{
-                            id: '', username: userProfile.tiktokHandle,
-                            followersCount: parseMetric(userProfile.tiktokFollowers),
-                            nickname: '', avatarUrl: '', bio: '', isVerified: false, isPrivate: false, heartsCount: 0, videoCount: 0, followingCount: 0
-                        }} posts={tiktokPosts} formatNumber={formatNumber} error={null} />
-                    ) : (
-                        <div className="text-center py-10">
-                            <p className="text-muted-foreground">Integre sua conta do TikTok no seu <Link href="/profile" className='text-primary font-semibold hover:underline'>perfil</Link> para ver seus vídeos aqui.</p>
+                        <div className="grid gap-4 grid-cols-2">
+                            <MetricCard icon={Users} title="Seguidores" value={formatMetricValue(latestMetrics?.followers)} handle={selectedPlatform !== 'total' ? latestMetrics?.handle as string : undefined} isLoading={isLoading} />
+                            <MetricCard icon={Eye} title="Média de Views" value={formatMetricValue(latestMetrics?.views)} isLoading={isLoading} />
+                            <MetricCard icon={Heart} title="Média de Likes" value={formatMetricValue(latestMetrics?.likes)} isLoading={isLoading} />
+                            <MetricCard icon={MessageSquare} title="Média de Comentários" value={formatMetricValue(latestMetrics?.comments)} isLoading={isLoading} />
                         </div>
-                    )
-                  )}
-            </CardContent>
-        </Card>
-        
-        <div className="grid grid-cols-1 xl:grid-cols-5 gap-8">
-            <div className="xl:col-span-3 space-y-8">
-                {/* Gráfico Histórico */}
-                <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0 h-full">
+                    </CardContent>
+                </Card>
+            </div>
+
+            {/* Center Column - Main Content */}
+            <div className="lg:col-span-2 xl:col-span-2 space-y-8">
+                 <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0 h-full">
                     <CardHeader>
                         <CardTitle className="font-headline text-xl">
                         Evolução das Métricas ({selectedPlatform === 'instagram' ? 'Instagram' : selectedPlatform === 'tiktok' ? 'TikTok' : 'Total'})
@@ -924,12 +895,145 @@ export default function DashboardPage() {
                         }
                     </CardContent>
                 </Card>
+                <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0 h-full">
+                    <CardHeader className="text-center sm:text-left">
+                    <CardTitle className="font-headline text-xl">
+                        Roteiro de Conteúdo Semanal
+                    </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                    {isLoadingRoteiro ? <Skeleton className="h-40 w-full" /> : (
+                        roteiro && roteiro.items.length > 0 ? (
+                        <div>
+                            <ul className="space-y-2">
+                                {visibleItems?.map((item, index) => (
+                                <li key={index}>
+                                    <div className="flex items-start gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50 text-left">
+                                    <Checkbox
+                                        id={`roteiro-${index}`}
+                                        checked={item.concluido}
+                                        onCheckedChange={() => handleToggleRoteiro(item, index)}
+                                        className="h-5 w-5 mt-1"
+                                    />
+                                    <div>
+                                        <label
+                                        htmlFor={`roteiro-${index}`}
+                                        className={cn(
+                                            'font-medium text-base transition-colors cursor-pointer',
+                                            item.concluido
+                                            ? 'line-through text-muted-foreground'
+                                            : 'text-foreground'
+                                        )}
+                                        >
+                                        <span className="font-semibold text-primary">
+                                            {item.dia}:
+                                        </span>{' '}
+                                        {item.tarefa}
+                                        </label>
+                                        <p className="text-sm text-muted-foreground">
+                                        {item.detalhes}
+                                        </p>
+                                    </div>
+                                    </div>
+                                    {visibleItems && index < visibleItems.length - 1 && (
+                                    <Separator className="my-2" />
+                                    )}
+                                </li>
+                                ))}
+                                <AnimatePresence>
+                                {isExpanded && collapsibleItems?.map((item, index) => (
+                                    <motion.li 
+                                    key={`collapsible-${index}`}
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                                    className="overflow-hidden"
+                                    >
+                                        <Separator className="my-2" />
+                                        <div className="flex items-start gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50 text-left">
+                                        <Checkbox
+                                            id={`roteiro-collapsible-${index}`}
+                                            checked={item.concluido}
+                                            onCheckedChange={() => handleToggleRoteiro(item, 3 + index)}
+                                            className="h-5 w-5 mt-1"
+                                        />
+                                        <div>
+                                            <label
+                                            htmlFor={`roteiro-collapsible-${index}`}
+                                            className={cn(
+                                                'font-medium text-base transition-colors cursor-pointer',
+                                                item.concluido
+                                                ? 'line-through text-muted-foreground'
+                                                : 'text-foreground'
+                                            )}
+                                            >
+                                            <span className="font-semibold text-primary">
+                                                {item.dia}:
+                                            </span>{' '}
+                                            {item.tarefa}
+                                            </label>
+                                            <p className="text-sm text-muted-foreground">
+                                            {item.detalhes}
+                                            </p>
+                                        </div>
+                                        </div>
+                                    </motion.li>
+                                ))}
+                                </AnimatePresence>
+                            </ul>
+                            {collapsibleItems && collapsibleItems.length > 0 && !isExpanded && (
+                            <div className='flex justify-center mt-2'>
+                                <Button 
+                                    variant="ghost" 
+                                    onClick={() => setIsExpanded(true)} 
+                                    className="text-primary hover:text-primary"
+                                >
+                                    Ver restante da semana
+                                </Button>
+                            </div>
+                            )}
+                            {isExpanded && (
+                            <div className='flex justify-center mt-2'>
+                                <Button 
+                                    variant="ghost" 
+                                    onClick={() => setIsExpanded(false)} 
+                                    className="text-primary hover:text-primary"
+                                >
+                                    Ver menos
+                                </Button>
+                            </div>
+                            )}
+                        </div>
+                        ) : (
+                        <div className="text-center py-8 px-4 rounded-xl bg-muted/50 border border-dashed">
+                            <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+                            <h3 className="font-semibold text-foreground">
+                            Sem roteiro para a semana.
+                            </h3>
+                            <p className="text-sm text-muted-foreground">
+                            Gere um novo no{' '}
+                            <Link
+                                href="/generate-weekly-plan"
+                                className="text-primary font-medium hover:underline"
+                            >
+                                Planejamento Semanal
+                            </Link>
+                            .
+                            </p>
+                        </div>
+                        )
+                    )}
+                    </CardContent>
+                </Card>
             </div>
-            <div className="xl:col-span-2 space-y-8">
+
+            {/* Right Column - Quick Actions */}
+            <div className="lg:col-span-3 xl:col-span-1 space-y-8">
                  <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0 flex flex-col h-full">
                   <CardHeader className="text-center sm:text-left">
                     <CardTitle className="font-headline text-xl">
-                      Próximos Posts Agendados
+                      Próximos Posts
                     </CardTitle>
                   </CardHeader>
                   <CardContent className='flex-grow flex flex-col'>
@@ -995,205 +1099,110 @@ export default function DashboardPage() {
                     )}
                   </CardContent>
                 </Card>
+                 <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0 h-full">
+                    <CardHeader className="text-center sm:text-left">
+                    <CardTitle className="font-headline text-xl">
+                        Ideias e Tarefas
+                    </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                    {isLoadingIdeias ? <Skeleton className="h-24 w-full" /> : (
+                        ideiasSalvas && ideiasSalvas.length > 0 ? (
+                        <ul className="space-y-3">
+                            {ideiasSalvas.map((ideia) => (
+                            <li key={ideia.id} className="flex items-start gap-3 text-left">
+                                <Checkbox
+                                id={`ideia-${ideia.id}`}
+                                checked={ideia.concluido}
+                                onCheckedChange={() => handleToggleIdeia(ideia)}
+                                className="h-5 w-5 mt-0.5"
+                                />
+                                <div className="grid gap-0.5">
+                                <label
+                                    htmlFor={`ideia-${ideia.id}`}
+                                    className={cn(
+                                    'font-medium transition-colors cursor-pointer',
+                                    ideia.concluido
+                                        ? 'line-through text-muted-foreground'
+                                        : 'text-foreground'
+                                    )}
+                                >
+                                    {ideia.titulo}
+                                </label>
+                                <p className="text-xs text-muted-foreground">
+                                    Salvo de "{ideia.origem}"{' '}
+                                    {ideia.createdAt &&
+                                    formatDistanceToNow(ideia.createdAt.toDate(), {
+                                        addSuffix: true,
+                                        locale: ptBR,
+                                    })}
+                                </p>
+                                </div>
+                            </li>
+                            ))}
+                        </ul>
+                        ) : (
+                        <div className="text-center py-8 px-4 rounded-xl bg-muted/50 border border-dashed h-full flex flex-col justify-center">
+                            <Rocket className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+                            <h3 className="font-semibold text-foreground">
+                            Comece a Gerar Ideias!
+                            </h3>
+                            <p className="text-sm text-muted-foreground">
+                            Suas ideias e tarefas salvas aparecerão aqui.
+                            </p>
+                        </div>
+                        )
+                    )}
+                    </CardContent>
+                </Card>
             </div>
         </div>
 
+         {/* Recent Posts Section */}
+        <div className="grid grid-cols-1 gap-8">
+            <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0">
+                <CardHeader>
+                    <CardTitle>Atividade Recente nas Plataformas</CardTitle>
+                    <CardDescription>Uma visão geral das suas últimas publicações.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                     {isFetchingPosts ? (
+                        <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>
+                    ) : (
+                        <div className='space-y-8'>
+                        {selectedPlatform !== 'tiktok' && instaPosts && userProfile?.instagramHandle && (
+                            <div>
+                                <h3 className="text-lg font-semibold flex items-center gap-2 mb-4"><Instagram className="h-5 w-5"/> Instagram</h3>
+                                <InstagramProfileResults profile={{
+                                    id: '', username: userProfile.instagramHandle,
+                                    followersCount: parseMetric(userProfile.instagramFollowers),
+                                    isPrivate: false, isBusiness: true, profilePicUrlHd: '', biography: '', fullName: '', mediaCount: 0, followingCount: 0
+                                }} posts={instaPosts} formatNumber={formatNumber} error={null} />
+                            </div>
+                        )}
 
-        {/* Bottom Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="space-y-8">
-              <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0 h-full">
-                <CardHeader className="text-center sm:text-left">
-                  <CardTitle className="font-headline text-xl">
-                    Roteiro de Conteúdo Semanal
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {isLoadingRoteiro ? <Skeleton className="h-40 w-full" /> : (
-                      roteiro && roteiro.items.length > 0 ? (
-                      <div>
-                          <ul className="space-y-2">
-                              {visibleItems?.map((item, index) => (
-                              <li key={index}>
-                                  <div className="flex items-start gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50 text-left">
-                                  <Checkbox
-                                      id={`roteiro-${index}`}
-                                      checked={item.concluido}
-                                      onCheckedChange={() => handleToggleRoteiro(item, index)}
-                                      className="h-5 w-5 mt-1"
-                                  />
-                                  <div>
-                                      <label
-                                      htmlFor={`roteiro-${index}`}
-                                      className={cn(
-                                          'font-medium text-base transition-colors cursor-pointer',
-                                          item.concluido
-                                          ? 'line-through text-muted-foreground'
-                                          : 'text-foreground'
-                                      )}
-                                      >
-                                      <span className="font-semibold text-primary">
-                                          {item.dia}:
-                                      </span>{' '}
-                                      {item.tarefa}
-                                      </label>
-                                      <p className="text-sm text-muted-foreground">
-                                      {item.detalhes}
-                                      </p>
-                                  </div>
-                                  </div>
-                                  {visibleItems && index < visibleItems.length - 1 && (
-                                  <Separator className="my-2" />
-                                  )}
-                              </li>
-                              ))}
-                              <AnimatePresence>
-                              {isExpanded && collapsibleItems?.map((item, index) => (
-                                  <motion.li 
-                                  key={`collapsible-${index}`}
-                                  initial={{ opacity: 0, height: 0 }}
-                                  animate={{ opacity: 1, height: 'auto' }}
-                                  exit={{ opacity: 0, height: 0 }}
-                                  transition={{ duration: 0.3, ease: "easeInOut" }}
-                                  className="overflow-hidden"
-                                  >
-                                      <Separator className="my-2" />
-                                      <div className="flex items-start gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50 text-left">
-                                      <Checkbox
-                                          id={`roteiro-collapsible-${index}`}
-                                          checked={item.concluido}
-                                          onCheckedChange={() => handleToggleRoteiro(item, 3 + index)}
-                                          className="h-5 w-5 mt-1"
-                                      />
-                                      <div>
-                                          <label
-                                          htmlFor={`roteiro-collapsible-${index}`}
-                                          className={cn(
-                                              'font-medium text-base transition-colors cursor-pointer',
-                                              item.concluido
-                                              ? 'line-through text-muted-foreground'
-                                              : 'text-foreground'
-                                          )}
-                                          >
-                                          <span className="font-semibold text-primary">
-                                              {item.dia}:
-                                          </span>{' '}
-                                          {item.tarefa}
-                                          </label>
-                                          <p className="text-sm text-muted-foreground">
-                                          {item.detalhes}
-                                          </p>
-                                      </div>
-                                      </div>
-                                  </motion.li>
-                              ))}
-                              </AnimatePresence>
-                          </ul>
-                          {collapsibleItems && collapsibleItems.length > 0 && !isExpanded && (
-                          <div className='flex justify-center mt-2'>
-                              <Button 
-                                  variant="ghost" 
-                                  onClick={() => setIsExpanded(true)} 
-                                  className="text-primary hover:text-primary"
-                              >
-                                  Ver restante da semana
-                              </Button>
-                          </div>
-                          )}
-                          {isExpanded && (
-                          <div className='flex justify-center mt-2'>
-                              <Button 
-                                  variant="ghost" 
-                                  onClick={() => setIsExpanded(false)} 
-                                  className="text-primary hover:text-primary"
-                              >
-                                  Ver menos
-                              </Button>
-                          </div>
-                          )}
-                      </div>
-                      ) : (
-                      <div className="text-center py-8 px-4 rounded-xl bg-muted/50 border border-dashed">
-                          <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
-                          <h3 className="font-semibold text-foreground">
-                          Sem roteiro para a semana.
-                          </h3>
-                          <p className="text-sm text-muted-foreground">
-                          Gere um novo no{' '}
-                          <Link
-                              href="/generate-weekly-plan"
-                              className="text-primary font-medium hover:underline"
-                          >
-                              Planejamento Semanal
-                          </Link>
-                          .
-                          </p>
-                      </div>
-                      )
-                  )}
+                        {selectedPlatform !== 'instagram' && tiktokPosts && userProfile?.tiktokHandle && (
+                            <div>
+                                <h3 className="text-lg font-semibold flex items-center gap-2 mb-4"><Film className="h-5 w-5"/> TikTok</h3>
+                                <TikTokProfileResults profile={{
+                                    id: '', username: userProfile.tiktokHandle,
+                                    followersCount: parseMetric(userProfile.tiktokFollowers),
+                                    nickname: '', avatarUrl: '', bio: '', isVerified: false, isPrivate: false, heartsCount: 0, videoCount: 0, followingCount: 0
+                                }} posts={tiktokPosts} formatNumber={formatNumber} error={null} />
+                            </div>
+                        )}
+
+                        {!(instaPosts && userProfile?.instagramHandle) && !(tiktokPosts && userProfile?.tiktokHandle) && (
+                             <div className="text-center py-10">
+                                <p className="text-muted-foreground">Integre suas contas no seu <Link href="/profile" className='text-primary font-semibold hover:underline'>perfil</Link> para ver seus posts aqui.</p>
+                            </div>
+                        )}
+                        </div>
+                    )}
                 </CardContent>
-              </Card>
-            </div>
-            
-            <div className="lg:col-span-1 space-y-8">
-                <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0 h-full">
-                <CardHeader className="text-center sm:text-left">
-                  <CardTitle className="font-headline text-xl">
-                    Ideias e Tarefas
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {isLoadingIdeias ? <Skeleton className="h-24 w-full" /> : (
-                      ideiasSalvas && ideiasSalvas.length > 0 ? (
-                      <ul className="space-y-3">
-                          {ideiasSalvas.map((ideia) => (
-                          <li key={ideia.id} className="flex items-start gap-3 text-left">
-                              <Checkbox
-                              id={`ideia-${ideia.id}`}
-                              checked={ideia.concluido}
-                              onCheckedChange={() => handleToggleIdeia(ideia)}
-                              className="h-5 w-5 mt-0.5"
-                              />
-                              <div className="grid gap-0.5">
-                              <label
-                                  htmlFor={`ideia-${ideia.id}`}
-                                  className={cn(
-                                  'font-medium transition-colors cursor-pointer',
-                                  ideia.concluido
-                                      ? 'line-through text-muted-foreground'
-                                      : 'text-foreground'
-                                  )}
-                              >
-                                  {ideia.titulo}
-                              </label>
-                              <p className="text-xs text-muted-foreground">
-                                  Salvo de "{ideia.origem}"{' '}
-                                  {ideia.createdAt &&
-                                  formatDistanceToNow(ideia.createdAt.toDate(), {
-                                      addSuffix: true,
-                                      locale: ptBR,
-                                  })}
-                              </p>
-                              </div>
-                          </li>
-                          ))}
-                      </ul>
-                      ) : (
-                      <div className="text-center py-8 px-4 rounded-xl bg-muted/50 border border-dashed h-full flex flex-col justify-center">
-                          <Rocket className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
-                          <h3 className="font-semibold text-foreground">
-                          Comece a Gerar Ideias!
-                          </h3>
-                          <p className="text-sm text-muted-foreground">
-                          Suas ideias e tarefas salvas aparecerão aqui.
-                          </p>
-                      </div>
-                      )
-                  )}
-                </CardContent>
-              </Card>
-            </div>
+            </Card>
         </div>
+
       </div>
     </div>
   );
