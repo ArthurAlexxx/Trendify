@@ -140,6 +140,7 @@ async function fetchFromRapidApi(platform: 'instagram-profile' | 'instagram-post
     let host: string | undefined;
     let path: string;
     let options: RequestInit;
+    let finalUrl: URL;
 
     switch (platform) {
         case 'instagram-profile':
@@ -170,7 +171,7 @@ async function fetchFromRapidApi(platform: 'instagram-profile' | 'instagram-post
         throw new Error(`O host da API para a plataforma '${platform.split('-')[0]}' não está configurado.`);
     }
     
-    const finalUrl = new URL(`https://${host}/${path}`);
+    finalUrl = new URL(`https://${host}/${path}`);
     if (options.method === 'GET') {
       finalUrl.searchParams.set('username', username);
     }
@@ -253,13 +254,14 @@ export async function getInstagramPosts(username: string): Promise<InstagramPost
     }
     try {
         const result = await fetchFromRapidApi('instagram-posts', username);
-        const postsData = result?.result?.edges;
         
-        if (!Array.isArray(postsData)) {
+        const postsArray = result?.result?.edges;
+
+        if (!Array.isArray(postsArray)) {
              throw new Error('A resposta da API de posts não continha uma lista de publicações em `result.edges`.');
         }
 
-        const parsedPosts = postsData.map((edge: any) => InstagramPostSchema.parse(edge.node));
+        const parsedPosts = postsArray.map((edge: any) => InstagramPostSchema.parse(edge.node));
         
         return parsedPosts.map(post => ({
             id: post.id,
@@ -346,3 +348,4 @@ export async function getTikTokPosts(username: string): Promise<TikTokPostData[]
         }
         throw new Error(`Falha ao buscar posts do TikTok: ${e.message}`);
     }
+}
