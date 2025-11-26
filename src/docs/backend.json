@@ -273,6 +273,10 @@
     "providers": ["password", "google.com"]
   },
   "firestore": {
+    "/admins/{userId}": {
+      "schema": {},
+      "description": "Stores a list of admin user IDs for role-based access control."
+    },
     "/users/{userId}": {
       "schema": { "$ref": "#/entities/UserProfile" },
       "description": "Stores user profile data."
@@ -303,3 +307,5 @@
     }
   }
 }
+
+    

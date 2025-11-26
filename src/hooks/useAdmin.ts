@@ -3,7 +3,6 @@
 
 import { useDoc, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
-import type { UserProfile } from '@/lib/types';
 import { useMemo } from 'react';
 
 interface UseAdminResult {
@@ -13,7 +12,7 @@ interface UseAdminResult {
 
 /**
  * A hook to check if the current user has admin privileges.
- * It checks for `role === 'admin'` on the user's own profile document.
+ * It checks for the existence of a document in `/admins/{userId}`.
  *
  * @returns {UseAdminResult} An object containing the admin status and loading state.
  */
@@ -21,23 +20,28 @@ export function useAdmin(): UseAdminResult {
   const { user, isUserLoading: isAuthLoading } = useUser();
   const firestore = useFirestore();
 
-  const userProfileRef = useMemoFirebase(
-    () => (user ? doc(firestore, `users/${user.uid}`) : null),
+  // Reference to the user's document in the 'admins' collection.
+  const adminDocRef = useMemoFirebase(
+    () => (user ? doc(firestore, `admins/${user.uid}`) : null),
     [user, firestore]
   );
 
-  const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userProfileRef);
+  // useDoc will return data if the document exists, and null if it doesn't.
+  // It also handles loading states for us.
+  const { data: adminDoc, isLoading: isAdminDocLoading } = useDoc(adminDocRef);
 
   const result = useMemo(() => {
-    // The overall loading state is true if auth is loading or profile is loading.
-    const isLoading = isAuthLoading || isProfileLoading;
+    // The overall loading state is true if auth is loading or the admin doc check is loading.
+    const isLoading = isAuthLoading || isAdminDocLoading;
     
-    // Determine admin status only if not loading.
-    const isAdmin = !isLoading && userProfile?.role === 'admin';
+    // An admin is someone who is not loading and has a document in the 'admins' collection.
+    // 'adminDoc' will be non-null if the document exists.
+    const isAdmin = !isLoading && adminDoc !== null;
 
     return { isAdmin, isLoading };
-  }, [isAuthLoading, isProfileLoading, userProfile]);
+  }, [isAuthLoading, isAdminDocLoading, adminDoc]);
 
   return result;
 }
 
+    

@@ -5,9 +5,9 @@ service cloud.firestore {
   match /databases/{database}/documents {
     
     // Helper function to check if the requesting user is an admin.
-    // It reads the `role` field from the user's own profile document.
+    // It checks for the existence of the user's UID in the /admins collection.
     function isAdmin() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      return exists(/databases/$(database)/documents/admins/$(request.auth.uid));
     }
 
     // --- User-specific rules ---
@@ -21,13 +21,22 @@ service cloud.firestore {
 
       // A user can update their own profile, but they are NOT allowed to change their 'role'.
       // This prevents a user from making themselves an admin.
-      allow update: if request.auth.uid == userId && !("role" in request.resource.data);
+      // Admins can update any profile.
+      allow update: if (request.auth.uid == userId && !("role" in request.resource.data)) || isAdmin();
     }
     
     // --- Admin-only Collection Rules ---
     match /users {
-      // Admins can read the entire 'users' collection.
+      // Admins can list all documents in the 'users' collection.
       allow list: if isAdmin();
+    }
+    
+    // --- Admin Collection ---
+    match /admins/{userId} {
+      // Anyone can check if an admin document exists for their own UID.
+      allow get: if request.auth.uid == userId;
+      // Only other admins can read/write to the admins collection (for future management).
+      allow read, write: if isAdmin();
     }
 
 
@@ -74,3 +83,5 @@ service cloud.firestore {
     }
   }
 }
+
+    
