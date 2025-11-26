@@ -40,6 +40,14 @@ const nextConfig = {
         protocol: 'https',
         hostname: '**.cdninstagram.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'p16-sign-va.tiktokcdn.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'p77-sign-va.tiktokcdn.com',
+      },
     ],
   },
 };
