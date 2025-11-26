@@ -640,7 +640,7 @@ function InstagramProfileResults({ profile, posts, error, formatNumber }: { prof
                 <MetricCard icon={Users} label="Seguidores" value={formatNumber(profile.followersCount)} />
                 <MetricCard icon={Heart} label="Média de Likes" value={formatNumber(Math.round(averageLikes))} />
                 <MetricCard icon={MessageSquare} label="Média de Comentários" value={formatNumber(Math.round(averageComments))} />
-                <MetricCard icon={Heart} label="Conta" value={profile.isBusiness ? "Comercial" : "Pessoal"} />
+                <MetricCard icon={Clapperboard} label="Conta" value={profile.isBusiness ? "Comercial" : "Pessoal"} />
             </div>
 
             {error && (
@@ -743,6 +743,3 @@ function MetricCard({ icon: Icon, label, value }: { icon: React.ElementType, lab
     </Card>
   )
 }
-
-    
-

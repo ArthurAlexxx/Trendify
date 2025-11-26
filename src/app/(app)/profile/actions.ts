@@ -1,3 +1,4 @@
+
 'use server';
 
 import { z } from 'zod';
@@ -342,7 +343,3 @@ export async function getTikTokPosts(username: string): Promise<TikTokPostData[]
         throw new Error(`Falha ao buscar posts do TikTok: ${e.message}`);
     }
 }
-
-
-
-    
