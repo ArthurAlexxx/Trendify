@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import { InstagramProfileData, TikTokProfileData, InstagramPostData, TikTokPostData } from '@/app/(app)/profile/actions';
+import type { InstagramProfileData, TikTokProfileData, InstagramPostData, TikTokPostData } from '@/lib/types';
 import { Heart, MessageSquare, PlayCircle, AlertTriangle } from 'lucide-react';
 import { Skeleton } from '../ui/skeleton';
 
