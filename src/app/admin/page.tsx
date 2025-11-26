@@ -8,15 +8,22 @@ import type { UserProfile } from '@/lib/types';
 import { collection } from 'firebase/firestore';
 import { UserTable } from '@/components/admin/user-table';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAdmin } from '@/hooks/useAdmin';
 
 export default function AdminPage() {
   const firestore = useFirestore();
+  const { isAdmin, isLoading: isAdminLoading } = useAdmin();
 
+  // Only execute the query if the user is confirmed to be an admin
   const usersQuery = useMemoFirebase(
-    () => (firestore ? collection(firestore, 'users') : null),
-    [firestore]
+    () => (firestore && isAdmin ? collection(firestore, 'users') : null),
+    [firestore, isAdmin]
   );
-  const { data: users, isLoading } = useCollection<UserProfile>(usersQuery);
+  
+  // The isLoading state from useCollection will be true until isAdmin is true and the query runs
+  const { data: users, isLoading: isUsersLoading } = useCollection<UserProfile>(usersQuery);
+
+  const isLoading = isAdminLoading || isUsersLoading;
 
   return (
     <div className="space-y-8">

@@ -4,57 +4,64 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Admins can read/write anywhere
+    // Helper function to check if the requesting user is an admin.
+    // It reads the `role` field from the user's own profile document.
     function isAdmin() {
-      // Check for the 'admin' role on the user's own profile document
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
-    match /{document=**} {
-      allow read, write: if isAdmin();
+    // --- Admin-only rules ---
+
+    // Admins can read the entire 'users' collection.
+    match /users/{userId} {
+      allow list: if isAdmin();
     }
+
 
     // --- User-specific rules ---
 
     match /users/{userId} {
-      // Users can create their own profile
+      // Any authenticated user can create their own profile document.
       allow create: if request.auth.uid != null;
-      // Users can read their own profile. Admins can read any profile.
+      
+      // A user can read their own profile. An admin can read any profile.
       allow read: if request.auth.uid == userId || isAdmin();
-      // Users can update their profile, but NOT their own role
+
+      // A user can update their own profile, but they are NOT allowed to change their 'role'.
+      // This prevents a user from making themselves an admin.
       allow update: if request.auth.uid == userId && !("role" in request.resource.data);
     }
 
-    // Allow users to manage their own saved ideas
+    // Allow users to manage their own saved ideas subcollection
     match /users/{userId}/ideiasSalvas/{ideiaId} {
-      allow read, create, update, delete: if request.auth.uid == userId;
+      allow read, write: if request.auth.uid == userId;
     }
     match /users/{userId}/ideiasSalvas {
       allow list: if request.auth.uid == userId;
     }
     
-    // Allow users to manage their own scheduled content
+    // Allow users to manage their own scheduled content subcollection
     match /users/{userId}/conteudoAgendado/{conteudoId} {
-      allow read, create, update, delete: if request.auth.uid == userId;
+      allow read, write: if request.auth.uid == userId;
     }
     match /users/{userId}/conteudoAgendado {
       allow list: if request.auth.uid == userId;
     }
     
-    // Allow users to manage their own daily usage stats
+    // Allow users to manage their own daily usage stats subcollection
     match /users/{userId}/dailyUsage/{usageId} {
         allow read, create, update: if request.auth.uid == userId;
     }
 
-    // Allow users to manage their own metric snapshots
+    // Allow users to manage their own metric snapshots subcollection
     match /users/{userId}/metricSnapshots/{snapshotId} {
         allow read, create: if request.auth.uid == userId;
     }
-    match /users/{userId}/metricSnapshots {
+     match /users/{userId}/metricSnapshots {
       allow list: if request.auth.uid == userId;
     }
 
-    // Allow users to manage their own video analyses
+    // Allow users to manage their own video analyses subcollection
     match /users/{userId}/analisesVideo/{analiseId} {
       allow read, create: if request.auth.uid == userId;
     }
@@ -62,7 +69,7 @@ service cloud.firestore {
       allow list: if request.auth.uid == userId;
     }
 
-    // Allow authenticated users to read/write from the weekly plan
+    // Allow any authenticated user to read/write from the weekly plan collection
     match /roteiro/{itemRoteiroId} {
       allow read, write: if request.auth != null;
     }
