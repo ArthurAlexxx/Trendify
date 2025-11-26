@@ -25,7 +25,7 @@ import { Bot, Loader2, Sparkles, Trash2, Check, History, ClipboardList, BrainCir
 import { useEffect, useTransition, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { generateWeeklyPlanAction, GenerateWeeklyPlanOutput } from './actions';
+import { generateWeeklyPlanAction, GenerateWeeklyPlanOutput } from '@/app/(app)/generate-weekly-plan/actions';
 import { Separator } from '@/components/ui/separator';
 import { useDoc, useFirestore, useMemoFirebase, useUser, useCollection } from '@/firebase';
 import type { UserProfile, ItemRoteiro, PlanoSemanal } from '@/lib/types';
@@ -238,7 +238,7 @@ export default function GenerateWeeklyPlanPage() {
         <PreviousPlansSheet />
       </PageHeader>
       
-        <Card>
+        <Card className="border-0 rounded-2xl">
             <CardHeader>
                 <CardTitle className="flex items-center gap-3 font-headline text-xl">
                     <Sparkles className="h-6 w-6 text-primary" />
@@ -262,7 +262,7 @@ export default function GenerateWeeklyPlanPage() {
         </Card>
 
 
-      <Card>
+      <Card className="border-0 rounded-2xl">
         <CardHeader>
           <CardTitle className="flex items-center gap-3 font-headline text-xl">
             <Bot className="h-6 w-6 text-primary" />
@@ -395,8 +395,8 @@ export default function GenerateWeeklyPlanPage() {
       {!result && isLoadingRoteiro && (
          <div className="space-y-8">
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
-              <Card><CardHeader><Skeleton className="h-6 w-40" /></CardHeader><CardContent><div className="space-y-4"><Skeleton className="h-12 w-full" /><Skeleton className="h-12 w-full" /><Skeleton className="h-12 w-full" /></div></CardContent></Card>
-              <Card><CardHeader><Skeleton className="h-6 w-48" /></CardHeader><CardContent><Skeleton className="h-[350px] w-full" /></CardContent></Card>
+              <Card className="rounded-2xl border-0"><CardHeader><Skeleton className="h-6 w-40" /></CardHeader><CardContent><div className="space-y-4"><Skeleton className="h-12 w-full" /><Skeleton className="h-12 w-full" /><Skeleton className="h-12 w-full" /></div></CardContent></Card>
+              <Card className="rounded-2xl border-0"><CardHeader><Skeleton className="h-6 w-48" /></CardHeader><CardContent><Skeleton className="h-[350px] w-full" /></CardContent></Card>
             </div>
           </div>
       )}
@@ -409,7 +409,7 @@ export default function GenerateWeeklyPlanPage() {
               <p className="text-muted-foreground">Este é o roteiro que está ativo no seu painel.</p>
             </div>
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
-                <Card>
+                <Card className="rounded-2xl border-0">
                   <CardHeader><CardTitle className="font-headline text-xl">Roteiro de Conteúdo</CardTitle></CardHeader>
                   <CardContent>
                     <ul className="space-y-2">
@@ -441,7 +441,7 @@ export default function GenerateWeeklyPlanPage() {
                     </ul>
                   </CardContent>
                 </Card>
-                <Card>
+                <Card className="rounded-2xl border-0">
                   <CardHeader><CardTitle className="font-headline text-xl">Desempenho Semanal (Simulado)</CardTitle></CardHeader>
                   <CardContent className="pl-2">
                     {isLoadingRoteiro ? <Skeleton className="h-[350px] w-full" /> : 
@@ -487,7 +487,7 @@ export default function GenerateWeeklyPlanPage() {
             </div>
           ) : result ? (
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
-              <Card>
+              <Card className="rounded-2xl border-0">
                 <CardHeader>
                   <CardTitle className="font-headline text-xl">
                     Novo Roteiro de Conteúdo
@@ -522,7 +522,7 @@ export default function GenerateWeeklyPlanPage() {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="rounded-2xl border-0">
                 <CardHeader>
                   <CardTitle className="font-headline text-xl">
                     Nova Simulação de Desempenho
@@ -576,3 +576,5 @@ export default function GenerateWeeklyPlanPage() {
     </div>
   );
 }
+
+    
