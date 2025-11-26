@@ -23,6 +23,7 @@ export interface UserProfile {
   tiktokAverageViews?: string;
   tiktokAverageLikes?: string;
   tiktokAverageComments?: string;
+  tiktokAverageCommentsUrl?: string;
   lastTikTokSync?: Timestamp;
   subscription?: {
     status: 'active' | 'inactive';
@@ -119,6 +120,7 @@ export type InstagramProfileData = {
 
 export type InstagramPostData = {
     id: string;
+    shortcode: string;
     caption: string | null;
     mediaUrl: string;
     likes: number;
@@ -144,6 +146,7 @@ export type TikTokProfileData = {
 
 export type TikTokPostData = {
     id: string;
+    shareUrl?: string;
     description: string;
     coverUrl: string;
     views: number;

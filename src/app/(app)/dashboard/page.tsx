@@ -599,6 +599,8 @@ export default function DashboardPage() {
   const [instaPosts, setInstaPosts] = useState<InstagramPostData[] | null>(null);
   const [tiktokPosts, setTiktokPosts] = useState<TikTokPostData[] | null>(null);
   const [isFetchingPosts, setIsFetchingPosts] = useState(false);
+  const [showTikTokModal, setShowTikTokModal] = useState(false);
+  const [currentTikTokUrl, setCurrentTikTokUrl] = useState('');
 
 
   useEffect(() => {
@@ -627,6 +629,13 @@ export default function DashboardPage() {
 
     fetchPosts();
   }, [userProfile]);
+
+  const handleTikTokClick = (post: TikTokPostData) => {
+    if (post.shareUrl) {
+        setCurrentTikTokUrl(post.shareUrl);
+        setShowTikTokModal(true);
+    }
+  };
 
 
   const roteiroQuery = useMemoFirebase(() => (
@@ -792,6 +801,22 @@ export default function DashboardPage() {
     };
 
   return (
+    <>
+    <Dialog open={showTikTokModal} onOpenChange={setShowTikTokModal}>
+        <DialogContent className="sm:max-w-md p-0 border-0">
+            <div className="aspect-video">
+                {currentTikTokUrl && (
+                    <iframe
+                        key={currentTikTokUrl}
+                        src={`https://www.tiktok.com/embed/v2/${currentTikTokUrl.split('/').pop()}`}
+                        className="w-full h-full"
+                        allow="autoplay; encrypted-media;"
+                    ></iframe>
+                )}
+            </div>
+        </DialogContent>
+    </Dialog>
+
     <div className="space-y-12">
       <PageHeader
         icon={<LayoutGrid className="text-primary" />}
@@ -807,31 +832,36 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 gap-8">
             <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0">
                 <CardHeader>
-                    <CardTitle className="text-base font-medium text-muted-foreground">
-                        Visão Geral da Plataforma
-                    </CardTitle>
-                     <div className="flex flex-col sm:flex-row items-center gap-2 w-full pt-2">
-                        <div className='w-full sm:w-64'>
-                            <Select value={selectedPlatform} onValueChange={(value) => setSelectedPlatform(value as any)}>
-                            <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Selecione a plataforma" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="total">Total</SelectItem>
-                                <SelectItem value="instagram">Instagram</SelectItem>
-                                <SelectItem value="tiktok">TikTok</SelectItem>
-                            </SelectContent>
-                            </Select>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div className="text-center sm:text-left">
+                            <CardTitle className="text-base font-medium text-muted-foreground">
+                                Visão Geral da Plataforma
+                            </CardTitle>
+                            <CardDescription>Métricas manuais ou sincronizadas do seu perfil.</CardDescription>
                         </div>
-                        {userProfile && <UpdateMetricsModal userProfile={userProfile} />}
+                        <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+                            <div className='w-full sm:w-64'>
+                                <Select value={selectedPlatform} onValueChange={(value) => setSelectedPlatform(value as any)}>
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Selecione a plataforma" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="total">Total</SelectItem>
+                                    <SelectItem value="instagram">Instagram</SelectItem>
+                                    <SelectItem value="tiktok">TikTok</SelectItem>
+                                </SelectContent>
+                                </Select>
+                            </div>
+                            {userProfile && <UpdateMetricsModal userProfile={userProfile} />}
+                        </div>
                     </div>
                 </CardHeader>
                 <CardContent>
                     <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                         <MetricCard icon={Users} title="Seguidores" value={formatMetricValue(latestMetrics?.followers)} handle={selectedPlatform !== 'total' ? latestMetrics?.handle as string : undefined} isLoading={isLoading} />
-                        <MetricCard icon={Eye} title="Média de Views" value={formatMetricValue(latestMetrics?.views)} isLoading={isLoading} />
-                        <MetricCard icon={Heart} title="Média de Likes" value={formatMetricValue(latestMetrics?.likes)} isLoading={isLoading} />
-                        <MetricCard icon={MessageSquare} title="Média de Comentários" value={formatMetricValue(latestMetrics?.comments)} isLoading={isLoading} />
+                        <MetricCard icon={Eye} title="Média de Views" value={formatMetricValue(latestMetrics?.views)} isLoading={isLoading} isManual={!userProfile?.lastInstagramSync} />
+                        <MetricCard icon={Heart} title="Média de Likes" value={formatMetricValue(latestMetrics?.likes)} isLoading={isLoading} isManual={!userProfile?.lastInstagramSync} />
+                        <MetricCard icon={MessageSquare} title="Média de Comentários" value={formatMetricValue(latestMetrics?.comments)} isLoading={isLoading} isManual={!userProfile?.lastInstagramSync} />
                     </div>
                 </CardContent>
             </Card>
@@ -1161,7 +1191,7 @@ export default function DashboardPage() {
                         <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>
                     ) : (
                         <div className='space-y-8'>
-                        {selectedPlatform !== 'tiktok' && instaPosts && userProfile?.instagramHandle && (
+                        {instaPosts && userProfile?.instagramHandle && (
                             <div>
                                 <h3 className="text-lg font-semibold flex items-center gap-2 mb-4"><Instagram className="h-5 w-5"/> Instagram</h3>
                                 <InstagramProfileResults profile={{
@@ -1172,14 +1202,14 @@ export default function DashboardPage() {
                             </div>
                         )}
 
-                        {selectedPlatform !== 'instagram' && tiktokPosts && userProfile?.tiktokHandle && (
+                        {tiktokPosts && userProfile?.tiktokHandle && (
                             <div>
                                 <h3 className="text-lg font-semibold flex items-center gap-2 mb-4"><Film className="h-5 w-5"/> TikTok</h3>
                                 <TikTokProfileResults profile={{
                                     id: '', username: userProfile.tiktokHandle,
                                     followersCount: parseMetric(userProfile.tiktokFollowers),
                                     nickname: '', avatarUrl: '', bio: '', isVerified: false, isPrivate: false, heartsCount: 0, videoCount: 0, followingCount: 0
-                                }} posts={tiktokPosts} formatNumber={formatNumber} error={null} />
+                                }} posts={tiktokPosts} formatNumber={formatNumber} error={null} onVideoClick={handleTikTokClick} />
                             </div>
                         )}
 
@@ -1196,5 +1226,6 @@ export default function DashboardPage() {
 
       </div>
     </div>
+    </>
   );
 }

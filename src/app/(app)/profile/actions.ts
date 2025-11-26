@@ -10,6 +10,7 @@ import type { InstagramProfileData, InstagramPostData, TikTokProfileData, TikTok
 const InstagramLooterPostSchema = z.object({
   __typename: z.string(), // "GraphImage", "GraphVideo", "GraphSidecar"
   id: z.string(),
+  shortcode: z.string(),
   display_url: z.string().url(),
   edge_media_to_comment: z.object({ count: z.number() }),
   edge_liked_by: z.object({ count: z.number() }),
@@ -62,6 +63,7 @@ const TikTokApi6ProfileSchema = z.object({
 
 const TikTokPostSchema = z.object({
     video_id: z.string(),
+    share_url: z.string().url().optional(),
     description: z.string().optional(),
     cover: z.string().url(),
     create_time: z.number().optional(),
@@ -211,6 +213,7 @@ export async function getInstagramPosts(username: string): Promise<InstagramPost
         
         return parsedPosts.map(post => ({
             id: post.id,
+            shortcode: post.shortcode,
             caption: post.edge_media_to_caption.edges[0]?.node.text || null,
             mediaUrl: post.display_url,
             likes: post.edge_liked_by.count,
@@ -273,6 +276,7 @@ export async function getTikTokPosts(username: string): Promise<TikTokPostData[]
         
         return parsed.videos.map(post => ({
             id: post.video_id,
+            shareUrl: post.share_url,
             description: post.description || '',
             coverUrl: post.cover,
             views: post.statistics?.number_of_plays ?? 0,

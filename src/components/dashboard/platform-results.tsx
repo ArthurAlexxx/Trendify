@@ -67,7 +67,8 @@ export function InstagramProfileResults({ profile, posts, error, formatNumber }:
                     <CarouselContent>
                         {posts.slice(0, 10).map((post) => (
                             <CarouselItem key={post.id} className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6">
-                                <Card className="overflow-hidden group">
+                                <Link href={`https://www.instagram.com/p/${post.shortcode}`} target="_blank" rel="noopener noreferrer">
+                                <Card className="overflow-hidden group cursor-pointer">
                                     <div className="relative aspect-[9/16]">
                                         <Image src={post.mediaUrl} alt={post.caption || 'Instagram Post'} fill style={{ objectFit: 'cover' }} />
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
@@ -80,6 +81,7 @@ export function InstagramProfileResults({ profile, posts, error, formatNumber }:
                                         </div>
                                     </div>
                                 </Card>
+                                </Link>
                             </CarouselItem>
                         ))}
                     </CarouselContent>
@@ -95,7 +97,7 @@ export function InstagramProfileResults({ profile, posts, error, formatNumber }:
     );
 }
 
-export function TikTokProfileResults({ profile, posts, error, formatNumber }: { profile: Partial<TikTokProfileData>, posts: TikTokPostData[] | null, error: string | null, formatNumber: (n: number) => string }) {
+export function TikTokProfileResults({ profile, posts, error, formatNumber, onVideoClick }: { profile: Partial<TikTokProfileData>, posts: TikTokPostData[] | null, error: string | null, formatNumber: (n: number) => string, onVideoClick?: (post: TikTokPostData) => void }) {
     if (!profile) return null;
     
     return (
@@ -107,10 +109,13 @@ export function TikTokProfileResults({ profile, posts, error, formatNumber }: { 
                     <CarouselContent>
                         {posts.slice(0, 10).map((post) => (
                             <CarouselItem key={post.id} className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6">
+                                <div onClick={() => onVideoClick?.(post)} className="cursor-pointer">
                                 <Card className="overflow-hidden group">
                                     <div className="relative aspect-[9/16]">
                                         <Image src={post.coverUrl} alt={post.description || 'TikTok Video'} fill style={{ objectFit: 'cover' }} />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-center justify-center">
+                                            <PlayCircle className="h-10 w-10 text-white opacity-0 group-hover:opacity-80 transition-opacity" />
+                                        </div>
                                         <div className="absolute bottom-0 left-0 p-2 text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity">
                                             <div className="flex flex-col gap-1">
                                                 <div className="flex items-center gap-1"><PlayCircle className="h-3 w-3" /> {formatNumber(post.views)}</div>
@@ -120,6 +125,7 @@ export function TikTokProfileResults({ profile, posts, error, formatNumber }: { 
                                         </div>
                                     </div>
                                 </Card>
+                                </div>
                             </CarouselItem>
                         ))}
                     </CarouselContent>

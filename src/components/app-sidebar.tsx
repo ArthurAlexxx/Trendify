@@ -18,6 +18,7 @@ import {
   MoreHorizontal,
   Hammer,
   Sparkles,
+  Link2
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -214,6 +215,12 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
                     <Link href="/profile" onClick={handleLinkClick}>
                         <User className="mr-2 h-4 w-4" />
                         <span>Meu Perfil</span>
+                    </Link>
+                </DropdownMenuItem>
+                 <DropdownMenuItem asChild>
+                    <Link href="/profile/integrations" onClick={handleLinkClick}>
+                        <Link2 className="mr-2 h-4 w-4" />
+                        <span>Integrações</span>
                     </Link>
                 </DropdownMenuItem>
                  <DropdownMenuItem asChild>
