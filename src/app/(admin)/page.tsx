@@ -12,7 +12,7 @@ import { Users, Crown, Sparkles, DollarSign } from 'lucide-react';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from '@/components/ui/chart';
 import { Area, AreaChart, CartesianGrid, XAxis } from 'recharts';
 import { useMemo } from 'react';
-import { format, startOfDay } from 'date-fns';
+import { format, startOfDay, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 
@@ -48,7 +48,17 @@ export default function AdminPage() {
   const freeUsers = totalUsers - proUsers - premiumUsers;
   
   const userGrowthData = useMemo(() => {
-    if (!users) return [];
+    if (!users || users.length === 0) {
+        // If there are no users, create a placeholder for the last 7 days with 0 users
+        const today = new Date();
+        return Array.from({ length: 7 }).map((_, i) => {
+            const date = subDays(today, 6 - i);
+            return {
+                date: format(date, 'dd/MM'),
+                users: 0,
+            };
+        });
+    }
 
     const sortedUsers = [...users].sort((a, b) => a.createdAt.toDate().getTime() - b.createdAt.toDate().getTime());
     
