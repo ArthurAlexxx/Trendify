@@ -23,6 +23,7 @@ import {
   MoreHorizontal,
   Trash2,
   CheckCircle,
+  Edit,
 } from 'lucide-react';
 import React, { useState, useMemo, useEffect } from 'react';
 import {
@@ -30,8 +31,8 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
+  DialogClose,
 } from '@/components/ui/dialog';
 import {
   AlertDialog,
@@ -64,6 +65,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Textarea } from '@/components/ui/textarea';
@@ -97,6 +99,7 @@ const formSchema = z.object({
 
 export default function ContentCalendarPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingPost, setEditingPost] = useState<ConteudoAgendado | null>(null);
   const firestore = useFirestore();
   const { user } = useUser();
   const { toast } = useToast();
@@ -112,6 +115,30 @@ export default function ContentCalendarPage() {
       notes: '',
     },
   });
+  
+  // Effect to reset form when modal closes or editing post changes
+  useEffect(() => {
+    if (isModalOpen && editingPost) {
+        form.reset({
+            title: editingPost.title,
+            contentType: editingPost.contentType,
+            date: editingPost.date.toDate(),
+            time: format(editingPost.date.toDate(), 'HH:mm'),
+            status: editingPost.status,
+            notes: editingPost.notes || '',
+        });
+    } else {
+        form.reset({
+            title: '',
+            contentType: 'Reels',
+            date: new Date(),
+            time: format(new Date(), 'HH:mm'),
+            status: 'Agendado',
+            notes: '',
+        });
+    }
+  }, [isModalOpen, editingPost, form]);
+
 
   const scheduledContentQuery = useMemoFirebase(
     () =>
@@ -124,6 +151,7 @@ export default function ContentCalendarPage() {
     useCollection<ConteudoAgendado>(scheduledContentQuery);
 
   const handleNewEventForDay = (day: Date) => {
+    setEditingPost(null);
     form.reset({
       ...form.getValues(),
       date: day,
@@ -135,6 +163,12 @@ export default function ContentCalendarPage() {
     });
     setIsModalOpen(true);
   };
+  
+  const handleEditEvent = (event: ConteudoAgendado) => {
+    setEditingPost(event);
+    setIsModalOpen(true);
+  };
+
 
   const calendarData = useMemo(() => {
     if (!scheduledContent) return [];
@@ -150,12 +184,15 @@ export default function ContentCalendarPage() {
       }
       acc[dayStr].events.push({
         id: item.id,
-        name: item.title,
-        time: format(item.date.toDate(), 'HH:mm'),
-        datetime: item.date.toDate().toISOString(),
+        title: item.title,
+        date: item.date,
         contentType: item.contentType,
         status: item.status,
         notes: item.notes,
+        // For FullScreenCalendar component
+        name: item.title,
+        time: format(item.date.toDate(), 'HH:mm'),
+        datetime: item.date.toDate().toISOString(),
       });
       return acc;
     }, {} as Record<string, { day: Date; events: any[] }>);
@@ -170,27 +207,40 @@ export default function ContentCalendarPage() {
     try {
       const [hours, minutes] = values.time.split(':').map(Number);
       const combinedDateTime = setMinutes(setHours(values.date, hours), minutes);
+      
+      const payload = {
+        title: values.title,
+        contentType: values.contentType,
+        date: combinedDateTime,
+        status: values.status,
+        notes: values.notes,
+        userId: user.uid,
+      }
 
-      await addDoc(
-        collection(firestore, `users/${user.uid}/conteudoAgendado`),
-        {
-          title: values.title,
-          contentType: values.contentType,
-          date: combinedDateTime,
-          status: values.status,
-          notes: values.notes,
-          userId: user.uid,
-          createdAt: serverTimestamp(),
-        }
-      );
-      toast({ title: 'Sucesso!', description: 'Seu post foi agendado.' });
-      form.reset();
+      if (editingPost) {
+        // Update existing document
+        const postRef = doc(firestore, `users/${user.uid}/conteudoAgendado`, editingPost.id);
+        await updateDoc(postRef, payload);
+        toast({ title: 'Sucesso!', description: 'Seu agendamento foi atualizado.' });
+
+      } else {
+        // Create new document
+        await addDoc(
+          collection(firestore, `users/${user.uid}/conteudoAgendado`),
+          { ...payload, createdAt: serverTimestamp() }
+        );
+        toast({ title: 'Sucesso!', description: 'Seu post foi agendado.' });
+      }
+      
+      setEditingPost(null);
       setIsModalOpen(false);
+      form.reset();
+
     } catch (error) {
-      console.error('Error adding document: ', error);
+      console.error('Error saving document: ', error);
       toast({
         title: 'Erro',
-        description: 'Não foi possível agendar o post.',
+        description: `Não foi possível salvar o agendamento.`,
         variant: 'destructive',
       });
     }
@@ -248,6 +298,10 @@ export default function ContentCalendarPage() {
         return 'default';
     }
   };
+  
+  const findFullEventById = (id: string): ConteudoAgendado | undefined => {
+     return scheduledContent?.find(event => event.id === id);
+  }
 
   if (isLoading) {
       return (
@@ -270,7 +324,7 @@ export default function ContentCalendarPage() {
         <DialogContent className="sm:max-w-[480px]">
           <DialogHeader>
             <DialogTitle className="font-headline text-xl">
-              Novo Agendamento
+              {editingPost ? "Editar Agendamento" : "Novo Agendamento"}
             </DialogTitle>
           </DialogHeader>
           <Form {...form}>
@@ -305,6 +359,7 @@ export default function ContentCalendarPage() {
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
+                        value={field.value}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -330,6 +385,7 @@ export default function ContentCalendarPage() {
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
+                        value={field.value}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -420,9 +476,12 @@ export default function ContentCalendarPage() {
                 )}
               />
 
-              <DialogFooter className="pt-4">
-                <Button type="submit" className="w-full">
-                  Agendar
+              <DialogFooter className="pt-4 flex-col sm:flex-row gap-2">
+                <DialogClose asChild>
+                    <Button type="button" variant="outline" className='w-full sm:w-auto'>Cancelar</Button>
+                </DialogClose>
+                <Button type="submit" className="w-full sm:w-auto">
+                   {editingPost ? "Salvar Alterações" : "Agendar Post"}
                 </Button>
               </DialogFooter>
             </form>
@@ -433,7 +492,11 @@ export default function ContentCalendarPage() {
       <FullScreenCalendar
         data={calendarData}
         onNewEvent={handleNewEventForDay}
-        renderEventActions={(event) => (
+        renderEventActions={(event) => {
+            const fullEvent = findFullEventById(event.id as string);
+            if (!fullEvent) return null;
+            
+            return (
              <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -446,6 +509,11 @@ export default function ContentCalendarPage() {
                         <CheckCircle className="mr-2 h-4 w-4" />
                         <span>Marcar como Publicado</span>
                     </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleEditEvent(fullEvent)}>
+                        <Edit className="mr-2 h-4 w-4" />
+                        <span>Editar</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
                     <AlertDialog>
                         <AlertDialogTrigger asChild>
                             <DropdownMenuItem
@@ -465,7 +533,7 @@ export default function ContentCalendarPage() {
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDeletePost(event.id as string)}>
+                                <AlertDialogAction onClick={() => handleDeletePost(event.id as string)} className={cn(buttonVariants({ variant: 'destructive'}))}>
                                     Sim, excluir
                                 </AlertDialogAction>
                             </AlertDialogFooter>
@@ -473,7 +541,7 @@ export default function ContentCalendarPage() {
                     </AlertDialog>
                 </DropdownMenuContent>
             </DropdownMenu>
-        )}
+        )}}
         renderEventBadge={(event) => (
              <Badge variant={getBadgeVariant(event.status)}>{event.status}</Badge>
         )}
@@ -481,3 +549,5 @@ export default function ContentCalendarPage() {
     </div>
   );
 }
+
+    
