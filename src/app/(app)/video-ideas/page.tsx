@@ -44,8 +44,8 @@ import { useEffect, useTransition, useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { generateVideoIdeasAction, GenerateVideoIdeasOutput } from '@/app/(app)/video-ideas/actions';
-import { useCollection, useFirestore, useMemoFirebase, useUser, useDoc } from '@/firebase';
-import { collection, addDoc, serverTimestamp, where, query, orderBy, setDoc, doc, increment } from 'firebase/firestore';
+import { useCollection, useFirestore, useMemoFirebase, useUser, useDoc, onSnapshot } from '@/firebase';
+import { collection, addDoc, serverTimestamp, where, query, orderBy, setDoc, doc, increment, getDoc, updateDoc } from 'firebase/firestore';
 import { SavedIdeasSheet } from '@/components/saved-ideas-sheet';
 import type { DailyUsage, IdeiaSalva } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
@@ -105,13 +105,25 @@ export default function VideoIdeasPage() {
   const { user } = useUser();
   const firestore = useFirestore();
 
-   const { subscription, isTrialActive } = useSubscription();
+  const { subscription, isTrialActive } = useSubscription();
   const todayStr = formatDate(new Date(), 'yyyy-MM-dd');
-  const usageDocRef = useMemoFirebase(() =>
-    user && firestore ? doc(firestore, `users/${user.uid}/dailyUsage`, todayStr) : null
-  , [user, firestore, todayStr]);
-  const { data: dailyUsage } = useDoc<DailyUsage>(usageDocRef);
-  const generationsToday = dailyUsage?.geracoesAI || 0;
+
+  const [usageData, setUsageData] = useState<DailyUsage | null>(null);
+  const [isLoadingUsage, setIsLoadingUsage] = useState(true);
+
+  useEffect(() => {
+    if (!user || !firestore) return;
+    const usageDocRef = doc(firestore, 'usageLogs', `${user.uid}_${todayStr}`);
+    
+    const unsubscribe = onSnapshot(usageDocRef, (doc) => {
+        setUsageData(doc.exists() ? doc.data() as DailyUsage : null);
+        setIsLoadingUsage(false);
+    });
+
+    return () => unsubscribe();
+  }, [user, firestore, todayStr]);
+
+  const generationsToday = usageData?.geracoesAI || 0;
   const hasReachedFreeLimit = isTrialActive && generationsToday >= 2;
 
 
@@ -152,10 +164,22 @@ export default function VideoIdeasPage() {
         variant: 'destructive',
       });
     }
-     if (result && usageDocRef) {
-      setDoc(usageDocRef, { geracoesAI: increment(1) }, { merge: true });
+     if (result && user && firestore) {
+      const usageDocRef = doc(firestore, 'usageLogs', `${user.uid}_${todayStr}`);
+      getDoc(usageDocRef).then(docSnap => {
+          if (docSnap.exists()) {
+              updateDoc(usageDocRef, { geracoesAI: increment(1) });
+          } else {
+              setDoc(usageDocRef, {
+                  userId: user.uid,
+                  date: todayStr,
+                  geracoesAI: 1,
+                  videoAnalyses: 0,
+              });
+          }
+      });
     }
-  }, [state, result, usageDocRef, toast]);
+  }, [state, result, firestore, user, todayStr, toast]);
 
   const handleSave = (data: GenerateVideoIdeasOutput) => {
     if (!user || !firestore) {
@@ -344,7 +368,7 @@ export default function VideoIdeasPage() {
                 </Button>
                   {isFreePlan && (
                   <p className="text-sm text-muted-foreground text-center sm:text-left">
-                    {hasReachedFreeLimit 
+                    {isLoadingUsage ? <Skeleton className="h-4 w-32" /> : hasReachedFreeLimit 
                       ? 'Você atingiu seu limite de gerações gratuitas por hoje.'
                       : `Gerações restantes hoje: ${2 - generationsToday}/2.`
                     }
@@ -547,3 +571,5 @@ function InfoListCard({
     </Card>
   );
 }
+
+    

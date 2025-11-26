@@ -41,8 +41,8 @@ import { useEffect, useTransition, useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { generatePubliProposalsAction, GeneratePubliProposalsOutput } from '@/app/(app)/publis-assistant/actions';
-import { useFirestore, useUser, useDoc, useMemoFirebase } from '@/firebase';
-import { collection, addDoc, serverTimestamp, doc, setDoc, increment } from 'firebase/firestore';
+import { useFirestore, useUser, useDoc, useMemoFirebase, onSnapshot } from '@/firebase';
+import { collection, addDoc, serverTimestamp, doc, setDoc, increment, getDoc, updateDoc } from 'firebase/firestore';
 import { SavedIdeasSheet } from '@/components/saved-ideas-sheet';
 import {
   Accordion,
@@ -158,11 +158,23 @@ function PublisAssistantPageContent() {
 
   const { subscription, isTrialActive } = useSubscription();
   const todayStr = formatDate(new Date(), 'yyyy-MM-dd');
-  const usageDocRef = useMemoFirebase(() =>
-    user && firestore ? doc(firestore, `users/${user.uid}/dailyUsage`, todayStr) : null
-  , [user, firestore, todayStr]);
-  const { data: dailyUsage } = useDoc<DailyUsage>(usageDocRef);
-  const generationsToday = dailyUsage?.geracoesAI || 0;
+  
+  const [usageData, setUsageData] = useState<DailyUsage | null>(null);
+  const [isLoadingUsage, setIsLoadingUsage] = useState(true);
+
+  useEffect(() => {
+    if (!user || !firestore) return;
+    const usageDocRef = doc(firestore, 'usageLogs', `${user.uid}_${todayStr}`);
+    
+    const unsubscribe = onSnapshot(usageDocRef, (doc) => {
+        setUsageData(doc.exists() ? doc.data() as DailyUsage : null);
+        setIsLoadingUsage(false);
+    });
+
+    return () => unsubscribe();
+  }, [user, firestore, todayStr]);
+
+  const generationsToday = usageData?.geracoesAI || 0;
   const hasReachedFreeLimit = isTrialActive && generationsToday >= 2;
 
 
@@ -194,10 +206,22 @@ function PublisAssistantPageContent() {
         variant: 'destructive',
       });
     }
-     if (result && usageDocRef) {
-      setDoc(usageDocRef, { geracoesAI: increment(1) }, { merge: true });
+     if (result && user && firestore) {
+      const usageDocRef = doc(firestore, 'usageLogs', `${user.uid}_${todayStr}`);
+      getDoc(usageDocRef).then(docSnap => {
+          if (docSnap.exists()) {
+              updateDoc(usageDocRef, { geracoesAI: increment(1) });
+          } else {
+              setDoc(usageDocRef, {
+                  userId: user.uid,
+                  date: todayStr,
+                  geracoesAI: 1,
+                  videoAnalyses: 0,
+              });
+          }
+      });
     }
-  }, [state, result, toast, usageDocRef]);
+  }, [state, result, toast, user, firestore, todayStr]);
 
   const handleSave = (data: GeneratePubliProposalsOutput) => {
     if (!user || !firestore) {
@@ -542,3 +566,5 @@ function InfoListCard({
     </Card>
   );
 }
+
+    

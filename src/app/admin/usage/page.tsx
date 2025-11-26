@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { DailyUsage, UserProfile } from '@/lib/types';
-import { collection, collectionGroup, orderBy, query, limit, getDoc, doc } from 'firebase/firestore';
+import { collection, orderBy, query, limit, getDoc, doc } from 'firebase/firestore';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -17,7 +17,6 @@ import { useAdmin } from '@/hooks/useAdmin';
 
 interface EnrichedUsage extends DailyUsage {
   user?: UserProfile;
-  dateStr: string;
 }
 
 export default function UsageAdminPage() {
@@ -26,12 +25,12 @@ export default function UsageAdminPage() {
   const [enrichedUsage, setEnrichedUsage] = useState<EnrichedUsage[]>([]);
   const [isEnriching, setIsEnriching] = useState(true);
 
-  // 1. Fetch all usage documents using a collectionGroup query, only if user is an admin
+  // 1. Fetch all usage documents from the root collection, only if user is an admin
   const usageQuery = useMemoFirebase(
-    () => firestore && isAdmin ? query(collectionGroup(firestore, 'dailyUsage'), orderBy('date', 'desc'), limit(50)) : null,
+    () => firestore && isAdmin ? query(collection(firestore, 'usageLogs'), orderBy('date', 'desc'), limit(50)) : null,
     [firestore, isAdmin]
   );
-  const { data: usageData, isLoading: isLoadingUsage, error } = useCollection<DailyUsage>(usageQuery);
+  const { data: usageData, isLoading: isLoadingUsage } = useCollection<DailyUsage>(usageQuery);
   
   // 2. Enrich usage data with user profiles
   useEffect(() => {
@@ -54,29 +53,26 @@ export default function UsageAdminPage() {
       const userCache = new Map<string, UserProfile>();
 
       for (const usage of usageData) {
-        const pathSegments = usage.ref.path.split('/');
-        const realUserId = pathSegments[pathSegments.length - 3]; 
+        const userId = usage.userId;
+        if (!userId) continue;
 
-        if (!realUserId) continue;
-
-        let userProfile: UserProfile | undefined = userCache.get(realUserId);
+        let userProfile: UserProfile | undefined = userCache.get(userId);
 
         if (!userProfile) {
           try {
-            const userDoc = await getDoc(doc(firestore, 'users', realUserId));
+            const userDoc = await getDoc(doc(firestore, 'users', userId));
             if (userDoc.exists()) {
               userProfile = { id: userDoc.id, ...userDoc.data() } as UserProfile;
-              userCache.set(realUserId, userProfile);
+              userCache.set(userId, userProfile);
             }
           } catch (e) {
-            console.error(`Failed to fetch user profile ${realUserId}`, e);
+            console.error(`Failed to fetch user profile ${userId}`, e);
           }
         }
         
         enriched.push({
             ...usage,
             user: userProfile,
-            dateStr: usage.id
         });
       }
       setEnrichedUsage(enriched);
@@ -153,7 +149,7 @@ export default function UsageAdminPage() {
                 </TableHeader>
                 <TableBody>
                     {enrichedUsage.length > 0 ? enrichedUsage.map((usage) => (
-                    <TableRow key={`${usage.user?.id}-${usage.dateStr}`}>
+                    <TableRow key={usage.id}>
                        <TableCell>
                           {usage.user ? (
                              <div className="flex items-center gap-3">
@@ -171,7 +167,7 @@ export default function UsageAdminPage() {
                           )}
                         </TableCell>
                         <TableCell>
-                         {format(parseISO(usage.dateStr), "dd/MM/yyyy", { locale: ptBR })}
+                         {format(parseISO(usage.date), "dd/MM/yyyy", { locale: ptBR })}
                         </TableCell>
                         <TableCell>
                           {usage.videoAnalyses || 0}
@@ -198,3 +194,5 @@ export default function UsageAdminPage() {
     </div>
   );
 }
+
+    

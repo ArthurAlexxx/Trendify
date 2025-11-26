@@ -201,6 +201,10 @@
       "description": "Tracks daily usage of features for a user.",
       "type": "object",
       "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The ID of the user who performed the action."
+        },
         "date": {
           "type": "string",
           "format": "date",
@@ -215,7 +219,7 @@
           "description": "Number of general AI generations (video ideas, plans, etc.) on this date."
         }
       },
-      "required": ["date"]
+      "required": ["userId", "date"]
     },
     "PontoDadosGrafico": {
       "title": "Ponto de Dados do Gráfico",
@@ -319,14 +323,13 @@
       "schema": { "$ref": "#/entities/WebhookLog" },
       "description": "Logs all incoming webhook events from the payment gateway."
     },
+    "/usageLogs/{usageId}": {
+        "schema": { "$ref": "#/entities/DailyUsage" },
+        "description": "Tracks daily usage of features for all users. The document ID can be a composite of userId and date."
+    },
     "/users/{userId}/metricSnapshots/{snapshotId}": {
         "schema": { "$ref": "#/entities/MetricSnapshot" },
         "description": "Stores daily metric snapshots for a user, per platform."
-    },
-    "/users/{userId}/dailyUsage/{usageId}": {
-        "schema": { "$ref": "#/entities/DailyUsage" },
-        "description": "Tracks daily usage of features for a specific user. The document ID is the date in YYYY-MM-DD format.",
-        "isCollectionGroup": true
     },
     "/users/{userId}/ideiasSalvas/{ideiaId}": {
       "schema": { "$ref": "#/entities/IdeiaSalva" },
@@ -346,3 +349,5 @@
     }
   }
 }
+
+    

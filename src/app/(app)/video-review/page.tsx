@@ -40,7 +40,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from "@/firebase";
-import { collection, addDoc, serverTimestamp, doc, setDoc, increment, query, orderBy, limit } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, doc, setDoc, increment, query, orderBy, limit, getDoc, updateDoc } from "firebase/firestore";
 import { useTransition } from "react";
 import { Separator } from "@/components/ui/separator";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -131,13 +131,24 @@ function VideoReviewPageContent() {
   const uniqueId = useId();
   
   const todayStr = formatDate(new Date(), 'yyyy-MM-dd');
-  const usageDocRef = useMemoFirebase(() =>
-    user && firestore ? doc(firestore, `users/${user.uid}/dailyUsage`, todayStr) : null
-  , [user, firestore, todayStr]);
   
-  const { data: dailyUsage } = useDoc<DailyUsage>(usageDocRef);
+  const [usageData, setUsageData] = useState<DailyUsage | null>(null);
+  const [isLoadingUsage, setIsLoadingUsage] = useState(true);
+
+  useEffect(() => {
+    if (!user || !firestore) return;
+    const usageDocRef = doc(firestore, 'usageLogs', `${user.uid}_${todayStr}`);
+    
+    const unsubscribe = onSnapshot(usageDocRef, (doc) => {
+        setUsageData(doc.exists() ? doc.data() as DailyUsage : null);
+        setIsLoadingUsage(false);
+    });
+
+    return () => unsubscribe();
+  }, [user, firestore, todayStr]);
+
   
-  const analysesDoneToday = dailyUsage?.videoAnalyses || 0;
+  const analysesDoneToday = usageData?.videoAnalyses || 0;
   const currentPlan = subscription?.plan || 'free';
   const limitCount = currentPlan === 'free' ? 1 : PLAN_LIMITS[currentPlan];
   const analysesLeft = Math.max(0, limitCount - analysesDoneToday);
@@ -227,8 +238,8 @@ function VideoReviewPageContent() {
       toast({ title: "Limite diário atingido", variant: "destructive" });
       return;
     }
-    if (!user) {
-      toast({ title: "Usuário não autenticado", variant: "destructive" });
+    if (!user || !firestore) {
+      toast({ title: "Usuário não autenticado ou serviço indisponível", variant: "destructive" });
       return;
     }
 
@@ -273,18 +284,28 @@ function VideoReviewPageContent() {
             setAnalysisResult(result.data);
             setAnalysisStatus("success");
 
-            if (usageDocRef) {
-              await setDoc(usageDocRef, { videoAnalyses: increment(1) }, { merge: true });
+            // Update usage log
+            const usageDocRef = doc(firestore, 'usageLogs', `${user.uid}_${todayStr}`);
+            const usageDocSnap = await getDoc(usageDocRef);
+            if(usageDocSnap.exists()){
+                await updateDoc(usageDocRef, { videoAnalyses: increment(1) });
+            } else {
+                await setDoc(usageDocRef, {
+                    userId: user.uid,
+                    date: todayStr,
+                    videoAnalyses: 1,
+                    geracoesAI: 0,
+                });
             }
-            if (user && firestore) {
-              await addDoc(collection(firestore, `users/${user.uid}/analisesVideo`), {
+
+            // Save analysis result
+            await addDoc(collection(firestore, `users/${user.uid}/analisesVideo`), {
                 userId: user.uid,
                 videoUrl: downloadURL,
                 videoFileName: file.name,
                 analysisData: result.data,
                 createdAt: serverTimestamp(),
-              });
-            }
+            });
 
             toast({
               title: "Análise Concluída",
@@ -433,7 +454,10 @@ function VideoReviewPageContent() {
         
         <div className="text-center">
             <p className="text-sm text-muted-foreground">
+                {isLoadingUsage ? <Skeleton className="h-4 w-48 inline-block" /> : 
+                <>
                 Análises de vídeo restantes hoje: <span className="font-bold text-primary">{analysesLeft} de {limitCount}</span>
+                </>}
             </p>
              {hasReachedLimit && currentPlan !== 'free' && (
                 <p className="text-xs text-muted-foreground">
@@ -642,3 +666,5 @@ function VideoReviewPageContent() {
     </div>
   );
 }
+
+    
