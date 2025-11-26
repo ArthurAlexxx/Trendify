@@ -190,7 +190,7 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
                         </div>
                     ) : (
                         <div className="flex items-center gap-3 w-full">
-                            <Avatar className="h-10 w-10 border-2 border-primary">
+                            <Avatar className="h-10 w-10">
                             <AvatarImage src={user?.photoURL ?? undefined} alt="User avatar" />
                             <AvatarFallback>{user?.displayName?.[0] || user?.email?.[0]}</AvatarFallback>
                             </Avatar>
