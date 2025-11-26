@@ -35,7 +35,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useSubscription } from '@/hooks/useSubscription';
 import Link from 'next/link';
 import { InstagramProfileResults, TikTokProfileResults } from '@/components/dashboard/platform-results';
-import { isToday } from 'date-fns';
+import { initializeFirebase } from '@/firebase';
 
 
 const profileFormSchema = z.object({
@@ -144,9 +144,9 @@ export default function ProfilePage() {
     
     startSavingTransition(async () => {
       try {
-        const dataToSave: Partial<UserProfile> = {
+        const dataToSave: Partial<Omit<UserProfile, 'id' | 'createdAt'>> = {
             displayName: values.displayName,
-            photoURL: values.photoURL || null,
+            photoURL: values.photoURL,
             niche: values.niche,
             bio: values.bio,
             audience: values.audience,
@@ -165,9 +165,8 @@ export default function ProfilePage() {
         // Firestore does not accept 'undefined' values.
         Object.keys(dataToSave).forEach(key => {
             const k = key as keyof typeof dataToSave;
-            const dataToSaveAsAny = dataToSave as any;
-            if (dataToSaveAsAny[k] === undefined) {
-                dataToSaveAsAny[k] = null;
+            if (dataToSave[k] === undefined) {
+                (dataToSave as any)[k] = null;
             }
         });
 
@@ -279,7 +278,6 @@ export default function ProfilePage() {
         form.setValue('instagramAverageLikes', formatNumber(Math.round(averageLikes)));
         form.setValue('instagramAverageComments', formatNumber(Math.round(averageComments)));
         
-        // This will trigger a save with the new data
         if (user && userProfileRef) {
           const values = form.getValues();
           const dataToSave: Partial<UserProfile> = {
@@ -293,18 +291,12 @@ export default function ProfilePage() {
              instagramAverageViews: values.instagramAverageViews,
              instagramAverageLikes: values.instagramAverageLikes,
              instagramAverageComments: values.instagramAverageComments,
-             tiktokHandle: values.tiktokHandle,
-             tiktokFollowers: values.tiktokFollowers,
-             tiktokAverageViews: values.tiktokAverageViews,
-             tiktokAverageLikes: values.tiktokAverageLikes,
-             tiktokAverageComments: values.tiktokAverageComments,
              lastInstagramSync: serverTimestamp() as any,
           };
            Object.keys(dataToSave).forEach(key => {
             const k = key as keyof typeof dataToSave;
-            const dataToSaveAsAny = dataToSave as any;
-            if (dataToSaveAsAny[k] === undefined) {
-                dataToSaveAsAny[k] = null;
+            if (dataToSave[k] === undefined) {
+                (dataToSave as any)[k] = null;
             }
           });
           await updateDoc(userProfileRef, dataToSave);
@@ -351,7 +343,7 @@ export default function ProfilePage() {
         form.setValue('photoURL', form.getValues('photoURL') || profileResult.avatarUrl);
         form.setValue('tiktokFollowers', formatNumber(profileResult.followersCount));
         form.setValue('tiktokAverageLikes', formatNumber(Math.round(averageLikes)));
-        form.setValue('tiktokAverageComments', formatNumber(Math.round(averageComments)));
+        formsetValue('tiktokAverageComments', formatNumber(Math.round(averageComments)));
         form.setValue('tiktokAverageViews', formatNumber(Math.round(averageViews)));
        
         if (user && userProfileRef) {
@@ -362,11 +354,6 @@ export default function ProfilePage() {
              niche: values.niche,
              bio: values.bio,
              audience: values.audience,
-             instagramHandle: values.instagramHandle,
-             instagramFollowers: values.tiktokFollowers,
-             instagramAverageViews: values.instagramAverageViews,
-             instagramAverageLikes: values.instagramAverageLikes,
-             instagramAverageComments: values.instagramAverageComments,
              tiktokHandle: values.tiktokHandle,
              tiktokFollowers: values.tiktokFollowers,
              tiktokAverageViews: values.tiktokAverageViews,
@@ -375,29 +362,21 @@ export default function ProfilePage() {
              lastTikTokSync: serverTimestamp() as any,
           };
            Object.keys(dataToSave).forEach(key => {
-            const k = key as keyof typeof dataToSave;
-            const dataToSaveAsAny = dataToSave as any;
-            if (dataToSaveAsAny[k] === undefined) {
-                dataToSaveAsAny[k] = null;
+            const k = keyof typeof dataToSave;
+            if (dataToSave[k] === undefined) {
+                (dataToSave as any)[k] = null;
             }
           });
           await updateDoc(userProfileRef, dataToSave);
         }
         setTiktokStatus('success');
 
-    } catch (e: any) => {
+    } catch (e: any) {
       setTiktokError(e.message || 'Ocorreu um erro desconhecido.');
       setTiktokStatus('error');
     }
   };
 
-  const hasSyncedToday = (lastSync: any) => {
-    if (!lastSync) return false;
-    return isToday(lastSync.toDate());
-  };
-
-  const isInstaSyncedToday = hasSyncedToday(userProfile?.lastInstagramSync);
-  const isTiktokSyncedToday = hasSyncedToday(userProfile?.lastTikTokSync);
 
   const isLoading = isProfileLoading || isSubscriptionLoading;
 
@@ -620,7 +599,7 @@ export default function ProfilePage() {
                                         disabled={instaStatus === 'loading' || !form.watch('instagramHandle')}
                                         className="w-full sm:w-auto"
                                     >
-                                        {isInstaSyncedToday ? <><Check className="mr-2 h-4 w-4" />Sincronizado Hoje</> :
+                                        {
                                          instaStatus === 'loading' ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Buscando...</> :
                                          userProfile?.instagramHandle ? <><RefreshCw className="mr-2 h-4 w-4" />Sincronizar Dados</> : 
                                          <><Search className="mr-2 h-4 w-4" />Buscar Dados</>}
@@ -667,7 +646,7 @@ export default function ProfilePage() {
                                         disabled={tiktokStatus === 'loading' || !form.watch('tiktokHandle')}
                                         className="w-full sm:w-auto"
                                     >
-                                        {isTiktokSyncedToday ? <><Check className="mr-2 h-4 w-4" />Sincronizado Hoje</> :
+                                        {
                                          tiktokStatus === 'loading' ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Buscando...</> :
                                          userProfile?.tiktokHandle ? <><RefreshCw className="mr-2 h-4 w-4" />Sincronizar Dados</> : 
                                          <><Search className="mr-2 h-4 w-4" />Buscar Dados</>}
@@ -717,3 +696,5 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+    
