@@ -52,19 +52,19 @@ export function useSubscription(): UseSubscriptionResult {
   const accountCreationDate = userProfile?.createdAt?.toDate() || new Date(user.metadata.creationTime || Date.now());
   const daysSinceCreation = differenceInDays(new Date(), accountCreationDate);
   
-  const hasPaidPlan = userProfile?.subscription?.plan && userProfile.subscription.plan !== 'free';
+  const hasPaidPlan = userProfile?.subscription?.plan && userProfile.subscription.plan !== 'free' && userProfile.subscription.status === 'active';
 
   const isStillInTrialPeriod = daysSinceCreation < TRIAL_PERIOD_DAYS;
   const isTrialActive = !hasPaidPlan && isStillInTrialPeriod;
 
   const trialDaysLeft = Math.max(0, TRIAL_PERIOD_DAYS - daysSinceCreation);
 
-
   const finalPlan: Plan = isTrialActive ? 'pro' : (userProfile?.subscription?.plan || 'free');
+  const finalStatus: SubscriptionStatus = isTrialActive ? 'active' : (userProfile?.subscription?.status || 'inactive');
 
   return {
     subscription: {
-      status: userProfile?.subscription?.status || 'inactive',
+      status: finalStatus,
       plan: finalPlan,
       expiresAt: userProfile?.subscription?.expiresAt || undefined,
     },
