@@ -71,6 +71,7 @@ async function ensureUserProfile(firestore: Firestore, user: User) {
             email,
             photoURL,
             createdAt: serverTimestamp(),
+            role: 'user', // Default role for new users
             subscription: {
                 status: 'inactive',
                 plan: 'free',
@@ -132,8 +133,10 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     // Separately, handle the result from a Google Sign-In redirect.
     // This runs once after a redirect and lets onAuthStateChanged handle the final state.
     getRedirectResult(auth).catch((error) => {
-      console.error("FirebaseProvider: Google redirect result error:", error);
-      toast({ title: 'Erro no Login', description: 'Não foi possível completar o login com Google.', variant: 'destructive' });
+      if (error.code !== 'auth/no-redirect-operation') {
+        console.error("FirebaseProvider: Google redirect result error:", error);
+        toast({ title: 'Erro no Login', description: 'Não foi possível completar o login com Google.', variant: 'destructive' });
+      }
     });
 
     return () => unsubscribe(); // Cleanup subscription on unmount

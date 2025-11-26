@@ -18,7 +18,8 @@ import {
   MoreHorizontal,
   Hammer,
   Sparkles,
-  Link2
+  Link2,
+  Shield,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -34,6 +35,7 @@ import { Plan } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Separator } from './ui/separator';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useAdmin } from '@/hooks/useAdmin';
 
 const menuItems: {
   category: string;
@@ -75,6 +77,7 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
   const auth = useAuth();
   const router = useRouter();
   const { subscription, isLoading: isSubscriptionLoading } = useSubscription();
+  const { isAdmin, isLoading: isAdminLoading } = useAdmin();
 
   const handleSignOut = () => {
     auth.signOut();
@@ -92,6 +95,7 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
 
   const getPlanName = () => {
     if (!subscription || isSubscriptionLoading) return "Carregando...";
+    if (isAdmin) return "Admin";
     if (!isUserActive && userPlan === 'free') return "Fazer Upgrade";
     if (userPlan === 'premium') return 'Premium';
     if (userPlan === 'pro') return 'Pro';
@@ -99,6 +103,7 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
   }
   
   const getPlanIcon = () => {
+    if (isAdmin) return <Shield className="h-5 w-5" />;
     if (!subscription || isSubscriptionLoading) return <Skeleton className="h-5 w-5 rounded-full" />;
     if (isUserActive && (userPlan === 'pro' || userPlan === 'premium')) return <Sparkles className="h-5 w-5" />;
     return <Crown className="h-5 w-5" />;
@@ -125,12 +130,12 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
 
       <nav className="flex-1 px-4 py-4">
         <div className='relative'>
-             <Link href="/subscribe" onClick={handleLinkClick} className="block w-full text-left p-4 rounded-xl bg-gradient-to-br from-primary via-purple-500 to-violet-600 text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-shadow">
+             <Link href={isAdmin ? "/admin" : "/subscribe"} onClick={handleLinkClick} className="block w-full text-left p-4 rounded-xl bg-gradient-to-br from-primary via-purple-500 to-violet-600 text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-shadow">
                 <div className='flex items-center gap-3'>
                     {getPlanIcon()}
                     <div className='flex flex-col'>
                         {isSubscriptionLoading ? <Skeleton className="h-5 w-20" /> : <span className='font-semibold text-lg leading-tight'>{getPlanName()}</span>}
-                        <span className='text-sm opacity-80'>Gerenciar assinatura</span>
+                        <span className='text-sm opacity-80'>{isAdmin ? "Painel de Controle" : "Gerenciar assinatura"}</span>
                     </div>
                 </div>
             </Link>
@@ -145,7 +150,7 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
                <ul className="space-y-1">
                  {group.items.map(item => {
                    const isActive = pathname === item.href;
-                   const canAccess = hasAccess(userPlan, item.plan);
+                   const canAccess = isAdmin || hasAccess(userPlan, item.plan);
 
                    const content = (
                       <div className={cn(
@@ -176,6 +181,30 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
                </ul>
             </div>
           ))}
+
+          {isAdmin && (
+            <div className='px-2'>
+              <h3 className="text-xs font-semibold text-muted-foreground tracking-wider uppercase mb-2">
+                Admin
+              </h3>
+              <ul className="space-y-1">
+                <li>
+                  <Link href="/admin" onClick={handleLinkClick}>
+                     <div className={cn(
+                        "flex items-center gap-3 p-3 rounded-lg transition-colors text-sm",
+                        pathname.startsWith('/admin')
+                            ? "bg-primary/10 text-primary font-semibold" 
+                            : "text-foreground/70 hover:bg-muted hover:text-foreground"
+                      )}>
+                        <Shield className="h-5 w-5" />
+                        <span>Gerenciamento</span>
+                      </div>
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          )}
+
         </div>
       </nav>
       
@@ -240,5 +269,3 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
     </aside>
   );
 }
-
-    

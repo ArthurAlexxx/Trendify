@@ -2,6 +2,7 @@
 import type { Timestamp } from 'firebase/firestore';
 
 export type Plan = 'pro' | 'free' | 'premium';
+export type UserRole = 'admin' | 'user';
 
 export interface UserProfile {
   id: string;
@@ -9,6 +10,7 @@ export interface UserProfile {
   email: string;
   photoURL?: string | null;
   createdAt: Timestamp;
+  role?: UserRole;
   niche?: string;
   bio?: string;
   audience?: string;

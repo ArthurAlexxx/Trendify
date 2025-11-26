@@ -25,6 +25,11 @@
           "format": "date-time",
           "description": "The timestamp when the user profile was created."
         },
+        "role": {
+          "type": "string",
+          "enum": ["admin", "user"],
+          "description": "The user's role in the system. Defaults to 'user'."
+        },
         "niche": {
             "type": "string",
             "description": "The creator's content niche (e.g., 'Lifestyle and sustainable fashion')."
@@ -271,6 +276,10 @@
     "/users/{userId}": {
       "schema": { "$ref": "#/entities/UserProfile" },
       "description": "Stores user profile data."
+    },
+    "/admins/{userId}": {
+      "schema": { "type": "object" },
+      "description": "A collection to grant admin privileges. If a user's UID exists as a document ID here, they are an admin."
     },
     "/users/{userId}/metricSnapshots/{snapshotId}": {
         "schema": { "$ref": "#/entities/MetricSnapshot" },
