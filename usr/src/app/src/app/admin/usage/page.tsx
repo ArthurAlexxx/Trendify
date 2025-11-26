@@ -25,14 +25,12 @@ export default function UsageAdminPage() {
   const [enrichedUsage, setEnrichedUsage] = useState<EnrichedUsage[]>([]);
   const [isEnriching, setIsEnriching] = useState(true);
 
-  // 1. Fetch all usage documents from the root collection, only if user is an admin
   const usageQuery = useMemoFirebase(
     () => firestore && isAdmin ? query(collection(firestore, 'usageLogs'), orderBy('date', 'desc'), limit(50)) : null,
     [firestore, isAdmin]
   );
   const { data: usageData, isLoading: isLoadingUsage } = useCollection<DailyUsage>(usageQuery);
   
-  // 2. Enrich usage data with user profiles
   useEffect(() => {
     if (!isAdmin || isLoadingUsage || !firestore) {
       if (!isAdmin && !isAdminLoading) {
@@ -53,7 +51,8 @@ export default function UsageAdminPage() {
       const userCache = new Map<string, UserProfile>();
 
       for (const usage of usageData) {
-        const userId = usage.userId;
+        // The document ID is now a composite: 'userId_YYYY-MM-DD'. Extract the userId.
+        const userId = usage.id.split('_')[0];
         if (!userId) continue;
 
         let userProfile: UserProfile | undefined = userCache.get(userId);

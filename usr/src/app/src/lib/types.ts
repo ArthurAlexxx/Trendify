@@ -48,7 +48,6 @@ export interface WebhookLog {
 
 export interface DailyUsage {
   id: string;
-  userId: string;
   date: string; // YYYY-MM-DD
   videoAnalyses: number;
   geracoesAI: number;
