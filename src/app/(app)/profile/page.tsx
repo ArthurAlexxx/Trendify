@@ -35,7 +35,7 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useSubscription } from '@/hooks/useSubscription';
 import Link from 'next/link';
-import { InstagramProfileResults, TikTokProfileResults } from '../dashboard/page';
+import { InstagramProfileResults, TikTokProfileResults } from '@/components/dashboard/platform-results';
 import { isToday } from 'date-fns';
 
 
@@ -663,15 +663,4 @@ export default function ProfilePage() {
   );
 }
 
-
-function MetricCard({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value: string | number }) {
-  return (
-    <Card className='text-center p-4 bg-muted/50 border-border/50'>
-        <div className="flex justify-center items-center h-12 w-12 rounded-full bg-primary/10 text-primary mx-auto mb-3">
-          <Icon className="h-6 w-6" />
-        </div>
-      <p className="text-2xl font-bold font-headline">{value}</p>
-      <p className="text-xs text-muted-foreground">{label}</p>
-    </Card>
-  )
-}
+    
