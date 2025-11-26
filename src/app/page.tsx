@@ -63,6 +63,7 @@ import {
 import { AnimatedHero } from '@/components/ui/animated-hero';
 import { useScroll } from '@/hooks/use-scroll';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Separator } from '@/components/ui/separator';
 
 
 const features = [
@@ -320,39 +321,40 @@ export default function LandingPage() {
                             <Menu className="h-5 w-5" />
                         </Button>
                     </SheetTrigger>
-                    <SheetContent side="left">
-                        <SheetHeader className="text-center">
-                            <SheetTitle>
-                                <WordmarkIcon onClick={() => setIsMenuOpen(false)}/>
-                            </SheetTitle>
-                        </SheetHeader>
-                        <div className="py-4 flex flex-col h-full">
-                           <div className="grid gap-y-2">
-                                {navLinks.map((link) => (
-                                    <a
-                                        key={link.href}
-                                        className={buttonVariants({
-                                            variant: 'ghost',
-                                            className: 'text-lg h-12',
-                                        })}
-                                        href={link.href}
-                                        onClick={() => setIsMenuOpen(false)}
-                                    >
-                                        {link.text}
-                                    </a>
-                                ))}
+                    <SheetContent side="left" className="p-0">
+                        <div className="flex flex-col h-full">
+                            <div className="flex items-center gap-2 px-6 h-20 border-b">
+                                 <WordmarkIcon onClick={() => setIsMenuOpen(false)}/>
                             </div>
-                            <div className="flex flex-col gap-2 mt-auto">
+                            <nav className="flex-1 px-4 py-4">
+                                <ul className="space-y-1">
+                                    {navLinks.map((link) => (
+                                       <li key={link.href}>
+                                        <a
+                                            className={cn(buttonVariants({
+                                                variant: 'ghost',
+                                            }), 'w-full justify-start h-12 text-base')}
+                                            href={link.href}
+                                            onClick={() => setIsMenuOpen(false)}
+                                        >
+                                            {link.text}
+                                        </a>
+                                       </li>
+                                    ))}
+                                </ul>
+                            </nav>
+                           
+                            <div className="mt-auto p-4 border-t space-y-2">
                             {user ? (
-                                <Button asChild variant="ghost" size="lg" className="w-full text-lg h-12">
-                                    <Link href="/dashboard" onClick={() => setIsMenuOpen(false)}>Painel</Link>
+                                <Button asChild variant="secondary" size="lg" className="w-full text-base h-12 font-semibold">
+                                    <Link href="/dashboard" onClick={() => setIsMenuOpen(false)}>Acessar Painel</Link>
                                 </Button>
                             ) : (
                             <>
-                              <Button asChild variant="ghost" size="lg" className="w-full text-lg h-12">
+                              <Button asChild variant="secondary" size="lg" className="w-full text-base h-12 font-semibold">
                                 <Link href="/login" onClick={() => setIsMenuOpen(false)}>Entrar</Link>
                               </Button>
-                              <Button asChild size="lg" className="w-full">
+                              <Button asChild size="lg" className="w-full text-base h-12 font-semibold">
                                 <Link href="/sign-up" onClick={() => setIsMenuOpen(false)}>Começar Grátis</Link>
                               </Button>
                             </>
