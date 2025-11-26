@@ -1,4 +1,3 @@
-
 'use client';
 
 import { AppSidebar } from '@/components/app-sidebar';
@@ -14,14 +13,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    // Only redirect if loading is complete and there is definitively no user.
     if (!isUserLoading && !user) {
       router.push('/login');
     }
   }, [user, isUserLoading, router]);
 
-  // While loading, or if there's no user yet (and not finished loading), show a loader.
-  // This prevents a flash of the login page or protected content.
   if (isUserLoading || !user) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
@@ -30,21 +26,20 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Once loading is complete and we have a user, render the app layout.
   return (
     <div className="flex min-h-screen w-full flex-col bg-background">
       <AppSidebar />
       <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14 md:pl-64">
-        <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 md:hidden">
+         <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 md:hidden">
           <Sheet>
             <SheetTrigger asChild>
-              <Button size="icon" variant="outline" className="sm:hidden">
+              <Button size="icon" variant="outline">
                 <PanelLeft className="h-5 w-5" />
                 <span className="sr-only">Toggle Menu</span>
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="sm:max-w-xs p-0">
-              <AppSidebar />
+               <AppSidebar isMobile />
             </SheetContent>
           </Sheet>
         </header>

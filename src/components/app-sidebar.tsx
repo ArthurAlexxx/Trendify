@@ -68,7 +68,7 @@ const hasAccess = (userPlan: Plan, itemPlan: Plan): boolean => {
     return planHierarchy[userPlan] >= planHierarchy[itemPlan];
 }
 
-export function AppSidebar() {
+export function AppSidebar({ isMobile = false }: { isMobile?: boolean }) {
   const pathname = usePathname();
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
@@ -94,9 +94,13 @@ export function AppSidebar() {
     if (isUserActive && (userPlan === 'pro' || userPlan === 'premium')) return <Sparkles className="h-5 w-5" />;
     return <Crown className="h-5 w-5" />;
   }
+  
+  const sidebarClass = isMobile 
+    ? "h-screen w-full flex flex-col" 
+    : "h-screen w-64 flex-col fixed inset-y-0 z-50 bg-card border-r hidden md:flex";
 
   return (
-     <aside className="h-screen w-64 flex-col fixed inset-y-0 z-50 bg-card border-r hidden md:flex">
+     <aside className={sidebarClass}>
       <div className="flex items-center gap-2 px-6 h-20 border-b">
          <Link
             href="/"
@@ -194,7 +198,7 @@ export function AppSidebar() {
                     )}
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent side="right" align="end" className="w-56 mb-2">
+            <DropdownMenuContent side="top" align="start" className="w-56 mb-2">
                 <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
