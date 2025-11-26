@@ -8,14 +8,11 @@ import { useEffect, useState } from 'react';
 import { Loader2, PanelLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { useAdmin } from '@/hooks/useAdmin';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, isUserLoading } = useUser();
-  const { isAdmin, isLoading: isAdminLoading } = useAdmin();
   const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
 
   useEffect(() => {
     // If loading is finished and there's no user, redirect to login.
@@ -23,15 +20,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       router.push('/login');
     }
   }, [user, isUserLoading, router]);
-
-  useEffect(() => {
-    // If the user is an admin, their main page is /admin, not /dashboard.
-    // This is checked only when loading is done.
-    if (!isAdminLoading && isAdmin) {
-      router.replace('/admin');
-    }
-  }, [isAdmin, isAdminLoading, router]);
-
 
   // Global error handler for ChunkLoadError
   useEffect(() => {
@@ -49,8 +37,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  // While checking for user auth or admin status, show a full-screen loader.
-  if (isUserLoading || isAdminLoading) {
+
+  // While checking for user auth, show a full-screen loader.
+  if (isUserLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -58,13 +47,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // If loading is done and there's no user, or if user is an admin (and will be redirected),
-  // render nothing to prevent a flicker of the user dashboard.
-  if (!user || isAdmin) {
+  // If loading is done and there's no user, we render nothing because the
+  // useEffect above will handle the redirect. This prevents showing a glimpse
+  // of the app layout before redirecting.
+  if (!user) {
       return null;
   }
 
-  // If we reach here, user is a logged-in non-admin. Render the app.
+  // If we reach here, user is logged in and not loading. Render the app.
   return (
     <div className="flex min-h-screen w-full bg-background">
         <AppSidebar isMobile={false} setIsMobileMenuOpen={setIsMobileMenuOpen} />
