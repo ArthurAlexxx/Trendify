@@ -10,7 +10,7 @@ import { collection, collectionGroup, orderBy, query, limit, getDoc, doc } from 
 import { format, formatDistanceToNow, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Video, Lightbulb, User, Loader2 } from 'lucide-react';
+import { Video, Lightbulb, User, Loader2, Inbox } from 'lucide-react';
 import { useEffect, useState, useMemo } from 'react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import Link from 'next/link';
@@ -25,7 +25,7 @@ export default function UsageAdminPage() {
   const [enrichedUsage, setEnrichedUsage] = useState<EnrichedUsage[]>([]);
   const [isEnriching, setIsEnriching] = useState(true);
 
-  // 1. Fetch all usage documents
+  // 1. Fetch all usage documents using a collectionGroup query
   const usageQuery = useMemoFirebase(
     () => firestore ? query(collectionGroup(firestore, 'dailyUsage'), orderBy('date', 'desc'), limit(50)) : null,
     [firestore]
@@ -34,8 +34,15 @@ export default function UsageAdminPage() {
   
   // 2. Enrich usage data with user profiles
   useEffect(() => {
-    if (isLoadingUsage || !usageData || !firestore) {
+    if (isLoadingUsage || !firestore) {
       return;
+    }
+    
+    // Handle the case where there is no usage data
+    if (!usageData) {
+        setIsEnriching(false);
+        setEnrichedUsage([]);
+        return;
     }
 
     const enrichData = async () => {
@@ -44,8 +51,7 @@ export default function UsageAdminPage() {
       const userCache = new Map<string, UserProfile>();
 
       for (const usage of usageData) {
-        const userId = usage.id.split('_')[0]; // Assuming ID is `userId_YYYY-MM-DD` which is wrong
-        // The document ID is the date, the parent doc is the user ID. Let's fix the logic
+        // Correctly get the user ID from the document's path
         const pathSegments = usage.ref.path.split('/');
         const realUserId = pathSegments[pathSegments.length - 3]; // .../users/{userId}/dailyUsage/{date}
 
@@ -68,6 +74,7 @@ export default function UsageAdminPage() {
         enriched.push({
             ...usage,
             user: userProfile,
+            // The document ID from a subcollection query IS the subcollection doc id.
             dateStr: usage.id
         });
       }
@@ -144,8 +151,8 @@ export default function UsageAdminPage() {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {enrichedUsage.map((usage) => (
-                    <TableRow key={usage.id}>
+                    {enrichedUsage.length > 0 ? enrichedUsage.map((usage) => (
+                    <TableRow key={`${usage.user?.id}-${usage.dateStr}`}>
                        <TableCell>
                           {usage.user ? (
                              <div className="flex items-center gap-3">
@@ -172,14 +179,18 @@ export default function UsageAdminPage() {
                           {usage.geracoesAI || 0}
                         </TableCell>
                     </TableRow>
-                    ))}
+                    )) : (
+                        <TableRow>
+                            <TableCell colSpan={4} className="h-24 text-center">
+                                <div className="flex flex-col items-center justify-center gap-2">
+                                    <Inbox className="h-8 w-8 text-muted-foreground" />
+                                    <p className="text-muted-foreground">Nenhuma atividade de uso encontrada.</p>
+                                </div>
+                            </TableCell>
+                        </TableRow>
+                    )}
                 </TableBody>
              </Table>
-           )}
-           {!isLoading && (!enrichedUsage || enrichedUsage.length === 0) && (
-             <div className="text-center py-20">
-                <p className="text-muted-foreground">Nenhuma atividade de uso encontrada.</p>
-             </div>
            )}
         </CardContent>
       </Card>
