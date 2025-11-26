@@ -229,12 +229,6 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
                         <span>Configurações</span>
                     </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                    <Link href="/support" onClick={handleLinkClick}>
-                        <Hammer className="mr-2 h-4 w-4" />
-                        <span>Suporte</span>
-                    </Link>
-                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} className='text-red-500 focus:text-red-500 focus:bg-red-500/10'>
                      <LogOut className="mr-2 h-4 w-4" />

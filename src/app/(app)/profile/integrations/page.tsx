@@ -24,12 +24,13 @@ import type { UserProfile, InstagramProfileData, InstagramPostData, TikTokProfil
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { getInstagramProfile, getTikTokPosts, getTikTokProfile, getInstagramPosts } from '../actions';
+import { getInstagramProfile, getTikTokPosts, getTikTokProfile, getInstagramPosts } from '@/app/(app)/profile/actions';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useSubscription } from '@/hooks/useSubscription';
 import Link from 'next/link';
 import { InstagramProfileResults, TikTokProfileResults } from '@/components/dashboard/platform-results';
 import { useRouter } from 'next/navigation';
+import { isToday } from 'date-fns';
 
 
 const profileFormSchema = z.object({
@@ -71,6 +72,9 @@ export default function IntegrationsPage() {
       tiktokHandle: '',
     },
   });
+  
+  const instaAlreadySyncedToday = !!userProfile?.lastInstagramSync && isToday(userProfile.lastInstagramSync.toDate());
+  const tiktokAlreadySyncedToday = !!userProfile?.lastTikTokSync && isToday(userProfile.lastTikTokSync.toDate());
   
   useEffect(() => {
     if (userProfile) {
@@ -298,7 +302,7 @@ export default function IntegrationsPage() {
                                 <AlertDialogTrigger asChild>
                                     <Button
                                         type="button"
-                                        disabled={instaStatus === 'loading' || !form.watch('instagramHandle')}
+                                        disabled={instaStatus === 'loading' || !form.watch('instagramHandle') || instaAlreadySyncedToday}
                                         className="w-full sm:w-auto"
                                     >
                                         {
@@ -321,7 +325,12 @@ export default function IntegrationsPage() {
                                 </AlertDialogContent>
                                 </AlertDialog>
                             </div>
-                            <p className='text-xs text-muted-foreground mt-2'>Isso irá buscar e preencher sua foto, @, bio e métricas de seguidores, curtidas e comentários.</p>
+                            <p className='text-xs text-muted-foreground mt-2'>
+                                {instaAlreadySyncedToday 
+                                    ? 'Você já sincronizou hoje. Volte amanhã para uma nova atualização.'
+                                    : 'Isso irá buscar e preencher sua foto, @, bio e métricas de seguidores, curtidas e comentários.'
+                                }
+                            </p>
                             </CardContent>
                         </Card>
                          {instaStatus === 'loading' && <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>}
@@ -345,7 +354,7 @@ export default function IntegrationsPage() {
                                 <AlertDialogTrigger asChild>
                                      <Button
                                         type="button"
-                                        disabled={tiktokStatus === 'loading' || !form.watch('tiktokHandle')}
+                                        disabled={tiktokStatus === 'loading' || !form.watch('tiktokHandle') || tiktokAlreadySyncedToday}
                                         className="w-full sm:w-auto"
                                     >
                                         {
@@ -368,7 +377,12 @@ export default function IntegrationsPage() {
                                 </AlertDialogContent>
                                 </AlertDialog>
                             </div>
-                            <p className='text-xs text-muted-foreground mt-2'>Isso irá buscar e preencher sua foto, @, bio e métricas do TikTok.</p>
+                            <p className='text-xs text-muted-foreground mt-2'>
+                                {tiktokAlreadySyncedToday 
+                                    ? 'Você já sincronizou hoje. Volte amanhã para uma nova atualização.'
+                                    : 'Isso irá buscar e preencher sua foto, @, bio e métricas do TikTok.'
+                                }
+                            </p>
                             </CardContent>
                         </Card>
                          {tiktokStatus === 'loading' && <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>}
