@@ -41,8 +41,8 @@ import { useEffect, useTransition, useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { generatePubliProposalsAction, GeneratePubliProposalsOutput } from '@/app/(app)/publis-assistant/actions';
-import { useFirestore, useUser, useDoc, useMemoFirebase, onSnapshot } from '@/firebase';
-import { collection, addDoc, serverTimestamp, doc, setDoc, increment, getDoc, updateDoc } from 'firebase/firestore';
+import { useFirestore, useUser } from '@/firebase';
+import { collection, addDoc, serverTimestamp, doc, setDoc, increment, getDoc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { SavedIdeasSheet } from '@/components/saved-ideas-sheet';
 import {
   Accordion,
@@ -566,5 +566,3 @@ function InfoListCard({
     </Card>
   );
 }
-
-    

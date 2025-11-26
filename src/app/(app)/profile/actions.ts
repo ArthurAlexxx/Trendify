@@ -137,6 +137,13 @@ async function fetchData(url: string, options: RequestInit) {
         const errorText = await response.text();
         console.error(`[API ERROR] Status ${response.status} para ${url}:`, errorText);
         
+        let data: any = {};
+        try {
+            data = JSON.parse(errorText);
+        } catch (e) {
+            // Not a JSON response, use the raw text.
+        }
+
         if (response.status === 404) throw new Error(`Endpoint não encontrado. Verifique a URL da API.`);
         if (errorText.includes("You are not subscribed to this API")) throw new Error("Você não está inscrito nesta API na RapidAPI. Verifique sua assinatura e chave.");
         if (errorText.toLowerCase().includes("service unavailable")) throw new Error(`O serviço da API está indisponível. Tente mais tarde.`);

@@ -44,8 +44,8 @@ import { useEffect, useTransition, useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { generateVideoIdeasAction, GenerateVideoIdeasOutput } from '@/app/(app)/video-ideas/actions';
-import { useCollection, useFirestore, useMemoFirebase, useUser, useDoc, onSnapshot } from '@/firebase';
-import { collection, addDoc, serverTimestamp, where, query, orderBy, setDoc, doc, increment, getDoc, updateDoc } from 'firebase/firestore';
+import { useCollection, useFirestore, useUser, useDoc } from '@/firebase';
+import { collection, addDoc, serverTimestamp, where, query, orderBy, setDoc, doc, increment, getDoc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { SavedIdeasSheet } from '@/components/saved-ideas-sheet';
 import type { DailyUsage, IdeiaSalva } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
@@ -143,15 +143,17 @@ export default function VideoIdeasPage() {
     });
   };
   
-  const completedIdeasQuery = useMemoFirebase(() => (
-    firestore && user
-      ? query(
-          collection(firestore, `users/${user.uid}/ideiasSalvas`),
-          where('concluido', '==', true),
-          orderBy('completedAt', 'desc')
-        )
-      : null
-  ), [firestore, user]);
+  const completedIdeasQuery = useMemo(
+    () =>
+      firestore && user
+        ? query(
+            collection(firestore, `users/${user.uid}/ideiasSalvas`),
+            where('concluido', '==', true),
+            orderBy('completedAt', 'desc')
+          )
+        : null,
+    [firestore, user]
+  );
   
   const { data: completedIdeas, isLoading: isLoadingCompleted } = useCollection<IdeiaSalva>(completedIdeasQuery);
   const result = state?.data;
@@ -571,5 +573,3 @@ function InfoListCard({
     </Card>
   );
 }
-
-    
