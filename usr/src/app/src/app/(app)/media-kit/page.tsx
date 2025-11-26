@@ -33,7 +33,7 @@ import { z } from 'zod';
 import {
   getAiCareerPackageAction,
   AiCareerPackageOutput,
-} from './actions';
+} from '@/app/(app)/media-kit/actions';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { collection, addDoc, serverTimestamp, doc } from 'firebase/firestore';
@@ -246,7 +246,7 @@ function MediaKitPageContent() {
         <SavedIdeasSheet />
       </PageHeader>
       
-        <Card>
+        <Card className="border-0 rounded-2xl">
             <CardHeader>
                 <CardTitle className="flex items-center gap-3 font-headline text-xl">
                     <Sparkles className="h-6 w-6 text-primary" />
@@ -272,7 +272,7 @@ function MediaKitPageContent() {
 
       <div className="space-y-8">
           
-          <Card>
+          <Card className="border-0 rounded-2xl">
             <CardHeader>
               <CardTitle className="flex items-center gap-3 font-headline text-xl">
                 <Bot className="h-6 w-6 text-primary" />
@@ -421,7 +421,7 @@ function InfoCard({
 }) {
   return (
     <Card
-      className="h-full"
+      className="border-0 rounded-2xl h-full"
     >
       <CardHeader>
         <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
@@ -449,7 +449,7 @@ function InfoList({
   items: string[];
 }) {
   return (
-    <Card className="h-full">
+    <Card className="border-0 rounded-2xl h-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary" />
@@ -484,7 +484,7 @@ function PricingCard({
 }) {
   return (
     <Card
-      className="h-full"
+      className="border-0 rounded-2xl h-full"
     >
       <CardHeader>
         <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
