@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { useUser, useFirestore, useDoc, useMemoFirebase, initializeFirebase } from '@/firebase';
+import { useUser, useFirestore, useDoc, useMemoFirebase, initializeFirebase, useAuth } from '@/firebase';
 import { User as UserIcon, Instagram, Film, Search, Loader2, AlertTriangle, Users, Heart, MessageSquare, Clapperboard, PlayCircle, Eye, Upload, Crown, Check, RefreshCw } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
@@ -68,6 +68,7 @@ type SearchStatus = 'idle' | 'loading' | 'success' | 'error';
 
 export default function ProfilePage() {
   const { user } = useUser();
+  const auth = useAuth();
   const firestore = useFirestore();
   const { toast } = useToast();
   const [isSaving, startSavingTransition] = useTransition();
@@ -163,8 +164,8 @@ export default function ProfilePage() {
 
         await updateDoc(userProfileRef, dataToSave);
         
-        if (user.displayName !== values.displayName && user.auth.currentUser) {
-            await updateProfile(user.auth.currentUser, {
+        if (user && auth.currentUser && user.displayName !== values.displayName) {
+            await updateProfile(auth.currentUser, {
                 displayName: values.displayName,
             });
         }
@@ -186,7 +187,7 @@ export default function ProfilePage() {
 
   const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file || !user || !user.auth.currentUser) return;
+    if (!file || !user || !auth.currentUser) return;
 
     if (!file.type.startsWith('image/')) {
         toast({ title: 'Arquivo inválido', description: 'Por favor, selecione um arquivo de imagem.', variant: 'destructive'});
@@ -215,7 +216,7 @@ export default function ProfilePage() {
         async () => {
             try {
                 const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                await updateProfile(user.auth.currentUser!, { photoURL: downloadURL });
+                await updateProfile(auth.currentUser!, { photoURL: downloadURL });
                 if (userProfileRef) {
                     await updateDoc(userProfileRef, { photoURL: downloadURL });
                 }
@@ -661,3 +662,6 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+
+    
