@@ -1,3 +1,4 @@
+
 'use client';
 
 import { AppSidebar } from '@/components/app-sidebar';
@@ -7,10 +8,14 @@ import { useEffect, useState } from 'react';
 import { Loader2, PanelLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { useAdmin } from '@/hooks/useAdmin';
+import { usePathname } from 'next/navigation';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, isUserLoading } = useUser();
+  const { isAdmin, isLoading: isAdminLoading } = useAdmin();
   const router = useRouter();
+  const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -18,7 +23,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     if (!isUserLoading && !user) {
       router.push('/login');
     }
-  }, [user, isUserLoading, router]);
+
+    // If user is an admin and they land on the regular dashboard, redirect them to the admin panel.
+    if (!isAdminLoading && isAdmin && pathname === '/dashboard') {
+        router.replace('/admin');
+    }
+
+  }, [user, isUserLoading, router, isAdmin, isAdminLoading, pathname]);
 
   // Global error handler for ChunkLoadError
   useEffect(() => {
@@ -38,7 +49,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
 
   // While checking for user auth, show a full-screen loader.
-  if (isUserLoading) {
+  if (isUserLoading || isAdminLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
