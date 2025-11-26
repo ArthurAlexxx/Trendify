@@ -64,8 +64,10 @@ export default function AdminPage() {
     
     const dailyCounts: { [date: string]: number } = {};
     sortedUsers.forEach(user => {
-      const date = format(startOfDay((user.createdAt as any).toDate()), 'yyyy-MM-dd');
-      dailyCounts[date] = (dailyCounts[date] || 0) + 1;
+      if (user.createdAt) {
+        const date = format(startOfDay((user.createdAt as any).toDate()), 'yyyy-MM-dd');
+        dailyCounts[date] = (dailyCounts[date] || 0) + 1;
+      }
     });
 
     let cumulativeUsers = 0;
@@ -89,10 +91,10 @@ export default function AdminPage() {
             const plan = user.subscription.plan;
             const cycle = user.subscription.cycle;
 
-            if (plan === 'pro') {
+            if (plan === 'pro' && PLAN_PRICES.pro) {
                 return total + (cycle === 'annual' ? PLAN_PRICES.pro.annual / 12 : PLAN_PRICES.pro.monthly);
             }
-            if (plan === 'premium') {
+            if (plan === 'premium' && PLAN_PRICES.premium) {
                 return total + (cycle === 'annual' ? PLAN_PRICES.premium.annual / 12 : PLAN_PRICES.premium.monthly);
             }
         }
@@ -155,7 +157,6 @@ export default function AdminPage() {
         </Card>
       </div>
 
-       {/* Placeholder for future charts */}
       <div className="grid gap-4 md:grid-cols-1">
         <Card>
           <CardHeader>
