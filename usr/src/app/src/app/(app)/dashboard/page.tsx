@@ -72,7 +72,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { getTikTokPosts, getInstagramPosts } from '../profile/actions';
+import { getTikTokPosts, getInstagramPosts } from '@/app/(app)/profile/actions';
 import { useSubscription } from '@/hooks/useSubscription';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import Image from 'next/image';
@@ -593,7 +593,7 @@ export default function DashboardPage() {
         {userProfile && <ProfileCompletionAlert userProfile={userProfile} hasUpdatedToday={hasUpdatedToday} isPremium={isPremium} />}
 
         <div className="grid grid-cols-1 gap-8">
-            <Card>
+            <Card className="rounded-2xl border-0">
                 <CardHeader>
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                         <div>
@@ -632,7 +632,7 @@ export default function DashboardPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             <div className="lg:col-span-2 space-y-8">
-                 <Card className="h-full">
+                 <Card className="rounded-2xl border-0 h-full">
                     <CardHeader>
                         <CardTitle className="font-headline text-xl">
                         Evolução das Métricas ({selectedPlatform === 'instagram' ? 'Instagram' : selectedPlatform === 'tiktok' ? 'TikTok' : 'Total'})
@@ -679,7 +679,7 @@ export default function DashboardPage() {
                 </Card>
             </div>
              <div className="lg:col-span-1 space-y-8">
-                  <Card className="flex flex-col h-full">
+                  <Card className="rounded-2xl border-0 flex flex-col h-full">
                   <CardHeader>
                     <CardTitle className="font-headline text-xl">
                       Próximos Posts
@@ -752,7 +752,7 @@ export default function DashboardPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-             <Card className="h-full">
+             <Card className="rounded-2xl border-0 h-full">
                 <CardHeader>
                 <CardTitle className="font-headline text-xl">
                     Roteiro de Conteúdo Semanal
@@ -884,7 +884,7 @@ export default function DashboardPage() {
                 </CardContent>
             </Card>
 
-            <Card className="h-full">
+            <Card className="rounded-2xl border-0 h-full">
                 <CardHeader>
                 <CardTitle className="font-headline text-xl">
                     Ideias e Tarefas
@@ -945,7 +945,7 @@ export default function DashboardPage() {
 
          {/* Recent Posts Section */}
         <div className="grid grid-cols-1 gap-8">
-            <Card>
+            <Card className="rounded-2xl border-0">
                 <CardHeader>
                     <CardTitle>Atividade Recente nas Plataformas</CardTitle>
                     <CardDescription>Uma visão geral das suas últimas publicações.</CardDescription>
