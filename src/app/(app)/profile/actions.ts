@@ -1,4 +1,3 @@
-
 'use server';
 
 import { z } from 'zod';
@@ -39,18 +38,24 @@ export type InstagramProfileData = {
 }
 
 const InstagramPostSchema = z.object({
-    id: z.string(),
-    caption: z.object({
-        text: z.string(),
-    }).optional().nullable(),
-    image_versions2: z.object({
-        candidates: z.array(z.object({
-            url: z.string().url(),
-        })),
-    }),
-    like_count: z.number(),
-    comment_count: z.number(),
+  id: z.string(),
+  caption: z.object({
+      text: z.string(),
+  }).optional().nullable(),
+  image_versions2: z.object({
+      candidates: z.array(z.object({
+          url: z.string().url(),
+      })),
+  }),
+  like_count: z.number(),
+  comment_count: z.number(),
+  taken_at: z.number(),
 }).passthrough();
+
+
+const InstagramPostResponseSchema = z.object({
+  edges: z.array(z.object({ node: InstagramPostSchema })),
+});
 
 
 export type InstagramPostData = {
@@ -101,9 +106,9 @@ const TikTokPostSchema = z.object({
     cover: z.string().url(),
     create_time: z.number().optional(),
     statistics: z.object({
-        play_count: z.number().or(z.string()).transform(val => Number(val)).optional(),
-        digg_count: z.number().or(z.string()).transform(val => Number(val)).optional(),
-        comment_count: z.number().or(z.string()).transform(val => Number(val)).optional(),
+        number_of_plays: z.number().or(z.string()).transform(val => Number(val)).optional(),
+        number_of_hearts: z.number().or(z.string()).transform(val => Number(val)).optional(),
+        number_of_comments: z.number().or(z.string()).transform(val => Number(val)).optional(),
     }).passthrough(),
 }).passthrough();
 
@@ -243,9 +248,8 @@ export async function getInstagramPosts(username: string): Promise<InstagramPost
     }
     try {
         const result = await fetchFromRapidApi('instagram-posts', username);
-        
         const postsData = result?.result?.edges;
-
+        
         if (!Array.isArray(postsData)) {
             throw new Error('A resposta da API de posts não continha uma lista de publicações.');
         }
@@ -324,9 +328,9 @@ export async function getTikTokPosts(username: string): Promise<TikTokPostData[]
             id: post.video_id,
             description: post.description,
             coverUrl: post.cover,
-            views: post.statistics.play_count ?? 0,
-            likes: post.statistics.digg_count ?? 0,
-            comments: post.statistics.comment_count ?? 0,
+            views: post.statistics.number_of_plays ?? 0,
+            likes: post.statistics.number_of_hearts ?? 0,
+            comments: post.statistics.number_of_comments ?? 0,
         }));
 
     } catch (e: any) {
