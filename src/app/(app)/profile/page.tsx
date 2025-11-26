@@ -162,6 +162,14 @@ export default function ProfilePage() {
             tiktokAverageComments: values.tiktokAverageComments,
         };
 
+        // Firestore does not accept 'undefined' values.
+        Object.keys(dataToSave).forEach(key => {
+            const k = key as keyof typeof dataToSave;
+            if (dataToSave[k] === undefined) {
+                (dataToSave as any)[k] = null;
+            }
+        });
+
         await updateDoc(userProfileRef, dataToSave);
         
         if (user && auth.currentUser && user.displayName !== values.displayName) {
@@ -272,10 +280,32 @@ export default function ProfilePage() {
         
         // This will trigger a save with the new data
         if (user && userProfileRef) {
-          await updateDoc(userProfileRef, {
-             ...form.getValues(),
+          const values = form.getValues();
+          const dataToSave = {
+             displayName: values.displayName,
+             photoURL: values.photoURL,
+             niche: values.niche,
+             bio: values.bio,
+             audience: values.audience,
+             instagramHandle: values.instagramHandle,
+             instagramFollowers: values.instagramFollowers,
+             instagramAverageViews: values.instagramAverageViews,
+             instagramAverageLikes: values.instagramAverageLikes,
+             instagramAverageComments: values.instagramAverageComments,
+             tiktokHandle: values.tiktokHandle,
+             tiktokFollowers: values.tiktokFollowers,
+             tiktokAverageViews: values.tiktokAverageViews,
+             tiktokAverageLikes: values.tiktokAverageLikes,
+             tiktokAverageComments: values.tiktokAverageComments,
              lastInstagramSync: serverTimestamp(),
+          };
+           Object.keys(dataToSave).forEach(key => {
+            const k = key as keyof typeof dataToSave;
+            if (dataToSave[k] === undefined) {
+                (dataToSave as any)[k] = null;
+            }
           });
+          await updateDoc(userProfileRef, dataToSave);
         }
         
         setInstaStatus('success');
@@ -323,10 +353,32 @@ export default function ProfilePage() {
         form.setValue('tiktokAverageViews', formatNumber(Math.round(averageViews)));
        
         if (user && userProfileRef) {
-          await updateDoc(userProfileRef, {
-             ...form.getValues(),
+          const values = form.getValues();
+          const dataToSave = {
+             displayName: values.displayName,
+             photoURL: values.photoURL,
+             niche: values.niche,
+             bio: values.bio,
+             audience: values.audience,
+             instagramHandle: values.instagramHandle,
+             instagramFollowers: values.tiktokFollowers,
+             instagramAverageViews: values.instagramAverageViews,
+             instagramAverageLikes: values.instagramAverageLikes,
+             instagramAverageComments: values.instagramAverageComments,
+             tiktokHandle: values.tiktokHandle,
+             tiktokFollowers: values.tiktokFollowers,
+             tiktokAverageViews: values.tiktokAverageViews,
+             tiktokAverageLikes: values.tiktokAverageLikes,
+             tiktokAverageComments: values.tiktokAverageComments,
              lastTikTokSync: serverTimestamp(),
+          };
+           Object.keys(dataToSave).forEach(key => {
+            const k = key as keyof typeof dataToSave;
+            if (dataToSave[k] === undefined) {
+                (dataToSave as any)[k] = null;
+            }
           });
+          await updateDoc(userProfileRef, dataToSave);
         }
         setTiktokStatus('success');
 
@@ -662,6 +714,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
-
-    
