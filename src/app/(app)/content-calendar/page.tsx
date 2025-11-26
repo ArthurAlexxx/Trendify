@@ -510,7 +510,7 @@ export default function ContentCalendarPage() {
                         <CheckCircle className="mr-2 h-4 w-4" />
                         <span>Marcar como Publicado</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleEditEvent(fullEvent)}>
+                    <DropdownMenuItem onSelect={(e) => { e.preventDefault(); handleEditEvent(fullEvent)}}>
                         <Edit className="mr-2 h-4 w-4" />
                         <span>Editar</span>
                     </DropdownMenuItem>
