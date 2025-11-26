@@ -83,7 +83,7 @@ import { MetricCard, InstagramProfileResults, TikTokProfileResults } from '@/com
 
 const chartConfigBase = {
   followers: { label: "Seguidores" },
-  views: { label: "Views (Manual)" },
+  views: { label: "Views" },
   likes: { label: "Likes" },
   comments: { label: "Comentários" },
 } satisfies ChartConfig;
@@ -308,9 +308,9 @@ const UpdateMetricsModal = ({ userProfile, triggerButton }: { userProfile: UserP
                             <FormField control={form.control} name="instagramFollowers" render={({ field }) => ( <FormItem><FormLabel>Seguidores</FormLabel><FormControl><Input placeholder="Ex: 250K" {...field} /></FormControl></FormItem> )}/>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <FormField control={form.control} name="instagramAverageViews" render={({ field }) => ( <FormItem><FormLabel>Views (Média)</FormLabel><FormControl><Input placeholder="Ex: 15.5K (manual)" {...field} /></FormControl></FormItem> )}/>
-                            <FormField control={form.control} name="instagramAverageLikes" render={({ field }) => ( <FormItem><FormLabel>Likes (Média)</FormLabel><FormControl><Input placeholder="Ex: 890" {...field} /></FormControl></FormItem> )}/>
-                            <FormField control={form.control} name="instagramAverageComments" render={({ field }) => ( <FormItem><FormLabel>Comentários (Média)</FormLabel><FormControl><Input placeholder="Ex: 120" {...field} /></FormControl></FormItem> )}/>
+                            <FormField control={form.control} name="instagramAverageViews" render={({ field }) => ( <FormItem><FormLabel>Média de Views</FormLabel><FormControl><Input placeholder="Ex: 15.5K" {...field} /></FormControl></FormItem> )}/>
+                            <FormField control={form.control} name="instagramAverageLikes" render={({ field }) => ( <FormItem><FormLabel>Média de Likes</FormLabel><FormControl><Input placeholder="Ex: 890" {...field} /></FormControl></FormItem> )}/>
+                            <FormField control={form.control} name="instagramAverageComments" render={({ field }) => ( <FormItem><FormLabel>Média de Comentários</FormLabel><FormControl><Input placeholder="Ex: 120" {...field} /></FormControl></FormItem> )}/>
                         </div>
                     </div>
                     <Separator />
@@ -321,9 +321,9 @@ const UpdateMetricsModal = ({ userProfile, triggerButton }: { userProfile: UserP
                             <FormField control={form.control} name="tiktokFollowers" render={({ field }) => ( <FormItem><FormLabel>Seguidores</FormLabel><FormControl><Input placeholder="Ex: 1.2M" {...field} /></FormControl></FormItem> )}/>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <FormField control={form.control} name="tiktokAverageViews" render={({ field }) => ( <FormItem><FormLabel>Views (Média)</FormLabel><FormControl><Input placeholder="Ex: 1M" {...field} /></FormControl></FormItem> )}/>
-                            <FormField control={form.control} name="tiktokAverageLikes" render={({ field }) => ( <FormItem><FormLabel>Likes (Média)</FormLabel><FormControl><Input placeholder="Ex: 100K" {...field} /></FormControl></FormItem> )}/>
-                            <FormField control={form.control} name="tiktokAverageComments" render={({ field }) => ( <FormItem><FormLabel>Comentários (Média)</FormLabel><FormControl><Input placeholder="Ex: 1.5K" {...field} /></FormControl></FormItem> )}/>
+                            <FormField control={form.control} name="tiktokAverageViews" render={({ field }) => ( <FormItem><FormLabel>Média de Views</FormLabel><FormControl><Input placeholder="Ex: 1M" {...field} /></FormControl></FormItem> )}/>
+                            <FormField control={form.control} name="tiktokAverageLikes" render={({ field }) => ( <FormItem><FormLabel>Média de Likes</FormLabel><FormControl><Input placeholder="Ex: 100K" {...field} /></FormControl></FormItem> )}/>
+                            <FormField control={form.control} name="tiktokAverageComments" render={({ field }) => ( <FormItem><FormLabel>Média de Comentários</FormLabel><FormControl><Input placeholder="Ex: 1.5K" {...field} /></FormControl></FormItem> )}/>
                         </div>
                     </div>
                     <DialogFooter className="pt-4 flex-col sm:flex-row">
@@ -368,7 +368,7 @@ const PlatformIntegrationModal = ({ userProfile }: { userProfile: UserProfile })
 
     const hasSyncedToday = (lastSync: any) => {
         if (!lastSync) return false;
-        return isToday(lastSync.toDate());
+        return false; //isToday(lastSync.toDate());
     };
 
     const isInstaSyncedToday = hasSyncedToday(userProfile.lastInstagramSync);
@@ -398,14 +398,17 @@ const PlatformIntegrationModal = ({ userProfile }: { userProfile: UserProfile })
 
             if (user && firestore) {
                 const userProfileRef = doc(firestore, 'users', user.uid);
+                const videoPosts = postsResult.filter(p => p.is_video && p.video_view_count);
                 const averageLikes = postsResult.length > 0 ? postsResult.reduce((acc, p) => acc + p.likes, 0) / postsResult.length : 0;
                 const averageComments = postsResult.length > 0 ? postsResult.reduce((acc, p) => acc + p.comments, 0) / postsResult.length : 0;
+                const averageViews = videoPosts.length > 0 ? videoPosts.reduce((acc, p) => acc + (p.video_view_count ?? 0), 0) / videoPosts.length : 0;
 
                 const updateData: Partial<UserProfile> = {
                     instagramHandle: `@${profileResult.username}`,
                     bio: userProfile.bio || profileResult.biography,
                     photoURL: userProfile.photoURL || profileResult.profilePicUrlHd,
                     instagramFollowers: formatNumber(profileResult.followersCount),
+                    instagramAverageViews: formatNumber(Math.round(averageViews)),
                     instagramAverageLikes: formatNumber(Math.round(averageLikes)),
                     instagramAverageComments: formatNumber(Math.round(averageComments)),
                     lastInstagramSync: serverTimestamp() as any,
@@ -834,7 +837,7 @@ export default function DashboardPage() {
             <CardContent className="space-y-6">
                  <div className="grid gap-4 grid-cols-2 lg:grid-cols-4 justify-center">
                       <MetricCard icon={Users} title="Seguidores" value={formatMetricValue(latestMetrics?.followers)} handle={selectedPlatform !== 'total' ? latestMetrics?.handle as string : undefined} isLoading={isLoading} />
-                      <MetricCard icon={Eye} title={selectedPlatform === 'tiktok' ? "Média de Views" : "Views (Manual)"} value={formatMetricValue(latestMetrics?.views)} isManual={selectedPlatform !== 'tiktok'} isLoading={isLoading} />
+                      <MetricCard icon={Eye} title="Média de Views" value={formatMetricValue(latestMetrics?.views)} isLoading={isLoading} />
                       <MetricCard icon={Heart} title="Média de Likes" value={formatMetricValue(latestMetrics?.likes)} isLoading={isLoading} />
                       <MetricCard icon={MessageSquare} title="Média de Comentários" value={formatMetricValue(latestMetrics?.comments)} isLoading={isLoading} />
                   </div>
@@ -893,7 +896,7 @@ export default function DashboardPage() {
                                 <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => typeof value === 'number' && value >= 1000 ? `${value / 1000}k` : value} />
                                 <RechartsTooltip content={<ChartTooltipContent indicator="dot" />} />
                                 <Bar dataKey="followers" fill="var(--color-followers)" radius={4} name="Seguidores" />
-                                <Bar dataKey="views" fill="var(--color-views)" radius={4} name="Views (Manual)"/>
+                                <Bar dataKey="views" fill="var(--color-views)" radius={4} name="Views"/>
                                 <Bar dataKey="likes" fill="var(--color-likes)" radius={4} name="Likes"/>
                                 <Bar dataKey="comments" fill="var(--color-comments)" radius={4} name="Comentários"/>
                             </BarChart>

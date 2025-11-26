@@ -146,7 +146,7 @@ export default function ProfilePage() {
       try {
         const dataToSave: Partial<UserProfile> = {
             displayName: values.displayName,
-            photoURL: values.photoURL || null,
+            photoURL: values.photoURL,
             niche: values.niche,
             bio: values.bio,
             audience: values.audience,
@@ -268,6 +268,8 @@ export default function ProfilePage() {
         getInstagramPosts(cleanedUsername)
       ]);
       
+       const videoPosts = postsResult.filter(p => p.is_video && p.video_view_count);
+       const averageViews = videoPosts.length > 0 ? videoPosts.reduce((acc, p) => acc + (p.video_view_count ?? 0), 0) / videoPosts.length : 0;
        const averageLikes = postsResult.length > 0 ? postsResult.reduce((acc, p) => acc + p.likes, 0) / postsResult.length : 0;
        const averageComments = postsResult.length > 0 ? postsResult.reduce((acc, p) => acc + p.comments, 0) / postsResult.length : 0;
 
@@ -277,12 +279,13 @@ export default function ProfilePage() {
         form.setValue('bio', form.getValues('bio') || profileResult.biography);
         form.setValue('photoURL', form.getValues('photoURL') || profileResult.profilePicUrlHd);
         form.setValue('instagramFollowers', formatNumber(profileResult.followersCount));
+        form.setValue('instagramAverageViews', formatNumber(Math.round(averageViews)));
         form.setValue('instagramAverageLikes', formatNumber(Math.round(averageLikes)));
         form.setValue('instagramAverageComments', formatNumber(Math.round(averageComments)));
         
         if (user && userProfileRef) {
           const values = form.getValues();
-          const dataToSave: Partial<UserProfile> = {
+          const dataToSave = {
              displayName: values.displayName,
              photoURL: values.photoURL,
              niche: values.niche,
@@ -295,10 +298,10 @@ export default function ProfilePage() {
              instagramAverageComments: values.instagramAverageComments,
              lastInstagramSync: serverTimestamp() as any,
           };
-           Object.keys(dataToSave).forEach(keyStr => {
-            const key = keyStr as keyof typeof dataToSave;
-            if (dataToSave[key] === undefined) {
-                (dataToSave as any)[key] = null;
+           Object.keys(dataToSave).forEach(key => {
+            const k = key as keyof typeof dataToSave;
+            if (dataToSave[k] === undefined) {
+                (dataToSave as any)[k] = null;
             }
           });
           await updateDoc(userProfileRef, dataToSave);
@@ -350,7 +353,7 @@ export default function ProfilePage() {
        
         if (user && userProfileRef) {
           const values = form.getValues();
-          const dataToSave: Partial<UserProfile> = {
+          const dataToSave = {
              displayName: values.displayName,
              photoURL: values.photoURL,
              niche: values.niche,
@@ -363,10 +366,10 @@ export default function ProfilePage() {
              tiktokAverageComments: values.tiktokAverageComments,
              lastTikTokSync: serverTimestamp() as any,
           };
-           Object.keys(dataToSave).forEach(keyStr => {
-            const key = keyStr as keyof typeof dataToSave;
-            if (dataToSave[key] === undefined) {
-                (dataToSave as any)[key] = null;
+           Object.keys(dataToSave).forEach(key => {
+            const k = key as keyof typeof dataToSave;
+            if (dataToSave[k] === undefined) {
+                (dataToSave as any)[k] = null;
             }
           });
           await updateDoc(userProfileRef, dataToSave);
@@ -491,7 +494,7 @@ export default function ProfilePage() {
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                         <div className="space-y-2">
-                        <Label htmlFor="instagramAverageViews">Média de Views (Manual)</Label>
+                        <Label htmlFor="instagramAverageViews">Média de Views</Label>
                         <Input id="instagramAverageViews" {...form.register('instagramAverageViews')} placeholder="Ex: 15.5K" className="h-11" />
                         </div>
                         <div className="space-y-2">
@@ -698,4 +701,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
