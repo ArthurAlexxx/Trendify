@@ -53,7 +53,8 @@ export default function UsageAdminPage() {
       const userCache = new Map<string, UserProfile>();
 
       for (const usage of usageData) {
-        const userId = usage.userId;
+        // The document ID is now a composite: 'userId_YYYY-MM-DD'
+        const userId = usage.id.split('_')[0];
         if (!userId) continue;
 
         let userProfile: UserProfile | undefined = userCache.get(userId);
@@ -194,5 +195,4 @@ export default function UsageAdminPage() {
     </div>
   );
 }
-
     

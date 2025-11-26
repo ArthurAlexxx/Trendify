@@ -213,7 +213,6 @@ function PublisAssistantPageContent() {
               updateDoc(usageDocRef, { geracoesAI: increment(1) });
           } else {
               setDoc(usageDocRef, {
-                  userId: user.uid,
                   date: todayStr,
                   geracoesAI: 1,
                   videoAnalyses: 0,

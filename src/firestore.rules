@@ -42,9 +42,9 @@ service cloud.firestore {
     // Usage Logs (admin pode ler, usuário pode criar/atualizar seu próprio log)
     match /usageLogs/{usageId} {
       allow read: if request.auth != null && isAdmin();
-      allow write: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      // O ID do documento é "userId_data", então verificamos se o UID do usuário está no ID do documento
+      allow write: if request.auth != null && request.auth.uid == usageId.split('_')[0];
     }
   }
 }
-
     
