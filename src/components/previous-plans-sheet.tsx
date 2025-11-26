@@ -17,7 +17,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { PlanoSemanal } from '@/lib/types';
 import { collection, orderBy, query } from 'firebase/firestore';
 import { History, Eye, Inbox, Loader2 } from 'lucide-react';
