@@ -331,20 +331,19 @@ function VideoReviewPageContent() {
   ]
   
   return (
-    <div className="space-y-12">
+    <div className="space-y-8">
         <PageHeader
-            icon={<Video className="text-primary" />}
             title="Diagnóstico de Vídeo"
             description="Receba uma análise completa do potencial de viralização do seu vídeo e um plano de ação para melhorá-lo."
         />
         
-        <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0">
+        <Card className="rounded-2xl border-0">
             <CardHeader>
-                <CardTitle className="flex items-center gap-3 font-headline text-xl text-center sm:text-left">
+                <CardTitle className="flex items-center gap-3 font-headline text-xl">
                     <Sparkles className="h-6 w-6 text-primary" />
                     Como Avaliamos Seu Vídeo?
                 </CardTitle>
-                 <CardDescription className="text-center sm:text-left">Nossa plataforma foi treinada para pensar como um estrategista de conteúdo viral. Analisamos seu vídeo em busca de 4 pilares fundamentais:</CardDescription>
+                 <CardDescription>Nossa plataforma foi treinada para pensar como um estrategista de conteúdo viral. Analisamos seu vídeo em busca de 4 pilares fundamentais:</CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -400,16 +399,16 @@ function VideoReviewPageContent() {
                 />
             </div>
         ) : (
-            <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0">
+            <Card className="rounded-2xl border-0">
                 <CardHeader>
-                    <CardTitle className="font-headline text-xl text-center sm:text-left">
+                    <CardTitle className="font-headline text-xl">
                         Vídeo Selecionado
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="p-4 border rounded-lg flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left bg-muted/30">
+                    <div className="p-4 border rounded-lg flex flex-col sm:flex-row items-center gap-4 bg-muted/30">
                         <Clapperboard className="h-10 w-10 text-primary" />
-                        <div className="flex-1">
+                        <div className="flex-1 text-center sm:text-left">
                             <p className="font-medium">{file.name}</p>
                             <p className="text-sm text-muted-foreground">{new Intl.NumberFormat('pt-BR', { style: 'unit', unit: 'megabyte', unitDisplay: 'short' }).format(file.size / 1024 / 1024)}</p>
                         </div>
@@ -417,7 +416,7 @@ function VideoReviewPageContent() {
                             <Button onClick={handleAnalyzeVideo} disabled={analysisStatus === 'loading' || analysisStatus === 'uploading' || hasReachedLimit} className="w-full sm:w-auto rounded-full font-manrope">
                             {analysisStatus === 'uploading' ? <><Loader2 className="mr-2 animate-spin" />Enviando...</> : analysisStatus === 'loading' ? <><Loader2 className="mr-2 animate-spin" />Analisando...</> : <><Sparkles className="mr-2" />Analisar Vídeo</>}
                             </Button>
-                            <Button onClick={handleReset} variant="outline" className="w-full sm-w-auto rounded-full font-manrope">
+                            <Button onClick={handleReset} variant="outline" className="w-full sm:w-auto rounded-full font-manrope">
                                 Trocar Vídeo
                             </Button>
                         </div>
@@ -445,8 +444,8 @@ function VideoReviewPageContent() {
 
         {(analysisStatus !== 'idle' && analysisStatus !== 'uploading') && (
             <div className="space-y-8 animate-fade-in">
-                 <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-center">
-                    <div className="flex-1 text-center sm:text-left">
+                 <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <div className="flex-1">
                     <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Resultado da Análise</h2>
                     <p className="text-muted-foreground">
                         Aqui está o diagnóstico completo do seu vídeo.
@@ -475,7 +474,7 @@ function VideoReviewPageContent() {
                 {analysisStatus === 'success' && analysisResult && (
                     <div className="grid gap-8">
                        <div className="grid lg:grid-cols-3 gap-8 items-start">
-                         <Card className="lg:col-span-1 rounded-2xl shadow-lg shadow-primary/5 border-0">
+                         <Card className="lg:col-span-1 rounded-2xl border-0">
                              <CardHeader>
                                 <CardTitle className="font-headline text-lg text-primary text-center">Nota de Viralização</CardTitle>
                              </CardHeader>
@@ -485,7 +484,7 @@ function VideoReviewPageContent() {
                              </CardContent>
                          </Card>
 
-                         <Card className="lg:col-span-2 rounded-2xl shadow-lg shadow-primary/5 border-0">
+                         <Card className="lg:col-span-2 rounded-2xl border-0">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
                                     <Lightbulb className="h-5 w-5 text-primary" />
@@ -505,12 +504,12 @@ function VideoReviewPageContent() {
                          </Card>
                        </div>
                        
-                        <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0">
+                        <Card className="rounded-2xl border-0">
                             <CardHeader>
                                 <CardTitle className="font-headline text-lg">Análise Detalhada</CardTitle>
                             </CardHeader>
                             <CardContent>
-                               <Accordion type="single" collapsible className="w-full text-left">
+                               <Accordion type="single" collapsible className="w-full">
                                     <AccordionItem value="item-1">
                                         <AccordionTrigger>Análise do Gancho</AccordionTrigger>
                                         <AccordionContent className="whitespace-pre-wrap">{analysisResult.gancho}</AccordionContent>
@@ -540,7 +539,7 @@ function VideoReviewPageContent() {
                     Aqui estão os últimos vídeos que você analisou.
                 </p>
             </div>
-             <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0">
+             <Card className="rounded-2xl border-0">
                 <CardContent className="pt-6">
                     {isLoadingAnalyses && (
                          <div className="flex justify-center items-center h-40">

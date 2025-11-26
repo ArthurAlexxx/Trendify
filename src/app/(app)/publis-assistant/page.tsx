@@ -253,22 +253,21 @@ function PublisAssistantPageContent() {
 
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-8">
       <PageHeader
-        icon={<Newspaper className="text-primary" />}
         title="Assistente de Publis & Parcerias"
         description="Crie pacotes de conteúdo para marcas com foco em conversão e tendências."
       >
         <SavedIdeasSheet />
       </PageHeader>
 
-        <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0">
+        <Card className="rounded-2xl border-0">
             <CardHeader>
-                <CardTitle className="flex items-center gap-3 font-headline text-xl text-center sm:text-left">
+                <CardTitle className="flex items-center gap-3 font-headline text-xl">
                     <Sparkles className="h-6 w-6 text-primary" />
                     Como Criamos Sua Campanha?
                 </CardTitle>
-                 <CardDescription className="text-center sm:text-left">Nossa plataforma atua como uma diretora de criação, combinando estratégia com criatividade. Focamos em 4 pilares:</CardDescription>
+                 <CardDescription>Nossa plataforma atua como uma diretora de criação, combinando estratégia com criatividade. Focamos em 4 pilares:</CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -286,9 +285,9 @@ function PublisAssistantPageContent() {
         </Card>
 
 
-      <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0">
-        <CardHeader className="text-center sm:text-left">
-          <CardTitle className="flex items-center justify-center sm:justify-start gap-3 font-headline text-xl">
+      <Card className="rounded-2xl border-0">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-3 font-headline text-xl">
             <Bot className="h-6 w-6 text-primary" />
             <span>Briefing da Campanha</span>
           </CardTitle>
@@ -298,7 +297,7 @@ function PublisAssistantPageContent() {
           <Form {...form}>
             <form
               onSubmit={form.handleSubmit(formAction)}
-              className="space-y-8 text-left"
+              className="space-y-8"
             >
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-6">
                  <div className="space-y-6">
@@ -409,7 +408,7 @@ function PublisAssistantPageContent() {
                   type="submit"
                   disabled={isButtonDisabled}
                   size="lg"
-                  className="font-manrope w-full sm:w-auto h-12 px-10 rounded-full text-base font-bold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-shadow"
+                  className="font-manrope w-full sm:w-auto h-12 px-10 rounded-full text-base font-bold"
                 >
                   {isGenerating ? (
                     <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Gerando Pacote...</>
@@ -430,7 +429,7 @@ function PublisAssistantPageContent() {
 
       {(isGenerating || result) && (
         <div className="space-y-8 animate-fade-in">
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="flex-1">
               <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">
                 Pacote de Conteúdo Gerado
@@ -459,15 +458,15 @@ function PublisAssistantPageContent() {
 
               {/* Scripts */}
               <div className="lg:col-span-2 space-y-6">
-                <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0">
-                    <CardHeader className="text-center sm:text-left">
-                        <CardTitle className="flex items-center justify-center sm:justify-start gap-3 text-lg font-semibold text-foreground">
+                <Card className="rounded-2xl border-0">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
                             <Clapperboard className="h-5 w-5 text-primary" />
                             <span>5 Roteiros Prontos para Gravar</span>
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <Accordion type="single" collapsible className="w-full text-left">
+                        <Accordion type="single" collapsible className="w-full">
                             {result.scripts.map((script, index) => (
                                 <AccordionItem value={`item-${index}`} key={index}>
                                 <AccordionTrigger className="font-semibold text-base hover:no-underline text-left">Roteiro {index + 1}: {script.gancho}</AccordionTrigger>
@@ -520,15 +519,15 @@ function InfoListCard({
   items: string[];
 }) {
   return (
-    <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0 h-full">
-      <CardHeader className="text-center sm:text-left">
-        <CardTitle className="flex items-center justify-center sm:justify-start gap-3 text-lg font-semibold text-foreground">
+    <Card className="rounded-2xl border-0 h-full">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary" />
           <span>{title}</span>
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <ul className="space-y-3 text-left">
+        <ul className="space-y-3">
           {items.map((item, index) => (
             <li
               key={index}

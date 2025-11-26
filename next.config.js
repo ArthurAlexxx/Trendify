@@ -4,6 +4,11 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '80mb',
+    },
+  },
   images: {
     remotePatterns: [
       {
@@ -49,9 +54,6 @@ const nextConfig = {
         hostname: '**.fbcdn.net',
       },
     ],
-  },
-  serverActions: {
-    bodySizeLimit: '80mb',
   },
 };
 
