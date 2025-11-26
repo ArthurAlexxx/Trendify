@@ -1253,9 +1253,9 @@ export function InstagramProfileResults({ profile, posts, error, formatNumber }:
                 >
                     <CarouselContent>
                         {posts.map((post) => (
-                            <CarouselItem key={post.id} className="basis-full sm:basis-1/2 lg:basis-1/3">
+                            <CarouselItem key={post.id} className="basis-1/2 sm:basis-1/2 lg:basis-1/3">
                                 <Card className="overflow-hidden">
-                                    <div className="relative aspect-square">
+                                    <div className="relative aspect-[9/16]">
                                         <Image src={post.mediaUrl} alt={post.caption || 'Instagram Post'} fill style={{ objectFit: 'cover' }} />
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
                                         <div className="absolute bottom-0 left-0 p-4 text-white">
@@ -1321,4 +1321,6 @@ export function TikTokProfileResults({ profile, posts, error, formatNumber }: { 
         </div>
     );
 }
+    
+
     
