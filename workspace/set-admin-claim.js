@@ -24,7 +24,7 @@
 const admin = require('firebase-admin');
 
 // --- CONFIGURE AQUI ---
-const USER_UID_TO_MAKE_ADMIN = 'COLE_O_UID_DO_USUÁRIO_AQUI'; // Ex: 'eVwzpLgmRQbsG5o8ZDcclPbQiwt1'
+const USER_UID_TO_MAKE_ADMIN = 'eVwzpLgmRQbsG5o8ZDcclPbQiwt1'; // Ex: 'eVwzpLgmRQbsG5o8ZDcclPbQiwt1'
 // --------------------
 
 try {

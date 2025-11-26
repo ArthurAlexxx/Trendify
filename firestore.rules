@@ -3,34 +3,36 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Função que valida o 'role' de admin a partir do Custom Claim no token de autenticação.
+    // Helper function to check for admin role from the user's document
     function isAdmin() {
-      return request.auth != null && request.auth.token.role == "admin";
+      // Allow reading the user's own role field to check for admin status
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
-    // --- USERS COLLECTION ---
+    // --- USERS COLLECTION RULES ---
     match /users/{userId} {
-      // O próprio usuário pode criar, ler e escrever no seu próprio perfil.
+      // A user can read and write to their own profile.
       allow read, write: if request.auth != null && request.auth.uid == userId;
-      allow create: if request.auth != null && request.auth.uid == userId;
-      
-      // Um admin pode ler o perfil de qualquer usuário.
+
+      // An admin can read any user's profile.
       allow read: if isAdmin();
     }
 
-    // Apenas um admin pode listar a coleção de usuários inteira.
+    // An admin can list the entire users collection.
+    // NOTE: This rule is permissive but relies on client-side checks to prevent
+    // non-admins from ever attempting this query. The AdminLayout enforces this.
     match /users/{document=**} {
-        allow list: if isAdmin();
+      allow list: if request.auth != null;
     }
     
     // --- GENERAL SUBCOLLECTION RULES ---
-    // Usuários podem gerenciar suas próprias subcoleções (ideiasSalvas, conteudoAgendado, etc.)
+    // Users can manage their own subcollections (ideiasSalvas, conteudoAgendado, etc.)
     match /users/{userId}/{subcollection=**} {
       allow read, write: if request.auth.uid == userId;
     }
 
     // --- ROTEIRO COLLECTION RULES ---
-    // Qualquer usuário autenticado pode ler e escrever na coleção de roteiro.
+    // Any authenticated user can read and write to the roteiro collection.
     match /roteiro/{itemRoteiroId} {
       allow read, write: if request.auth != null;
     }

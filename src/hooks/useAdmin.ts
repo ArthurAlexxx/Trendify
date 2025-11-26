@@ -1,55 +1,59 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useUser } from '@/firebase';
+import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
+import { doc, getDoc } from 'firebase/firestore';
+import type { UserProfile } from '@/lib/types';
 
 /**
  * A hook to determine if the currently authenticated user has an 'admin' role
- * by checking the custom claims on their Firebase ID token.
+ * by checking the 'role' field in their Firestore document.
  *
  * @returns An object with `isAdmin` and `isLoading` properties.
  */
 export function useAdmin() {
-  const { user, isUserLoading: isAuthLoading } = useUser();
+  const { user, isUserLoading } = useUser();
+  const firestore = useFirestore();
   const [isAdmin, setIsAdmin] = useState(false);
-  const [isClaimsLoading, setIsClaimsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
+  const userProfileRef = useMemoFirebase(
+    () => (firestore && user ? doc(firestore, `users/${user.uid}`) : null),
+    [firestore, user]
+  );
+  
   useEffect(() => {
-    // If auth is still loading, we can't check claims yet.
-    if (isAuthLoading) {
-      return;
-    }
-    
-    // If there is no user, they are definitely not an admin.
-    if (!user) {
-      setIsAdmin(false);
-      setIsClaimsLoading(false);
+    // If auth is still loading, or there's no user or firestore, we are in a loading state.
+    if (isUserLoading || !user || !firestore) {
+      setIsLoading(true);
       return;
     }
 
-    // When the user object is available, get their ID token result.
-    // The `true` argument forces a refresh of the token to get the latest claims.
-    user.getIdTokenResult(true)
-      .then((idTokenResult) => {
-        // Custom claims are on the `claims` object.
-        // Check for the 'role' claim.
-        const userClaims = idTokenResult.claims;
-        setIsAdmin(userClaims.role === 'admin');
-      })
-      .catch((error) => {
-        console.error("Erro ao buscar as permissões do usuário:", error);
+    const checkAdminStatus = async () => {
+      if (!userProfileRef) {
+          setIsAdmin(false);
+          setIsLoading(false);
+          return;
+      }
+      
+      try {
+        const docSnap = await getDoc(userProfileRef);
+        if (docSnap.exists() && docSnap.data()?.role === 'admin') {
+          setIsAdmin(true);
+        } else {
+          setIsAdmin(false);
+        }
+      } catch (error) {
+        console.error("Error fetching user role:", error);
         setIsAdmin(false);
-      })
-      .finally(() => {
-        // Mark claims checking as complete.
-        setIsClaimsLoading(false);
-      });
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  }, [user, isAuthLoading]);
+    checkAdminStatus();
+  }, [user, firestore, isUserLoading, userProfileRef]);
 
-  return {
-    isAdmin,
-    // The overall loading state is true until both auth and claims are resolved.
-    isLoading: isAuthLoading || isClaimsLoading,
-  };
+
+  return { isAdmin, isLoading };
 }
