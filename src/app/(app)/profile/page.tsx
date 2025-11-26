@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useUser, useFirestore, useDoc, useMemoFirebase, initializeFirebase } from '@/firebase';
-import { User as UserIcon, Instagram, Film, Search, Loader2, AlertTriangle, Users, Heart, MessageSquare, Clapperboard, PlayCircle, Eye, Upload } from 'lucide-react';
+import { User as UserIcon, Instagram, Film, Search, Loader2, AlertTriangle, Users, Heart, MessageSquare, Clapperboard, PlayCircle, Eye, Upload, Crown } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -35,6 +35,8 @@ import { getInstagramProfile, getTikTokPosts, getTikTokProfile, getInstagramPost
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useSubscription } from '@/hooks/useSubscription';
+import Link from 'next/link';
 
 
 const profileFormSchema = z.object({
@@ -69,6 +71,9 @@ export default function ProfilePage() {
   const [tiktokUsername, setTiktokUsername] = useState('');
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { subscription, isLoading: isSubscriptionLoading } = useSubscription();
+
+  const isPremium = subscription?.plan === 'premium' && subscription.status === 'active';
   
   const [instaStatus, setInstaStatus] = useState<SearchStatus>('idle');
   const [instaProfile, setInstaProfile] = useState<InstagramProfileData | null>(null);
@@ -109,6 +114,7 @@ export default function ProfilePage() {
   });
   
   useEffect(() => {
+    if (!isPremium) return;
     try {
       const savedInstaProfile = localStorage.getItem('lastInstagramProfile');
       const savedInstaPosts = localStorage.getItem('lastInstagramPosts');
@@ -134,7 +140,7 @@ export default function ProfilePage() {
       console.error("Failed to parse persisted data from localStorage", e);
       localStorage.clear();
     }
-  }, []);
+  }, [isPremium]);
 
   const formatNumber = (num: number): string => {
     if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(1).replace('.', ',')}M`;
@@ -350,6 +356,8 @@ export default function ProfilePage() {
     }
   };
 
+  const isLoading = isProfileLoading || isSubscriptionLoading;
+
 
   return (
     <div className="space-y-8">
@@ -369,6 +377,13 @@ export default function ProfilePage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
+             {isLoading ? (
+                <div className="space-y-6">
+                    <Skeleton className="h-24 w-24 rounded-full" />
+                    <Skeleton className="h-10 w-1/2" />
+                    <Skeleton className="h-10 w-full" />
+                </div>
+             ) : (
               <form onSubmit={form.handleSubmit(onProfileSubmit)} className="space-y-8 text-left">
                   <div className="flex flex-col sm:flex-row items-center gap-6">
                     <div className="relative group">
@@ -510,6 +525,7 @@ export default function ProfilePage() {
                   </Button>
                 </div>
               </form>
+             )}
             </CardContent>
           </Card>
           
@@ -524,6 +540,10 @@ export default function ProfilePage() {
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
+                {isLoading ? (
+                    <Skeleton className="h-64 w-full" />
+                ) : isPremium ? (
+                <>
                  <Alert>
                     <AlertTriangle className="h-4 w-4" />
                     <AlertTitle>Importante!</AlertTitle>
@@ -622,6 +642,23 @@ export default function ProfilePage() {
                          {tiktokStatus === 'success' && tiktokProfile && <TikTokProfileResults profile={tiktokProfile} posts={tiktokPosts} error={tiktokError} formatNumber={formatNumber}/>}
                     </TabsContent>
                   </Tabs>
+                </>
+                ) : (
+                    <Card className="border-yellow-400/50 bg-yellow-400/5 shadow-lg shadow-yellow-500/5 rounded-2xl text-center">
+                        <CardHeader>
+                            <CardTitle className="flex items-center justify-center gap-3 font-headline text-xl text-yellow-600">
+                                <Crown className="h-6 w-6" />
+                                <span>Recurso Premium</span>
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <p className="text-muted-foreground">A integração automática com redes sociais é um recurso exclusivo para assinantes do plano Premium.</p>
+                            <Button asChild>
+                                <Link href="/subscribe">Ver Planos</Link>
+                            </Button>
+                        </CardContent>
+                    </Card>
+                )}
             </CardContent>
           </Card>
     </div>

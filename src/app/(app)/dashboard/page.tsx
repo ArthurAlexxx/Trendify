@@ -22,6 +22,7 @@ import {
   Film,
   Clapperboard,
   Search,
+  Crown,
 } from 'lucide-react';
 import {
   ChartContainer,
@@ -73,6 +74,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { getInstagramProfile, getTikTokPosts, getTikTokProfile, getInstagramPosts } from '../profile/actions';
 import { InstagramProfileResults, TikTokProfileResults } from '../profile/page';
+import { useSubscription } from '@/hooks/useSubscription';
 
 
 const chartConfigBase = {
@@ -121,7 +123,7 @@ const profileMetricsSchema = z.object({
 });
 
 
-const ProfileCompletionAlert = ({ userProfile, hasUpdatedToday }: { userProfile: UserProfile | null, hasUpdatedToday: boolean }) => {
+const ProfileCompletionAlert = ({ userProfile, hasUpdatedToday, isPremium }: { userProfile: UserProfile | null, hasUpdatedToday: boolean, isPremium: boolean }) => {
     const isProfileSetup = userProfile?.niche && (userProfile.instagramHandle || userProfile.tiktokHandle);
     const hasAnyPlatform = userProfile?.instagramHandle || userProfile?.tiktokHandle;
 
@@ -142,12 +144,23 @@ const ProfileCompletionAlert = ({ userProfile, hasUpdatedToday }: { userProfile:
              <Alert>
                 <div className='flex flex-col sm:flex-row justify-between items-center gap-4'>
                     <div className='text-center sm:text-left'>
-                        <AlertTitle className="flex items-center justify-center sm:justify-start gap-2"><AlertTriangle className="h-4 w-4 text-primary" />Conecte suas Plataformas!</AlertTitle>
+                        <AlertTitle className="flex items-center justify-center sm:justify-start gap-2">
+                           {isPremium ? <AlertTriangle className="h-4 w-4 text-primary" /> : <Crown className="h-4 w-4 text-yellow-500" />}
+                           {isPremium ? 'Conecte suas Plataformas!' : 'Recurso Premium Disponível'}
+                        </AlertTitle>
                         <AlertDescription>
-                           Integre seu Instagram ou TikTok para começar a acompanhar suas métricas.
+                           {isPremium 
+                               ? 'Integre seu Instagram ou TikTok para começar a acompanhar suas métricas.'
+                               : 'Faça upgrade para o Premium e conecte suas redes para atualizar métricas automaticamente.'
+                           }
                         </AlertDescription>
                     </div>
-                   {userProfile && <PlatformIntegrationModal userProfile={userProfile} />}
+                   {userProfile && isPremium && <PlatformIntegrationModal userProfile={userProfile} />}
+                   {!isPremium && (
+                       <Button asChild className='w-full sm:w-auto'>
+                           <Link href="/subscribe">Ver Planos</Link>
+                       </Button>
+                   )}
                 </div>
             </Alert>
          )
@@ -559,6 +572,9 @@ export default function DashboardPage() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState<'instagram' | 'tiktok' | 'total'>('total');
 
+  const { subscription, isLoading: isSubscriptionLoading } = useSubscription();
+  const isPremium = subscription?.plan === 'premium' && subscription.status === 'active';
+
   const userProfileRef = useMemoFirebase(() => (
       firestore && user ? doc(firestore, `users/${user.uid}`) : null
   ), [firestore, user]);
@@ -592,7 +608,7 @@ export default function DashboardPage() {
   }, [metricSnapshots]);
 
 
-  const isLoading = isLoadingProfile || isLoadingRoteiro || isLoadingIdeias || isLoadingUpcoming || isLoadingMetrics;
+  const isLoading = isLoadingProfile || isLoadingRoteiro || isLoadingIdeias || isLoadingUpcoming || isLoadingMetrics || isSubscriptionLoading;
   
   const parseMetric = (value?: string | number) => {
     if (typeof value === 'number') return value;
@@ -730,7 +746,7 @@ export default function DashboardPage() {
       />
 
       <div className="space-y-8">
-        <ProfileCompletionAlert userProfile={userProfile} hasUpdatedToday={hasUpdatedToday} />
+        <ProfileCompletionAlert userProfile={userProfile} hasUpdatedToday={hasUpdatedToday} isPremium={isPremium} />
 
         {/* Métricas Principais */}
         <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0">
