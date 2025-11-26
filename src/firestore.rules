@@ -22,6 +22,12 @@ service cloud.firestore {
       allow list: if request.auth != null && isAdmin();
     }
 
+    // Regra específica para a collectionGroup 'dailyUsage'
+    match /{path=**}/dailyUsage/{usageId} {
+      // Admin pode ler os dados de uso de todos os usuários para o dashboard
+      allow read: if request.auth != null && isAdmin();
+    }
+
     // Subcoleções do usuário
     match /users/{userId}/{subcollection=**} {
       // O usuário pode ler e escrever em suas próprias subcoleções
