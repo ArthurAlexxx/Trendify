@@ -40,7 +40,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from "@/firebase";
-import { collection, addDoc, serverTimestamp, doc, setDoc, increment, query, orderBy, limit, getDoc, updateDoc } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, doc, setDoc, increment, query, orderBy, limit, getDoc, updateDoc, onSnapshot } from "firebase/firestore";
 import { useTransition } from "react";
 import { Separator } from "@/components/ui/separator";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -150,9 +150,9 @@ function VideoReviewPageContent() {
   
   const analysesDoneToday = usageData?.videoAnalyses || 0;
   const currentPlan = subscription?.plan || 'free';
-  const limitCount = currentPlan === 'free' ? 1 : PLAN_LIMITS[currentPlan];
+  const limitCount = currentPlan === 'free' ? 1 : PLAN_LIMITS[currentPlan as keyof typeof PLAN_LIMITS] || 0;
   const analysesLeft = Math.max(0, limitCount - analysesDoneToday);
-  const hasReachedLimit = isTrialActive ? analysesLeft <= 0 : currentPlan === 'free';
+  const hasReachedLimit = isTrialActive ? (analysesDoneToday >= PLAN_LIMITS['pro']) : (currentPlan === 'free' || analysesLeft <= 0);
 
   const previousAnalysesQuery = useMemoFirebase(() =>
     user && firestore ? query(collection(firestore, `users/${user.uid}/analisesVideo`), orderBy('createdAt', 'desc'), limit(5)) : null
@@ -454,12 +454,12 @@ function VideoReviewPageContent() {
         
         <div className="text-center">
             <p className="text-sm text-muted-foreground">
-                {isLoadingUsage ? <Skeleton className="h-4 w-48 inline-block" /> : 
+                {isLoadingUsage ? <div className="h-4 bg-muted rounded w-48 inline-block animate-pulse" /> : 
                 <>
                 Análises de vídeo restantes hoje: <span className="font-bold text-primary">{analysesLeft} de {limitCount}</span>
                 </>}
             </p>
-             {hasReachedLimit && currentPlan !== 'free' && (
+             {hasReachedLimit && currentPlan !== 'premium' && (
                 <p className="text-xs text-muted-foreground">
                   Você atingiu seu limite diário. Para mais análises, <Link href="/subscribe" className="underline text-primary">faça upgrade</Link>.
                 </p>
