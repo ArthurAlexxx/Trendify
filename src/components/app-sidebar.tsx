@@ -105,7 +105,7 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
   }
   
   const sidebarClass = isMobile 
-    ? "h-screen w-full flex flex-col" 
+    ? "h-full w-full flex flex-col" 
     : "h-screen w-64 flex-col fixed inset-y-0 left-0 z-50 bg-card border-r hidden md:flex";
 
   return (
