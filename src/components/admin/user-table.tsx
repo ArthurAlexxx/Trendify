@@ -14,7 +14,11 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Badge } from '../ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import { Crown } from 'lucide-react';
+import { Crown, MoreHorizontal, Edit } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
+import { Button } from '../ui/button';
+import { ChangePlanDialog } from './change-plan-dialog';
+import { useState } from 'react';
 
 interface UserTableProps {
   data: UserProfile[];
@@ -29,14 +33,31 @@ const getPlanName = (plan: 'free' | 'pro' | 'premium' | undefined) => {
 };
 
 export function UserTable({ data }: UserTableProps) {
+  const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const handleOpenDialog = (user: UserProfile) => {
+    setSelectedUser(user);
+    setIsDialogOpen(true);
+  };
+
   return (
+    <>
+    {selectedUser && (
+      <ChangePlanDialog 
+        isOpen={isDialogOpen} 
+        setIsOpen={setIsDialogOpen}
+        user={selectedUser}
+      />
+    )}
     <Table>
       <TableHeader>
         <TableRow>
           <TableHead>Usuário</TableHead>
           <TableHead>Plano</TableHead>
           <TableHead>Data de Criação</TableHead>
-          <TableHead className="text-right">Role</TableHead>
+          <TableHead>Role</TableHead>
+          <TableHead className="text-right">Ações</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -62,7 +83,7 @@ export function UserTable({ data }: UserTableProps) {
             <TableCell>
               {user.createdAt ? format(user.createdAt.toDate(), "dd 'de' MMMM, yyyy", { locale: ptBR }) : 'N/A'}
             </TableCell>
-            <TableCell className="text-right">
+             <TableCell>
               {user.role === 'admin' ? (
                 <Badge>
                     <Crown className="mr-2 h-3 w-3" />
@@ -70,9 +91,28 @@ export function UserTable({ data }: UserTableProps) {
                 </Badge>
               ) : 'Usuário'}
             </TableCell>
+            <TableCell className="text-right">
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Abrir menu</span>
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                        <DropdownMenuItem onClick={() => handleOpenDialog(user)}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            <span>Alterar Plano</span>
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </TableCell>
           </TableRow>
         ))}
       </TableBody>
     </Table>
+    </>
   );
 }
+
