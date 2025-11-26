@@ -90,7 +90,7 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
   const isUserActive = subscription?.status === 'active';
 
   const getPlanName = () => {
-    if (!subscription || isLoading) return "Carregando...";
+    if (!subscription || isSubscriptionLoading) return "Carregando...";
     if (!isUserActive && userPlan === 'free') return "Fazer Upgrade";
     if (userPlan === 'premium') return 'Premium';
     if (userPlan === 'pro') return 'Pro';
@@ -98,14 +98,14 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
   }
   
   const getPlanIcon = () => {
-    if (!subscription || isLoading) return <Skeleton className="h-5 w-5 rounded-full" />;
+    if (!subscription || isSubscriptionLoading) return <Skeleton className="h-5 w-5 rounded-full" />;
     if (isUserActive && (userPlan === 'pro' || userPlan === 'premium')) return <Sparkles className="h-5 w-5" />;
     return <Crown className="h-5 w-5" />;
   }
   
   const sidebarClass = isMobile 
     ? "h-screen w-full flex flex-col" 
-    : "h-screen w-64 flex-col fixed inset-y-0 z-50 bg-card border-r hidden md:flex";
+    : "h-screen w-64 flex-col fixed inset-y-0 left-0 z-50 bg-card border-r hidden md:flex";
 
   return (
      <aside className={sidebarClass}>
