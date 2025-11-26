@@ -633,7 +633,7 @@ export default function DashboardPage() {
   const formatMetricValue = (value?: string | number): string => {
     if (value === undefined || value === null) return '—';
     const num = typeof value === 'string' ? parseMetric(value) : value;
-    if (num === 0 && (selectedPlatform === 'instagram' || selectedPlatform === 'tiktok') && title !== 'Seguidores') return 'N/A';
+    if (num === 0) return 'N/A';
 
     if (num >= 1000000) return `${(num / 1000000).toFixed(1).replace('.', ',')}M`;
     if (num >= 10000) return `${(num / 1000).toFixed(1).replace('.', ',')}K`;
