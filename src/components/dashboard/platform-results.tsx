@@ -13,7 +13,7 @@ import { Skeleton } from '../ui/skeleton';
 export function MetricCard({ icon: Icon, title, value, handle, isLoading }: { icon: React.ElementType, title: string, value?: string, handle?: string, isLoading: boolean }) {
     if (isLoading) {
         return (
-             <div className="p-4 rounded-lg bg-muted/50">
+             <div className="p-4 rounded-lg bg-muted/50 min-h-[108px]">
                 <Skeleton className="h-5 w-2/3 mb-2" />
                 <Skeleton className="h-7 w-1/3" />
             </div>
@@ -21,7 +21,7 @@ export function MetricCard({ icon: Icon, title, value, handle, isLoading }: { ic
     }
 
     return (
-        <div className="p-4 rounded-lg bg-muted/50 flex flex-col justify-center">
+        <div className="p-4 rounded-lg bg-muted/50 flex flex-col justify-center min-h-[108px]">
             <div className="flex items-center justify-between space-y-0 pb-2">
                 <h3 className="text-sm font-medium text-muted-foreground">
                 {title}
