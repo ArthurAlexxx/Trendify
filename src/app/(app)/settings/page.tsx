@@ -53,7 +53,7 @@ export default function SettingsPage() {
     [firestore, user]
   );
   const { data: userProfile } = useDoc<UserProfile>(userProfileRef);
-  const { subscription, isLoading: isSubscriptionLoading } = useSubscription();
+  const { subscription, isLoading: isSubscriptionLoading, isTrialActive, trialDaysLeft } = useSubscription();
 
 
   const handleSignOut = () => {
@@ -157,15 +157,20 @@ export default function SettingsPage() {
                             <h4 className="text-lg font-bold flex items-center justify-center sm:justify-start gap-2">
                                 Plano {subscription.plan && getPlanName(subscription.plan)}
                                 <Badge variant={subscription.status === 'active' ? 'default' : 'secondary'}>
-                                    {subscription.status === 'active' ? 'Ativo' : 'Inativo'}
+                                  {isTrialActive ? 'Em Teste' : subscription.status === 'active' ? 'Ativo' : 'Inativo'}
                                 </Badge>
                             </h4>
-                            {subscription.status === 'active' && userProfile?.subscription?.expiresAt && (
+                            {isTrialActive && (
+                               <p className="text-sm text-muted-foreground">
+                                    Seu teste gratuito do plano Pro termina em {trialDaysLeft} {trialDaysLeft === 1 ? 'dia' : 'dias'}.
+                               </p>
+                            )}
+                            {subscription.status === 'active' && !isTrialActive && userProfile?.subscription?.expiresAt && (
                                 <p className="text-sm text-muted-foreground">
                                     Seu acesso termina em {format(userProfile.subscription.expiresAt.toDate(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}.
                                 </p>
                             )}
-                             {subscription.plan === 'free' && (
+                             {subscription.plan === 'free' && !isTrialActive && (
                                 <p className="text-sm text-muted-foreground">
                                     Faça o upgrade para desbloquear todas as funcionalidades.
                                 </p>
@@ -175,7 +180,7 @@ export default function SettingsPage() {
                             <Button asChild variant="outline" className="w-full sm:w-auto">
                                 <Link href="/subscribe">Ver Planos</Link>
                             </Button>
-                            {subscription.plan !== 'free' && subscription.status === 'active' ? (
+                            {subscription.plan !== 'free' && subscription.status === 'active' && !isTrialActive ? (
                                 <AlertDialog>
                                     <AlertDialogTrigger asChild>
                                         <Button variant="destructive" disabled={isCancelling} className="w-full sm:w-auto">
