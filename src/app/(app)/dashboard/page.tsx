@@ -290,7 +290,7 @@ const UpdateMetricsModal = ({ userProfile, triggerButton }: { userProfile: UserP
                     Atualizar Métricas
                 </Button>}
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[650px]">
+            <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle className="font-headline text-xl">Atualizar Métricas Diárias</DialogTitle>
                     <DialogDescription>
@@ -301,11 +301,11 @@ const UpdateMetricsModal = ({ userProfile, triggerButton }: { userProfile: UserP
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-4 text-left">
                     <div className="space-y-6">
                         <h3 className="text-lg font-semibold flex items-center gap-2"><Instagram className="h-5 w-5" /> Instagram</h3>
-                        <div className="grid sm:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <FormField control={form.control} name="instagramHandle" render={({ field }) => ( <FormItem><FormLabel>Handle</FormLabel><FormControl><Input placeholder="@seu_usuario" {...field} /></FormControl></FormItem> )}/>
                             <FormField control={form.control} name="instagramFollowers" render={({ field }) => ( <FormItem><FormLabel>Seguidores</FormLabel><FormControl><Input placeholder="Ex: 250K" {...field} /></FormControl></FormItem> )}/>
                         </div>
-                        <div className="grid sm:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <FormField control={form.control} name="instagramAverageViews" render={({ field }) => ( <FormItem><FormLabel>Views (Média)</FormLabel><FormControl><Input placeholder="Ex: 15.5K (manual)" {...field} /></FormControl></FormItem> )}/>
                             <FormField control={form.control} name="instagramAverageLikes" render={({ field }) => ( <FormItem><FormLabel>Likes (Média)</FormLabel><FormControl><Input placeholder="Ex: 890" {...field} /></FormControl></FormItem> )}/>
                             <FormField control={form.control} name="instagramAverageComments" render={({ field }) => ( <FormItem><FormLabel>Comentários (Média)</FormLabel><FormControl><Input placeholder="Ex: 120" {...field} /></FormControl></FormItem> )}/>
@@ -314,17 +314,17 @@ const UpdateMetricsModal = ({ userProfile, triggerButton }: { userProfile: UserP
                     <Separator />
                      <div className="space-y-6">
                         <h3 className="text-lg font-semibold flex items-center gap-2"><Film className="h-5 w-5" /> TikTok</h3>
-                        <div className="grid sm:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <FormField control={form.control} name="tiktokHandle" render={({ field }) => ( <FormItem><FormLabel>Handle</FormLabel><FormControl><Input placeholder="@seu_usuario" {...field} /></FormControl></FormItem> )}/>
                             <FormField control={form.control} name="tiktokFollowers" render={({ field }) => ( <FormItem><FormLabel>Seguidores</FormLabel><FormControl><Input placeholder="Ex: 1.2M" {...field} /></FormControl></FormItem> )}/>
                         </div>
-                        <div className="grid sm:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <FormField control={form.control} name="tiktokAverageViews" render={({ field }) => ( <FormItem><FormLabel>Views (Média)</FormLabel><FormControl><Input placeholder="Ex: 1M" {...field} /></FormControl></FormItem> )}/>
                             <FormField control={form.control} name="tiktokAverageLikes" render={({ field }) => ( <FormItem><FormLabel>Likes (Média)</FormLabel><FormControl><Input placeholder="Ex: 100K" {...field} /></FormControl></FormItem> )}/>
                             <FormField control={form.control} name="tiktokAverageComments" render={({ field }) => ( <FormItem><FormLabel>Comentários (Média)</FormLabel><FormControl><Input placeholder="Ex: 1.5K" {...field} /></FormControl></FormItem> )}/>
                         </div>
                     </div>
-                    <DialogFooter className="pt-4">
+                    <DialogFooter className="pt-4 flex-col sm:flex-row">
                         <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
                             {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Salvar Métricas
@@ -792,16 +792,18 @@ export default function DashboardPage() {
                   Visão Geral da Plataforma
                 </CardTitle>
                 <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
-                   <Select value={selectedPlatform} onValueChange={(value) => setSelectedPlatform(value as any)}>
-                      <SelectTrigger className="w-full sm:w-[180px]">
-                        <SelectValue placeholder="Selecione a plataforma" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="total">Total</SelectItem>
-                        <SelectItem value="instagram">Instagram</SelectItem>
-                        <SelectItem value="tiktok">TikTok</SelectItem>
-                      </SelectContent>
-                    </Select>
+                   <div className='w-full sm:w-auto'>
+                     <Select value={selectedPlatform} onValueChange={(value) => setSelectedPlatform(value as any)}>
+                        <SelectTrigger className="w-full sm:w-[180px]">
+                          <SelectValue placeholder="Selecione a plataforma" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="total">Total</SelectItem>
+                          <SelectItem value="instagram">Instagram</SelectItem>
+                          <SelectItem value="tiktok">TikTok</SelectItem>
+                        </SelectContent>
+                      </Select>
+                   </div>
                   {userProfile && <UpdateMetricsModal userProfile={userProfile} />}
                 </div>
             </CardHeader>
@@ -1268,13 +1270,13 @@ export function TikTokProfileResults({ profile, posts, error, formatNumber }: { 
                 <Carousel opts={{ align: "start" }} className="w-full">
                     <CarouselContent>
                         {posts.map((post) => (
-                            <CarouselItem key={post.id} className="basis-full sm:basis-1/2 lg:basis-1/3">
+                            <CarouselItem key={post.id} className="basis-1/2 sm:basis-1/3 lg:basis-1/4">
                                 <Card className="overflow-hidden">
                                     <div className="relative aspect-[9/16]">
                                         <Image src={post.coverUrl} alt={post.description || 'TikTok Video'} fill style={{ objectFit: 'cover' }} />
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
                                         <div className="absolute bottom-0 left-0 p-4 text-white">
-                                            <div className="flex items-center gap-4 text-sm">
+                                            <div className="flex flex-col gap-2 text-xs">
                                                 <div className="flex items-center gap-1.5"><PlayCircle className="h-4 w-4" /> {formatNumber(post.views)}</div>
                                                 <div className="flex items-center gap-1.5"><Heart className="h-4 w-4" /> {formatNumber(post.likes)}</div>
                                                 <div className="flex items-center gap-1.5"><MessageSquare className="h-4 w-4" /> {formatNumber(post.comments)}</div>
@@ -1307,5 +1309,7 @@ export function TikTokProfileResults({ profile, posts, error, formatNumber }: { 
     
 
 
+
+    
 
     
