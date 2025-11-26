@@ -149,10 +149,19 @@ export default function IntegrationsPage() {
         }
         
         setInstaStatus('success');
+        toast({
+          title: 'Sucesso!',
+          description: 'Sua conta do Instagram foi sincronizada.',
+        });
 
     } catch (e: any) {
       setInstaError(e.message || 'Ocorreu um erro desconhecido.');
       setInstaStatus('error');
+      toast({
+        title: 'Erro na Sincronização',
+        description: e.message || 'Ocorreu um erro desconhecido.',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -218,10 +227,19 @@ export default function IntegrationsPage() {
           });
         }
         setTiktokStatus('success');
+        toast({
+          title: 'Sucesso!',
+          description: 'Sua conta do TikTok foi sincronizada.',
+        });
 
     } catch (e: any) {
       setTiktokError(e.message || 'Ocorreu um erro desconhecido.');
       setTiktokStatus('error');
+      toast({
+        title: 'Erro na Sincronização',
+        description: e.message || 'Ocorreu um erro desconhecido.',
+        variant: 'destructive',
+      });
     }
   };
 
