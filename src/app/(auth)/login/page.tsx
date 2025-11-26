@@ -44,32 +44,35 @@ export default function LoginPage() {
   const router = useRouter();
   const auth = useAuth();
   const [isPending, setIsPending] = useState(false);
-  const [isGooglePending, setIsGooglePending] = useState(false);
+  const [isGooglePending, setIsGooglePending] = useState(true); // Start true to handle initial check
 
   useEffect(() => {
-    setIsGooglePending(true);
     getRedirectResult(auth)
       .then((result) => {
         if (result) {
+          // A user has successfully signed in. The onAuthStateChanged listener in FirebaseProvider
+          // will handle profile creation and state update. We just need to wait.
           toast({
             title: 'Login com Google bem-sucedido!',
-            description: 'Redirecionando para o painel...',
+            description: 'Finalizando login...',
           });
-          router.push('/dashboard');
+          // Do not redirect here. Let the AppLayout handle it based on user state.
         } else {
-            setIsGooglePending(false);
+          // No redirect result, so we are not in a Google login callback.
+          setIsGooglePending(false);
         }
       })
       .catch((error) => {
         console.error("Google redirect result error", error);
         toast({
           title: 'Erro no login com Google',
-          description: 'Não foi possível completar o login com o Google. Tente novamente.',
+          description: error.message || 'Não foi possível completar o login com o Google.',
           variant: 'destructive',
         });
         setIsGooglePending(false);
       });
-  }, [auth, router, toast]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auth]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -83,11 +86,7 @@ export default function LoginPage() {
     setIsPending(true);
     try {
       await signInWithEmailAndPassword(auth, values.email, values.password);
-      toast({
-        title: 'Login bem-sucedido!',
-        description: 'Redirecionando para o painel...',
-      });
-      router.push('/dashboard');
+      // Let AppLayout handle the redirect
     } catch (error: any) {
       console.error(error);
       toast({
@@ -98,8 +97,7 @@ export default function LoginPage() {
             : 'Ocorreu um erro. Tente novamente.',
         variant: 'destructive',
       });
-    } finally {
-      setIsPending(false);
+       setIsPending(false);
     }
   }
 
@@ -141,7 +139,7 @@ export default function LoginPage() {
           <CardContent>
             <div className="space-y-4">
                 <Button variant="outline" className="w-full h-11" onClick={handleGoogleSignIn} disabled={isPending || isGooglePending}>
-                    {isGooglePending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon />}
+                    <GoogleIcon />
                     Entrar com Google
                 </Button>
 

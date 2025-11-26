@@ -15,17 +15,26 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
 
   useEffect(() => {
+    // This effect now correctly handles redirection *after* the initial auth check is complete.
     if (!isUserLoading && !user) {
       router.push('/login');
     }
   }, [user, isUserLoading, router]);
 
-  if (isUserLoading || !user) {
+  // isUserLoading is true on first load AND during the async profile creation.
+  // We show a loader until the entire process is finished.
+  if (isUserLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
+  }
+
+  // If loading is finished and there's still no user, it means login failed or is required.
+  // We render null here because the useEffect above will trigger the redirect.
+  if (!user) {
+      return null;
   }
 
   return (

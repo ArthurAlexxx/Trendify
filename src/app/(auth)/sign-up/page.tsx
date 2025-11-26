@@ -20,9 +20,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useAuth, useFirestore } from '@/firebase';
+import { useAuth } from '@/firebase';
 import { createUserWithEmailAndPassword, updateProfile, GoogleAuthProvider, signInWithRedirect, getRedirectResult } from 'firebase/auth';
-import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { Separator } from '@/components/ui/separator';
 
 const formSchema = z.object({
@@ -45,12 +44,10 @@ export default function SignUpPage() {
   const { toast } = useToast();
   const router = useRouter();
   const auth = useAuth();
-  const firestore = useFirestore();
   const [isPending, setIsPending] = useState(false);
-  const [isGooglePending, setIsGooglePending] = useState(false);
+  const [isGooglePending, setIsGooglePending] = useState(true); // Start true to handle initial check
 
   useEffect(() => {
-    setIsGooglePending(true);
     getRedirectResult(auth)
       .then((result) => {
         if (result) {
@@ -58,7 +55,7 @@ export default function SignUpPage() {
             title: 'Login com Google bem-sucedido!',
             description: 'Redirecionando para o painel...',
           });
-          router.push('/dashboard');
+          // Do not redirect here. Let the AppLayout handle it based on user state.
         } else {
             setIsGooglePending(false);
         }
@@ -67,12 +64,13 @@ export default function SignUpPage() {
         console.error("Google redirect result error", error);
         toast({
           title: 'Erro no login com Google',
-          description: 'Não foi possível completar o login com o Google. Tente novamente.',
+          description: error.message || 'Não foi possível completar o login com o Google.',
           variant: 'destructive',
         });
         setIsGooglePending(false);
       });
-  }, [auth, router, toast]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auth]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -99,11 +97,7 @@ export default function SignUpPage() {
         displayName: values.name,
       });
 
-      toast({
-        title: 'Conta criada com sucesso!',
-        description: 'Redirecionando para o painel...',
-      });
-      router.push('/dashboard');
+      // Let AppLayout handle the redirect
     } catch (error: any) {
       console.error('Sign up error:', error.code, error.message);
       toast({
@@ -114,8 +108,7 @@ export default function SignUpPage() {
             : 'Ocorreu um erro ao criar sua conta. Tente novamente.',
         variant: 'destructive',
       });
-    } finally {
-      setIsPending(false);
+       setIsPending(false);
     }
   }
 
@@ -157,7 +150,7 @@ export default function SignUpPage() {
           <CardContent>
             <div className="space-y-4">
                 <Button variant="outline" className="w-full h-11" onClick={handleGoogleSignIn} disabled={isPending || isGooglePending}>
-                    {isGooglePending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon />}
+                    <GoogleIcon />
                     Entrar com Google
                 </Button>
 

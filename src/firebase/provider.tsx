@@ -29,7 +29,7 @@ export interface FirebaseContextState {
   auth: Auth | null; // The Auth service instance
   // User authentication state
   user: User | null;
-  isUserLoading: boolean; // True during initial auth check
+  isUserLoading: boolean; // True during initial auth check AND async profile operations
   userError: Error | null; // Error from auth listener
 }
 
@@ -64,46 +64,9 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
 }) => {
   const [userAuthState, setUserAuthState] = useState<UserAuthState>({
     user: null,
-    isUserLoading: true, // Start loading until first auth event
+    isUserLoading: true, // Start loading until first auth event is fully processed
     userError: null,
   });
-
-  const handleUser = async (firebaseUser: User | null) => {
-    if (firebaseUser) {
-      // User is signed in. Create or merge user profile.
-      const userRef = doc(firestore, `users/${firebaseUser.uid}`);
-      const { displayName, email, photoURL } = firebaseUser;
-      
-      try {
-        const docSnap = await getDoc(userRef);
-
-        if (!docSnap.exists()) {
-          // Document does not exist, it's a new user. Create it with defaults.
-          await setDoc(userRef, {
-            displayName,
-            email,
-            photoURL,
-            createdAt: serverTimestamp(),
-            subscription: {
-              status: 'inactive',
-              plan: 'free',
-            }
-          });
-        } else {
-          // Document exists. Only merge basic profile info, DO NOT touch subscription.
-          await setDoc(userRef, {
-            displayName,
-            email,
-            photoURL,
-          }, { merge: true });
-        }
-
-      } catch (error) {
-        console.error('Error creating/merging user profile:', error);
-      }
-    }
-    setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
-  };
 
   // Effect to subscribe to Firebase auth state changes
   useEffect(() => {
@@ -112,18 +75,55 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       return;
     }
 
-    setUserAuthState({ user: null, isUserLoading: true, userError: null }); // Reset on auth instance change
-
     const unsubscribe = onAuthStateChanged(
       auth,
-      handleUser,
+      async (firebaseUser: User | null) => {
+        if (firebaseUser) {
+          // User is signed in. Start loading state as we need to check/create profile.
+          setUserAuthState(prevState => ({ ...prevState, isUserLoading: true }));
+          
+          const userRef = doc(firestore, `users/${firebaseUser.uid}`);
+          
+          try {
+            const docSnap = await getDoc(userRef);
+
+            if (!docSnap.exists()) {
+              // Document does not exist, it's a new user. Create it.
+              const { displayName, email, photoURL } = firebaseUser;
+              await setDoc(userRef, {
+                displayName,
+                email,
+                photoURL,
+                createdAt: serverTimestamp(),
+                subscription: {
+                  status: 'inactive',
+                  plan: 'free',
+                }
+              });
+            }
+            // If doc exists, we assume it's up-to-date or handled by profile page.
+            // No need to merge basic info on every login.
+            
+            // Profile is now guaranteed to exist. Finalize auth state.
+            setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
+
+          } catch (error) {
+            console.error('Error in user profile handling:', error);
+            // Even if profile creation fails, we set the user but also flag an error.
+            setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: error as Error });
+          }
+        } else {
+          // No user is signed in.
+          setUserAuthState({ user: null, isUserLoading: false, userError: null });
+        }
+      },
       (error) => { // Auth listener error
         console.error("FirebaseProvider: onAuthStateChanged error:", error);
         setUserAuthState({ user: null, isUserLoading: false, userError: error });
       }
     );
     return () => unsubscribe(); // Cleanup
-  }, [auth, firestore]); // Depends on the auth instance
+  }, [auth, firestore]);
 
   // Memoize the context value
   const contextValue = useMemo((): FirebaseContextState => {
