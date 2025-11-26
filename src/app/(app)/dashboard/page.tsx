@@ -579,6 +579,39 @@ export default function DashboardPage() {
       firestore && user ? doc(firestore, `users/${user.uid}`) : null
   ), [firestore, user]);
   const { data: userProfile, isLoading: isLoadingProfile } = useDoc<UserProfile>(userProfileRef);
+  
+  const [instaPosts, setInstaPosts] = useState<InstagramPostData[] | null>(null);
+  const [tiktokPosts, setTiktokPosts] = useState<TikTokPostData[] | null>(null);
+  const [isFetchingPosts, setIsFetchingPosts] = useState(false);
+
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+        if (!userProfile) return;
+
+        setIsFetchingPosts(true);
+        if (userProfile.instagramHandle) {
+            try {
+                const posts = await getInstagramPosts(userProfile.instagramHandle.replace('@', ''));
+                setInstaPosts(posts);
+            } catch (e) {
+                console.error("Failed to fetch instagram posts on dashboard", e);
+            }
+        }
+        if (userProfile.tiktokHandle) {
+            try {
+                const posts = await getTikTokPosts(userProfile.tiktokHandle.replace('@', ''));
+                setTiktokPosts(posts);
+            } catch (e) {
+                console.error("Failed to fetch tiktok posts on dashboard", e);
+            }
+        }
+        setIsFetchingPosts(false);
+    };
+
+    fetchPosts();
+  }, [userProfile]);
+
 
   const roteiroQuery = useMemoFirebase(() => (
       firestore ? query(collection(firestore, 'roteiro'), orderBy('createdAt', 'desc'), limit(1)) : null
@@ -735,6 +768,13 @@ export default function DashboardPage() {
   
   const chartConfig = platformChartConfig[selectedPlatform] || platformChartConfig.total;
 
+  const formatNumber = (num: number): string => {
+        if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(1).replace('.', ',')}M`;
+        if (num >= 10000) return `${(num / 1000).toFixed(1).replace('.', ',')}K`;
+        if (num >= 1000) return num.toLocaleString('pt-BR');
+        return String(num);
+    };
+
   return (
     <div className="space-y-12">
       <PageHeader
@@ -768,7 +808,7 @@ export default function DashboardPage() {
             <CardContent>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 justify-center">
                   <MetricCard icon={Users} title="Seguidores" value={formatMetricValue(latestMetrics?.followers)} handle={selectedPlatform !== 'total' ? latestMetrics?.handle as string : undefined} isLoading={isLoading} />
-                  <MetricCard icon={Eye} title="Views (Manual)" value={latestMetrics?.views ? formatMetricValue(latestMetrics?.views) : undefined} isManual={true} isLoading={isLoading} />
+                  <MetricCard icon={Eye} title="Views (Manual)" value={formatMetricValue(latestMetrics?.views)} isManual={true} isLoading={isLoading} />
                   <MetricCard icon={Heart} title="Média de Likes" value={formatMetricValue(latestMetrics?.likes)} isLoading={isLoading} />
                   <MetricCard icon={MessageSquare} title="Média de Comentários" value={formatMetricValue(latestMetrics?.comments)} isLoading={isLoading} />
                 </div>
@@ -896,6 +936,56 @@ export default function DashboardPage() {
                 </Card>
             </div>
         </div>
+
+        <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0">
+            <CardHeader>
+                <CardTitle className="font-headline text-xl">Suas Publicações</CardTitle>
+                <CardDescription>Veja aqui suas publicações mais recentes do Instagram e TikTok.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                {isFetchingPosts ? (
+                     <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>
+                ) : (
+                    <Tabs defaultValue="instagram">
+                        <TabsList className="grid w-full grid-cols-2">
+                            <TabsTrigger value="instagram" disabled={!userProfile?.instagramHandle}>
+                                <Instagram className="mr-2 h-4 w-4" /> Instagram
+                            </TabsTrigger>
+                            <TabsTrigger value="tiktok" disabled={!userProfile?.tiktokHandle}>
+                                <Film className="mr-2 h-4 w-4" /> TikTok
+                            </TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="instagram" className="mt-4">
+                            {instaPosts && userProfile?.instagramHandle ? (
+                                <InstagramProfileResults profile={{
+                                    id: '', username: userProfile.instagramHandle,
+                                    followersCount: parseMetric(userProfile.instagramFollowers),
+                                    isPrivate: false, isBusiness: true, profilePicUrlHd: '', biography: '', fullName: '', mediaCount: 0, followingCount: 0
+                                }} posts={instaPosts} formatNumber={formatNumber} error={null} />
+                            ) : (
+                                <div className="text-center py-10">
+                                    <p className="text-muted-foreground">Integre sua conta do Instagram no seu <Link href="/profile" className='text-primary font-semibold hover:underline'>perfil</Link> para ver seus posts aqui.</p>
+                                </div>
+                            )}
+                        </TabsContent>
+                        <TabsContent value="tiktok" className="mt-4">
+                              {tiktokPosts && userProfile?.tiktokHandle ? (
+                                <TikTokProfileResults profile={{
+                                    id: '', username: userProfile.tiktokHandle,
+                                    followersCount: parseMetric(userProfile.tiktokFollowers),
+                                    nickname: '', avatarUrl: '', bio: '', isVerified: false, isPrivate: false, heartsCount: 0, videoCount: 0, followingCount: 0
+                                }} posts={tiktokPosts} formatNumber={formatNumber} error={null} />
+                            ) : (
+                                <div className="text-center py-10">
+                                    <p className="text-muted-foreground">Integre sua conta do TikTok no seu <Link href="/profile" className='text-primary font-semibold hover:underline'>perfil</Link> para ver seus vídeos aqui.</p>
+                                </div>
+                            )}
+                        </TabsContent>
+                    </Tabs>
+                )}
+            </CardContent>
+        </Card>
+
 
         {/* Bottom Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -1108,7 +1198,7 @@ function MetricCard({ icon: Icon, title, value, handle, isLoading, isManual }: {
                 <Icon className="h-4 w-4 text-primary" />
             </div>
             {isLoading ? <Skeleton className="h-8 w-24 mt-1" /> :
-                (isManual && (!value || value === "0")) ? (
+                (isManual && (!value || value === "N/A")) ? (
                      <div className="flex items-center gap-2 mt-1">
                         <AlertTriangle className="h-5 w-5 text-amber-500" />
                         <Link href="/profile" className="text-sm text-muted-foreground hover:underline">
