@@ -1,4 +1,3 @@
-
 'use client';
 
 import { AppSidebar } from '@/components/app-sidebar';
@@ -10,21 +9,34 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useAdmin } from '@/hooks/useAdmin';
 import { usePathname } from 'next/navigation';
+import { useToast } from '@/hooks/use-toast';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, isUserLoading } = useUser();
   const { isAdmin, isLoading: isAdminLoading } = useAdmin();
   const router = useRouter();
   const pathname = usePathname();
+  const { toast } = useToast();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    // If loading is finished and there's no user, redirect to login.
-    if (!isUserLoading && !user) {
-      router.push('/login');
+    if (!isUserLoading) {
+      if (!user) {
+        // Se o carregamento terminou e não há usuário, redireciona para o login.
+        router.push('/login');
+      } else if (user && !user.emailVerified && user.providerData.some(p => p.providerId === 'password')) {
+        // Se o usuário está logado via e-mail/senha mas não está verificado,
+        // redireciona para o login e mostra uma notificação.
+        toast({
+            title: "Verificação Necessária",
+            description: "Por favor, confirme seu e-mail para acessar a plataforma.",
+            variant: "destructive"
+        });
+        auth.signOut(); // Força o logout
+        router.push('/login');
+      }
     }
-
-  }, [user, isUserLoading, router]);
+  }, [user, isUserLoading, router, toast]);
 
   // Global error handler for ChunkLoadError
   useEffect(() => {
@@ -42,8 +54,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-
-  // While checking for user auth, show a full-screen loader.
+  // Enquanto verifica o usuário, a verificação, ou o status de admin, mostra um loader.
   if (isUserLoading || isAdminLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
@@ -51,15 +62,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </div>
     );
   }
-
-  // If loading is done and there's no user, we render nothing because the
-  // useEffect above will handle the redirect. This prevents showing a glimpse
-  // of the app layout before redirecting.
-  if (!user) {
+  
+  // Se não há usuário ou o e-mail não foi verificado (para provedor de senha), não renderiza o layout.
+  // O useEffect acima cuidará do redirecionamento.
+  if (!user || (!user.emailVerified && user.providerData.some(p => p.providerId === 'password'))) {
       return null;
   }
 
-  // Redirect admin users from non-admin pages to the admin dashboard
+  // Redireciona admin para o painel de admin se ele estiver em páginas de usuário.
   if (isAdmin && !pathname.startsWith('/admin')) {
       router.replace('/admin');
       return (
@@ -69,7 +79,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       );
   }
 
-  // If we reach here, user is logged in and not loading. Render the app.
+  // Renderiza o layout do aplicativo para usuários autenticados e verificados.
   return (
     <div className="flex min-h-screen w-full bg-background">
         <AppSidebar isMobile={false} setIsMobileMenuOpen={setIsMobileMenuOpen} />
