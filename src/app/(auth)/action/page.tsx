@@ -10,7 +10,7 @@ import {
   checkActionCode,
   applyActionCode,
 } from 'firebase/auth';
-import { Loader2, KeyRound, CheckCircle, XCircle, ArrowLeft, ArrowUpRight } from 'lucide-react';
+import { Loader2, KeyRound, CheckCircle, XCircle, ArrowLeft, ArrowUpRight, MailCheck } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -47,6 +47,7 @@ function AuthActionHandler() {
 
   const [viewState, setViewState] = useState<ViewState>('loading');
   const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [email, setEmail] = useState('');
    const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -75,11 +76,8 @@ function AuthActionHandler() {
             break;
           case 'verifyEmail':
             await applyActionCode(auth, actionCode);
-            toast({
-                title: "E-mail Verificado!",
-                description: "Seu endereço de e-mail foi verificado com sucesso.",
-            });
-            router.push('/login');
+            setSuccessMessage(`O e-mail ${info.data.email} foi verificado com sucesso!`);
+            setViewState('success');
             break;
           default:
             setErrorMessage(`Ação '${mode}' não suportada.`);
@@ -88,7 +86,7 @@ function AuthActionHandler() {
       } catch (error: any) {
         let userFriendlyError = 'O link é inválido ou expirou. Por favor, tente novamente.';
         if (error.code === 'auth/expired-action-code') {
-          userFriendlyError = 'Este link de redefinição de senha expirou. Por favor, solicite um novo.';
+          userFriendlyError = 'Este link de ação expirou. Por favor, solicite um novo.';
         } else if (error.code === 'auth/invalid-action-code') {
            userFriendlyError = 'O link utilizado é inválido. Verifique se copiou o link completo ou tente solicitar um novo.';
         }
@@ -105,6 +103,7 @@ function AuthActionHandler() {
     setIsSubmitting(true);
     try {
       await confirmPasswordReset(auth, actionCode, values.password);
+      setSuccessMessage('Sua senha foi redefinida com sucesso!');
       setViewState('success');
     } catch (error: any) {
        toast({
@@ -143,10 +142,13 @@ function AuthActionHandler() {
       case 'success':
         return (
           <div className="text-center space-y-4">
-            <CheckCircle className="h-12 w-12 text-green-500 mx-auto" />
-            <p className="font-semibold">Senha redefinida com sucesso!</p>
+            {mode === 'verifyEmail' 
+              ? <MailCheck className="h-12 w-12 text-green-500 mx-auto" />
+              : <CheckCircle className="h-12 w-12 text-green-500 mx-auto" />
+            }
+            <p className="font-semibold">{successMessage}</p>
             <p className="text-muted-foreground">
-              Você já pode usar sua nova senha para acessar sua conta.
+              Você já pode acessar sua conta.
             </p>
             <Button asChild className="w-full">
               <Link href="/login">Ir para o Login</Link>
@@ -199,11 +201,23 @@ function AuthActionHandler() {
     }
   };
 
-  const title = useMemo(() => {
+  const { title, icon, description } = useMemo(() => {
     switch(mode) {
-        case 'resetPassword': return 'Redefinir sua Senha';
-        case 'verifyEmail': return 'Verificando E-mail';
-        default: return 'Ação de Autenticação'
+        case 'resetPassword': return {
+            title: 'Redefinir sua Senha',
+            icon: <KeyRound className="h-8 w-8 text-primary" />,
+            description: 'Crie uma nova senha segura para sua conta.'
+        };
+        case 'verifyEmail': return {
+            title: 'Verificação de E-mail',
+            icon: <MailCheck className="h-8 w-8 text-primary" />,
+            description: 'Finalizando a verificação do seu e-mail.'
+        };
+        default: return {
+            title: 'Ação de Autenticação',
+            icon: <KeyRound className="h-8 w-8 text-primary" />,
+            description: ''
+        }
     }
   }, [mode]);
 
@@ -224,13 +238,13 @@ function AuthActionHandler() {
         <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0">
           <CardHeader className="text-center">
              <div className="w-16 h-16 bg-primary/10 mx-auto rounded-full flex items-center justify-center border-2 border-primary/20 mb-4">
-                <KeyRound className="h-8 w-8 text-primary" />
+                {icon}
              </div>
             <CardTitle className="font-headline text-xl">
               {title}
             </CardTitle>
             <CardDescription>
-                {viewState === 'form' && 'Crie uma nova senha segura para sua conta.'}
+                {viewState === 'form' && description}
             </CardDescription>
           </CardHeader>
           <CardContent>

@@ -20,7 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/firebase';
-import { createUserWithEmailAndPassword, updateProfile, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { createUserWithEmailAndPassword, updateProfile, GoogleAuthProvider, signInWithPopup, sendEmailVerification } from 'firebase/auth';
 import { Separator } from '@/components/ui/separator';
 
 const formSchema = z.object({
@@ -61,12 +61,19 @@ export default function SignUpPage() {
         values.email,
         values.password
       );
-      // The FirebaseProvider will create the Firestore profile.
-      // We just need to update the Auth display name here.
+
       await updateProfile(userCredential.user, {
         displayName: values.name,
       });
-      // AuthLayout will handle the redirect.
+
+      await sendEmailVerification(userCredential.user);
+      
+      toast({
+        title: 'Confirme seu E-mail',
+        description: `Enviamos um link de verificação para ${values.email}.`,
+      });
+
+      // AuthLayout will handle the redirect after state change.
     } catch (error: any) {
       console.error('Sign up error:', error.code, error.message);
       toast({
