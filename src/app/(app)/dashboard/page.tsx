@@ -48,7 +48,7 @@ import type {
 } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Checkbox } from '@/components/ui/checkbox';
-import { format, formatDistanceToNow, isToday } from 'date-fns';
+import { format, formatDistanceToNow, isToday, startOfDay, endOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
   DropdownMenu,
@@ -63,7 +63,7 @@ import { useState, useMemo, useEffect, useTransition } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, useCollection, useDoc, useMemoFirebase } from '@/firebase';
-import { collection, doc, query, orderBy, limit, updateDoc, where, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, doc, query, orderBy, limit, updateDoc, where, addDoc, serverTimestamp, getDocs, Timestamp } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -126,7 +126,8 @@ const profileMetricsSchema = z.object({
 });
 
 
-const ProfileCompletionAlert = ({ userProfile, isPremium }: { userProfile: UserProfile | null, isPremium: boolean }) => {
+const ProfileCompletionAlert = ({ userProfile, hasUpdatedToday, isPremium }: { userProfile: UserProfile | null, hasUpdatedToday: boolean, isPremium: boolean }) => {
+    const isProfileSetup = userProfile?.niche && (userProfile.instagramHandle || userProfile.tiktokHandle);
     const hasAnyPlatform = userProfile?.instagramHandle || userProfile?.tiktokHandle;
 
     if (!userProfile?.niche) {
@@ -135,7 +136,7 @@ const ProfileCompletionAlert = ({ userProfile, isPremium }: { userProfile: UserP
               <AlertTriangle className="h-4 w-4 text-primary" />
               <AlertTitle>Complete seu Perfil!</AlertTitle>
               <AlertDescription>
-                  <Link href="/profile" className='hover:underline font-semibold'>Adicione seu nicho</Link> para a IA gerar insights melhores.
+                  <Link href="/profile" className='hover:underline font-semibold'>Adicione seu nicho de atuação</Link> para que a IA gere insights mais precisos.
               </AlertDescription>
           </Alert>
       )
@@ -148,12 +149,12 @@ const ProfileCompletionAlert = ({ userProfile, isPremium }: { userProfile: UserP
                     <div className='text-center sm:text-left'>
                         <AlertTitle className="flex items-center justify-center sm:justify-start gap-2">
                            {isPremium ? <AlertTriangle className="h-4 w-4 text-primary" /> : <Crown className="h-4 w-4 text-yellow-500" />}
-                           {isPremium ? 'Conecte suas Plataformas' : 'Recurso Premium Disponível'}
+                           {isPremium ? 'Conecte suas Plataformas!' : 'Recurso Premium Disponível'}
                         </AlertTitle>
                         <AlertDescription>
                            {isPremium 
-                               ? 'Conecte suas redes para acompanhar as métricas.'
-                               : 'Faça upgrade e conecte suas redes para atualizar métricas automaticamente.'
+                               ? 'Integre seu Instagram ou TikTok para começar a acompanhar suas métricas.'
+                               : 'Faça upgrade para o Premium e conecte suas redes para atualizar métricas automaticamente.'
                            }
                         </AlertDescription>
                     </div>
@@ -161,7 +162,7 @@ const ProfileCompletionAlert = ({ userProfile, isPremium }: { userProfile: UserP
                         <Button asChild className='w-full sm:w-auto'>
                            <Link href="/profile/integrations">
                                 <RefreshCw className="mr-2 h-4 w-4" />
-                                Conectar
+                                Conectar Plataformas
                            </Link>
                         </Button>
                    )}
@@ -174,10 +175,192 @@ const ProfileCompletionAlert = ({ userProfile, isPremium }: { userProfile: UserP
             </Alert>
          )
     }
-    
+
+    if (!hasUpdatedToday && userProfile) {
+         return (
+            <Alert>
+                <div className='flex flex-col sm:flex-row justify-between items-center gap-4'>
+                    <div className='text-center sm:text-left'>
+                        <AlertTitle className="flex items-center justify-center sm:justify-start gap-2"><AlertTriangle className="h-4 w-4 text-primary" />Atualize suas Métricas!</AlertTitle>
+                        <AlertDescription>
+                            Registre seus números de hoje para manter os gráficos precisos.
+                        </AlertDescription>
+                    </div>
+                    <UpdateMetricsModal userProfile={userProfile} triggerButton={
+                         <Button className='w-full sm:w-auto'>
+                            <RefreshCw className="mr-2 h-4 w-4" />
+                            Atualizar Métricas Agora
+                        </Button>
+                    } />
+                </div>
+            </Alert>
+        )
+    }
+
     return null;
 }
 
+
+const UpdateMetricsModal = ({ userProfile, triggerButton }: { userProfile: UserProfile, triggerButton?: React.ReactNode }) => {
+    const { user } = useUser();
+    const firestore = useFirestore();
+    const { toast } = useToast();
+    const [isPending, startTransition] = useTransition();
+    const [isOpen, setIsOpen] = useState(false);
+
+    const form = useForm<z.infer<typeof profileMetricsSchema>>({
+        resolver: zodResolver(profileMetricsSchema),
+        defaultValues: {
+            instagramHandle: userProfile?.instagramHandle || '',
+            instagramFollowers: userProfile?.instagramFollowers || '',
+            instagramAverageViews: userProfile?.instagramAverageViews || '',
+            instagramAverageLikes: userProfile?.instagramAverageLikes || '',
+            instagramAverageComments: userProfile?.instagramAverageComments || '',
+            tiktokHandle: userProfile?.tiktokHandle || '',
+            tiktokFollowers: userProfile?.tiktokFollowers || '',
+            tiktokAverageViews: userProfile?.tiktokAverageViews || '',
+            tiktokAverageLikes: userProfile?.tiktokAverageLikes || '',
+            tiktokAverageComments: userProfile?.tiktokAverageComments || '',
+        }
+    });
+
+    useEffect(() => {
+        if (userProfile && isOpen) {
+            form.reset({
+                instagramHandle: userProfile.instagramHandle || '',
+                instagramFollowers: userProfile.instagramFollowers || '',
+                instagramAverageViews: userProfile.instagramAverageViews || '',
+                instagramAverageLikes: userProfile.instagramAverageLikes || '',
+                instagramAverageComments: userProfile.instagramAverageComments || '',
+                tiktokHandle: userProfile.tiktokHandle || '',
+                tiktokFollowers: userProfile.tiktokFollowers || '',
+                tiktokAverageViews: userProfile.tiktokAverageViews || '',
+                tiktokAverageLikes: userProfile.tiktokAverageLikes || '',
+                tiktokAverageComments: userProfile.tiktokAverageComments || '',
+            });
+        }
+    }, [userProfile, isOpen, form]);
+
+    const onSubmit = (values: z.infer<typeof profileMetricsSchema>) => {
+        if (!user || !firestore) return;
+        const userProfileRef = doc(firestore, 'users', user.uid);
+
+        startTransition(async () => {
+            try {
+                await updateDoc(userProfileRef, values);
+                const metricSnapshotsRef = collection(firestore, `users/${user.uid}/metricSnapshots`);
+
+                const todayStart = startOfDay(new Date());
+                const todayEnd = endOfDay(new Date());
+
+                const updateOrCreateSnapshot = async (platform: 'instagram' | 'tiktok', data: any) => {
+                    const q = query(
+                        metricSnapshotsRef, 
+                        where('platform', '==', platform), 
+                        where('date', '>=', Timestamp.fromDate(todayStart)),
+                        where('date', '<=', Timestamp.fromDate(todayEnd))
+                    );
+                    const querySnapshot = await getDocs(q);
+
+                    if (querySnapshot.empty) {
+                        await addDoc(metricSnapshotsRef, { ...data, date: serverTimestamp() });
+                    } else {
+                        const docId = querySnapshot.docs[0].id;
+                        await updateDoc(doc(metricSnapshotsRef, docId), { ...data, date: serverTimestamp() });
+                    }
+                };
+                
+                if (values.instagramHandle && values.instagramFollowers) {
+                   await updateOrCreateSnapshot('instagram', {
+                        userId: user.uid,
+                        platform: 'instagram',
+                        followers: values.instagramFollowers || '0',
+                        views: values.instagramAverageViews || '0',
+                        likes: values.instagramAverageLikes || '0',
+                        comments: values.instagramAverageComments || '0',
+                   });
+                }
+                if (values.tiktokHandle && values.tiktokFollowers) {
+                    await updateOrCreateSnapshot('tiktok', {
+                        userId: user.uid,
+                        platform: 'tiktok',
+                        followers: values.tiktokFollowers || '0',
+                        views: values.tiktokAverageViews || '0',
+                        likes: values.tiktokAverageLikes || '0',
+                        comments: values.tiktokAverageComments || '0',
+                    });
+                }
+
+                toast({
+                    title: 'Sucesso!',
+                    description: 'Suas métricas foram salvas.',
+                });
+                setIsOpen(false);
+            } catch (error: any) {
+                toast({
+                    title: 'Erro ao Atualizar',
+                    description: 'Não foi possível salvar suas métricas. ' + error.message,
+                    variant: 'destructive',
+                });
+            }
+        });
+    }
+
+    return (
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogTrigger asChild>
+                {triggerButton || 
+                <Button variant="outline" size="sm">
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Atualizar Métricas
+                </Button>}
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                    <DialogTitle className="font-headline text-xl">Atualizar Métricas Diárias</DialogTitle>
+                    <DialogDescription>
+                        Insira seus números mais recentes para manter o gráfico de evolução preciso.
+                    </DialogDescription>
+                </DialogHeader>
+                <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-4">
+                    <div className="space-y-6">
+                        <h3 className="text-lg font-semibold flex items-center gap-2"><Instagram className="h-5 w-5" /> Instagram</h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <FormField control={form.control} name="instagramHandle" render={({ field }) => ( <FormItem><FormLabel>Handle</FormLabel><FormControl><Input placeholder="@seu_usuario" {...field} /></FormControl></FormItem> )}/>
+                            <FormField control={form.control} name="instagramFollowers" render={({ field }) => ( <FormItem><FormLabel>Seguidores</FormLabel><FormControl><Input placeholder="Ex: 250K" {...field} /></FormControl></FormItem> )}/>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <FormField control={form.control} name="instagramAverageViews" render={({ field }) => ( <FormItem><FormLabel>Média de Views</FormLabel><FormControl><Input placeholder="Ex: 15.5K" {...field} /></FormControl></FormItem> )}/>
+                            <FormField control={form.control} name="instagramAverageLikes" render={({ field }) => ( <FormItem><FormLabel>Média de Likes</FormLabel><FormControl><Input placeholder="Ex: 890" {...field} /></FormControl></FormItem> )}/>
+                            <FormField control={form.control} name="instagramAverageComments" render={({ field }) => ( <FormItem><FormLabel>Média de Comentários</FormLabel><FormControl><Input placeholder="Ex: 120" {...field} /></FormControl></FormItem> )}/>
+                        </div>
+                    </div>
+                    <Separator />
+                     <div className="space-y-6">
+                        <h3 className="text-lg font-semibold flex items-center gap-2"><Film className="h-5 w-5" /> TikTok</h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <FormField control={form.control} name="tiktokHandle" render={({ field }) => ( <FormItem><FormLabel>Handle</FormLabel><FormControl><Input placeholder="@seu_usuario" {...field} /></FormControl></FormItem> )}/>
+                            <FormField control={form.control} name="tiktokFollowers" render={({ field }) => ( <FormItem><FormLabel>Seguidores</FormLabel><FormControl><Input placeholder="Ex: 1.2M" {...field} /></FormControl></FormItem> )}/>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <FormField control={form.control} name="tiktokAverageViews" render={({ field }) => ( <FormItem><FormLabel>Média de Views</FormLabel><FormControl><Input placeholder="Ex: 1M" {...field} /></FormControl></FormItem> )}/>
+                            <FormField control={form.control} name="tiktokAverageLikes" render={({ field }) => ( <FormItem><FormLabel>Média de Likes</FormLabel><FormControl><Input placeholder="Ex: 100K" {...field} /></FormControl></FormItem> )}/>
+                            <FormField control={form.control} name="tiktokAverageComments" render={({ field }) => ( <FormItem><FormLabel>Média de Comentários</FormLabel><FormControl><Input placeholder="Ex: 1.5K" {...field} /></FormControl></FormItem> )}/>
+                        </div>
+                    </div>
+                    <DialogFooter className="pt-4 flex-col sm:flex-row">
+                        <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
+                            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Salvar Métricas
+                        </Button>
+                    </DialogFooter>
+                </form>
+                </Form>
+            </DialogContent>
+        </Dialog>
+    )
+}
 
 export default function DashboardPage() {
   const { user } = useUser();
@@ -259,6 +442,13 @@ export default function DashboardPage() {
   ), [firestore, user]);
   const { data: metricSnapshots, isLoading: isLoadingMetrics } = useCollection<MetricSnapshot>(metricSnapshotsQuery);
 
+  const hasUpdatedToday = useMemo(() => {
+    if (!metricSnapshots || metricSnapshots.length === 0) return false;
+    // Check if there is any snapshot for today
+    return metricSnapshots.some(snap => snap.date && isToday(snap.date.toDate()));
+  }, [metricSnapshots]);
+
+
   const isLoading = isLoadingProfile || isLoadingRoteiro || isLoadingIdeias || isLoadingUpcoming || isLoadingMetrics || isSubscriptionLoading;
   
   const parseMetric = (value?: string | number): number => {
@@ -335,7 +525,7 @@ export default function DashboardPage() {
       return Object.entries(combinedData)
         .map(([date, metrics]) => ({ date, ...metrics }))
         .sort((a, b) => new Date(a.date.split('/').reverse().join('-')).getTime() - new Date(b.date.split('/').reverse().join('-')).getTime())
-        .slice(-15);
+        .slice(-30);
 
     } else {
       return validSnapshots
@@ -346,7 +536,7 @@ export default function DashboardPage() {
             views: parseMetric(snap.views),
             likes: parseMetric(snap.likes),
             comments: parseMetric(snap.comments),
-        })).reverse().slice(-15);
+        })).reverse().slice(-30);
     }
   }, [metricSnapshots, selectedPlatform]);
 
@@ -424,11 +614,11 @@ export default function DashboardPage() {
         title={`Bem-vindo(a) de volta, ${
           userProfile?.displayName?.split(' ')[0] || user?.displayName?.split(' ')[0] || 'Criador'
         }!`}
-        description="Visão geral do seu desempenho e tarefas."
+        description="Seu centro de comando para crescimento e monetização."
       />
 
       <div className="space-y-8">
-        {userProfile && <ProfileCompletionAlert userProfile={userProfile} isPremium={isPremium} />}
+        {userProfile && <ProfileCompletionAlert userProfile={userProfile} hasUpdatedToday={hasUpdatedToday} isPremium={isPremium} />}
 
         <div className="grid grid-cols-1 gap-8">
             <Card className="rounded-2xl border-0">
@@ -436,9 +626,9 @@ export default function DashboardPage() {
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                         <div>
                             <CardTitle className="text-base font-medium text-muted-foreground">
-                                Visão Geral
+                                Visão Geral da Plataforma
                             </CardTitle>
-                            <CardDescription>Suas principais métricas.</CardDescription>
+                            <CardDescription>Métricas manuais ou sincronizadas do seu perfil.</CardDescription>
                         </div>
                         <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
                             <div className='w-full sm:w-64'>
@@ -453,6 +643,7 @@ export default function DashboardPage() {
                                 </SelectContent>
                                 </Select>
                             </div>
+                            {userProfile && <UpdateMetricsModal userProfile={userProfile} />}
                         </div>
                     </div>
                 </CardHeader>
@@ -472,9 +663,9 @@ export default function DashboardPage() {
                  <Card className="rounded-2xl border-0 h-full">
                     <CardHeader>
                         <CardTitle className="font-headline text-xl">
-                        Evolução das Métricas
+                        Evolução das Métricas ({selectedPlatform === 'instagram' ? 'Instagram' : selectedPlatform === 'tiktok' ? 'TikTok' : 'Total'})
                         </CardTitle>
-                        <CardDescription>Progresso dos últimos 15 dias.</CardDescription>
+                        <CardDescription>Acompanhe seu progresso ao longo dos últimos 30 dias.</CardDescription>
                     </CardHeader>
                     <CardContent className="pl-2 pr-6">
                         {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
@@ -496,15 +687,17 @@ export default function DashboardPage() {
                                 <div>
                                 <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
                                 <h3 className="font-semibold text-foreground">
-                                    {userProfile?.instagramHandle || userProfile?.tiktokHandle ? "Dados insuficientes." : "Nenhuma plataforma conectada."}
+                                    {userProfile?.instagramHandle || userProfile?.tiktokHandle ? "Dados insuficientes para o gráfico." : "Nenhuma plataforma conectada."}
                                 </h3>
                                 <p className="text-sm text-muted-foreground">
                                     {userProfile && (
-                                        <Link href="/profile" className="text-primary font-medium hover:underline cursor-pointer">
-                                            Atualize suas métricas
-                                        </Link>
+                                        <UpdateMetricsModal userProfile={userProfile} triggerButton={
+                                            <span className="text-primary font-medium hover:underline cursor-pointer">
+                                                Atualize suas métricas
+                                            </span>
+                                        } />
                                     )}
-                                    {userProfile?.instagramHandle || userProfile?.tiktokHandle ? " por alguns dias para começar." : " para ver seus dados."}
+                                    {userProfile?.instagramHandle || userProfile?.tiktokHandle ? " por alguns dias para começar." : " para começar a ver seus dados."}
                                 </p>
                                 </div>
                             </div>
@@ -576,7 +769,7 @@ export default function DashboardPage() {
                             Nenhum post futuro.
                             </h3>
                             <p className="text-sm text-muted-foreground">
-                            Agende seu próximo conteúdo.
+                            Agende seu próximo conteúdo no calendário.
                             </p>
                         </div>
                         )
@@ -590,7 +783,7 @@ export default function DashboardPage() {
              <Card className="rounded-2xl border-0 h-full">
                 <CardHeader>
                 <CardTitle className="font-headline text-xl">
-                    Roteiro Semanal
+                    Roteiro de Conteúdo Semanal
                 </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -704,7 +897,7 @@ export default function DashboardPage() {
                         Sem roteiro para a semana.
                         </h3>
                         <p className="text-sm text-muted-foreground">
-                        Gere um novo em{' '}
+                        Gere um novo no{' '}
                         <Link
                             href="/generate-weekly-plan"
                             className="text-primary font-medium hover:underline"
@@ -768,7 +961,7 @@ export default function DashboardPage() {
                         Comece a Gerar Ideias!
                         </h3>
                         <p className="text-sm text-muted-foreground">
-                        Suas ideias salvas aparecerão aqui.
+                        Suas ideias e tarefas salvas aparecerão aqui.
                         </p>
                     </div>
                     )
@@ -782,8 +975,8 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 gap-8">
             <Card className="rounded-2xl border-0">
                 <CardHeader>
-                    <CardTitle>Atividade Recente</CardTitle>
-                    <CardDescription>Suas últimas publicações.</CardDescription>
+                    <CardTitle>Atividade Recente nas Plataformas</CardTitle>
+                    <CardDescription>Uma visão geral das suas últimas publicações.</CardDescription>
                 </CardHeader>
                 <CardContent>
                      {isFetchingPosts ? (
