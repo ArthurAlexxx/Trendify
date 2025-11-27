@@ -1,7 +1,8 @@
+
 'use client';
 
 import { AppSidebar } from '@/components/app-sidebar';
-import { useUser } from '@/firebase';
+import { useUser, useAuth } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Loader2, PanelLeft } from 'lucide-react';
@@ -13,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, isUserLoading } = useUser();
+  const auth = useAuth();
   const { isAdmin, isLoading: isAdminLoading } = useAdmin();
   const router = useRouter();
   const pathname = usePathname();
@@ -36,7 +38,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         router.push('/login');
       }
     }
-  }, [user, isUserLoading, router, toast]);
+  }, [user, isUserLoading, router, toast, auth]);
 
   // Global error handler for ChunkLoadError
   useEffect(() => {
