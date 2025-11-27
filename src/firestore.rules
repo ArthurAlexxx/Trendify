@@ -10,10 +10,8 @@ service cloud.firestore {
 
     // USERS
     match /users/{userId} {
-
       // O usuário sempre pode ler e escrever seu próprio documento
       allow read, write: if request.auth != null && request.auth.uid == userId;
-
       // Admin pode ler qualquer documento
       allow read: if request.auth != null && isAdmin();
     }
@@ -47,4 +45,3 @@ service cloud.firestore {
     }
   }
 }
-    

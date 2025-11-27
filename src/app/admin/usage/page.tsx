@@ -51,6 +51,7 @@ export default function UsageAdminPage() {
       const userCache = new Map<string, UserProfile>();
 
       for (const usage of usageData) {
+        // The document ID is now a composite: 'userId_YYYY-MM-DD'. Extract the userId.
         const userId = usage.id.split('_')[0];
         if (!userId) continue;
 

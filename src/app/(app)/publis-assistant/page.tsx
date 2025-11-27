@@ -6,7 +6,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -83,7 +82,7 @@ const analysisCriteria = [
     {
         icon: Target,
         title: "Foco em Conversão",
-        description: "Roteiros com gancho, desenvolvimento e CTA alinhados ao seu objetivo principal."
+        description: "Roteiros com gancho, desenvolvimento e CTA alinhados ao seu objetivo."
     },
      {
         icon: Zap,
@@ -93,7 +92,7 @@ const analysisCriteria = [
     {
         icon: Check,
         title: "Checklist de Sucesso",
-        description: "Um checklist prático para maximizar a conversão dos seus vídeos."
+        description: "Checklist prático para maximizar a conversão dos seus vídeos."
     }
   ]
 
@@ -164,7 +163,7 @@ function PublisAssistantPageContent() {
 
   useEffect(() => {
     if (!user || !firestore) return;
-    const usageDocRef = doc(firestore, 'users', user.uid, 'dailyUsage', todayStr);
+    const usageDocRef = doc(firestore, `usageLogs/${user.uid}_${todayStr}`);
     
     const unsubscribe = onSnapshot(usageDocRef, (doc) => {
         setUsageData(doc.exists() ? doc.data() as DailyUsage : null);
@@ -206,8 +205,8 @@ function PublisAssistantPageContent() {
         variant: 'destructive',
       });
     }
-     if (result && user && firestore) {
-      const usageDocRef = doc(firestore, `users/${user.uid}/dailyUsage/${todayStr}`);
+    if (result && user && firestore) {
+      const usageDocRef = doc(firestore, `usageLogs/${user.uid}_${todayStr}`);
       getDoc(usageDocRef).then(docSnap => {
           if (docSnap.exists()) {
               updateDoc(usageDocRef, { geracoesAI: increment(1) });

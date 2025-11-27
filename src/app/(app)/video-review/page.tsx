@@ -137,7 +137,7 @@ function VideoReviewPageContent() {
 
   useEffect(() => {
     if (!user || !firestore) return;
-    const usageDocRef = doc(firestore, 'users', user.uid, 'dailyUsage', todayStr);
+    const usageDocRef = doc(firestore, `usageLogs/${user.uid}_${todayStr}`);
     
     const unsubscribe = onSnapshot(usageDocRef, (doc) => {
         setUsageData(doc.exists() ? doc.data() as DailyUsage : null);
@@ -285,7 +285,7 @@ function VideoReviewPageContent() {
             setAnalysisStatus("success");
 
             // Update usage log
-            const usageDocRef = doc(firestore, `users/${user.uid}/dailyUsage/${todayStr}`);
+            const usageDocRef = doc(firestore, `usageLogs/${user.uid}_${todayStr}`);
             const usageDocSnap = await getDoc(usageDocRef);
             if(usageDocSnap.exists()){
                 await updateDoc(usageDocRef, { videoAnalyses: increment(1) });

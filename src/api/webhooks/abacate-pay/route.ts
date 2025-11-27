@@ -60,6 +60,18 @@ function verifyAbacateSignature(rawBody: string, signatureFromHeader: string): b
   }
 }
 
+async function logWebhook(event: any, isSuccess: boolean) {
+  const logData = {
+    receivedAt: Timestamp.now(),
+    eventType: event.event || 'unknown',
+    payload: event,
+    isSuccess,
+    amount: event.data?.pixQrCode?.amount || null,
+    customerEmail: event.data?.customer?.email || event.data?.pixQrCode?.customer?.email || null,
+  };
+  await firestore.collection('webhookLogs').add(logData);
+}
+
 
 export async function POST(req: NextRequest) {
   let body;
@@ -80,12 +92,17 @@ export async function POST(req: NextRequest) {
   if (event.devMode !== true) {
     const abacateSignature = req.headers.get('x-webhook-signature');
     if (!abacateSignature) {
-      return NextResponse.json({ error: 'Assinatura ausente.' }, { status: 400 });
+       await logWebhook(event, false);
+       return NextResponse.json({ error: 'Assinatura ausente.' }, { status: 400 });
     }
     if (!verifyAbacateSignature(body, abacateSignature)) {
+      await logWebhook(event, false);
       return NextResponse.json({ error: 'Assinatura inválida.' }, { status: 403 });
     }
   }
+
+  // Log the event before processing
+  await logWebhook(event, event.event === 'billing.paid');
   
   // --- Event Processing ---
   if (event.event === 'billing.paid') {

@@ -6,7 +6,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -44,7 +43,7 @@ import { useEffect, useTransition, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { generateVideoIdeasAction, GenerateVideoIdeasOutput } from '@/app/(app)/video-ideas/actions';
-import { useCollection, useFirestore, useUser, useDoc, useMemoFirebase } from '@/firebase';
+import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import { collection, addDoc, serverTimestamp, where, query, orderBy, setDoc, doc, increment, getDoc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { SavedIdeasSheet } from '@/components/saved-ideas-sheet';
 import type { DailyUsage, IdeiaSalva } from '@/lib/types';
@@ -113,7 +112,7 @@ export default function VideoIdeasPage() {
 
   useEffect(() => {
     if (!user || !firestore) return;
-    const usageDocRef = doc(firestore, `users/${user.uid}/dailyUsage/${todayStr}`);
+    const usageDocRef = doc(firestore, `usageLogs/${user.uid}_${todayStr}`);
     
     const unsubscribe = onSnapshot(usageDocRef, (doc) => {
         setUsageData(doc.exists() ? doc.data() as DailyUsage : null);
@@ -167,17 +166,17 @@ export default function VideoIdeasPage() {
       });
     }
      if (result && user && firestore) {
-      const usageDocRef = doc(firestore, `users/${user.uid}/dailyUsage/${todayStr}`);
+      const usageDocRef = doc(firestore, `usageLogs/${user.uid}_${todayStr}`);
       getDoc(usageDocRef).then(docSnap => {
-          if (docSnap.exists()) {
-              updateDoc(usageDocRef, { geracoesAI: increment(1) });
-          } else {
-              setDoc(usageDocRef, {
-                  date: todayStr,
-                  geracoesAI: 1,
-                  videoAnalyses: 0,
-              });
-          }
+        if (docSnap.exists()) {
+          updateDoc(usageDocRef, { geracoesAI: increment(1) });
+        } else {
+          setDoc(usageDocRef, {
+            date: todayStr,
+            geracoesAI: 1,
+            videoAnalyses: 0,
+          });
+        }
       });
     }
   }, [state, result, firestore, user, todayStr, toast]);
