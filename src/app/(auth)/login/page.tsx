@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -137,7 +136,7 @@ export default function LoginPage() {
                 </div>
 
                 <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 text-center">
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 text-left">
                     <FormField
                     control={form.control}
                     name="email"
@@ -161,7 +160,14 @@ export default function LoginPage() {
                     name="password"
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel className="sr-only">Senha</FormLabel>
+                        <div className="flex justify-between items-baseline">
+                            <FormLabel className="sr-only">Senha</FormLabel>
+                             <Link href="/forgot-password"
+                                className="text-xs text-primary hover:underline ml-auto"
+                              >
+                                Esqueceu a senha?
+                            </Link>
+                        </div>
                         <FormControl>
                             <Input
                             placeholder="••••••••"
