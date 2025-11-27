@@ -14,6 +14,13 @@ import { AreaChart, Area, CartesianGrid, XAxis, Tooltip, ResponsiveContainer } f
 import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
 import { format } from 'date-fns';
 
+const chartConfig = {
+  users: {
+    label: 'Usuários',
+    color: 'hsl(var(--primary))',
+  },
+}
+
 export default function AdminPage() {
   const firestore = useFirestore();
   const { isAdmin, isLoading: isAdminLoading } = useAdmin();
@@ -119,22 +126,20 @@ export default function AdminPage() {
           </CardHeader>
           <CardContent>
             {isLoading ? <Skeleton className="h-64 w-full" /> : 
-            <div className="h-64 w-full">
-              <ResponsiveContainer>
-                  <AreaChart data={userGrowthData}>
-                    <defs>
-                        <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.8}/>
-                        <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
-                        </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} />
-                    <Tooltip content={<ChartTooltipContent indicator="dot" />} />
-                    <Area type="monotone" dataKey="users" stroke="hsl(var(--primary))" fillOpacity={1} fill="url(#colorUsers)" />
-                  </AreaChart>
-              </ResponsiveContainer>
-            </div>
+            <ChartContainer config={chartConfig} className="h-64 w-full">
+              <AreaChart data={userGrowthData}>
+                <defs>
+                    <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="var(--color-users)" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="var(--color-users)" stopOpacity={0}/>
+                    </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} />
+                <Tooltip content={<ChartTooltipContent indicator="dot" />} />
+                <Area type="monotone" dataKey="users" stroke="var(--color-users)" fillOpacity={1} fill="url(#colorUsers)" />
+              </AreaChart>
+            </ChartContainer>
             }
           </CardContent>
         </Card>
