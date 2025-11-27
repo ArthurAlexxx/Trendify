@@ -43,6 +43,7 @@ export default function LoginPage() {
   const [isPending, setIsPending] = useState(false);
   const [showResend, setShowResend] = useState(false);
   const [emailToVerify, setEmailToVerify] = useState('');
+  const [userToVerify, setUserToVerify] = useState<User | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -53,10 +54,10 @@ export default function LoginPage() {
   });
 
   async function handleResendVerification() {
-    if (!auth.currentUser) return;
+    if (!userToVerify) return;
     setIsPending(true);
     try {
-        await sendEmailVerification(auth.currentUser);
+        await sendEmailVerification(userToVerify);
         toast({
             title: 'E-mail Reenviado!',
             description: 'Um novo link de verificação foi enviado para sua caixa de entrada.'
@@ -76,11 +77,17 @@ export default function LoginPage() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsPending(true);
     setShowResend(false);
+    setUserToVerify(null);
     try {
       const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
       
-      if (!userCredential.user.emailVerified) {
+      // Force a reload of the user's profile to get the latest emailVerified status
+      await userCredential.user.reload();
+      
+      // Now check the refreshed user object
+      if (!auth.currentUser?.emailVerified) {
         setEmailToVerify(userCredential.user.email!);
+        setUserToVerify(userCredential.user);
         setShowResend(true);
         toast({
             title: 'E-mail não verificado',

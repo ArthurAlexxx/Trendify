@@ -17,10 +17,18 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
     }
   }, [user, isUserLoading, router]);
 
-  // If the user state is still loading, or if the user is logged in
-  // (and the redirect is about to happen), show a loader to prevent flicker.
-  if (isUserLoading || user) {
+  // If the user state is still loading, show a full-screen loader.
+  if (isUserLoading) {
     return (
+      <div className="flex h-screen w-full items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // If a user is already logged in, show a loader while redirecting to avoid flashing content.
+  if (user) {
+     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
