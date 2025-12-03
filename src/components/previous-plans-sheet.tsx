@@ -62,13 +62,12 @@ export function PreviousPlansSheet() {
         </Button>
       </SheetTrigger>
       <SheetContent className="w-full sm:max-w-lg p-0">
-        <SheetHeader className='p-6'>
+        <SheetHeader className='p-6 border-b'>
           <SheetTitle className="font-headline text-xl">Planos Anteriores</SheetTitle>
           <SheetDescription>
             Acesse aqui todos os planejamentos que você já gerou.
           </SheetDescription>
         </SheetHeader>
-        <Separator />
         <ScrollArea className="h-[calc(100vh-8rem)]">
           <div className="p-6 space-y-4">
             {isLoading && (
@@ -118,14 +117,13 @@ export function PreviousPlansSheet() {
 
     {selectedPlan && (
         <Sheet open={isDetailSheetOpen} onOpenChange={setIsDetailSheetOpen}>
-            <SheetContent className="w-full sm:max-w-4xl p-0">
-                <SheetHeader className='p-6'>
+            <SheetContent className="w-full sm:max-w-4xl p-0 flex flex-col">
+                <SheetHeader className='p-6 border-b'>
                     <SheetTitle className="font-headline text-2xl">
                     Detalhes do Plano - {selectedPlan.createdAt && format(selectedPlan.createdAt.toDate(), "dd/MM/yyyy", { locale: ptBR })}
                     </SheetTitle>
                 </SheetHeader>
-                <Separator />
-                <ScrollArea className="h-[calc(100vh-6rem)]">
+                <ScrollArea className="flex-1">
                 <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
                     <Card className='border-0 shadow-none'>
                         <CardHeader><CardTitle>Roteiro de Conteúdo</CardTitle></CardHeader>

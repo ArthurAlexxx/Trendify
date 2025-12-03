@@ -56,13 +56,12 @@ export function SavedIdeasSheet() {
         </Button>
       </SheetTrigger>
       <SheetContent className="w-full sm:max-w-lg p-0">
-        <SheetHeader className='p-6'>
+        <SheetHeader className='p-6 border-b'>
           <SheetTitle className="font-headline text-xl">Ideias Salvas</SheetTitle>
           <SheetDescription>
             Acesse aqui todas as ideias geradas pela IA que você salvou.
           </SheetDescription>
         </SheetHeader>
-        <Separator />
         <ScrollArea className="h-[calc(100vh-8rem)]">
           <div className="p-6 space-y-4">
             {isLoading && (
@@ -119,8 +118,8 @@ export function SavedIdeasSheet() {
     </Sheet>
     {selectedIdea && (
         <Sheet open={isDetailSheetOpen} onOpenChange={setIsDetailSheetOpen}>
-            <SheetContent className="w-full sm:max-w-2xl p-0">
-                <SheetHeader className='p-6'>
+            <SheetContent className="w-full sm:max-w-2xl p-0 flex flex-col">
+                <SheetHeader className='p-6 border-b'>
                 <SheetTitle className="font-headline text-2xl">
                     {selectedIdea.titulo}
                 </SheetTitle>
@@ -128,8 +127,7 @@ export function SavedIdeasSheet() {
                    Gerado em {selectedIdea.origem}
                  </SheetDescription>
                 </SheetHeader>
-                <Separator />
-                <ScrollArea className="h-[calc(100vh-8rem)]">
+                <ScrollArea className="flex-1">
                 <div className="p-6">
                 <Textarea
                     readOnly

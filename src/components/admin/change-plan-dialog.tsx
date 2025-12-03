@@ -35,6 +35,7 @@ import type { UserProfile } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
 import { changeUserPlanAction } from '@/app/admin/actions';
 import { useUser } from '@/firebase';
+import { ScrollArea } from '../ui/scroll-area';
 
 const formSchema = z.object({
   newPlan: z.enum(['free', 'pro', 'premium']),
@@ -105,74 +106,78 @@ export function ChangePlanSheet({ isOpen, setIsOpen, user }: ChangePlanSheetProp
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetContent>
-        <SheetHeader className='mb-6'>
+      <SheetContent className='p-0 flex flex-col'>
+        <SheetHeader className='p-6 pb-4 border-b'>
           <SheetTitle className='font-headline text-xl'>Alterar Plano de Assinatura</SheetTitle>
           <SheetDescription>
             Alterando o plano para <strong>{user.displayName}</strong> ({user.email}).
           </SheetDescription>
         </SheetHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormField
-              control={form.control}
-              name="newPlan"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Novo Plano</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger className="h-11">
-                        <SelectValue placeholder="Selecione um plano" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="free">Gratuito</SelectItem>
-                      <SelectItem value="pro">Pro</SelectItem>
-                      <SelectItem value="premium">Premium</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            {selectedPlan !== 'free' && (
-                <FormField
-                control={form.control}
-                name="newCycle"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Ciclo de Pagamento</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                        <SelectTrigger className="h-11">
-                            <SelectValue placeholder="Selecione um ciclo" />
-                        </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                        <SelectItem value="monthly">Mensal</SelectItem>
-                        <SelectItem value="annual">Anual</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
-            )}
+        <ScrollArea className='flex-1'>
+            <div className='p-6'>
+                <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                    <FormField
+                    control={form.control}
+                    name="newPlan"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Novo Plano</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                            <SelectTrigger className="h-11">
+                                <SelectValue placeholder="Selecione um plano" />
+                            </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                            <SelectItem value="free">Gratuito</SelectItem>
+                            <SelectItem value="pro">Pro</SelectItem>
+                            <SelectItem value="premium">Premium</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                    {selectedPlan !== 'free' && (
+                        <FormField
+                        control={form.control}
+                        name="newCycle"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Ciclo de Pagamento</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                <SelectTrigger className="h-11">
+                                    <SelectValue placeholder="Selecione um ciclo" />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                <SelectItem value="monthly">Mensal</SelectItem>
+                                <SelectItem value="annual">Anual</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                    )}
+                </form>
+                </Form>
+            </div>
+        </ScrollArea>
 
-            <SheetFooter className="pt-8">
-              <SheetClose asChild>
-                <Button type="button" variant="outline">
-                  Cancelar
-                </Button>
-              </SheetClose>
-              <Button type="submit" disabled={isPending}>
-                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Salvar Alterações
-              </Button>
-            </SheetFooter>
-          </form>
-        </Form>
+        <SheetFooter className="p-6 border-t">
+          <SheetClose asChild>
+            <Button type="button" variant="outline">
+              Cancelar
+            </Button>
+          </SheetClose>
+          <Button type="button" onClick={form.handleSubmit(onSubmit)} disabled={isPending}>
+            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Salvar Alterações
+          </Button>
+        </SheetFooter>
       </SheetContent>
     </Sheet>
   );

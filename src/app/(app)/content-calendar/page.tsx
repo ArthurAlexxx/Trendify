@@ -77,6 +77,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { FullScreenCalendar } from '@/components/ui/fullscreen-calendar';
 import { Calendar } from '@/components/ui/calendar';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const formSchema = z.object({
   title: z.string().min(3, 'O título deve ter pelo menos 3 caracteres.'),
@@ -323,187 +324,190 @@ export default function ContentCalendarPage() {
       />
 
       <Sheet open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <SheetContent>
-          <SheetHeader>
+        <SheetContent className="p-0 flex flex-col">
+          <SheetHeader className="p-6 pb-4 border-b">
             <SheetTitle className="font-headline text-xl">
               {editingPost ? "Editar Agendamento" : "Novo Agendamento"}
             </SheetTitle>
           </SheetHeader>
-          <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(onSubmit)}
-              className="space-y-6 pt-4"
-            >
-              <FormField
-                control={form.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Título</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Ex: Lançamento da nova coleção"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          <ScrollArea className="flex-1">
+             <div className="p-6">
+                <Form {...form}>
+                    <form
+                    onSubmit={form.handleSubmit(onSubmit)}
+                    className="space-y-6"
+                    >
+                    <FormField
+                        control={form.control}
+                        name="title"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Título</FormLabel>
+                            <FormControl>
+                            <Input
+                                placeholder="Ex: Lançamento da nova coleção"
+                                {...field}
+                            />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="contentType"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tipo</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        value={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione o tipo" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="Reels">Reels</SelectItem>
-                          <SelectItem value="Story">Story</SelectItem>
-                          <SelectItem value="Post">Post</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="status"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Status</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        value={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione o status" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="Agendado">Agendado</SelectItem>
-                          <SelectItem value="Publicado">Publicado</SelectItem>
-                          <SelectItem value="Rascunho">Rascunho</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="date"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>Data</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant={'outline'}
-                              className={cn(
-                                'w-full pl-3 text-left font-normal',
-                                !field.value && 'text-muted-foreground'
-                              )}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <FormField
+                        control={form.control}
+                        name="contentType"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Tipo</FormLabel>
+                            <Select
+                                onValueChange={field.onChange}
+                                defaultValue={field.value}
+                                value={field.value}
                             >
-                              {field.value ? (
-                                format(field.value, 'PPP', { locale: ptBR })
-                              ) : (
-                                <span>Escolha uma data</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={(day) => day && field.onChange(day)}
-                            disabled={(date) => date < new Date('1900-01-01')}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="time"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Horário</FormLabel>
-                      <FormControl>
-                        <Input type="time" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+                                <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Selecione o tipo" />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                <SelectItem value="Reels">Reels</SelectItem>
+                                <SelectItem value="Story">Story</SelectItem>
+                                <SelectItem value="Post">Post</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                        <FormField
+                        control={form.control}
+                        name="status"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Status</FormLabel>
+                            <Select
+                                onValueChange={field.onChange}
+                                defaultValue={field.value}
+                                value={field.value}
+                            >
+                                <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Selecione o status" />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                <SelectItem value="Agendado">Agendado</SelectItem>
+                                <SelectItem value="Publicado">Publicado</SelectItem>
+                                <SelectItem value="Rascunho">Rascunho</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                    </div>
 
-              <FormField
-                control={form.control}
-                name="notes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Anotações</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Ideias, hashtags, links..."
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <FormField
+                        control={form.control}
+                        name="date"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-col">
+                            <FormLabel>Data</FormLabel>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                <FormControl>
+                                    <Button
+                                    variant={'outline'}
+                                    className={cn(
+                                        'w-full pl-3 text-left font-normal',
+                                        !field.value && 'text-muted-foreground'
+                                    )}
+                                    >
+                                    {field.value ? (
+                                        format(field.value, 'PPP', { locale: ptBR })
+                                    ) : (
+                                        <span>Escolha uma data</span>
+                                    )}
+                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                    </Button>
+                                </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar
+                                    mode="single"
+                                    selected={field.value}
+                                    onSelect={(day) => day && field.onChange(day)}
+                                    disabled={(date) => date < new Date('1900-01-01')}
+                                    initialFocus
+                                />
+                                </PopoverContent>
+                            </Popover>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                        <FormField
+                        control={form.control}
+                        name="time"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Horário</FormLabel>
+                            <FormControl>
+                                <Input type="time" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                    </div>
 
-              <SheetFooter className="pt-4 flex-col sm:flex-row gap-2">
+                    <FormField
+                        control={form.control}
+                        name="notes"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Anotações</FormLabel>
+                            <FormControl>
+                            <Textarea
+                                placeholder="Ideias, hashtags, links..."
+                                {...field}
+                            />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                    </form>
+                </Form>
+             </div>
+          </ScrollArea>
+           <SheetFooter className="p-6 border-t flex-col sm:flex-row gap-2">
                 <SheetClose asChild>
                     <Button type="button" variant="outline" className='w-full sm:w-auto'>Cancelar</Button>
                 </SheetClose>
-                <Button type="submit" className="w-full sm:w-auto">
+                <Button type="button" onClick={form.handleSubmit(onSubmit)} className="w-full sm:w-auto">
                    {editingPost ? "Salvar Alterações" : "Agendar Post"}
                 </Button>
-              </SheetFooter>
-            </form>
-          </Form>
+            </SheetFooter>
         </SheetContent>
       </Sheet>
       
       <Sheet open={isDeleteSheetOpen} onOpenChange={setIsDeleteSheetOpen}>
-        <SheetContent side="bottom">
-          <SheetHeader>
+        <SheetContent side="bottom" className="p-0 rounded-t-2xl">
+          <SheetHeader className="p-6 pb-4 text-center">
             <SheetTitle>Você tem certeza?</SheetTitle>
             <SheetDescription>
               Esta ação não pode ser desfeita e irá excluir permanentemente o agendamento.
             </SheetDescription>
           </SheetHeader>
-          <SheetFooter className="mt-6 flex-col-reverse sm:flex-row gap-2">
+          <SheetFooter className="p-6 pt-4 bg-muted/50 flex-col-reverse sm:flex-row gap-2">
             <SheetClose asChild>
-              <Button variant="outline">Cancelar</Button>
+              <Button variant="outline" className="w-full sm:w-auto">Cancelar</Button>
             </SheetClose>
-            <Button onClick={handleDeletePost} variant="destructive">
+            <Button onClick={handleDeletePost} variant="destructive" className="w-full sm:w-auto">
               Sim, excluir
             </Button>
           </SheetFooter>
