@@ -22,7 +22,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Bot, Loader2, Sparkles, Trash2, Check, History, ClipboardList, BrainCircuit, Target, BarChart as BarChartIcon, Eye } from 'lucide-react';
-import { useEffect, useTransition, useState } from 'react';
+import { useEffect, useTransition, useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { generateWeeklyPlanAction, GenerateWeeklyPlanOutput } from '@/app/(app)/generate-weekly-plan/actions';
@@ -165,6 +165,25 @@ export default function GenerateWeeklyPlanPage() {
       });
     }
   }, [userProfile, form]);
+  
+  const watchedNiche = form.watch('niche');
+
+    const debouncedNicheUpdate = useCallback(() => {
+        if (userProfileRef && watchedNiche !== userProfile?.niche) {
+        updateDoc(userProfileRef, { niche: watchedIche });
+        }
+    }, [watchedNiche, userProfileRef, userProfile?.niche]);
+
+    useEffect(() => {
+        const handler = setTimeout(() => {
+        debouncedNicheUpdate();
+        }, 500); // 500ms delay
+
+        return () => {
+        clearTimeout(handler);
+        };
+    }, [watchedNiche, debouncedNicheUpdate]);
+
 
   const result = state?.data;
 
@@ -273,120 +292,121 @@ export default function GenerateWeeklyPlanPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(formAction)} className="space-y-8">
-              <div className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="objective"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Qual seu principal objetivo para a semana?
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Ex: Aumentar o engajamento com Reels de humor"
-                          className="h-11"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <div className="grid md:grid-cols-2 gap-6">
-                  <FormField
+          <div className="p-6">
+            <Form {...form}>
+                <form onSubmit={form.handleSubmit(formAction)} className="space-y-8">
+                <div className="space-y-6">
+                    <FormField
                     control={form.control}
-                    name="niche"
+                    name="objective"
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Seu Nicho</FormLabel>
+                        <FormItem>
+                        <FormLabel>
+                            Qual seu principal objetivo para a semana?
+                        </FormLabel>
                         <FormControl>
-                          {isLoadingProfile ? (
-                            <Skeleton className="h-11 w-full" />
-                          ) : (
                             <Input
-                              placeholder="Defina em seu Perfil"
-                              className="h-11"
-                              {...field}
-                              readOnly
+                            placeholder="Ex: Aumentar o engajamento com Reels de humor"
+                            className="h-11"
+                            {...field}
                             />
-                          )}
                         </FormControl>
                         <FormMessage />
-                      </FormItem>
+                        </FormItem>
                     )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="currentStats"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Métricas Atuais</FormLabel>
-                        <FormControl>
-                          {isLoadingProfile ? (
-                            <Skeleton className="h-11 w-full" />
-                          ) : (
-                            <Input
-                              placeholder="Defina em seu Perfil"
-                              className="h-11"
-                              {...field}
-                              readOnly
-                            />
-                          )}
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                    />
+                    <div className="grid md:grid-cols-2 gap-6">
+                    <FormField
+                        control={form.control}
+                        name="niche"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Seu Nicho</FormLabel>
+                            <FormControl>
+                            {isLoadingProfile ? (
+                                <Skeleton className="h-11 w-full" />
+                            ) : (
+                                <Input
+                                placeholder="Defina em seu Perfil"
+                                className="h-11"
+                                {...field}
+                                />
+                            )}
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="currentStats"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Métricas Atuais</FormLabel>
+                            <FormControl>
+                            {isLoadingProfile ? (
+                                <Skeleton className="h-11 w-full" />
+                            ) : (
+                                <Input
+                                placeholder="Defina em seu Perfil"
+                                className="h-11"
+                                {...field}
+                                readOnly
+                                />
+                            )}
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                    </div>
                 </div>
-              </div>
 
-              <div className="pt-2 flex flex-col sm:flex-row items-center gap-4">
-                <Button
-                  type="submit"
-                  disabled={isGenerating || isSaving || isLoadingProfile}
-                  size="lg"
-                  className="w-full sm:w-auto"
-                >
-                  {isGenerating || isSaving ? (
-                    <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      {isSaving ? 'Salvando...' : 'Gerando...'}
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="mr-2 h-5 w-5" />
-                      Gerar Novo Plano
-                    </>
-                  )}
-                </Button>
-                
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="destructive" type='button' disabled={!currentPlan || isGenerating || isSaving} className="w-full sm:w-auto">
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Limpar Plano Atual
+                <div className="pt-2 flex flex-col sm:flex-row items-center gap-4">
+                    <Button
+                    type="submit"
+                    disabled={isGenerating || isSaving || isLoadingProfile}
+                    size="lg"
+                    className="w-full sm:w-auto"
+                    >
+                    {isGenerating || isSaving ? (
+                        <>
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                        {isSaving ? 'Salvando...' : 'Gerando...'}
+                        </>
+                    ) : (
+                        <>
+                        <Sparkles className="mr-2 h-5 w-5" />
+                        Gerar Novo Plano
+                        </>
+                    )}
                     </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Esta ação irá deletar o plano semanal atual. Ele não poderá ser recuperado.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                      <AlertDialogAction onClick={handleDeleteCurrentPlan} className={cn(buttonVariants({variant: 'destructive'}))}>Deletar Plano</AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                    
+                    <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button variant="destructive" type='button' disabled={!currentPlan || isGenerating || isSaving} className="w-full sm:w-auto">
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Limpar Plano Atual
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                        <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Esta ação irá deletar o plano semanal atual. Ele não poderá ser recuperado.
+                        </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDeleteCurrentPlan} className={cn(buttonVariants({variant: 'destructive'}))}>Deletar Plano</AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                    </AlertDialog>
 
-              </div>
-            </form>
-          </Form>
+                </div>
+                </form>
+            </Form>
+          </div>
         </CardContent>
       </Card>
       
@@ -410,49 +430,53 @@ export default function GenerateWeeklyPlanPage() {
                 <Card className="rounded-2xl border-0">
                   <CardHeader><CardTitle className="font-headline text-xl">Roteiro de Conteúdo</CardTitle></CardHeader>
                   <CardContent>
-                    <ul className="space-y-2">
-                      {currentRoteiroItems.map((item, index) => (
-                        <li key={index}>
-                          <div className="flex items-start gap-4 p-2 rounded-lg hover:bg-muted/50">
-                            <Checkbox
-                              id={`current-roteiro-${index}`}
-                              checked={item.concluido}
-                              onCheckedChange={() => handleToggleRoteiro(item)}
-                              className="h-5 w-5 mt-1"
-                            />
-                            <div>
-                              <label
-                                htmlFor={`current-roteiro-${index}`}
-                                className={cn(
-                                  'font-medium text-base transition-colors cursor-pointer',
-                                  item.concluido ? 'line-through text-muted-foreground' : 'text-foreground'
-                                )}
-                              >
-                                <span className="font-semibold text-primary">{item.dia}:</span> {item.tarefa}
-                              </label>
-                              <p className="text-sm text-muted-foreground">{item.detalhes}</p>
+                    <div className="p-6">
+                        <ul className="space-y-2">
+                        {currentRoteiroItems.map((item, index) => (
+                            <li key={index}>
+                            <div className="flex items-start gap-4 p-2 rounded-lg hover:bg-muted/50">
+                                <Checkbox
+                                id={`current-roteiro-${index}`}
+                                checked={item.concluido}
+                                onCheckedChange={() => handleToggleRoteiro(item)}
+                                className="h-5 w-5 mt-1"
+                                />
+                                <div>
+                                <label
+                                    htmlFor={`current-roteiro-${index}`}
+                                    className={cn(
+                                    'font-medium text-base transition-colors cursor-pointer',
+                                    item.concluido ? 'line-through text-muted-foreground' : 'text-foreground'
+                                    )}
+                                >
+                                    <span className="font-semibold text-primary">{item.dia}:</span> {item.tarefa}
+                                </label>
+                                <p className="text-sm text-muted-foreground">{item.detalhes}</p>
+                                </div>
                             </div>
-                          </div>
-                          {index < currentRoteiroItems.length - 1 && <Separator className="my-2" />}
-                        </li>
-                      ))}
-                    </ul>
+                            {index < currentRoteiroItems.length - 1 && <Separator className="my-2" />}
+                            </li>
+                        ))}
+                        </ul>
+                    </div>
                   </CardContent>
                 </Card>
                 <Card className="rounded-2xl border-0">
                   <CardHeader><CardTitle className="font-headline text-xl">Desempenho (Simulado)</CardTitle></CardHeader>
                   <CardContent className="pl-2">
                     {isLoadingRoteiro ? <Skeleton className="h-[350px] w-full" /> : 
-                     <ChartContainer config={chartConfig} className="h-[350px] w-full">
-                       <BarChart accessibilityLayer data={currentDesempenho || []} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
-                          <CartesianGrid vertical={false} />
-                          <XAxis dataKey="data" tickLine={false} axisLine={false} />
-                          <YAxis tickLine={false} axisLine={false} tickFormatter={(value) => typeof value === 'number' && value >= 1000 ? `${value / 1000}k` : value} />
-                          <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
-                          <Bar dataKey="alcance" fill="var(--color-alcance)" radius={8} className="fill-primary" />
-                          <Bar dataKey="engajamento" fill="var(--color-engajamento)" radius={8} />
-                       </BarChart>
-                     </ChartContainer>
+                     <div className="p-6">
+                        <ChartContainer config={chartConfig} className="h-[350px] w-full">
+                        <BarChart accessibilityLayer data={currentDesempenho || []} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                            <CartesianGrid vertical={false} />
+                            <XAxis dataKey="data" tickLine={false} axisLine={false} />
+                            <YAxis tickLine={false} axisLine={false} tickFormatter={(value) => typeof value === 'number' && value >= 1000 ? `${value / 1000}k` : value} />
+                            <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
+                            <Bar dataKey="alcance" fill="var(--color-alcance)" radius={8} className="fill-primary" />
+                            <Bar dataKey="engajamento" fill="var(--color-engajamento)" radius={8} />
+                        </BarChart>
+                        </ChartContainer>
+                     </div>
                     }
                   </CardContent>
                 </Card>
@@ -491,31 +515,33 @@ export default function GenerateWeeklyPlanPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ul className="space-y-2">
-                    {result.roteiro.map((item, index) => (
-                      <li key={index}>
-                        <div className="flex items-start gap-4 p-2 rounded-lg">
-                           <div className='h-5 w-5 mt-1 flex items-center justify-center shrink-0'>
-                            <Check className='h-4 w-4 text-primary' />
-                           </div>
-                          <div>
-                            <p className={'font-medium text-base text-foreground'}>
-                              <span className="font-semibold text-primary">
-                                {item.dia}:
-                              </span>{' '}
-                              {item.tarefa}
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              {item.detalhes}
-                            </p>
-                          </div>
-                        </div>
-                        {index < result.roteiro.length - 1 && (
-                          <Separator className="my-2" />
-                        )}
-                      </li>
-                    ))}
-                  </ul>
+                  <div className="p-6">
+                    <ul className="space-y-2">
+                        {result.roteiro.map((item, index) => (
+                        <li key={index}>
+                            <div className="flex items-start gap-4 p-2 rounded-lg">
+                            <div className='h-5 w-5 mt-1 flex items-center justify-center shrink-0'>
+                                <Check className='h-4 w-4 text-primary' />
+                            </div>
+                            <div>
+                                <p className={'font-medium text-base text-foreground'}>
+                                <span className="font-semibold text-primary">
+                                    {item.dia}:
+                                </span>{' '}
+                                {item.tarefa}
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                {item.detalhes}
+                                </p>
+                            </div>
+                            </div>
+                            {index < result.roteiro.length - 1 && (
+                            <Separator className="my-2" />
+                            )}
+                        </li>
+                        ))}
+                    </ul>
+                  </div>
                 </CardContent>
               </Card>
 
@@ -526,44 +552,46 @@ export default function GenerateWeeklyPlanPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pl-2">
-                  <ChartContainer
-                    config={chartConfig}
-                    className="h-[350px] w-full"
-                  >
-                    <BarChart
-                      accessibilityLayer
-                      data={result.desempenhoSimulado}
-                      margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+                  <div className="p-6">
+                    <ChartContainer
+                        config={chartConfig}
+                        className="h-[350px] w-full"
                     >
-                      <CartesianGrid vertical={false} />
-                      <XAxis
-                        dataKey="data"
-                        tickLine={false}
-                        axisLine={false}
-                      />
-                      <YAxis
-                        tickLine={false}
-                        axisLine={false}
-                        tickFormatter={(value) =>
-                          typeof value === 'number' && value >= 1000
-                            ? `${value / 1000}k`
-                            : value
-                        }
-                      />
-                      <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
-                      <Bar
-                        dataKey="alcance"
-                        fill="var(--color-alcance)"
-                        radius={8}
-                        className="fill-primary"
-                      />
-                      <Bar
-                        dataKey="engajamento"
-                        fill="var(--color-engajamento)"
-                        radius={8}
-                      />
-                    </BarChart>
-                  </ChartContainer>
+                        <BarChart
+                        accessibilityLayer
+                        data={result.desempenhoSimulado}
+                        margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+                        >
+                        <CartesianGrid vertical={false} />
+                        <XAxis
+                            dataKey="data"
+                            tickLine={false}
+                            axisLine={false}
+                        />
+                        <YAxis
+                            tickLine={false}
+                            axisLine={false}
+                            tickFormatter={(value) =>
+                            typeof value === 'number' && value >= 1000
+                                ? `${value / 1000}k`
+                                : value
+                            }
+                        />
+                        <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
+                        <Bar
+                            dataKey="alcance"
+                            fill="var(--color-alcance)"
+                            radius={8}
+                            className="fill-primary"
+                        />
+                        <Bar
+                            dataKey="engajamento"
+                            fill="var(--color-engajamento)"
+                            radius={8}
+                        />
+                        </BarChart>
+                    </ChartContainer>
+                  </div>
                 </CardContent>
               </Card>
             </div>

@@ -17,7 +17,7 @@ import {
   Target,
   Crown,
 } from 'lucide-react';
-import { useTransition, useEffect, useState, useMemo } from 'react';
+import { useTransition, useEffect, useState, useMemo, useCallback } from 'react';
 import {
   Form,
   FormControl,
@@ -36,7 +36,7 @@ import {
 } from '@/app/(app)/media-kit/actions';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { collection, addDoc, serverTimestamp, doc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
 import { SavedIdeasSheet } from '@/components/saved-ideas-sheet';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import type { UserProfile } from '@/lib/types';
@@ -179,6 +179,24 @@ function MediaKitPageContent() {
     }
   }, [userProfile, form]);
   
+  const watchedNiche = form.watch('niche');
+
+  const debouncedNicheUpdate = useCallback(() => {
+    if (userProfileRef && watchedNiche !== userProfile?.niche) {
+      updateDoc(userProfileRef, { niche: watchedNiche });
+    }
+  }, [watchedNiche, userProfileRef, userProfile?.niche]);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      debouncedNicheUpdate();
+    }, 500); // 500ms delay
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [watchedNiche, debouncedNicheUpdate]);
+
   useEffect(() => {
     if (state?.error) {
       toast({
@@ -255,16 +273,18 @@ function MediaKitPageContent() {
                  <CardDescription>A IA atua como sua gerente de talentos e foca em 4 pilares:</CardDescription>
             </CardHeader>
             <CardContent>
-                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {analysisCriteria.map((item, index) => (
-                        <div key={index} className="p-4 rounded-lg bg-muted/50 border">
-                            <div className="flex items-center gap-3 mb-2">
-                                <item.icon className="h-5 w-5 text-primary" />
-                                <h4 className="font-semibold text-foreground">{item.title}</h4>
+                <div className="p-6">
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {analysisCriteria.map((item, index) => (
+                            <div key={index} className="p-4 rounded-lg bg-muted/50 border">
+                                <div className="flex items-center gap-3 mb-2">
+                                    <item.icon className="h-5 w-5 text-primary" />
+                                    <h4 className="font-semibold text-foreground">{item.title}</h4>
+                                </div>
+                                <p className="text-xs text-muted-foreground">{item.description}</p>
                             </div>
-                            <p className="text-xs text-muted-foreground">{item.description}</p>
-                        </div>
-                    ))}
+                        ))}
+                    </div>
                 </div>
             </CardContent>
         </Card>
@@ -280,88 +300,89 @@ function MediaKitPageContent() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <Form {...form}>
-                <form
-                  onSubmit={form.handleSubmit(formAction)}
-                  className="space-y-8"
-                >
-                  <div className="space-y-6">
-                     <FormField
-                      control={form.control}
-                      name="niche"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Seu Nicho</FormLabel>
-                          <FormControl>
-                             {isLoadingProfile ? <Skeleton className="h-11 w-full" /> : 
-                              <Input
-                                placeholder="Defina em seu Perfil"
-                                className="h-11"
-                                {...field}
-                                readOnly
-                              />
-                            }
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                     <div className="grid md:grid-cols-2 gap-x-6 gap-y-6">
-                       <FormField
-                        control={form.control}
-                        name="keyMetrics"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Métricas Chave</FormLabel>
-                            <FormControl>
-                              {isLoadingProfile ? <Skeleton className="h-11 w-full" /> :
-                                <Input
-                                  placeholder="Defina em seu Perfil"
-                                  className="h-11"
-                                  {...field}
-                                  readOnly
-                                />
-                              }
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                       <FormField
-                        control={form.control}
-                        name="targetBrand"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Marca Alvo</FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder="Ex: Sallve, Natura, Nike"
-                                className="h-11"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                     </div>
-                  </div>
-                  <div className="pt-2 flex justify-start">
-                    <Button
-                      type="submit"
-                      disabled={isGenerating || isLoadingProfile}
-                      size="lg"
-                      className="w-full sm:w-auto"
+              <div className="p-6">
+                <Form {...form}>
+                    <form
+                    onSubmit={form.handleSubmit(formAction)}
+                    className="space-y-8"
                     >
-                      {isGenerating ? (
-                        <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Gerando...</>
-                      ) : (
-                        <><Sparkles className="mr-2 h-5 w-5" />Gerar Pacote de Prospecção</>
-                      )}
-                    </Button>
-                  </div>
-                </form>
-              </Form>
+                    <div className="space-y-6">
+                        <FormField
+                        control={form.control}
+                        name="niche"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Seu Nicho</FormLabel>
+                            <FormControl>
+                                {isLoadingProfile ? <Skeleton className="h-11 w-full" /> : 
+                                <Input
+                                    placeholder="Defina em seu Perfil"
+                                    className="h-11"
+                                    {...field}
+                                />
+                                }
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                        <div className="grid md:grid-cols-2 gap-x-6 gap-y-6">
+                        <FormField
+                            control={form.control}
+                            name="keyMetrics"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Métricas Chave</FormLabel>
+                                <FormControl>
+                                {isLoadingProfile ? <Skeleton className="h-11 w-full" /> :
+                                    <Input
+                                    placeholder="Defina em seu Perfil"
+                                    className="h-11"
+                                    {...field}
+                                    readOnly
+                                    />
+                                }
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="targetBrand"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Marca Alvo</FormLabel>
+                                <FormControl>
+                                <Input
+                                    placeholder="Ex: Sallve, Natura, Nike"
+                                    className="h-11"
+                                    {...field}
+                                />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                        </div>
+                    </div>
+                    <div className="pt-2 flex justify-start">
+                        <Button
+                        type="submit"
+                        disabled={isGenerating || isLoadingProfile}
+                        size="lg"
+                        className="w-full sm:w-auto"
+                        >
+                        {isGenerating ? (
+                            <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Gerando...</>
+                        ) : (
+                            <><Sparkles className="mr-2 h-5 w-5" />Gerar Pacote de Prospecção</>
+                        )}
+                        </Button>
+                    </div>
+                    </form>
+                </Form>
+              </div>
             </CardContent>
           </Card>
 
@@ -421,9 +442,11 @@ function InfoCard({
         </CardTitle>
       </CardHeader>
       <CardContent>
-         <div className="p-4 rounded-xl border bg-muted/30 text-base text-foreground whitespace-pre-wrap">
-            {content}
-          </div>
+         <div className="p-6">
+            <div className="p-4 rounded-xl border bg-muted/30 text-base text-foreground whitespace-pre-wrap">
+                {content}
+            </div>
+         </div>
       </CardContent>
     </Card>
   );
@@ -448,15 +471,17 @@ function InfoList({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-3">
-          {items.map((item, index) => (
-            <div
-              key={index}
-              className="text-sm p-3 rounded-xl bg-muted/30 border"
-            >
-              {item}
+        <div className="p-6">
+            <div className="space-y-3">
+            {items.map((item, index) => (
+                <div
+                key={index}
+                className="text-sm p-3 rounded-xl bg-muted/30 border"
+                >
+                {item}
+                </div>
+            ))}
             </div>
-          ))}
         </div>
       </CardContent>
     </Card>
@@ -484,33 +509,35 @@ function PricingCard({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <p className='text-xs text-muted-foreground mb-4'>Valores baseados em suas métricas. Use como ponto de partida.</p>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Formato</TableHead>
-              <TableHead className="text-right">Faixa de Preço</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <TableRow>
-              <TableCell className="font-medium">Reels</TableCell>
-              <TableCell className="text-right font-mono">{pricing.reels || 'A calcular'}</TableCell>
-            </TableRow>
-             <TableRow>
-              <TableCell className="font-medium">Sequência de Stories</TableCell>
-              <TableCell className="text-right font-mono">{pricing.storySequence || 'A calcular'}</TableCell>
-            </TableRow>
-             <TableRow>
-              <TableCell className="font-medium">Post Estático (Feed)</TableCell>
-              <TableCell className="text-right font-mono">{pricing.staticPost || 'A calcular'}</TableCell>
-            </TableRow>
-             <TableRow>
-              <TableCell className="font-medium text-primary">Pacote Mensal</TableCell>
-              <TableCell className="text-right font-mono text-primary font-bold">{pricing.monthlyPackage || 'A calcular'}</TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
+        <div className="p-6">
+            <p className='text-xs text-muted-foreground mb-4'>Valores baseados em suas métricas. Use como ponto de partida.</p>
+            <Table>
+            <TableHeader>
+                <TableRow>
+                <TableHead>Formato</TableHead>
+                <TableHead className="text-right">Faixa de Preço</TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                <TableRow>
+                <TableCell className="font-medium">Reels</TableCell>
+                <TableCell className="text-right font-mono">{pricing.reels || 'A calcular'}</TableCell>
+                </TableRow>
+                <TableRow>
+                <TableCell className="font-medium">Sequência de Stories</TableCell>
+                <TableCell className="text-right font-mono">{pricing.storySequence || 'A calcular'}</TableCell>
+                </TableRow>
+                <TableRow>
+                <TableCell className="font-medium">Post Estático (Feed)</TableCell>
+                <TableCell className="text-right font-mono">{pricing.staticPost || 'A calcular'}</TableCell>
+                </TableRow>
+                <TableRow>
+                <TableCell className="font-medium text-primary">Pacote Mensal</TableCell>
+                <TableCell className="text-right font-mono text-primary font-bold">{pricing.monthlyPackage || 'A calcular'}</TableCell>
+                </TableRow>
+            </TableBody>
+            </Table>
+        </div>
       </CardContent>
     </Card>
   );
