@@ -137,7 +137,7 @@
         },
         "eventType": {
           "type": "string",
-          "description": "The type of event (e.g., 'billing.paid')."
+          "description": "The type of event (e.g., 'payment_confirmed')."
         },
         "payload": {
           "type": "object",
