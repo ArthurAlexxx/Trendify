@@ -35,6 +35,7 @@ export default function SubscribePage() {
       {
         id: 'pro-monthly',
         plan: 'pro' as Plan,
+        cycle: 'monthly' as BillingCycle,
         title: 'Plano Pro',
         price: 'R$29',
         priceSuffix: '/mês',
@@ -51,6 +52,7 @@ export default function SubscribePage() {
       {
         id: 'premium-monthly',
         plan: 'premium' as Plan,
+        cycle: 'monthly' as BillingCycle,
         title: 'Plano Premium',
         price: 'R$39',
         priceSuffix: '/mês',
@@ -70,6 +72,7 @@ export default function SubscribePage() {
       {
         id: 'pro-annual',
         plan: 'pro' as Plan,
+        cycle: 'annual' as BillingCycle,
         title: 'Plano Pro Anual',
         price: 'R$299',
         priceSuffix: '/ano',
@@ -86,6 +89,7 @@ export default function SubscribePage() {
       {
         id: 'premium-annual',
         plan: 'premium' as Plan,
+        cycle: 'annual' as BillingCycle,
         title: 'Plano Premium Anual',
         price: 'R$399',
         priceSuffix: '/ano',
@@ -142,7 +146,7 @@ export default function SubscribePage() {
           </CardContent>
           <CardFooter>
             <Button asChild className={cn("w-full", planDetails.isPremium && 'bg-yellow-500 hover:bg-yellow-500/90')} disabled={isCurrentPlan}>
-               <Link href={'/dashboard'}>{buttonText}</Link>
+               <Link href={`/checkout?plan=${planDetails.plan}&cycle=${planDetails.cycle}`}>{buttonText}</Link>
             </Button>
           </CardFooter>
         </Card>
