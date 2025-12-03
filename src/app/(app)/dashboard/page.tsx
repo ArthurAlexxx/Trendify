@@ -83,6 +83,7 @@ import { MetricCard, InstagramProfileResults, TikTokProfileResults } from '@/com
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 
 const chartConfigBase = {
@@ -336,49 +337,53 @@ const UpdateMetricsSheet = ({ userProfile, triggerButton }: { userProfile: UserP
                     Atualizar Métricas
                 </Button>}
             </SheetTrigger>
-            <SheetContent className="sm:max-w-xl">
-                <SheetHeader>
+            <SheetContent className="p-0 flex flex-col">
+                <SheetHeader className='p-6 pb-4 border-b'>
                     <SheetTitle className="font-headline text-xl">Atualizar Métricas Diárias</SheetTitle>
                     <SheetDescription>
                         Insira seus números mais recentes para manter o gráfico de evolução preciso.
                     </SheetDescription>
                 </SheetHeader>
-                <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-4">
-                    <div className="space-y-6">
-                        <h3 className="text-lg font-semibold flex items-center gap-2"><Instagram className="h-5 w-5" /> Instagram</h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <FormField control={form.control} name="instagramHandle" render={({ field }) => ( <FormItem><FormLabel>Handle</FormLabel><FormControl><Input placeholder="@seu_usuario" {...field} /></FormControl></FormItem> )}/>
-                            <FormField control={form.control} name="instagramFollowers" render={({ field }) => ( <FormItem><FormLabel>Seguidores</FormLabel><FormControl><Input placeholder="Ex: 250K" {...field} /></FormControl></FormItem> )}/>
+                <ScrollArea className="flex-1">
+                 <div className="p-6">
+                    <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                        <div className="space-y-6">
+                            <h3 className="text-lg font-semibold flex items-center gap-2"><Instagram className="h-5 w-5" /> Instagram</h3>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                <FormField control={form.control} name="instagramHandle" render={({ field }) => ( <FormItem><FormLabel>Handle</FormLabel><FormControl><Input placeholder="@seu_usuario" {...field} /></FormControl></FormItem> )}/>
+                                <FormField control={form.control} name="instagramFollowers" render={({ field }) => ( <FormItem><FormLabel>Seguidores</FormLabel><FormControl><Input placeholder="Ex: 250K" {...field} /></FormControl></FormItem> )}/>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                                <FormField control={form.control} name="instagramAverageViews" render={({ field }) => ( <FormItem><FormLabel>Média de Views</FormLabel><FormControl><Input placeholder="Ex: 15.5K" {...field} /></FormControl></FormItem> )}/>
+                                <FormField control={form.control} name="instagramAverageLikes" render={({ field }) => ( <FormItem><FormLabel>Média de Likes</FormLabel><FormControl><Input placeholder="Ex: 890" {...field} /></FormControl></FormItem> )}/>
+                                <FormField control={form.control} name="instagramAverageComments" render={({ field }) => ( <FormItem><FormLabel>Média de Comentários</FormLabel><FormControl><Input placeholder="Ex: 120" {...field} /></FormControl></FormItem> )}/>
+                            </div>
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <FormField control={form.control} name="instagramAverageViews" render={({ field }) => ( <FormItem><FormLabel>Média de Views</FormLabel><FormControl><Input placeholder="Ex: 15.5K" {...field} /></FormControl></FormItem> )}/>
-                            <FormField control={form.control} name="instagramAverageLikes" render={({ field }) => ( <FormItem><FormLabel>Média de Likes</FormLabel><FormControl><Input placeholder="Ex: 890" {...field} /></FormControl></FormItem> )}/>
-                            <FormField control={form.control} name="instagramAverageComments" render={({ field }) => ( <FormItem><FormLabel>Média de Comentários</FormLabel><FormControl><Input placeholder="Ex: 120" {...field} /></FormControl></FormItem> )}/>
+                        <Separator />
+                        <div className="space-y-6">
+                            <h3 className="text-lg font-semibold flex items-center gap-2"><Film className="h-5 w-5" /> TikTok</h3>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                <FormField control={form.control} name="tiktokHandle" render={({ field }) => ( <FormItem><FormLabel>Handle</FormLabel><FormControl><Input placeholder="@seu_usuario" {...field} /></FormControl></FormItem> )}/>
+                                <FormField control={form.control} name="tiktokFollowers" render={({ field }) => ( <FormItem><FormLabel>Seguidores</FormLabel><FormControl><Input placeholder="Ex: 1.2M" {...field} /></FormControl></FormItem> )}/>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                                <FormField control={form.control} name="tiktokAverageViews" render={({ field }) => ( <FormItem><FormLabel>Média de Views</FormLabel><FormControl><Input placeholder="Ex: 1M" {...field} /></FormControl></FormItem> )}/>
+                                <FormField control={form.control} name="tiktokAverageLikes" render={({ field }) => ( <FormItem><FormLabel>Média de Likes</FormLabel><FormControl><Input placeholder="Ex: 100K" {...field} /></FormControl></FormItem> )}/>
+                                <FormField control={form.control} name="tiktokAverageComments" render={({ field }) => ( <FormItem><FormLabel>Média de Comentários</FormLabel><FormControl><Input placeholder="Ex: 1.5K" {...field} /></FormControl></FormItem> )}/>
+                            </div>
                         </div>
-                    </div>
-                    <Separator />
-                     <div className="space-y-6">
-                        <h3 className="text-lg font-semibold flex items-center gap-2"><Film className="h-5 w-5" /> TikTok</h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <FormField control={form.control} name="tiktokHandle" render={({ field }) => ( <FormItem><FormLabel>Handle</FormLabel><FormControl><Input placeholder="@seu_usuario" {...field} /></FormControl></FormItem> )}/>
-                            <FormField control={form.control} name="tiktokFollowers" render={({ field }) => ( <FormItem><FormLabel>Seguidores</FormLabel><FormControl><Input placeholder="Ex: 1.2M" {...field} /></FormControl></FormItem> )}/>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <FormField control={form.control} name="tiktokAverageViews" render={({ field }) => ( <FormItem><FormLabel>Média de Views</FormLabel><FormControl><Input placeholder="Ex: 1M" {...field} /></FormControl></FormItem> )}/>
-                            <FormField control={form.control} name="tiktokAverageLikes" render={({ field }) => ( <FormItem><FormLabel>Média de Likes</FormLabel><FormControl><Input placeholder="Ex: 100K" {...field} /></FormControl></FormItem> )}/>
-                            <FormField control={form.control} name="tiktokAverageComments" render={({ field }) => ( <FormItem><FormLabel>Média de Comentários</FormLabel><FormControl><Input placeholder="Ex: 1.5K" {...field} /></FormControl></FormItem> )}/>
-                        </div>
-                    </div>
-                    <SheetFooter className="pt-4">
-                        <SheetClose asChild><Button type="button" variant="outline">Cancelar</Button></SheetClose>
-                        <Button type="submit" disabled={isPending}>
+                        </form>
+                    </Form>
+                 </div>
+                </ScrollArea>
+                 <SheetFooter className="p-6 border-t flex-col sm:flex-row gap-2">
+                        <SheetClose asChild><Button type="button" variant="outline" className='w-full sm:w-auto'>Cancelar</Button></SheetClose>
+                        <Button type="button" onClick={form.handleSubmit(onSubmit)} disabled={isPending} className="w-full sm:w-auto">
                             {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Salvar Métricas
                         </Button>
-                    </SheetFooter>
-                </form>
-                </Form>
+                 </SheetFooter>
             </SheetContent>
         </Sheet>
     )
@@ -488,89 +493,93 @@ const BackfillMetricsSheet = ({ userProfile }: { userProfile: UserProfile }) => 
                     Preencher dias anteriores
                 </Button>
             </SheetTrigger>
-            <SheetContent className="sm:max-w-xl">
-                <SheetHeader>
+            <SheetContent className="p-0 flex flex-col">
+                <SheetHeader className='p-6 pb-4 border-b'>
                     <SheetTitle className="font-headline text-xl">Adicionar Métricas de um Dia Anterior</SheetTitle>
                     <SheetDescription>
                         Selecione a data e preencha os dados que você esqueceu de registrar.
                     </SheetDescription>
                 </SheetHeader>
-                <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-4">
-                     <FormField
-                        control={form.control}
-                        name="date"
-                        render={({ field }) => (
-                            <FormItem className="flex flex-col">
-                            <FormLabel>Data a ser preenchida</FormLabel>
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                <FormControl>
-                                    <Button
-                                    variant={'outline'}
-                                    className={cn(
-                                        'w-full pl-3 text-left font-normal h-11',
-                                        !field.value && 'text-muted-foreground'
-                                    )}
-                                    >
-                                    {field.value ? (
-                                        format(field.value, 'PPP', { locale: ptBR })
-                                    ) : (
-                                        <span>Escolha uma data</span>
-                                    )}
-                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                    </Button>
-                                </FormControl>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0" align="start">
-                                <CalendarComponent
-                                    mode="single"
-                                    selected={field.value}
-                                    onSelect={(day) => day && field.onChange(day)}
-                                    disabled={(date) =>
-                                        date > new Date() || date < new Date('2024-01-01')
-                                    }
-                                    initialFocus
+                <ScrollArea className="flex-1">
+                    <div className="p-6">
+                        <Form {...form}>
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                            <FormField
+                                control={form.control}
+                                name="date"
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-col">
+                                    <FormLabel>Data a ser preenchida</FormLabel>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                        <FormControl>
+                                            <Button
+                                            variant={'outline'}
+                                            className={cn(
+                                                'w-full pl-3 text-left font-normal h-11',
+                                                !field.value && 'text-muted-foreground'
+                                            )}
+                                            >
+                                            {field.value ? (
+                                                format(field.value, 'PPP', { locale: ptBR })
+                                            ) : (
+                                                <span>Escolha uma data</span>
+                                            )}
+                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                            </Button>
+                                        </FormControl>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0" align="start">
+                                        <CalendarComponent
+                                            mode="single"
+                                            selected={field.value}
+                                            onSelect={(day) => day && field.onChange(day)}
+                                            disabled={(date) =>
+                                                date > new Date() || date < new Date('2024-01-01')
+                                            }
+                                            initialFocus
+                                        />
+                                        </PopoverContent>
+                                    </Popover>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
                                 />
-                                </PopoverContent>
-                            </Popover>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                        />
-                    <Separator />
-                    <div className="space-y-6">
-                        <h3 className="text-lg font-semibold flex items-center gap-2"><Instagram className="h-5 w-5" /> Instagram</h3>
-                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                             <FormField control={form.control} name="instagramFollowers" render={({ field }) => ( <FormItem><FormLabel>Seguidores</FormLabel><FormControl><Input placeholder="Ex: 250K" {...field} /></FormControl></FormItem> )}/>
-                              <FormField control={form.control} name="instagramAverageViews" render={({ field }) => ( <FormItem><FormLabel>Média de Views</FormLabel><FormControl><Input placeholder="Ex: 15.5K" {...field} /></FormControl></FormItem> )}/>
-                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <FormField control={form.control} name="instagramAverageLikes" render={({ field }) => ( <FormItem><FormLabel>Média de Likes</FormLabel><FormControl><Input placeholder="Ex: 890" {...field} /></FormControl></FormItem> )}/>
-                            <FormField control={form.control} name="instagramAverageComments" render={({ field }) => ( <FormItem><FormLabel>Média de Comentários</FormLabel><FormControl><Input placeholder="Ex: 120" {...field} /></FormControl></FormItem> )}/>
-                        </div>
+                            <Separator />
+                            <div className="space-y-6">
+                                <h3 className="text-lg font-semibold flex items-center gap-2"><Instagram className="h-5 w-5" /> Instagram</h3>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                    <FormField control={form.control} name="instagramFollowers" render={({ field }) => ( <FormItem><FormLabel>Seguidores</FormLabel><FormControl><Input placeholder="Ex: 250K" {...field} /></FormControl></FormItem> )}/>
+                                    <FormField control={form.control} name="instagramAverageViews" render={({ field }) => ( <FormItem><FormLabel>Média de Views</FormLabel><FormControl><Input placeholder="Ex: 15.5K" {...field} /></FormControl></FormItem> )}/>
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                    <FormField control={form.control} name="instagramAverageLikes" render={({ field }) => ( <FormItem><FormLabel>Média de Likes</FormLabel><FormControl><Input placeholder="Ex: 890" {...field} /></FormControl></FormItem> )}/>
+                                    <FormField control={form.control} name="instagramAverageComments" render={({ field }) => ( <FormItem><FormLabel>Média de Comentários</FormLabel><FormControl><Input placeholder="Ex: 120" {...field} /></FormControl></FormItem> )}/>
+                                </div>
+                            </div>
+                            <Separator />
+                            <div className="space-y-6">
+                                <h3 className="text-lg font-semibold flex items-center gap-2"><Film className="h-5 w-5" /> TikTok</h3>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                    <FormField control={form.control} name="tiktokFollowers" render={({ field }) => ( <FormItem><FormLabel>Seguidores</FormLabel><FormControl><Input placeholder="Ex: 1.2M" {...field} /></FormControl></FormItem> )}/>
+                                    <FormField control={form.control} name="tiktokAverageViews" render={({ field }) => ( <FormItem><FormLabel>Média de Views</FormLabel><FormControl><Input placeholder="Ex: 1M" {...field} /></FormControl></FormItem> )}/>
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                    <FormField control={form.control} name="tiktokAverageLikes" render={({ field }) => ( <FormItem><FormLabel>Média de Likes</FormLabel><FormControl><Input placeholder="Ex: 100K" {...field} /></FormControl></FormItem> )}/>
+                                    <FormField control={form.control} name="tiktokAverageComments" render={({ field }) => ( <FormItem><FormLabel>Média de Comentários</FormLabel><FormControl><Input placeholder="Ex: 1.5K" {...field} /></FormControl></FormItem> )}/>
+                                </div>
+                            </div>
+                        </form>
+                        </Form>
                     </div>
-                    <Separator />
-                     <div className="space-y-6">
-                        <h3 className="text-lg font-semibold flex items-center gap-2"><Film className="h-5 w-5" /> TikTok</h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                             <FormField control={form.control} name="tiktokFollowers" render={({ field }) => ( <FormItem><FormLabel>Seguidores</FormLabel><FormControl><Input placeholder="Ex: 1.2M" {...field} /></FormControl></FormItem> )}/>
-                              <FormField control={form.control} name="tiktokAverageViews" render={({ field }) => ( <FormItem><FormLabel>Média de Views</FormLabel><FormControl><Input placeholder="Ex: 1M" {...field} /></FormControl></FormItem> )}/>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <FormField control={form.control} name="tiktokAverageLikes" render={({ field }) => ( <FormItem><FormLabel>Média de Likes</FormLabel><FormControl><Input placeholder="Ex: 100K" {...field} /></FormControl></FormItem> )}/>
-                            <FormField control={form.control} name="tiktokAverageComments" render={({ field }) => ( <FormItem><FormLabel>Média de Comentários</FormLabel><FormControl><Input placeholder="Ex: 1.5K" {...field} /></FormControl></FormItem> )}/>
-                        </div>
-                    </div>
-                    <SheetFooter className="pt-4">
-                        <SheetClose asChild><Button type="button" variant="outline">Cancelar</Button></SheetClose>
-                        <Button type="submit" disabled={isPending}>
-                            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Salvar Métricas Anteriores
-                        </Button>
-                    </SheetFooter>
-                </form>
-                </Form>
+                </ScrollArea>
+                <SheetFooter className="p-6 border-t flex-col sm:flex-row gap-2">
+                    <SheetClose asChild><Button type="button" variant="outline" className='w-full sm:w-auto'>Cancelar</Button></SheetClose>
+                    <Button type="button" onClick={form.handleSubmit(onSubmit)} disabled={isPending} className="w-full sm:w-auto">
+                        {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Salvar Métricas Anteriores
+                    </Button>
+                </SheetFooter>
             </SheetContent>
         </Sheet>
     )
@@ -1251,7 +1260,5 @@ export default function DashboardPage() {
     </>
   );
 }
-
-    
 
     
