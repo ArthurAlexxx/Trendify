@@ -19,7 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/firebase';
-import { createUserWithEmailAndPassword, updateProfile, GoogleAuthProvider, signInWithPopup, sendEmailVerification } from 'firebase/auth';
+import { createUserWithEmailAndPassword, updateProfile, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { Separator } from '@/components/ui/separator';
 
 const formSchema = z.object({
@@ -42,7 +42,6 @@ export default function SignUpPage() {
   const { toast } = useToast();
   const auth = useAuth();
   const [isPending, setIsPending] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -66,11 +65,8 @@ export default function SignUpPage() {
         displayName: values.name,
       });
 
-      await sendEmailVerification(userCredential.user);
-      
-      setIsSuccess(true); // Set success state to change the view
-
-      // AuthLayout will handle the redirect after state change.
+      // After successful sign-up, the onAuthStateChanged listener in
+      // FirebaseProvider will handle profile creation and AuthLayout will redirect.
     } catch (error: any) {
       console.error('Sign up error:', error.code, error.message);
       toast({
@@ -112,7 +108,7 @@ export default function SignUpPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      {isPending && !isSuccess && (
+      {isPending && (
         <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
           <Loader2 className="h-10 w-10 animate-spin text-primary" />
         </div>
@@ -129,103 +125,91 @@ export default function SignUpPage() {
             trendify
           </Link>
           <p className="text-muted-foreground mt-2">
-            {isSuccess ? 'Quase lá!' : 'Crie sua conta e comece a crescer.'}
+            Crie sua conta e comece a crescer.
           </p>
         </div>
         <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0">
           <CardHeader className="text-center">
             <CardTitle className="font-headline text-xl">
-              {isSuccess ? 'Confirme seu E-mail' : 'Cadastro gratuito'}
+              Cadastro gratuito
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {isSuccess ? (
-                <div className='text-center space-y-4'>
-                    <p className='text-muted-foreground'>
-                        Enviamos um link de confirmação para <strong>{form.getValues('email')}</strong>.
-                        Clique no link para verificar sua conta e poder fazer login.
-                    </p>
-                    <Button asChild>
-                        <Link href="/login">Ir para o Login</Link>
-                    </Button>
-                </div>
-            ) : (
-                <div className="space-y-4">
-                    <Button variant="outline" className="w-full h-11" onClick={handleGoogleSignIn} disabled={isPending}>
-                        <GoogleIcon />
-                        Entrar com Google
-                    </Button>
+            <div className="space-y-4">
+                <Button variant="outline" className="w-full h-11" onClick={handleGoogleSignIn} disabled={isPending}>
+                    <GoogleIcon />
+                    Entrar com Google
+                </Button>
 
-                    <div className="flex items-center gap-4">
-                        <Separator className="flex-1" />
-                        <span className="text-xs text-muted-foreground">OU</span>
-                        <Separator className="flex-1" />
-                    </div>
-                    <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 text-center">
-                        <FormField
-                        control={form.control}
-                        name="name"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel className="sr-only">Nome Completo</FormLabel>
-                            <FormControl>
-                                <Input placeholder="Seu nome completo" {...field} className="h-11 bg-muted/30" />
-                            </FormControl>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                        />
-                        <FormField
-                        control={form.control}
-                        name="email"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel className="sr-only">E-mail</FormLabel>
-                            <FormControl>
-                                <Input
-                                placeholder="seu@email.com"
-                                {...field}
-                                type="email"
-                                className="h-11 bg-muted/30"
-                                />
-                            </FormControl>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                        />
-                        <FormField
-                        control={form.control}
-                        name="password"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel className="sr-only">Senha</FormLabel>
-                            <FormControl>
-                                <Input
-                                placeholder="Crie uma senha forte"
-                                {...field}
-                                type="password"
-                                className="h-11 bg-muted/30"
-                                />
-                            </FormControl>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                        />
-                        <Button
-                        type="submit"
-                        disabled={isPending}
-                        className="w-full font-manrope h-11 text-base font-bold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-shadow"
-                        >
-                        {isPending && (
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        )}
-                        Criar conta com E-mail
-                        </Button>
-                    </form>
-                    </Form>
+                <div className="flex items-center gap-4">
+                    <Separator className="flex-1" />
+                    <span className="text-xs text-muted-foreground">OU</span>
+                    <Separator className="flex-1" />
                 </div>
-            )}
+                <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 text-center">
+                    <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel className="sr-only">Nome Completo</FormLabel>
+                        <FormControl>
+                            <Input placeholder="Seu nome completo" {...field} className="h-11 bg-muted/30" />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                    <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel className="sr-only">E-mail</FormLabel>
+                        <FormControl>
+                            <Input
+                            placeholder="seu@email.com"
+                            {...field}
+                            type="email"
+                            className="h-11 bg-muted/30"
+                            />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                    <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel className="sr-only">Senha</FormLabel>
+                        <FormControl>
+                            <Input
+                            placeholder="Crie uma senha forte"
+                            {...field}
+                            type="password"
+                            className="h-11 bg-muted/30"
+                            />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                    <Button
+                    type="submit"
+                    disabled={isPending}
+                    className="w-full font-manrope h-11 text-base font-bold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-shadow"
+                    >
+                    {isPending && (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
+                    Criar conta com E-mail
+                    </Button>
+                </form>
+                </Form>
+            </div>
           </CardContent>
         </Card>
         <p className="text-center text-sm text-muted-foreground mt-6">

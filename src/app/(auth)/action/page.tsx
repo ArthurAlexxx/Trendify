@@ -75,9 +75,8 @@ function AuthActionHandler() {
             setViewState('form');
             break;
           case 'verifyEmail':
-            await applyActionCode(auth, actionCode);
-            setSuccessMessage(`O e-mail ${info.data.email} foi verificado com sucesso!`);
-            setViewState('success');
+             setErrorMessage(`A verificação de e-mail não está mais ativa.`);
+            setViewState('invalid');
             break;
           default:
             setErrorMessage(`Ação '${mode}' não suportada.`);

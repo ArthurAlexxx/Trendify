@@ -41,9 +41,6 @@ export default function LoginPage() {
   const { toast } = useToast();
   const auth = useAuth();
   const [isPending, setIsPending] = useState(false);
-  const [showResend, setShowResend] = useState(false);
-  const [emailToVerify, setEmailToVerify] = useState('');
-  const [userToVerify, setUserToVerify] = useState<User | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -53,52 +50,11 @@ export default function LoginPage() {
     },
   });
 
-  async function handleResendVerification() {
-    if (!userToVerify) return;
-    setIsPending(true);
-    try {
-        await sendEmailVerification(userToVerify);
-        toast({
-            title: 'E-mail Reenviado!',
-            description: 'Um novo link de verificação foi enviado para sua caixa de entrada.'
-        });
-    } catch (error) {
-        toast({
-            title: 'Erro',
-            description: 'Não foi possível reenviar o e-mail. Tente novamente mais tarde.',
-            variant: 'destructive',
-        });
-    } finally {
-        setIsPending(false);
-    }
-  }
-
-
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsPending(true);
-    setShowResend(false);
-    setUserToVerify(null);
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
-      
-      // Force a reload of the user's profile to get the latest emailVerified status
-      await userCredential.user.reload();
-      
-      // Now check the refreshed user object
-      if (!auth.currentUser?.emailVerified) {
-        setEmailToVerify(userCredential.user.email!);
-        setUserToVerify(userCredential.user);
-        setShowResend(true);
-        toast({
-            title: 'E-mail não verificado',
-            description: 'Você precisa confirmar seu e-mail antes de fazer login. Verifique sua caixa de entrada.',
-            variant: 'destructive',
-            duration: 7000,
-        });
-        await auth.signOut(); // Log out the user until they are verified
-      }
-      // If verified, AuthLayout will handle the redirect.
-
+      await signInWithEmailAndPassword(auth, values.email, values.password);
+      // If login is successful, AuthLayout will handle the redirect.
     } catch (error: any) {
       console.error(error);
       toast({
@@ -121,7 +77,6 @@ export default function LoginPage() {
       await signInWithPopup(auth, provider);
       // After successful sign-in, the onAuthStateChanged listener in
       // FirebaseProvider will handle profile creation and AuthLayout will redirect.
-      // Google-provided emails are considered verified.
     } catch (error: any) {
       // Handle errors here, such as user closing the popup.
       if (error.code !== 'auth/popup-closed-by-user') {
@@ -225,11 +180,6 @@ export default function LoginPage() {
                         </FormItem>
                     )}
                     />
-                    {showResend && (
-                        <Button variant="link" type="button" onClick={handleResendVerification} disabled={isPending} className="p-0 h-auto">
-                            Reenviar e-mail de verificação para {emailToVerify}
-                        </Button>
-                    )}
                     <Button
                     type="submit"
                     disabled={isPending}
