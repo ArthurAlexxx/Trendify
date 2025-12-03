@@ -17,7 +17,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Crown, MoreHorizontal, Edit, Shield } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { Button, buttonVariants } from '../ui/button';
-import { ChangePlanSheet } from './change-plan-sheet';
+import { ChangePlanSheet } from './change-plan-dialog';
 import { useState, useTransition } from 'react';
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from '../ui/sheet';
 import { changeUserRoleAction } from '@/app/admin/actions';
@@ -95,7 +95,9 @@ export function UserTable({ data }: UserTableProps) {
                     </SheetDescription>
                 </SheetHeader>
                 <SheetFooter className="mt-6 flex-col-reverse sm:flex-row gap-2">
-                    <Button variant="outline" onClick={() => setIsRoleSheetOpen(false)}>Cancelar</Button>
+                    <SheetClose asChild>
+                        <Button variant="outline">Cancelar</Button>
+                    </SheetClose>
                     <Button className={cn(buttonVariants({ variant: 'default' }), "bg-amber-600 hover:bg-amber-700")} onClick={handlePromoteToAdmin}>
                         Sim, promover
                     </Button>
@@ -175,5 +177,3 @@ export function UserTable({ data }: UserTableProps) {
     </>
   );
 }
-
-    
