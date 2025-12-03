@@ -197,69 +197,6 @@ export default function SettingsPage() {
           </CardContent>
        </Card>
 
-        <Card className="border-destructive/50 bg-destructive/5 rounded-2xl">
-            <CardHeader>
-            <CardTitle className="flex items-center gap-3 font-headline text-xl text-destructive">
-                <ShieldAlert className="h-6 w-6" />
-                <span>Zona de Perigo</span>
-            </CardTitle>
-            <CardDescription className="text-destructive/80">
-                Ações nesta área são permanentes e não podem ser desfeitas.
-            </CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col sm:flex-row items-center justify-between">
-            <div className="text-center sm:text-left">
-                <p className="font-semibold text-foreground">Excluir Conta</p>
-                <p className="text-muted-foreground">
-                Isto irá apagar permanentemente sua conta e todos os dados.
-                </p>
-            </div>
-            <AlertDialog>
-                <AlertDialogTrigger asChild>
-                <Button
-                    variant="destructive"
-                    className="w-full sm:w-auto mt-4 sm:mt-0"
-                >
-                    Excluir minha conta
-                </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>
-                    Você tem certeza absoluta?
-                    </AlertDialogTitle>
-                    <AlertDialogDescription>
-                    Esta ação não pode ser desfeita. Para confirmar, digite{' '}
-                    <strong className="text-foreground">
-                        excluir minha conta
-                    </strong>{' '}
-                    abaixo.
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <div className="py-2">
-                    <Input
-                    id="delete-confirm"
-                    value={deleteConfirmationText}
-                    onChange={(e) =>
-                        setDeleteConfirmationText(e.target.value)
-                    }
-                    placeholder="excluir minha conta"
-                    />
-                </div>
-                <AlertDialogFooter>
-                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                    <AlertDialogAction
-                    onClick={handleDeleteAccount}
-                    disabled={isDeleteButtonDisabled}
-                    className={cn(buttonVariants({ variant: "destructive" }))}
-                    >
-                    Eu entendo, exclua minha conta
-                    </AlertDialogAction>
-                </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
-            </CardContent>
-        </Card>
     </div>
   );
 }
