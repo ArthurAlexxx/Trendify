@@ -137,7 +137,7 @@
         },
         "eventType": {
           "type": "string",
-          "description": "The type of event (e.g., 'payment_confirmed')."
+          "description": "The type of event (e.g., 'billing.paid')."
         },
         "payload": {
           "type": "object",
@@ -319,13 +319,13 @@
       "schema": { "$ref": "#/entities/WebhookLog" },
       "description": "Logs all incoming webhook events from the payment gateway."
     },
-    "/usageLogs/{usageId}": {
-        "schema": { "$ref": "#/entities/DailyUsage" },
-        "description": "Tracks daily usage of features. The document ID is a composite of userId and date (e.g., 'someUserId_2024-01-01')."
-    },
     "/users/{userId}/metricSnapshots/{snapshotId}": {
         "schema": { "$ref": "#/entities/MetricSnapshot" },
         "description": "Stores daily metric snapshots for a user, per platform."
+    },
+    "/users/{userId}/dailyUsage/{usageId}": {
+        "schema": { "$ref": "#/entities/DailyUsage" },
+        "description": "Tracks daily usage of features for a specific user. The document ID is the date in YYYY-MM-DD format."
     },
     "/users/{userId}/ideiasSalvas/{ideiaId}": {
       "schema": { "$ref": "#/entities/IdeiaSalva" },

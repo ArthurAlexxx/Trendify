@@ -10,8 +10,10 @@ service cloud.firestore {
 
     // USERS
     match /users/{userId} {
+
       // O usuário sempre pode ler e escrever seu próprio documento
       allow read, write: if request.auth != null && request.auth.uid == userId;
+
       // Admin pode ler qualquer documento
       allow read: if request.auth != null && isAdmin();
     }
@@ -21,7 +23,7 @@ service cloud.firestore {
       allow list: if request.auth != null && isAdmin();
     }
 
-    // Subcoleções do usuário
+    // Subcoleções do usuário (ideias, agendamentos, análises, métricas, etc.)
     match /users/{userId}/{subcollection}/{docId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
@@ -31,17 +33,10 @@ service cloud.firestore {
       allow read, write: if request.auth != null;
     }
 
-    // Webhook Logs (somente admin para leitura, mas aberto para criação pelo webhook)
+     // Webhook Logs (somente admin para leitura, mas aberto para criação pelo webhook)
     match /webhookLogs/{logId} {
       allow read, list: if request.auth != null && isAdmin();
       allow create: if true;
-    }
-
-    // Usage Logs (admin pode ler, usuário pode criar/atualizar seu próprio log)
-    match /usageLogs/{usageId} {
-      allow read: if request.auth != null && isAdmin();
-      // O ID do documento é "userId_data", então verificamos se o UID do usuário está no ID do documento
-      allow write: if request.auth != null && request.auth.uid == usageId.split('_')[0];
     }
   }
 }
