@@ -25,6 +25,7 @@ import {
   Crown,
   PlayCircle,
   Check,
+  CalendarPlus,
 } from 'lucide-react';
 import {
   ChartContainer,
@@ -48,7 +49,7 @@ import type {
 } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Checkbox } from '@/components/ui/checkbox';
-import { format, formatDistanceToNow, isToday, startOfDay, endOfDay } from 'date-fns';
+import { format, formatDistanceToNow, isToday, startOfDay, endOfDay, subDays, isSameDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
   DropdownMenu,
@@ -63,7 +64,7 @@ import { useState, useMemo, useEffect, useTransition } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, useCollection, useDoc, useMemoFirebase } from '@/firebase';
-import { collection, doc, query, orderBy, limit, updateDoc, where, addDoc, serverTimestamp, getDocs, Timestamp } from 'firebase/firestore';
+import { collection, doc, query, orderBy, limit, updateDoc, where, addDoc, serverTimestamp, getDocs, Timestamp, setDoc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -78,6 +79,9 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import Image from 'next/image';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MetricCard, InstagramProfileResults, TikTokProfileResults } from '@/components/dashboard/platform-results';
+import { Calendar as CalendarIcon } from 'lucide-react';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 
 const chartConfigBase = {
@@ -126,7 +130,7 @@ const profileMetricsSchema = z.object({
 });
 
 
-const ProfileCompletionAlert = ({ userProfile, hasUpdatedToday, isPremium }: { userProfile: UserProfile | null, hasUpdatedToday: boolean, isPremium: boolean }) => {
+const ProfileCompletionAlert = ({ userProfile, hasUpdatedToday, missingDays, isPremium }: { userProfile: UserProfile | null, hasUpdatedToday: boolean, missingDays: number, isPremium: boolean }) => {
     const isProfileSetup = userProfile?.niche && (userProfile.instagramHandle || userProfile.tiktokHandle);
     const hasAnyPlatform = userProfile?.instagramHandle || userProfile?.tiktokHandle;
 
@@ -196,6 +200,22 @@ const ProfileCompletionAlert = ({ userProfile, hasUpdatedToday, isPremium }: { u
             </Alert>
         )
     }
+    
+     if (missingDays > 0 && userProfile) {
+        return (
+            <Alert>
+                <div className='flex flex-col sm:flex-row justify-between items-center gap-4'>
+                    <div className='text-center sm:text-left'>
+                        <AlertTitle className="flex items-center justify-center sm:justify-start gap-2"><CalendarPlus className="h-4 w-4 text-primary" />Preencha os Dias Anteriores</AlertTitle>
+                        <AlertDescription>
+                           Você esqueceu de atualizar as métricas em {missingDays} {missingDays === 1 ? 'dia' : 'dias'}. Preencha para manter seu gráfico completo.
+                        </AlertDescription>
+                    </div>
+                    <BackfillMetricsModal userProfile={userProfile} />
+                </div>
+            </Alert>
+        );
+    }
 
     return null;
 }
@@ -243,13 +263,13 @@ const UpdateMetricsModal = ({ userProfile, triggerButton }: { userProfile: UserP
 
     const onSubmit = (values: z.infer<typeof profileMetricsSchema>) => {
         if (!user || !firestore) return;
-        const userProfileRef = doc(firestore, 'users', user.uid);
 
         startTransition(async () => {
             try {
-                await updateDoc(userProfileRef, values);
+                // First, update the main user profile with the latest numbers
+                await updateDoc(doc(firestore, 'users', user.uid), values);
+                
                 const metricSnapshotsRef = collection(firestore, `users/${user.uid}/metricSnapshots`);
-
                 const todayStart = startOfDay(new Date());
                 const todayEnd = endOfDay(new Date());
 
@@ -362,6 +382,198 @@ const UpdateMetricsModal = ({ userProfile, triggerButton }: { userProfile: UserP
     )
 }
 
+
+const backfillMetricsSchema = profileMetricsSchema.extend({
+    date: z.date({ required_error: "A data é obrigatória." }),
+});
+
+const BackfillMetricsModal = ({ userProfile }: { userProfile: UserProfile }) => {
+    const { user } = useUser();
+    const firestore = useFirestore();
+    const { toast } = useToast();
+    const [isPending, startTransition] = useTransition();
+    const [isOpen, setIsOpen] = useState(false);
+
+    const form = useForm<z.infer<typeof backfillMetricsSchema>>({
+        resolver: zodResolver(backfillMetricsSchema),
+        defaultValues: {
+            date: subDays(new Date(), 1),
+            instagramHandle: userProfile.instagramHandle || '',
+            instagramFollowers: '',
+            instagramAverageViews: '',
+            instagramAverageLikes: '',
+            instagramAverageComments: '',
+            tiktokHandle: userProfile.tiktokHandle || '',
+            tiktokFollowers: '',
+            tiktokAverageViews: '',
+            tiktokAverageLikes: '',
+            tiktokAverageComments: '',
+        }
+    });
+
+    const onSubmit = (values: z.infer<typeof backfillMetricsSchema>) => {
+        if (!user || !firestore) return;
+
+        startTransition(async () => {
+            try {
+                const metricSnapshotsRef = collection(firestore, `users/${user.uid}/metricSnapshots`);
+                const selectedDateStart = startOfDay(values.date);
+                const selectedDateEnd = endOfDay(values.date);
+
+                const updateOrCreateSnapshot = async (platform: 'instagram' | 'tiktok', data: any) => {
+                    const q = query(
+                        metricSnapshotsRef,
+                        where('platform', '==', platform),
+                        where('date', '>=', Timestamp.fromDate(selectedDateStart)),
+                        where('date', '<=', Timestamp.fromDate(selectedDateEnd))
+                    );
+                    const querySnapshot = await getDocs(q);
+
+                    const snapshotData = {
+                        ...data,
+                        date: Timestamp.fromDate(values.date)
+                    };
+                    
+                    if (querySnapshot.empty) {
+                        await addDoc(metricSnapshotsRef, snapshotData);
+                    } else {
+                        const docId = querySnapshot.docs[0].id;
+                        await updateDoc(doc(metricSnapshotsRef, docId), snapshotData);
+                    }
+                };
+
+                if (values.instagramHandle && values.instagramFollowers) {
+                    await updateOrCreateSnapshot('instagram', {
+                        userId: user.uid,
+                        platform: 'instagram',
+                        followers: values.instagramFollowers || '0',
+                        views: values.instagramAverageViews || '0',
+                        likes: values.instagramAverageLikes || '0',
+                        comments: values.instagramAverageComments || '0',
+                    });
+                }
+                if (values.tiktokHandle && values.tiktokFollowers) {
+                    await updateOrCreateSnapshot('tiktok', {
+                        userId: user.uid,
+                        platform: 'tiktok',
+                        followers: values.tiktokFollowers || '0',
+                        views: values.tiktokAverageViews || '0',
+                        likes: values.tiktokAverageLikes || '0',
+                        comments: values.tiktokAverageComments || '0',
+                    });
+                }
+
+                toast({
+                    title: 'Sucesso!',
+                    description: `As métricas para ${format(values.date, 'dd/MM/yyyy')} foram salvas.`,
+                });
+                setIsOpen(false);
+            } catch (error: any) {
+                toast({
+                    title: 'Erro ao Salvar',
+                    description: `Não foi possível salvar as métricas: ${error.message}`,
+                    variant: 'destructive',
+                });
+            }
+        });
+    }
+
+    return (
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogTrigger asChild>
+                 <Button className='w-full sm:w-auto'>
+                    <CalendarPlus className="mr-2 h-4 w-4" />
+                    Preencher dias anteriores
+                </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                    <DialogTitle className="font-headline text-xl">Adicionar Métricas de um Dia Anterior</DialogTitle>
+                    <DialogDescription>
+                        Selecione a data e preencha os dados que você esqueceu de registrar.
+                    </DialogDescription>
+                </DialogHeader>
+                <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-4">
+                     <FormField
+                        control={form.control}
+                        name="date"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-col">
+                            <FormLabel>Data a ser preenchida</FormLabel>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                <FormControl>
+                                    <Button
+                                    variant={'outline'}
+                                    className={cn(
+                                        'w-full pl-3 text-left font-normal h-11',
+                                        !field.value && 'text-muted-foreground'
+                                    )}
+                                    >
+                                    {field.value ? (
+                                        format(field.value, 'PPP', { locale: ptBR })
+                                    ) : (
+                                        <span>Escolha uma data</span>
+                                    )}
+                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                    </Button>
+                                </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                <CalendarComponent
+                                    mode="single"
+                                    selected={field.value}
+                                    onSelect={(day) => day && field.onChange(day)}
+                                    disabled={(date) =>
+                                        date > new Date() || date < new Date('2024-01-01')
+                                    }
+                                    initialFocus
+                                />
+                                </PopoverContent>
+                            </Popover>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                    <Separator />
+                    <div className="space-y-6">
+                        <h3 className="text-lg font-semibold flex items-center gap-2"><Instagram className="h-5 w-5" /> Instagram</h3>
+                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                             <FormField control={form.control} name="instagramFollowers" render={({ field }) => ( <FormItem><FormLabel>Seguidores</FormLabel><FormControl><Input placeholder="Ex: 250K" {...field} /></FormControl></FormItem> )}/>
+                              <FormField control={form.control} name="instagramAverageViews" render={({ field }) => ( <FormItem><FormLabel>Média de Views</FormLabel><FormControl><Input placeholder="Ex: 15.5K" {...field} /></FormControl></FormItem> )}/>
+                         </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <FormField control={form.control} name="instagramAverageLikes" render={({ field }) => ( <FormItem><FormLabel>Média de Likes</FormLabel><FormControl><Input placeholder="Ex: 890" {...field} /></FormControl></FormItem> )}/>
+                            <FormField control={form.control} name="instagramAverageComments" render={({ field }) => ( <FormItem><FormLabel>Média de Comentários</FormLabel><FormControl><Input placeholder="Ex: 120" {...field} /></FormControl></FormItem> )}/>
+                        </div>
+                    </div>
+                    <Separator />
+                     <div className="space-y-6">
+                        <h3 className="text-lg font-semibold flex items-center gap-2"><Film className="h-5 w-5" /> TikTok</h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                             <FormField control={form.control} name="tiktokFollowers" render={({ field }) => ( <FormItem><FormLabel>Seguidores</FormLabel><FormControl><Input placeholder="Ex: 1.2M" {...field} /></FormControl></FormItem> )}/>
+                              <FormField control={form.control} name="tiktokAverageViews" render={({ field }) => ( <FormItem><FormLabel>Média de Views</FormLabel><FormControl><Input placeholder="Ex: 1M" {...field} /></FormControl></FormItem> )}/>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <FormField control={form.control} name="tiktokAverageLikes" render={({ field }) => ( <FormItem><FormLabel>Média de Likes</FormLabel><FormControl><Input placeholder="Ex: 100K" {...field} /></FormControl></FormItem> )}/>
+                            <FormField control={form.control} name="tiktokAverageComments" render={({ field }) => ( <FormItem><FormLabel>Média de Comentários</FormLabel><FormControl><Input placeholder="Ex: 1.5K" {...field} /></FormControl></FormItem> )}/>
+                        </div>
+                    </div>
+                    <DialogFooter className="pt-4 flex-col sm:flex-row">
+                        <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
+                            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Salvar Métricas Anteriores
+                        </Button>
+                    </DialogFooter>
+                </form>
+                </Form>
+            </DialogContent>
+        </Dialog>
+    )
+}
+
+
 export default function DashboardPage() {
   const { user } = useUser();
   const firestore = useFirestore();
@@ -446,6 +658,21 @@ export default function DashboardPage() {
     if (!metricSnapshots || metricSnapshots.length === 0) return false;
     // Check if there is any snapshot for today
     return metricSnapshots.some(snap => snap.date && isToday(snap.date.toDate()));
+  }, [metricSnapshots]);
+
+  const missingDaysCount = useMemo(() => {
+    if (!metricSnapshots || metricSnapshots.length === 0) return 0;
+    const today = startOfDay(new Date());
+    let missing = 0;
+    // Check the last 7 days
+    for (let i = 1; i <= 7; i++) {
+        const dayToCheck = subDays(today, i);
+        const hasEntry = metricSnapshots.some(snap => snap.date && isSameDay(snap.date.toDate(), dayToCheck));
+        if (!hasEntry) {
+            missing++;
+        }
+    }
+    return missing;
   }, [metricSnapshots]);
 
 
@@ -618,7 +845,7 @@ export default function DashboardPage() {
       />
 
       <div className="space-y-8">
-        {userProfile && <ProfileCompletionAlert userProfile={userProfile} hasUpdatedToday={hasUpdatedToday} isPremium={isPremium} />}
+        {userProfile && <ProfileCompletionAlert userProfile={userProfile} hasUpdatedToday={hasUpdatedToday} missingDays={missingDaysCount} isPremium={isPremium} />}
 
         <div className="grid grid-cols-1 gap-8">
             <Card className="rounded-2xl border-0">
@@ -1021,3 +1248,5 @@ export default function DashboardPage() {
     </>
   );
 }
+
+    
