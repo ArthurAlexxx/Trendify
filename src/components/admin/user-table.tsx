@@ -19,7 +19,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Button, buttonVariants } from '../ui/button';
 import { ChangePlanSheet } from './change-plan-dialog';
 import { useState, useTransition } from 'react';
-import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from '../ui/sheet';
+import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '../ui/sheet';
 import { changeUserRoleAction } from '@/app/admin/actions';
 import { useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
