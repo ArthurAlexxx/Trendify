@@ -54,7 +54,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescript
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { initializeFirebase } from '@/firebase';
 import { Progress } from "@/components/ui/progress";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 
 type AnalysisStatus = "idle" | "uploading" | "loading" | "success" | "error";
@@ -579,15 +579,15 @@ function VideoReviewPageContent() {
                                             <p className="font-semibold text-foreground truncate">{analise.videoFileName}</p>
                                             <p className="text-xs text-muted-foreground">{analise.createdAt ? formatDistanceToNow(analise.createdAt.toDate(), { addSuffix: true, locale: ptBR }) : ''}</p>
                                         </div>
-                                        <Dialog>
-                                            <DialogTrigger asChild>
+                                        <Sheet>
+                                            <SheetTrigger asChild>
                                                 <Button variant="outline" size="sm"><Eye className="mr-2 h-4 w-4" /> Ver Análise</Button>
-                                            </DialogTrigger>
-                                            <DialogContent className="max-w-4xl">
-                                                <DialogHeader>
-                                                    <DialogTitle className="font-headline text-2xl">Análise de {analise.videoFileName}</DialogTitle>
-                                                </DialogHeader>
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4 max-h-[70vh] overflow-y-auto">
+                                            </SheetTrigger>
+                                            <SheetContent className="sm:max-w-4xl">
+                                                <SheetHeader>
+                                                    <SheetTitle className="font-headline text-2xl">Análise de {analise.videoFileName}</SheetTitle>
+                                                </SheetHeader>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4 max-h-[calc(100vh-8rem)] overflow-y-auto">
                                                     <div className="space-y-4">
                                                          {analise.videoUrl && (
                                                             <video controls src={analise.videoUrl} className="w-full rounded-lg bg-black"></video>
@@ -641,8 +641,8 @@ function VideoReviewPageContent() {
                                                         </CardContent>
                                                     </Card>
                                                 </div>
-                                            </DialogContent>
-                                        </Dialog>
+                                            </SheetContent>
+                                        </Sheet>
                                     </div>
                                 </li>
                             ))}
@@ -665,3 +665,6 @@ function VideoReviewPageContent() {
     </div>
   );
 }
+
+
+    

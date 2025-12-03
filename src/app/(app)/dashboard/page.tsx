@@ -66,6 +66,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, useCollection, useDoc, useMemoFirebase } from '@/firebase';
 import { collection, doc, query, orderBy, limit, updateDoc, where, addDoc, serverTimestamp, getDocs, Timestamp, setDoc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -190,7 +191,7 @@ const ProfileCompletionAlert = ({ userProfile, hasUpdatedToday, missingDays, isP
                             Registre seus números de hoje para manter os gráficos precisos.
                         </AlertDescription>
                     </div>
-                    <UpdateMetricsModal userProfile={userProfile} triggerButton={
+                    <UpdateMetricsSheet userProfile={userProfile} triggerButton={
                          <Button className='w-full sm:w-auto'>
                             <RefreshCw className="mr-2 h-4 w-4" />
                             Atualizar Métricas Agora
@@ -211,7 +212,7 @@ const ProfileCompletionAlert = ({ userProfile, hasUpdatedToday, missingDays, isP
                            Você esqueceu de atualizar as métricas em {missingDays} {missingDays === 1 ? 'dia' : 'dias'}. Preencha para manter seu gráfico completo.
                         </AlertDescription>
                     </div>
-                    <BackfillMetricsModal userProfile={userProfile} />
+                    <BackfillMetricsSheet userProfile={userProfile} />
                 </div>
             </Alert>
         );
@@ -221,7 +222,7 @@ const ProfileCompletionAlert = ({ userProfile, hasUpdatedToday, missingDays, isP
 }
 
 
-const UpdateMetricsModal = ({ userProfile, triggerButton }: { userProfile: UserProfile, triggerButton?: React.ReactNode }) => {
+const UpdateMetricsSheet = ({ userProfile, triggerButton }: { userProfile: UserProfile, triggerButton?: React.ReactNode }) => {
     const { user } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
@@ -327,21 +328,21 @@ const UpdateMetricsModal = ({ userProfile, triggerButton }: { userProfile: UserP
     }
 
     return (
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogTrigger asChild>
+        <Sheet open={isOpen} onOpenChange={setIsOpen}>
+            <SheetTrigger asChild>
                 {triggerButton || 
                 <Button variant="outline" size="sm">
                     <RefreshCw className="mr-2 h-4 w-4" />
                     Atualizar Métricas
                 </Button>}
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                    <DialogTitle className="font-headline text-xl">Atualizar Métricas Diárias</DialogTitle>
-                    <DialogDescription>
+            </SheetTrigger>
+            <SheetContent className="sm:max-w-xl">
+                <SheetHeader>
+                    <SheetTitle className="font-headline text-xl">Atualizar Métricas Diárias</SheetTitle>
+                    <SheetDescription>
                         Insira seus números mais recentes para manter o gráfico de evolução preciso.
-                    </DialogDescription>
-                </DialogHeader>
+                    </SheetDescription>
+                </SheetHeader>
                 <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-4">
                     <div className="space-y-6">
@@ -369,16 +370,17 @@ const UpdateMetricsModal = ({ userProfile, triggerButton }: { userProfile: UserP
                             <FormField control={form.control} name="tiktokAverageComments" render={({ field }) => ( <FormItem><FormLabel>Média de Comentários</FormLabel><FormControl><Input placeholder="Ex: 1.5K" {...field} /></FormControl></FormItem> )}/>
                         </div>
                     </div>
-                    <DialogFooter className="pt-4 flex-col sm:flex-row">
-                        <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
+                    <SheetFooter className="pt-4">
+                        <SheetClose asChild><Button type="button" variant="outline">Cancelar</Button></SheetClose>
+                        <Button type="submit" disabled={isPending}>
                             {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Salvar Métricas
                         </Button>
-                    </DialogFooter>
+                    </SheetFooter>
                 </form>
                 </Form>
-            </DialogContent>
-        </Dialog>
+            </SheetContent>
+        </Sheet>
     )
 }
 
@@ -387,7 +389,7 @@ const backfillMetricsSchema = profileMetricsSchema.extend({
     date: z.date({ required_error: "A data é obrigatória." }),
 });
 
-const BackfillMetricsModal = ({ userProfile }: { userProfile: UserProfile }) => {
+const BackfillMetricsSheet = ({ userProfile }: { userProfile: UserProfile }) => {
     const { user } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
@@ -479,20 +481,20 @@ const BackfillMetricsModal = ({ userProfile }: { userProfile: UserProfile }) => 
     }
 
     return (
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogTrigger asChild>
+        <Sheet open={isOpen} onOpenChange={setIsOpen}>
+            <SheetTrigger asChild>
                  <Button className='w-full sm:w-auto'>
                     <CalendarPlus className="mr-2 h-4 w-4" />
                     Preencher dias anteriores
                 </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                    <DialogTitle className="font-headline text-xl">Adicionar Métricas de um Dia Anterior</DialogTitle>
-                    <DialogDescription>
+            </SheetTrigger>
+            <SheetContent className="sm:max-w-xl">
+                <SheetHeader>
+                    <SheetTitle className="font-headline text-xl">Adicionar Métricas de um Dia Anterior</SheetTitle>
+                    <SheetDescription>
                         Selecione a data e preencha os dados que você esqueceu de registrar.
-                    </DialogDescription>
-                </DialogHeader>
+                    </SheetDescription>
+                </SheetHeader>
                 <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-4">
                      <FormField
@@ -560,16 +562,17 @@ const BackfillMetricsModal = ({ userProfile }: { userProfile: UserProfile }) => 
                             <FormField control={form.control} name="tiktokAverageComments" render={({ field }) => ( <FormItem><FormLabel>Média de Comentários</FormLabel><FormControl><Input placeholder="Ex: 1.5K" {...field} /></FormControl></FormItem> )}/>
                         </div>
                     </div>
-                    <DialogFooter className="pt-4 flex-col sm:flex-row">
-                        <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
+                    <SheetFooter className="pt-4">
+                        <SheetClose asChild><Button type="button" variant="outline">Cancelar</Button></SheetClose>
+                        <Button type="submit" disabled={isPending}>
                             {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Salvar Métricas Anteriores
                         </Button>
-                    </DialogFooter>
+                    </SheetFooter>
                 </form>
                 </Form>
-            </DialogContent>
-        </Dialog>
+            </SheetContent>
+        </Sheet>
     )
 }
 
@@ -870,7 +873,7 @@ export default function DashboardPage() {
                                 </SelectContent>
                                 </Select>
                             </div>
-                            {userProfile && <UpdateMetricsModal userProfile={userProfile} />}
+                            {userProfile && <UpdateMetricsSheet userProfile={userProfile} />}
                         </div>
                     </div>
                 </CardHeader>
@@ -918,7 +921,7 @@ export default function DashboardPage() {
                                 </h3>
                                 <p className="text-sm text-muted-foreground">
                                     {userProfile && (
-                                        <UpdateMetricsModal userProfile={userProfile} triggerButton={
+                                        <UpdateMetricsSheet userProfile={userProfile} triggerButton={
                                             <span className="text-primary font-medium hover:underline cursor-pointer">
                                                 Atualize suas métricas
                                             </span>
@@ -1248,5 +1251,7 @@ export default function DashboardPage() {
     </>
   );
 }
+
+    
 
     
