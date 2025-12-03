@@ -3,13 +3,6 @@
 
 import { Button } from '@/components/ui/button';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import {
   Sheet,
   SheetContent,
   SheetDescription,
@@ -28,6 +21,7 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from './ui/chart';
 import { BarChart, CartesianGrid, XAxis, YAxis, Bar } from 'recharts';
 import { Separator } from './ui/separator';
+import { useState } from 'react';
 
 const chartConfig = {
   alcance: { label: 'Alcance', color: 'hsl(var(--primary))' },
@@ -37,6 +31,8 @@ const chartConfig = {
 
 export function PreviousPlansSheet() {
   const firestore = useFirestore();
+  const [selectedPlan, setSelectedPlan] = useState<PlanoSemanal | null>(null);
+  const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
 
   const previousPlansQuery = useMemoFirebase(
     () =>
@@ -50,8 +46,14 @@ export function PreviousPlansSheet() {
   );
   const { data: previousPlans, isLoading } =
     useCollection<PlanoSemanal>(previousPlansQuery);
+    
+  const handleViewDetails = (plan: PlanoSemanal) => {
+    setSelectedPlan(plan);
+    setIsDetailSheetOpen(true);
+  }
 
   return (
+    <>
     <Sheet>
       <SheetTrigger asChild>
         <Button variant="outline" className="font-manrope rounded-full">
@@ -86,58 +88,10 @@ export function PreviousPlansSheet() {
                          <p className="text-xs text-muted-foreground">
                             {plan.items.length} tarefas
                          </p>
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button variant="ghost" size="sm" className='h-8'>
-                              <Eye className="mr-2 h-4 w-4" />
-                              Ver Detalhes
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="sm:max-w-4xl">
-                            <DialogHeader>
-                              <DialogTitle className="font-headline text-2xl">
-                                Detalhes do Plano - {format(plan.createdAt.toDate(), "dd/MM/yyyy", { locale: ptBR })}
-                              </DialogTitle>
-                            </DialogHeader>
-                            <div className="py-4 grid grid-cols-1 lg:grid-cols-2 gap-8 max-h-[70vh] overflow-y-auto">
-                               <Card>
-                                 <CardHeader><CardTitle>Roteiro de Conteúdo</CardTitle></CardHeader>
-                                 <CardContent>
-                                    <ul className="space-y-2">
-                                    {plan.items.map((item, index) => (
-                                        <li key={index}>
-                                        <div className="p-2 rounded-lg">
-                                            <div>
-                                            <p className={'font-medium text-base text-foreground'}>
-                                                <span className="font-semibold text-primary">{item.dia}:</span> {item.tarefa}
-                                            </p>
-                                            <p className="text-sm text-muted-foreground">{item.detalhes}</p>
-                                            </div>
-                                        </div>
-                                        {index < plan.items.length - 1 && <Separator className="my-2" />}
-                                        </li>
-                                    ))}
-                                    </ul>
-                                 </CardContent>
-                               </Card>
-                               <Card>
-                                 <CardHeader><CardTitle>Simulação de Desempenho</CardTitle></CardHeader>
-                                 <CardContent className="pl-2">
-                                     <ChartContainer config={chartConfig} className="h-[350px] w-full">
-                                        <BarChart accessibilityLayer data={plan.desempenhoSimulado || []} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
-                                            <CartesianGrid vertical={false} />
-                                            <XAxis dataKey="data" tickLine={false} axisLine={false} />
-                                            <YAxis tickLine={false} axisLine={false} tickFormatter={(value) => typeof value === 'number' && value >= 1000 ? `${value / 1000}k` : value} />
-                                            <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
-                                            <Bar dataKey="alcance" fill="var(--color-alcance)" radius={8} className="fill-primary" />
-                                            <Bar dataKey="engajamento" fill="var(--color-engajamento)" radius={8} />
-                                        </BarChart>
-                                     </ChartContainer>
-                                 </CardContent>
-                               </Card>
-                            </div>
-                          </DialogContent>
-                        </Dialog>
+                        <Button variant="ghost" size="sm" className='h-8' onClick={() => handleViewDetails(plan)}>
+                            <Eye className="mr-2 h-4 w-4" />
+                            Ver Detalhes
+                        </Button>
                        </div>
                     </div>
                   </li>
@@ -160,5 +114,57 @@ export function PreviousPlansSheet() {
         </ScrollArea>
       </SheetContent>
     </Sheet>
+
+    {selectedPlan && (
+        <Sheet open={isDetailSheetOpen} onOpenChange={setIsDetailSheetOpen}>
+            <SheetContent className="w-full sm:max-w-4xl overflow-y-auto">
+                <SheetHeader>
+                    <SheetTitle className="font-headline text-2xl">
+                    Detalhes do Plano - {selectedPlan.createdAt && format(selectedPlan.createdAt.toDate(), "dd/MM/yyyy", { locale: ptBR })}
+                    </SheetTitle>
+                </SheetHeader>
+                <div className="py-4 grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <Card>
+                        <CardHeader><CardTitle>Roteiro de Conteúdo</CardTitle></CardHeader>
+                        <CardContent>
+                        <ul className="space-y-2">
+                        {selectedPlan.items.map((item, index) => (
+                            <li key={index}>
+                            <div className="p-2 rounded-lg">
+                                <div>
+                                <p className={'font-medium text-base text-foreground'}>
+                                    <span className="font-semibold text-primary">{item.dia}:</span> {item.tarefa}
+                                </p>
+                                <p className="text-sm text-muted-foreground">{item.detalhes}</p>
+                                </div>
+                            </div>
+                            {index < selectedPlan.items.length - 1 && <Separator className="my-2" />}
+                            </li>
+                        ))}
+                        </ul>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader><CardTitle>Simulação de Desempenho</CardTitle></CardHeader>
+                        <CardContent className="pl-2">
+                            <ChartContainer config={chartConfig} className="h-[350px] w-full">
+                                <BarChart accessibilityLayer data={selectedPlan.desempenhoSimulado || []} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                                    <CartesianGrid vertical={false} />
+                                    <XAxis dataKey="data" tickLine={false} axisLine={false} />
+                                    <YAxis tickLine={false} axisLine={false} tickFormatter={(value) => typeof value === 'number' && value >= 1000 ? `${value / 1000}k` : value} />
+                                    <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
+                                    <Bar dataKey="alcance" fill="var(--color-alcance)" radius={8} className="fill-primary" />
+                                    <Bar dataKey="engajamento" fill="var(--color-engajamento)" radius={8} />
+                                </BarChart>
+                            </ChartContainer>
+                        </CardContent>
+                    </Card>
+                </div>
+            </SheetContent>
+        </Sheet>
+    )}
+    </>
   );
 }
+
+    

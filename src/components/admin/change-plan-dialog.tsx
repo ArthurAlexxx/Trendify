@@ -3,14 +3,14 @@
 
 import { useState, useTransition, useEffect } from 'react';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-  DialogClose,
-} from '@/components/ui/dialog';
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+  SheetClose,
+} from '@/components/ui/sheet';
 import {
   Form,
   FormControl,
@@ -31,7 +31,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
-import type { UserProfile, Plan } from '@/lib/types';
+import type { UserProfile } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
 import { changeUserPlanAction } from '@/app/admin/actions';
 import { useUser } from '@/firebase';
@@ -43,13 +43,13 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
-interface ChangePlanDialogProps {
+interface ChangePlanSheetProps {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
   user: UserProfile;
 }
 
-export function ChangePlanDialog({ isOpen, setIsOpen, user }: ChangePlanDialogProps) {
+export function ChangePlanSheet({ isOpen, setIsOpen, user }: ChangePlanSheetProps) {
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
   const { user: adminUser } = useUser();
@@ -104,14 +104,14 @@ export function ChangePlanDialog({ isOpen, setIsOpen, user }: ChangePlanDialogPr
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Alterar Plano de Assinatura</DialogTitle>
-          <DialogDescription>
+    <Sheet open={isOpen} onOpenChange={setIsOpen}>
+      <SheetContent>
+        <SheetHeader>
+          <SheetTitle>Alterar Plano de Assinatura</SheetTitle>
+          <SheetDescription>
             Alterando o plano para <strong>{user.displayName}</strong>.
-          </DialogDescription>
-        </DialogHeader>
+          </SheetDescription>
+        </SheetHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-4">
             <FormField
@@ -160,20 +160,22 @@ export function ChangePlanDialog({ isOpen, setIsOpen, user }: ChangePlanDialogPr
                 />
             )}
 
-            <DialogFooter className="pt-4 flex-col sm:flex-row gap-2">
-              <DialogClose asChild>
+            <SheetFooter className="pt-4 flex-col sm:flex-row gap-2">
+              <SheetClose asChild>
                 <Button type="button" variant="outline" className="w-full sm:w-auto">
                   Cancelar
                 </Button>
-              </DialogClose>
+              </SheetClose>
               <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
                 {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Salvar Alterações
               </Button>
-            </DialogFooter>
+            </SheetFooter>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }
+
+    

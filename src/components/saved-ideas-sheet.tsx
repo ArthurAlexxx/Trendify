@@ -1,13 +1,7 @@
+
 'use client';
 
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
 import {
   Sheet,
   SheetContent,
@@ -25,11 +19,13 @@ import { ptBR } from 'date-fns/locale';
 import { Badge } from './ui/badge';
 import { ScrollArea } from './ui/scroll-area';
 import { Textarea } from './ui/textarea';
-import React from 'react';
+import React, { useState } from 'react';
 
 export function SavedIdeasSheet() {
   const { user } = useUser();
   const firestore = useFirestore();
+  const [selectedIdea, setSelectedIdea] = useState<IdeiaSalva | null>(null);
+  const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
 
   const ideiasSalvasQuery = useMemoFirebase(
     () =>
@@ -44,7 +40,13 @@ export function SavedIdeasSheet() {
   const { data: ideiasSalvas, isLoading } =
     useCollection<IdeiaSalva>(ideiasSalvasQuery);
 
+  const handleViewDetails = (idea: IdeiaSalva) => {
+    setSelectedIdea(idea);
+    setIsDetailSheetOpen(true);
+  };
+
   return (
+    <>
     <Sheet>
       <SheetTrigger asChild>
         <Button variant="outline" className="font-manrope rounded-full">
@@ -87,28 +89,10 @@ export function SavedIdeasSheet() {
                               locale: ptBR,
                             })}
                         </p>
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button variant="ghost" size="sm" className='h-8'>
-                              <Eye className="mr-2 h-4 w-4" />
-                              Ver Completo
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="sm:max-w-2xl">
-                            <DialogHeader>
-                              <DialogTitle className="font-headline text-2xl">
-                                {ideia.titulo}
-                              </DialogTitle>
-                            </DialogHeader>
-                            <div className="py-4">
-                              <Textarea
-                                readOnly
-                                value={ideia.conteudo}
-                                className="h-96 w-full text-base leading-relaxed resize-none rounded-xl bg-muted/50"
-                              />
-                            </div>
-                          </DialogContent>
-                        </Dialog>
+                        <Button variant="ghost" size="sm" className='h-8' onClick={() => handleViewDetails(ideia)}>
+                            <Eye className="mr-2 h-4 w-4" />
+                            Ver Completo
+                        </Button>
                        </div>
                     </div>
                   </li>
@@ -131,5 +115,26 @@ export function SavedIdeasSheet() {
         </ScrollArea>
       </SheetContent>
     </Sheet>
+    {selectedIdea && (
+        <Sheet open={isDetailSheetOpen} onOpenChange={setIsDetailSheetOpen}>
+            <SheetContent className="w-full sm:max-w-2xl">
+                <SheetHeader>
+                <SheetTitle className="font-headline text-2xl">
+                    {selectedIdea.titulo}
+                </SheetTitle>
+                </SheetHeader>
+                <div className="py-4">
+                <Textarea
+                    readOnly
+                    value={selectedIdea.conteudo}
+                    className="h-96 w-full text-base leading-relaxed resize-none rounded-xl bg-muted/50"
+                />
+                </div>
+            </SheetContent>
+        </Sheet>
+    )}
+    </>
   );
 }
+
+    

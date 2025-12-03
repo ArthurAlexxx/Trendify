@@ -28,24 +28,15 @@ import {
 } from 'lucide-react';
 import React, { useState, useMemo, useEffect } from 'react';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogClose,
-} from '@/components/ui/dialog';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetFooter,
+  SheetClose,
+  SheetTrigger,
+  SheetDescription,
+} from '@/components/ui/sheet';
 import {
   Form,
   FormControl,
@@ -100,7 +91,9 @@ const formSchema = z.object({
 
 export default function ContentCalendarPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteSheetOpen, setIsDeleteSheetOpen] = useState(false);
   const [editingPost, setEditingPost] = useState<ConteudoAgendado | null>(null);
+  const [postToDelete, setPostToDelete] = useState<string | null>(null);
   const firestore = useFirestore();
   const { user } = useUser();
   const { toast } = useToast();
@@ -267,16 +260,23 @@ export default function ContentCalendarPage() {
     }
   };
 
-  const handleDeletePost = async (postId: string) => {
-    if (!user || !firestore) return;
+  const confirmDelete = (postId: string) => {
+    setPostToDelete(postId);
+    setIsDeleteSheetOpen(true);
+  };
+
+  const handleDeletePost = async () => {
+    if (!postToDelete || !user || !firestore) return;
     try {
       const postRef = doc(
         firestore,
         `users/${user.uid}/conteudoAgendado`,
-        postId
+        postToDelete
       );
       await deleteDoc(postRef);
       toast({ title: 'Excluído!', description: 'O agendamento foi removido.' });
+      setIsDeleteSheetOpen(false);
+      setPostToDelete(null);
     } catch (error) {
       console.error('Error deleting document:', error);
       toast({
@@ -320,13 +320,13 @@ export default function ContentCalendarPage() {
         description="Visualize e organize suas publicações."
       />
 
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[480px]">
-          <DialogHeader>
-            <DialogTitle className="font-headline text-xl">
+      <Sheet open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <SheetContent>
+          <SheetHeader>
+            <SheetTitle className="font-headline text-xl">
               {editingPost ? "Editar Agendamento" : "Novo Agendamento"}
-            </DialogTitle>
-          </DialogHeader>
+            </SheetTitle>
+          </SheetHeader>
           <Form {...form}>
             <form
               onSubmit={form.handleSubmit(onSubmit)}
@@ -476,19 +476,38 @@ export default function ContentCalendarPage() {
                 )}
               />
 
-              <DialogFooter className="pt-4 flex-col sm:flex-row gap-2">
-                <DialogClose asChild>
+              <SheetFooter className="pt-4 flex-col sm:flex-row gap-2">
+                <SheetClose asChild>
                     <Button type="button" variant="outline" className='w-full sm:w-auto'>Cancelar</Button>
-                </DialogClose>
+                </SheetClose>
                 <Button type="submit" className="w-full sm:w-auto">
                    {editingPost ? "Salvar Alterações" : "Agendar Post"}
                 </Button>
-              </DialogFooter>
+              </SheetFooter>
             </form>
           </Form>
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
       
+      <Sheet open={isDeleteSheetOpen} onOpenChange={setIsDeleteSheetOpen}>
+        <SheetContent side="bottom">
+          <SheetHeader>
+            <SheetTitle>Você tem certeza?</SheetTitle>
+            <SheetDescription>
+              Esta ação não pode ser desfeita e irá excluir permanentemente o agendamento.
+            </SheetDescription>
+          </SheetHeader>
+          <SheetFooter className="mt-6 flex-col-reverse sm:flex-row gap-2">
+            <SheetClose asChild>
+              <Button variant="outline">Cancelar</Button>
+            </SheetClose>
+            <Button onClick={handleDeletePost} variant="destructive">
+              Sim, excluir
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
+
       <FullScreenCalendar
         data={calendarData}
         onNewEvent={handleNewEventForDay}
@@ -514,31 +533,13 @@ export default function ContentCalendarPage() {
                         <span>Editar</span>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                            <DropdownMenuItem
-                                onSelect={(e) => e.preventDefault()}
-                                className="text-destructive focus:text-destructive focus:bg-destructive/10"
-                            >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                <span>Excluir</span>
-                            </DropdownMenuItem>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    Esta ação não pode ser desfeita e irá excluir permanentemente o agendamento.
-                                </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDeletePost(event.id as string)} className={cn(buttonVariants({ variant: 'destructive'}))}>
-                                    Sim, excluir
-                                </AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
+                    <DropdownMenuItem
+                        onSelect={(e) => { e.preventDefault(); confirmDelete(event.id as string); }}
+                        className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                    >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        <span>Excluir</span>
+                    </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
         )}}
@@ -549,3 +550,5 @@ export default function ContentCalendarPage() {
     </div>
   );
 }
+
+    

@@ -38,7 +38,7 @@ import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useSubscription } from '@/hooks/useSubscription';
-import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet';
 
 const formSchema = z.object({
   name: z.string().min(3, 'O nome completo é obrigatório.'),
@@ -215,26 +215,26 @@ function CheckoutPageContent() {
 
   return (
     <>
-    <AlertDialog open={showSuccessModal}>
-      <AlertDialogContent>
-        <AlertDialogHeader className="items-center text-center">
+    <Sheet open={showSuccessModal}>
+      <SheetContent>
+        <SheetHeader className="items-center text-center">
            <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center mb-4 border-2 border-primary/20">
              <Crown className="h-10 w-10 text-primary animate-pulse" />
            </div>
-          <AlertDialogTitle className="text-2xl font-bold font-headline">
+          <SheetTitle className="text-2xl font-bold font-headline">
             {planFromId === 'premium' ? 'Parabéns, você agora é Premium!' : 'Parabéns, você agora é Pro!'}
-          </AlertDialogTitle>
-          <AlertDialogDescription>
+          </SheetTitle>
+          <SheetDescription>
             Sua assinatura foi ativada com sucesso. Explore todas as ferramentas e comece a acelerar seu crescimento agora mesmo.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogAction onClick={() => router.push('/dashboard')} className="w-full">
+          </SheetDescription>
+        </SheetHeader>
+        <SheetFooter className="pt-8">
+          <Button onClick={() => router.push('/dashboard')} className="w-full">
             Começar a usar
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+          </Button>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
 
     <div className="space-y-8">
       <div className="flex justify-between items-center">
@@ -456,3 +456,5 @@ export default function CheckoutPage() {
         </Suspense>
     )
 }
+
+    
