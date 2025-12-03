@@ -170,7 +170,7 @@ export default function GenerateWeeklyPlanPage() {
 
     const debouncedNicheUpdate = useCallback(() => {
         if (userProfileRef && watchedNiche !== userProfile?.niche) {
-        updateDoc(userProfileRef, { niche: watchedIche });
+        updateDoc(userProfileRef, { niche: watchedNiche });
         }
     }, [watchedNiche, userProfileRef, userProfile?.niche]);
 
