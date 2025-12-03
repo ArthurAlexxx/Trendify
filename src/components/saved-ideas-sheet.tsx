@@ -20,6 +20,7 @@ import { Badge } from './ui/badge';
 import { ScrollArea } from './ui/scroll-area';
 import { Textarea } from './ui/textarea';
 import React, { useState } from 'react';
+import { Separator } from './ui/separator';
 
 export function SavedIdeasSheet() {
   const { user } = useUser();
@@ -49,20 +50,21 @@ export function SavedIdeasSheet() {
     <>
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="outline" className="font-manrope rounded-full">
+        <Button variant="outline">
           <BookMarked className="mr-2 h-4 w-4" />
-          Salvos
+          Ideias Salvas
         </Button>
       </SheetTrigger>
-      <SheetContent className="w-full sm:max-w-lg">
-        <SheetHeader>
+      <SheetContent className="w-full sm:max-w-lg p-0">
+        <SheetHeader className='p-6'>
           <SheetTitle className="font-headline text-xl">Ideias Salvas</SheetTitle>
           <SheetDescription>
             Acesse aqui todas as ideias geradas pela IA que você salvou.
           </SheetDescription>
         </SheetHeader>
-        <ScrollArea className="h-[calc(100vh-8rem)] pr-4 mt-4">
-          <div className="space-y-4">
+        <Separator />
+        <ScrollArea className="h-[calc(100vh-8rem)]">
+          <div className="p-6 space-y-4">
             {isLoading && (
               <div className="flex justify-center items-center h-64">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -117,24 +119,28 @@ export function SavedIdeasSheet() {
     </Sheet>
     {selectedIdea && (
         <Sheet open={isDetailSheetOpen} onOpenChange={setIsDetailSheetOpen}>
-            <SheetContent className="w-full sm:max-w-2xl">
-                <SheetHeader>
+            <SheetContent className="w-full sm:max-w-2xl p-0">
+                <SheetHeader className='p-6'>
                 <SheetTitle className="font-headline text-2xl">
                     {selectedIdea.titulo}
                 </SheetTitle>
+                 <SheetDescription>
+                   Gerado em {selectedIdea.origem}
+                 </SheetDescription>
                 </SheetHeader>
-                <div className="py-4">
+                <Separator />
+                <ScrollArea className="h-[calc(100vh-8rem)]">
+                <div className="p-6">
                 <Textarea
                     readOnly
                     value={selectedIdea.conteudo}
-                    className="h-96 w-full text-base leading-relaxed resize-none rounded-xl bg-muted/50"
+                    className="h-full w-full text-base leading-relaxed resize-none rounded-xl bg-muted/50 border-0 min-h-[60vh] focus-visible:ring-0"
                 />
                 </div>
+                </ScrollArea>
             </SheetContent>
         </Sheet>
     )}
     </>
   );
 }
-
-    

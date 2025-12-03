@@ -87,14 +87,14 @@ export function UserTable({ data }: UserTableProps) {
     )}
      {selectedUser && (
         <Sheet open={isRoleSheetOpen} onOpenChange={setIsRoleSheetOpen}>
-            <SheetContent side="bottom">
-                <SheetHeader>
-                    <SheetTitle>Promover a Administrador?</SheetTitle>
+            <SheetContent side="bottom" className='rounded-t-2xl'>
+                <SheetHeader className='text-center'>
+                    <SheetTitle className='font-headline text-xl'>Promover a Administrador?</SheetTitle>
                     <SheetDescription>
                         Esta ação concederá a <strong>{selectedUser.displayName}</strong> acesso total ao painel de administração. Você tem certeza?
                     </SheetDescription>
                 </SheetHeader>
-                <SheetFooter className="mt-6 flex-col-reverse sm:flex-row gap-2">
+                <SheetFooter className="mt-6 flex-col-reverse sm:flex-row gap-2 justify-center">
                     <SheetClose asChild>
                         <Button variant="outline">Cancelar</Button>
                     </SheetClose>

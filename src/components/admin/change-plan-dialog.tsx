@@ -106,14 +106,14 @@ export function ChangePlanSheet({ isOpen, setIsOpen, user }: ChangePlanSheetProp
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetContent>
-        <SheetHeader>
-          <SheetTitle>Alterar Plano de Assinatura</SheetTitle>
+        <SheetHeader className='mb-6'>
+          <SheetTitle className='font-headline text-xl'>Alterar Plano de Assinatura</SheetTitle>
           <SheetDescription>
-            Alterando o plano para <strong>{user.displayName}</strong>.
+            Alterando o plano para <strong>{user.displayName}</strong> ({user.email}).
           </SheetDescription>
         </SheetHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
               control={form.control}
               name="newPlan"
@@ -122,7 +122,7 @@ export function ChangePlanSheet({ isOpen, setIsOpen, user }: ChangePlanSheetProp
                   <FormLabel>Novo Plano</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="h-11">
                         <SelectValue placeholder="Selecione um plano" />
                       </SelectTrigger>
                     </FormControl>
@@ -145,7 +145,7 @@ export function ChangePlanSheet({ isOpen, setIsOpen, user }: ChangePlanSheetProp
                     <FormLabel>Ciclo de Pagamento</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="h-11">
                             <SelectValue placeholder="Selecione um ciclo" />
                         </SelectTrigger>
                         </FormControl>
@@ -160,13 +160,13 @@ export function ChangePlanSheet({ isOpen, setIsOpen, user }: ChangePlanSheetProp
                 />
             )}
 
-            <SheetFooter className="pt-4 flex-col sm:flex-row gap-2">
+            <SheetFooter className="pt-8">
               <SheetClose asChild>
-                <Button type="button" variant="outline" className="w-full sm:w-auto">
+                <Button type="button" variant="outline">
                   Cancelar
                 </Button>
               </SheetClose>
-              <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
+              <Button type="submit" disabled={isPending}>
                 {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Salvar Alterações
               </Button>
@@ -177,5 +177,3 @@ export function ChangePlanSheet({ isOpen, setIsOpen, user }: ChangePlanSheetProp
     </Sheet>
   );
 }
-
-    

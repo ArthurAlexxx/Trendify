@@ -56,20 +56,21 @@ export function PreviousPlansSheet() {
     <>
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="outline" className="font-manrope rounded-full">
+        <Button variant="outline">
           <History className="mr-2 h-4 w-4" />
           Planos Anteriores
         </Button>
       </SheetTrigger>
-      <SheetContent className="w-full sm:max-w-lg">
-        <SheetHeader>
+      <SheetContent className="w-full sm:max-w-lg p-0">
+        <SheetHeader className='p-6'>
           <SheetTitle className="font-headline text-xl">Planos Anteriores</SheetTitle>
           <SheetDescription>
             Acesse aqui todos os planejamentos que você já gerou.
           </SheetDescription>
         </SheetHeader>
-        <ScrollArea className="h-[calc(100vh-8rem)] pr-4 mt-4">
-          <div className="space-y-4">
+        <Separator />
+        <ScrollArea className="h-[calc(100vh-8rem)]">
+          <div className="p-6 space-y-4">
             {isLoading && (
               <div className="flex justify-center items-center h-64">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -117,14 +118,16 @@ export function PreviousPlansSheet() {
 
     {selectedPlan && (
         <Sheet open={isDetailSheetOpen} onOpenChange={setIsDetailSheetOpen}>
-            <SheetContent className="w-full sm:max-w-4xl overflow-y-auto">
-                <SheetHeader>
+            <SheetContent className="w-full sm:max-w-4xl p-0">
+                <SheetHeader className='p-6'>
                     <SheetTitle className="font-headline text-2xl">
                     Detalhes do Plano - {selectedPlan.createdAt && format(selectedPlan.createdAt.toDate(), "dd/MM/yyyy", { locale: ptBR })}
                     </SheetTitle>
                 </SheetHeader>
-                <div className="py-4 grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <Card>
+                <Separator />
+                <ScrollArea className="h-[calc(100vh-6rem)]">
+                <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <Card className='border-0 shadow-none'>
                         <CardHeader><CardTitle>Roteiro de Conteúdo</CardTitle></CardHeader>
                         <CardContent>
                         <ul className="space-y-2">
@@ -144,7 +147,7 @@ export function PreviousPlansSheet() {
                         </ul>
                         </CardContent>
                     </Card>
-                    <Card>
+                    <Card className='border-0 shadow-none'>
                         <CardHeader><CardTitle>Simulação de Desempenho</CardTitle></CardHeader>
                         <CardContent className="pl-2">
                             <ChartContainer config={chartConfig} className="h-[350px] w-full">
@@ -160,11 +163,10 @@ export function PreviousPlansSheet() {
                         </CardContent>
                     </Card>
                 </div>
+                </ScrollArea>
             </SheetContent>
         </Sheet>
     )}
     </>
   );
 }
-
-    
