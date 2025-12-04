@@ -1072,11 +1072,7 @@ export default function DashboardPage() {
                         </div>
 
                         {/* Secondary Metrics */}
-                        <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-6">
-                            <div className="p-6 rounded-2xl bg-muted/50 flex flex-col justify-center">
-                                <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-2"><Users className="h-4 w-4" />Seguidores</h3>
-                                <p className="text-3xl font-bold font-headline">{isLoading ? <Skeleton className="h-8 w-24" /> : formatMetricValue(latestMetrics?.followers)}</p>
-                            </div>
+                        <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-6">
                              <div className="p-6 rounded-2xl bg-muted/50 flex flex-col justify-center">
                                 <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-2"><Eye className="h-4 w-4" />Média de Views</h3>
                                 <p className="text-3xl font-bold font-headline">{isLoading ? <Skeleton className="h-8 w-24" /> : formatMetricValue(latestMetrics?.views)}</p>
@@ -1085,7 +1081,7 @@ export default function DashboardPage() {
                                 <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-2"><Heart className="h-4 w-4" />Média de Likes</h3>
                                 <p className="text-3xl font-bold font-headline">{isLoading ? <Skeleton className="h-8 w-24" /> : formatMetricValue(latestMetrics?.likes)}</p>
                             </div>
-                            <div className="p-6 rounded-2xl bg-muted/50 flex flex-col justify-center sm:col-span-3">
+                            <div className="p-6 rounded-2xl bg-muted/50 flex flex-col justify-center sm:col-span-2">
                                 <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-2"><MessageSquare className="h-4 w-4" />Média de Comentários</h3>
                                 <p className="text-3xl font-bold font-headline">{isLoading ? <Skeleton className="h-8 w-24" /> : formatMetricValue(latestMetrics?.comments)}</p>
                             </div>
@@ -1458,5 +1454,7 @@ export default function DashboardPage() {
     </>
   );
 }
+
+    
 
     
