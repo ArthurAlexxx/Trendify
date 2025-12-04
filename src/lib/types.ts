@@ -10,6 +10,8 @@ export interface UserProfile {
   photoURL?: string | null;
   createdAt: Timestamp;
   role?: UserRole;
+  followerGoal?: number;
+  goalCompletionDate?: Timestamp;
   niche?: string;
   bio?: string;
   audience?: string;
@@ -164,3 +166,5 @@ export type TikTokPostData = {
     likes: number;
     comments: number;
 };
+
+    

@@ -68,6 +68,7 @@ const formSchema = z.object({
   objective: z.string().min(10, 'O objetivo precisa ser mais detalhado.'),
   niche: z.string().min(1, 'O nicho é obrigatório.'),
   currentStats: z.string().min(1, 'As estatísticas são obrigatórias.'),
+  goal: z.string().optional(),
 });
 
 type FormSchemaType = z.infer<typeof formSchema>;
@@ -141,6 +142,7 @@ export default function GenerateWeeklyPlanPage() {
       objective: '',
       niche: '',
       currentStats: '',
+      goal: '',
     },
   });
   
@@ -158,10 +160,15 @@ export default function GenerateWeeklyPlanPage() {
         userProfile.instagramAverageViews ? `${userProfile.instagramAverageViews} de média de views` : '',
       ].filter(Boolean).join(', ');
 
+      const goal = userProfile.followerGoal 
+        ? `Atingir ${userProfile.followerGoal.toLocaleString('pt-BR')} seguidores` 
+        : '';
+        
       form.reset({
         objective: form.getValues('objective') || '',
         niche: userProfile.niche || '',
         currentStats: stats,
+        goal: goal,
       });
     }
   }, [userProfile, form]);
@@ -288,7 +295,7 @@ export default function GenerateWeeklyPlanPage() {
             <span>Briefing da Semana</span>
           </CardTitle>
           <CardDescription>
-            Forneça os detalhes para um plano melhor.
+            Forneça os detalhes para um plano melhor. Sua meta de seguidores será usada para focar a estratégia.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -601,3 +608,5 @@ export default function GenerateWeeklyPlanPage() {
     </div>
   );
 }
+
+    

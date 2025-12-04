@@ -39,14 +39,14 @@ import {
   BarChart,
   Eye,
 } from 'lucide-react';
-import { useEffect, useTransition, useState } from 'react';
+import { useEffect, useTransition, useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { generateVideoIdeasAction, GenerateVideoIdeasOutput } from '@/app/(app)/video-ideas/actions';
-import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
+import { useCollection, useFirestore, useUser, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, addDoc, serverTimestamp, where, query, orderBy, setDoc, doc, increment, getDoc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { SavedIdeasSheet } from '@/components/saved-ideas-sheet';
-import type { DailyUsage, IdeiaSalva } from '@/lib/types';
+import type { DailyUsage, IdeiaSalva, UserProfile } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -61,6 +61,7 @@ const formSchema = z.object({
     .string()
     .min(3, 'O público-alvo deve ter pelo menos 3 caracteres.'),
   objective: z.string().min(1, 'O objetivo é obrigatório.'),
+  goal: z.string().optional(),
 });
 
 type FormSchemaType = z.infer<typeof formSchema>;
@@ -103,6 +104,12 @@ export default function VideoIdeasPage() {
   const [isSaving, startSavingTransition] = useTransition();
   const { user } = useUser();
   const firestore = useFirestore();
+  
+  const userProfileRef = useMemoFirebase(
+    () => (firestore && user ? doc(firestore, `users/${user.uid}`) : null),
+    [firestore, user]
+  );
+  const { data: userProfile } = useDoc<UserProfile>(userProfileRef);
 
   const { subscription, isTrialActive } = useSubscription();
   const todayStr = formatDate(new Date(), 'yyyy-MM-dd');
@@ -112,7 +119,7 @@ export default function VideoIdeasPage() {
 
   useEffect(() => {
     if (!user || !firestore) return;
-    const usageDocRef = doc(firestore, `usageLogs/${user.uid}_${todayStr}`);
+    const usageDocRef = doc(firestore, `users/${user.uid}/dailyUsage/${todayStr}`);
     
     const unsubscribe = onSnapshot(usageDocRef, (doc) => {
         setUsageData(doc.exists() ? doc.data() as DailyUsage : null);
@@ -132,8 +139,15 @@ export default function VideoIdeasPage() {
       topic: '',
       targetAudience: '',
       objective: 'Engajamento',
+      goal: '',
     },
   });
+  
+  useEffect(() => {
+    if (userProfile?.followerGoal) {
+      form.setValue('goal', `Atingir ${userProfile.followerGoal.toLocaleString('pt-BR')} seguidores`);
+    }
+  }, [userProfile, form]);
 
   const formAction = async (formData: FormSchemaType) => {
     startTransition(async () => {
@@ -166,7 +180,7 @@ export default function VideoIdeasPage() {
       });
     }
      if (result && user && firestore) {
-      const usageDocRef = doc(firestore, `usageLogs/${user.uid}_${todayStr}`);
+      const usageDocRef = doc(firestore, `users/${user.uid}/dailyUsage/${todayStr}`);
       getDoc(usageDocRef).then(docSnap => {
         if (docSnap.exists()) {
           updateDoc(usageDocRef, { geracoesAI: increment(1) });
@@ -569,3 +583,5 @@ function InfoListCard({
     </Card>
   );
 }
+
+    

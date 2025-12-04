@@ -26,6 +26,8 @@ import {
   PlayCircle,
   Check,
   CalendarPlus,
+  Target,
+  Pencil,
 } from 'lucide-react';
 import {
   ChartContainer,
@@ -84,6 +86,7 @@ import { Calendar as CalendarIcon } from 'lucide-react';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Progress } from '@/components/ui/progress';
 
 
 const chartConfigBase = {
@@ -131,6 +134,10 @@ const profileMetricsSchema = z.object({
   tiktokAverageComments: z.string().optional(),
 });
 
+
+const followerGoalSchema = z.object({
+    followerGoal: z.number().min(1, "A meta deve ser maior que zero."),
+});
 
 const ProfileCompletionAlert = ({ userProfile, hasUpdatedToday, missingDays, isPremium }: { userProfile: UserProfile | null, hasUpdatedToday: boolean, missingDays: number, isPremium: boolean }) => {
     const isProfileSetup = userProfile?.niche && (userProfile.instagramHandle || userProfile.tiktokHandle);
@@ -585,6 +592,85 @@ const BackfillMetricsSheet = ({ userProfile }: { userProfile: UserProfile }) => 
     )
 }
 
+const FollowerGoalModal = ({ userProfile, children }: { userProfile: UserProfile, children: React.ReactNode }) => {
+    const { user } = useUser();
+    const firestore = useFirestore();
+    const { toast } = useToast();
+    const [isOpen, setIsOpen] = useState(false);
+    const [isPending, startTransition] = useTransition();
+    
+    const form = useForm<{ followerGoal: number }>({
+        resolver: zodResolver(followerGoalSchema),
+        defaultValues: {
+            followerGoal: userProfile.followerGoal || 0
+        }
+    });
+
+    useEffect(() => {
+        if(userProfile) {
+            form.setValue("followerGoal", userProfile.followerGoal || 0);
+        }
+    }, [userProfile, form]);
+
+    const onSubmit = (data: { followerGoal: number }) => {
+        if (!user) return;
+        startTransition(async () => {
+            try {
+                await updateDoc(doc(firestore, "users", user.uid), {
+                    followerGoal: data.followerGoal
+                });
+                toast({ title: "Sucesso!", description: "Sua meta de seguidores foi atualizada." });
+                setIsOpen(false);
+            } catch (e: any) {
+                toast({ title: "Erro", description: e.message, variant: "destructive" });
+            }
+        });
+    }
+
+    return (
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogTrigger asChild>{children}</DialogTrigger>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle className="font-headline text-xl">Meta de Seguidores</DialogTitle>
+                    <DialogDescription>
+                        Qual é o seu próximo grande marco? Definir uma meta ajuda a IA a criar estratégias melhores.
+                    </DialogDescription>
+                </DialogHeader>
+                <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                        <FormField
+                            control={form.control}
+                            name="followerGoal"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Número de Seguidores</FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            type="number"
+                                            placeholder="Ex: 100000"
+                                            {...field}
+                                            onChange={(e) => field.onChange(parseInt(e.target.value, 10) || 0)}
+                                            className="h-11"
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                         <DialogFooter>
+                            <Button type="submit" disabled={isPending}>
+                                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                Salvar Meta
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </Form>
+            </DialogContent>
+        </Dialog>
+    )
+}
+
 
 export default function DashboardPage() {
   const { user } = useUser();
@@ -701,6 +787,11 @@ export default function DashboardPage() {
     );
     return isNaN(num) ? 0 : num;
   };
+
+  const totalFollowers = useMemo(() => {
+    if (!userProfile) return 0;
+    return parseMetric(userProfile.instagramFollowers) + parseMetric(userProfile.tiktokFollowers);
+  }, [userProfile]);
   
   const latestMetrics = useMemo(() => {
     if (!userProfile) return null;
@@ -710,7 +801,7 @@ export default function DashboardPage() {
 
         return {
             handle: hasInsta && hasTiktok ? 'Total' : hasInsta ? userProfile.instagramHandle : hasTiktok ? userProfile.tiktokHandle : 'N/A',
-            followers: parseMetric(userProfile.instagramFollowers) + parseMetric(userProfile.tiktokFollowers),
+            followers: totalFollowers,
             views: parseMetric(userProfile.instagramAverageViews) + parseMetric(userProfile.tiktokAverageViews),
             likes: parseMetric(userProfile.instagramAverageLikes) + parseMetric(userProfile.tiktokAverageLikes),
             comments: parseMetric(userProfile.instagramAverageComments) + parseMetric(userProfile.tiktokAverageComments),
@@ -729,7 +820,7 @@ export default function DashboardPage() {
         likes: parseMetric(userProfile.tiktokAverageLikes),
         comments: parseMetric(userProfile.tiktokAverageComments),
     }
-  }, [userProfile, selectedPlatform]);
+  }, [userProfile, selectedPlatform, totalFollowers]);
 
   const formatMetricValue = (value?: string | number): string => {
     if (value === undefined || value === null) return '—';
@@ -868,6 +959,45 @@ export default function DashboardPage() {
 
       <div className="space-y-8">
         {userProfile && <ProfileCompletionAlert userProfile={userProfile} hasUpdatedToday={hasUpdatedToday} missingDays={missingDaysCount} isPremium={isPremium} />}
+
+         {userProfile && (
+            <Card className="rounded-2xl border-0">
+                <CardHeader>
+                    <div className='flex justify-between items-center'>
+                         <CardTitle className="font-headline text-xl">Meta de Seguidores</CardTitle>
+                          <FollowerGoalModal userProfile={userProfile}>
+                            <Button variant="ghost" size="sm"><Pencil className="mr-2 h-4 w-4" /> Editar Meta</Button>
+                          </FollowerGoalModal>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    {userProfile.followerGoal && userProfile.followerGoal > 0 ? (
+                        <div className='space-y-3'>
+                            <Progress value={(totalFollowers / userProfile.followerGoal) * 100} />
+                            <div className='flex justify-between text-sm text-muted-foreground'>
+                                <span>{formatMetricValue(totalFollowers)}</span>
+                                <span className='font-semibold text-primary'>{formatMetricValue(userProfile.followerGoal)}</span>
+                            </div>
+                             <p className='text-xs text-center text-muted-foreground'>
+                                Faltam {formatMetricValue(Math.max(0, userProfile.followerGoal - totalFollowers))} seguidores para atingir sua meta!
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="text-center py-6 px-4 rounded-xl bg-muted/50 border border-dashed flex flex-col items-center justify-center">
+                            <Target className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+                            <h3 className="font-semibold text-foreground">Defina sua Meta</h3>
+                            <p className="text-sm text-muted-foreground mb-4">
+                                Dê um objetivo claro para a IA te ajudar a crescer.
+                            </p>
+                             <FollowerGoalModal userProfile={userProfile}>
+                                <Button>Definir Meta de Seguidores</Button>
+                             </FollowerGoalModal>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+         )}
+
 
         <div className="grid grid-cols-1 gap-8">
             <Card className="rounded-2xl border-0">
@@ -1270,7 +1400,5 @@ export default function DashboardPage() {
     </>
   );
 }
-
-    
 
     

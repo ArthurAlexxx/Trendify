@@ -30,6 +30,15 @@
           "enum": ["admin", "user"],
           "description": "The user's role in the system. Defaults to 'user'."
         },
+        "followerGoal": {
+            "type": "number",
+            "description": "The user's target number of followers."
+        },
+        "goalCompletionDate": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The estimated date to reach the follower goal."
+        },
         "niche": {
             "type": "string",
             "description": "The creator's content niche (e.g., 'Lifestyle and sustainable fashion')."
@@ -319,13 +328,13 @@
       "schema": { "$ref": "#/entities/WebhookLog" },
       "description": "Logs all incoming webhook events from the payment gateway."
     },
+    "/usageLogs/{usageId}": {
+        "schema": { "$ref": "#/entities/DailyUsage" },
+        "description": "Tracks daily usage of features. The document ID is a composite of userId and date (e.g., 'someUserId_2024-01-01')."
+    },
     "/users/{userId}/metricSnapshots/{snapshotId}": {
         "schema": { "$ref": "#/entities/MetricSnapshot" },
         "description": "Stores daily metric snapshots for a user, per platform."
-    },
-    "/users/{userId}/dailyUsage/{usageId}": {
-        "schema": { "$ref": "#/entities/DailyUsage" },
-        "description": "Tracks daily usage of features for a specific user. The document ID is the date in YYYY-MM-DD format."
     },
     "/users/{userId}/ideiasSalvas/{ideiaId}": {
       "schema": { "$ref": "#/entities/IdeiaSalva" },
@@ -345,3 +354,5 @@
     }
   }
 }
+
+    
