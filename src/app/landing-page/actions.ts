@@ -38,7 +38,7 @@ type FormSchemaType = z.infer<typeof formSchema>;
 type ActionState = {
   data?: GrowthCalculatorOutput;
   error?: string;
-} | null;
+};
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -116,18 +116,9 @@ async function calculateGrowthAI(input: FormSchemaType): Promise<GrowthCalculato
 }
 
 export async function calculateGrowthAction(
-  prevState: ActionState,
-  formData: FormData
+  data: FormSchemaType
 ): Promise<ActionState> {
-  
-  const rawData = {
-    niche: formData.get('niche'),
-    followers: Number(formData.get('followers')),
-    goal: Number(formData.get('goal')),
-    postsPerMonth: Number(formData.get('postsPerMonth')),
-  };
-
-  const parsed = formSchema.safeParse(rawData);
+  const parsed = formSchema.safeParse(data);
 
   if (!parsed.success) {
     return { error: 'Por favor, preencha todos os campos corretamente.' };

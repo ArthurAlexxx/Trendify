@@ -24,8 +24,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
-import React, { useState, useCallback, useEffect } from 'react';
-import { useFormState } from 'react-dom';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Form,
@@ -69,6 +68,7 @@ import {
   GrowthCalculatorOutput,
   calculateGrowthAction,
 } from '@/app/landing-page/actions';
+import { useToast } from '@/hooks/use-toast';
 
 const features = [
   {
@@ -140,26 +140,9 @@ export default function LandingPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const scrolled = useScroll(10);
   
-  const [state, formAction] = useFormState(calculateGrowthAction, null);
-  const formRef = React.useRef<HTMLFormElement>(null);
   const [isCalculating, setIsCalculating] = useState(false);
-  
-  const results = state?.data;
-
-  useEffect(() => {
-    // This effect runs when `state` changes (after the server action completes)
-    if (state) {
-      setIsCalculating(false); // Stop loading indicator
-      if (state.data) {
-        setIsModalOpen(true); // Open modal on success
-      }
-      if (state.error) {
-        // Handle error display if needed, e.g., via a toast
-        console.error("Calculation Error:", state.error);
-      }
-    }
-  }, [state]);
-
+  const [results, setResults] = useState<GrowthCalculatorOutput | null>(null);
+  const { toast } = useToast();
 
   const navLinks = [
       { href: '#beneficios', text: 'Benefícios' },
@@ -177,6 +160,24 @@ export default function LandingPage() {
       postsPerMonth: 20,
     },
   });
+
+  const handleCalculate = async (data: CalculatorInput) => {
+    setIsCalculating(true);
+    try {
+      const result = await calculateGrowthAction(data);
+      if (result.error) {
+        toast({ title: "Erro ao Calcular", description: result.error, variant: 'destructive'});
+      } else if (result.data) {
+        setResults(result.data);
+        setIsModalOpen(true);
+      }
+    } catch (e) {
+      toast({ title: "Erro Inesperado", description: "Ocorreu um erro. Tente novamente.", variant: 'destructive'});
+    } finally {
+      setIsCalculating(false);
+    }
+  }
+
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -367,12 +368,7 @@ export default function LandingPage() {
               <CardContent className="p-2 sm:p-4">
                 <Form {...form}>
                   <form
-                    ref={formRef}
-                    action={formAction}
-                    onSubmit={form.handleSubmit(() => {
-                        setIsCalculating(true);
-                        formRef.current?.submit();
-                    })}
+                    onSubmit={form.handleSubmit(handleCalculate)}
                     className="space-y-8"
                   >
                     <div className="grid md:grid-cols-3 gap-6">
@@ -410,7 +406,7 @@ export default function LandingPage() {
                                 onChange={(e) => {
                                   const value = e.target.value.replace(/\D/g, '');
                                   const num = parseInt(value, 10);
-                                  field.onChange(isNaN(num) ? 0 : num);
+                                  field.onChange(isNaN(num) ? '' : num > 50000000 ? 50000000 : num);
                                 }}
                                 className="h-12 text-base bg-muted/50"
                               />
@@ -419,7 +415,7 @@ export default function LandingPage() {
                           </FormItem>
                         )}
                       />
-                      <FormField
+                       <FormField
                         control={form.control}
                         name="goal"
                         render={({ field }) => (
@@ -434,7 +430,7 @@ export default function LandingPage() {
                                 onChange={(e) => {
                                   const value = e.target.value.replace(/\D/g, '');
                                   const num = parseInt(value, 10);
-                                  field.onChange(isNaN(num) ? 0 : num);
+                                  field.onChange(isNaN(num) ? '' : num > 50000000 ? 50000000 : num);
                                 }}
                                 className="h-12 text-base bg-muted/50"
                               />
