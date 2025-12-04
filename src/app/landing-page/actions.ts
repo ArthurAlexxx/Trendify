@@ -1,3 +1,4 @@
+
 'use server';
 
 import { z } from 'zod';
@@ -20,16 +21,16 @@ const GrowthCalculatorOutputSchema = z.object({
   goalEarnings: z.array(z.number()).length(2).describe("Uma faixa de ganhos mensais estimada ao atingir a meta de seguidores [min, max]."),
   growthData: z.array(GrowthDataPointSchema).describe("Um array de pontos de dados para plotar a curva de crescimento de seguidores ao longo do tempo."),
   trendSuggestions: z.array(TrendSuggestionSchema).describe("Uma lista de 3 sugestões de ganchos para vídeos virais, relevantes para o nicho."),
-  reelsPerMonth: z.number().describe("O número de reels por mês usado no cálculo, para exibição."),
+  postsPerMonth: z.number().describe("O número de publicações por mês usado no cálculo, para exibição."),
 });
 
 export type GrowthCalculatorOutput = z.infer<typeof GrowthCalculatorOutputSchema>;
 
 const formSchema = z.object({
   niche: z.string().min(1, 'Selecione um nicho'),
-  followers: z.number().min(1, 'Deve ser maior que 0'),
-  goal: z.number().min(1, 'Deve ser maior que 0'),
-  reelsPerMonth: z.number().min(0),
+  followers: z.number().min(1, 'Deve ser maior que 0').max(50000000, 'O número de seguidores é muito alto.'),
+  goal: z.number().min(1, 'Deve ser maior que 0').max(50000000, 'A meta de seguidores é muito alta.'),
+  postsPerMonth: z.number().min(0),
 });
 
 type FormSchemaType = z.infer<typeof formSchema>;
@@ -71,16 +72,16 @@ async function calculateGrowthAI(input: FormSchemaType): Promise<GrowthCalculato
   - Nicho: ${input.niche}
   - Seguidores Atuais: ${input.followers}
   - Meta de Seguidores: ${input.goal}
-  - Média de Reels por Mês: ${input.reelsPerMonth}
+  - Média de publicações por Mês: ${input.postsPerMonth}
 
   Para cada campo do JSON, siga estas diretrizes:
 
-  - months: Calcule o número de meses para atingir a meta. Seja realista, considerando que o crescimento é exponencial. Uma taxa de crescimento mensal entre 5% e 15% é razoável, dependendo do nicho e da consistência (reels/mês). Nichos como finanças e tecnologia crescem mais rápido.
+  - months: Calcule o número de meses para atingir a meta. Seja realista, considerando que o crescimento é exponencial. Uma taxa de crescimento mensal entre 5% e 15% é razoável, dependendo do nicho e da consistência (publicações/mês). Nichos como finanças e tecnologia crescem mais rápido.
   - goalDate: Calcule a data futura com base no número de meses e retorne em formato ISO 8601.
-  - currentEarnings e goalEarnings: Estime uma FAIXA de ganhos [mínimo, máximo] com publicidade. Use um CPM (Custo por Mil visualizações) médio para o Brasil que varia entre R$15 e R$150 dependendo do nicho. Considere que cerca de 20-50% dos seguidores veem um Reel, e o criador pode fazer cerca de 20% do seu conteúdo como "publi". Nichos de Finanças e Tecnologia têm CPM mais alto.
+  - currentEarnings e goalEarnings: Estime uma FAIXA de ganhos [mínimo, máximo] com publicidade. Use um CPM (Custo por Mil visualizações) médio para o Brasil que varia entre R$15 e R$150 dependendo do nicho. Considere que cerca de 20-50% dos seguidores veem uma publicação, e o criador pode fazer cerca de 20% do seu conteúdo como "publi". Nichos de Finanças e Tecnologia têm CPM mais alto.
   - growthData: Crie um array de pontos de dados para um gráfico, mostrando a evolução dos seguidores mês a mês até atingir a meta.
   - trendSuggestions: Forneça 3 ideias de ganchos para vídeos virais, relevantes para o nicho '${input.niche}', cada uma com um ícone de emoji apropriado.
-  - reelsPerMonth: Apenas retorne o valor de entrada.
+  - postsPerMonth: Apenas retorne o valor de entrada.
   `;
 
   try {
@@ -100,6 +101,11 @@ async function calculateGrowthAI(input: FormSchemaType): Promise<GrowthCalculato
     if (!jsonString) throw new Error('Não foi possível encontrar um bloco JSON válido na resposta da IA.');
 
     const parsedJson = JSON.parse(jsonString);
+    // Compatibility rename from old schema if AI returns it
+    if (parsedJson.reelsPerMonth !== undefined) {
+        parsedJson.postsPerMonth = parsedJson.reelsPerMonth;
+        delete parsedJson.reelsPerMonth;
+    }
     return GrowthCalculatorOutputSchema.parse(parsedJson);
 
   } catch (error) {

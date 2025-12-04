@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -111,9 +112,9 @@ const faqItems = [
 
 const calculatorSchema = z.object({
   niche: z.string().min(1, 'Selecione um nicho'),
-  followers: z.number().min(1, 'Deve ser maior que 0'),
-  goal: z.number().min(1, 'Deve ser maior que 0'),
-  reelsPerMonth: z.number().min(0),
+  followers: z.number().min(1, 'Deve ser maior que 0').max(50000000, 'O número de seguidores é muito alto.'),
+  goal: z.number().min(1, 'Deve ser maior que 0').max(50000000, 'A meta de seguidores é muito alta.'),
+  postsPerMonth: z.number().min(0),
 });
 
 type CalculatorInput = z.infer<typeof calculatorSchema>;
@@ -165,7 +166,7 @@ export default function LandingPage() {
       niche: 'Moda',
       followers: 10000,
       goal: 100000,
-      reelsPerMonth: 20,
+      postsPerMonth: 20,
     },
   });
 
@@ -467,12 +468,12 @@ export default function LandingPage() {
                           </div>
                           <FormField
                             control={form.control}
-                            name="reelsPerMonth"
+                            name="postsPerMonth"
                             render={({ field }) => (
                               <FormItem>
                                 <div className="flex justify-between items-baseline mb-2">
                                   <FormLabel className="font-semibold">
-                                    Quantos Reels você posta por mês?
+                                    Quantas publicações você faz por mês?
                                   </FormLabel>
                                   <span className="text-xl font-bold text-primary">
                                     {field.value}
@@ -630,10 +631,10 @@ export default function LandingPage() {
                           <Card className="bg-muted/50">
                             <CardContent className="p-4">
                               <p className="text-sm text-muted-foreground">
-                                Plano da Semana
+                                Publicações/Mês
                               </p>
                               <p className="text-lg font-bold">
-                                {Math.round(results.reelsPerMonth / 4)} Reels
+                                {results.postsPerMonth}
                               </p>
                             </CardContent>
                           </Card>
