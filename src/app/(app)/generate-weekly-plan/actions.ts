@@ -41,6 +41,7 @@ const formSchema = z.object({
   niche: z.string().min(3, 'Seu nicho é necessário.'),
   currentStats: z.string().min(3, 'Suas estatísticas são necessárias.'),
   goal: z.string().optional(),
+  goalPlatform: z.string().optional(),
 });
 
 type FormSchemaType = z.infer<typeof formSchema>;
@@ -85,13 +86,13 @@ async function generateWeeklyPlan(
   - Nicho do Criador: ${input.niche}
   - Estatísticas Atuais (seguidores, engajamento): ${input.currentStats}
   - Objetivo Principal para a Semana: "${input.objective}"
-  - Meta de Seguidores do Usuário (se houver): ${input.goal || 'Não definida'}
+  - Meta de Seguidores do Usuário: ${input.goal || 'Não definida'} (foco em ${input.goalPlatform || 'total'})
 
   Para cada campo do JSON, siga estas diretrizes:
 
   - roteiro: Crie um array com EXATAMENTE 7 objetos, um para cada dia da semana (Segunda a Domingo). Cada objeto deve conter:
     - dia: O nome do dia da semana (ex: "Segunda").
-    - tarefa: Uma tarefa de conteúdo específica e acionável (ex: "Gravar Reels sobre [tópico]"). Se o usuário tiver uma meta de seguidores, priorize tarefas que aumentem o alcance e a descoberta.
+    - tarefa: Uma tarefa de conteúdo específica e acionável (ex: "Gravar Reels sobre [tópico]"). Se o usuário tiver uma meta de seguidores, priorize tarefas que aumentem o alcance e a descoberta na plataforma alvo (${input.goalPlatform || 'geral'}).
     - detalhes: Uma breve explicação do que fazer na tarefa (ex: "Use o áudio X em alta e foque em um gancho de 3 segundos.").
     - concluido: Deve ser 'false' por padrão.
 
@@ -147,5 +148,3 @@ export async function generateWeeklyPlanAction(
     return { error: `Falha ao gerar plano: ${errorMessage}` };
   }
 }
-
-    

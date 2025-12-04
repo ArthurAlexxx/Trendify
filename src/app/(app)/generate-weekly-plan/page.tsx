@@ -69,6 +69,7 @@ const formSchema = z.object({
   niche: z.string().min(1, 'O nicho é obrigatório.'),
   currentStats: z.string().min(1, 'As estatísticas são obrigatórias.'),
   goal: z.string().optional(),
+  goalPlatform: z.string().optional(),
 });
 
 type FormSchemaType = z.infer<typeof formSchema>;
@@ -143,6 +144,7 @@ export default function GenerateWeeklyPlanPage() {
       niche: '',
       currentStats: '',
       goal: '',
+      goalPlatform: '',
     },
   });
   
@@ -156,7 +158,8 @@ export default function GenerateWeeklyPlanPage() {
   useEffect(() => {
     if (userProfile) {
        const stats = [
-        userProfile.instagramFollowers ? `${userProfile.instagramFollowers} seguidores` : '',
+        userProfile.instagramFollowers ? `${userProfile.instagramFollowers} seguidores no Instagram` : '',
+        userProfile.tiktokFollowers ? `${userProfile.tiktokFollowers} seguidores no TikTok` : '',
         userProfile.instagramAverageViews ? `${userProfile.instagramAverageViews} de média de views` : '',
       ].filter(Boolean).join(', ');
 
@@ -169,6 +172,7 @@ export default function GenerateWeeklyPlanPage() {
         niche: userProfile.niche || '',
         currentStats: stats,
         goal: goal,
+        goalPlatform: userProfile.followerGoalPlatform || 'total',
       });
     }
   }, [userProfile, form]);
@@ -273,16 +277,18 @@ export default function GenerateWeeklyPlanPage() {
                  <CardDescription>A IA atua como sua estrategista e analisa 4 pilares:</CardDescription>
             </CardHeader>
             <CardContent>
-                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {analysisCriteria.map((item, index) => (
-                        <div key={index} className="p-4 rounded-lg bg-muted/50 border">
-                            <div className="flex items-center gap-3 mb-2">
-                                <item.icon className="h-5 w-5 text-primary" />
-                                <h4 className="font-semibold text-foreground">{item.title}</h4>
+                <div className="p-6">
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {analysisCriteria.map((item, index) => (
+                            <div key={index} className="p-4 rounded-lg bg-muted/50 border">
+                                <div className="flex items-center gap-3 mb-2">
+                                    <item.icon className="h-5 w-5 text-primary" />
+                                    <h4 className="font-semibold text-foreground">{item.title}</h4>
+                                </div>
+                                <p className="text-xs text-muted-foreground">{item.description}</p>
                             </div>
-                            <p className="text-xs text-muted-foreground">{item.description}</p>
-                        </div>
-                    ))}
+                        ))}
+                    </div>
                 </div>
             </CardContent>
         </Card>

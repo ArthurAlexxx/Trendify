@@ -62,6 +62,7 @@ const formSchema = z.object({
     .min(3, 'O público-alvo deve ter pelo menos 3 caracteres.'),
   objective: z.string().min(1, 'O objetivo é obrigatório.'),
   goal: z.string().optional(),
+  goalPlatform: z.string().optional(),
 });
 
 type FormSchemaType = z.infer<typeof formSchema>;
@@ -140,12 +141,14 @@ export default function VideoIdeasPage() {
       targetAudience: '',
       objective: 'Engajamento',
       goal: '',
+      goalPlatform: '',
     },
   });
   
   useEffect(() => {
-    if (userProfile?.followerGoal) {
-      form.setValue('goal', `Atingir ${userProfile.followerGoal.toLocaleString('pt-BR')} seguidores`);
+    if (userProfile) {
+        form.setValue('goal', userProfile.followerGoal ? `Atingir ${userProfile.followerGoal.toLocaleString('pt-BR')} seguidores` : '');
+        form.setValue('goalPlatform', userProfile.followerGoalPlatform || 'total');
     }
   }, [userProfile, form]);
 
@@ -583,5 +586,3 @@ function InfoListCard({
     </Card>
   );
 }
-
-    

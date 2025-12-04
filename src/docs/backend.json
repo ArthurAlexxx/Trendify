@@ -34,6 +34,11 @@
             "type": "number",
             "description": "The user's target number of followers."
         },
+        "followerGoalPlatform": {
+            "type": "string",
+            "enum": ["total", "instagram", "tiktok"],
+            "description": "The platform targeted for the follower goal."
+        },
         "goalCompletionDate": {
             "type": "string",
             "format": "date-time",
@@ -354,5 +359,3 @@
     }
   }
 }
-
-    

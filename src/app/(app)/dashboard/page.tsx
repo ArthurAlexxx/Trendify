@@ -137,6 +137,7 @@ const profileMetricsSchema = z.object({
 
 const followerGoalSchema = z.object({
     followerGoal: z.number().min(1, "A meta deve ser maior que zero."),
+    followerGoalPlatform: z.enum(['total', 'instagram', 'tiktok']),
 });
 
 const ProfileCompletionAlert = ({ userProfile, hasUpdatedToday, missingDays, isPremium }: { userProfile: UserProfile | null, hasUpdatedToday: boolean, missingDays: number, isPremium: boolean }) => {
@@ -599,25 +600,30 @@ const FollowerGoalModal = ({ userProfile, children }: { userProfile: UserProfile
     const [isOpen, setIsOpen] = useState(false);
     const [isPending, startTransition] = useTransition();
     
-    const form = useForm<{ followerGoal: number }>({
+    const form = useForm<z.infer<typeof followerGoalSchema>>({
         resolver: zodResolver(followerGoalSchema),
         defaultValues: {
-            followerGoal: userProfile.followerGoal || 0
+            followerGoal: userProfile.followerGoal || 0,
+            followerGoalPlatform: userProfile.followerGoalPlatform || 'total'
         }
     });
 
     useEffect(() => {
         if(userProfile) {
-            form.setValue("followerGoal", userProfile.followerGoal || 0);
+            form.reset({
+                followerGoal: userProfile.followerGoal || 0,
+                followerGoalPlatform: userProfile.followerGoalPlatform || 'total'
+            });
         }
     }, [userProfile, form]);
 
-    const onSubmit = (data: { followerGoal: number }) => {
+    const onSubmit = (data: z.infer<typeof followerGoalSchema>) => {
         if (!user) return;
         startTransition(async () => {
             try {
                 await updateDoc(doc(firestore, "users", user.uid), {
-                    followerGoal: data.followerGoal
+                    followerGoal: data.followerGoal,
+                    followerGoalPlatform: data.followerGoalPlatform
                 });
                 toast({ title: "Sucesso!", description: "Sua meta de seguidores foi atualizada." });
                 setIsOpen(false);
@@ -638,7 +644,29 @@ const FollowerGoalModal = ({ userProfile, children }: { userProfile: UserProfile
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+                        <FormField
+                            control={form.control}
+                            name="followerGoalPlatform"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Plataforma da Meta</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl>
+                                        <SelectTrigger className='h-11'>
+                                            <SelectValue placeholder="Selecione a plataforma" />
+                                        </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                        <SelectItem value="total">Total (Instagram + TikTok)</SelectItem>
+                                        <SelectItem value="instagram">Apenas Instagram</SelectItem>
+                                        <SelectItem value="tiktok">Apenas TikTok</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
                         <FormField
                             control={form.control}
                             name="followerGoal"
@@ -658,7 +686,7 @@ const FollowerGoalModal = ({ userProfile, children }: { userProfile: UserProfile
                                 </FormItem>
                             )}
                         />
-                         <DialogFooter>
+                         <DialogFooter className='pt-2'>
                             <Button type="submit" disabled={isPending}>
                                 {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                 Salvar Meta
@@ -788,10 +816,25 @@ export default function DashboardPage() {
     return isNaN(num) ? 0 : num;
   };
 
-  const totalFollowers = useMemo(() => {
+   const formatMetricValue = (value?: string | number): string => {
+    if (value === undefined || value === null) return '—';
+    const num = typeof value === 'string' ? parseMetric(value) : value;
+     if (num === 0) return 'N/A';
+
+    if (num >= 1000000) return `${(num / 1000000).toFixed(1).replace('.', ',')}M`;
+    if (num >= 10000) return `${(num / 1000).toFixed(0)}K`;
+    if (num >= 1000) return num.toLocaleString('pt-BR');
+    return String(num);
+  };
+  
+  const currentFollowers = useMemo(() => {
     if (!userProfile) return 0;
+    const platform = userProfile.followerGoalPlatform || 'total';
+    if (platform === 'instagram') return parseMetric(userProfile.instagramFollowers);
+    if (platform === 'tiktok') return parseMetric(userProfile.tiktokFollowers);
     return parseMetric(userProfile.instagramFollowers) + parseMetric(userProfile.tiktokFollowers);
   }, [userProfile]);
+
   
   const latestMetrics = useMemo(() => {
     if (!userProfile) return null;
@@ -801,7 +844,7 @@ export default function DashboardPage() {
 
         return {
             handle: hasInsta && hasTiktok ? 'Total' : hasInsta ? userProfile.instagramHandle : hasTiktok ? userProfile.tiktokHandle : 'N/A',
-            followers: totalFollowers,
+            followers: parseMetric(userProfile.instagramFollowers) + parseMetric(userProfile.tiktokFollowers),
             views: parseMetric(userProfile.instagramAverageViews) + parseMetric(userProfile.tiktokAverageViews),
             likes: parseMetric(userProfile.instagramAverageLikes) + parseMetric(userProfile.tiktokAverageLikes),
             comments: parseMetric(userProfile.instagramAverageComments) + parseMetric(userProfile.tiktokAverageComments),
@@ -820,18 +863,9 @@ export default function DashboardPage() {
         likes: parseMetric(userProfile.tiktokAverageLikes),
         comments: parseMetric(userProfile.tiktokAverageComments),
     }
-  }, [userProfile, selectedPlatform, totalFollowers]);
+  }, [userProfile, selectedPlatform]);
 
-  const formatMetricValue = (value?: string | number): string => {
-    if (value === undefined || value === null) return '—';
-    const num = typeof value === 'string' ? parseMetric(value) : value;
-     if (num === 0) return 'N/A';
-
-    if (num >= 1000000) return `${(num / 1000000).toFixed(1).replace('.', ',')}M`;
-    if (num >= 10000) return `${(num / 1000).toFixed(0)}K`;
-    if (num >= 1000) return num.toLocaleString('pt-BR');
-    return String(num);
-  };
+ 
 
 
   const historicalChartData = useMemo(() => {
@@ -961,25 +995,28 @@ export default function DashboardPage() {
         {userProfile && <ProfileCompletionAlert userProfile={userProfile} hasUpdatedToday={hasUpdatedToday} missingDays={missingDaysCount} isPremium={isPremium} />}
 
          {userProfile && (
-            <Card className="rounded-2xl border-0">
-                <CardHeader>
+            <Card className="rounded-2xl border-0 overflow-hidden">
+                <CardHeader className="bg-muted/30 p-4 sm:p-6">
                     <div className='flex justify-between items-center'>
-                         <CardTitle className="font-headline text-xl">Meta de Seguidores</CardTitle>
+                         <CardTitle className="font-headline text-lg sm:text-xl">Meta de Seguidores</CardTitle>
                           <FollowerGoalModal userProfile={userProfile}>
                             <Button variant="ghost" size="sm"><Pencil className="mr-2 h-4 w-4" /> Editar Meta</Button>
                           </FollowerGoalModal>
                     </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-4 sm:p-6">
                     {userProfile.followerGoal && userProfile.followerGoal > 0 ? (
-                        <div className='space-y-3'>
-                            <Progress value={(totalFollowers / userProfile.followerGoal) * 100} />
-                            <div className='flex justify-between text-sm text-muted-foreground'>
-                                <span>{formatMetricValue(totalFollowers)}</span>
-                                <span className='font-semibold text-primary'>{formatMetricValue(userProfile.followerGoal)}</span>
-                            </div>
+                        <div className='space-y-4'>
+                             <div className='flex justify-between items-baseline'>
+                                <p className='text-sm text-muted-foreground'>
+                                    Progresso para <strong className="text-primary">{formatMetricValue(userProfile.followerGoal)}</strong> seguidores
+                                    ({userProfile.followerGoalPlatform === 'total' ? 'Total' : userProfile.followerGoalPlatform})
+                                </p>
+                                <span className='font-bold text-lg text-foreground'>{formatMetricValue(currentFollowers)}</span>
+                             </div>
+                            <Progress value={(currentFollowers / userProfile.followerGoal) * 100} />
                              <p className='text-xs text-center text-muted-foreground'>
-                                Faltam {formatMetricValue(Math.max(0, userProfile.followerGoal - totalFollowers))} seguidores para atingir sua meta!
+                                Faltam {formatMetricValue(Math.max(0, userProfile.followerGoal - currentFollowers))} seguidores para atingir sua meta!
                             </p>
                         </div>
                     ) : (
