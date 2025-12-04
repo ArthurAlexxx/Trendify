@@ -27,7 +27,7 @@ const GrowthCalculatorOutputSchema = z.object({
 export type GrowthCalculatorOutput = z.infer<typeof GrowthCalculatorOutputSchema>;
 
 const formSchema = z.object({
-  niche: z.string().min(1, 'Selecione um nicho'),
+  niche: z.string().min(3, 'O nicho deve ter pelo menos 3 caracteres.'),
   followers: z.number().min(1, 'Deve ser maior que 0').max(50000000, 'O número de seguidores é muito alto.'),
   goal: z.number().min(1, 'Deve ser maior que 0').max(50000000, 'A meta de seguidores é muito alta.'),
   postsPerMonth: z.number().min(0),
@@ -117,9 +117,17 @@ async function calculateGrowthAI(input: FormSchemaType): Promise<GrowthCalculato
 
 export async function calculateGrowthAction(
   prevState: ActionState,
-  formData: FormSchemaType
+  formData: FormData
 ): Promise<ActionState> {
-  const parsed = formSchema.safeParse(formData);
+  
+  const rawData = {
+    niche: formData.get('niche'),
+    followers: Number(formData.get('followers')),
+    goal: Number(formData.get('goal')),
+    postsPerMonth: Number(formData.get('postsPerMonth')),
+  };
+
+  const parsed = formSchema.safeParse(rawData);
 
   if (!parsed.success) {
     return { error: 'Por favor, preencha todos os campos corretamente.' };
@@ -129,7 +137,8 @@ export async function calculateGrowthAction(
     const result = await calculateGrowthAI(parsed.data);
     return { data: result };
   } catch (e) {
-    const errorMessage = e instanceof Error ? e.message : 'Ocorreu um erro desconhecido.';
+    const errorMessage =
+      e instanceof Error ? e.message : 'Ocorreu um erro desconhecido.';
     return { error: `Falha ao calcular crescimento: ${errorMessage}` };
   }
 }

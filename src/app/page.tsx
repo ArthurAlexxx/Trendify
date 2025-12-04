@@ -24,7 +24,8 @@ import { AnimatePresence, motion } from 'framer-motion';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
-import React, { useState, useCallback, useEffect, useTransition } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
+import { useFormState } from 'react-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Form,
@@ -35,13 +36,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -63,7 +57,6 @@ import {
 import { AnimatedHero } from '@/components/ui/animated-hero';
 import { useScroll } from '@/hooks/use-scroll';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { Separator } from '@/components/ui/separator';
 import {
   Dialog,
   DialogContent,
@@ -143,12 +136,30 @@ const WordmarkIcon = (props: React.ComponentProps<'a'>) => (
 
 export default function LandingPage() {
   const { user } = useUser();
-  const [results, setResults] = useState<GrowthCalculatorOutput | null>(null);
-  const [isCalculating, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const scrolled = useScroll(10);
+  
+  const [state, formAction] = useFormState(calculateGrowthAction, null);
+  const formRef = React.useRef<HTMLFormElement>(null);
+  const [isCalculating, setIsCalculating] = useState(false);
+  
+  const results = state?.data;
+
+  useEffect(() => {
+    // This effect runs when `state` changes (after the server action completes)
+    if (state) {
+      setIsCalculating(false); // Stop loading indicator
+      if (state.data) {
+        setIsModalOpen(true); // Open modal on success
+      }
+      if (state.error) {
+        // Handle error display if needed, e.g., via a toast
+        console.error("Calculation Error:", state.error);
+      }
+    }
+  }, [state]);
+
 
   const navLinks = [
       { href: '#beneficios', text: 'Benefícios' },
@@ -166,22 +177,6 @@ export default function LandingPage() {
       postsPerMonth: 20,
     },
   });
-
-  const calculateGrowth = async (data: CalculatorInput) => {
-    startTransition(async () => {
-      setError(null);
-      setResults(null);
-      const result = await calculateGrowthAction(null, data);
-      if (result?.error) {
-        setError(result.error);
-        setIsModalOpen(false);
-      }
-      if (result?.data) {
-        setResults(result.data);
-        setIsModalOpen(true);
-      }
-    });
-  };
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -372,11 +367,16 @@ export default function LandingPage() {
               <CardContent className="p-2 sm:p-4">
                 <Form {...form}>
                   <form
-                    onSubmit={form.handleSubmit(calculateGrowth)}
+                    ref={formRef}
+                    action={formAction}
+                    onSubmit={form.handleSubmit(() => {
+                        setIsCalculating(true);
+                        formRef.current?.submit();
+                    })}
                     className="space-y-8"
                   >
                     <div className="grid md:grid-cols-3 gap-6">
-                        <FormField
+                      <FormField
                         control={form.control}
                         name="niche"
                         render={({ field }) => (
@@ -409,12 +409,8 @@ export default function LandingPage() {
                                 value={field.value === 0 ? '' : field.value.toString()}
                                 onChange={(e) => {
                                   const value = e.target.value.replace(/\D/g, '');
-                                  if (value === '') {
-                                      field.onChange(0);
-                                  } else {
-                                      const num = Math.min(parseInt(value, 10), 50000000);
-                                      field.onChange(isNaN(num) ? 0 : num);
-                                  }
+                                  const num = parseInt(value, 10);
+                                  field.onChange(isNaN(num) ? 0 : num);
                                 }}
                                 className="h-12 text-base bg-muted/50"
                               />
@@ -437,12 +433,8 @@ export default function LandingPage() {
                                 value={field.value === 0 ? '' : field.value.toString()}
                                 onChange={(e) => {
                                   const value = e.target.value.replace(/\D/g, '');
-                                  if (value === '') {
-                                      field.onChange(0);
-                                  } else {
-                                      const num = Math.min(parseInt(value, 10), 50000000);
-                                      field.onChange(isNaN(num) ? 0 : num);
-                                  }
+                                  const num = parseInt(value, 10);
+                                  field.onChange(isNaN(num) ? 0 : num);
                                 }}
                                 className="h-12 text-base bg-muted/50"
                               />
@@ -505,12 +497,12 @@ export default function LandingPage() {
                     <DialogTitle className="text-2xl md:text-3xl font-bold font-headline text-center">
                         Sua projeção de crescimento está pronta!
                     </DialogTitle>
-                    <DialogDescription className="text-center">
+                    {results && <DialogDescription className="text-center">
                          Com base nos seus dados e benchmarks do nicho de{' '}
                           <span className="font-semibold text-primary">
                             {form.getValues('niche')}
                           </span>.
-                    </DialogDescription>
+                    </DialogDescription>}
                 </DialogHeader>
 
                 {results ? (
@@ -883,5 +875,3 @@ export default function LandingPage() {
     </div>
   );
 }
-
-    
