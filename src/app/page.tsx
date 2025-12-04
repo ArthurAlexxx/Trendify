@@ -65,6 +65,14 @@ import { useScroll } from '@/hooks/use-scroll';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import {
   GrowthCalculatorOutput,
   calculateGrowthAction,
 } from '@/app/landing-page/actions';
@@ -135,11 +143,11 @@ const WordmarkIcon = (props: React.ComponentProps<'a'>) => (
 
 export default function LandingPage() {
   const { user } = useUser();
-  const [step, setStep] = useState(0);
   const [results, setResults] = useState<GrowthCalculatorOutput | null>(null);
   const [isCalculating, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const scrolled = useScroll(10);
 
   const navLinks = [
@@ -159,17 +167,18 @@ export default function LandingPage() {
     },
   });
 
-  const calculateGrowth = (data: CalculatorInput) => {
+  const calculateGrowth = async (data: CalculatorInput) => {
     startTransition(async () => {
       setError(null);
       setResults(null);
       const result = await calculateGrowthAction(null, data);
       if (result?.error) {
         setError(result.error);
+        setIsModalOpen(false);
       }
       if (result?.data) {
         setResults(result.data);
-        setStep(1);
+        setIsModalOpen(true);
       }
     });
   };
@@ -181,14 +190,7 @@ export default function LandingPage() {
       minimumFractionDigits: 0,
     }).format(value);
   };
-
-  const motionProps = {
-    initial: { opacity: 0, y: 20 },
-    animate: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: -20 },
-    transition: { duration: 0.4, ease: 'easeInOut' },
-  };
-
+  
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
       	<header
@@ -368,309 +370,302 @@ export default function LandingPage() {
 
             <Card className="max-w-4xl mx-auto p-4 sm:p-6 rounded-2xl bg-card">
               <CardContent className="p-2 sm:p-4">
-                <AnimatePresence mode="wait">
-                  {step === 0 && (
-                    <motion.div {...motionProps} key="step0">
-                      <Form {...form}>
-                        <form
-                          onSubmit={form.handleSubmit(calculateGrowth)}
-                          className="space-y-8"
-                        >
-                          <div className="grid md:grid-cols-3 gap-6">
-                             <FormField
-                              control={form.control}
-                              name="niche"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel className="font-semibold">
-                                    Qual seu nicho principal?
-                                  </FormLabel>
-                                  <FormControl>
-                                    <Input
-                                        placeholder="Ex: Beleza, Finanças"
-                                        className="h-12 text-base bg-muted/50"
-                                        {...field}
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            <FormField
-                              control={form.control}
-                              name="followers"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel className="font-semibold">
-                                    Seguidores Atuais
-                                  </FormLabel>
-                                  <FormControl>
-                                    <Input
-                                      type="text"
-                                      value={field.value === 0 ? '' : field.value.toString()}
-                                      onChange={(e) => {
-                                        const value = e.target.value.replace(/\D/g, '');
-                                        if (value === '') {
-                                            field.onChange(0);
-                                        } else {
-                                            const num = Math.min(parseInt(value, 10), 50000000);
-                                            field.onChange(isNaN(num) ? 0 : num);
-                                        }
-                                      }}
-                                      className="h-12 text-base bg-muted/50"
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            <FormField
-                              control={form.control}
-                              name="goal"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel className="font-semibold">
-                                    Sua Meta de Seguidores
-                                  </FormLabel>
-                                  <FormControl>
-                                    <Input
-                                      type="text"
-                                      value={field.value === 0 ? '' : field.value.toString()}
-                                      onChange={(e) => {
-                                        const value = e.target.value.replace(/\D/g, '');
-                                        if (value === '') {
-                                            field.onChange(0);
-                                        } else {
-                                            const num = Math.min(parseInt(value, 10), 50000000);
-                                            field.onChange(isNaN(num) ? 0 : num);
-                                        }
-                                      }}
-                                      className="h-12 text-base bg-muted/50"
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                          </div>
-                          <FormField
-                            control={form.control}
-                            name="postsPerMonth"
-                            render={({ field }) => (
-                              <FormItem>
-                                <div className="flex justify-between items-baseline mb-2">
-                                  <FormLabel className="font-semibold">
-                                    Quantas publicações você faz por mês?
-                                  </FormLabel>
-                                  <span className="text-xl font-bold text-primary">
-                                    {field.value}
-                                  </span>
-                                </div>
-                                <FormControl>
-                                  <Slider
-                                    defaultValue={[field.value]}
-                                    max={60}
-                                    step={1}
-                                    onValueChange={(v) => field.onChange(v[0])}
-                                  />
-                                </FormControl>
-                              </FormItem>
-                            )}
-                          />
-                          <Button
-                            type="submit"
-                            size="lg"
-                            className="w-full h-12 text-base font-bold bg-gradient-to-r from-purple-600 to-indigo-600 text-primary-foreground shadow-lg shadow-indigo-500/50 hover:opacity-90 transition-opacity"
-                            disabled={isCalculating}
-                          >
-                            {isCalculating ? (
-                              <>
-                                <Loader2 className="mr-2 h-5 w-5 animate-spin" />{' '}
-                                Calculando...
-                              </>
-                            ) : (
-                              'Calcular meu Potencial'
-                            )}
-                          </Button>
-                        </form>
-                      </Form>
-                    </motion.div>
-                  )}
-
-                  {step === 1 && results && (
-                    <motion.div
-                      {...motionProps}
-                      key="step1"
-                      className="space-y-8"
-                    >
-                      <div className="text-center">
-                        <h3 className="text-2xl md:text-3xl font-bold font-headline">
-                          Sua projeção de crescimento está pronta!
-                        </h3>
-                        <p className="text-muted-foreground">
-                          Com base nos seus dados e benchmarks do nicho de{' '}
-                          <span className="font-semibold text-primary">
-                            {form.getValues('niche')}
-                          </span>
-                          .
-                        </p>
-                      </div>
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <Card className="bg-primary/5 border-primary/20">
-                          <CardHeader>
-                            <CardTitle className="text-base font-semibold text-primary flex items-center gap-2">
-                              <Target className="h-5 w-5" /> Tempo até a Meta
-                            </CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <p className="text-4xl font-bold text-foreground">
-                              {results.months} meses
-                            </p>
-                            <p className="text-muted-foreground">
-                              Data prevista:{' '}
-                              {new Date(results.goalDate).toLocaleDateString('pt-BR', {
-                                month: 'long',
-                                year: 'numeric',
-                              })}
-                            </p>
-                          </CardContent>
-                        </Card>
-                        <Card className="bg-primary/5 border-primary/20">
-                          <CardHeader>
-                            <CardTitle className="text-base font-semibold text-primary flex items-center gap-2">
-                              <Sparkles className="h-5 w-5" /> Potencial de
-                              Ganhos/mês
-                            </CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <p className="text-xl font-bold text-foreground">
-                              {formatCurrency(results.currentEarnings[0])} -{' '}
-                              {formatCurrency(results.currentEarnings[1])}
-                              <span className="text-sm font-normal text-muted-foreground ml-2">
-                                (agora)
-                              </span>
-                            </p>
-                            <p className="text-xl font-bold text-foreground mt-1">
-                              {formatCurrency(results.goalEarnings[0])} -{' '}
-                              {formatCurrency(results.goalEarnings[1])}
-                              <span className="text-sm font-normal text-muted-foreground ml-2">
-                                (na meta)
-                              </span>
-                            </p>
-                          </CardContent>
-                        </Card>
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-lg text-center mb-4">
-                          Curva de Crescimento de Seguidores
-                        </h4>
-                        <div className="h-64 w-full">
-                          <ResponsiveContainer>
-                            <AreaChart data={results.growthData}>
-                              <defs>
-                                <linearGradient
-                                  id="colorFollowers"
-                                  x1="0"
-                                  y1="0"
-                                  x2="0"
-                                  y2="1"
-                                >
-                                  <stop
-                                    offset="5%"
-                                    stopColor="hsl(var(--primary))"
-                                    stopOpacity={0.8}
-                                  />
-                                  <stop
-                                    offset="95%"
-                                    stopColor="hsl(var(--primary))"
-                                    stopOpacity={0}
-                                  />
-                                </linearGradient>
-                              </defs>
-                              <XAxis
-                                dataKey="month"
-                                tickFormatter={(v) => `Mês ${v}`}
+                <Form {...form}>
+                  <form
+                    onSubmit={form.handleSubmit(calculateGrowth)}
+                    className="space-y-8"
+                  >
+                    <div className="grid md:grid-cols-3 gap-6">
+                        <FormField
+                        control={form.control}
+                        name="niche"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="font-semibold">
+                              Qual seu nicho principal?
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                  placeholder="Ex: Beleza, Finanças"
+                                  className="h-12 text-base bg-muted/50"
+                                  {...field}
                               />
-                              <YAxis tickFormatter={(v) => `${v / 1000}k`} />
-                              <Tooltip
-                                contentStyle={{
-                                  backgroundColor: 'hsl(var(--background))',
-                                  border: '1px solid hsl(var(--border))',
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="followers"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="font-semibold">
+                              Seguidores Atuais
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                type="text"
+                                value={field.value === 0 ? '' : field.value.toString()}
+                                onChange={(e) => {
+                                  const value = e.target.value.replace(/\D/g, '');
+                                  if (value === '') {
+                                      field.onChange(0);
+                                  } else {
+                                      const num = Math.min(parseInt(value, 10), 50000000);
+                                      field.onChange(isNaN(num) ? 0 : num);
+                                  }
                                 }}
+                                className="h-12 text-base bg-muted/50"
                               />
-                              <Area
-                                type="monotone"
-                                dataKey="followers"
-                                stroke="hsl(var(--primary))"
-                                fillOpacity={1}
-                                fill="url(#colorFollowers)"
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="goal"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="font-semibold">
+                              Sua Meta de Seguidores
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                type="text"
+                                value={field.value === 0 ? '' : field.value.toString()}
+                                onChange={(e) => {
+                                  const value = e.target.value.replace(/\D/g, '');
+                                  if (value === '') {
+                                      field.onChange(0);
+                                  } else {
+                                      const num = Math.min(parseInt(value, 10), 50000000);
+                                      field.onChange(isNaN(num) ? 0 : num);
+                                  }
+                                }}
+                                className="h-12 text-base bg-muted/50"
                               />
-                            </AreaChart>
-                          </ResponsiveContainer>
-                        </div>
-                      </div>
-
-                      <div>
-                        <h4 className="font-bold text-lg text-center mb-4">
-                          Seu Plano Inicial
-                        </h4>
-                        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 text-center">
-                          <Card className="bg-muted/50">
-                            <CardContent className="p-4">
-                              <p className="text-sm text-muted-foreground">
-                                Publicações/Mês
-                              </p>
-                              <p className="text-lg font-bold">
-                                {results.postsPerMonth}
-                              </p>
-                            </CardContent>
-                          </Card>
-                          {results.trendSuggestions.map(
-                            (sug: any, index: number) => (
-                              <Card key={index} className="bg-muted/50">
-                                <CardContent className="p-4">
-                                  <p className="text-sm text-muted-foreground">
-                                    Gancho Sugerido
-                                  </p>
-                                  <p className="text-base font-semibold">
-                                    {sug.icon} {sug.hook}
-                                  </p>
-                                </CardContent>
-                              </Card>
-                            )
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
-                        <Button
-                          size="lg"
-                          className="w-full sm:w-auto h-12 text-base shadow-lg shadow-indigo-500/50"
-                          asChild
-                        >
-                          <Link href="/sign-up">
-                            Criar conta e acelerar
-                          </Link>
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          onClick={() => setStep(0)}
-                          className="w-full sm:w-auto"
-                        >
-                          Recalcular
-                        </Button>
-                      </div>
-                      <p className="text-xs text-muted-foreground text-center pt-2">
-                        Estimativas com base em benchmarks do nicho. Resultados
-                        variam por conteúdo, mercado e consistência.
-                      </p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <FormField
+                      control={form.control}
+                      name="postsPerMonth"
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className="flex justify-between items-baseline mb-2">
+                            <FormLabel className="font-semibold">
+                              Quantas publicações você faz por mês?
+                            </FormLabel>
+                            <span className="text-xl font-bold text-primary">
+                              {field.value}
+                            </span>
+                          </div>
+                          <FormControl>
+                            <Slider
+                              defaultValue={[field.value]}
+                              max={60}
+                              step={1}
+                              onValueChange={(v) => field.onChange(v[0])}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <Button
+                      type="submit"
+                      size="lg"
+                      className="w-full h-12 text-base font-bold bg-gradient-to-r from-purple-600 to-indigo-600 text-primary-foreground shadow-lg shadow-indigo-500/50 hover:opacity-90 transition-opacity"
+                      disabled={isCalculating}
+                    >
+                      {isCalculating ? (
+                        <>
+                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />{' '}
+                          Calculando...
+                        </>
+                      ) : (
+                        'Calcular meu Potencial'
+                      )}
+                    </Button>
+                  </form>
+                </Form>
               </CardContent>
             </Card>
           </div>
         </section>
+
+        {/* Results Modal */}
+        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+            <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
+                <DialogHeader>
+                    <DialogTitle className="text-2xl md:text-3xl font-bold font-headline text-center">
+                        Sua projeção de crescimento está pronta!
+                    </DialogTitle>
+                    <DialogDescription className="text-center">
+                         Com base nos seus dados e benchmarks do nicho de{' '}
+                          <span className="font-semibold text-primary">
+                            {form.getValues('niche')}
+                          </span>.
+                    </DialogDescription>
+                </DialogHeader>
+
+                {results ? (
+                <div className="space-y-6 overflow-y-auto px-1">
+                    <div className="grid md:grid-cols-2 gap-4">
+                    <Card className="bg-primary/5 border-primary/20">
+                        <CardHeader>
+                        <CardTitle className="text-base font-semibold text-primary flex items-center gap-2">
+                            <Target className="h-5 w-5" /> Tempo até a Meta
+                        </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                        <p className="text-4xl font-bold text-foreground">
+                            {results.months} meses
+                        </p>
+                        <p className="text-muted-foreground">
+                            Data prevista:{' '}
+                            {new Date(results.goalDate).toLocaleDateString('pt-BR', {
+                            month: 'long',
+                            year: 'numeric',
+                            })}
+                        </p>
+                        </CardContent>
+                    </Card>
+                    <Card className="bg-primary/5 border-primary/20">
+                        <CardHeader>
+                        <CardTitle className="text-base font-semibold text-primary flex items-center gap-2">
+                            <Sparkles className="h-5 w-5" /> Potencial de
+                            Ganhos/mês
+                        </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                        <p className="text-xl font-bold text-foreground">
+                            {formatCurrency(results.currentEarnings[0])} -{' '}
+                            {formatCurrency(results.currentEarnings[1])}
+                            <span className="text-sm font-normal text-muted-foreground ml-2">
+                            (agora)
+                            </span>
+                        </p>
+                        <p className="text-xl font-bold text-foreground mt-1">
+                            {formatCurrency(results.goalEarnings[0])} -{' '}
+                            {formatCurrency(results.goalEarnings[1])}
+                            <span className="text-sm font-normal text-muted-foreground ml-2">
+                            (na meta)
+                            </span>
+                        </p>
+                        </CardContent>
+                    </Card>
+                    </div>
+                    <div>
+                    <h4 className="font-bold text-lg text-center mb-4">
+                        Curva de Crescimento de Seguidores
+                    </h4>
+                    <div className="h-64 w-full">
+                        <ResponsiveContainer>
+                        <AreaChart data={results.growthData}>
+                            <defs>
+                            <linearGradient
+                                id="colorFollowers"
+                                x1="0"
+                                y1="0"
+                                x2="0"
+                                y2="1"
+                            >
+                                <stop
+                                offset="5%"
+                                stopColor="hsl(var(--primary))"
+                                stopOpacity={0.8}
+                                />
+                                <stop
+                                offset="95%"
+                                stopColor="hsl(var(--primary))"
+                                stopOpacity={0}
+                                />
+                            </linearGradient>
+                            </defs>
+                            <XAxis
+                            dataKey="month"
+                            tickFormatter={(v) => `Mês ${v}`}
+                            />
+                            <YAxis tickFormatter={(v) => `${v / 1000}k`} />
+                            <Tooltip
+                            contentStyle={{
+                                backgroundColor: 'hsl(var(--background))',
+                                border: '1px solid hsl(var(--border))',
+                            }}
+                            />
+                            <Area
+                            type="monotone"
+                            dataKey="followers"
+                            stroke="hsl(var(--primary))"
+                            fillOpacity={1}
+                            fill="url(#colorFollowers)"
+                            />
+                        </AreaChart>
+                        </ResponsiveContainer>
+                    </div>
+                    </div>
+
+                    <div>
+                    <h4 className="font-bold text-lg text-center mb-4">
+                        Seu Plano Inicial
+                    </h4>
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 text-center">
+                        <Card className="bg-muted/50">
+                        <CardContent className="p-4">
+                            <p className="text-sm text-muted-foreground">
+                            Publicações/Mês
+                            </p>
+                            <p className="text-lg font-bold">
+                            {results.postsPerMonth}
+                            </p>
+                        </CardContent>
+                        </Card>
+                        {results.trendSuggestions.map(
+                        (sug: any, index: number) => (
+                            <Card key={index} className="bg-muted/50">
+                            <CardContent className="p-4">
+                                <p className="text-sm text-muted-foreground">
+                                Gancho Sugerido
+                                </p>
+                                <p className="text-base font-semibold">
+                                {sug.icon} {sug.hook}
+                                </p>
+                            </CardContent>
+                            </Card>
+                        )
+                        )}
+                    </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground text-center pt-2">
+                    Estimativas com base em benchmarks do nicho. Resultados
+                    variam por conteúdo, mercado e consistência.
+                    </p>
+                </div>
+                ) : (
+                    <div className="flex items-center justify-center h-64">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    </div>
+                )}
+
+                <DialogFooter className="pt-4">
+                    <Button
+                        size="lg"
+                        className="w-full sm:w-auto h-12 text-base"
+                        asChild
+                        >
+                        <Link href="/sign-up">
+                            Criar conta e acelerar
+                        </Link>
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+
 
         {/* Pricing Section */}
         <section id="precos" className="py-20 sm:py-24 bg-background">
@@ -888,3 +883,5 @@ export default function LandingPage() {
     </div>
   );
 }
+
+    
