@@ -427,15 +427,15 @@ export default function LandingPage() {
                                   </FormLabel>
                                   <FormControl>
                                     <Input
-                                      type="number"
-                                      {...field}
+                                      type="text"
+                                      value={field.value === 0 ? '' : field.value}
                                       onChange={(e) => {
-                                        const value = e.target.value;
+                                        const value = e.target.value.replace(/\D/g, '');
                                         if (value === '') {
-                                          field.onChange(undefined);
+                                            field.onChange(0);
                                         } else {
-                                          const num = Math.min(parseInt(value, 10), 50000000);
-                                          field.onChange(isNaN(num) ? undefined : num);
+                                            const num = Math.min(parseInt(value, 10), 50000000);
+                                            field.onChange(isNaN(num) ? 0 : num);
                                         }
                                       }}
                                       className="h-12 text-base bg-muted/50"
@@ -455,15 +455,15 @@ export default function LandingPage() {
                                   </FormLabel>
                                   <FormControl>
                                     <Input
-                                      type="number"
-                                      {...field}
+                                      type="text"
+                                      value={field.value === 0 ? '' : field.value}
                                       onChange={(e) => {
-                                        const value = e.target.value;
+                                        const value = e.target.value.replace(/\D/g, '');
                                         if (value === '') {
-                                          field.onChange(undefined);
+                                            field.onChange(0);
                                         } else {
-                                          const num = Math.min(parseInt(value, 10), 50000000);
-                                          field.onChange(isNaN(num) ? undefined : num);
+                                            const num = Math.min(parseInt(value, 10), 50000000);
+                                            field.onChange(isNaN(num) ? 0 : num);
                                         }
                                       }}
                                       className="h-12 text-base bg-muted/50"
