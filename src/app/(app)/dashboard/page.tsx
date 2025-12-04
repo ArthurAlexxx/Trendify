@@ -590,38 +590,36 @@ export default function DashboardPage() {
       <div className="space-y-8">
         
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
-            <div className="lg:col-span-3">
-                <Card className="rounded-2xl border-0">
-                    <CardHeader>
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                            <div>
-                                <CardTitle className="font-headline text-lg sm:text-xl">
-                                    Meta de Seguidores
-                                </CardTitle>
-                                <CardDescription>Acompanhe seu progresso para a plataforma selecionada.</CardDescription>
-                            </div>
-                            <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
-                                <div className='w-full sm:w-auto'>
-                                    <Select value={selectedPlatform} onValueChange={(value) => setSelectedPlatform(value as any)}>
-                                    <SelectTrigger className="w-full sm:w-48">
-                                        <SelectValue placeholder="Selecione a plataforma" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="total">Total</SelectItem>
-                                        <SelectItem value="instagram">Instagram</SelectItem>
-                                        <SelectItem value="tiktok">TikTok</SelectItem>
-                                    </SelectContent>
-                                    </Select>
-                                </div>
-                               {userProfile && 
-                               <FollowerGoalSheet userProfile={userProfile}>
-                                    <Button variant="outline" size="sm"><Pencil className="mr-2 h-4 w-4" /> Editar Metas</Button>
-                               </FollowerGoalSheet>
-                               }
-                            </div>
+            <div className="lg:col-span-3 flex flex-col gap-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 className="font-headline text-lg sm:text-xl font-bold tracking-tight">
+                            Meta de Seguidores
+                        </h2>
+                        <p className="text-muted-foreground text-sm">Acompanhe seu progresso para a plataforma selecionada.</p>
+                    </div>
+                    <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+                        <div className='w-full sm:w-auto'>
+                            <Select value={selectedPlatform} onValueChange={(value) => setSelectedPlatform(value as any)}>
+                            <SelectTrigger className="w-full sm:w-48">
+                                <SelectValue placeholder="Selecione a plataforma" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="total">Total</SelectItem>
+                                <SelectItem value="instagram">Instagram</SelectItem>
+                                <SelectItem value="tiktok">TikTok</SelectItem>
+                            </SelectContent>
+                            </Select>
                         </div>
-                    </CardHeader>
-                    <CardContent>
+                       {userProfile && 
+                       <FollowerGoalSheet userProfile={userProfile}>
+                            <Button variant="outline" size="sm"><Pencil className="mr-2 h-4 w-4" /> Editar Metas</Button>
+                       </FollowerGoalSheet>
+                       }
+                    </div>
+                </div>
+                <Card className="rounded-2xl border-0">
+                    <CardContent className="pt-6">
                         <div className="flex flex-col items-center justify-center text-center">
                             {isLoading ? <Skeleton className="h-48 w-48 rounded-full" /> : 
                             goalFollowers > 0 ? (
