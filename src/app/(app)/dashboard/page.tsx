@@ -745,37 +745,45 @@ export default function DashboardPage() {
 
   const historicalChartData = useMemo(() => {
     if (!metricSnapshots) return [];
-
-    const validSnapshots = metricSnapshots.filter(snap => snap.date);
-
-    if (selectedPlatform === 'total') {
-      const combinedData: { [date: string]: { followers: number, views: number, likes: number, comments: number } } = {};
-      validSnapshots.forEach(snap => {
-        if (!snap.date) return;
-        const dateStr = format(snap.date.toDate(), 'dd/MM');
-        if (!combinedData[dateStr]) {
-          combinedData[dateStr] = { followers: 0, views: 0, likes: 0, comments: 0 };
+  
+    const processSnapshots = (snapshots: MetricSnapshot[]) => {
+      const today = startOfDay(new Date());
+      const last7Days: Date[] = [];
+      for (let i = 6; i >= 0; i--) {
+        last7Days.push(subDays(today, i));
+      }
+  
+      let lastKnownMetrics = { followers: 0, views: 0, likes: 0, comments: 0 };
+  
+      return last7Days.map(day => {
+        const daySnapshots = snapshots.filter(snap => isSameDay(snap.date.toDate(), day));
+  
+        let dayMetrics;
+        if (daySnapshots.length > 0) {
+          dayMetrics = daySnapshots.reduce((acc, curr) => {
+            acc.followers += parseMetric(curr.followers);
+            acc.views += parseMetric(curr.views);
+            acc.likes += parseMetric(curr.likes);
+            acc.comments += parseMetric(curr.comments);
+            return acc;
+          }, { followers: 0, views: 0, likes: 0, comments: 0 });
+          lastKnownMetrics = dayMetrics;
+        } else {
+          dayMetrics = lastKnownMetrics;
         }
-        combinedData[dateStr].followers += parseMetric(snap.followers);
-        combinedData[dateStr].views += parseMetric(snap.views);
-        combinedData[dateStr].likes += parseMetric(snap.likes);
-        combinedData[dateStr].comments += parseMetric(snap.comments);
+  
+        return {
+          date: format(day, 'dd/MM'),
+          ...dayMetrics,
+        };
       });
-      return Object.entries(combinedData)
-        .map(([date, metrics]) => ({ date, ...metrics }))
-        .sort((a, b) => new Date(a.date.split('/').reverse().join('-')).getTime() - new Date(b.date.split('/').reverse().join('-')).getTime())
-        .slice(-30);
-
+    };
+  
+    if (selectedPlatform === 'total') {
+      return processSnapshots(metricSnapshots);
     } else {
-      return validSnapshots
-        .filter(snap => snap.platform === selectedPlatform && snap.date)
-        .map(snap => ({
-            date: format(snap.date.toDate(), 'dd/MM'),
-            followers: parseMetric(snap.followers),
-            views: parseMetric(snap.views),
-            likes: parseMetric(snap.likes),
-            comments: parseMetric(snap.comments),
-        })).reverse().slice(-30);
+      const platformSnapshots = metricSnapshots.filter(snap => snap.platform === selectedPlatform);
+      return processSnapshots(platformSnapshots);
     }
   }, [metricSnapshots, selectedPlatform]);
 
@@ -904,7 +912,7 @@ export default function DashboardPage() {
                         <CardTitle className="font-headline text-xl">
                         Evolução das Métricas ({selectedPlatform === 'instagram' ? 'Instagram' : selectedPlatform === 'tiktok' ? 'TikTok' : 'Total'})
                         </CardTitle>
-                        <CardDescription>Acompanhe seu progresso ao longo dos últimos 30 dias.</CardDescription>
+                        <CardDescription>Acompanhe seu progresso ao longo dos últimos 7 dias.</CardDescription>
                     </CardHeader>
                     <CardContent className="pl-2 pr-6">
                         {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
@@ -1260,5 +1268,7 @@ export default function DashboardPage() {
     </>
   );
 }
+
+    
 
     
