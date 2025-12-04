@@ -119,17 +119,6 @@ const calculatorSchema = z.object({
 
 type CalculatorInput = z.infer<typeof calculatorSchema>;
 
-const NICHES = [
-  'Moda',
-  'Beleza',
-  'Fitness',
-  'Culinária',
-  'Lifestyle',
-  'Tecnologia',
-  'Finanças',
-  'Viagem',
-];
-
 const WordmarkIcon = (props: React.ComponentProps<'a'>) => (
   <Link
     href="/"
