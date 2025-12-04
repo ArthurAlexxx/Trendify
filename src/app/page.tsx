@@ -161,18 +161,18 @@ export default function LandingPage() {
 
   const calculateGrowth = (data: CalculatorInput) => {
     startTransition(async () => {
-        setError(null);
-        setResults(null);
-        const result = await calculateGrowthAction(null, data);
-        if (result?.error) {
-            setError(result.error);
-        }
-        if (result?.data) {
-            setResults(result.data);
-            setStep(1);
-        }
+      setError(null);
+      setResults(null);
+      const result = await calculateGrowthAction(null, data);
+      if (result?.error) {
+        setError(result.error);
+      }
+      if (result?.data) {
+        setResults(result.data);
+        setStep(1);
+      }
     });
-  }
+  };
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -407,7 +407,7 @@ export default function LandingPage() {
                                   <FormControl>
                                     <Input
                                       type="text"
-                                      value={field.value === 0 ? '' : field.value}
+                                      value={field.value === 0 ? '' : field.value.toString()}
                                       onChange={(e) => {
                                         const value = e.target.value.replace(/\D/g, '');
                                         if (value === '') {
@@ -435,7 +435,7 @@ export default function LandingPage() {
                                   <FormControl>
                                     <Input
                                       type="text"
-                                      value={field.value === 0 ? '' : field.value}
+                                      value={field.value === 0 ? '' : field.value.toString()}
                                       onChange={(e) => {
                                         const value = e.target.value.replace(/\D/g, '');
                                         if (value === '') {
