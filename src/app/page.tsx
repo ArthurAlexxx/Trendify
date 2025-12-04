@@ -111,7 +111,7 @@ const faqItems = [
 ];
 
 const calculatorSchema = z.object({
-  niche: z.string().min(1, 'Selecione um nicho'),
+  niche: z.string().min(3, 'O nicho deve ter pelo menos 3 caracteres.'),
   followers: z.number().min(1, 'Deve ser maior que 0').max(50000000, 'O número de seguidores é muito alto.'),
   goal: z.number().min(1, 'Deve ser maior que 0').max(50000000, 'A meta de seguidores é muito alta.'),
   postsPerMonth: z.number().min(0),
@@ -163,7 +163,7 @@ export default function LandingPage() {
   const form = useForm<CalculatorInput>({
     resolver: zodResolver(calculatorSchema),
     defaultValues: {
-      niche: 'Moda',
+      niche: '',
       followers: 10000,
       goal: 100000,
       postsPerMonth: 20,
@@ -388,7 +388,7 @@ export default function LandingPage() {
                           className="space-y-8"
                         >
                           <div className="grid md:grid-cols-3 gap-6">
-                            <FormField
+                             <FormField
                               control={form.control}
                               name="niche"
                               render={({ field }) => (
@@ -396,23 +396,13 @@ export default function LandingPage() {
                                   <FormLabel className="font-semibold">
                                     Qual seu nicho principal?
                                   </FormLabel>
-                                  <Select
-                                    onValueChange={field.onChange}
-                                    defaultValue={field.value}
-                                  >
-                                    <FormControl>
-                                      <SelectTrigger className="h-12 text-base bg-muted/50">
-                                        <SelectValue />
-                                      </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                      {NICHES.map((n) => (
-                                        <SelectItem key={n} value={n}>
-                                          {n}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
+                                  <FormControl>
+                                    <Input
+                                        placeholder="Ex: Beleza, Finanças"
+                                        className="h-12 text-base bg-muted/50"
+                                        {...field}
+                                    />
+                                  </FormControl>
                                   <FormMessage />
                                 </FormItem>
                               )}
