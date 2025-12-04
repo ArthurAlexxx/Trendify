@@ -57,14 +57,6 @@ import { AnimatedHero } from '@/components/ui/animated-hero';
 import { useScroll } from '@/hooks/use-scroll';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '@/components/ui/dialog';
-import {
   GrowthCalculatorOutput,
   calculateGrowthAction,
 } from '@/app/landing-page/actions';
@@ -137,7 +129,6 @@ const WordmarkIcon = (props: React.ComponentProps<'a'>) => (
 export default function LandingPage() {
   const { user } = useUser();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const scrolled = useScroll(10);
   
   const [isCalculating, setIsCalculating] = useState(false);
@@ -163,13 +154,13 @@ export default function LandingPage() {
 
   const handleCalculate = async (data: CalculatorInput) => {
     setIsCalculating(true);
+    setResults(null);
     try {
       const result = await calculateGrowthAction(data);
       if (result.error) {
         toast({ title: "Erro ao Calcular", description: result.error, variant: 'destructive'});
       } else if (result.data) {
         setResults(result.data);
-        setIsModalOpen(true);
       }
     } catch (e) {
       toast({ title: "Erro Inesperado", description: "Ocorreu um erro. Tente novamente.", variant: 'destructive'});
@@ -372,7 +363,7 @@ export default function LandingPage() {
                     className="space-y-8"
                   >
                     <div className="grid md:grid-cols-3 gap-6">
-                      <FormField
+                       <FormField
                         control={form.control}
                         name="niche"
                         render={({ field }) => (
@@ -381,7 +372,7 @@ export default function LandingPage() {
                               Qual seu nicho principal?
                             </FormLabel>
                             <FormControl>
-                              <Input
+                               <Input
                                   placeholder="Ex: Beleza, Finanças"
                                   className="h-12 text-base bg-muted/50"
                                   {...field}
@@ -400,7 +391,7 @@ export default function LandingPage() {
                               Seguidores Atuais
                             </FormLabel>
                             <FormControl>
-                              <Input
+                               <Input
                                 type="text"
                                 value={field.value === 0 ? '' : field.value.toString()}
                                 onChange={(e) => {
@@ -483,27 +474,39 @@ export default function LandingPage() {
                 </Form>
               </CardContent>
             </Card>
-          </div>
-        </section>
 
-        {/* Results Modal */}
-        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-            <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
-                <DialogHeader>
-                    <DialogTitle className="text-2xl md:text-3xl font-bold font-headline text-center">
-                        Sua projeção de crescimento está pronta!
-                    </DialogTitle>
-                    {results && <DialogDescription className="text-center">
-                         Com base nos seus dados e benchmarks do nicho de{' '}
-                          <span className="font-semibold text-primary">
-                            {form.getValues('niche')}
-                          </span>.
-                    </DialogDescription>}
-                </DialogHeader>
+            <AnimatePresence>
+            {isCalculating && (
+                <motion.div 
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="flex justify-center items-center h-64 text-center"
+                >
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </motion.div>
+            )}
 
-                {results ? (
-                <div className="space-y-6 overflow-y-auto px-1">
-                    <div className="grid md:grid-cols-2 gap-4">
+            {results && !isCalculating && (
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="mt-12 space-y-8"
+                >
+                    <div className="text-center max-w-3xl mx-auto">
+                        <h2 className="text-3xl md:text-4xl font-bold font-headline tracking-tight mb-2">
+                            Sua projeção de crescimento está pronta!
+                        </h2>
+                        <p className="text-lg text-muted-foreground">
+                            Com base nos seus dados e benchmarks do nicho de{' '}
+                            <span className="font-semibold text-primary">
+                                {form.getValues('niche')}
+                            </span>.
+                        </p>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-4 max-w-4xl mx-auto">
                     <Card className="bg-primary/5 border-primary/20">
                         <CardHeader>
                         <CardTitle className="text-base font-semibold text-primary flex items-center gap-2">
@@ -548,112 +551,112 @@ export default function LandingPage() {
                         </CardContent>
                     </Card>
                     </div>
-                    <div>
-                    <h4 className="font-bold text-lg text-center mb-4">
-                        Curva de Crescimento de Seguidores
-                    </h4>
-                    <div className="h-64 w-full">
-                        <ResponsiveContainer>
-                        <AreaChart data={results.growthData}>
-                            <defs>
-                            <linearGradient
-                                id="colorFollowers"
-                                x1="0"
-                                y1="0"
-                                x2="0"
-                                y2="1"
-                            >
-                                <stop
-                                offset="5%"
-                                stopColor="hsl(var(--primary))"
-                                stopOpacity={0.8}
-                                />
-                                <stop
-                                offset="95%"
-                                stopColor="hsl(var(--primary))"
-                                stopOpacity={0}
-                                />
-                            </linearGradient>
-                            </defs>
-                            <XAxis
-                            dataKey="month"
-                            tickFormatter={(v) => `Mês ${v}`}
-                            />
-                            <YAxis tickFormatter={(v) => `${v / 1000}k`} />
-                            <Tooltip
-                            contentStyle={{
-                                backgroundColor: 'hsl(var(--background))',
-                                border: '1px solid hsl(var(--border))',
-                            }}
-                            />
-                            <Area
-                            type="monotone"
-                            dataKey="followers"
-                            stroke="hsl(var(--primary))"
-                            fillOpacity={1}
-                            fill="url(#colorFollowers)"
-                            />
-                        </AreaChart>
-                        </ResponsiveContainer>
-                    </div>
-                    </div>
 
-                    <div>
-                    <h4 className="font-bold text-lg text-center mb-4">
-                        Seu Plano Inicial
-                    </h4>
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 text-center">
-                        <Card className="bg-muted/50">
-                        <CardContent className="p-4">
-                            <p className="text-sm text-muted-foreground">
-                            Publicações/Mês
-                            </p>
-                            <p className="text-lg font-bold">
-                            {results.postsPerMonth}
-                            </p>
+                    <Card className="max-w-4xl mx-auto bg-card">
+                        <CardHeader>
+                             <h4 className="font-bold text-lg text-center">
+                                Curva de Crescimento de Seguidores
+                            </h4>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="h-64 w-full">
+                                <ResponsiveContainer>
+                                <AreaChart data={results.growthData}>
+                                    <defs>
+                                    <linearGradient
+                                        id="colorFollowers"
+                                        x1="0"
+                                        y1="0"
+                                        x2="0"
+                                        y2="1"
+                                    >
+                                        <stop
+                                        offset="5%"
+                                        stopColor="hsl(var(--primary))"
+                                        stopOpacity={0.8}
+                                        />
+                                        <stop
+                                        offset="95%"
+                                        stopColor="hsl(var(--primary))"
+                                        stopOpacity={0}
+                                        />
+                                    </linearGradient>
+                                    </defs>
+                                    <XAxis
+                                    dataKey="month"
+                                    tickFormatter={(v) => `Mês ${v}`}
+                                    />
+                                    <YAxis tickFormatter={(v) => `${v / 1000}k`} />
+                                    <Tooltip
+                                    contentStyle={{
+                                        backgroundColor: 'hsl(var(--background))',
+                                        border: '1px solid hsl(var(--border))',
+                                    }}
+                                    />
+                                    <Area
+                                    type="monotone"
+                                    dataKey="followers"
+                                    stroke="hsl(var(--primary))"
+                                    fillOpacity={1}
+                                    fill="url(#colorFollowers)"
+                                    />
+                                </AreaChart>
+                                </ResponsiveContainer>
+                            </div>
                         </CardContent>
-                        </Card>
-                        {results.trendSuggestions.map(
-                        (sug: any, index: number) => (
-                            <Card key={index} className="bg-muted/50">
-                            <CardContent className="p-4">
-                                <p className="text-sm text-muted-foreground">
-                                Gancho Sugerido
-                                </p>
-                                <p className="text-base font-semibold">
-                                {sug.icon} {sug.hook}
-                                </p>
-                            </CardContent>
-                            </Card>
-                        )
-                        )}
-                    </div>
-                    </div>
-                    <p className="text-xs text-muted-foreground text-center pt-2">
-                    Estimativas com base em benchmarks do nicho. Resultados
-                    variam por conteúdo, mercado e consistência.
+                    </Card>
+                    
+                     <Card className="max-w-4xl mx-auto bg-card">
+                        <CardHeader>
+                            <h4 className="font-bold text-lg text-center">
+                                Seu Plano Inicial para Acelerar
+                            </h4>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 text-center">
+                                <Card className="bg-muted/50">
+                                <CardContent className="p-4">
+                                    <p className="text-sm text-muted-foreground">
+                                    Publicações/Mês
+                                    </p>
+                                    <p className="text-lg font-bold">
+                                    {results.postsPerMonth}
+                                    </p>
+                                </CardContent>
+                                </Card>
+                                {results.trendSuggestions.map(
+                                (sug: any, index: number) => (
+                                    <Card key={index} className="bg-muted/50">
+                                    <CardContent className="p-4">
+                                        <p className="text-sm text-muted-foreground">
+                                        Gancho Sugerido
+                                        </p>
+                                        <p className="text-base font-semibold">
+                                        {sug.icon} {sug.hook}
+                                        </p>
+                                    </CardContent>
+                                    </Card>
+                                )
+                                )}
+                            </div>
+                            <div className="text-center mt-8">
+                                <Button asChild size="lg" className="h-12 text-base">
+                                    <Link href="/sign-up">
+                                        Criar conta grátis para acelerar
+                                    </Link>
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
+                    <p className="text-xs text-muted-foreground text-center pt-2 max-w-4xl mx-auto">
+                        Estimativas com base em benchmarks do nicho. Resultados
+                        variam por conteúdo, mercado e consistência.
                     </p>
-                </div>
-                ) : (
-                    <div className="flex items-center justify-center h-64">
-                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    </div>
-                )}
-
-                <DialogFooter className="pt-4">
-                    <Button
-                        size="lg"
-                        className="w-full sm:w-auto h-12 text-base"
-                        asChild
-                        >
-                        <Link href="/sign-up">
-                            Criar conta e acelerar
-                        </Link>
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-
+                </motion.div>
+            )}
+            </AnimatePresence>
+          </div>
+        </section>
 
         {/* Pricing Section */}
         <section id="precos" className="py-20 sm:py-24 bg-background">
