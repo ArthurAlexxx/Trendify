@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -24,7 +23,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useTransition } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Form,
@@ -64,7 +63,10 @@ import { AnimatedHero } from '@/components/ui/animated-hero';
 import { useScroll } from '@/hooks/use-scroll';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
-
+import {
+  GrowthCalculatorOutput,
+  calculateGrowthAction,
+} from '@/app/landing-page/actions';
 
 const features = [
   {
@@ -88,7 +90,6 @@ const features = [
     plan: 'premium',
   },
 ];
-
 
 const faqItems = [
   {
@@ -128,21 +129,6 @@ const NICHES = [
   'Viagem',
 ];
 
-const BENCHMARKS: Record<
-  string,
-  { baseGrowth: number; cpmRange: [number, number]; reelsMultiplier: number }
-> = {
-  Moda: { baseGrowth: 0.06, cpmRange: [20, 80], reelsMultiplier: 0.005 },
-  Beleza: { baseGrowth: 0.05, cpmRange: [25, 90], reelsMultiplier: 0.006 },
-  Fitness: { baseGrowth: 0.07, cpmRange: [15, 70], reelsMultiplier: 0.007 },
-  Culinária: { baseGrowth: 0.05, cpmRange: [10, 50], reelsMultiplier: 0.004 },
-  Lifestyle: { baseGrowth: 0.04, cpmRange: [18, 65], reelsMultiplier: 0.005 },
-  Tecnologia: { baseGrowth: 0.08, cpmRange: [30, 120], reelsMultiplier: 0.008 },
-  Finanças: { baseGrowth: 0.09, cpmRange: [40, 150], reelsMultiplier: 0.009 },
-  Viagem: { baseGrowth: 0.06, cpmRange: [22, 85], reelsMultiplier: 0.006 },
-  Default: { baseGrowth: 0.05, cpmRange: [15, 60], reelsMultiplier: 0.005 },
-};
-
 const WordmarkIcon = (props: React.ComponentProps<'a'>) => (
   <Link
     href="/"
@@ -160,8 +146,9 @@ const WordmarkIcon = (props: React.ComponentProps<'a'>) => (
 export default function LandingPage() {
   const { user } = useUser();
   const [step, setStep] = useState(0);
-  const [results, setResults] = useState<any>(null);
-  const [isCalculating, setIsCalculating] = useState(false);
+  const [results, setResults] = useState<GrowthCalculatorOutput | null>(null);
+  const [isCalculating, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const scrolled = useScroll(10);
 
@@ -182,64 +169,20 @@ export default function LandingPage() {
     },
   });
 
-  const calculateGrowth = useCallback((data: CalculatorInput) => {
-    setIsCalculating(true);
-    const { niche, followers, goal, reelsPerMonth } = data;
-    const benchmark = BENCHMARKS[niche] || BENCHMARKS.Default;
-
-    const monthlyGrowthRate =
-      benchmark.baseGrowth + reelsPerMonth * benchmark.reelsMultiplier;
-    let months = 0;
-    let currentFollowers = followers;
-    const growthData = [{ month: 0, followers: currentFollowers }];
-
-    while (currentFollowers < goal) {
-      months++;
-      currentFollowers *= 1 + monthlyGrowthRate;
-      growthData.push({
-        month: months,
-        followers: Math.round(currentFollowers),
-      });
-      if (months > 120) break; // safety break
-    }
-
-    const estimateEarnings = (f: number) => {
-      const viewRate = [0.2, 0.5]; // 20% to 50% of followers see a reel
-      const views = [f * viewRate[0], f * viewRate[1]];
-      const earnings = [
-        (views[0] / 1000) * benchmark.cpmRange[0],
-        (views[1] / 1000) * benchmark.cpmRange[1],
-      ];
-      const monthlyPublis = Math.max(1, Math.round(reelsPerMonth * 0.2)); // 20% of content can be sponsored
-      return [
-        Math.round(earnings[0] * monthlyPublis),
-        Math.round(earnings[1] * monthlyPublis),
-      ];
-    };
-
-    const currentEarnings = estimateEarnings(followers);
-    const goalEarnings = estimateEarnings(goal);
-
-    const trendSuggestions = [
-      { hook: '3 erros que você comete em...', icon: '🚫' },
-      { hook: 'O segredo que ninguém conta sobre...', icon: '🤫' },
-      { hook: 'Meu top 5 de produtos para...', icon: '🏆' },
-    ];
-
-    setTimeout(() => {
-      setResults({
-        months,
-        goalDate: new Date(Date.now() + months * 30 * 24 * 60 * 60 * 1000),
-        currentEarnings,
-        goalEarnings,
-        growthData,
-        trendSuggestions,
-        reelsPerMonth,
-      });
-      setIsCalculating(false);
-      setStep(1);
-    }, 1000);
-  }, []);
+  const calculateGrowth = (data: CalculatorInput) => {
+    startTransition(async () => {
+        setError(null);
+        setResults(null);
+        const result = await calculateGrowthAction(null, data);
+        if (result?.error) {
+            setError(result.error);
+        }
+        if (result?.data) {
+            setResults(result.data);
+            setStep(1);
+        }
+    });
+  }
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -597,7 +540,7 @@ export default function LandingPage() {
                             </p>
                             <p className="text-muted-foreground">
                               Data prevista:{' '}
-                              {results.goalDate.toLocaleDateString('pt-BR', {
+                              {new Date(results.goalDate).toLocaleDateString('pt-BR', {
                                 month: 'long',
                                 year: 'numeric',
                               })}
