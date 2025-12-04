@@ -4,14 +4,11 @@
 import OpenAI from 'openai';
 import { z } from 'zod';
 
-const CollaborationIdeaSchema = z.union([
-  z.string(),
-  z.object({
-    ideia: z
-      .string()
-      .describe('A ideia de colaboração criativa e de alto nível.'),
-  }),
-]);
+const CollaborationIdeaSchema = z.object({
+  ideia: z
+    .string()
+    .describe('A ideia de colaboração criativa e de alto nível.'),
+});
 
 const AiCareerPackageOutputSchema = z.object({
   executiveSummary: z
@@ -48,10 +45,10 @@ const AiCareerPackageOutputSchema = z.object({
   sampleCollaborationIdeas: z
     .array(CollaborationIdeaSchema)
     .describe(
-      'Uma lista de 2-3 ideias de colaboração criativas e de alto nível que se encaixam no nicho do criador e da marca alvo.'
+      'Uma lista de 3 ideias de colaboração criativas e de alto nível que se encaixam no nicho do criador e da marca alvo.'
     )
     .transform((ideas) =>
-      ideas.map((idea) => (typeof idea === 'string' ? idea : idea.ideia))
+      ideas.map((idea) => idea.ideia)
     ),
 });
 
@@ -116,7 +113,7 @@ Sua resposta DEVE ser um bloco de código JSON válido, e NADA MAIS. O JSON deve
   
   - pricingTiers: Com base nas métricas fornecidas (${input.keyMetrics}), calcule faixas de preço realistas para o mercado brasileiro. É OBRIGATÓRIO que você retorne uma STRING formatada para CADA um dos campos (reels, storySequence, staticPost, monthlyPackage), como "R$ X - R$ Y". Não deixe nenhum campo de preço em branco.
 
-  - sampleCollaborationIdeas: Gere 3 ideias de colaboração. Cada ideia DEVE ser:
+  - sampleCollaborationIdeas: Gere EXATAMENTE 3 ideias de colaboração. Cada ideia DEVE ser:
     1.  100% relacionada e exclusiva ao nicho '${input.niche}'.
     2.  Criativa, autêntica e que gere valor real para o público deste nicho.
     3.  Alinhada com os produtos ou o posicionamento da marca alvo '${input.targetBrand}'.

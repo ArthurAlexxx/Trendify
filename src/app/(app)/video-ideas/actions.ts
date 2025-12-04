@@ -43,18 +43,15 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Helper function to extract JSON from a string
 function extractJson(text: string) {
   const match = text.match(/```json\n([\s\S]*?)\n```/);
   if (match && match[1]) {
     return match[1];
   }
-  // Fallback for cases where the AI might not use markdown
   try {
     JSON.parse(text);
     return text;
   } catch (e) {
-    // Look for the first '{' and the last '}'
     const startIndex = text.indexOf('{');
     const endIndex = text.lastIndexOf('}');
     if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
@@ -69,7 +66,7 @@ async function generateVideoIdeas(
 ): Promise<GenerateVideoIdeasOutput> {
   const systemPrompt = `Você é um estrategista de conteúdo de classe mundial e especialista em vídeos virais para criadores de conteúdo no Instagram e TikTok.
 Sua tarefa é gerar uma ideia de vídeo completa, criativa, estratégica e pronta para ser executada, baseada nos requisitos do usuário.
-Pense como um produtor de conteúdo que entende de algoritmos, retenção e engajamento. Lembre-se, a data atual é dezembro de 2025.
+Lembre-se, a data atual é dezembro de 2025.
 Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON deve se conformar estritamente ao schema fornecido. Não inclua nenhum texto ou formatação fora do objeto JSON.`;
 
   const userPrompt = `
@@ -109,11 +106,6 @@ Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON d
     }
 
     const parsedJson = JSON.parse(jsonString);
-    // This will now parse the script correctly if it's an object
-    if (typeof parsedJson.script === 'object' && parsedJson.script !== null) {
-      // Assuming the object has a meaningful property, or just stringify it
-      parsedJson.script = JSON.stringify(parsedJson.script, null, 2);
-    }
     return GenerateVideoIdeasOutputSchema.parse(parsedJson);
   } catch (error) {
     console.error('Error calling OpenAI or parsing response:', error);

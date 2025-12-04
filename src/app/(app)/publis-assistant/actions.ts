@@ -5,9 +5,9 @@ import OpenAI from 'openai';
 import { z } from 'zod';
 
 const ScriptSchema = z.object({
-  gancho: z.string().describe('Um gancho de 2-3 segundos, otimizado para parar a rolagem e gerar curiosidade imediata.').optional(),
-  script: z.string().describe('Um roteiro detalhado e conciso, com indicações de cena e narração, estruturado para reter a atenção.').optional(),
-  cta: z.string().describe('Uma chamada para ação clara, convincente e alinhada ao objetivo do vídeo.').optional(),
+  gancho: z.string().describe('Um gancho de 2-3 segundos, otimizado para parar a rolagem e gerar curiosidade imediata.'),
+  script: z.string().describe('Um roteiro detalhado e conciso, com indicações de cena e narração, estruturado para reter a atenção.'),
+  cta: z.string().describe('Uma chamada para ação clara, convincente e alinhada ao objetivo do vídeo.'),
 });
 
 const TrendVariationSchema = z.object({
@@ -49,12 +49,10 @@ function extractJson(text: string) {
   if (match && match[1]) {
     return match[1];
   }
-  // Fallback for cases where the AI might not use markdown
   try {
     JSON.parse(text);
     return text;
   } catch (e) {
-    // Look for the first '{' and the last '}'
     const startIndex = text.indexOf('{');
     const endIndex = text.lastIndexOf('}');
     if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {

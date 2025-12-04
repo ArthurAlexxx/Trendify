@@ -138,7 +138,6 @@ export async function generateWeeklyPlanAction(
 
   try {
     const result = await generateWeeklyPlan(parsed.data);
-    // Retorna os dados gerados pela IA, a escrita no banco será feita no cliente
     return { data: result };
   } catch (e) {
     const errorMessage =

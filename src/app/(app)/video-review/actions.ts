@@ -3,7 +3,6 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import { initializeFirebaseAdmin } from '@/firebase/admin';
 
 const VideoAnalysisOutputSchema = z.object({
   geral: z.string().describe('Uma nota geral de 0 a 10 para o potencial de viralização do vídeo, sempre acompanhada de uma justificativa concisa.'),
@@ -60,7 +59,7 @@ export async function analyzeVideo(
   } catch (e: any) {
     console.error("Falha na execução do fluxo de análise de vídeo:", e);
 
-    if (e.message && (e.message.includes('503') || e.message.toLowerCase().includes('overloaded'))) {
+    if (e.message && (e.message.includes('503') || e.message.toLowerCase().includes('overloaded') || e.message.toLowerCase().includes('resource has been exhausted'))) {
         return {
             error: 'Ocorreu uma sobrecarga em nossos servidores de IA. Por favor, aguarde alguns instantes e tente novamente. Sua análise não foi consumida.',
             isOverloaded: true,
