@@ -594,7 +594,7 @@ const BackfillMetricsSheet = ({ userProfile }: { userProfile: UserProfile }) => 
     )
 }
 
-const FollowerGoalModal = ({ userProfile, children }: { userProfile: UserProfile, children: React.ReactNode }) => {
+const FollowerGoalSheet = ({ userProfile, children }: { userProfile: UserProfile, children: React.ReactNode }) => {
     const { user } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
@@ -659,15 +659,15 @@ const FollowerGoalModal = ({ userProfile, children }: { userProfile: UserProfile
     )
 
     return (
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogTrigger asChild>{children}</DialogTrigger>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle className="font-headline text-xl">Definir Metas de Seguidores</DialogTitle>
-                    <DialogDescription>
+        <Sheet open={isOpen} onOpenChange={setIsOpen}>
+            <SheetTrigger asChild>{children}</SheetTrigger>
+            <SheetContent>
+                <SheetHeader>
+                    <SheetTitle className="font-headline text-xl">Definir Metas de Seguidores</SheetTitle>
+                    <SheetDescription>
                         Defina suas metas para cada plataforma ou uma meta geral. Isso ajudará a IA a criar estratégias melhores.
-                    </DialogDescription>
-                </DialogHeader>
+                    </SheetDescription>
+                </SheetHeader>
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
                         <div className="grid grid-cols-2 items-center gap-4">
@@ -682,16 +682,16 @@ const FollowerGoalModal = ({ userProfile, children }: { userProfile: UserProfile
                             <Label htmlFor="tiktokFollowerGoal">Meta do TikTok</Label>
                            {renderNumericInput('tiktokFollowerGoal')}
                         </div>
-                         <DialogFooter className='pt-2'>
+                         <SheetFooter className='pt-2'>
                             <Button type="submit" disabled={isPending}>
                                 {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                 Salvar Metas
                             </Button>
-                        </DialogFooter>
+                        </SheetFooter>
                     </form>
                 </Form>
-            </DialogContent>
-        </Dialog>
+            </SheetContent>
+        </Sheet>
     )
 }
 
@@ -712,6 +712,17 @@ const GoalProgressCard = ({ title, icon: Icon, current, goal, isLoading }: {titl
     const remaining = Math.max(0, goal - current);
 
     const pieData = [{ value: progress }, { value: 100 - progress }];
+
+    const parseMetric = (value?: string | number): number => {
+        if (typeof value === 'number') return value;
+        if (!value || typeof value !== 'string') return 0;
+    
+        const cleanedValue = value.replace(/\./g, '').replace(',', '.');
+        const num = parseFloat(
+          cleanedValue.replace(/K/gi, 'e3').replace(/M/gi, 'e6')
+        );
+        return isNaN(num) ? 0 : num;
+    };
 
     return (
         <Card className="rounded-2xl border-0 bg-muted/50 p-4 flex flex-col items-center justify-center">
@@ -1054,9 +1065,9 @@ export default function DashboardPage() {
                 <CardHeader className="bg-muted/30 p-4 sm:p-6">
                     <div className='flex justify-between items-center'>
                          <CardTitle className="font-headline text-lg sm:text-xl">Metas de Seguidores</CardTitle>
-                          <FollowerGoalModal userProfile={userProfile}>
+                          <FollowerGoalSheet userProfile={userProfile}>
                             <Button variant="ghost" size="sm"><Pencil className="mr-2 h-4 w-4" /> Editar Metas</Button>
-                          </FollowerGoalModal>
+                          </FollowerGoalSheet>
                     </div>
                 </CardHeader>
                 <CardContent className="p-4 sm:p-6">
@@ -1471,5 +1482,7 @@ export default function DashboardPage() {
     </>
   );
 }
+
+    
 
     
