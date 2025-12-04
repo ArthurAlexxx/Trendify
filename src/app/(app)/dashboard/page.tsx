@@ -695,71 +695,6 @@ const FollowerGoalSheet = ({ userProfile, children }: { userProfile: UserProfile
     )
 }
 
-const GoalProgressCard = ({ title, icon: Icon, current, goal, isLoading }: {title: string, icon: React.ElementType, current: number, goal: number, isLoading: boolean}) => {
-    
-    const formatMetricValue = (value?: string | number): string => {
-        if (value === undefined || value === null) return '—';
-        const num = typeof value === 'string' ? parseMetric(value) : value;
-        if (num === 0) return 'N/A';
-
-        if (num >= 1000000) return `${(num / 1000000).toFixed(1).replace('.', ',')}M`;
-        if (num >= 10000) return `${(num / 1000).toFixed(0)}K`;
-        if (num >= 1000) return num.toLocaleString('pt-BR');
-        return String(num);
-    };
-
-    const progress = goal > 0 ? Math.min((current / goal) * 100, 100) : 0;
-    const remaining = Math.max(0, goal - current);
-
-    const pieData = [{ value: progress }, { value: 100 - progress }];
-
-    const parseMetric = (value?: string | number): number => {
-        if (typeof value === 'number') return value;
-        if (!value || typeof value !== 'string') return 0;
-    
-        const cleanedValue = value.replace(/\./g, '').replace(',', '.');
-        const num = parseFloat(
-          cleanedValue.replace(/K/gi, 'e3').replace(/M/gi, 'e6')
-        );
-        return isNaN(num) ? 0 : num;
-    };
-
-    return (
-        <Card className="rounded-2xl border-0 bg-muted/50 p-4 flex flex-col items-center justify-center">
-            <h4 className="font-semibold text-sm mb-4 flex items-center gap-2 text-muted-foreground"><Icon className="h-4 w-4" /> {title}</h4>
-            
-            {isLoading ? <Skeleton className="h-32 w-32 rounded-full" /> : 
-            goal > 0 ? (
-                 <div className="relative h-32 w-32">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                            <Pie data={pieData} dataKey="value" startAngle={90} endAngle={450} innerRadius="75%" outerRadius="100%" cornerRadius={50} paddingAngle={0} stroke="none">
-                                <Cell fill="hsl(var(--primary))" />
-                                <Cell fill="hsl(var(--border))" />
-                            </Pie>
-                        </PieChart>
-                    </ResponsiveContainer>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <span className="text-3xl font-bold text-primary">{progress.toFixed(0)}%</span>
-                    </div>
-                </div>
-            ) : (
-                <div className="relative h-32 w-32 flex items-center justify-center">
-                    <div className="text-center">
-                        <Target className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                        <p className="text-xs text-muted-foreground">Sem meta definida</p>
-                    </div>
-                </div>
-            )}
-            <div className="text-center mt-4">
-                 <p className="text-xs text-muted-foreground">Atual: <span className="font-bold text-foreground">{formatMetricValue(current)}</span></p>
-                 <p className="text-xs text-muted-foreground">Faltam: <span className="font-bold text-foreground">{goal > 0 ? formatMetricValue(remaining) : '—'}</span></p>
-            </div>
-        </Card>
-    );
-};
-
-
 export default function DashboardPage() {
   const { user } = useUser();
   const firestore = useFirestore();
@@ -887,21 +822,29 @@ export default function DashboardPage() {
     return String(num);
   };
   
-  const currentTotalFollowers = useMemo(() => {
-    if (!userProfile) return 0;
-    return parseMetric(userProfile.instagramFollowers) + parseMetric(userProfile.tiktokFollowers);
-  }, [userProfile]);
+  const { currentFollowers, goalFollowers } = useMemo(() => {
+    if (!userProfile) return { currentFollowers: 0, goalFollowers: 0 };
+    switch (selectedPlatform) {
+      case 'instagram':
+        return {
+          currentFollowers: parseMetric(userProfile.instagramFollowers),
+          goalFollowers: userProfile.instagramFollowerGoal || 0,
+        };
+      case 'tiktok':
+        return {
+          currentFollowers: parseMetric(userProfile.tiktokFollowers),
+          goalFollowers: userProfile.tiktokFollowerGoal || 0,
+        };
+      case 'total':
+      default:
+        return {
+          currentFollowers: parseMetric(userProfile.instagramFollowers) + parseMetric(userProfile.tiktokFollowers),
+          goalFollowers: userProfile.totalFollowerGoal || 0,
+        };
+    }
+  }, [userProfile, selectedPlatform]);
   
-  const currentInstagramFollowers = useMemo(() => {
-    if (!userProfile) return 0;
-    return parseMetric(userProfile.instagramFollowers);
-  }, [userProfile]);
-  
-  const currentTiktokFollowers = useMemo(() => {
-    if (!userProfile) return 0;
-    return parseMetric(userProfile.tiktokFollowers);
-  }, [userProfile]);
-
+  const followerGoalProgress = goalFollowers > 0 ? Math.min((currentFollowers / goalFollowers) * 100, 100) : 0;
   
   const latestMetrics = useMemo(() => {
     if (!userProfile) return null;
@@ -1060,41 +1003,20 @@ export default function DashboardPage() {
       <div className="space-y-8">
         {userProfile && <ProfileCompletionAlert userProfile={userProfile} hasUpdatedToday={hasUpdatedToday} missingDays={missingDaysCount} isPremium={isPremium} />}
 
-         {userProfile && (
-            <Card className="rounded-2xl border-0 overflow-hidden">
-                <CardHeader className="bg-muted/30 p-4 sm:p-6">
-                    <div className='flex justify-between items-center'>
-                         <CardTitle className="font-headline text-lg sm:text-xl">Metas de Seguidores</CardTitle>
-                          <FollowerGoalSheet userProfile={userProfile}>
-                            <Button variant="ghost" size="sm"><Pencil className="mr-2 h-4 w-4" /> Editar Metas</Button>
-                          </FollowerGoalSheet>
-                    </div>
-                </CardHeader>
-                <CardContent className="p-4 sm:p-6">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <GoalProgressCard title="Total" icon={Users} current={currentTotalFollowers} goal={userProfile.totalFollowerGoal || 0} isLoading={isLoadingProfile} />
-                        <GoalProgressCard title="Instagram" icon={Instagram} current={currentInstagramFollowers} goal={userProfile.instagramFollowerGoal || 0} isLoading={isLoadingProfile} />
-                        <GoalProgressCard title="TikTok" icon={Film} current={currentTiktokFollowers} goal={userProfile.tiktokFollowerGoal || 0} isLoading={isLoadingProfile} />
-                    </div>
-                </CardContent>
-            </Card>
-         )}
-
-
         <div className="grid grid-cols-1 gap-8">
             <Card className="rounded-2xl border-0">
                 <CardHeader>
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                         <div>
-                            <CardTitle className="text-base font-medium text-muted-foreground">
-                                Visão Geral da Plataforma
+                            <CardTitle className="font-headline text-lg sm:text-xl">
+                                Acompanhamento de Métricas e Metas
                             </CardTitle>
                             <CardDescription>Métricas manuais ou sincronizadas do seu perfil.</CardDescription>
                         </div>
                         <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
-                            <div className='w-full sm:w-64'>
+                            <div className='w-full sm:w-auto'>
                                 <Select value={selectedPlatform} onValueChange={(value) => setSelectedPlatform(value as any)}>
-                                <SelectTrigger className="w-full">
+                                <SelectTrigger className="w-full sm:w-48">
                                     <SelectValue placeholder="Selecione a plataforma" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -1104,13 +1026,43 @@ export default function DashboardPage() {
                                 </SelectContent>
                                 </Select>
                             </div>
-                            {userProfile && <UpdateMetricsSheet userProfile={userProfile} />}
+                           {userProfile && 
+                           <FollowerGoalSheet userProfile={userProfile}>
+                                <Button variant="outline" size="sm"><Pencil className="mr-2 h-4 w-4" /> Editar Metas</Button>
+                           </FollowerGoalSheet>
+                           }
                         </div>
                     </div>
                 </CardHeader>
                 <CardContent>
                     <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-                        <MetricCard icon={Users} title="Seguidores" value={formatMetricValue(latestMetrics?.followers)} handle={selectedPlatform !== 'total' ? latestMetrics?.handle as string : undefined} isLoading={isLoading} />
+                        <Card className="p-4 rounded-lg bg-muted/50">
+                            <div className="flex items-center justify-between space-y-0 pb-2">
+                                <h3 className="text-sm font-medium text-muted-foreground">Seguidores</h3>
+                                <Users className="h-4 w-4 text-primary" />
+                            </div>
+                            <div>
+                                {isLoading ? (
+                                    <>
+                                        <Skeleton className="h-8 w-24 mb-2" />
+                                        <Skeleton className="h-3 w-32" />
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="text-2xl font-bold font-headline">{formatMetricValue(latestMetrics?.followers)}</div>
+                                        {goalFollowers > 0 ? (
+                                            <div className="space-y-1">
+                                                <p className="text-xs text-muted-foreground">{followerGoalProgress.toFixed(0)}% da meta de {formatMetricValue(goalFollowers)}</p>
+                                                <Progress value={followerGoalProgress} className="h-1.5" />
+                                            </div>
+                                        ) : (
+                                            <p className="text-xs text-muted-foreground">Nenhuma meta definida</p>
+                                        )}
+                                    </>
+                                )}
+                            </div>
+                        </Card>
+
                         <MetricCard icon={Eye} title="Média de Views" value={formatMetricValue(latestMetrics?.views)} isLoading={isLoading} />
                         <MetricCard icon={Heart} title="Média de Likes" value={formatMetricValue(latestMetrics?.likes)} isLoading={isLoading} />
                         <MetricCard icon={MessageSquare} title="Média de Comentários" value={formatMetricValue(latestMetrics?.comments)} isLoading={isLoading} />
@@ -1482,7 +1434,5 @@ export default function DashboardPage() {
     </>
   );
 }
-
-    
 
     
