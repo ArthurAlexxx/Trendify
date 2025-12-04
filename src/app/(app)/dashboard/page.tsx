@@ -1008,8 +1008,8 @@ export default function DashboardPage() {
 
       <div className="space-y-8">
         
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-            <div className="lg:col-span-1">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
+            <div className="lg:col-span-3">
                 <Card className="rounded-2xl border-0">
                     <CardHeader>
                         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -1071,7 +1071,7 @@ export default function DashboardPage() {
                     </CardContent>
                 </Card>
             </div>
-            <div className="lg:col-span-1 flex flex-col gap-8">
+            <div className="lg:col-span-2 flex flex-col gap-8">
                  {userProfile && <ProfileCompletionAlert userProfile={userProfile} hasUpdatedToday={hasUpdatedToday} missingDays={missingDaysCount} isPremium={isPremium} />}
 
                 <Card className="rounded-2xl border-0">
@@ -1462,6 +1462,8 @@ export default function DashboardPage() {
     </>
   );
 }
+
+    
 
     
 
