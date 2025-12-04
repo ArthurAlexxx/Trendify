@@ -429,11 +429,15 @@ export default function LandingPage() {
                                     <Input
                                       type="number"
                                       {...field}
-                                      onChange={(e) =>
-                                        field.onChange(
-                                          parseInt(e.target.value, 10) || 0
-                                        )
-                                      }
+                                      onChange={(e) => {
+                                        const value = e.target.value;
+                                        if (value === '') {
+                                          field.onChange(undefined);
+                                        } else {
+                                          const num = Math.min(parseInt(value, 10), 50000000);
+                                          field.onChange(isNaN(num) ? undefined : num);
+                                        }
+                                      }}
                                       className="h-12 text-base bg-muted/50"
                                     />
                                   </FormControl>
@@ -453,11 +457,15 @@ export default function LandingPage() {
                                     <Input
                                       type="number"
                                       {...field}
-                                      onChange={(e) =>
-                                        field.onChange(
-                                          parseInt(e.target.value, 10) || 0
-                                        )
-                                      }
+                                      onChange={(e) => {
+                                        const value = e.target.value;
+                                        if (value === '') {
+                                          field.onChange(undefined);
+                                        } else {
+                                          const num = Math.min(parseInt(value, 10), 50000000);
+                                          field.onChange(isNaN(num) ? undefined : num);
+                                        }
+                                      }}
                                       className="h-12 text-base bg-muted/50"
                                     />
                                   </FormControl>
