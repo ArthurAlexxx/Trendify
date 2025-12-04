@@ -911,7 +911,7 @@ export default function DashboardPage() {
       .sort((a, b) => a.date.getTime() - b.date.getTime());
 
     // Take the last 7 days of data if available, otherwise take all available data
-    const chartData = sortedDaysData.length > 7 ? sortedDaysData.slice(-7) : sortedDaysData;
+    const chartData = sortedDaysData.slice(-(sortedDaysData.length > 7 ? 7 : sortedDaysData.length));
 
     // Format for the chart
     return chartData.map(dayData => ({
@@ -1015,9 +1015,9 @@ export default function DashboardPage() {
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                         <div>
                             <CardTitle className="font-headline text-lg sm:text-xl">
-                                Acompanhamento de Métricas e Metas
+                                Meta de Seguidores
                             </CardTitle>
-                            <CardDescription>Métricas manuais ou sincronizadas do seu perfil.</CardDescription>
+                            <CardDescription>Acompanhe seu progresso para a plataforma selecionada.</CardDescription>
                         </div>
                         <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
                             <div className='w-full sm:w-auto'>
@@ -1040,54 +1040,57 @@ export default function DashboardPage() {
                         </div>
                     </div>
                 </CardHeader>
-                <CardContent className="space-y-8">
-                    <Card className="rounded-2xl bg-muted/50 border-0 p-6">
-                        <CardContent className='p-0 grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4 items-center'>
-                             {/* Main Goal Card */}
-                            <div className="lg:col-span-1 flex flex-col items-center justify-center text-center">
-                                {isLoading ? <Skeleton className="h-48 w-48 rounded-full" /> : 
-                                goalFollowers > 0 ? (
-                                <div className='relative h-48 w-48'>
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <PieChart>
-                                            <Pie data={pieData} dataKey="value" startAngle={90} endAngle={-270} innerRadius="80%" outerRadius="100%" cornerRadius={50} paddingAngle={0} stroke="none">
-                                            {pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.fill} />)}
-                                            </Pie>
-                                        </PieChart>
-                                    </ResponsiveContainer>
-                                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                        <span className="text-4xl font-bold font-headline text-primary">{followerGoalProgress.toFixed(0)}%</span>
-                                    </div>
-                                </div>
-                                ) : (
-                                    <div className='flex flex-col items-center justify-center h-48 w-48 rounded-full border-4 border-dashed bg-background'>
-                                        <Target className="h-12 w-12 text-muted-foreground" />
-                                    </div>
-                                )}
-                                <p className="text-2xl font-bold font-headline mt-4">{formatMetricValue(currentFollowers)}</p>
-                                {goalFollowers > 0 ? (
-                                    <p className="text-sm text-muted-foreground">de {formatMetricValue(goalFollowers)} seguidores</p>
-                                ) : (
-                                    <p className="text-sm text-muted-foreground">Defina uma meta para começar</p>
-                                )}
+                <CardContent>
+                    <div className="flex flex-col items-center justify-center text-center">
+                        {isLoading ? <Skeleton className="h-48 w-48 rounded-full" /> : 
+                        goalFollowers > 0 ? (
+                        <div className='relative h-48 w-48'>
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie data={pieData} dataKey="value" startAngle={90} endAngle={-270} innerRadius="80%" outerRadius="100%" cornerRadius={50} paddingAngle={0} stroke="none">
+                                    {pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.fill} />)}
+                                    </Pie>
+                                </PieChart>
+                            </ResponsiveContainer>
+                            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                <span className="text-4xl font-bold font-headline text-primary">{followerGoalProgress.toFixed(0)}%</span>
                             </div>
-                            {/* Secondary Metrics */}
-                            <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-6">
-                                <div className="p-6 rounded-2xl bg-background flex flex-col justify-center">
-                                    <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-2"><Eye className="h-4 w-4" />Média de Views</h3>
-                                    <p className="text-3xl font-bold font-headline">{isLoading ? <Skeleton className="h-8 w-24" /> : formatMetricValue(latestMetrics?.views)}</p>
-                                </div>
-                                <div className="p-6 rounded-2xl bg-background flex flex-col justify-center">
-                                    <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-2"><Heart className="h-4 w-4" />Média de Likes</h3>
-                                    <p className="text-3xl font-bold font-headline">{isLoading ? <Skeleton className="h-8 w-24" /> : formatMetricValue(latestMetrics?.likes)}</p>
-                                </div>
-                                <div className="p-6 rounded-2xl bg-background flex flex-col justify-center">
-                                    <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-2"><MessageSquare className="h-4 w-4" />Média de Comentários</h3>
-                                    <p className="text-3xl font-bold font-headline">{isLoading ? <Skeleton className="h-8 w-24" /> : formatMetricValue(latestMetrics?.comments)}</p>
-                                </div>
+                        </div>
+                        ) : (
+                            <div className='flex flex-col items-center justify-center h-48 w-48 rounded-full border-4 border-dashed bg-muted'>
+                                <Target className="h-12 w-12 text-muted-foreground" />
                             </div>
-                        </CardContent>
-                    </Card>
+                        )}
+                        <p className="text-3xl font-bold font-headline mt-4">{formatMetricValue(currentFollowers)}</p>
+                        {goalFollowers > 0 ? (
+                            <p className="text-sm text-muted-foreground">de {formatMetricValue(goalFollowers)} seguidores</p>
+                        ) : (
+                            <p className="text-sm text-muted-foreground">Defina uma meta para começar</p>
+                        )}
+                    </div>
+                </CardContent>
+            </Card>
+
+            <Card className="rounded-2xl border-0">
+                 <CardHeader>
+                    <CardTitle className="font-headline text-lg sm:text-xl">
+                        Métricas de Engajamento
+                    </CardTitle>
+                    <CardDescription>Views, likes e comentários para a plataforma selecionada.</CardDescription>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    <div className="p-6 rounded-2xl bg-muted/50 flex flex-col justify-center">
+                        <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-2"><Eye className="h-4 w-4" />Média de Views</h3>
+                        <p className="text-3xl font-bold font-headline">{isLoading ? <Skeleton className="h-8 w-24" /> : formatMetricValue(latestMetrics?.views)}</p>
+                    </div>
+                    <div className="p-6 rounded-2xl bg-muted/50 flex flex-col justify-center">
+                        <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-2"><Heart className="h-4 w-4" />Média de Likes</h3>
+                        <p className="text-3xl font-bold font-headline">{isLoading ? <Skeleton className="h-8 w-24" /> : formatMetricValue(latestMetrics?.likes)}</p>
+                    </div>
+                    <div className="p-6 rounded-2xl bg-muted/50 flex flex-col justify-center">
+                        <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-2"><MessageSquare className="h-4 w-4" />Média de Comentários</h3>
+                        <p className="text-3xl font-bold font-headline">{isLoading ? <Skeleton className="h-8 w-24" /> : formatMetricValue(latestMetrics?.comments)}</p>
+                    </div>
                 </CardContent>
             </Card>
         </div>
@@ -1461,3 +1464,4 @@ export default function DashboardPage() {
     
 
     
+
