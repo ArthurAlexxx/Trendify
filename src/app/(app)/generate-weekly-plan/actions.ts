@@ -75,6 +75,7 @@ async function generateWeeklyPlan(
   input: FormSchemaType
 ): Promise<GenerateWeeklyPlanOutput> {
   const systemPrompt = `Você é um "AI Growth Strategist" para criadores de conteúdo. Sua tarefa é criar um plano de conteúdo semanal completo e acionável, além de uma simulação de desempenho correspondente.
+  Lembre-se, a data atual é dezembro de 2025.
   Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON deve se conformar estritamente ao schema fornecido.`;
 
   const userPrompt = `

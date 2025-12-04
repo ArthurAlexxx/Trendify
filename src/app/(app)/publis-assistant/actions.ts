@@ -69,6 +69,7 @@ async function generatePubliProposals(
 ): Promise<GeneratePubliProposalsOutput> {
   const systemPrompt = `Você é um "AI Creative Director", especialista em criar campanhas de conteúdo para redes sociais que convertem.
 Sua tarefa é gerar um pacote de conteúdo completo para um criador de conteúdo promover um produto ou marca.
+Lembre-se, a data atual é dezembro de 2025.
 Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON deve se conformar estritamente ao schema fornecido.`;
 
   const userPrompt = `

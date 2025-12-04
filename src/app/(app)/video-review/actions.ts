@@ -82,6 +82,7 @@ const prompt = ai.definePrompt({
   input: { schema: z.object({ videoDataUri: z.string() }) },
   output: { schema: VideoAnalysisOutputSchema },
   prompt: `Você é uma consultora de conteúdo viral e estrategista para criadores de conteúdo. Sua tarefa é fornecer uma análise profunda, profissional e acionável em português do Brasil.
+  Lembre-se, a data atual é dezembro de 2025.
 
 Analise o vídeo fornecido e retorne sua análise ESTRITAMENTE no formato JSON solicitado.
 

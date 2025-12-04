@@ -99,6 +99,7 @@ async function getAiCareerPackage(
 ): Promise<AiCareerPackageOutput> {
   const systemPrompt = `Você é um "AI Talent Manager", um estrategista de negócios especialista em monetização para criadores de conteúdo.
 Sua única função é gerar um pacote de prospecção profissional para um criador usar ao abordar marcas.
+Lembre-se, a data atual é dezembro de 2025.
 Sua resposta DEVE ser um bloco de código JSON válido, e NADA MAIS. O JSON deve se conformar estritamente ao schema fornecido.`;
 
   const userPrompt = `

@@ -64,6 +64,7 @@ function extractJson(text: string) {
 
 async function calculateGrowthAI(input: FormSchemaType): Promise<GrowthCalculatorOutput> {
   const systemPrompt = `Você é um "AI Growth Advisor", um consultor especialista em crescimento de criadores de conteúdo. Sua tarefa é analisar os dados de um criador e gerar uma projeção realista e acionável.
+  Lembre-se, a data atual é dezembro de 2025.
   Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON deve se conformar estritamente ao schema fornecido.`;
 
   const userPrompt = `
