@@ -80,7 +80,7 @@ async function calculateGrowthAI(input: FormSchemaType): Promise<GrowthCalculato
   - goalDate: Calcule a data futura com base no número de meses e retorne em formato ISO 8601.
   - currentEarnings e goalEarnings: Estime uma FAIXA de ganhos [mínimo, máximo] com publicidade. Use um CPM (Custo por Mil visualizações) médio para o Brasil que varia entre R$15 e R$150 dependendo do nicho. Considere que cerca de 20-50% dos seguidores veem uma publicação, e o criador pode fazer cerca de 20% do seu conteúdo como "publi". Nichos de Finanças e Tecnologia têm CPM mais alto.
   - growthData: Crie um array de pontos de dados para um gráfico, mostrando a evolução dos seguidores mês a mês até atingir a meta.
-  - trendSuggestions: Forneça 3 ideias de ganchos para vídeos virais, relevantes para o nicho '${input.niche}', cada uma com um ícone de emoji apropriado.
+  - trendSuggestions: Forneça 3 ideias de ganchos para vídeos virais, relevantes para o nicho '${input.niche}'. Cada item no array DEVE ser um objeto com as chaves "hook" (string) e "icon" (string de emoji).
   - postsPerMonth: Apenas retorne o valor de entrada.
   `;
 
@@ -101,11 +101,6 @@ async function calculateGrowthAI(input: FormSchemaType): Promise<GrowthCalculato
     if (!jsonString) throw new Error('Não foi possível encontrar um bloco JSON válido na resposta da IA.');
 
     const parsedJson = JSON.parse(jsonString);
-    // Compatibility rename from old schema if AI returns it
-    if (parsedJson.reelsPerMonth !== undefined) {
-        parsedJson.postsPerMonth = parsedJson.reelsPerMonth;
-        delete parsedJson.reelsPerMonth;
-    }
     return GrowthCalculatorOutputSchema.parse(parsedJson);
 
   } catch (error) {
