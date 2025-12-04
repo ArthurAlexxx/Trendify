@@ -68,8 +68,9 @@ const formSchema = z.object({
   objective: z.string().min(10, 'O objetivo precisa ser mais detalhado.'),
   niche: z.string().min(1, 'O nicho é obrigatório.'),
   currentStats: z.string().min(1, 'As estatísticas são obrigatórias.'),
-  goal: z.string().optional(),
-  goalPlatform: z.string().optional(),
+  totalFollowerGoal: z.number().optional(),
+  instagramFollowerGoal: z.number().optional(),
+  tiktokFollowerGoal: z.number().optional(),
 });
 
 type FormSchemaType = z.infer<typeof formSchema>;
@@ -143,8 +144,9 @@ export default function GenerateWeeklyPlanPage() {
       objective: '',
       niche: '',
       currentStats: '',
-      goal: '',
-      goalPlatform: '',
+      totalFollowerGoal: 0,
+      instagramFollowerGoal: 0,
+      tiktokFollowerGoal: 0,
     },
   });
   
@@ -163,16 +165,13 @@ export default function GenerateWeeklyPlanPage() {
         userProfile.instagramAverageViews ? `${userProfile.instagramAverageViews} de média de views` : '',
       ].filter(Boolean).join(', ');
 
-      const goal = userProfile.followerGoal 
-        ? `Atingir ${userProfile.followerGoal.toLocaleString('pt-BR')} seguidores` 
-        : '';
-        
       form.reset({
         objective: form.getValues('objective') || '',
         niche: userProfile.niche || '',
         currentStats: stats,
-        goal: goal,
-        goalPlatform: userProfile.followerGoalPlatform || 'total',
+        totalFollowerGoal: userProfile.totalFollowerGoal,
+        instagramFollowerGoal: userProfile.instagramFollowerGoal,
+        tiktokFollowerGoal: userProfile.tiktokFollowerGoal,
       });
     }
   }, [userProfile, form]);

@@ -30,19 +30,17 @@
           "enum": ["admin", "user"],
           "description": "The user's role in the system. Defaults to 'user'."
         },
-        "followerGoal": {
+        "totalFollowerGoal": {
+          "type": "number",
+          "description": "The user's target number of total followers (Instagram + TikTok)."
+        },
+        "instagramFollowerGoal": {
             "type": "number",
-            "description": "The user's target number of followers."
+            "description": "The user's target number of Instagram followers."
         },
-        "followerGoalPlatform": {
-            "type": "string",
-            "enum": ["total", "instagram", "tiktok"],
-            "description": "The platform targeted for the follower goal."
-        },
-        "goalCompletionDate": {
-            "type": "string",
-            "format": "date-time",
-            "description": "The estimated date to reach the follower goal."
+        "tiktokFollowerGoal": {
+            "type": "number",
+            "description": "The user's target number of TikTok followers."
         },
         "niche": {
             "type": "string",

@@ -10,9 +10,12 @@ export interface UserProfile {
   photoURL?: string | null;
   createdAt: Timestamp;
   role?: UserRole;
-  followerGoal?: number;
-  followerGoalPlatform?: 'total' | 'instagram' | 'tiktok';
-  goalCompletionDate?: Timestamp;
+  
+  // Metas de seguidores
+  totalFollowerGoal?: number;
+  instagramFollowerGoal?: number;
+  tiktokFollowerGoal?: number;
+  
   niche?: string;
   bio?: string;
   audience?: string;

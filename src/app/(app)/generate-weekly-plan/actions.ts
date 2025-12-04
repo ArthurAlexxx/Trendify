@@ -40,8 +40,9 @@ const formSchema = z.object({
   objective: z.string().min(1, 'O objetivo da semana é obrigatório.'),
   niche: z.string().min(3, 'Seu nicho é necessário.'),
   currentStats: z.string().min(3, 'Suas estatísticas são necessárias.'),
-  goal: z.string().optional(),
-  goalPlatform: z.string().optional(),
+  totalFollowerGoal: z.number().optional(),
+  instagramFollowerGoal: z.number().optional(),
+  tiktokFollowerGoal: z.number().optional(),
 });
 
 type FormSchemaType = z.infer<typeof formSchema>;
@@ -79,6 +80,16 @@ async function generateWeeklyPlan(
   const systemPrompt = `Você é um "AI Growth Strategist" para criadores de conteúdo. Sua tarefa é criar um plano de conteúdo semanal completo e acionável, além de uma simulação de desempenho correspondente.
   Lembre-se, a data atual é dezembro de 2025.
   Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON deve se conformar estritamente ao schema fornecido.`;
+  
+  let goalContext = 'Nenhuma meta de seguidores específica foi definida.';
+  if (input.totalFollowerGoal) {
+    goalContext = `A meta principal é atingir ${input.totalFollowerGoal} seguidores no total (Instagram + TikTok).`;
+  } else if (input.instagramFollowerGoal) {
+    goalContext = `A meta principal é atingir ${input.instagramFollowerGoal} seguidores no Instagram. Priorize estratégias para essa plataforma.`;
+  } else if (input.tiktokFollowerGoal) {
+     goalContext = `A meta principal é atingir ${input.tiktokFollowerGoal} seguidores no TikTok. Priorize estratégias para essa plataforma.`;
+  }
+
 
   const userPrompt = `
   Crie um plano de conteúdo para 7 dias e uma simulação de desempenho com base nos seguintes dados:
@@ -86,13 +97,13 @@ async function generateWeeklyPlan(
   - Nicho do Criador: ${input.niche}
   - Estatísticas Atuais (seguidores, engajamento): ${input.currentStats}
   - Objetivo Principal para a Semana: "${input.objective}"
-  - Meta de Seguidores do Usuário: ${input.goal || 'Não definida'} (foco em ${input.goalPlatform || 'total'})
+  - Meta de Seguidores do Usuário: ${goalContext}
 
   Para cada campo do JSON, siga estas diretrizes:
 
   - roteiro: Crie um array com EXATAMENTE 7 objetos, um para cada dia da semana (Segunda a Domingo). Cada objeto deve conter:
     - dia: O nome do dia da semana (ex: "Segunda").
-    - tarefa: Uma tarefa de conteúdo específica e acionável (ex: "Gravar Reels sobre [tópico]"). Se o usuário tiver uma meta de seguidores, priorize tarefas que aumentem o alcance e a descoberta na plataforma alvo (${input.goalPlatform || 'geral'}).
+    - tarefa: Uma tarefa de conteúdo específica e acionável (ex: "Gravar Reels sobre [tópico]"). Se houver uma meta de seguidores, priorize tarefas que aumentem o alcance e a descoberta.
     - detalhes: Uma breve explicação do que fazer na tarefa (ex: "Use o áudio X em alta e foque em um gancho de 3 segundos.").
     - concluido: Deve ser 'false' por padrão.
 
