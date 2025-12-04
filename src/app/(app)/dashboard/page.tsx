@@ -141,7 +141,7 @@ const followerGoalSchema = z.object({
     tiktokFollowerGoal: z.number().optional(),
 });
 
-const ProfileCompletionAlert = ({ userProfile, hasUpdatedToday, isPremium }: { userProfile: UserProfile | null, hasUpdatedToday: boolean, isPremium: boolean }) => {
+const ProfileCompletionAlert = ({ userProfile, isPremium }: { userProfile: UserProfile | null, isPremium: boolean }) => {
     const isProfileSetup = userProfile?.niche && (userProfile.instagramHandle || userProfile.tiktokHandle);
     const hasAnyPlatform = userProfile?.instagramHandle || userProfile.tiktokHandle;
 
@@ -190,196 +190,8 @@ const ProfileCompletionAlert = ({ userProfile, hasUpdatedToday, isPremium }: { u
             </Alert>
          )
     }
-
-    if (!hasUpdatedToday && userProfile) {
-         return (
-            <Alert>
-                <div className='flex flex-col sm:flex-row justify-between items-center gap-4'>
-                    <div className='text-center sm:text-left'>
-                        <AlertTitle className="flex items-center justify-center sm:justify-start gap-2"><AlertTriangle className="h-4 w-4 text-primary" />Atualize suas Métricas!</AlertTitle>
-                        <AlertDescription>
-                            Registre seus números de hoje para manter os gráficos precisos.
-                        </AlertDescription>
-                    </div>
-                    <UpdateMetricsSheet userProfile={userProfile} triggerButton={
-                         <Button className='w-full sm:w-auto'>
-                            <RefreshCw className="mr-2 h-4 w-4" />
-                            Atualizar Métricas Agora
-                        </Button>
-                    } />
-                </div>
-            </Alert>
-        )
-    }
     
     return null;
-}
-
-
-const UpdateMetricsSheet = ({ userProfile, triggerButton }: { userProfile: UserProfile, triggerButton?: React.ReactNode }) => {
-    const { user } = useUser();
-    const firestore = useFirestore();
-    const { toast } = useToast();
-    const [isPending, startTransition] = useTransition();
-    const [isOpen, setIsOpen] = useState(false);
-
-    const form = useForm<z.infer<typeof profileMetricsSchema>>({
-        resolver: zodResolver(profileMetricsSchema),
-        defaultValues: {
-            instagramHandle: userProfile?.instagramHandle || '',
-            instagramFollowers: userProfile?.instagramFollowers || '',
-            instagramAverageViews: userProfile?.instagramAverageViews || '',
-            instagramAverageLikes: userProfile?.instagramAverageLikes || '',
-            instagramAverageComments: userProfile?.instagramAverageComments || '',
-            tiktokHandle: userProfile?.tiktokHandle || '',
-            tiktokFollowers: userProfile?.tiktokFollowers || '',
-            tiktokAverageViews: userProfile?.tiktokAverageViews || '',
-            tiktokAverageLikes: userProfile?.tiktokAverageLikes || '',
-            tiktokAverageComments: userProfile?.tiktokAverageComments || '',
-        }
-    });
-
-    useEffect(() => {
-        if (userProfile && isOpen) {
-            form.reset({
-                instagramHandle: userProfile.instagramHandle || '',
-                instagramFollowers: userProfile.instagramFollowers || '',
-                instagramAverageViews: userProfile.instagramAverageViews || '',
-                instagramAverageLikes: userProfile.instagramAverageLikes || '',
-                instagramAverageComments: userProfile.instagramAverageComments || '',
-                tiktokHandle: userProfile.tiktokHandle || '',
-                tiktokFollowers: userProfile.tiktokFollowers || '',
-                tiktokAverageViews: userProfile.tiktokAverageViews || '',
-                tiktokAverageLikes: userProfile.tiktokAverageLikes || '',
-                tiktokAverageComments: userProfile.tiktokAverageComments || '',
-            });
-        }
-    }, [userProfile, isOpen, form]);
-
-    const onSubmit = (values: z.infer<typeof profileMetricsSchema>) => {
-        if (!user || !firestore) return;
-
-        startTransition(async () => {
-            try {
-                // First, update the main user profile with the latest numbers
-                await updateDoc(doc(firestore, 'users', user.uid), values);
-                
-                const metricSnapshotsRef = collection(firestore, `users/${user.uid}/metricSnapshots`);
-                const todayStart = startOfDay(new Date());
-                const todayEnd = endOfDay(new Date());
-
-                const updateOrCreateSnapshot = async (platform: 'instagram' | 'tiktok', data: any) => {
-                    const q = query(
-                        metricSnapshotsRef, 
-                        where('platform', '==', platform), 
-                        where('date', '>=', Timestamp.fromDate(todayStart)),
-                        where('date', '<=', Timestamp.fromDate(todayEnd))
-                    );
-                    const querySnapshot = await getDocs(q);
-
-                    if (querySnapshot.empty) {
-                        await addDoc(metricSnapshotsRef, { ...data, date: serverTimestamp() });
-                    } else {
-                        const docId = querySnapshot.docs[0].id;
-                        await updateDoc(doc(metricSnapshotsRef, docId), { ...data, date: serverTimestamp() });
-                    }
-                };
-                
-                if (values.instagramHandle && values.instagramFollowers) {
-                   await updateOrCreateSnapshot('instagram', {
-                        userId: user.uid,
-                        platform: 'instagram',
-                        followers: values.instagramFollowers || '0',
-                        views: values.instagramAverageViews || '0',
-                        likes: values.instagramAverageLikes || '0',
-                        comments: values.instagramAverageComments || '0',
-                   });
-                }
-                if (values.tiktokHandle && values.tiktokFollowers) {
-                    await updateOrCreateSnapshot('tiktok', {
-                        userId: user.uid,
-                        platform: 'tiktok',
-                        followers: values.tiktokFollowers || '0',
-                        views: values.tiktokAverageViews || '0',
-                        likes: values.tiktokAverageLikes || '0',
-                        comments: values.tiktokAverageComments || '0',
-                    });
-                }
-
-                toast({
-                    title: 'Sucesso!',
-                    description: 'Suas métricas foram salvas.',
-                });
-                setIsOpen(false);
-            } catch (error: any) {
-                toast({
-                    title: 'Erro ao Atualizar',
-                    description: 'Não foi possível salvar suas métricas. ' + error.message,
-                    variant: 'destructive',
-                });
-            }
-        });
-    }
-
-    return (
-        <Sheet open={isOpen} onOpenChange={setIsOpen}>
-            <SheetTrigger asChild>
-                {triggerButton || 
-                <Button variant="outline" size="sm">
-                    <RefreshCw className="mr-2 h-4 w-4" />
-                    Atualizar Métricas
-                </Button>}
-            </SheetTrigger>
-            <SheetContent className="p-0 flex flex-col">
-                <SheetHeader className='p-6 pb-4 border-b'>
-                    <SheetTitle className="font-headline text-xl">Atualizar Métricas Diárias</SheetTitle>
-                    <SheetDescription>
-                        Insira seus números mais recentes para manter o gráfico de evolução preciso.
-                    </SheetDescription>
-                </SheetHeader>
-                <ScrollArea className="flex-1">
-                 <div className="p-6">
-                    <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                        <div className="space-y-6">
-                            <h3 className="text-lg font-semibold flex items-center gap-2"><Instagram className="h-5 w-5" /> Instagram</h3>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                <FormField control={form.control} name="instagramHandle" render={({ field }) => ( <FormItem><FormLabel>Handle</FormLabel><FormControl><Input placeholder="@seu_usuario" {...field} /></FormControl></FormItem> )}/>
-                                <FormField control={form.control} name="instagramFollowers" render={({ field }) => ( <FormItem><FormLabel>Seguidores</FormLabel><FormControl><Input placeholder="Ex: 250K" {...field} /></FormControl></FormItem> )}/>
-                            </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                                <FormField control={form.control} name="instagramAverageViews" render={({ field }) => ( <FormItem><FormLabel>Média de Views</FormLabel><FormControl><Input placeholder="Ex: 15.5K" {...field} /></FormControl></FormItem> )}/>
-                                <FormField control={form.control} name="instagramAverageLikes" render={({ field }) => ( <FormItem><FormLabel>Média de Likes</FormLabel><FormControl><Input placeholder="Ex: 890" {...field} /></FormControl></FormItem> )}/>
-                                <FormField control={form.control} name="instagramAverageComments" render={({ field }) => ( <FormItem><FormLabel>Média de Comentários</FormLabel><FormControl><Input placeholder="Ex: 120" {...field} /></FormControl></FormItem> )}/>
-                            </div>
-                        </div>
-                        <Separator />
-                        <div className="space-y-6">
-                            <h3 className="text-lg font-semibold flex items-center gap-2"><Film className="h-5 w-5" /> TikTok</h3>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                <FormField control={form.control} name="tiktokHandle" render={({ field }) => ( <FormItem><FormLabel>Handle</FormLabel><FormControl><Input placeholder="@seu_usuario" {...field} /></FormControl></FormItem> )}/>
-                                <FormField control={form.control} name="tiktokFollowers" render={({ field }) => ( <FormItem><FormLabel>Seguidores</FormLabel><FormControl><Input placeholder="Ex: 1.2M" {...field} /></FormControl></FormItem> )}/>
-                            </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                                <FormField control={form.control} name="tiktokAverageViews" render={({ field }) => ( <FormItem><FormLabel>Média de Views</FormLabel><FormControl><Input placeholder="Ex: 1M" {...field} /></FormControl></FormItem> )}/>
-                                <FormField control={form.control} name="tiktokAverageLikes" render={({ field }) => ( <FormItem><FormLabel>Média de Likes</FormLabel><FormControl><Input placeholder="Ex: 100K" {...field} /></FormControl></FormItem> )}/>
-                                <FormField control={form.control} name="tiktokAverageComments" render={({ field }) => ( <FormItem><FormLabel>Média de Comentários</FormLabel><FormControl><Input placeholder="Ex: 1.5K" {...field} /></FormControl></FormItem> )}/>
-                            </div>
-                        </div>
-                        </form>
-                    </Form>
-                 </div>
-                </ScrollArea>
-                 <SheetFooter className="p-6 border-t flex-col sm:flex-row gap-2">
-                        <SheetClose asChild><Button type="button" variant="outline" className='w-full sm:w-auto'>Cancelar</Button></SheetClose>
-                        <Button type="button" onClick={form.handleSubmit(onSubmit)} disabled={isPending} className="w-full sm:w-auto">
-                            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Salvar Métricas
-                        </Button>
-                 </SheetFooter>
-            </SheetContent>
-        </Sheet>
-    )
 }
 
 const FollowerGoalSheet = ({ userProfile, children }: { userProfile: UserProfile, children: React.ReactNode }) => {
@@ -563,12 +375,6 @@ export default function DashboardPage() {
   ), [firestore, user]);
   const { data: metricSnapshots, isLoading: isLoadingMetrics } = useCollection<MetricSnapshot>(metricSnapshotsQuery);
 
-  const hasUpdatedToday = useMemo(() => {
-    if (!metricSnapshots || metricSnapshots.length === 0) return false;
-    // Check if there is any snapshot for today
-    return metricSnapshots.some(snap => snap.date && isToday(snap.date.toDate()));
-  }, [metricSnapshots]);
-
   const isLoading = isLoadingProfile || isLoadingRoteiro || isLoadingIdeias || isLoadingUpcoming || isLoadingMetrics || isSubscriptionLoading;
   
   const parseMetric = (value?: string | number): number => {
@@ -647,9 +453,6 @@ export default function DashboardPage() {
     }
   }, [userProfile, selectedPlatform]);
 
- 
-
-
   const historicalChartData = useMemo(() => {
     if (!metricSnapshots || metricSnapshots.length === 0) return [];
   
@@ -695,7 +498,6 @@ export default function DashboardPage() {
     }));
   }, [metricSnapshots, selectedPlatform]);
 
-
   const handleToggleIdeia = async (ideia: IdeiaSalva) => {
     if (!firestore || !user) return;
     const ideaRef = doc(firestore, `users/${user.uid}/ideiasSalvas`, ideia.id);
@@ -713,9 +515,16 @@ export default function DashboardPage() {
   const handleToggleRoteiro = async (toggledItem: ItemRoteiro, index: number) => {
     if (!firestore || !roteiro) return;
     const roteiroRef = doc(firestore, 'roteiro', roteiro.id);
+    
+    // Find the original index in the full list
+    const originalIndex = roteiro.items.findIndex(item => item.tarefa === toggledItem.tarefa && item.dia === toggledItem.dia);
+    
+    if (originalIndex === -1) return;
+
     const updatedItems = roteiro.items.map((item, i) => 
-        i === index ? { ...item, concluido: !item.concluido } : item
+        i === originalIndex ? { ...item, concluido: !item.concluido } : item
     );
+
     try {
         await updateDoc(roteiroRef, { items: updatedItems });
     } catch (e: any) {
@@ -734,10 +543,10 @@ export default function DashboardPage() {
     }
   };
 
+  const diaDaSemana = format(new Date(), 'EEEE', { locale: ptBR });
+  const diaDaSemanaNormalizado = diaDaSemana.charAt(0).toUpperCase() + diaDaSemana.slice(1);
+  const roteiroDoDia = roteiro?.items.filter(item => item.dia.toLowerCase() === diaDaSemanaNormalizado.toLowerCase().replace('-feira', ''));
 
-  const visibleItems = roteiro?.items.slice(0, 3);
-  const collapsibleItems = roteiro?.items.slice(3);
-  
   const chartConfig = platformChartConfig[selectedPlatform] || platformChartConfig.total;
 
   const formatNumber = (num: number): string => {
@@ -844,7 +653,7 @@ export default function DashboardPage() {
                 </Card>
             </div>
             <div className="lg:col-span-2 flex flex-col gap-8">
-                 {userProfile && <ProfileCompletionAlert userProfile={userProfile} hasUpdatedToday={hasUpdatedToday} isPremium={isPremium} />}
+                 {userProfile && <ProfileCompletionAlert userProfile={userProfile} isPremium={isPremium} />}
 
                 <Card className="rounded-2xl border-0">
                     <CardHeader>
@@ -866,6 +675,49 @@ export default function DashboardPage() {
                             <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-2"><MessageSquare className="h-4 w-4" />Média de Comentários</h3>
                             <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-8 w-16" /> : formatMetricValue(latestMetrics?.comments)}</p>
                         </div>
+                    </CardContent>
+                </Card>
+                <Card className="rounded-2xl border-0">
+                    <CardHeader>
+                        <CardTitle className="font-headline text-lg sm:text-xl">
+                            Roteiro do Dia ({diaDaSemanaNormalizado})
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                    {isLoadingRoteiro ? <Skeleton className="h-24 w-full" /> : (
+                        roteiroDoDia && roteiroDoDia.length > 0 ? (
+                            <ul className="space-y-3">
+                                {roteiroDoDia.map((item, index) => (
+                                    <li key={index}>
+                                        <div className="flex items-start gap-3">
+                                            <Checkbox
+                                                id={`roteiro-dia-${index}`}
+                                                checked={item.concluido}
+                                                onCheckedChange={() => handleToggleRoteiro(item, index)}
+                                                className="h-5 w-5 mt-0.5"
+                                            />
+                                            <div>
+                                                <label htmlFor={`roteiro-dia-${index}`} className={cn('font-medium transition-colors cursor-pointer', item.concluido ? 'line-through text-muted-foreground' : 'text-foreground')}>
+                                                    {item.tarefa}
+                                                </label>
+                                                <p className="text-xs text-muted-foreground">{item.detalhes}</p>
+                                            </div>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                           <div className="text-center py-4 rounded-xl bg-muted/50 border border-dashed">
+                                <ClipboardList className="mx-auto h-6 w-6 text-muted-foreground mb-2" />
+                                <h3 className="font-semibold text-foreground text-sm">
+                                    Nenhuma tarefa para hoje.
+                                </h3>
+                                <p className="text-xs text-muted-foreground">
+                                    Gere um novo <Link href="/generate-weekly-plan" className="text-primary hover:underline">plano semanal</Link>.
+                                </p>
+                            </div>
+                        )
+                    )}
                     </CardContent>
                 </Card>
             </div>
@@ -904,11 +756,9 @@ export default function DashboardPage() {
                                 </h3>
                                 <p className="text-sm text-muted-foreground">
                                     {userProfile && (
-                                        <UpdateMetricsSheet userProfile={userProfile} triggerButton={
-                                            <span className="text-primary font-medium hover:underline cursor-pointer">
+                                        <Link href="/profile" className="text-primary font-medium hover:underline cursor-pointer">
                                                 Atualize suas métricas
-                                            </span>
-                                        } />
+                                        </Link>
                                     )}
                                     {userProfile?.instagramHandle || userProfile?.tiktokHandle ? " para começar a ver seus dados." : " para começar."}
                                 </p>
@@ -996,139 +846,7 @@ export default function DashboardPage() {
              <Card className="rounded-2xl border-0 h-full">
                 <CardHeader>
                 <CardTitle className="font-headline text-xl">
-                    Roteiro de Conteúdo Semanal
-                </CardTitle>
-                </CardHeader>
-                <CardContent>
-                {isLoadingRoteiro ? <Skeleton className="h-40 w-full" /> : (
-                    roteiro && roteiro.items.length > 0 ? (
-                    <div>
-                        <ul className="space-y-2">
-                            {visibleItems?.map((item, index) => (
-                            <li key={index}>
-                                <div className="flex items-start gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50">
-                                <Checkbox
-                                    id={`roteiro-${index}`}
-                                    checked={item.concluido}
-                                    onCheckedChange={() => handleToggleRoteiro(item, index)}
-                                    className="h-5 w-5 mt-1"
-                                />
-                                <div>
-                                    <label
-                                    htmlFor={`roteiro-${index}`}
-                                    className={cn(
-                                        'font-medium text-base transition-colors cursor-pointer',
-                                        item.concluido
-                                        ? 'line-through text-muted-foreground'
-                                        : 'text-foreground'
-                                    )}
-                                    >
-                                    <span className="font-semibold text-primary">
-                                        {item.dia}:
-                                    </span>{' '}
-                                    {item.tarefa}
-                                    </label>
-                                    <p className="text-sm text-muted-foreground">
-                                    {item.detalhes}
-                                    </p>
-                                </div>
-                                </div>
-                                {visibleItems && index < visibleItems.length - 1 && (
-                                <Separator className="my-2" />
-                                )}
-                            </li>
-                            ))}
-                            <AnimatePresence>
-                            {isExpanded && collapsibleItems?.map((item, index) => (
-                                <motion.li 
-                                key={`collapsible-${index}`}
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: 'auto' }}
-                                exit={{ opacity: 0, height: 0 }}
-                                transition={{ duration: 0.3, ease: "easeInOut" }}
-                                className="overflow-hidden"
-                                >
-                                    <Separator className="my-2" />
-                                    <div className="flex items-start gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50">
-                                    <Checkbox
-                                        id={`roteiro-collapsible-${index}`}
-                                        checked={item.concluido}
-                                        onCheckedChange={() => handleToggleRoteiro(item, 3 + index)}
-                                        className="h-5 w-5 mt-1"
-                                    />
-                                    <div>
-                                        <label
-                                        htmlFor={`roteiro-collapsible-${index}`}
-                                        className={cn(
-                                            'font-medium text-base transition-colors cursor-pointer',
-                                            item.concluido
-                                            ? 'line-through text-muted-foreground'
-                                            : 'text-foreground'
-                                        )}
-                                        >
-                                        <span className="font-semibold text-primary">
-                                            {item.dia}:
-                                        </span>{' '}
-                                        {item.tarefa}
-                                        </label>
-                                        <p className="text-sm text-muted-foreground">
-                                        {item.detalhes}
-                                        </p>
-                                    </div>
-                                    </div>
-                                </motion.li>
-                            ))}
-                            </AnimatePresence>
-                        </ul>
-                        {collapsibleItems && collapsibleItems.length > 0 && !isExpanded && (
-                        <div className='flex justify-center mt-2'>
-                            <Button 
-                                variant="ghost" 
-                                onClick={() => setIsExpanded(true)} 
-                                className="text-primary hover:text-primary"
-                            >
-                                Ver restante da semana
-                            </Button>
-                        </div>
-                        )}
-                        {isExpanded && (
-                        <div className='flex justify-center mt-2'>
-                            <Button 
-                                variant="ghost" 
-                                onClick={() => setIsExpanded(false)} 
-                                className="text-primary hover:text-primary"
-                            >
-                                Ver menos
-                            </Button>
-                        </div>
-                        )}
-                    </div>
-                    ) : (
-                    <div className="text-center py-8 px-4 rounded-xl bg-muted/50 border border-dashed">
-                        <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
-                        <h3 className="font-semibold text-foreground">
-                        Sem roteiro para a semana.
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                        Gere um novo no{' '}
-                        <Link
-                            href="/generate-weekly-plan"
-                            className="text-primary font-medium hover:underline"
-                        >
-                            Planejamento Semanal
-                        </Link>
-                        .
-                        </p>
-                    </div>
-                    )
-                )}
-                </CardContent>
-            </Card>
-
-            <Card className="rounded-2xl border-0 h-full">
-                <CardHeader>
-                <CardTitle className="font-headline text-xl">
-                    Ideias e Tarefas
+                    Ideias e Tarefas Salvas
                 </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -1234,6 +952,8 @@ export default function DashboardPage() {
     </>
   );
 }
+
+    
 
     
 
