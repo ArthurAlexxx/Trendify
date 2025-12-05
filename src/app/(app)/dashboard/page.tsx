@@ -567,102 +567,6 @@ export default function DashboardPage() {
 
           {/* Desktop Grid */}
           <div className="hidden lg:grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-            <div className="lg:col-span-2 space-y-8">
-               <Card className='rounded-2xl border-0'>
-                <CardHeader>
-                    <CardTitle className="text-center">Métricas de Engajamento</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
-                        <div className='p-4 rounded-lg bg-muted/50 border flex justify-between items-center'>
-                            <div>
-                              <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><Eye className="h-4 w-4" /> Views</h3>
-                              <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.views)}</p>
-                            </div>
-                            <div>
-                                {latestMetrics?.views !== undefined && latestMetrics.followers > 0 && (() => {
-                                      const rating = getMetricRating(latestMetrics.views, 'views', latestMetrics.followers);
-                                      return (
-                                        <div className={cn('h-7 w-7', rating.color)}>
-                                          {rating.iconName === 'Smile' && <Smile className="h-full w-full" />}
-                                          {rating.iconName === 'Meh' && <Meh className="h-full w-full" />}
-                                          {rating.iconName === 'Frown' && <Frown className="h-full w-full" />}
-                                        </div>
-                                      )
-                                  })()}
-                            </div>
-                        </div>
-                        <div className='p-4 rounded-lg bg-muted/50 border flex justify-between items-center'>
-                            <div>
-                              <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><Heart className="h-4 w-4" /> Likes</h3>
-                              <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.likes)}</p>
-                            </div>
-                             <div>
-                                {latestMetrics?.likes !== undefined && latestMetrics.followers > 0 && (() => {
-                                  const rating = getMetricRating(latestMetrics.likes, 'likes', latestMetrics.followers);
-                                  return (
-                                    <div className={cn('h-7 w-7', rating.color)}>
-                                      {rating.iconName === 'Smile' && <Smile className="h-full w-full" />}
-                                      {rating.iconName === 'Meh' && <Meh className="h-full w-full" />}
-                                      {rating.iconName === 'Frown' && <Frown className="h-full w-full" />}
-                                    </div>
-                                  )
-                                })()}
-                            </div>
-                        </div>
-                        <div className='p-4 rounded-lg bg-muted/50 border flex justify-between items-center'>
-                            <div>
-                              <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><MessageSquare className="h-4 w-4" /> Comentários</h3>
-                              <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.comments)}</p>
-                            </div>
-                             <div>
-                                {latestMetrics?.comments !== undefined && latestMetrics.followers > 0 && (() => {
-                                  const rating = getMetricRating(latestMetrics.comments, 'comments', latestMetrics.followers);
-                                  return (
-                                    <div className={cn('h-7 w-7', rating.color)}>
-                                      {rating.iconName === 'Smile' && <Smile className="h-full w-full" />}
-                                      {rating.iconName === 'Meh' && <Meh className="h-full w-full" />}
-                                      {rating.iconName === 'Frown' && <Frown className="h-full w-full" />}
-                                    </div>
-                                  )
-                                })()}
-                            </div>
-                        </div>
-                    </div>
-                </CardContent>
-              </Card>
-
-              <Card className="rounded-2xl border-0">
-                  <CardHeader><CardTitle>Evolução das Métricas</CardTitle></CardHeader>
-                  <CardContent className="pl-2 pr-6">
-                      {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
-                      historicalChartData.length > 0 ? (
-                          <ChartContainer config={platformChartConfig[selectedPlatform]} className="h-[350px] w-full">
-                          <BarChart accessibilityLayer data={historicalChartData} margin={{ left: 0, right: 12, top: 5, bottom: 5 }}>
-                              <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                              <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} />
-                              <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
-                              <RechartsTooltip content={<ChartTooltipContent indicator="dot" />} />
-                              <Bar dataKey="followers" fill="var(--color-followers)" radius={4} name="Seguidores" />
-                              <Bar dataKey="views" fill="var(--color-views)" radius={4} name="Views"/>
-                              <Bar dataKey="likes" fill="var(--color-likes)" radius={4} name="Likes"/>
-                              <Bar dataKey="comments" fill="var(--color-comments)" radius={4} name="Comentários"/>
-                          </BarChart>
-                          </ChartContainer>
-                      ) : (
-                          <div className="h-[350px] w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
-                              <div>
-                              <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
-                              <h3 className="font-semibold text-foreground">{(userProfile?.instagramHandle || userProfile?.tiktokHandle) ? "Dados insuficientes." : "Nenhuma plataforma conectada."}</h3>
-                              <p className="text-sm text-muted-foreground"> {userProfile && <Link href="/profile/integrations" className="text-primary font-medium hover:underline cursor-pointer">Sincronize suas métricas</Link>} para começar a ver seus dados.</p>
-                              </div>
-                          </div>
-                      )}
-                  </CardContent>
-              </Card>
-            </div>
-
-            {/* Right Column */}
             <div className="lg:col-span-1 space-y-8">
                 <Card className="rounded-2xl border-0">
                     <CardHeader>
@@ -761,9 +665,106 @@ export default function DashboardPage() {
                     </CardContent>
                 </Card>
             </div>
+
+            {/* Left Column */}
+            <div className="lg:col-span-2 space-y-8">
+               <Card className='rounded-2xl border-0'>
+                <CardHeader>
+                    <CardTitle className="text-center">Métricas de Engajamento</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+                        <div className='p-4 rounded-lg bg-muted/50 border flex justify-between items-center'>
+                            <div>
+                              <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><Eye className="h-4 w-4" /> Views</h3>
+                              <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.views)}</p>
+                            </div>
+                            <div>
+                                {latestMetrics?.views !== undefined && latestMetrics.followers > 0 && (() => {
+                                      const rating = getMetricRating(latestMetrics.views, 'views', latestMetrics.followers);
+                                      return (
+                                        <div className={cn('h-7 w-7', rating.color)}>
+                                          {rating.iconName === 'Smile' && <Smile className="h-full w-full" />}
+                                          {rating.iconName === 'Meh' && <Meh className="h-full w-full" />}
+                                          {rating.iconName === 'Frown' && <Frown className="h-full w-full" />}
+                                        </div>
+                                      )
+                                  })()}
+                            </div>
+                        </div>
+                        <div className='p-4 rounded-lg bg-muted/50 border flex justify-between items-center'>
+                            <div>
+                              <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><Heart className="h-4 w-4" /> Likes</h3>
+                              <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.likes)}</p>
+                            </div>
+                             <div>
+                                {latestMetrics?.likes !== undefined && latestMetrics.followers > 0 && (() => {
+                                  const rating = getMetricRating(latestMetrics.likes, 'likes', latestMetrics.followers);
+                                  return (
+                                    <div className={cn('h-7 w-7', rating.color)}>
+                                      {rating.iconName === 'Smile' && <Smile className="h-full w-full" />}
+                                      {rating.iconName === 'Meh' && <Meh className="h-full w-full" />}
+                                      {rating.iconName === 'Frown' && <Frown className="h-full w-full" />}
+                                    </div>
+                                  )
+                                })()}
+                            </div>
+                        </div>
+                        <div className='p-4 rounded-lg bg-muted/50 border flex justify-between items-center'>
+                            <div>
+                              <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><MessageSquare className="h-4 w-4" /> Comentários</h3>
+                              <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.comments)}</p>
+                            </div>
+                             <div>
+                                {latestMetrics?.comments !== undefined && latestMetrics.followers > 0 && (() => {
+                                  const rating = getMetricRating(latestMetrics.comments, 'comments', latestMetrics.followers);
+                                  return (
+                                    <div className={cn('h-7 w-7', rating.color)}>
+                                      {rating.iconName === 'Smile' && <Smile className="h-full w-full" />}
+                                      {rating.iconName === 'Meh' && <Meh className="h-full w-full" />}
+                                      {rating.iconName === 'Frown' && <Frown className="h-full w-full" />}
+                                    </div>
+                                  )
+                                })()}
+                            </div>
+                        </div>
+                    </div>
+                </CardContent>
+              </Card>
+
+              <Card className="rounded-2xl border-0">
+                  <CardHeader><CardTitle>Evolução das Métricas</CardTitle></CardHeader>
+                  <CardContent className="pl-2 pr-6">
+                      {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
+                      historicalChartData.length > 0 ? (
+                          <ChartContainer config={platformChartConfig[selectedPlatform]} className="h-[350px] w-full">
+                          <BarChart accessibilityLayer data={historicalChartData} margin={{ left: 0, right: 12, top: 5, bottom: 5 }}>
+                              <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                              <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} />
+                              <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
+                              <RechartsTooltip content={<ChartTooltipContent indicator="dot" />} />
+                              <Bar dataKey="followers" fill="var(--color-followers)" radius={4} name="Seguidores" />
+                              <Bar dataKey="views" fill="var(--color-views)" radius={4} name="Views"/>
+                              <Bar dataKey="likes" fill="var(--color-likes)" radius={4} name="Likes"/>
+                              <Bar dataKey="comments" fill="var(--color-comments)" radius={4} name="Comentários"/>
+                          </BarChart>
+                          </ChartContainer>
+                      ) : (
+                          <div className="h-[350px] w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
+                              <div>
+                              <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+                              <h3 className="font-semibold text-foreground">{(userProfile?.instagramHandle || userProfile?.tiktokHandle) ? "Dados insuficientes." : "Nenhuma plataforma conectada."}</h3>
+                              <p className="text-sm text-muted-foreground"> {userProfile && <Link href="/profile/integrations" className="text-primary font-medium hover:underline cursor-pointer">Sincronize suas métricas</Link>} para começar a ver seus dados.</p>
+                              </div>
+                          </div>
+                      )}
+                  </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
       </div>
     </>
   );
 }
+
