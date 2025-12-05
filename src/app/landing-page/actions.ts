@@ -97,7 +97,7 @@ async function calculateGrowthAI(input: FormSchemaType): Promise<GrowthCalculato
   - riskPanel: Liste 2-3 riscos ou pontos fracos que podem impedir o crescimento. Ex: "Baixa frequência de posts pode diminuir o alcance", "Nicho muito saturado exige alta diferenciação".
   - recommendations: Dê 2-3 recomendações estratégicas para acelerar. Ex: "Focar em collabs com criadores maiores", "Explorar formato de vídeo X que está em alta no nicho".
   - benchmarkComparison: Faça uma breve análise comparativa. Ex: "Seu crescimento projetado está 10% acima da média para o nicho de games, mas abaixo de criadores de finanças que postam diariamente".
-  - accelerationScenarios: Calcule o tempo para a meta em três cenários: mantendo o ritmo atual de posts, aumentando em 20% e aumentando em 40%.
+  - accelerationScenarios: Calcule o tempo (em meses) para atingir a meta em três cenários. O resultado DEVE ser um objeto com as chaves 'maintain' (ritmo atual), 'plus20' (aumentando posts em 20%) e 'plus40' (aumentando posts em 40%). Cada chave deve ter um valor numérico.
   `;
 
   try {
