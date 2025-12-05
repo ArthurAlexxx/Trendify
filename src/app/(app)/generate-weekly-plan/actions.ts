@@ -20,17 +20,21 @@ const PontoDadosGraficoSchema = z.object({
 });
 
 const GenerateWeeklyPlanOutputSchema = z.object({
-  roteiro: z
+  weeklyPlan: z
     .array(ItemRoteiroSchema)
     .describe(
       'Um array de 7 itens, um para cada dia da semana, com tarefas de conteúdo.'
-    ),
-  desempenhoSimulado: z
+    ).transform(items => items.map(item => ({ ...item, concluido: false }))),
+  simulatedPerformance: z
     .array(PontoDadosGraficoSchema)
     .describe(
       'Um array de 7 pontos de dados para o gráfico de desempenho, simulando o potencial do roteiro.'
     ),
+  effortLevel: z.enum(['Baixo', 'Médio', 'Alto']).describe("A carga de trabalho estimada para executar o plano da semana."),
+  priorityIndex: z.array(z.string()).length(3).describe("As 3 tarefas da semana com maior impacto potencial no crescimento."),
+  realignmentTips: z.string().describe("Dicas sobre o que fazer caso o usuário perca 1 ou 2 dias do plano, para realinhar a estratégia sem perder a semana."),
 });
+
 
 export type GenerateWeeklyPlanOutput = z.infer<
   typeof GenerateWeeklyPlanOutputSchema
@@ -77,7 +81,9 @@ function extractJson(text: string) {
 async function generateWeeklyPlan(
   input: FormSchemaType
 ): Promise<GenerateWeeklyPlanOutput> {
-  const systemPrompt = `Você é um "AI Growth Strategist" para criadores de conteúdo. Sua tarefa é criar um plano de conteúdo semanal completo e acionável, além de uma simulação de desempenho correspondente.
+  const systemPrompt = `Você é uma IA especialista em crescimento de influenciadores, estratégias de conteúdo, análise de dados, criação de roteiros e otimização de campanhas com marcas. Sua função é atuar como um Estrategista Chefe.
+  Sempre entregue respostas profundas, claras, práticas e extremamente profissionais.
+  Ao responder, utilize a mentalidade de: consultor de marketing, estrategista digital, analista de dados.
   Lembre-se, a data atual é dezembro de 2025.
   Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON deve se conformar estritamente ao schema fornecido.`;
   
@@ -92,26 +98,19 @@ async function generateWeeklyPlan(
 
 
   const userPrompt = `
-  Crie um plano de conteúdo para 7 dias e uma simulação de desempenho com base nos seguintes dados:
+  Analise os seguintes dados e gere um plano de conteúdo semanal completo, atuando como um Estrategista Chefe.
 
+  - Objetivo da Semana: "${input.objective}"
   - Nicho do Criador: ${input.niche}
-  - Estatísticas Atuais (seguidores, engajamento): ${input.currentStats}
-  - Objetivo Principal para a Semana: "${input.objective}"
-  - Meta de Seguidores do Usuário: ${goalContext}
+  - Estatísticas Atuais: ${input.currentStats}
+  - Meta de Seguidores: ${goalContext}
 
-  Para cada campo do JSON, siga estas diretrizes:
-
-  - roteiro: Crie um array com EXATAMENTE 7 objetos, um para cada dia da semana (Segunda a Domingo). Cada objeto deve conter:
-    - dia: O nome do dia da semana (ex: "Segunda").
-    - tarefa: Uma tarefa de conteúdo específica e acionável (ex: "Gravar Reels sobre [tópico]"). Se houver uma meta de seguidores, priorize tarefas que aumentem o alcance e a descoberta.
-    - detalhes: Uma breve explicação do que fazer na tarefa (ex: "Use o áudio X em alta e foque em um gancho de 3 segundos.").
-    - concluido: Deve ser 'false' por padrão.
-
-  - desempenhoSimulado: Crie um array com EXATAMENTE 7 objetos, um para cada dia da semana (Seg a Dom), para popular um gráfico. Cada objeto deve conter:
-    - data: O dia da semana abreviado (ex: "Seg", "Ter", "Qua", etc.).
-    - alcance: Um número INTEIRO simulando o alcance potencial para aquele dia, baseado na tarefa do roteiro.
-    - engajamento: Um número INTEIRO simulando o engajamento potencial para aquele dia.
-    - A simulação deve ser realista e variar de acordo com as tarefas. Por exemplo, dias de postagem de Reels devem ter maior alcance simulado.
+  Siga as diretrizes para cada campo JSON:
+  - weeklyPlan: Crie um array com exatamente 7 objetos (Segunda a Domingo). Cada objeto deve ter 'dia', 'tarefa' (específica, acionável e criativa), 'detalhes' (um passo a passo claro) e 'concluido' (sempre false). As tarefas devem ser uma mistura de produção de conteúdo, interação e análise.
+  - simulatedPerformance: Crie um array de 7 objetos (Seg a Dom) para um gráfico, com 'data', 'alcance' (int) e 'engajamento' (int). A simulação deve ser realista, variando conforme as tarefas do dia (dias de post têm picos).
+  - effortLevel: Classifique o esforço da semana como 'Baixo', 'Médio' ou 'Alto', com base na complexidade e volume das tarefas.
+  - priorityIndex: Identifique e liste as 3 tarefas da semana com o maior potencial de impacto para atingir o objetivo principal.
+  - realignmentTips: Ofereça um conselho estratégico sobre como o usuário pode se realinhar caso perca 1 ou 2 dias do plano. Ex: "Se perder um dia de post, combine o tema com o do dia seguinte ou foque em dobrar a interação no fim de semana para compensar."
   `;
 
   try {
@@ -122,6 +121,7 @@ async function generateWeeklyPlan(
         { role: 'user', content: userPrompt },
       ],
       temperature: 0.7,
+      response_format: { type: "json_object" },
     });
 
     const content = response.choices[0].message.content;
@@ -159,3 +159,5 @@ export async function generateWeeklyPlanAction(
     return { error: `Falha ao gerar plano: ${errorMessage}` };
   }
 }
+
+    

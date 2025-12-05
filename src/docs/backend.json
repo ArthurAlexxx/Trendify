@@ -175,10 +175,6 @@
         "description": "A snapshot of a user's social media metrics for a specific day and platform.",
         "type": "object",
         "properties": {
-            "userId": {
-                "type": "string",
-                "description": "The ID of the user."
-            },
             "date": {
                 "type": "string",
                 "format": "date-time",
@@ -206,7 +202,7 @@
                 "description": "Average comments at the time of the snapshot."
             }
         },
-        "required": ["userId", "date", "platform", "followers"]
+        "required": ["date", "platform", "followers"]
     },
     "DailyUsage": {
       "title": "Daily Usage",
@@ -257,12 +253,12 @@
       "description": "Armazena o plano de conteúdo semanal completo gerado pela IA.",
       "type": "object",
       "properties": {
-        "items": {
+        "weeklyPlan": {
           "type": "array",
           "items": { "$ref": "#/entities/ItemRoteiro" },
           "description": "A lista de tarefas do roteiro para a semana."
         },
-        "desempenhoSimulado": {
+        "simulatedPerformance": {
             "type": "array",
             "items": { "$ref": "#/entities/PontoDadosGrafico" },
             "description": "Uma simulação do desempenho para o plano semanal."
@@ -273,7 +269,7 @@
           "description": "O timestamp de quando o plano foi gerado."
         }
       },
-      "required": ["items", "createdAt", "desempenhoSimulado"]
+      "required": ["weeklyPlan", "createdAt", "simulatedPerformance"]
     },
     "IdeiaSalva": {
       "title": "Ideia Salva",
@@ -331,9 +327,9 @@
       "schema": { "$ref": "#/entities/WebhookLog" },
       "description": "Logs all incoming webhook events from the payment gateway."
     },
-    "/usageLogs/{usageId}": {
+    "/users/{userId}/dailyUsage/{usageId}": {
         "schema": { "$ref": "#/entities/DailyUsage" },
-        "description": "Tracks daily usage of features. The document ID is a composite of userId and date (e.g., 'someUserId_2024-01-01')."
+        "description": "Tracks daily usage of features for a specific user. The document ID is the date in YYYY-MM-DD format."
     },
     "/users/{userId}/metricSnapshots/{snapshotId}": {
         "schema": { "$ref": "#/entities/MetricSnapshot" },

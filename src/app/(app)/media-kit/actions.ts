@@ -44,12 +44,16 @@ const AiCareerPackageOutputSchema = z.object({
   }),
   sampleCollaborationIdeas: z
     .array(CollaborationIdeaSchema)
+    .length(3)
     .describe(
       'Uma lista de 3 ideias de colaboração criativas e de alto nível que se encaixam no nicho do criador e da marca alvo.'
     )
     .transform((ideas) =>
       ideas.map((idea) => idea.ideia)
     ),
+    valueProposition: z.string().describe("Uma frase curta e poderosa que resume por que a marca deveria contratar o influenciador."),
+    negotiationTips: z.array(z.string()).length(3).describe("Três dicas práticas para o criador negociar melhor com a marca."),
+    brandAlignment: z.string().describe("Uma breve análise de como os valores e a estética do criador se conectam com os da marca alvo."),
 });
 
 export type AiCareerPackageOutput = z.infer<typeof AiCareerPackageOutputSchema>;
@@ -101,7 +105,6 @@ Sua resposta DEVE ser um bloco de código JSON válido, e NADA MAIS. O JSON deve
 
   const userPrompt = `
   Gere um pacote de prospecção profissional com base NOS SEGUINTES DADOS. Seja criativo, estratégico e siga as regras com MÁXIMA PRECISÃO.
-  Você está estritamente proibido de mencionar, sugerir ou fazer alusão a qualquer tópico, produto ou ideia que não pertença diretamente ao nicho fornecido. O foco é absoluto.
 
   - Nicho de Atuação do Criador: ${input.niche}
   - Métricas Principais do Criador: ${input.keyMetrics}
@@ -109,20 +112,17 @@ Sua resposta DEVE ser um bloco de código JSON válido, e NADA MAIS. O JSON deve
 
   Para cada campo do JSON, siga estas diretrizes:
 
-  - executiveSummary: Crie um texto de apresentação completo e profissional em PRIMEIRA PESSOA. O texto deve ser estruturado e seguir os seguintes pontos:
-    1.  **Posicionamento Profissional:** Comece se apresentando como um especialista no nicho de ${input.niche}, destacando seu foco (ex: análises estratégicas, tutoriais, etc.) e a autenticidade que construiu sua comunidade.
-    2.  **Descrição do Público:** Descreva sua audiência de forma que ela se alinhe com a marca alvo (${input.targetBrand}). Mencione valores e interesses do público (ex: performance, tecnologia, estilo).
-    3.  **Sinergia com a Marca:** Explique por que uma parceria faz sentido, conectando os valores do seu conteúdo (ex: evolução, superação, mentalidade competitiva) com o DNA da marca.
-    4.  **Oferta de Parceria:** Crie uma lista (bullet points) do que você oferece como parceiro (ex: "Conteúdos patrocinados de alta retenção", "Ativações temáticas", "Aparições em lives", "Narrativas criativas").
-    5.  **Compromisso e Fechamento:** Finalize com um parágrafo de compromisso, reforçando seu objetivo de entregar valor e resultados, e se colocando à disposição para desenvolver ações exclusivas.
+  - executiveSummary: Crie um texto de apresentação completo e profissional em PRIMEIRA PESSOA. Estruture em 5 pontos: 1. **Posicionamento Profissional** (apresente-se como especialista no nicho). 2. **Descrição do Público** (descreva sua audiência de forma que se alinhe com a marca alvo). 3. **Sinergia com a Marca** (explique por que a parceria faz sentido, conectando valores). 4. **Oferta de Parceria** (crie uma lista de bullet points do que você oferece como parceiro, ex: "Conteúdos patrocinados de alta retenção"). 5. **Compromisso e Fechamento** (finalize reforçando seu objetivo de entregar valor e resultados).
 
-  - pricingTiers: Com base nas métricas fornecidas (${input.keyMetrics}), calcule faixas de preço realistas para o mercado brasileiro. É OBRIGATÓRIO que você retorne uma STRING formatada para CADA um dos campos (reels, storySequence, staticPost, monthlyPackage), como "R$ X - R$ Y". Não deixe nenhum campo de preço em branco.
+  - pricingTiers: Com base nas métricas (${input.keyMetrics}), calcule faixas de preço realistas para o mercado brasileiro. É OBRIGATÓRIO que você retorne uma STRING formatada para CADA um dos campos (reels, storySequence, staticPost, monthlyPackage), como "R$ X - R$ Y".
 
-  - sampleCollaborationIdeas: Gere EXATAMENTE 3 ideias de colaboração. Cada ideia DEVE ser:
-    1.  100% relacionada e exclusiva ao nicho ${input.niche}.
-    2.  Criativa, autêntica e que gere valor real para o público deste nicho.
-    3.  Alinhada com os produtos ou o posicionamento da marca alvo ${input.targetBrand}.
-    NÃO inclua nenhuma ideia de outros nichos. O foco é absoluto. Para cada ideia, use a chave 'ideia' no JSON.
+  - sampleCollaborationIdeas: Gere EXATAMENTE 3 ideias de colaboração criativas, autênticas e alinhadas com a marca alvo (${input.targetBrand}) e o nicho (${input.niche}).
+
+  - valueProposition: Crie uma frase de impacto que resuma por que a marca deveria fechar com você. Ex: "Conecto sua marca a um público engajado que confia na minha curadoria para decisões de compra."
+
+  - negotiationTips: Dê 3 dicas práticas para negociação. Ex: "Comece pedindo 20% acima da sua meta de preço", "Nunca aceite a primeira oferta", "Tenha um pacote de entregas extra para oferecer em troca de um valor maior".
+
+  - brandAlignment: Analise brevemente a sinergia entre o criador e a marca. Ex: "A estética minimalista do seu feed e o foco em qualidade se conectam diretamente com o posicionamento premium da ${input.targetBrand}."
   `;
 
   try {

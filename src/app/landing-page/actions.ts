@@ -22,7 +22,17 @@ const GrowthCalculatorOutputSchema = z.object({
   growthData: z.array(GrowthDataPointSchema).describe("Um array de objetos, onde cada objeto tem 'month' e 'followers', para plotar a curva de crescimento."),
   trendSuggestions: z.array(TrendSuggestionSchema).describe("Uma lista de 3 sugestões de ganchos para vídeos virais, relevantes para o nicho."),
   postsPerMonth: z.number().describe("O número de publicações por mês usado no cálculo, para exibição."),
+  difficultyScore: z.enum(['Fácil', 'Realista', 'Difícil']).describe("Classificação do quão realista é atingir a meta com os dados fornecidos."),
+  riskPanel: z.array(z.string()).describe("Lista com 2-3 riscos e pontos fracos que podem atrasar a meta."),
+  recommendations: z.array(z.string()).describe("Lista de 2-3 recomendações acionáveis para alcançar a meta mais rápido."),
+  benchmarkComparison: z.string().describe("Uma breve análise de como o usuário se compara ao mercado do nicho em termos de crescimento."),
+  accelerationScenarios: z.object({
+      maintain: z.number().describe("Meses para atingir a meta mantendo o ritmo atual."),
+      plus20: z.number().describe("Meses para atingir a meta aumentando os posts em 20%."),
+      plus40: z.number().describe("Meses para atingir a meta aumentando os posts em 40%."),
+  }).describe("Cenários de aceleração do crescimento baseados no volume de posts."),
 });
+
 
 export type GrowthCalculatorOutput = z.infer<typeof GrowthCalculatorOutputSchema>;
 
@@ -68,7 +78,7 @@ async function calculateGrowthAI(input: FormSchemaType): Promise<GrowthCalculato
   Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON deve se conformar estritamente ao schema fornecido.`;
 
   const userPrompt = `
-  Analise os seguintes dados e gere uma projeção de crescimento completa:
+  Analise os seguintes dados e gere uma projeção de crescimento completa. Seja profissional, profundo e estratégico em cada campo.
 
   - Nicho: ${input.niche}
   - Seguidores Atuais: ${input.followers}
@@ -83,6 +93,11 @@ async function calculateGrowthAI(input: FormSchemaType): Promise<GrowthCalculato
   - growthData: Crie um array de objetos. CADA objeto deve ter duas chaves: 'month' (o número do mês) e 'followers' (o número projetado de seguidores).
   - trendSuggestions: Forneça EXATAMENTE 3 ideias de ganchos para vídeos virais, relevantes para o nicho '${input.niche}'. Cada item no array DEVE ser um objeto com as chaves "hook" (string) e "icon" (string de emoji).
   - postsPerMonth: Apenas retorne o valor de entrada.
+  - difficultyScore: Com base no crescimento necessário vs. posts por mês, classifique a meta como 'Fácil', 'Realista' ou 'Difícil'.
+  - riskPanel: Liste 2-3 riscos ou pontos fracos que podem impedir o crescimento. Ex: "Baixa frequência de posts pode diminuir o alcance", "Nicho muito saturado exige alta diferenciação".
+  - recommendations: Dê 2-3 recomendações estratégicas para acelerar. Ex: "Focar em collabs com criadores maiores", "Explorar formato de vídeo X que está em alta no nicho".
+  - benchmarkComparison: Faça uma breve análise comparativa. Ex: "Seu crescimento projetado está 10% acima da média para o nicho de games, mas abaixo de criadores de finanças que postam diariamente".
+  - accelerationScenarios: Calcule o tempo para a meta em três cenários: mantendo o ritmo atual de posts, aumentando em 20% e aumentando em 40%.
   `;
 
   try {

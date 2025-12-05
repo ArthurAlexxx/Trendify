@@ -4,19 +4,29 @@
 import OpenAI from 'openai';
 import { z } from 'zod';
 
+const NicheCompetitorSchema = z.object({
+  videoTitle: z.string(),
+  learning: z.string(),
+});
+
 // Esquema de saída esperado da IA
 const GenerateVideoIdeasOutputSchema = z.object({
   gancho: z.string().describe('Um gancho de 2-3 segundos, otimizado para parar a rolagem e gerar curiosidade imediata.'),
-  script: z.string().describe('Um roteiro detalhado e conciso, com indicações de cena e narração, estruturado para reter a atenção.'),
+  scriptLongo: z.string().describe('Um roteiro detalhado para um vídeo de 45-60 segundos, com indicações de cena e narração.'),
+  scriptCurto: z.string().describe('Uma versão resumida do roteiro para um vídeo de 15-25 segundos.'),
   cta: z.string().describe('Uma chamada para ação clara, convincente e alinhada ao objetivo do vídeo.'),
-  takes: z.array(z.string()).describe('Uma lista de cenas ou tomadas específicas para gravar, facilitando a produção do conteúdo.'),
-  suggestedPostTime: z
-    .string()
-    .describe('O melhor horário sugerido para postar o vídeo na plataforma indicada, visando máximo alcance.'),
-  trendingSong: z
-    .string()
-    .describe('Uma música atualmente em alta que se encaixe perfeitamente no estilo do vídeo.'),
+  takesChecklist: z.array(z.string()).describe('Uma lista de cenas ou tomadas específicas para gravar, facilitando a produção do conteúdo.'),
+  suggestedPostTime: z.string().describe('O melhor dia e horário sugerido para postar o vídeo, visando máximo alcance.'),
+  trendingSong: z.string().describe('Uma música atualmente em alta que se encaixe perfeitamente no estilo do vídeo.'),
+  viralScore: z.number().min(0).max(100).describe('Uma nota de 0 a 100 para o potencial de viralização da ideia.'),
+  platformAdaptations: z.object({
+    tiktok: z.string().describe('Dica para adaptar o conteúdo especificamente para o TikTok.'),
+    reels: z.string().describe('Dica para adaptar o conteúdo especificamente para o Instagram Reels.'),
+    shorts: z.string().describe('Dica para adaptar o conteúdo especificamente para o YouTube Shorts.'),
+  }),
+  nicheCompetitors: z.array(NicheCompetitorSchema).length(3).describe("Uma lista de 3 vídeos virais de concorrentes do nicho e o que aprender com cada um."),
 });
+
 
 export type GenerateVideoIdeasOutput = z.infer<
   typeof GenerateVideoIdeasOutputSchema
@@ -64,25 +74,29 @@ function extractJson(text: string) {
 async function generateVideoIdeas(
   input: z.infer<typeof formSchema>
 ): Promise<GenerateVideoIdeasOutput> {
-  const systemPrompt = `Você é um estrategista de conteúdo de classe mundial e especialista em vídeos virais para criadores de conteúdo no Instagram e TikTok.
-Sua tarefa é gerar uma ideia de vídeo completa, criativa, estratégica e pronta para ser executada, baseada nos requisitos do usuário.
+  const systemPrompt = `Você é um Estrategista de Conteúdo Viral, especialista em roteiros para criadores no Instagram e TikTok.
+Sua tarefa é gerar uma ideia de vídeo completa, criativa, estratégica e pronta para ser executada.
 Lembre-se, a data atual é dezembro de 2025.
-Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON deve se conformar estritamente ao schema fornecido. Não inclua nenhum texto ou formatação fora do objeto JSON.`;
+Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON deve se conformar estritamente ao schema.`;
 
   const userPrompt = `
-  Gere uma ideia de vídeo completa com base nos seguintes requisitos:
+  Gere uma ideia de vídeo completa e profissional com base nos seguintes requisitos:
 
   - Tópico: ${input.topic}
   - Público-alvo: ${input.targetAudience}
   - Objetivo Principal: ${input.objective}
   
   Para cada campo do JSON, siga estas diretrizes:
-  - gancho: Crie uma frase ou cena de 2-3 segundos que gere curiosidade, quebre uma crença comum ou apresente uma solução contraintuitiva. Evite clichês. Se o objetivo for ganhar seguidores, o gancho deve ser extra forte.
-  - script: Escreva um roteiro claro e conciso como um único texto (string). Estruture-o em três partes: Introdução (o gancho), Desenvolvimento (a entrega de valor/o miolo do conteúdo) e Conclusão (o CTA). Inclua sugestões de cenas entre colchetes. Exemplo: "[CENA: Close-up no produto] Você investe em produtos caros, mas o erro pode estar na ordem de aplicação. A regra de ouro é: do mais leve ao mais denso... [CENA: Mostrando a textura de um sérum e depois de um creme]". O script deve ser detalhado o suficiente para ser gravado.
-  - cta: A chamada para ação deve ser direta e incentivar o comportamento desejado. Se o objetivo é 'Alcance' ou a meta de seguidores está definida, a CTA deve ser "Siga para mais". Se for 'Vendas', deve ser "Comente 'EU QUERO' para receber o link". Para 'Engajamento', "Qual sua opinião? Comente aqui!".
-  - takes: Descreva uma lista de tomadas simples e práticas que o criador precisa gravar. Ex: ["Take do seu rosto falando para a câmera.", "Take de unboxing do produto.", "Take mostrando o resultado final."]. Retorne um array de strings.
-  - suggestedPostTime: Com base na plataforma (Instagram/Tiktok), sugira um dia e horário de pico para postagem (ex: "Sexta-feira, 18:30h" ou "Domingo, 20:00h").
-  - trendingSong: Pesquise e sugira uma música que esteja genuinamente em alta AGORA no Instagram ou TikTok e que combine com a vibe do vídeo. Inclua o nome do artista.
+  - gancho: Crie uma frase ou cena de 2-3 segundos que gere curiosidade ou quebre uma crença. Seja contraintuitivo.
+  - scriptLongo: Escreva um roteiro detalhado para um vídeo de 45-60 segundos. Estruture em: Introdução (gancho), Desenvolvimento (entrega de valor) e Conclusão (CTA). Inclua sugestões de cenas entre colchetes. Ex: "[CENA: Close-up no produto] Você erra a ordem. A regra é: do mais leve ao mais denso...".
+  - scriptCurto: Crie uma versão de 15-25 segundos do roteiro principal, focada no gancho e no ponto principal.
+  - cta: A chamada para ação deve ser direta e alinhada ao objetivo. Se o objetivo for 'Vendas', use "Comente 'EU QUERO' para receber o link". Se for 'Engajamento', "Qual sua opinião? Comente aqui!".
+  - takesChecklist: Liste tomadas práticas que o criador precisa gravar. Ex: ["Take do seu rosto falando.", "Take de unboxing.", "Take mostrando resultado."].
+  - suggestedPostTime: Sugira um dia e horário de pico para postagem (ex: "Sexta-feira, 18:30h").
+  - trendingSong: Sugira uma música em alta no Instagram/TikTok que combine com a vibe do vídeo, incluindo o nome do artista.
+  - viralScore: Dê uma nota de 0 a 100 para o potencial de viralização, baseada na força do gancho, relevância do tema e adaptabilidade.
+  - platformAdaptations: Dê uma dica para adaptar o conteúdo para TikTok, uma para Reels e uma para Shorts, focando nas particularidades de cada plataforma.
+  - nicheCompetitors: Liste 3 vídeos virais reais de concorrentes no mesmo nicho. Para cada um, informe o título do vídeo e um aprendizado chave (o que o tornou viral).
   `;
 
   try {

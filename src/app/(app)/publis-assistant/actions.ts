@@ -14,11 +14,23 @@ const TrendVariationSchema = z.object({
   variacao: z.string().describe("A descrição da variação da ideia adaptada para uma tendência."),
 });
 
-const GeneratePubliProposalsOutputSchema = z.object({
-  scripts: z.array(ScriptSchema).describe('Uma lista de 5 ideias de roteiros de vídeo prontos para gravar.'),
-  trendVariations: z.array(TrendVariationSchema).describe('Uma lista de 2 a 3 variações das ideias de roteiro, adaptadas para tendências ou "dancinhas" atuais.'),
-  conversionChecklist: z.array(z.string()).describe('Um checklist com 4 a 5 pontos essenciais para garantir a conversão do vídeo, como prova social, urgência, oferta clara, etc.'),
+const CreativeAngleSchema = z.string();
+
+const BrandToneAdaptationSchema = z.object({
+    corporativa: z.string(),
+    jovem: z.string(),
+    humor: z.string(),
 });
+
+const GeneratePubliProposalsOutputSchema = z.object({
+  scripts: z.array(ScriptSchema).length(5).describe('Uma lista de 5 ideias de roteiros de vídeo prontos para gravar.'),
+  trendVariations: z.array(TrendVariationSchema).min(2).max(3).describe('Uma lista de 2 a 3 variações das ideias de roteiro, adaptadas para tendências.'),
+  conversionChecklist: z.array(z.string()).min(4).max(5).describe('Um checklist com 4 a 5 pontos essenciais para garantir a conversão do vídeo.'),
+  creativeAngles: z.array(CreativeAngleSchema).describe("Uma lista de ângulos criativos profissionais para a campanha."),
+  brandToneAdaptations: BrandToneAdaptationSchema.describe("Adaptações de tom de voz para a campanha."),
+  conversionProjection: z.string().describe("Indicação de qual roteiro tem maior potencial de vendas e por quê."),
+});
+
 
 export type GeneratePubliProposalsOutput = z.infer<
   typeof GeneratePubliProposalsOutputSchema
@@ -71,21 +83,21 @@ Lembre-se, a data atual é dezembro de 2025.
 Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON deve se conformar estritamente ao schema fornecido.`;
 
   const userPrompt = `
-  Gere um pacote de conteúdo para uma publicidade ("publi") com base nos seguintes requisitos detalhados:
+  Gere um pacote de conteúdo para uma publicidade ("publi") com base nos seguintes requisitos:
 
-  - Produto/Marca a ser promovido: ${input.product}
+  - Produto/Marca: ${input.product}
   - Público-alvo: ${input.targetAudience}
-  - Diferenciais do produto/marca: ${input.differentiators}
-  - Objetivo Principal da campanha: ${input.objective}
-  - Informações Adicionais (restrições, links, etc.): ${input.extraInfo || 'Nenhuma'}
+  - Diferenciais: ${input.differentiators}
+  - Objetivo: ${input.objective}
+  - Infos Adicionais: ${input.extraInfo || 'Nenhuma'}
 
   Para cada campo do JSON, siga estas diretrizes:
-
-  - scripts: Crie EXATAMENTE 5 roteiros de vídeo distintos, cada um explorando um ângulo diferente (ex: tutorial focado no diferencial, POV do cliente, unboxing estético, problema vs. solução, etc.). Cada roteiro deve ser prático e pronto para gravar, incluindo um gancho forte (gancho), um desenvolvimento rápido (script) e uma chamada para ação clara (cta) alinhada ao objetivo. O tom de voz deve ser profissional, autêntico e apropriado para o público e produto.
-
-  - trendVariations: Crie 2-3 sugestões de como adaptar uma das ideias de roteiro para uma tendência (trend) de áudio ou vídeo que esteja em alta no Instagram/TikTok. Seja específico. Ex: "Adapte o roteiro 3 usando o áudio 'som do momento' com a trend de dublagem X." Para cada item no array, use a chave 'variacao' para a descrição.
-
-  - conversionChecklist: Crie um checklist com 4-5 itens acionáveis para maximizar a conversão do vídeo, baseado no objetivo principal. Se o objetivo é Vendas, inclua itens como 'Mostrar prova social (ex: comentários)' ou 'Criar senso de urgência (ex: 'últimas unidades')'. Se o objetivo é Reconhecimento, inclua 'Gancho que gere curiosidade sobre a marca' ou 'CTA para seguir o perfil'.
+  - scripts: Crie 5 roteiros de vídeo distintos (com gancho, script, cta), cada um com um ângulo diferente (tutorial, POV, unboxing, etc.).
+  - trendVariations: Crie 2-3 sugestões de como adaptar uma das ideias para uma trend de áudio ou vídeo em alta no Instagram/TikTok.
+  - conversionChecklist: Crie um checklist com 4-5 itens para maximizar a conversão, focado no objetivo. Ex: 'Mostrar prova social' para Vendas, ou 'Gancho curioso sobre a marca' para Reconhecimento.
+  - creativeAngles: Liste alguns ângulos criativos profissionais (ex: "Focar na sustentabilidade do produto", "Criar uma narrativa de superação com a marca").
+  - brandToneAdaptations: Crie 3 pequenas variações do CTA principal: uma com tom corporativo, uma com tom jovem/descolado e uma com tom de humor.
+  - conversionProjection: Indique qual dos 5 roteiros tem maior potencial de conversão para o objetivo definido e explique o porquê de forma concisa.
   `;
 
   try {

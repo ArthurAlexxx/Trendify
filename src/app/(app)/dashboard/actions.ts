@@ -4,31 +4,45 @@
 import { z } from 'zod';
 import OpenAI from 'openai';
 
-const MetricSnapshotSchema = z.object({
-  date: z.string().datetime(),
-  platform: z.enum(['instagram', 'tiktok']),
-  followers: z.number(),
-  views: z.number(),
-  likes: z.number(),
-  comments: z.number(),
-});
-
 const DashboardInsightSchema = z.object({
     insight: z.string().describe("Um insight curto e acionável com base na evolução das métricas fornecidas.")
 });
 
-export type DashboardInsight = z.infer<typeof DashboardInsightSchema>;
+const TrendAnalysisSchema = z.object({
+    rising: z.array(z.string()).describe("Métricas que estão subindo."),
+    falling: z.array(z.string()).describe("Métricas que estão caindo."),
+});
 
-const GenerateDashboardInsightsInputSchema = z.object({
-  metricSnapshots: z.array(MetricSnapshotSchema),
-  niche: z.string(),
-  objective: z.string(),
+const PredictiveForecastSchema = z.object({
+    next7days: z.string().describe("Previsão de crescimento de seguidores para os próximos 7 dias."),
+    next30days: z.string().describe("Previsão de crescimento de seguidores para os próximos 30 dias."),
 });
 
 const GenerateDashboardInsightsOutputSchema = z.object({
-    insights: z.array(DashboardInsightSchema).length(3).describe("Uma lista de exatamente 3 insights acionáveis.")
+    insights: z.array(DashboardInsightSchema).length(3).describe("Uma lista de exatamente 3 insights acionáveis."),
+    trendAnalysis: TrendAnalysisSchema.describe("Análise de tendências de métricas."),
+    predictiveForecast: PredictiveForecastSchema.describe("Previsão de crescimento."),
+    riskAlerts: z.array(z.string()).describe("Alertas sobre riscos potenciais, como queda de engajamento ou ritmo de posts."),
+    recommendedActions: z.array(z.string()).length(3).describe("Três ações imediatas recomendadas para melhorar as métricas."),
+    bestPostTime: z.string().describe("Sugestão de melhores horários para postar com base nos dados recentes."),
+    contentOpportunities: z.array(z.string()).length(2).describe("Duas oportunidades de conteúdo baseadas em tendências do nicho ou dados do perfil."),
 });
 
+export type DashboardInsightsOutput = z.infer<typeof GenerateDashboardInsightsOutputSchema>;
+export type DashboardInsight = z.infer<typeof DashboardInsightSchema>;
+
+const GenerateDashboardInsightsInputSchema = z.object({
+  metricSnapshots: z.array(z.object({
+    date: z.string(),
+    platform: z.enum(['instagram', 'tiktok']),
+    followers: z.number(),
+    views: z.number(),
+    likes: z.number(),
+    comments: z.number(),
+  })),
+  niche: z.string(),
+  objective: z.string(),
+});
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -52,39 +66,39 @@ function extractJson(text: string) {
   return null;
 }
 
-
 /**
  * Genera insights analisando a tendência de uma lista de métricas, usando IA.
  * @param input - Um objeto contendo niche, objective e a lista de metricSnapshots.
- * @returns Uma lista de insights acionáveis gerados pela IA.
+ * @returns Um objeto completo com insights, análises e previsões.
  */
 export async function generateDashboardInsights(
   input: z.infer<typeof GenerateDashboardInsightsInputSchema>
-): Promise<DashboardInsight[]> {
+): Promise<DashboardInsightsOutput> {
   const { metricSnapshots, niche, objective } = input;
 
   if (metricSnapshots.length < 2) {
     throw new Error("Dados insuficientes para gerar uma análise. Colete dados por mais alguns dias.");
   }
   
-  const systemPrompt = `Você é um "AI Growth Strategist", especialista em analisar métricas de redes sociais e transformá-las em conselhos práticos para criadores de conteúdo.
-  Sua tarefa é analisar a evolução das métricas de um criador nos últimos dias e fornecer EXATAMENTE 3 insights acionáveis.
-  Seja criativo e forneça insights variados a cada vez que for chamado, mesmo com os mesmos dados. Pense em diferentes ângulos: engajamento vs. alcance, consistência, tipo de conteúdo, etc.
-  Você DEVE responder com um objeto JSON válido, e NADA MAIS. O JSON deve se conformar estritamente ao schema: { insights: [{ insight: "seu insight aqui" }, ...] }`;
+  const systemPrompt = `Você é um "AI Growth Strategist" e Analista de Dados, especialista em transformar métricas de redes sociais em conselhos práticos e previsões para criadores.
+  Sua tarefa é analisar a evolução das métricas de um criador e fornecer um dashboard completo de inteligência.
+  Você DEVE responder com um objeto JSON válido, e NADA MAIS, estritamente conforme o schema.`;
 
   const userPrompt = `
-  Analise os seguintes dados e gere 3 insights criativos e acionáveis:
+  Analise os seguintes dados e gere um dashboard de inteligência completo:
 
   - Nicho do Criador: ${niche}
   - Objetivo Atual: ${objective}
   - Dados de Métricas (array ordenado do mais recente para o mais antigo): ${JSON.stringify(metricSnapshots, null, 2)}
 
-  Exemplos de bons insights:
-  - "Seu engajamento (curtidas + comentários) cresceu 15% nos últimos 3 dias, mas as visualizações caíram. Tente usar ganchos mais fortes nos seus próximos vídeos para reter a atenção."
-  - "Você teve um pico de seguidores no dia X. Analise o conteúdo postado nesse dia, ele claramente ressoou com o público e pode ser um formato a ser repetido."
-  - "Suas métricas no TikTok estão superando as do Instagram em visualizações. Considere adaptar um conteúdo de sucesso do TikTok para os Reels do Instagram."
-
-  Agora, gere sua análise com base nos dados fornecidos.
+  Para cada campo do JSON, siga estas diretrizes:
+  - insights: Gere 3 insights criativos e acionáveis, variados, sobre engajamento, alcance, etc.
+  - trendAnalysis: Analise as métricas e liste quais estão subindo e quais estão caindo.
+  - predictiveForecast: Com base na tendência atual, faça uma previsão de crescimento de seguidores para os próximos 7 e 30 dias.
+  - riskAlerts: Identifique e liste quaisquer riscos, como "Queda de 15% no engajamento médio esta semana".
+  - recommendedActions: Sugira 3 ações imediatas e práticas para melhorar as métricas.
+  - bestPostTime: Com base nos dados, sugira os melhores dias/horários para postar.
+  - contentOpportunities: Sugira 2 novas oportunidades de conteúdo baseadas nas tendências do nicho e nos dados do perfil.
   `;
   
    try {
@@ -95,7 +109,7 @@ export async function generateDashboardInsights(
         { role: 'user', content: userPrompt },
       ],
       response_format: { type: "json_object" },
-      temperature: 0.8, // Um pouco mais de criatividade
+      temperature: 0.8,
     });
 
     const content = response.choices[0].message.content;
@@ -107,7 +121,7 @@ export async function generateDashboardInsights(
     const parsedJson = JSON.parse(jsonString);
     const validatedData = GenerateDashboardInsightsOutputSchema.parse(parsedJson);
 
-    return validatedData.insights;
+    return validatedData;
   } catch (error) {
     console.error('Error in generateDashboardInsights:', error);
     const errorMessage =
