@@ -20,7 +20,7 @@ const GrowthCalculatorOutputSchema = z.object({
   currentEarnings: z.array(z.number()).length(2).describe("Uma faixa de ganhos mensais estimada com os seguidores atuais [min, max]."),
   goalEarnings: z.array(z.number()).length(2).describe("Uma faixa de ganhos mensais estimada ao atingir a meta de seguidores [min, max]."),
   growthData: z.array(GrowthDataPointSchema).describe("Um array de objetos, onde cada objeto tem 'month' e 'followers', para plotar a curva de crescimento."),
-  trendSuggestions: z.array(TrendSuggestionSchema).describe("Uma lista de 3 sugestões de ganchos para vídeos virais, relevantes para o nicho."),
+  trendSuggestions: z.array(TrendSuggestionSchema).length(3).describe("Uma lista de 3 sugestões de ganchos para vídeos virais, relevantes para o nicho."),
   postsPerMonth: z.number().describe("O número de publicações por mês usado no cálculo, para exibição."),
   difficultyScore: z.enum(['Fácil', 'Realista', 'Difícil']).describe("Classificação do quão realista é atingir a meta com os dados fornecidos."),
   riskPanel: z.array(z.string()).describe("Lista com 2-3 riscos e pontos fracos que podem atrasar a meta."),
@@ -73,31 +73,25 @@ function extractJson(text: string) {
 }
 
 async function calculateGrowthAI(input: FormSchemaType): Promise<GrowthCalculatorOutput> {
-  const systemPrompt = `Você é um "AI Growth Advisor", um consultor especialista em crescimento de criadores de conteúdo. Sua tarefa é analisar os dados de um criador e gerar uma projeção realista e acionável.
-  Lembre-se, a data atual é dezembro de 2025.
-  Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON deve se conformar estritamente ao schema fornecido.`;
+  const systemPrompt = `Você é o GrowthAI Engine v3.0, um sistema avançado de análise e projeção de crescimento para criadores de conteúdo, especializado em: modelagem de crescimento orgânico, estimativa de ganhos, análise crítica, benchmarking do nicho, projeções realistas, simulações de cenários, detecção de riscos, recomendações acionáveis, e geração de ganchos virais estratégicos. Age como um consultor profissional, matemático, analista de mercado, estrategista digital e planner de conteúdo simultaneamente.
+
+🔒 REGRAS FUNDAMENTAIS
+Você DEVE retornar somente um JSON válido, sem texto adicional antes ou depois.
+O JSON DEVE seguir exatamente o schema fornecido.
+Todos os valores devem ser calculados, nunca inventados.
+Nada no JSON pode ser vago. Sempre profundo.
+Data atual do sistema = dezembro de 2025.
+`;
 
   const userPrompt = `
-  Analise os seguintes dados e gere uma projeção de crescimento completa. Seja profissional, profundo e estratégico em cada campo.
+  Analise os seguintes dados e gere uma projeção de crescimento completa, seguindo todas as suas diretrizes internas e módulos de cálculo.
 
   - Nicho: ${input.niche}
   - Seguidores Atuais: ${input.followers}
   - Meta de Seguidores: ${input.goal}
   - Média de publicações por Mês: ${input.postsPerMonth}
-
-  Para cada campo do JSON, siga estas diretrizes:
-
-  - months: Calcule o número de meses para atingir a meta, com um máximo de 24 meses. Seja realista, considerando que o crescimento é exponencial. Uma taxa de crescimento mensal entre 5% e 15% é razoável, dependendo do nicho e da consistência (publicações/mês). Nichos como finanças e tecnologia crescem mais rápido.
-  - goalDate: Calcule a data futura com base no número de meses e retorne em formato ISO 8601.
-  - currentEarnings e goalEarnings: Estime uma FAIXA de ganhos mensais [mínimo, máximo] com publicidade com MÁXIMA PRECISÃO. Use um CPM (Custo por Mil visualizações) médio para o Brasil que varia entre R$15 (entretenimento) e R$150 (finanças/tecnologia), ajustado para o nicho de '${input.niche}'. Detalhe sua lógica: estime que 20-50% dos seguidores veem uma publicação e que o criador pode fazer cerca de 4-8 publis por mês.
-  - growthData: Crie um array de objetos. CADA objeto deve ter duas chaves: 'month' (o número do mês) e 'followers' (o número projetado de seguidores).
-  - trendSuggestions: Forneça EXATAMENTE 3 ideias de ganchos para vídeos virais, relevantes para o nicho '${input.niche}'. Cada item no array DEVE ser um objeto com as chaves "hook" (string) e "icon" (string de emoji).
-  - postsPerMonth: Apenas retorne o valor de entrada.
-  - difficultyScore: Com base no crescimento necessário vs. posts por mês, classifique a meta como 'Fácil', 'Realista' ou 'Difícil'.
-  - riskPanel: Liste 2-3 riscos ou pontos fracos que podem impedir o crescimento. Ex: "Baixa frequência de posts pode diminuir o alcance", "Nicho muito saturado exige alta diferenciação".
-  - recommendations: Dê 2-3 recomendações estratégicas para acelerar. Ex: "Focar em collabs com criadores maiores", "Explorar formato de vídeo X que está em alta no nicho".
-  - benchmarkComparison: Faça uma breve análise comparativa. Ex: "Seu crescimento projetado está 10% acima da média para o nicho de games, mas abaixo de criadores de finanças que postam diariamente".
-  - accelerationScenarios: Calcule o tempo (em meses) para atingir a meta em três cenários. O resultado DEVE ser um objeto com as chaves 'maintain' (ritmo atual), 'plus20' (aumentando posts em 20%) e 'plus40' (aumentando posts em 40%). Cada chave deve ter um valor numérico.
+  
+  Execute seus módulos internos para calcular cada campo do JSON de resposta com máxima precisão e profissionalismo.
   `;
 
   try {
@@ -136,6 +130,11 @@ export async function calculateGrowthAction(
   if (!parsed.success) {
     return { error: 'Por favor, preencha todos os campos corretamente.' };
   }
+  
+  if (parsed.data.goal <= parsed.data.followers) {
+    return { error: 'A meta de seguidores deve ser maior que o número atual de seguidores.' };
+  }
+
 
   try {
     const result = await calculateGrowthAI(parsed.data);
