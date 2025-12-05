@@ -27,6 +27,9 @@ import {
   Pencil,
   Activity,
   Lightbulb,
+  Smile,
+  Meh,
+  Frown,
 } from 'lucide-react';
 import {
   ChartContainer,
@@ -350,6 +353,22 @@ export default function DashboardPage() {
      }
   }
 
+  const getMetricRating = (value: number, type: 'views' | 'likes' | 'comments'): { iconName: 'Smile' | 'Meh' | 'Frown', color: string } => {
+    const thresholds = {
+      views: { good: 10000, medium: 1000 },
+      likes: { good: 1000, medium: 100 },
+      comments: { good: 100, medium: 10 },
+    };
+
+    if (value >= thresholds[type].good) {
+      return { iconName: 'Smile', color: 'text-green-500' };
+    }
+    if (value >= thresholds[type].medium) {
+      return { iconName: 'Meh', color: 'text-yellow-500' };
+    }
+    return { iconName: 'Frown', color: 'text-red-500' };
+  };
+
   return (
     <>
       <Dialog open={showTikTokModal} onOpenChange={setShowTikTokModal}>
@@ -434,17 +453,44 @@ export default function DashboardPage() {
                                     <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><Eye className="h-4 w-4" /> Views</h3>
                                     <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.views)}</p>
                                   </div>
+                                  <div>
+                                      {latestMetrics?.views !== undefined && (
+                                          <div className={cn('h-7 w-7', getMetricRating(latestMetrics.views, 'views').color)}>
+                                            {getMetricRating(latestMetrics.views, 'views').iconName === 'Smile' && <Smile className="h-full w-full" />}
+                                            {getMetricRating(latestMetrics.views, 'views').iconName === 'Meh' && <Meh className="h-full w-full" />}
+                                            {getMetricRating(latestMetrics.views, 'views').iconName === 'Frown' && <Frown className="h-full w-full" />}
+                                          </div>
+                                      )}
+                                  </div>
                               </div>
                               <div className='p-4 rounded-lg bg-muted/50 border flex justify-between items-center'>
                                   <div>
                                     <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><Heart className="h-4 w-4" /> Likes</h3>
                                     <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.likes)}</p>
                                   </div>
+                                   <div>
+                                      {latestMetrics?.likes !== undefined && (
+                                          <div className={cn('h-7 w-7', getMetricRating(latestMetrics.likes, 'likes').color)}>
+                                            {getMetricRating(latestMetrics.likes, 'likes').iconName === 'Smile' && <Smile className="h-full w-full" />}
+                                            {getMetricRating(latestMetrics.likes, 'likes').iconName === 'Meh' && <Meh className="h-full w-full" />}
+                                            {getMetricRating(latestMetrics.likes, 'likes').iconName === 'Frown' && <Frown className="h-full w-full" />}
+                                          </div>
+                                      )}
+                                  </div>
                               </div>
                               <div className='p-4 rounded-lg bg-muted/50 border flex justify-between items-center'>
                                   <div>
                                     <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><MessageSquare className="h-4 w-4" /> Comentários</h3>
                                     <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.comments)}</p>
+                                  </div>
+                                   <div>
+                                      {latestMetrics?.comments !== undefined && (
+                                          <div className={cn('h-7 w-7', getMetricRating(latestMetrics.comments, 'comments').color)}>
+                                            {getMetricRating(latestMetrics.comments, 'comments').iconName === 'Smile' && <Smile className="h-full w-full" />}
+                                            {getMetricRating(latestMetrics.comments, 'comments').iconName === 'Meh' && <Meh className="h-full w-full" />}
+                                            {getMetricRating(latestMetrics.comments, 'comments').iconName === 'Frown' && <Frown className="h-full w-full" />}
+                                          </div>
+                                      )}
                                   </div>
                               </div>
                           </div>
@@ -525,17 +571,44 @@ export default function DashboardPage() {
                                 <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><Eye className="h-4 w-4" /> Views</h3>
                                 <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.views)}</p>
                               </div>
+                              <div>
+                                  {latestMetrics?.views !== undefined && (
+                                      <div className={cn('h-7 w-7', getMetricRating(latestMetrics.views, 'views').color)}>
+                                        {getMetricRating(latestMetrics.views, 'views').iconName === 'Smile' && <Smile className="h-full w-full" />}
+                                        {getMetricRating(latestMetrics.views, 'views').iconName === 'Meh' && <Meh className="h-full w-full" />}
+                                        {getMetricRating(latestMetrics.views, 'views').iconName === 'Frown' && <Frown className="h-full w-full" />}
+                                      </div>
+                                  )}
+                              </div>
                           </div>
                           <div className='p-4 rounded-lg bg-muted/50 border flex justify-between items-center'>
                               <div>
                                 <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><Heart className="h-4 w-4" /> Likes</h3>
                                 <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.likes)}</p>
                               </div>
+                               <div>
+                                  {latestMetrics?.likes !== undefined && (
+                                      <div className={cn('h-7 w-7', getMetricRating(latestMetrics.likes, 'likes').color)}>
+                                        {getMetricRating(latestMetrics.likes, 'likes').iconName === 'Smile' && <Smile className="h-full w-full" />}
+                                        {getMetricRating(latestMetrics.likes, 'likes').iconName === 'Meh' && <Meh className="h-full w-full" />}
+                                        {getMetricRating(latestMetrics.likes, 'likes').iconName === 'Frown' && <Frown className="h-full w-full" />}
+                                      </div>
+                                  )}
+                              </div>
                           </div>
                           <div className='p-4 rounded-lg bg-muted/50 border flex justify-between items-center'>
                               <div>
                                 <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><MessageSquare className="h-4 w-4" /> Comentários</h3>
                                 <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.comments)}</p>
+                              </div>
+                               <div>
+                                  {latestMetrics?.comments !== undefined && (
+                                      <div className={cn('h-7 w-7', getMetricRating(latestMetrics.comments, 'comments').color)}>
+                                        {getMetricRating(latestMetrics.comments, 'comments').iconName === 'Smile' && <Smile className="h-full w-full" />}
+                                        {getMetricRating(latestMetrics.comments, 'comments').iconName === 'Meh' && <Meh className="h-full w-full" />}
+                                        {getMetricRating(latestMetrics.comments, 'comments').iconName === 'Frown' && <Frown className="h-full w-full" />}
+                                      </div>
+                                  )}
                               </div>
                           </div>
                       </div>
@@ -644,7 +717,5 @@ export default function DashboardPage() {
     </>
   );
 }
-
-    
 
     
