@@ -260,16 +260,19 @@ export default function DashboardPage() {
     if (!userProfile) return null;
     if (selectedPlatform === 'total') {
         return {
+            followers: parseMetric(userProfile.instagramFollowers) + parseMetric(userProfile.tiktokFollowers),
             views: parseMetric(userProfile.instagramAverageViews) + parseMetric(userProfile.tiktokAverageViews),
             likes: parseMetric(userProfile.instagramAverageLikes) + parseMetric(userProfile.tiktokAverageComments),
             comments: parseMetric(userProfile.instagramAverageComments) + parseMetric(userProfile.tiktokAverageComments),
         }
     }
     return selectedPlatform === 'instagram' ? {
+        followers: parseMetric(userProfile.instagramFollowers),
         views: parseMetric(userProfile.instagramAverageViews),
         likes: parseMetric(userProfile.instagramAverageLikes),
         comments: parseMetric(userProfile.instagramAverageComments),
     } : {
+        followers: parseMetric(userProfile.tiktokFollowers),
         views: parseMetric(userProfile.tiktokAverageViews),
         likes: parseMetric(userProfile.tiktokAverageLikes),
         comments: parseMetric(userProfile.tiktokAverageComments),
@@ -353,17 +356,23 @@ export default function DashboardPage() {
      }
   }
 
-  const getMetricRating = (value: number, type: 'views' | 'likes' | 'comments'): { iconName: 'Smile' | 'Meh' | 'Frown', color: string } => {
+  const getMetricRating = (value: number, type: 'views' | 'likes' | 'comments', followers: number): { iconName: 'Smile' | 'Meh' | 'Frown', color: string } => {
+    if (followers === 0) {
+        return { iconName: 'Meh', color: 'text-yellow-500' };
+    }
+
+    const ratio = value / followers;
+    
     const thresholds = {
-      views: { good: 10000, medium: 1000 },
-      likes: { good: 1000, medium: 100 },
-      comments: { good: 100, medium: 10 },
+        views: { good: 0.25, medium: 0.05 },    // 25% = bom, 5% = médio
+        likes: { good: 0.03, medium: 0.01 },    // 3% = bom, 1% = médio
+        comments: { good: 0.005, medium: 0.001 } // 0.5% = bom, 0.1% = médio
     };
 
-    if (value >= thresholds[type].good) {
+    if (ratio >= thresholds[type].good) {
       return { iconName: 'Smile', color: 'text-green-500' };
     }
-    if (value >= thresholds[type].medium) {
+    if (ratio >= thresholds[type].medium) {
       return { iconName: 'Meh', color: 'text-yellow-500' };
     }
     return { iconName: 'Frown', color: 'text-red-500' };
@@ -454,11 +463,11 @@ export default function DashboardPage() {
                                     <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.views)}</p>
                                   </div>
                                   <div>
-                                      {latestMetrics?.views !== undefined && (
-                                          <div className={cn('h-7 w-7', getMetricRating(latestMetrics.views, 'views').color)}>
-                                            {getMetricRating(latestMetrics.views, 'views').iconName === 'Smile' && <Smile className="h-full w-full" />}
-                                            {getMetricRating(latestMetrics.views, 'views').iconName === 'Meh' && <Meh className="h-full w-full" />}
-                                            {getMetricRating(latestMetrics.views, 'views').iconName === 'Frown' && <Frown className="h-full w-full" />}
+                                      {latestMetrics?.views !== undefined && latestMetrics.followers > 0 && (
+                                          <div className={cn('h-7 w-7', getMetricRating(latestMetrics.views, 'views', latestMetrics.followers).color)}>
+                                            {getMetricRating(latestMetrics.views, 'views', latestMetrics.followers).iconName === 'Smile' && <Smile className="h-full w-full" />}
+                                            {getMetricRating(latestMetrics.views, 'views', latestMetrics.followers).iconName === 'Meh' && <Meh className="h-full w-full" />}
+                                            {getMetricRating(latestMetrics.views, 'views', latestMetrics.followers).iconName === 'Frown' && <Frown className="h-full w-full" />}
                                           </div>
                                       )}
                                   </div>
@@ -469,11 +478,11 @@ export default function DashboardPage() {
                                     <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.likes)}</p>
                                   </div>
                                    <div>
-                                      {latestMetrics?.likes !== undefined && (
-                                          <div className={cn('h-7 w-7', getMetricRating(latestMetrics.likes, 'likes').color)}>
-                                            {getMetricRating(latestMetrics.likes, 'likes').iconName === 'Smile' && <Smile className="h-full w-full" />}
-                                            {getMetricRating(latestMetrics.likes, 'likes').iconName === 'Meh' && <Meh className="h-full w-full" />}
-                                            {getMetricRating(latestMetrics.likes, 'likes').iconName === 'Frown' && <Frown className="h-full w-full" />}
+                                      {latestMetrics?.likes !== undefined && latestMetrics.followers > 0 && (
+                                          <div className={cn('h-7 w-7', getMetricRating(latestMetrics.likes, 'likes', latestMetrics.followers).color)}>
+                                            {getMetricRating(latestMetrics.likes, 'likes', latestMetrics.followers).iconName === 'Smile' && <Smile className="h-full w-full" />}
+                                            {getMetricRating(latestMetrics.likes, 'likes', latestMetrics.followers).iconName === 'Meh' && <Meh className="h-full w-full" />}
+                                            {getMetricRating(latestMetrics.likes, 'likes', latestMetrics.followers).iconName === 'Frown' && <Frown className="h-full w-full" />}
                                           </div>
                                       )}
                                   </div>
@@ -484,11 +493,11 @@ export default function DashboardPage() {
                                     <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.comments)}</p>
                                   </div>
                                    <div>
-                                      {latestMetrics?.comments !== undefined && (
-                                          <div className={cn('h-7 w-7', getMetricRating(latestMetrics.comments, 'comments').color)}>
-                                            {getMetricRating(latestMetrics.comments, 'comments').iconName === 'Smile' && <Smile className="h-full w-full" />}
-                                            {getMetricRating(latestMetrics.comments, 'comments').iconName === 'Meh' && <Meh className="h-full w-full" />}
-                                            {getMetricRating(latestMetrics.comments, 'comments').iconName === 'Frown' && <Frown className="h-full w-full" />}
+                                      {latestMetrics?.comments !== undefined && latestMetrics.followers > 0 && (
+                                          <div className={cn('h-7 w-7', getMetricRating(latestMetrics.comments, 'comments', latestMetrics.followers).color)}>
+                                            {getMetricRating(latestMetrics.comments, 'comments', latestMetrics.followers).iconName === 'Smile' && <Smile className="h-full w-full" />}
+                                            {getMetricRating(latestMetrics.comments, 'comments', latestMetrics.followers).iconName === 'Meh' && <Meh className="h-full w-full" />}
+                                            {getMetricRating(latestMetrics.comments, 'comments', latestMetrics.followers).iconName === 'Frown' && <Frown className="h-full w-full" />}
                                           </div>
                                       )}
                                   </div>
@@ -572,11 +581,11 @@ export default function DashboardPage() {
                                 <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.views)}</p>
                               </div>
                               <div>
-                                  {latestMetrics?.views !== undefined && (
-                                      <div className={cn('h-7 w-7', getMetricRating(latestMetrics.views, 'views').color)}>
-                                        {getMetricRating(latestMetrics.views, 'views').iconName === 'Smile' && <Smile className="h-full w-full" />}
-                                        {getMetricRating(latestMetrics.views, 'views').iconName === 'Meh' && <Meh className="h-full w-full" />}
-                                        {getMetricRating(latestMetrics.views, 'views').iconName === 'Frown' && <Frown className="h-full w-full" />}
+                                   {latestMetrics?.views !== undefined && latestMetrics.followers > 0 && (
+                                      <div className={cn('h-7 w-7', getMetricRating(latestMetrics.views, 'views', latestMetrics.followers).color)}>
+                                        {getMetricRating(latestMetrics.views, 'views', latestMetrics.followers).iconName === 'Smile' && <Smile className="h-full w-full" />}
+                                        {getMetricRating(latestMetrics.views, 'views', latestMetrics.followers).iconName === 'Meh' && <Meh className="h-full w-full" />}
+                                        {getMetricRating(latestMetrics.views, 'views', latestMetrics.followers).iconName === 'Frown' && <Frown className="h-full w-full" />}
                                       </div>
                                   )}
                               </div>
@@ -587,11 +596,11 @@ export default function DashboardPage() {
                                 <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.likes)}</p>
                               </div>
                                <div>
-                                  {latestMetrics?.likes !== undefined && (
-                                      <div className={cn('h-7 w-7', getMetricRating(latestMetrics.likes, 'likes').color)}>
-                                        {getMetricRating(latestMetrics.likes, 'likes').iconName === 'Smile' && <Smile className="h-full w-full" />}
-                                        {getMetricRating(latestMetrics.likes, 'likes').iconName === 'Meh' && <Meh className="h-full w-full" />}
-                                        {getMetricRating(latestMetrics.likes, 'likes').iconName === 'Frown' && <Frown className="h-full w-full" />}
+                                   {latestMetrics?.likes !== undefined && latestMetrics.followers > 0 && (
+                                      <div className={cn('h-7 w-7', getMetricRating(latestMetrics.likes, 'likes', latestMetrics.followers).color)}>
+                                        {getMetricRating(latestMetrics.likes, 'likes', latestMetrics.followers).iconName === 'Smile' && <Smile className="h-full w-full" />}
+                                        {getMetricRating(latestMetrics.likes, 'likes', latestMetrics.followers).iconName === 'Meh' && <Meh className="h-full w-full" />}
+                                        {getMetricRating(latestMetrics.likes, 'likes', latestMetrics.followers).iconName === 'Frown' && <Frown className="h-full w-full" />}
                                       </div>
                                   )}
                               </div>
@@ -602,11 +611,11 @@ export default function DashboardPage() {
                                 <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.comments)}</p>
                               </div>
                                <div>
-                                  {latestMetrics?.comments !== undefined && (
-                                      <div className={cn('h-7 w-7', getMetricRating(latestMetrics.comments, 'comments').color)}>
-                                        {getMetricRating(latestMetrics.comments, 'comments').iconName === 'Smile' && <Smile className="h-full w-full" />}
-                                        {getMetricRating(latestMetrics.comments, 'comments').iconName === 'Meh' && <Meh className="h-full w-full" />}
-                                        {getMetricRating(latestMetrics.comments, 'comments').iconName === 'Frown' && <Frown className="h-full w-full" />}
+                                   {latestMetrics?.comments !== undefined && latestMetrics.followers > 0 && (
+                                      <div className={cn('h-7 w-7', getMetricRating(latestMetrics.comments, 'comments', latestMetrics.followers).color)}>
+                                        {getMetricRating(latestMetrics.comments, 'comments', latestMetrics.followers).iconName === 'Smile' && <Smile className="h-full w-full" />}
+                                        {getMetricRating(latestMetrics.comments, 'comments', latestMetrics.followers).iconName === 'Meh' && <Meh className="h-full w-full" />}
+                                        {getMetricRating(latestMetrics.comments, 'comments', latestMetrics.followers).iconName === 'Frown' && <Frown className="h-full w-full" />}
                                       </div>
                                   )}
                               </div>
@@ -616,7 +625,7 @@ export default function DashboardPage() {
               </Card>
               <Card className="rounded-2xl border-0 h-full flex flex-col">
                    <CardHeader className='flex flex-row items-center justify-between'>
-                       <CardTitle className="text-center flex-1">Análise de Desempenho</CardTitle>
+                       <CardTitle className="flex-1">Análise de Desempenho</CardTitle>
                        <Button variant="ghost" size="sm" onClick={handleGenerateInsights} disabled={isGeneratingInsights}>
                            {isGeneratingInsights ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
                            Analisar
