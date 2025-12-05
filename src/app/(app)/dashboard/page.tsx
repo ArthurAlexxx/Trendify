@@ -481,8 +481,8 @@ export default function DashboardPage() {
                   </Card>
                   </CarouselItem>
               </CarouselContent>
-              <CarouselPrevious className="flex left-2" />
-              <CarouselNext className="flex right-2" />
+              <CarouselPrevious className="flex left-2 lg:hidden" />
+              <CarouselNext className="flex right-2 lg:hidden" />
               </Carousel>
           </div>
 
@@ -638,5 +638,7 @@ export default function DashboardPage() {
     </>
   );
 }
+
+    
 
     
