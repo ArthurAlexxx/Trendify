@@ -239,12 +239,13 @@ const FollowerGoalSheet = ({ userProfile, children }: { userProfile: UserProfile
         });
     }
 
-    const renderNumericInput = (name: keyof z.infer<typeof followerGoalSchema>) => (
+    const renderNumericInput = (name: keyof z.infer<typeof followerGoalSchema>, label: string) => (
          <FormField
             control={form.control}
             name={name}
             render={({ field }) => (
                 <FormItem>
+                    <FormLabel>{label}</FormLabel>
                     <FormControl>
                         <Input
                             type="number"
@@ -271,21 +272,12 @@ const FollowerGoalSheet = ({ userProfile, children }: { userProfile: UserProfile
                     </SheetDescription>
                 </SheetHeader>
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
-                        <div className="grid grid-cols-2 items-center gap-4">
-                            <Label htmlFor="totalFollowerGoal">Meta Total (Insta + TikTok)</Label>
-                            {renderNumericInput('totalFollowerGoal')}
-                        </div>
-                         <div className="grid grid-cols-2 items-center gap-4">
-                            <Label htmlFor="instagramFollowerGoal">Meta do Instagram</Label>
-                            {renderNumericInput('instagramFollowerGoal')}
-                        </div>
-                         <div className="grid grid-cols-2 items-center gap-4">
-                            <Label htmlFor="tiktokFollowerGoal">Meta do TikTok</Label>
-                           {renderNumericInput('tiktokFollowerGoal')}
-                        </div>
-                         <SheetFooter className='pt-2'>
-                            <Button type="submit" disabled={isPending}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-6">
+                        {renderNumericInput('totalFollowerGoal', 'Meta Total (Insta + TikTok)')}
+                        {renderNumericInput('instagramFollowerGoal', 'Meta do Instagram')}
+                        {renderNumericInput('tiktokFollowerGoal', 'Meta do TikTok')}
+                         <SheetFooter className='pt-4'>
+                            <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
                                 {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                 Salvar Metas
                             </Button>
