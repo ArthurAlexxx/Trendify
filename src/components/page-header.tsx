@@ -18,7 +18,11 @@ export function PageHeader({ title, description, children, icon: Icon }: PageHea
                     <Icon className="h-8 w-8" />
                 </div>
             )}
-            <h1 className="text-3xl md:text-4xl font-bold font-headline tracking-tighter text-foreground">
+            <h1 className={cn(
+                "text-3xl md:text-4xl font-bold font-headline tracking-tighter",
+                "bg-gradient-to-r from-primary via-purple-500 to-violet-600 bg-clip-text text-transparent",
+                "[text-shadow:0_0_15px_hsl(var(--primary)/30%)]"
+            )}>
                 {title}
             </h1>
             {description && (
