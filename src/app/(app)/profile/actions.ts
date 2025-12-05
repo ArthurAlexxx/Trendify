@@ -89,45 +89,38 @@ async function fetchFromRapidApi(platform: 'instagram-profile' | 'tiktok-profile
       throw new Error('A chave da API (RAPIDAPI_KEY) não está configurada no servidor.');
     }
 
-    let host: string | undefined;
+    const host = process.env.INSTAGRAM_RAPIDAPI_HOST;
+    if (!host) {
+        throw new Error(`O host da API (INSTAGRAM_RAPIDAPI_HOST) não está configurado.`);
+    }
+    
     let path: string;
-    let options: RequestInit = { method: 'GET' };
-    let finalUrl: URL;
-
     switch (platform) {
         case 'instagram-profile':
-            host = process.env.INSTAGRAM_RAPIDAPI_HOST;
             path = 'web-profile';
             break;
         case 'tiktok-profile':
-            host = process.env.TIKTOK_RAPIDAPI_HOST;
             path = 'user/details';
             break;
         case 'tiktok-posts':
-            host = process.env.TIKTOK_RAPIDAPI_HOST;
             path = 'user/videos';
             break;
         default:
             throw new Error(`Plataforma '${platform}' desconhecida.`);
     }
 
-    if (!host) {
-        throw new Error(`O host da API para a plataforma '${platform.split('-')[0]}' não está configurado.`);
-    }
-    
-    finalUrl = new URL(`https://${host}/${path}`);
+    const finalUrl = new URL(`https://${host}/${path}`);
     finalUrl.searchParams.set('username', username);
 
-    return fetchData(finalUrl.toString(), addRapidApiHeaders(options, host, apiKey));
-}
-
-function addRapidApiHeaders(options: RequestInit, host: string, apiKey: string): RequestInit {
-    options.headers = {
-        ...options.headers,
-        'x-rapidapi-key': apiKey,
-        'x-rapidapi-host': host,
+    const options: RequestInit = {
+        method: 'GET',
+        headers: {
+            'x-rapidapi-key': apiKey,
+            'x-rapidapi-host': host,
+        }
     };
-    return options;
+
+    return fetchData(finalUrl.toString(), options);
 }
 
 async function fetchData(url: string, options: RequestInit) {
