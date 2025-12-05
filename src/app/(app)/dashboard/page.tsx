@@ -508,15 +508,13 @@ export default function DashboardPage() {
                   </CarouselItem>
                   <CarouselItem className="pl-2 md:pl-4 basis-full">
                   <Card className="rounded-2xl border-0 h-full flex flex-col">
-                       <CardHeader className='flex flex-col sm:flex-row items-center justify-between gap-4'>
+                       <CardHeader>
                            <CardTitle className="text-center">Análise de Desempenho</CardTitle>
-                           <Button variant="ghost" size="sm" onClick={handleGenerateInsights} disabled={isGeneratingInsights} className="w-full sm:w-auto">
-                               {isGeneratingInsights ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
-                               Analisar Desempenho
-                           </Button>
                        </CardHeader>
                       <CardContent className="flex-1 flex flex-col">
-                          {isGeneratingInsights ? <div className="flex-1 flex justify-center items-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div> : insights && insights.length > 0 ? (
+                          {isGeneratingInsights ? (
+                               <div className="flex-1 flex justify-center items-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
+                          ) : insights && insights.length > 0 ? (
                                <ScrollArea className="h-64 pr-4">
                                <ul className="space-y-4">
                                    {insights.map((insight, i) => (
@@ -528,8 +526,12 @@ export default function DashboardPage() {
                                </ul>
                                </ScrollArea>
                           ) : (
-                              <div className="flex-1 flex flex-col justify-center items-center text-center text-sm text-muted-foreground p-4">
-                                  <p>Clique em 'Analisar Desempenho' para receber uma análise com base nas suas últimas métricas.</p>
+                               <div className="flex-1 flex flex-col justify-center items-center text-center p-4 gap-4">
+                                  <p className="text-sm text-muted-foreground">Clique em 'Analisar Desempenho' para receber uma análise com base nas suas últimas métricas.</p>
+                                  <Button variant="ghost" size="sm" onClick={handleGenerateInsights} disabled={isGeneratingInsights}>
+                                      {isGeneratingInsights ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+                                      Analisar Desempenho
+                                  </Button>
                               </div>
                           )}
                       </CardContent>
@@ -624,15 +626,13 @@ export default function DashboardPage() {
                   </CardContent>
               </Card>
               <Card className="rounded-2xl border-0 h-full flex flex-col">
-                   <CardHeader className='flex flex-row items-center justify-between'>
-                       <CardTitle className="flex-1">Análise de Desempenho</CardTitle>
-                       <Button variant="ghost" size="sm" onClick={handleGenerateInsights} disabled={isGeneratingInsights}>
-                           {isGeneratingInsights ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
-                           Analisar
-                       </Button>
+                   <CardHeader>
+                       <CardTitle className="text-center">Análise de Desempenho</CardTitle>
                    </CardHeader>
                   <CardContent className="flex-1 flex flex-col">
-                      {isGeneratingInsights ? <div className="flex-1 flex justify-center items-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div> : insights && insights.length > 0 ? (
+                      {isGeneratingInsights ? (
+                          <div className="flex-1 flex justify-center items-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
+                      ) : insights && insights.length > 0 ? (
                            <ScrollArea className="h-64 pr-4">
                            <ul className="space-y-4">
                                {insights.map((insight, i) => (
@@ -644,9 +644,13 @@ export default function DashboardPage() {
                            </ul>
                            </ScrollArea>
                       ) : (
-                          <div className="flex-1 flex flex-col justify-center items-center text-center text-sm text-muted-foreground p-4">
-                              <p>Clique em 'Analisar Desempenho' para receber uma análise com base nas suas últimas métricas.</p>
-                          </div>
+                        <div className="flex-1 flex flex-col justify-center items-center text-center p-4 gap-4">
+                           <p className="text-sm text-muted-foreground">Clique em 'Analisar Desempenho' para receber uma análise com base nas suas últimas métricas.</p>
+                           <Button variant="ghost" size="sm" onClick={handleGenerateInsights} disabled={isGeneratingInsights}>
+                               {isGeneratingInsights ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+                               Analisar
+                           </Button>
+                       </div>
                       )}
                   </CardContent>
               </Card>
