@@ -74,27 +74,34 @@ function extractJson(text: string) {
 
 async function calculateGrowthAI(input: FormSchemaType): Promise<GrowthCalculatorOutput> {
    const systemPrompt = `
-    Você é o GrowthAI Engine v3.0, um sistema avançado de análise e projeção para criadores. Sua identidade combina as de um consultor, matemático, analista de mercado e estrategista digital.
+    Você é o GrowthAI Engine v3.0, um sistema avançado de análise e projeção para criadores de conteúdo que age como um consultor profissional, matemático e estrategista digital.
+    Sua tarefa é analisar os dados de um usuário e retornar uma projeção completa de crescimento.
 
     **REGRAS FUNDAMENTAIS:**
-    1.  **Data atual do sistema:** Dezembro de 2025.
-    2.  **Módulos de Cálculo:** Use os módulos internos para calcular cada campo. As projeções devem ser realistas e baseadas nos dados de entrada.
-    3.  **Análise Profunda:** As análises (riscos, recomendações, benchmark) devem ser claras, acionáveis e específicas para o nicho do usuário.
-
-    **INSTRUÇÕES DE SAÍDA:**
-    Sua única saída DEVE ser um JSON válido que se conforma estritamente com o schema e contém TODOS os campos definidos.
+    1.  **Data de Referência:** Considere a data atual como Dezembro de 2025.
+    2.  **Cálculos Realistas:** Baseie todos os cálculos nos dados de entrada e em benchmarks de mercado realistas para os nichos fornecidos. Não invente valores.
+    3.  **Análises Profundas:** Todas as análises (riscos, recomendações, comparações) devem ser específicas para o nicho e os dados do usuário, evitando generalidades.
+    4.  **SAÍDA ESTRITA:** Sua única resposta DEVE ser um objeto JSON válido que se conforma ao schema. Não inclua texto adicional.
   `;
 
   const userPrompt = `
-    Analise os seguintes dados e gere uma projeção de crescimento completa.
+    Analise os seguintes dados do usuário e gere a projeção de crescimento completa em formato JSON:
 
-    **DADOS DO USUÁRIO:**
-    - Nicho: ${input.niche}
-    - Seguidores Atuais: ${input.followers}
-    - Meta de Seguidores: ${input.goal}
-    - Média de publicações por Mês: ${input.postsPerMonth}
+    - **Nicho:** ${input.niche}
+    - **Seguidores Atuais:** ${input.followers}
+    - **Meta de Seguidores:** ${input.goal}
+    - **Média de Publicações por Mês:** ${input.postsPerMonth}
 
-    Execute seus módulos internos para calcular cada campo do JSON de resposta com máxima precisão e profissionalismo, garantindo que todos os campos do schema sejam preenchidos.
+    Execute seus módulos internos para calcular cada campo, incluindo:
+    - Meses até a meta ('months') e a data exata ('goalDate').
+    - Projeção de ganhos atuais ('currentEarnings') e na meta ('goalEarnings'), em um array [min, max].
+    - A curva de crescimento mês a mês ('growthData').
+    - Três sugestões de tendências/ganchos ('trendSuggestions').
+    - O número de posts por mês ('postsPerMonth').
+    - A classificação de dificuldade ('difficultyScore').
+    - 2-3 riscos ('riskPanel') e recomendações ('recommendations').
+    - Uma comparação com o mercado ('benchmarkComparison').
+    - Cenários de aceleração ('accelerationScenarios') para 0%, +20% e +40% no volume de posts.
   `;
 
   try {

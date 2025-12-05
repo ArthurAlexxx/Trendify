@@ -555,14 +555,35 @@ export default function LandingPage() {
                           {/* Right Column */}
                           <div className="space-y-8">
                               <div className="grid grid-cols-2 gap-4">
-                                  <Card className="bg-primary/5 border-primary/20 text-center"><CardContent className="p-4"><p className="text-sm text-muted-foreground">Tempo até a Meta</p><p className="text-2xl font-bold">{results.months ?? 'N/A'} meses</p></CardContent></Card>
-                                  <Card className="bg-primary/5 border-primary/20 text-center"><CardContent className="p-4"><p className="text-sm text-muted-foreground">Nível da Meta</p><p className="text-2xl font-bold">{results.difficultyScore ?? 'N/A'}</p></CardContent></Card>
+                                  {results.months && (
+                                    <Card className="bg-primary/5 border-primary/20 text-center"><CardContent className="p-4"><p className="text-sm text-muted-foreground">Tempo até a Meta</p><p className="text-2xl font-bold">{results.months} meses</p></CardContent></Card>
+                                  )}
+                                  {results.difficultyScore && (
+                                    <Card className="bg-primary/5 border-primary/20 text-center"><CardContent className="p-4"><p className="text-sm text-muted-foreground">Nível da Meta</p><p className="text-2xl font-bold">{results.difficultyScore}</p></CardContent></Card>
+                                  )}
                               </div>
-                              {results.currentEarnings && results.goalEarnings && (
-                                <Card><CardHeader><CardTitle className="text-lg font-bold">Potencial de Ganhos/Mês</CardTitle></CardHeader>
+                               {results.currentEarnings && results.goalEarnings && (
+                                <Card>
+                                  <CardHeader>
+                                    <CardTitle className="text-lg font-bold">
+                                      Potencial de Ganhos/Mês
+                                    </CardTitle>
+                                  </CardHeader>
                                   <CardContent>
-                                    <p className="text-lg font-semibold">{formatCurrency(results.currentEarnings[0])} - {formatCurrency(results.currentEarnings[1])}<span className="text-sm font-normal text-muted-foreground ml-2">(agora)</span></p>
-                                    <p className="text-lg font-semibold mt-1">{formatCurrency(results.goalEarnings[0])} - {formatCurrency(results.goalEarnings[1])}<span className="text-sm font-normal text-muted-foreground ml-2">(na meta)</span></p>
+                                    <p className="text-lg font-semibold">
+                                      {formatCurrency(results.currentEarnings[0])} -{' '}
+                                      {formatCurrency(results.currentEarnings[1])}
+                                      <span className="text-sm font-normal text-muted-foreground ml-2">
+                                        (agora)
+                                      </span>
+                                    </p>
+                                    <p className="text-lg font-semibold mt-1">
+                                      {formatCurrency(results.goalEarnings[0])} -{' '}
+                                      {formatCurrency(results.goalEarnings[1])}
+                                      <span className="text-sm font-normal text-muted-foreground ml-2">
+                                        (na meta)
+                                      </span>
+                                    </p>
                                   </CardContent>
                                 </Card>
                               )}
