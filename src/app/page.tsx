@@ -19,6 +19,7 @@ import {
   Rocket,
   BarChart as BarChartIcon,
   AlertTriangle,
+  DollarSign,
 } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { useUser } from '@/firebase';
@@ -27,7 +28,7 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import {
   Form,
   FormControl,
@@ -365,8 +366,8 @@ export default function LandingPage() {
                       Calcule seu Potencial de Crescimento
                     </h2>
                     <p className="text-lg text-muted-foreground">
-                      Responda 3 perguntas e, em 60 segundos, mostraremos seu
-                      plano, tempo até a meta e potencial de ganhos no seu nicho.
+                      Responda 3 perguntas e, em segundos, mostraremos seu
+                      plano de crescimento, tempo até a meta e potencial de ganhos no seu nicho.
                     </p>
                   </div>
                   <Card className="max-w-4xl mx-auto p-4 sm:p-6 rounded-2xl bg-card">
@@ -614,7 +615,7 @@ export default function LandingPage() {
                                     <Card className="bg-primary/5 border-primary/20 text-center"><CardContent className="p-4"><p className="text-sm text-muted-foreground">Nível da Meta</p><p className="text-2xl font-bold">{results.difficultyScore}</p></CardContent></Card>
                                   )}
                               </div>
-                               {(results.currentEarnings && results.goalEarnings) && (
+                               {(results.currentEarnings || results.goalEarnings) && (
                                 <Card>
                                   <CardHeader>
                                     <CardTitle className="text-lg font-bold">
@@ -649,6 +650,21 @@ export default function LandingPage() {
                           </div>
                       </div>
                       
+                      {results.earningsAnalysis && (
+                         <Card className="bg-card">
+                            <CardHeader>
+                               <CardTitle className="font-bold text-lg flex items-center gap-2">
+                                <DollarSign className="h-5 w-5 text-primary" />
+                                Análise de Monetização
+                               </CardTitle>
+                               <CardDescription>Como transformar seus seguidores em receita no nicho de {form.getValues('niche')}.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-sm text-muted-foreground whitespace-pre-wrap">{results.earningsAnalysis}</p>
+                            </CardContent>
+                         </Card>
+                      )}
+
                       {/* Action Plan */}
                        {(results.recommendations?.length || results.riskPanel?.length || results.trendSuggestions?.length) && (
                       <Card className="bg-card">
