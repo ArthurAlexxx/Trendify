@@ -109,7 +109,7 @@ Sua resposta DEVE ser um bloco de código JSON válido, e NADA MAIS. O JSON deve
 
   Para cada campo do JSON, siga estas diretrizes:
 
-  - executiveSummary: Crie um texto de apresentação completo e profissional em PRIMEIRA PESSOA. Estruture em 5 pontos: 1. **Posicionamento Profissional** (apresente-se como especialista no nicho). 2. **Descrição do Público** (descreva sua audiência de forma que se alinhe com a marca alvo). 3. **Sinergia com a Marca** (explique por que a parceria faz sentido, conectando valores). 4. **Oferta de Parceria** (crie uma lista de bullet points do que você oferece como parceiro, ex: "Conteúdos patrocinados de alta retenção"). 5. **Compromisso e Fechamento** (finalize reforçando seu objetivo de entregar valor e resultados).
+  - executiveSummary: Crie um texto de apresentação completo e profissional em PRIMEIRA PESSOA, dividido em parágrafos. Siga esta estrutura: 1. **Parágrafo de Abertura:** Apresente-se como especialista no nicho e descreva sua comunidade. 2. **Parágrafo de Sinergia:** Explique por que a parceria com a marca alvo faz sentido, conectando seus valores e público. Mencione o que você pode oferecer. 3. **Parágrafo de Fechamento:** Reforce seu compromisso com resultados e finalize com um convite para colaboração. O tom deve ser profissional, mas autêntico.
 
   - pricingTiers: Com base nas métricas (${input.keyMetrics}), calcule faixas de preço realistas para o mercado brasileiro. É OBRIGATÓRIO que você retorne uma STRING formatada para CADA um dos campos (reels, storySequence, staticPost, monthlyPackage), como "R$ X - R$ Y".
 

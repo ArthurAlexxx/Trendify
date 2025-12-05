@@ -254,7 +254,7 @@ function MediaKitPageContent() {
         content += `- Stories: ${data.pricingTiers.storySequence || 'N/A'}\n`;
         content += `- Post: ${data.pricingTiers.staticPost || 'N/A'}\n`;
         content += `- Pacote: ${data.pricingTiers.monthlyPackage || 'N/A'}\n\n`;
-        content += `**Ideias de Colaboração:**\n${data.sampleCollaborationIdeas.map(idea => `- ${idea}`).join('\n')}`;
+        content += `**Ideias de Colaboração:**\n${data.sampleCollaborationIdeas.map(idea => `- ${idea.ideia}`).join('\n')}`;
 
         await addDoc(collection(firestore, `users/${user.uid}/ideiasSalvas`), {
           userId: user.uid,
