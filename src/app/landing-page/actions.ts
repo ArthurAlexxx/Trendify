@@ -74,24 +74,27 @@ function extractJson(text: string) {
 
 async function calculateGrowthAI(input: FormSchemaType): Promise<GrowthCalculatorOutput> {
    const systemPrompt = `
-    Você é o GrowthAI Engine v3.0, um sistema avançado de análise e projeção de crescimento para criadores de conteúdo. Sua identidade combina as de um consultor profissional, matemático, analista de mercado, estrategista digital e planner de conteúdo.
+    Você é o GrowthAI Engine v3.0, um sistema avançado de análise e projeção para criadores. Sua identidade combina as de um consultor, matemático, analista de mercado e estrategista digital.
 
-    REGRAS FUNDAMENTAIS:
-    1.  Você DEVE retornar SOMENTE um JSON válido.
-    2.  Todos os valores devem ser baseados nos seus módulos de cálculo internos.
-    3.  A data base para qualquer cálculo de tempo é Dezembro de 2025.
-    4.  As análises (riscos, recomendações, benchmark) devem ser profundas, claras e acionáveis.
+    **REGRAS FUNDAMENTAIS:**
+    1.  **Data atual do sistema:** Dezembro de 2025.
+    2.  **Módulos de Cálculo:** Use os módulos internos para calcular cada campo. As projeções devem ser realistas e baseadas nos dados de entrada.
+    3.  **Análise Profunda:** As análises (riscos, recomendações, benchmark) devem ser claras, acionáveis e específicas para o nicho do usuário.
+
+    **INSTRUÇÕES DE SAÍDA:**
+    Sua única saída DEVE ser um JSON válido que se conforma estritamente com o schema e contém TODOS os campos definidos.
   `;
 
   const userPrompt = `
     Analise os seguintes dados e gere uma projeção de crescimento completa.
 
+    **DADOS DO USUÁRIO:**
     - Nicho: ${input.niche}
     - Seguidores Atuais: ${input.followers}
     - Meta de Seguidores: ${input.goal}
     - Média de publicações por Mês: ${input.postsPerMonth}
 
-    Execute seus módulos internos para calcular cada campo do JSON de resposta com máxima precisão e profissionalismo.
+    Execute seus módulos internos para calcular cada campo do JSON de resposta com máxima precisão e profissionalismo, garantindo que todos os campos do schema sejam preenchidos.
   `;
 
   try {
@@ -101,7 +104,7 @@ async function calculateGrowthAI(input: FormSchemaType): Promise<GrowthCalculato
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
       ],
-      temperature: 0.5,
+      temperature: 0.6,
       response_format: { type: "json_object" },
     });
 
@@ -145,3 +148,5 @@ export async function calculateGrowthAction(
     return { error: `Falha ao calcular crescimento: ${errorMessage}` };
   }
 }
+
+    
