@@ -1,3 +1,4 @@
+
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -281,8 +282,7 @@ export default function DashboardPage() {
             getInstagramPosts(userProfile.instagramHandle.replace('@', '')).catch(e => console.error("Failed to fetch instagram posts", e));
         }
         if (userProfile.tiktokHandle) {
-            getTikTokPosts(userProfile.tiktokHandle.replace('@', ''-`))
-                .then(setTiktokPosts)
+            getTikTokPosts(userProfile.tiktokHandle.replace('@', '')).then(setTiktokPosts)
                 .catch(e => console.error("Failed to fetch tiktok posts", e));
         }
         setIsFetchingPosts(false);
@@ -313,7 +313,7 @@ export default function DashboardPage() {
         }
     };
     if (userProfile) fetchPostsAndInsights();
-  }, [userProfile, metricSnapshots, isPremium, goalFollowers]); // Re-run when data changes
+  }, [userProfile, metricSnapshots, isPremium, goalFollowers, toast]); // Added toast to dependency array
 
 
   return (
@@ -471,3 +471,5 @@ export default function DashboardPage() {
     </>
   );
 }
+
+    
