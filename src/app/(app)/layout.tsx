@@ -70,7 +70,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   // If we reach here, user is logged in and not loading. Render the app.
   return (
-    <div className="flex min-h-screen w-full bg-background">
+    <div className="flex min-h-screen w-full bg-muted/30">
         <AppSidebar isMobile={false} setIsMobileMenuOpen={setIsMobileMenuOpen} />
         <div className="flex flex-col flex-1 w-full md:pl-64">
             <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/95 px-4 backdrop-blur-sm sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 md:hidden">
