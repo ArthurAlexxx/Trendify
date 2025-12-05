@@ -26,7 +26,7 @@ const GenerateVideoIdeasOutputSchema = z.object({
     tiktok: z.string().describe('Dica para adaptar o conteúdo especificamente para o TikTok.'),
     reels: z.string().describe('Dica para adaptar o conteúdo especificamente para o Instagram Reels.'),
     shorts: z.string().describe('Dica para adaptar o conteúdo especificamente para o YouTube Shorts.'),
-  }),
+  }).optional(),
   nicheCompetitors: z.array(NicheCompetitorSchema).length(3).describe("Uma lista de 3 vídeos virais de concorrentes do nicho e o que aprender com cada um."),
 });
 
