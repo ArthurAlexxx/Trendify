@@ -71,11 +71,11 @@ async function calculateGrowthAI(input: FormSchemaType): Promise<GrowthCalculato
     - Média de Publicações por Mês: ${input.postsPerMonth}
 
     **Diretrizes para o JSON de Saída:**
-    - months: Calcule o número de meses para atingir a meta. Use um modelo de crescimento dinâmico: para contas com menos de 10k seguidores, aplique uma taxa de crescimento mais agressiva (20-50%/mês) que diminui à medida que a conta cresce. Para contas maiores, use uma taxa mais moderada (5-15%/mês) baseada no nicho. A projeção deve ser realista.
+    - months: Calcule o número de meses para atingir a meta. Para contas com menos de 10k seguidores, aplique uma taxa de crescimento mais agressiva (20-50%/mês) que diminui à medida que a conta cresce. Para contas maiores, use uma taxa mais moderada (5-15%/mês) baseada no nicho. A projeção deve ser realista e atingir a meta.
     - growthData: Gere um array de {month, followers}. O cálculo deve continuar até que 'followers' seja maior ou igual à meta.
     - goalDate: Projete a data final (formato ISO 8601) a partir de 2025-12-01, com base nos 'months' calculados.
     - currentEarnings & goalEarnings: Estime uma faixa de ganhos [min, max] com base no CPM do nicho, alcance orgânico e 4-8 publis/mês.
-    - earningsAnalysis: Crie um texto explicativo sobre como monetizar o nicho. Detalhe as fontes de renda (parcerias, afiliados) e dê exemplos concretos. Foque 100% no mercado brasileiro, citando programas de afiliados (ex: Hotmart, Awin, Parceiro Magalu) e marcas (ex: Sallve, Insider) que atuam no Brasil e são relevantes para o nicho.
+    - earningsAnalysis: Crie um texto explicativo sobre como monetizar o nicho fornecido. Detalhe as principais fontes de renda (parcerias, afiliados, etc.). É crucial que você foque 100% no mercado brasileiro, citando exemplos de programas de afiliados e marcas que são genuinamente relevantes e atuantes para o nicho específico do usuário no Brasil.
     - trendSuggestions: Crie 3 ideias de ganchos virais para o nicho, cada um com {hook, icon}.
     - postsPerMonth: Retorne o valor de entrada.
     - difficultyScore: Classifique a dificuldade ('Fácil', 'Realista', 'Difícil').
