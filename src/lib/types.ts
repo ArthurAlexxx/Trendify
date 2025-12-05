@@ -113,7 +113,6 @@ export interface AnaliseVideo {
 
 export interface MetricSnapshot {
     id: string;
-    userId: string;
     date: Timestamp;
     platform: 'instagram' | 'tiktok';
     followers: string;

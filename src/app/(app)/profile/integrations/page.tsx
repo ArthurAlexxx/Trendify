@@ -1,4 +1,3 @@
-
 'use client';
 
 import { PageHeader } from '@/components/page-header';
@@ -142,7 +141,6 @@ export default function IntegrationsPage() {
           
           const metricSnapshotsRef = collection(firestore, `users/${user.uid}/metricSnapshots`);
           await addDoc(metricSnapshotsRef, {
-            userId: user.uid,
             date: serverTimestamp(),
             platform: 'instagram',
             followers: dataToSave.instagramFollowers || '0',
@@ -221,7 +219,6 @@ export default function IntegrationsPage() {
           
           const metricSnapshotsRef = collection(firestore, `users/${user.uid}/metricSnapshots`);
           await addDoc(metricSnapshotsRef, {
-            userId: user.uid,
             date: serverTimestamp(),
             platform: 'tiktok',
             followers: dataToSave.tiktokFollowers || '0',
