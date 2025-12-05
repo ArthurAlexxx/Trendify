@@ -578,7 +578,7 @@ export default function DashboardPage() {
         </DialogContent>
     </Dialog>
 
-    <div className="space-y-8">
+    <div className="space-y-8 max-w-7xl mx-auto">
       <PageHeader
         title={`Bem-vindo(a), ${
           userProfile?.displayName?.split(' ')[0] || user?.displayName?.split(' ')[0] || 'Criador'
