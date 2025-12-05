@@ -29,8 +29,6 @@ const formSchema = z.object({
     .string()
     .min(3, 'O público-alvo deve ter pelo menos 3 caracteres.'),
   objective: z.string().min(1, 'O objetivo é obrigatório.'),
-  goal: z.string().optional(),
-  goalPlatform: z.string().optional(),
 });
 
 type FormSchemaType = z.infer<typeof formSchema>;
@@ -77,8 +75,7 @@ Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON d
   - Tópico: ${input.topic}
   - Público-alvo: ${input.targetAudience}
   - Objetivo Principal: ${input.objective}
-  - Meta de Seguidores do Usuário (para contexto): ${input.goal || 'Não definida'} (foco em ${input.goalPlatform || 'total'})
-
+  
   Para cada campo do JSON, siga estas diretrizes:
   - gancho: Crie uma frase ou cena de 2-3 segundos que gere curiosidade, quebre uma crença comum ou apresente uma solução contraintuitiva. Evite clichês. Se o objetivo for ganhar seguidores, o gancho deve ser extra forte.
   - script: Escreva um roteiro claro e conciso como um único texto (string). Estruture-o em três partes: Introdução (o gancho), Desenvolvimento (a entrega de valor/o miolo do conteúdo) e Conclusão (o CTA). Inclua sugestões de cenas entre colchetes. Exemplo: "[CENA: Close-up no produto] Você investe em produtos caros, mas o erro pode estar na ordem de aplicação. A regra de ouro é: do mais leve ao mais denso... [CENA: Mostrando a textura de um sérum e depois de um creme]". O script deve ser detalhado o suficiente para ser gravado.
