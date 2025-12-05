@@ -10,7 +10,7 @@ const TrendSuggestionSchema = z.object({
 });
 
 const GrowthDataPointSchema = z.object({
-  month: z.number().describe("O número do mês (ex: 0, 1, 2...)."),
+  month: z.union([z.string(), z.number()]).transform(val => Number(val)).describe("O número do mês (ex: 0, 1, 2...)."),
   followers: z.number().describe("O número de seguidores projetado para aquele mês."),
 });
 
@@ -73,20 +73,7 @@ async function calculateGrowthAI(input: FormSchemaType): Promise<GrowthCalculato
     - **Seguidores Atuais:** ${input.followers}
     - **Meta de Seguidores:** ${input.goal}
     - **Média de Publicações por Mês:** ${input.postsPerMonth}
-
-    **Diretrizes para o JSON de Saída:**
-    - **months:** Calcule o número de meses até a meta, limitado a 24.
-    - **goalDate:** Calcule a data final a partir de 2025-12-01, no formato ISO 8601.
-    - **currentEarnings & goalEarnings:** Calcule como [min, max] com base no CPM do nicho, alcance de 20-50% e 4-8 publis/mês.
-    - **growthData:** Gere um array de { month, followers } para a curva de crescimento.
-    - **trendSuggestions:** Gere 3 sugestões de ganchos virais com { hook, icon }.
-    - **postsPerMonth:** Retorne o valor de entrada.
-    - **difficultyScore:** Classifique como 'Fácil', 'Realista' ou 'Difícil' com base na taxa de crescimento necessária e posts/mês.
-    - **riskPanel:** Liste 2-3 riscos relevantes (ex: "baixa frequência de posts").
-    - **recommendations:** Liste 2-3 recomendações acionáveis (ex: "aumentar volume de posts", "collabs").
-    - **benchmarkComparison:** Forneça uma análise concisa comparando com a média do nicho.
-    - **accelerationScenarios:** Calcule os meses para os cenários 'maintain', 'plus20' (ceil(months / 1.20)), e 'plus40' (ceil(months / 1.40)).
-
+    
     LEMBRE-SE: Sua única saída DEVE ser um objeto JSON VÁLIDO que se conforma estritamente com o schema e contém TODOS os campos definidos. Não omita nenhum campo.
   `;
 
