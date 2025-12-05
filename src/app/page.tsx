@@ -323,7 +323,7 @@ export default function LandingPage() {
                   transition={{ duration: 0.5 }}
                   viewport={{ once: true, amount: 0.3 }}
                 >
-                  <Card className="text-left h-full bg-card/50 rounded-2xl border border-border/50 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/10 hover:-translate-y-1 transition-all duration-300">
+                  <Card className="text-left h-full bg-card/50 rounded-2xl border border-border/50 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/20 hover:-translate-y-1 transition-all duration-300">
                     <CardHeader className="flex flex-row items-center justify-between">
                        <div className="bg-primary/10 text-primary p-3 rounded-lg">
                         <feature.icon className="h-6 w-6" />
@@ -520,59 +520,8 @@ export default function LandingPage() {
                         </p>
                       </div>
                       
-                      {/* Mobile Carousel */}
-                       <div className="lg:hidden flex justify-center">
-                        <Carousel className="w-full max-w-xs" opts={{ align: 'start' }}>
-                          <CarouselContent className="-ml-2 md:-ml-4 py-8">
-                            {results.growthData && results.growthData.length > 0 && (
-                            <CarouselItem className="pl-2 md:pl-4 basis-[90%]">
-                                <Card className="rounded-2xl h-full">
-                                <CardHeader><CardTitle className="text-lg font-bold">Curva de Crescimento</CardTitle></CardHeader>
-                                <CardContent>
-                                    <div className="h-64 w-full">
-                                    <ResponsiveContainer>
-                                        <AreaChart data={results.growthData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-                                        <defs><linearGradient id="colorFollowers" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.8}/><stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/></linearGradient></defs>
-                                        <XAxis dataKey="month" tickFormatter={(v) => `Mês ${v}`} />
-                                        <YAxis domain={['auto', 'auto']} tickFormatter={(v) => v > 1000 ? `${v / 1000}k` : v.toString()} />
-                                        <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }} />
-                                        <Area type="monotone" dataKey="followers" stroke="hsl(var(--primary))" fillOpacity={1} fill="url(#colorFollowers)" />
-                                        </AreaChart>
-                                    </ResponsiveContainer>
-                                    </div>
-                                </CardContent>
-                                </Card>
-                            </CarouselItem>
-                            )}
-                            {(results.currentEarnings || results.goalEarnings) && (
-                            <CarouselItem className="pl-2 md:pl-4 basis-[90%]">
-                                <Card className="rounded-2xl h-full">
-                                    <CardHeader><CardTitle className="text-lg font-bold">Potencial de Ganhos/Mês</CardTitle></CardHeader>
-                                    <CardContent className="space-y-4">
-                                        {results.currentEarnings && (
-                                        <div>
-                                            <p className="text-lg font-semibold">{formatCurrency(results.currentEarnings[0])} - {formatCurrency(results.currentEarnings[1])}</p>
-                                            <p className="text-sm text-muted-foreground">Estimativa com seus seguidores atuais</p>
-                                        </div>
-                                        )}
-                                        {results.goalEarnings && (
-                                        <div>
-                                            <p className="text-lg font-semibold">{formatCurrency(results.goalEarnings[0])} - {formatCurrency(results.goalEarnings[1])}</p>
-                                            <p className="text-sm text-muted-foreground">Estimativa ao atingir a meta</p>
-                                        </div>
-                                        )}
-                                    </CardContent>
-                                </Card>
-                            </CarouselItem>
-                            )}
-                          </CarouselContent>
-                          <CarouselPrevious className="-left-4" />
-                          <CarouselNext className="-right-4" />
-                        </Carousel>
-                       </div>
-
                       {/* Desktop Grid */}
-                      <div className="hidden lg:grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
                           {/* Left Column */}
                           <div className="space-y-8">
                               {results.growthData && results.growthData.length > 0 && (
@@ -654,7 +603,6 @@ export default function LandingPage() {
                          <Card className="bg-card">
                             <CardHeader>
                                <CardTitle className="font-bold text-lg flex items-center gap-2">
-                                <DollarSign className="h-5 w-5 text-primary" />
                                 Análise de Monetização
                                </CardTitle>
                                <CardDescription>Como transformar seus seguidores em receita no nicho de {form.getValues('niche')}.</CardDescription>

@@ -432,7 +432,7 @@ export default function DashboardPage() {
           {userProfile && <ProfileCompletionAlert userProfile={userProfile} isPremium={isPremium} />}
 
           {/* Mobile Carousel */}
-          <div className="lg:hidden">
+          <div className="lg:hidden px-4">
               <Carousel className="w-full" opts={{ align: 'start' }}>
               <CarouselContent className="py-4">
                   <CarouselItem className="basis-full">
@@ -594,35 +594,100 @@ export default function DashboardPage() {
                         </div>
                     </CardContent>
                 </Card>
-                <Card className="rounded-2xl border-0 h-full flex flex-col">
-                   <CardHeader>
-                       <CardTitle className="text-center">Análise de Desempenho</CardTitle>
-                   </CardHeader>
-                  <CardContent className="flex-1 flex flex-col">
-                      {isGeneratingInsights ? (
-                          <div className="flex-1 flex justify-center items-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
-                      ) : insights && insights.insights ? (
-                           <ScrollArea className="h-64 pr-4">
-                           <ul className="space-y-4">
-                               {insights.insights.map((insight, i) => (
-                               <li key={i} className="flex items-start gap-3">
-                                   <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary flex-shrink-0 mt-0.5"><Lightbulb className="h-3.5 w-3.5" /></div>
-                                   <p className="text-sm text-muted-foreground">{insight}</p>
-                               </li>
-                               ))}
-                           </ul>
-                           </ScrollArea>
-                      ) : (
-                        <div className="flex-1 flex flex-col justify-center items-center text-center p-4 gap-4">
-                           <p className="text-sm text-muted-foreground">Clique em 'Analisar Desempenho' para receber uma análise com base nas suas últimas métricas.</p>
-                           <Button variant="ghost" size="sm" onClick={handleGenerateInsights} disabled={isGeneratingInsights}>
-                               {isGeneratingInsights ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
-                               Analisar
-                           </Button>
-                       </div>
-                      )}
-                  </CardContent>
-              </Card>
+                 <div className='space-y-8'>
+                  <Card className='rounded-2xl border-0 h-full'>
+                      <CardHeader>
+                          <CardTitle className="text-center">Métricas de Engajamento</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                          <div className='grid grid-cols-1 gap-4'>
+                              <div className='p-4 rounded-lg bg-muted/50 border flex justify-between items-center'>
+                                  <div>
+                                    <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><Eye className="h-4 w-4" /> Views</h3>
+                                    <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.views)}</p>
+                                  </div>
+                                  <div>
+                                      {latestMetrics?.views !== undefined && latestMetrics.followers > 0 && (() => {
+                                            const rating = getMetricRating(latestMetrics.views, 'views', latestMetrics.followers);
+                                            return (
+                                              <div className={cn('h-7 w-7', rating.color)}>
+                                                {rating.iconName === 'Smile' && <Smile className="h-full w-full" />}
+                                                {rating.iconName === 'Meh' && <Meh className="h-full w-full" />}
+                                                {rating.iconName === 'Frown' && <Frown className="h-full w-full" />}
+                                              </div>
+                                            )
+                                        })()}
+                                  </div>
+                              </div>
+                              <div className='p-4 rounded-lg bg-muted/50 border flex justify-between items-center'>
+                                  <div>
+                                    <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><Heart className="h-4 w-4" /> Likes</h3>
+                                    <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.likes)}</p>
+                                  </div>
+                                  <div>
+                                      {latestMetrics?.likes !== undefined && latestMetrics.followers > 0 && (() => {
+                                        const rating = getMetricRating(latestMetrics.likes, 'likes', latestMetrics.followers);
+                                        return (
+                                          <div className={cn('h-7 w-7', rating.color)}>
+                                            {rating.iconName === 'Smile' && <Smile className="h-full w-full" />}
+                                            {rating.iconName === 'Meh' && <Meh className="h-full w-full" />}
+                                            {rating.iconName === 'Frown' && <Frown className="h-full w-full" />}
+                                          </div>
+                                        )
+                                      })()}
+                                  </div>
+                              </div>
+                              <div className='p-4 rounded-lg bg-muted/50 border flex justify-between items-center'>
+                                  <div>
+                                    <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><MessageSquare className="h-4 w-4" /> Comentários</h3>
+                                    <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.comments)}</p>
+                                  </div>
+                                  <div>
+                                      {latestMetrics?.comments !== undefined && latestMetrics.followers > 0 && (() => {
+                                            const rating = getMetricRating(latestMetrics.comments, 'comments', latestMetrics.followers);
+                                            return (
+                                              <div className={cn('h-7 w-7', rating.color)}>
+                                                {rating.iconName === 'Smile' && <Smile className="h-full w-full" />}
+                                                {rating.iconName === 'Meh' && <Meh className="h-full w-full" />}
+                                                {rating.iconName === 'Frown' && <Frown className="h-full w-full" />}
+                                              </div>
+                                            )
+                                        })()}
+                                  </div>
+                              </div>
+                          </div>
+                      </CardContent>
+                  </Card>
+                   <Card className="rounded-2xl border-0 h-full flex flex-col">
+                       <CardHeader>
+                           <CardTitle className="text-center">Análise de Desempenho</CardTitle>
+                       </CardHeader>
+                      <CardContent className="flex-1 flex flex-col">
+                          {isGeneratingInsights ? (
+                              <div className="flex-1 flex justify-center items-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
+                          ) : insights && insights.insights ? (
+                              <ScrollArea className="h-64 pr-4">
+                              <ul className="space-y-4">
+                                  {insights.insights.map((insight, i) => (
+                                  <li key={i} className="flex items-start gap-3">
+                                      <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary flex-shrink-0 mt-0.5"><Lightbulb className="h-3.5 w-3.5" /></div>
+                                      <p className="text-sm text-muted-foreground">{insight}</p>
+                                  </li>
+                                  ))}
+                              </ul>
+                              </ScrollArea>
+                          ) : (
+                            <div className="flex-1 flex flex-col justify-center items-center text-center p-4 gap-4">
+                              <p className="text-sm text-muted-foreground">Clique em 'Analisar Desempenho' para receber uma análise com base nas suas últimas métricas.</p>
+                              <Button variant="ghost" size="sm" onClick={handleGenerateInsights} disabled={isGeneratingInsights}>
+                                  {isGeneratingInsights ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+                                  Analisar
+                              </Button>
+                          </div>
+                          )}
+                      </CardContent>
+                  </Card>
+                 </div>
               </div>
 
                <Card className='rounded-2xl border-0 h-full'>
