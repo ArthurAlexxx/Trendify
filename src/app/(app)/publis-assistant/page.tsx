@@ -186,11 +186,11 @@ function PublisAssistantPageContent() {
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      product: '',
-      targetAudience: '',
-      differentiators: '',
+      product: 'Tênis de corrida da Nike',
+      targetAudience: 'Corredores amadores que buscam conforto e performance, 25-40 anos.',
+      differentiators: 'Tecnologia de amortecimento ZoomX, leveza e design feito com materiais reciclados.',
       objective: 'Gerar Vendas',
-      extraInfo: '',
+      extraInfo: 'Usar o cupom "CORRE15" para 15% de desconto.',
     },
   });
   

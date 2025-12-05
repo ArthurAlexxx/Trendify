@@ -148,8 +148,8 @@ export default function VideoIdeasPage() {
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      topic: '',
-      targetAudience: '',
+      topic: 'Rotina de skincare para pele oleosa',
+      targetAudience: 'Mulheres de 25-35 anos',
       objective: 'Engajamento',
     },
   });
@@ -183,7 +183,7 @@ export default function VideoIdeasPage() {
     if (userProfile) {
       form.reset({
         topic: form.getValues('topic') || '',
-        targetAudience: userProfile.audience || '',
+        targetAudience: userProfile.audience || 'Mulheres de 25-35 anos',
         objective: form.getValues('objective') || 'Engajamento',
       });
     }

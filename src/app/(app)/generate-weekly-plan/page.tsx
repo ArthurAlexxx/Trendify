@@ -145,7 +145,7 @@ export default function GenerateWeeklyPlanPage() {
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      objective: '',
+      objective: 'Aumentar o engajamento em 15% com conteúdo de valor',
       niche: '',
       currentStats: '',
       totalFollowerGoal: 0,
@@ -189,7 +189,7 @@ export default function GenerateWeeklyPlanPage() {
       ].filter(Boolean).join(', ');
 
       form.reset({
-        objective: form.getValues('objective') || '',
+        objective: form.getValues('objective') || 'Aumentar o engajamento em 15% com conteúdo de valor',
         niche: userProfile.niche || '',
         currentStats: stats || 'Nenhuma métrica disponível',
         totalFollowerGoal: userProfile.totalFollowerGoal,
