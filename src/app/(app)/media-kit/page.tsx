@@ -46,6 +46,8 @@ import { useRouter } from 'next/navigation';
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
 
 const formSchema = z.object({
   niche: z.string().min(1, 'O nicho não pode estar vazio.'),
@@ -138,6 +140,7 @@ function MediaKitPageContent() {
   const { toast } = useToast();
   const [isGenerating, startTransition] = useTransition();
   const [state, setState] = useState<CareerPackageState>(null);
+  const [activeTab, setActiveTab] = useState("generate");
   
   const [isSaving, startSavingTransition] = useTransition();
   const { user } = useUser();
@@ -162,6 +165,9 @@ function MediaKitPageContent() {
     startTransition(async () => {
       const result = await getAiCareerPackageAction(null, formData);
       setState(result);
+      if (result?.data) {
+        setActiveTab("result");
+      }
     });
   };
 
@@ -276,7 +282,7 @@ function MediaKitPageContent() {
         <div className="py-8">
             <div className="md:hidden">
                 <Carousel className="w-full" opts={{ align: 'start' }}>
-                    <CarouselContent className="-ml-4 py-4">
+                    <CarouselContent className="-ml-4">
                         {analysisCriteria.map((item, index) => (
                             <CarouselItem key={index} className="pl-4 basis-full">
                                 <Card className="rounded-2xl border-0 h-full">
@@ -315,9 +321,16 @@ function MediaKitPageContent() {
         </div>
       </div>
 
-      <div className="space-y-8">
-          
-          <Card className="rounded-2xl border-0">
+       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="generate">Gerar Pacote</TabsTrigger>
+          <TabsTrigger value="result" disabled={!result && !isGenerating}>
+            Resultado
+            {isGenerating && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="generate">
+           <Card className="rounded-t-none border-t-0">
             <CardHeader>
               <CardTitle className="flex items-center gap-3 font-headline text-xl">
                 <Bot className="h-6 w-6 text-primary" />
@@ -410,39 +423,45 @@ function MediaKitPageContent() {
               </div>
             </CardContent>
           </Card>
-
-          {(isGenerating || result) && (
-            <div className="space-y-8 animate-fade-in">
-              <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-                <div className='flex-1'>
-                  <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Resultado Gerado</h2>
-                  <p className="text-muted-foreground">Um pacote completo para sua prospecção.</p>
-                </div>
-                {result && (
-                  <Button onClick={() => handleSave(result)} disabled={isSaving} className="w-full sm:w-auto">
-                    {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                    Salvar Pacote
-                  </Button>
-                )}
-              </div>
-
-              {isGenerating && !result ? (
-                <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-96">
-                  <Loader2 className="h-10 w-10 animate-spin text-primary" />
-                  <p className="mt-4 text-muted-foreground">Criando seu pacote...</p>
-                </div>
-              ) : result ? (
-                 <div className="grid gap-8">
-                  <InfoCard title="Apresentação para Marcas" icon={FileText} content={result.executiveSummary} />
-                  <div className="grid lg:grid-cols-2 gap-8 items-start">
-                    <PricingCard title="Tabela de Preços Sugerida" icon={DollarSign} pricing={result.pricingTiers} />
-                    <InfoList title="Ideias de Colaboração" icon={Lightbulb} items={result.sampleCollaborationIdeas} />
+        </TabsContent>
+        <TabsContent value="result">
+          <Card className="rounded-t-none border-t-0">
+            <CardContent className="p-6">
+              {(isGenerating || result) && (
+                <div className="space-y-8 animate-fade-in">
+                  <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <div className='flex-1'>
+                      <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Resultado Gerado</h2>
+                      <p className="text-muted-foreground">Um pacote completo para sua prospecção.</p>
+                    </div>
+                    {result && (
+                      <Button onClick={() => handleSave(result)} disabled={isSaving} className="w-full sm:w-auto">
+                        {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                        Salvar Pacote
+                      </Button>
+                    )}
                   </div>
+
+                  {isGenerating && !result ? (
+                    <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-96">
+                      <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                      <p className="mt-4 text-muted-foreground">Criando seu pacote...</p>
+                    </div>
+                  ) : result ? (
+                     <div className="grid gap-8">
+                      <InfoCard title="Apresentação para Marcas" icon={FileText} content={result.executiveSummary} />
+                      <div className="grid lg:grid-cols-2 gap-8 items-start">
+                        <PricingCard title="Tabela de Preços Sugerida" icon={DollarSign} pricing={result.pricingTiers} />
+                        <InfoList title="Ideias de Colaboração" icon={Lightbulb} items={result.sampleCollaborationIdeas} />
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
-              ) : null}
-            </div>
-          )}
-      </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+       </Tabs>
     </div>
   );
 }

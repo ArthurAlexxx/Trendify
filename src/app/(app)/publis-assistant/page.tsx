@@ -56,6 +56,8 @@ import type { DailyUsage } from '@/lib/types';
 import Link from 'next/link';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
 
 const formSchema = z.object({
   product: z.string().min(3, 'O nome do produto/marca deve ter pelo menos 3 caracteres.'),
@@ -150,6 +152,7 @@ function PublisAssistantPageContent() {
   const { toast } = useToast();
   const [isGenerating, startTransition] = useTransition();
   const [state, setState] = useState<PubliProposalsState>(null);
+  const [activeTab, setActiveTab] = useState("generate");
   
   const [isSaving, startSavingTransition] = useTransition();
   const { user } = useUser();
@@ -194,6 +197,9 @@ function PublisAssistantPageContent() {
     startTransition(async () => {
       const result = await generatePubliProposalsAction(null, formData);
       setState(result);
+      if (result?.data) {
+        setActiveTab("result");
+      }
     });
   };
 
@@ -293,7 +299,7 @@ function PublisAssistantPageContent() {
         <div className="py-8">
             <div className="md:hidden">
                 <Carousel className="w-full" opts={{ align: 'start' }}>
-                    <CarouselContent className="-ml-4 py-4">
+                    <CarouselContent className="-ml-4">
                         {analysisCriteria.map((item, index) => (
                             <CarouselItem key={index} className="pl-4 basis-full">
                                 <Card className="rounded-2xl border-0 h-full">
@@ -332,220 +338,236 @@ function PublisAssistantPageContent() {
         </div>
       </div>
 
-      <Card className="rounded-2xl border-0">
-        <CardHeader>
-          <CardTitle className="font-headline text-xl">
-            Briefing da Campanha
-          </CardTitle>
-          <CardDescription>Quanto mais detalhes, mais alinhados à marca serão os roteiros.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(formAction)}
-              className="space-y-8"
-            >
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-6">
-                 <div className="space-y-6">
+       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="generate">Gerar Campanha</TabsTrigger>
+          <TabsTrigger value="result" disabled={!result && !isGenerating}>
+            Resultado
+            {isGenerating && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="generate">
+           <Card className="rounded-t-none border-t-0">
+            <CardHeader>
+              <CardTitle className="font-headline text-xl">
+                Briefing da Campanha
+              </CardTitle>
+              <CardDescription>Quanto mais detalhes, mais alinhados à marca serão os roteiros.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit(formAction)}
+                  className="space-y-8"
+                >
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-6">
+                     <div className="space-y-6">
+                        <FormField
+                          control={form.control}
+                          name="product"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Produto ou Marca</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="Ex: Tênis de corrida da Nike"
+                                  className="h-11"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                         <FormField
+                          control={form.control}
+                          name="targetAudience"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Público-Alvo</FormLabel>
+                              <FormControl>
+                                <Textarea
+                                  placeholder="Ex: Mulheres de 25-35 anos, interessadas em vida saudável."
+                                  className="min-h-[120px]"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                     </div>
+                     <div className="space-y-6">
+                         <FormField
+                          control={form.control}
+                          name="differentiators"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Diferenciais do Produto</FormLabel>
+                              <FormControl>
+                               <Textarea
+                                  placeholder="Ex: Material reciclado, leve, absorção de impacto, design moderno."
+                                  className="min-h-[120px]"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                     </div>
+                  </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                     <FormField
                       control={form.control}
-                      name="product"
+                      name="objective"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Produto ou Marca</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Ex: Tênis de corrida da Nike"
-                              className="h-11"
-                              {...field}
-                            />
-                          </FormControl>
+                          <FormLabel>Objetivo Principal</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value} name={field.name}>
+                            <FormControl>
+                              <SelectTrigger className="h-11">
+                                <SelectValue placeholder="Selecione" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                               <SelectItem value="Gerar Vendas">Gerar Vendas (Conversão)</SelectItem>
+                               <SelectItem value="Aumentar Reconhecimento da Marca">Aumentar Reconhecimento (Alcance)</SelectItem>
+                               <SelectItem value="Gerar Leads">Gerar Leads (Cadastros)</SelectItem>
+                               <SelectItem value="Engajar a Comunidade">Engajar a Comunidade</SelectItem>
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
                      <FormField
-                      control={form.control}
-                      name="targetAudience"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Público-Alvo</FormLabel>
-                          <FormControl>
-                            <Textarea
-                              placeholder="Ex: Mulheres de 25-35 anos, interessadas em vida saudável."
-                              className="min-h-[120px]"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
+                        control={form.control}
+                        name="extraInfo"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Informações Adicionais (Opcional)</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="Restrições, cupons, links, etc."
+                                className="h-11"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                  </div>
+
+                  <div className="pt-4 flex flex-col sm:flex-row items-center gap-4">
+                    <Button
+                      type="submit"
+                      disabled={isButtonDisabled}
+                      size="lg"
+                      className="w-full sm:w-auto"
+                    >
+                      {isGenerating ? (
+                        <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Gerando Pacote...</>
+                      ) : (
+                        <><Sparkles className="mr-2 h-5 w-5" />Gerar Pacote de Conteúdo</>
                       )}
-                    />
-                 </div>
-                 <div className="space-y-6">
-                     <FormField
-                      control={form.control}
-                      name="differentiators"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Diferenciais do Produto</FormLabel>
-                          <FormControl>
-                           <Textarea
-                              placeholder="Ex: Material reciclado, leve, absorção de impacto, design moderno."
-                              className="min-h-[120px]"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                 </div>
-              </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                <FormField
-                  control={form.control}
-                  name="objective"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Objetivo Principal</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value} name={field.name}>
-                        <FormControl>
-                          <SelectTrigger className="h-11">
-                            <SelectValue placeholder="Selecione" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                           <SelectItem value="Gerar Vendas">Gerar Vendas (Conversão)</SelectItem>
-                           <SelectItem value="Aumentar Reconhecimento da Marca">Aumentar Reconhecimento (Alcance)</SelectItem>
-                           <SelectItem value="Gerar Leads">Gerar Leads (Cadastros)</SelectItem>
-                           <SelectItem value="Engajar a Comunidade">Engajar a Comunidade</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                 <FormField
-                    control={form.control}
-                    name="extraInfo"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Informações Adicionais (Opcional)</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Restrições, cupons, links, etc."
-                            className="h-11"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
+                    </Button>
+                    {isFreePlan && (
+                      <p className="text-sm text-muted-foreground text-center sm:text-left">
+                        Você precisa de um plano <Link href="/subscribe" className='underline text-primary font-semibold'>Premium</Link> para usar esta ferramenta.
+                      </p>
                     )}
-                  />
-              </div>
+                  </div>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+        </TabsContent>
+         <TabsContent value="result">
+          <Card className="rounded-t-none border-t-0">
+             <CardContent className="p-6">
+               {(isGenerating || result) && (
+                <div className="space-y-8 animate-fade-in">
+                  <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <div className="flex-1">
+                      <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">
+                        Pacote de Conteúdo Gerado
+                      </h2>
+                      <p className="text-muted-foreground">
+                        Ideias, roteiros e estratégias para a campanha.
+                      </p>
+                    </div>
+                    {result && (
+                       <Button onClick={() => handleSave(result)} disabled={isSaving} className="w-full sm:w-auto">
+                        {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                        Salvar Pacote
+                      </Button>
+                    )}
+                  </div>
 
-              <div className="pt-4 flex flex-col sm:flex-row items-center gap-4">
-                <Button
-                  type="submit"
-                  disabled={isButtonDisabled}
-                  size="lg"
-                  className="w-full sm:w-auto"
-                >
-                  {isGenerating ? (
-                    <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Gerando Pacote...</>
-                  ) : (
-                    <><Sparkles className="mr-2 h-5 w-5" />Gerar Pacote de Conteúdo</>
-                  )}
-                </Button>
-                {isFreePlan && (
-                  <p className="text-sm text-muted-foreground text-center sm:text-left">
-                    Você precisa de um plano <Link href="/subscribe" className='underline text-primary font-semibold'>Premium</Link> para usar esta ferramenta.
-                  </p>
-                )}
-              </div>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+                  {isGenerating && !result ? (
+                    <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-96">
+                      <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                      <p className="mt-4 text-muted-foreground">
+                        Montando sua próxima campanha...
+                      </p>
+                    </div>
+                  ) : result ? (
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
 
-      {(isGenerating || result) && (
-        <div className="space-y-8 animate-fade-in">
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div className="flex-1">
-              <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">
-                Pacote de Conteúdo Gerado
-              </h2>
-              <p className="text-muted-foreground">
-                Ideias, roteiros e estratégias para a campanha.
-              </p>
-            </div>
-            {result && (
-               <Button onClick={() => handleSave(result)} disabled={isSaving} className="w-full sm:w-auto">
-                {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                Salvar Pacote
-              </Button>
-            )}
-          </div>
+                      {/* Scripts */}
+                      <div className="lg:col-span-2 space-y-6">
+                        <Card className="rounded-2xl border-0">
+                            <CardHeader>
+                                <CardTitle className="text-lg font-semibold text-foreground">
+                                    5 Roteiros Prontos para Gravar
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <Accordion type="single" collapsible className="w-full">
+                                    {result.scripts.map((script, index) => (
+                                        <AccordionItem value={`item-${index}`} key={index}>
+                                        <AccordionTrigger className="font-semibold text-base hover:no-underline text-left">Roteiro {index + 1}: {script.gancho}</AccordionTrigger>
+                                        <AccordionContent className="space-y-4 pt-2">
+                                             <div>
+                                                <h4 className='font-semibold text-foreground mb-1'>Roteiro:</h4>
+                                                <p className="text-muted-foreground whitespace-pre-wrap">{script.script}</p>
+                                            </div>
+                                            <div>
+                                                <h4 className='font-semibold text-foreground mb-1'>Call to Action (CTA):</h4>
+                                                <p className="text-muted-foreground">{script.cta}</p>
+                                            </div>
+                                        </AccordionContent>
+                                        </AccordionItem>
+                                    ))}
+                                </Accordion>
+                            </CardContent>
+                        </Card>
+                      </div>
 
-          {isGenerating && !result ? (
-            <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-96">
-              <Loader2 className="h-10 w-10 animate-spin text-primary" />
-              <p className="mt-4 text-muted-foreground">
-                Montando sua próxima campanha...
-              </p>
-            </div>
-          ) : result ? (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                      {/* Side Cards */}
+                      <div className="space-y-8">
+                         <InfoListCard
+                            title="Checklist de Conversão"
+                            icon={Check}
+                            items={result.conversionChecklist}
+                         />
+                         <InfoListCard
+                            title="Variações com Trends"
+                            icon={Zap}
+                            items={result.trendVariations.map(v => v.variacao)}
+                         />
+                      </div>
 
-              {/* Scripts */}
-              <div className="lg:col-span-2 space-y-6">
-                <Card className="rounded-2xl border-0">
-                    <CardHeader>
-                        <CardTitle className="text-lg font-semibold text-foreground">
-                            5 Roteiros Prontos para Gravar
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <Accordion type="single" collapsible className="w-full">
-                            {result.scripts.map((script, index) => (
-                                <AccordionItem value={`item-${index}`} key={index}>
-                                <AccordionTrigger className="font-semibold text-base hover:no-underline text-left">Roteiro {index + 1}: {script.gancho}</AccordionTrigger>
-                                <AccordionContent className="space-y-4 pt-2">
-                                     <div>
-                                        <h4 className='font-semibold text-foreground mb-1'>Roteiro:</h4>
-                                        <p className="text-muted-foreground whitespace-pre-wrap">{script.script}</p>
-                                    </div>
-                                    <div>
-                                        <h4 className='font-semibold text-foreground mb-1'>Call to Action (CTA):</h4>
-                                        <p className="text-muted-foreground">{script.cta}</p>
-                                    </div>
-                                </AccordionContent>
-                                </AccordionItem>
-                            ))}
-                        </Accordion>
-                    </CardContent>
-                </Card>
-              </div>
-
-              {/* Side Cards */}
-              <div className="space-y-8">
-                 <InfoListCard
-                    title="Checklist de Conversão"
-                    icon={Check}
-                    items={result.conversionChecklist}
-                 />
-                 <InfoListCard
-                    title="Variações com Trends"
-                    icon={Zap}
-                    items={result.trendVariations.map(v => v.variacao)}
-                 />
-              </div>
-
-            </div>
-          ) : null}
-        </div>
-      )}
+                    </div>
+                  ) : null}
+                </div>
+              )}
+             </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
