@@ -152,7 +152,7 @@ export default function DashboardPage() {
 
   const isLoading = isLoadingProfile || isLoadingRoteiro || isLoadingUpcoming || isLoadingMetrics || isSubscriptionLoading;
   
-  const handleTikTokClick = (post: TikTokPostData) => {
+  const handleTikTokClick = (post: TikTokProfileData) => {
     if (post.shareUrl) {
         setCurrentTikTokUrl(post.shareUrl);
         setShowTikTokModal(true);
@@ -279,10 +279,9 @@ export default function DashboardPage() {
   }, [metricSnapshots, selectedPlatform]);
 
   useEffect(() => {
-    const fetchPostsAndInsights = async () => {
+    const fetchPosts = async () => {
         if (!userProfile) return;
         setIsFetchingPosts(true);
-        setInsights(null);
 
         if (userProfile.instagramHandle) {
             getInstagramPosts(userProfile.instagramHandle.replace('@', '')).catch(e => console.error("Failed to fetch instagram posts", e));
@@ -292,33 +291,42 @@ export default function DashboardPage() {
                 .catch(e => console.error("Failed to fetch tiktok posts", e));
         }
         setIsFetchingPosts(false);
-
-        if (metricSnapshots && metricSnapshots.length > 1 && isPremium) {
-            setIsGeneratingInsights(true);
-            try {
-                const result = await generateDashboardInsights({
-                    niche: userProfile.niche || 'Não definido',
-                    objective: `Atingir ${formatMetricValue(goalFollowers)} seguidores.`,
-                    metricSnapshots: metricSnapshots.map(s => ({
-                        date: s.date.toDate().toISOString(),
-                        platform: s.platform,
-                        followers: parseMetric(s.followers),
-                        views: parseMetric(s.views),
-                        likes: parseMetric(s.likes),
-                        comments: parseMetric(s.comments),
-                    })).slice(0, 14),
-                });
-                setInsights(result);
-            } catch (e: any) {
-                console.error("Error generating insights:", e.message);
-                toast({ title: "Erro ao Gerar Insights", description: e.message, variant: "destructive" });
-            } finally {
-                setIsGeneratingInsights(false);
-            }
-        }
     };
-    if (userProfile) fetchPostsAndInsights();
-  }, [userProfile, metricSnapshots, isPremium, goalFollowers, toast]);
+    if (userProfile) fetchPosts();
+  }, [userProfile]);
+
+  const handleGenerateInsights = async () => {
+     if (!userProfile || !metricSnapshots || metricSnapshots.length < 1 || !isPremium) {
+        toast({
+            title: "Dados Insuficientes",
+            description: "Precisamos de mais dados de métricas para gerar insights. Sincronize suas contas por alguns dias.",
+            variant: "destructive"
+        });
+        return;
+    }
+     setIsGeneratingInsights(true);
+     setInsights(null);
+     try {
+         const result = await generateDashboardInsights({
+             niche: userProfile.niche || 'Não definido',
+             objective: `Atingir ${formatMetricValue(goalFollowers)} seguidores.`,
+             metricSnapshots: metricSnapshots.map(s => ({
+                 date: s.date.toDate().toISOString(),
+                 platform: s.platform,
+                 followers: parseMetric(s.followers),
+                 views: parseMetric(s.views),
+                 likes: parseMetric(s.likes),
+                 comments: parseMetric(s.comments),
+             })).slice(0, 14),
+         });
+         setInsights(result);
+     } catch (e: any) {
+         console.error("Error generating insights:", e.message);
+         toast({ title: "Erro ao Gerar Insights", description: e.message, variant: "destructive" });
+     } finally {
+         setIsGeneratingInsights(false);
+     }
+  }
 
 
   return (
@@ -418,9 +426,19 @@ export default function DashboardPage() {
                     </CardContent>
                 </Card>
                  <Card className="rounded-2xl border-0">
-                    <CardHeader className='items-center text-center'><CardTitle>Insights da IA</CardTitle></CardHeader>
+                    <CardHeader className='flex flex-row items-center justify-between'>
+                        <CardTitle>Insights da IA</CardTitle>
+                        <Button variant="ghost" size="sm" onClick={handleGenerateInsights} disabled={isGeneratingInsights || !isPremium}>
+                             {isGeneratingInsights ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+                             Gerar Novos Insights
+                        </Button>
+                    </CardHeader>
                     <CardContent>
-                        {isGeneratingInsights ? <div className="flex justify-center items-center h-24"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div> : insights && insights.length > 0 ? <ul className="space-y-4">{insights.map((insight, i) => <li key={i} className="flex items-start gap-3"><div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary flex-shrink-0 mt-0.5"><Lightbulb className="h-3.5 w-3.5" /></div><p className="text-sm text-muted-foreground">{insight.insight}</p></li>)}</ul> : <div className="text-center text-sm text-muted-foreground">Gere ou sincronize suas métricas por alguns dias para começar a receber insights.</div>}
+                        {isGeneratingInsights ? <div className="flex justify-center items-center h-24"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div> : insights && insights.length > 0 ? <ul className="space-y-4">{insights.map((insight, i) => <li key={i} className="flex items-start gap-3"><div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary flex-shrink-0 mt-0.5"><Lightbulb className="h-3.5 w-3.5" /></div><p className="text-sm text-muted-foreground">{insight.insight}</p></li>)}</ul> : 
+                        <div className="text-center text-sm text-muted-foreground p-4">
+                            {isPremium ? "Clique em 'Gerar Novos Insights' para receber conselhos da IA com base nas suas últimas métricas." : "Faça upgrade para Premium para desbloquear os insights da IA."}
+                        </div>
+                        }
                     </CardContent>
                 </Card>
             </div>
@@ -491,5 +509,7 @@ export default function DashboardPage() {
     </>
   );
 }
+
+    
 
     
