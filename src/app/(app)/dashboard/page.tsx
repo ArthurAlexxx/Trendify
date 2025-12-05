@@ -281,28 +281,41 @@ export default function DashboardPage() {
 
   const historicalChartData = useMemo(() => {
     if (!metricSnapshots || metricSnapshots.length === 0) return [];
-    let platformSnapshots = selectedPlatform !== 'total' ? metricSnapshots.filter(snap => snap.platform === selectedPlatform) : metricSnapshots;
-    
-    const groupedByDay = platformSnapshots.reduce((acc, snap) => {
-        const dayStr = format(snap.date.toDate(), 'yyyy-MM-dd');
-        if (!acc[dayStr]) acc[dayStr] = { date: snap.date.toDate(), followers: 0, views: 0, likes: 0, comments: 0 };
+  
+    if (selectedPlatform === 'total') {
+      const groupedByDay = metricSnapshots.reduce((acc, snap) => {
+        const dayStr = format(snap.date.toDate(), 'yyyy-MM-dd'); // Group by a unique date string
+        if (!acc[dayStr]) {
+          acc[dayStr] = { date: dayStr, followers: 0, views: 0, likes: 0, comments: 0 };
+        }
         acc[dayStr].followers += parseMetric(snap.followers);
         acc[dayStr].views += parseMetric(snap.views);
         acc[dayStr].likes += parseMetric(snap.likes);
         acc[dayStr].comments += parseMetric(snap.comments);
         return acc;
-    }, {} as Record<string, { date: Date; followers: number; views: number; likes: number; comments: number }>);
+      }, {} as Record<string, { date: string; followers: number; views: number; likes: number; comments: number }>);
   
-    const sortedDaysData = Object.values(groupedByDay).sort((a, b) => a.date.getTime() - b.date.getTime());
-    const chartData = sortedDaysData.slice(-7);
-
-    return chartData.map(dayData => ({
-        date: format(dayData.date, 'dd/MM'),
-        followers: dayData.followers,
-        views: dayData.views,
-        likes: dayData.likes,
-        comments: dayData.comments,
-    }));
+      return Object.values(groupedByDay)
+        .sort((a, b) => a.date.localeCompare(b.date)) // Sort by yyyy-MM-dd string
+        .slice(-30) // Get the last 30 days
+        .map(dayData => ({
+          ...dayData,
+          date: format(new Date(dayData.date), 'dd/MM'), // Format for display after processing
+        }));
+    }
+  
+    // Logic for 'instagram' or 'tiktok'
+    return metricSnapshots
+      .filter(snap => snap.platform === selectedPlatform)
+      .sort((a, b) => a.date.toMillis() - b.date.toMillis()) // Sort ascending
+      .slice(-30) // Get the last 30 days
+      .map(snap => ({
+        date: format(snap.date.toDate(), 'dd/MM'),
+        followers: parseMetric(snap.followers),
+        views: parseMetric(snap.views),
+        likes: parseMetric(snap.likes),
+        comments: parseMetric(snap.comments),
+      }));
   }, [metricSnapshots, selectedPlatform]);
 
   useEffect(() => {
