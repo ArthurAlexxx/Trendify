@@ -34,7 +34,7 @@ import {
   Target,
   Crown,
 } from 'lucide-react';
-import { useEffect, useTransition, useState, useCallback, useRef } from 'react';
+import { useEffect, useTransition, useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { generatePubliProposalsAction, GeneratePubliProposalsOutput } from '@/app/(app)/publis-assistant/actions';

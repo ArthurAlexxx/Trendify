@@ -17,7 +17,7 @@ import {
   Target,
   Crown,
 } from 'lucide-react';
-import { useTransition, useEffect, useState, useCallback, useRef } from 'react';
+import { useTransition, useEffect, useState, useCallback } from 'react';
 import {
   Form,
   FormControl,

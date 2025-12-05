@@ -39,7 +39,7 @@ import {
   Eye,
   BarChart as BarChartIcon,
 } from 'lucide-react';
-import { useEffect, useTransition, useState, useCallback, useRef } from 'react';
+import { useEffect, useTransition, useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { generateVideoIdeasAction, GenerateVideoIdeasOutput } from '@/app/(app)/video-ideas/actions';
