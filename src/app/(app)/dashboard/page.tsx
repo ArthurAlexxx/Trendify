@@ -614,11 +614,10 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             <div className="lg:col-span-1">
                 <Card className="rounded-2xl border-0">
-                     <CardHeader>
+                     <CardHeader className='items-center text-center'>
                         <CardTitle className="font-headline text-lg sm:text-xl">
                             Meta de Seguidores
                         </CardTitle>
-                        <CardDescription>Acompanhe seu progresso.</CardDescription>
                     </CardHeader>
                     <CardContent className="pt-6">
                         <div className="flex flex-col items-center justify-center text-center">
@@ -654,11 +653,10 @@ export default function DashboardPage() {
             
             <div className="lg:col-span-2 space-y-8">
                 <Card className="rounded-2xl border-0">
-                    <CardHeader>
+                    <CardHeader className='items-center text-center'>
                         <CardTitle className="font-headline text-lg sm:text-xl">
                             Métricas de Engajamento
                         </CardTitle>
-                        <CardDescription>Views, likes e comentários.</CardDescription>
                     </CardHeader>
                     <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                         <div className="p-4 rounded-lg bg-muted/50 flex flex-col justify-center">
@@ -677,11 +675,10 @@ export default function DashboardPage() {
                 </Card>
 
                 <Card className="rounded-2xl border-0">
-                    <CardHeader>
+                    <CardHeader className='items-center text-center'>
                         <CardTitle className="font-headline text-lg sm:text-xl">
                             Roteiro do Dia ({diaDaSemanaNormalizado})
                         </CardTitle>
-                        <CardDescription>Suas tarefas de conteúdo para hoje.</CardDescription>
                     </CardHeader>
                     <CardContent>
                     {isLoadingRoteiro ? <Skeleton className="h-24 w-full" /> : (
@@ -725,9 +722,9 @@ export default function DashboardPage() {
 
         {/* MIDDLE SECTION: Histórico e Tarefas */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-            <div className="lg:col-span-1">
-                <Card className="rounded-2xl border-0">
-                    <CardHeader>
+            <div className="lg:col-span-1 space-y-8">
+               <Card className="rounded-2xl border-0">
+                    <CardHeader className='items-center text-center'>
                         <CardTitle className="font-headline text-lg sm:text-xl">
                             Recursos & Atividade
                         </CardTitle>
@@ -790,11 +787,10 @@ export default function DashboardPage() {
             </div>
             <div className="lg:col-span-2">
                  <Card className="rounded-2xl border-0 h-full">
-                    <CardHeader>
+                    <CardHeader className='items-center text-center'>
                         <CardTitle className="font-headline text-xl">
-                        Evolução das Métricas ({selectedPlatform === 'instagram' ? 'Instagram' : selectedPlatform === 'tiktok' ? 'TikTok' : 'Total'})
+                        Evolução das Métricas
                         </CardTitle>
-                        <CardDescription>Acompanhe seu progresso nos dias em que você registrou suas métricas.</CardDescription>
                     </CardHeader>
                     <CardContent className="pl-2 pr-6">
                         {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
@@ -840,5 +836,7 @@ export default function DashboardPage() {
     </>
   );
 }
+
+    
 
     
