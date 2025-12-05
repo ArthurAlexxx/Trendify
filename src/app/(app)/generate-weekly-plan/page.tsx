@@ -1,3 +1,4 @@
+
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -20,7 +21,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Bot, Loader2, Sparkles, Trash2, Check, History, ClipboardList, BrainCircuit, Target, BarChart as BarChartIcon, Eye } from 'lucide-react';
+import { Bot, Loader2, Sparkles, Trash2, Check, History, ClipboardList, BrainCircuit, Target, Eye, BarChart as BarChartIcon } from 'lucide-react';
 import { useEffect, useTransition, useState, useCallback, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -91,22 +92,22 @@ const analysisCriteria = [
     {
         icon: BrainCircuit,
         title: "Estrategista de Crescimento",
-        description: "Análise de nicho, estatísticas e objetivo para criar um plano de ação semanal."
+        description: "A plataforma atua como uma estrategista, analisando seu nicho, estatísticas e objetivo para criar um plano de ação semanal focado em crescimento."
     },
     {
         icon: Target,
         title: "Tarefas Acionáveis",
-        description: "Para cada dia, definimos tarefas claras e práticas, com detalhes sobre o que fazer."
+        description: "Para cada dia da semana, definimos tarefas de conteúdo claras e práticas, com detalhes sobre o que fazer e como fazer."
     },
      {
         icon: BarChartIcon,
         title: "Simulação de Desempenho",
-        description: "Projeção de alcance e engajamento para visualizar o impacto potencial."
+        description: "Com base nas tarefas, projetamos uma simulação realista de alcance e engajamento para você visualizar o impacto potencial do seu esforço."
     },
     {
         icon: Eye,
         title: "Foco no Objetivo",
-        description: "Todo o plano é construído com base no seu objetivo principal para a semana."
+        description: "Todo o plano, desde as tarefas diárias até a simulação, é construído com base no objetivo principal que você definiu para a semana."
     }
   ]
 
@@ -277,7 +278,7 @@ export default function GenerateWeeklyPlanPage() {
         <div className="py-8">
             <div className="md:hidden">
                 <Carousel className="w-full" opts={{ align: 'start' }}>
-                    <CarouselContent className="-ml-4">
+                    <CarouselContent className="-ml-4 py-4">
                         {analysisCriteria.map((item, index) => (
                             <CarouselItem key={index} className="pl-4 basis-full">
                                 <Card className="rounded-2xl border-0 h-full">
@@ -366,6 +367,7 @@ export default function GenerateWeeklyPlanPage() {
                                 placeholder="Defina em seu Perfil"
                                 className="h-11"
                                 {...field}
+                                readOnly
                                 />
                             )}
                             </FormControl>

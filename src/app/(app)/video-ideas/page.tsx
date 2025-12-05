@@ -1,3 +1,4 @@
+
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -35,8 +36,8 @@ import {
   Lightbulb,
   BrainCircuit,
   Target,
-  BarChart as BarChartIcon,
   Eye,
+  BarChart as BarChartIcon,
 } from 'lucide-react';
 import { useEffect, useTransition, useState, useCallback, useRef } from 'react';
 import { useForm } from 'react-hook-form';
@@ -268,10 +269,10 @@ export default function VideoIdeasPage() {
           <p className="text-muted-foreground">A IA atua como uma estrategista de conteúdo viral e analisa 4 pilares:</p>
         </div>
         <Separator className="w-1/2 mx-auto my-4" />
-        <div className='py-8'>
+        <div className="py-8">
             <div className="md:hidden">
                 <Carousel className="w-full" opts={{ align: 'start' }}>
-                    <CarouselContent className="-ml-4">
+                    <CarouselContent className="-ml-4 py-4">
                         {analysisCriteria.map((item, index) => (
                             <CarouselItem key={index} className="pl-4 basis-full">
                                 <Card className="rounded-2xl border-0 h-full">
@@ -292,7 +293,7 @@ export default function VideoIdeasPage() {
                     <CarouselNext className="right-2" />
                 </Carousel>
             </div>
-            <div className="hidden md:grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {analysisCriteria.map((item, index) => (
                     <Card key={index} className="rounded-2xl border-0">
                         <CardHeader>

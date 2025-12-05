@@ -1,3 +1,4 @@
+
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -31,11 +32,9 @@ import {
   Newspaper,
   BrainCircuit,
   Target,
-  BarChart as BarChartIcon,
-  Eye,
   Crown,
 } from 'lucide-react';
-import { useEffect, useTransition, useState, useMemo, useRef, useCallback } from 'react';
+import { useEffect, useTransition, useState, useCallback, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { generatePubliProposalsAction, GeneratePubliProposalsOutput } from '@/app/(app)/publis-assistant/actions';
@@ -294,7 +293,7 @@ function PublisAssistantPageContent() {
         <div className="py-8">
             <div className="md:hidden">
                 <Carousel className="w-full" opts={{ align: 'start' }}>
-                    <CarouselContent className="-ml-4">
+                    <CarouselContent className="-ml-4 py-4">
                         {analysisCriteria.map((item, index) => (
                             <CarouselItem key={index} className="pl-4 basis-full">
                                 <Card className="rounded-2xl border-0 h-full">
