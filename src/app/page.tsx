@@ -522,7 +522,7 @@ export default function LandingPage() {
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
                           {/* Left Column */}
                           <div className="space-y-8">
-                              {results.growthData && (
+                              {results.growthData && results.growthData.length > 0 && (
                               <Card className="rounded-2xl">
                                   <CardHeader><CardTitle className="text-lg font-bold">Curva de Crescimento</CardTitle></CardHeader>
                                   <CardContent>
@@ -555,7 +555,7 @@ export default function LandingPage() {
                           {/* Right Column */}
                           <div className="space-y-8">
                               <div className="grid grid-cols-2 gap-4">
-                                  {results.months && (
+                                  {results.months != null && (
                                     <Card className="bg-primary/5 border-primary/20 text-center"><CardContent className="p-4"><p className="text-sm text-muted-foreground">Tempo até a Meta</p><p className="text-2xl font-bold">{results.months} meses</p></CardContent></Card>
                                   )}
                                   {results.difficultyScore && (
@@ -594,11 +594,11 @@ export default function LandingPage() {
                       </div>
                       
                       {/* Action Plan */}
-                       {(results.recommendations || results.riskPanel || results.trendSuggestions) && (
+                       {(results.recommendations?.length || results.riskPanel?.length || results.trendSuggestions?.length) && (
                       <Card className="bg-card">
                           <CardHeader><h4 className="font-bold text-lg text-center">Seu Plano Inicial para Acelerar</h4></CardHeader>
                           <CardContent className="grid sm:grid-cols-2 lg:grid-cols-2 gap-8">
-                              {results.recommendations && (
+                              {results.recommendations && results.recommendations.length > 0 && (
                               <div>
                                 <h5 className="font-semibold mb-3 flex items-center gap-2"><Rocket className="h-5 w-5 text-primary" />Recomendações Estratégicas</h5>
                                 <ul className="space-y-2 text-sm">
@@ -606,7 +606,7 @@ export default function LandingPage() {
                                 </ul>
                               </div>
                               )}
-                              {results.riskPanel && (
+                              {results.riskPanel && results.riskPanel.length > 0 && (
                               <div>
                                 <h5 className="font-semibold mb-3 flex items-center gap-2"><AlertTriangle className="h-5 w-5 text-amber-500" />Pontos de Atenção (Riscos)</h5>
                                 <ul className="space-y-2 text-sm">
@@ -614,7 +614,7 @@ export default function LandingPage() {
                                 </ul>
                               </div>
                               )}
-                              {results.trendSuggestions && (
+                              {results.trendSuggestions && results.trendSuggestions.length > 0 && (
                               <div className="lg:col-span-2">
                                 <h5 className="font-semibold mb-3 flex items-center gap-2"><Sparkles className="h-5 w-5 text-primary" />Ideias de Ganchos Virais</h5>
                                 <div className="grid sm:grid-cols-3 gap-4">

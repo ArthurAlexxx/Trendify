@@ -15,22 +15,22 @@ const GrowthDataPointSchema = z.object({
 });
 
 const GrowthCalculatorOutputSchema = z.object({
-  months: z.number().optional().describe("O número total de meses estimados para atingir a meta."),
-  goalDate: z.string().optional().describe("A data estimada em que a meta será atingida, no formato ISO 8601."),
-  currentEarnings: z.array(z.number()).optional().describe("Uma faixa de ganhos mensais estimada com os seguidores atuais [min, max]."),
-  goalEarnings: z.array(z.number()).optional().describe("Uma faixa de ganhos mensais estimada ao atingir a meta de seguidores [min, max]."),
-  growthData: z.array(GrowthDataPointSchema).optional().describe("Um array de objetos, onde cada objeto tem 'month' e 'followers', para plotar a curva de crescimento."),
-  trendSuggestions: z.array(TrendSuggestionSchema).optional().describe("Uma lista de 3 sugestões de ganchos para vídeos virais, relevantes para o nicho."),
-  postsPerMonth: z.number().optional().describe("O número de publicações por mês usado no cálculo, para exibição."),
-  difficultyScore: z.enum(['Fácil', 'Realista', 'Difícil']).optional().describe("Classificação do quão realista é atingir a meta com os dados fornecidos."),
-  riskPanel: z.array(z.string()).optional().describe("Lista com 2-3 riscos e pontos fracos que podem atrasar a meta."),
-  recommendations: z.array(z.string()).optional().describe("Lista de 2-3 recomendações acionáveis para alcançar a meta mais rápido."),
-  benchmarkComparison: z.string().optional().describe("Uma breve análise de como o usuário se compara ao mercado do nicho em termos de crescimento."),
+  months: z.number().describe("O número total de meses estimados para atingir a meta."),
+  goalDate: z.string().describe("A data estimada em que a meta será atingida, no formato ISO 8601."),
+  currentEarnings: z.array(z.number()).describe("Uma faixa de ganhos mensais estimada com os seguidores atuais [min, max]."),
+  goalEarnings: z.array(z.number()).describe("Uma faixa de ganhos mensais estimada ao atingir a meta de seguidores [min, max]."),
+  growthData: z.array(GrowthDataPointSchema).describe("Um array de objetos, onde cada objeto tem 'month' e 'followers', para plotar a curva de crescimento."),
+  trendSuggestions: z.array(TrendSuggestionSchema).length(3).describe("Uma lista de 3 sugestões de ganchos para vídeos virais, relevantes para o nicho."),
+  postsPerMonth: z.number().describe("O número de publicações por mês usado no cálculo, para exibição."),
+  difficultyScore: z.enum(['Fácil', 'Realista', 'Difícil']).describe("Classificação do quão realista é atingir a meta com os dados fornecidos."),
+  riskPanel: z.array(z.string()).describe("Lista com 2-3 riscos e pontos fracos que podem atrasar a meta."),
+  recommendations: z.array(z.string()).describe("Lista de 2-3 recomendações acionáveis para alcançar a meta mais rápido."),
+  benchmarkComparison: z.string().describe("Uma breve análise de como o usuário se compara ao mercado do nicho em termos de crescimento."),
   accelerationScenarios: z.object({
       maintain: z.number(),
       plus20: z.number(),
       plus40: z.number(),
-  }).optional().describe("Cenários de aceleração do crescimento baseados no volume de posts."),
+  }).describe("Cenários de aceleração do crescimento baseados no volume de posts."),
 });
 
 
@@ -73,36 +73,40 @@ function extractJson(text: string) {
 }
 
 async function calculateGrowthAI(input: FormSchemaType): Promise<GrowthCalculatorOutput> {
-   const systemPrompt = `
-    Você é o GrowthAI Engine v3.0, um sistema avançado de análise e projeção para criadores de conteúdo.
-    Sua identidade é a de um consultor profissional, matemático e estrategista digital.
+  const systemPrompt = `
+    Você é o GrowthAI Engine v3.0, um sistema avançado de análise e projeção para criadores de conteúdo. Sua identidade é a de um consultor profissional, matemático e estrategista digital.
     Sua tarefa é analisar os dados de um usuário e retornar uma projeção de crescimento completa.
 
     **REGRAS FUNDAMENTAIS:**
     1.  **Data de Referência:** A data atual é Dezembro de 2025.
     2.  **Cálculos Realistas:** Baseie todos os cálculos nos dados de entrada e em benchmarks de mercado.
     3.  **SAÍDA ESTRITA:** Sua única resposta DEVE ser um objeto JSON válido que se conforma ao schema.
-
-    **Módulos de Comportamento:**
-    - **Interpretação de Nicho:** Mapeie o nicho para uma categoria de crescimento (Rápido: 10-18%/mês para finanças, tecnologia; Médio: 6-12%/mês para games, beleza, fitness; Lento: 3-7%/mês para humor, vlogs).
-    - **Cálculo de Crescimento:** Calcule o número de meses até a meta com base na taxa do nicho.
-    - **Projeção de Data:** Calcule a data final a partir de 2025-12-01.
-    - **Projeção de Ganhos (Earnings):** Calcule uma faixa de ganhos [min, max] com base no CPM do nicho, alcance orgânico (20-50% dos seguidores) e 4-8 publis/mês.
-    - **Dificuldade:** Classifique a meta como 'Fácil', 'Realista' ou 'Difícil'.
-    - **Riscos e Recomendações:** Liste 2-3 riscos e 2-3 recomendações.
-    - **Benchmark:** Compare a projeção com a média do nicho.
-    - **Cenários de Aceleração:** Calcule os meses para atingir a meta mantendo, aumentando em 20% e 40% os posts.
-    - **Sugestões de Tendências:** Gere 3 ideias de ganchos virais, cada um sendo um objeto com "hook" e "icon".
+    4.  **PROFUNDIDADE:** Nada no JSON pode ser vago, genérico ou raso.
   `;
-
+  
   const userPrompt = `
-    Analise os dados do usuário abaixo e gere a projeção de crescimento completa em formato JSON. Siga todas as regras e módulos definidos.
+    Analise os dados do usuário abaixo e gere a projeção de crescimento completa em formato JSON. Siga todas as suas regras e módulos de comportamento.
 
     - **Nicho:** ${input.niche}
     - **Seguidores Atuais:** ${input.followers}
     - **Meta de Seguidores:** ${input.goal}
     - **Média de Publicações por Mês:** ${input.postsPerMonth}
+
+    **Diretrizes:**
+    - **Interpretação de Nicho:** Mapeie o nicho para uma categoria de crescimento (Rápido: 10-18%/mês para finanças/tecnologia; Médio: 6-12%/mês para games/beleza/fitness; Lento: 3-7%/mês para humor/vlogs) e defina a taxa mensal.
+    - **Cálculo de Crescimento:** Calcule os 'months' até a meta, limitado a 24 meses.
+    - **Projeção de Data:** Calcule 'goalDate' a partir de 2025-12-01.
+    - **Ganhos:** Calcule 'currentEarnings' e 'goalEarnings' como [min, max] com base no CPM do nicho, alcance de 20-50% e 4-8 publis/mês.
+    - **Dificuldade:** Classifique 'difficultyScore' como 'Fácil', 'Realista' ou 'Difícil'.
+    - **Riscos e Recomendações:** Liste 2-3 'riskPanel' e 2-3 'recommendations' acionáveis.
+    - **Benchmark:** Forneça uma 'benchmarkComparison' concisa.
+    - **Cenários de Aceleração:** Calcule 'accelerationScenarios' para 'maintain', 'plus20', e 'plus40'.
+    - **Sugestões de Tendências:** Gere 3 'trendSuggestions' com 'hook' e 'icon'.
+    - **postsPerMonth:** Retorne o valor de entrada.
+
+    LEMBRE-SE: Sua única saída DEVE ser um objeto JSON VÁLIDO que se conforma estritamente com o schema e contém TODOS os campos definidos. Não omita nenhum campo.
   `;
+
 
   try {
     const response = await openai.chat.completions.create({
