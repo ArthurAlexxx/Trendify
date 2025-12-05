@@ -68,7 +68,6 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { getTikTokPosts, getInstagramPosts } from '@/app/(app)/profile/actions';
 import { useSubscription } from '@/hooks/useSubscription';
 import { InstagramProfileResults, TikTokProfileResults } from '@/components/dashboard/platform-results';
-import { SavedIdeasSheet } from '@/components/saved-ideas-sheet';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
@@ -351,17 +350,6 @@ export default function DashboardPage() {
      }
   }
 
-  const platformIcon = useMemo(() => {
-    if (selectedPlatform === 'instagram') {
-        return <Instagram className="h-5 w-5" />;
-    }
-    if (selectedPlatform === 'tiktok') {
-        return <Film className="h-5 w-5" />;
-    }
-    return null;
-  }, [selectedPlatform]);
-
-
   return (
     <>
       <Dialog open={showTikTokModal} onOpenChange={setShowTikTokModal}>
@@ -401,7 +389,7 @@ export default function DashboardPage() {
         <div className="space-y-8">
           
           {userProfile && <ProfileCompletionAlert userProfile={userProfile} isPremium={isPremium} />}
-          
+
           {/* Mobile Carousel */}
           <div className="lg:hidden">
               <Carousel className="w-full" opts={{ align: 'start' }}>
@@ -409,10 +397,7 @@ export default function DashboardPage() {
                   <CarouselItem className="pl-2 md:pl-4 basis-full">
                   <Card className="rounded-2xl border-0 h-full">
                       <CardHeader className='items-center text-center'>
-                          <CardTitle className='flex items-center gap-2'>
-                            {platformIcon}
-                            Meta de Seguidores
-                          </CardTitle>
+                        <CardTitle>Meta de Seguidores</CardTitle>
                       </CardHeader>
                       <CardContent className="pt-6">
                           <div className="flex flex-col items-center justify-center text-center">
@@ -440,10 +425,7 @@ export default function DashboardPage() {
                   <CarouselItem className="pl-2 md:pl-4 basis-full">
                   <Card className='rounded-2xl border-0 h-full'>
                       <CardHeader>
-                          <CardTitle className='flex items-center gap-2'>
-                            {platformIcon}
-                            Métricas de Engajamento
-                          </CardTitle>
+                        <CardTitle>Métricas de Engajamento</CardTitle>
                       </CardHeader>
                       <CardContent>
                           <div className='grid grid-cols-1 gap-4'>
@@ -466,10 +448,7 @@ export default function DashboardPage() {
                   <CarouselItem className="pl-2 md:pl-4 basis-full">
                   <Card className="rounded-2xl border-0 h-full flex flex-col">
                        <CardHeader className='flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left'>
-                           <CardTitle className='flex items-center gap-2'>
-                             {platformIcon}
-                             Análise de Desempenho
-                           </CardTitle>
+                           <CardTitle>Análise de Desempenho</CardTitle>
                            <Button variant="ghost" size="sm" onClick={handleGenerateInsights} disabled={isGeneratingInsights} className="w-full sm:w-auto">
                                {isGeneratingInsights ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
                                Analisar Desempenho
@@ -496,8 +475,8 @@ export default function DashboardPage() {
                   </Card>
                   </CarouselItem>
               </CarouselContent>
-              <CarouselPrevious className="flex left-2 lg:hidden" />
-              <CarouselNext className="flex right-2 lg:hidden" />
+              <CarouselPrevious className="hidden sm:flex left-2 lg:hidden" />
+              <CarouselNext className="hidden sm:flex right-2 lg:hidden" />
               </Carousel>
           </div>
 
@@ -505,10 +484,7 @@ export default function DashboardPage() {
           <div className="hidden lg:grid lg:grid-cols-3 lg:gap-8">
               <Card className="rounded-2xl border-0 h-full">
                   <CardHeader className='items-center text-center'>
-                      <CardTitle className='flex items-center gap-2'>
-                        {platformIcon}
-                        Meta de Seguidores
-                      </CardTitle>
+                      <CardTitle>Meta de Seguidores</CardTitle>
                   </CardHeader>
                   <CardContent className="pt-6">
                       <div className="flex flex-col items-center justify-center text-center">
@@ -534,10 +510,7 @@ export default function DashboardPage() {
               </Card>
               <Card className='rounded-2xl border-0 h-full'>
                   <CardHeader>
-                      <CardTitle className='flex items-center gap-2'>
-                        {platformIcon}
-                        Métricas de Engajamento
-                      </CardTitle>
+                      <CardTitle>Métricas de Engajamento</CardTitle>
                   </CardHeader>
                   <CardContent>
                       <div className='grid grid-cols-1 gap-4'>
@@ -558,10 +531,7 @@ export default function DashboardPage() {
               </Card>
               <Card className="rounded-2xl border-0 h-full flex flex-col">
                    <CardHeader className='flex flex-row items-center justify-between'>
-                       <CardTitle className='flex items-center gap-2'>
-                          {platformIcon}
-                          Análise de Desempenho
-                       </CardTitle>
+                       <CardTitle>Análise de Desempenho</CardTitle>
                        <Button variant="ghost" size="sm" onClick={handleGenerateInsights} disabled={isGeneratingInsights}>
                            {isGeneratingInsights ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
                            Analisar
