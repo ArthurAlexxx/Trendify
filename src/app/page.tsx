@@ -63,6 +63,7 @@ import {
   calculateGrowthAction,
 } from '@/app/landing-page/actions';
 import { useToast } from '@/hooks/use-toast';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 
 const features = [
   {
@@ -518,8 +519,59 @@ export default function LandingPage() {
                         </p>
                       </div>
                       
-                      {/* Main Results */}
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                      {/* Mobile Carousel */}
+                       <div className="lg:hidden">
+                        <Carousel className="w-full" opts={{ align: 'start' }}>
+                          <CarouselContent className="-ml-2 md:-ml-4 py-4">
+                            {results.growthData && results.growthData.length > 0 && (
+                            <CarouselItem className="pl-2 md:pl-4 basis-[90%]">
+                                <Card className="rounded-2xl h-full">
+                                <CardHeader><CardTitle className="text-lg font-bold">Curva de Crescimento</CardTitle></CardHeader>
+                                <CardContent>
+                                    <div className="h-64 w-full">
+                                    <ResponsiveContainer>
+                                        <AreaChart data={results.growthData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+                                        <defs><linearGradient id="colorFollowers" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.8}/><stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/></linearGradient></defs>
+                                        <XAxis dataKey="month" tickFormatter={(v) => `Mês ${v}`} />
+                                        <YAxis tickFormatter={(v) => `${v / 1000}k`} />
+                                        <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }} />
+                                        <Area type="monotone" dataKey="followers" stroke="hsl(var(--primary))" fillOpacity={1} fill="url(#colorFollowers)" />
+                                        </AreaChart>
+                                    </ResponsiveContainer>
+                                    </div>
+                                </CardContent>
+                                </Card>
+                            </CarouselItem>
+                            )}
+                            {(results.currentEarnings || results.goalEarnings) && (
+                            <CarouselItem className="pl-2 md:pl-4 basis-[90%]">
+                                <Card className="rounded-2xl h-full">
+                                    <CardHeader><CardTitle className="text-lg font-bold">Potencial de Ganhos/Mês</CardTitle></CardHeader>
+                                    <CardContent className="space-y-4">
+                                        {results.currentEarnings && (
+                                        <div>
+                                            <p className="text-lg font-semibold">{formatCurrency(results.currentEarnings[0])} - {formatCurrency(results.currentEarnings[1])}</p>
+                                            <p className="text-sm text-muted-foreground">Estimativa com seus seguidores atuais</p>
+                                        </div>
+                                        )}
+                                        {results.goalEarnings && (
+                                        <div>
+                                            <p className="text-lg font-semibold">{formatCurrency(results.goalEarnings[0])} - {formatCurrency(results.goalEarnings[1])}</p>
+                                            <p className="text-sm text-muted-foreground">Estimativa ao atingir a meta</p>
+                                        </div>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            </CarouselItem>
+                            )}
+                          </CarouselContent>
+                          <CarouselPrevious className="left-2" />
+                          <CarouselNext className="right-2" />
+                        </Carousel>
+                       </div>
+
+                      {/* Desktop Grid */}
+                      <div className="hidden lg:grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
                           {/* Left Column */}
                           <div className="space-y-8">
                               {results.growthData && results.growthData.length > 0 && (
@@ -562,7 +614,7 @@ export default function LandingPage() {
                                     <Card className="bg-primary/5 border-primary/20 text-center"><CardContent className="p-4"><p className="text-sm text-muted-foreground">Nível da Meta</p><p className="text-2xl font-bold">{results.difficultyScore}</p></CardContent></Card>
                                   )}
                               </div>
-                               {results.currentEarnings && results.goalEarnings && (
+                               {(results.currentEarnings || results.goalEarnings) && (
                                 <Card>
                                   <CardHeader>
                                     <CardTitle className="text-lg font-bold">
@@ -570,20 +622,24 @@ export default function LandingPage() {
                                     </CardTitle>
                                   </CardHeader>
                                   <CardContent>
-                                    <p className="text-lg font-semibold">
-                                      {formatCurrency(results.currentEarnings[0])} -{' '}
-                                      {formatCurrency(results.currentEarnings[1])}
-                                      <span className="text-sm font-normal text-muted-foreground ml-2">
-                                        (agora)
-                                      </span>
-                                    </p>
-                                    <p className="text-lg font-semibold mt-1">
-                                      {formatCurrency(results.goalEarnings[0])} -{' '}
-                                      {formatCurrency(results.goalEarnings[1])}
-                                      <span className="text-sm font-normal text-muted-foreground ml-2">
-                                        (na meta)
-                                      </span>
-                                    </p>
+                                    {results.currentEarnings && (
+                                      <p className="text-lg font-semibold">
+                                        {formatCurrency(results.currentEarnings[0])} -{' '}
+                                        {formatCurrency(results.currentEarnings[1])}
+                                        <span className="text-sm font-normal text-muted-foreground ml-2">
+                                          (agora)
+                                        </span>
+                                      </p>
+                                    )}
+                                    {results.goalEarnings && (
+                                      <p className="text-lg font-semibold mt-1">
+                                        {formatCurrency(results.goalEarnings[0])} -{' '}
+                                        {formatCurrency(results.goalEarnings[1])}
+                                        <span className="text-sm font-normal text-muted-foreground ml-2">
+                                          (na meta)
+                                        </span>
+                                      </p>
+                                    )}
                                   </CardContent>
                                 </Card>
                               )}

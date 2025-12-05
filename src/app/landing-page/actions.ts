@@ -55,12 +55,11 @@ const openai = new OpenAI({
 });
 
 async function calculateGrowthAI(input: FormSchemaType): Promise<GrowthCalculatorOutput> {
-   const systemPrompt = `Você é o GrowthAI Engine v3.0, um sistema avançado de análise e projeção para criadores de conteúdo. Sua identidade é a de um consultor profissional, matemático e estrategista digital. Sua única função é analisar os dados de um usuário e retornar uma projeção de crescimento completa.
-Lembre-se: A data de referência para projeções é Dezembro de 2025.
-Sua única saída DEVE ser um objeto JSON válido que se conforma estritamente com o schema e contém TODOS os campos definidos. Não omita nenhum campo.`;
+   const systemPrompt = `Você é o GrowthAI Engine v3.0, um sistema avançado de análise e projeção para criadores de conteúdo. Sua identidade é a de um consultor profissional, matemático e estrategista digital. Sua única função é analisar os dados de um usuário e retornar uma projeção de crescimento completa. Lembre-se: A data de referência para projeções é Dezembro de 2025.
+   LEMBRE-SE: Sua única saída DEVE ser um objeto JSON VÁLIDO que se conforma estritamente ao schema e contém TODOS os campos definidos. Não omita nenhum campo.`;
 
   const userPrompt = `
-    Analise os seguintes dados do usuário e gere a projeção de crescimento completa.
+    Analise os seguintes dados do usuário e gere a projeção de crescimento completa, seguindo as diretrizes para cada campo.
 
     **Dados do Usuário:**
     - Nicho: ${input.niche}
@@ -68,20 +67,18 @@ Sua única saída DEVE ser um objeto JSON válido que se conforma estritamente c
     - Meta de Seguidores: ${input.goal}
     - Média de Publicações por Mês: ${input.postsPerMonth}
 
-    **Sua Tarefa:**
-    Gere um objeto JSON com os seguintes campos:
-    - months: O número de meses para atingir a meta.
-    - goalDate: A data ISO 8601 estimada para atingir a meta.
-    - currentEarnings: Array com a faixa de ganhos mensais [min, max] para os seguidores atuais.
-    - goalEarnings: Array com a faixa de ganhos mensais [min, max] para a meta de seguidores.
-    - growthData: Array de objetos {month, followers} para a curva de crescimento.
-    - trendSuggestions: Array com 3 objetos {hook, icon} de ideias de vídeos para o nicho.
-    - postsPerMonth: O número de posts por mês usado no cálculo.
-    - difficultyScore: A dificuldade da meta ('Fácil', 'Realista', 'Difícil').
-    - riskPanel: Array com 2-3 riscos que podem atrasar a meta.
-    - recommendations: Array com 2-3 recomendações para acelerar o crescimento.
-    - benchmarkComparison: Uma breve análise comparando a projeção do usuário com o mercado do nicho.
-    - accelerationScenarios: Objeto {maintain, plus20, plus40} com os meses em cenários de aceleração.
+    **Diretrizes para o JSON de Saída:**
+    - months: Calcule o número de meses para atingir a meta, assumindo uma taxa de crescimento realista para o nicho (ex: Finanças/Tecnologia 10-18%/mês, Fitness/Beleza 6-12%/mês, Humor/Vlogs 3-7%/mês). A curva de crescimento em 'growthData' deve parar quando a meta for atingida.
+    - goalDate: Projete a data final (formato ISO 8601) a partir de 2025-12-01, com base nos 'months' calculados.
+    - currentEarnings & goalEarnings: Estime uma faixa de ganhos [min, max] com base no CPM do nicho (ex: Finanças R$60-150, Entretenimento R$15-40), alcance orgânico (20-50% dos seguidores) e 4-8 publis/mês.
+    - growthData: Gere um array de {month, followers} para a curva de crescimento.
+    - trendSuggestions: Crie 3 ideias de ganchos virais para o nicho, cada um com {hook, icon}.
+    - postsPerMonth: Retorne o valor de entrada.
+    - difficultyScore: Classifique a dificuldade ('Fácil', 'Realista', 'Difícil') com base na taxa de crescimento necessária e no volume de posts.
+    - riskPanel: Liste 2-3 riscos que podem atrasar a meta (ex: 'baixa frequência', 'nicho competitivo').
+    - recommendations: Dê 2-3 recomendações acionáveis para acelerar (ex: 'aumentar volume de posts', 'fazer collabs').
+    - benchmarkComparison: Faça uma breve análise comparando a projeção com a média do nicho.
+    - accelerationScenarios: Calcule os meses para atingir a meta em cenários de aceleração: {maintain: months, plus20: ceil(months / 1.20), plus40: ceil(months / 1.40)}.
   `;
 
 
