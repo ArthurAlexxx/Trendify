@@ -14,7 +14,7 @@ const AiCareerPackageOutputSchema = z.object({
   executiveSummary: z
     .string()
     .describe(
-      'Um parágrafo de apresentação curto e impactante, ideal para um e-mail inicial para uma marca, destacando o valor do criador.'
+      'Um texto de apresentação completo e profissional, em primeira pessoa, para abordar uma marca, seguindo uma estrutura detalhada.'
     ),
   pricingTiers: z.object({
     reels: z
@@ -109,14 +109,19 @@ Sua resposta DEVE ser um bloco de código JSON válido, e NADA MAIS. O JSON deve
 
   Para cada campo do JSON, siga estas diretrizes:
 
-  - executiveSummary: Crie um parágrafo de apresentação em PRIMEIRA PESSOA (usando "Eu sou...", "Minha audiência..."). O texto deve ser profissional, conciso e focado 100% em como o criador agrega valor DENTRO do nicho de '${input.niche}'. Demonstre autoridade e conhecimento profundo do público-alvo específico deste nicho.
-  
+  - executiveSummary: Crie um texto de apresentação completo e profissional em PRIMEIRA PESSOA. O texto deve ser estruturado e seguir os seguintes pontos:
+    1.  **Posicionamento Profissional:** Comece se apresentando como um especialista no nicho de ${input.niche}, destacando seu foco (ex: análises estratégicas, tutoriais, etc.) e a autenticidade que construiu sua comunidade.
+    2.  **Descrição do Público:** Descreva sua audiência de forma que ela se alinhe com a marca alvo (${input.targetBrand}). Mencione valores e interesses do público (ex: performance, tecnologia, estilo).
+    3.  **Sinergia com a Marca:** Explique por que uma parceria faz sentido, conectando os valores do seu conteúdo (ex: evolução, superação, mentalidade competitiva) com o DNA da marca.
+    4.  **Oferta de Parceria:** Crie uma lista (bullet points) do que você oferece como parceiro (ex: "Conteúdos patrocinados de alta retenção", "Ativações temáticas", "Aparições em lives", "Narrativas criativas").
+    5.  **Compromisso e Fechamento:** Finalize com um parágrafo de compromisso, reforçando seu objetivo de entregar valor e resultados, e se colocando à disposição para desenvolver ações exclusivas.
+
   - pricingTiers: Com base nas métricas fornecidas (${input.keyMetrics}), calcule faixas de preço realistas para o mercado brasileiro. É OBRIGATÓRIO que você retorne uma STRING formatada para CADA um dos campos (reels, storySequence, staticPost, monthlyPackage), como "R$ X - R$ Y". Não deixe nenhum campo de preço em branco.
 
   - sampleCollaborationIdeas: Gere EXATAMENTE 3 ideias de colaboração. Cada ideia DEVE ser:
-    1.  100% relacionada e exclusiva ao nicho '${input.niche}'.
+    1.  100% relacionada e exclusiva ao nicho ${input.niche}.
     2.  Criativa, autêntica e que gere valor real para o público deste nicho.
-    3.  Alinhada com os produtos ou o posicionamento da marca alvo '${input.targetBrand}'.
+    3.  Alinhada com os produtos ou o posicionamento da marca alvo ${input.targetBrand}.
     NÃO inclua nenhuma ideia de outros nichos. O foco é absoluto. Para cada ideia, use a chave 'ideia' no JSON.
   `;
 

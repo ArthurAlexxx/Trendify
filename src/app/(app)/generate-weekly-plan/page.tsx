@@ -154,7 +154,7 @@ export default function GenerateWeeklyPlanPage() {
     },
   });
   
-  const formAction = async (formData: FormSchemaType) => {
+  const formAction = useCallback(async (formData: FormSchemaType) => {
     startTransition(async () => {
       const result = await generateWeeklyPlanAction(null, formData);
       setState(result);
@@ -162,7 +162,7 @@ export default function GenerateWeeklyPlanPage() {
         setActiveTab("result");
       }
     });
-  };
+  }, [startTransition]);
 
   useEffect(() => {
     if (userProfile) {
@@ -582,3 +582,5 @@ export default function GenerateWeeklyPlanPage() {
     </div>
   );
 }
+
+    
