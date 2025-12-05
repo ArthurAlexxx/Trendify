@@ -44,6 +44,7 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { useRouter } from 'next/navigation';
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import { Separator } from '@/components/ui/separator';
 
 const formSchema = z.object({
   niche: z.string().min(1, 'O nicho não pode estar vazio.'),
@@ -102,7 +103,7 @@ function PremiumFeatureGuard({ children }: { children: React.ReactNode }) {
         return (
              <AlertDialog open={true} onOpenChange={(open) => !open && router.push('/subscribe')}>
               <AlertDialogContent>
-                <AlertDialogHeader className="text-center items-center">
+                 <AlertDialogHeader className="text-center items-center">
                   <div className="h-16 w-16 rounded-full bg-yellow-400/10 flex items-center justify-center mb-2 border-2 border-yellow-400/20">
                     <Crown className="h-8 w-8 text-yellow-500 animate-pulse" />
                   </div>
@@ -265,12 +266,13 @@ function MediaKitPageContent() {
         <SavedIdeasSheet />
       </PageHeader>
       
-      <div className="space-y-4">
-        <div className="text-left">
+      <div>
+        <div className="text-center">
             <h2 className="text-xl font-bold font-headline">Como Criamos seu Pacote?</h2>
             <p className="text-muted-foreground">A IA atua como sua gerente de talentos e foca em 4 pilares:</p>
         </div>
-        <div>
+        <Separator className="w-1/2 mx-auto my-4" />
+        <div className="py-8">
             <div className="md:hidden">
                 <Carousel className="w-full" opts={{ align: 'start' }}>
                     <CarouselContent className="-ml-4">
@@ -311,7 +313,6 @@ function MediaKitPageContent() {
             </div>
         </div>
       </div>
-
 
       <div className="space-y-8">
           

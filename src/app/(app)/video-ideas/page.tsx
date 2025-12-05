@@ -122,7 +122,7 @@ export default function VideoIdeasPage() {
 
   useEffect(() => {
     if (!user || !firestore) return;
-    const usageDocRef = doc(firestore, `users/${user.uid}/dailyUsage/${todayStr}`);
+    const usageDocRef = doc(firestore, 'users', user.uid, 'dailyUsage', todayStr);
     
     const unsubscribe = onSnapshot(usageDocRef, (doc) => {
         setUsageData(doc.exists() ? doc.data() as DailyUsage : null);
@@ -262,12 +262,13 @@ export default function VideoIdeasPage() {
         <SavedIdeasSheet />
       </PageHeader>
       
-      <div className="space-y-4">
-        <div className="text-left">
-            <h2 className="text-xl font-bold font-headline">Como Criamos Suas Ideias?</h2>
-            <p className="text-muted-foreground">A IA atua como uma estrategista de conteúdo viral e analisa 4 pilares:</p>
+      <div>
+        <div className="text-center">
+          <h2 className="text-xl font-bold font-headline">Como Criamos Suas Ideias?</h2>
+          <p className="text-muted-foreground">A IA atua como uma estrategista de conteúdo viral e analisa 4 pilares:</p>
         </div>
-        <div>
+        <Separator className="w-1/2 mx-auto my-4" />
+        <div className='py-8'>
             <div className="md:hidden">
                 <Carousel className="w-full" opts={{ align: 'start' }}>
                     <CarouselContent className="-ml-4">

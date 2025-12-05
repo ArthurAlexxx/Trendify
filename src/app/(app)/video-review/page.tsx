@@ -358,51 +358,52 @@ function VideoReviewPageContent() {
             icon={Video}
         />
         
-        <div className="space-y-4">
-            <div className="text-left">
-                <h2 className="text-xl font-bold font-headline">Como Avaliamos Seu Vídeo?</h2>
-                <p className="text-muted-foreground">Nossa IA atua como uma estrategista de conteúdo viral e analisa 4 pilares:</p>
-            </div>
-            <div>
-                <div className="md:hidden">
-                    <Carousel className="w-full" opts={{ align: 'start' }}>
-                        <CarouselContent className="-ml-4">
-                            {analysisCriteria.map((item, index) => (
-                                <CarouselItem key={index} className="pl-4 basis-full">
-                                    <Card className="rounded-2xl border-0 h-full">
-                                        <CardHeader>
-                                            <CardTitle className="flex items-center gap-3">
-                                                <item.icon className="h-6 w-6 text-primary" />
-                                                <span>{item.title}</span>
-                                            </CardTitle>
-                                        </CardHeader>
-                                        <CardContent>
-                                            <p className="text-muted-foreground">{item.description}</p>
-                                        </CardContent>
-                                    </Card>
-                                </CarouselItem>
-                            ))}
-                        </CarouselContent>
-                        <CarouselPrevious className="left-2" />
-                        <CarouselNext className="right-2" />
-                    </Carousel>
-                </div>
-                <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {analysisCriteria.map((item, index) => (
-                        <Card key={index} className="rounded-2xl border-0">
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-3">
-                                    <item.icon className="h-6 w-6 text-primary" />
-                                    <span>{item.title}</span>
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-muted-foreground">{item.description}</p>
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
-            </div>
+        <div>
+          <div className="text-center">
+              <h2 className="text-xl font-bold font-headline">Como Avaliamos Seu Vídeo?</h2>
+              <p className="text-muted-foreground">Nossa IA atua como uma estrategista de conteúdo viral e analisa 4 pilares:</p>
+          </div>
+          <Separator className="w-1/2 mx-auto my-4" />
+          <div className="py-8">
+              <div className="md:hidden">
+                  <Carousel className="w-full" opts={{ align: 'start' }}>
+                      <CarouselContent className="-ml-4">
+                          {analysisCriteria.map((item, index) => (
+                              <CarouselItem key={index} className="pl-4 basis-full">
+                                  <Card className="rounded-2xl border-0 h-full">
+                                      <CardHeader>
+                                          <CardTitle className="flex items-center gap-3">
+                                              <item.icon className="h-6 w-6 text-primary" />
+                                              <span>{item.title}</span>
+                                          </CardTitle>
+                                      </CardHeader>
+                                      <CardContent>
+                                          <p className="text-muted-foreground">{item.description}</p>
+                                      </CardContent>
+                                  </Card>
+                              </CarouselItem>
+                          ))}
+                      </CarouselContent>
+                      <CarouselPrevious className="left-2" />
+                      <CarouselNext className="right-2" />
+                  </Carousel>
+              </div>
+              <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {analysisCriteria.map((item, index) => (
+                      <Card key={index} className="rounded-2xl border-0">
+                          <CardHeader>
+                              <CardTitle className="flex items-center gap-3">
+                                  <item.icon className="h-6 w-6 text-primary" />
+                                  <span>{item.title}</span>
+                              </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                              <p className="text-muted-foreground">{item.description}</p>
+                          </CardContent>
+                      </Card>
+                  ))}
+              </div>
+          </div>
         </div>
         
         <Separator />

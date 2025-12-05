@@ -268,12 +268,13 @@ export default function GenerateWeeklyPlanPage() {
         <PreviousPlansSheet />
       </PageHeader>
       
-      <div className="space-y-4">
-        <div className="text-left">
+      <div>
+        <div className="text-center">
             <h2 className="text-xl font-bold font-headline">Como Montamos seu Plano?</h2>
             <p className="text-muted-foreground">A IA atua como sua estrategista e analisa 4 pilares:</p>
         </div>
-        <div>
+        <Separator className="w-1/2 mx-auto my-4" />
+        <div className="py-8">
             <div className="md:hidden">
                 <Carousel className="w-full" opts={{ align: 'start' }}>
                     <CarouselContent className="-ml-4">

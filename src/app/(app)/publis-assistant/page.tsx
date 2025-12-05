@@ -56,6 +56,7 @@ import { format as formatDate } from 'date-fns';
 import type { DailyUsage } from '@/lib/types';
 import Link from 'next/link';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import { Separator } from '@/components/ui/separator';
 
 const formSchema = z.object({
   product: z.string().min(3, 'O nome do produto/marca deve ter pelo menos 3 caracteres.'),
@@ -284,12 +285,13 @@ function PublisAssistantPageContent() {
         <SavedIdeasSheet />
       </PageHeader>
 
-      <div className="space-y-4">
-        <div className="text-left">
+      <div>
+        <div className="text-center">
             <h2 className="text-xl font-bold font-headline">Como Criamos Sua Campanha?</h2>
             <p className="text-muted-foreground">A IA atua como sua diretora de criação, combinando estratégia e criatividade.</p>
         </div>
-        <div>
+        <Separator className="w-1/2 mx-auto my-4" />
+        <div className="py-8">
             <div className="md:hidden">
                 <Carousel className="w-full" opts={{ align: 'start' }}>
                     <CarouselContent className="-ml-4">
@@ -330,7 +332,6 @@ function PublisAssistantPageContent() {
             </div>
         </div>
       </div>
-
 
       <Card className="rounded-2xl border-0">
         <CardHeader>
