@@ -370,7 +370,7 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             <Card className="rounded-2xl border-0 lg:col-span-1">
                  <CardHeader className='items-center text-center'>
-                    <CardTitle className="font-headline text-lg sm:text-xl">Meta de Seguidores</CardTitle>
+                    <CardTitle>Meta de Seguidores</CardTitle>
                 </CardHeader>
                 <CardContent className="pt-6">
                     <div className="flex flex-col items-center justify-center text-center">
@@ -396,24 +396,29 @@ export default function DashboardPage() {
             </Card>
             
             <div className='lg:col-span-2 grid grid-cols-1 gap-6'>
-                <Card className='rounded-xl p-4 bg-muted/50'>
-                    <div className='grid grid-cols-1 sm:grid-cols-3 gap-4 divide-y sm:divide-y-0 sm:divide-x'>
-                        <div className='p-2 text-center sm:text-left'>
-                            <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-center sm:justify-start gap-2"><Eye className="h-4 w-4" /> Views</h3>
-                            <p className="text-xl font-bold font-headline">{isLoading ? <Skeleton className="h-6 w-12" /> : formatMetricValue(latestMetrics?.views)}</p>
+                <Card className='rounded-2xl border-0'>
+                     <CardHeader>
+                        <CardTitle>Métricas de Engajamento</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className='grid grid-cols-1 sm:grid-cols-3 gap-4'>
+                            <div className='p-4 rounded-lg bg-muted/50 border'>
+                                <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><Eye className="h-4 w-4" /> Views</h3>
+                                <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.views)}</p>
+                            </div>
+                            <div className='p-4 rounded-lg bg-muted/50 border'>
+                                <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><Heart className="h-4 w-4" /> Likes</h3>
+                                <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.likes)}</p>
+                            </div>
+                            <div className='p-4 rounded-lg bg-muted/50 border'>
+                                <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><MessageSquare className="h-4 w-4" /> Comentários</h3>
+                                <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.comments)}</p>
+                            </div>
                         </div>
-                         <div className='p-2 text-center sm:text-left pt-4 sm:pt-2'>
-                            <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-center sm:justify-start gap-2"><Heart className="h-4 w-4" /> Likes</h3>
-                            <p className="text-xl font-bold font-headline">{isLoading ? <Skeleton className="h-6 w-12" /> : formatMetricValue(latestMetrics?.likes)}</p>
-                        </div>
-                         <div className='p-2 text-center sm:text-left pt-4 sm:pt-2'>
-                            <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-center sm:justify-start gap-2"><MessageSquare className="h-4 w-4" /> Comentários</h3>
-                            <p className="text-xl font-bold font-headline">{isLoading ? <Skeleton className="h-6 w-12" /> : formatMetricValue(latestMetrics?.comments)}</p>
-                        </div>
-                    </div>
+                    </CardContent>
                 </Card>
                  <Card className="rounded-2xl border-0">
-                    <CardHeader className='items-center text-center'><CardTitle className="font-headline text-xl">Insights da IA</CardTitle></CardHeader>
+                    <CardHeader className='items-center text-center'><CardTitle>Insights da IA</CardTitle></CardHeader>
                     <CardContent>
                         {isGeneratingInsights ? <div className="flex justify-center items-center h-24"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div> : insights && insights.length > 0 ? <ul className="space-y-4">{insights.map((insight, i) => <li key={i} className="flex items-start gap-3"><div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary flex-shrink-0 mt-0.5"><Lightbulb className="h-3.5 w-3.5" /></div><p className="text-sm text-muted-foreground">{insight.insight}</p></li>)}</ul> : <div className="text-center text-sm text-muted-foreground">Gere ou sincronize suas métricas por alguns dias para começar a receber insights.</div>}
                     </CardContent>
@@ -423,7 +428,7 @@ export default function DashboardPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             <Card className="rounded-2xl border-0 lg:col-span-2">
-                <CardHeader className='items-center text-center'><CardTitle className="font-headline text-xl">Evolução das Métricas</CardTitle></CardHeader>
+                <CardHeader><CardTitle>Evolução das Métricas</CardTitle></CardHeader>
                 <CardContent className="pl-2 pr-6">
                     {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
                     historicalChartData.length > 0 ? (
@@ -453,7 +458,7 @@ export default function DashboardPage() {
 
             <div className="lg:col-span-1 space-y-8">
                  <Card className="rounded-2xl border-0">
-                    <CardHeader className='items-center text-center'><CardTitle className="font-headline text-xl">Recursos & Atividade</CardTitle></CardHeader>
+                    <CardHeader><CardTitle>Recursos & Atividade</CardTitle></CardHeader>
                     <CardContent className="flex flex-col gap-4">
                         <SavedIdeasSheet />
                          <Sheet><SheetTrigger asChild><Button variant="outline" className="w-full"><CalendarPlus className="mr-2 h-4 w-4" /> Próximos Agendamentos</Button></SheetTrigger>

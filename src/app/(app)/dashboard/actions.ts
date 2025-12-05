@@ -1,7 +1,8 @@
+
 'use server';
 
-import { ai } from '@/ai/genkit';
 import { z } from 'zod';
+import OpenAI from 'openai';
 
 const MetricSnapshotSchema = z.object({
   date: z.string().datetime(),
@@ -21,7 +22,7 @@ export type DashboardInsight = z.infer<typeof DashboardInsightSchema>;
 const GenerateDashboardInsightsInputSchema = z.object({
   niche: z.string(),
   objective: z.string(),
-  metricSnapshots: z.array(MetricSnapshot),
+  metricSnapshots: z.array(MetricSnapshotSchema),
 });
 
 const GenerateDashboardInsightsOutputSchema = z.object({
@@ -30,40 +31,50 @@ const GenerateDashboardInsightsOutputSchema = z.object({
     .describe('Uma lista de 2 a 3 insights acionáveis sobre o desempenho do criador.'),
 });
 
-const prompt = ai.definePrompt({
-  name: 'dashboardInsightGenerator',
-  input: { schema: GenerateDashboardInsightsInputSchema },
-  output: { schema: GenerateDashboardInsightsOutputSchema },
-  prompt: `Você é um estrategista de crescimento para criadores de conteúdo. Analise as métricas dos últimos dias, o nicho e o objetivo do criador.
-  
-  - Nicho: {{niche}}
-  - Objetivo: {{objective}}
-  - Métricas Recentes:
-  {{#each metricSnapshots}}
-  - Dia: {{date}}, Plataforma: {{platform}}, Seguidores: {{followers}}, Views: {{views}}, Likes: {{likes}}, Comentários: {{comments}}
-  {{/each}}
-
-  Com base nisso, gere 2 ou 3 insights rápidos e acionáveis para ajudar o criador a atingir seu objetivo. Seja direto e prático. Foco em ações de curto prazo.`,
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
-const generateDashboardInsightsFlow = ai.defineFlow(
-  {
-    name: 'generateDashboardInsightsFlow',
-    inputSchema: GenerateDashboardInsightsInputSchema,
-    outputSchema: z.array(DashboardInsightSchema),
-  },
-  async (input) => {
-    const { output } = await prompt(input);
-    if (!output) {
-        throw new Error("A IA não conseguiu gerar insights. Tente novamente.");
+
+async function generateDashboardInsightsWithOpenAI(
+  input: z.infer<typeof GenerateDashboardInsightsInputSchema>
+): Promise<DashboardInsight[]> {
+
+  const systemPrompt = `Você é um estrategista de crescimento para criadores de conteúdo. Analise as métricas dos últimos dias, o nicho e o objetivo do criador para gerar 2 ou 3 insights rápidos e acionáveis para ajudar o criador a atingir seu objetivo. Seja direto e prático. Foco em ações de curto prazo. Você DEVE retornar um JSON válido que siga o schema.`;
+
+  const userPrompt = `
+  - Nicho: ${input.niche}
+  - Objetivo: ${input.objective}
+  - Métricas Recentes:
+  ${input.metricSnapshots.map(s => `  - Dia: ${s.date}, Plataforma: ${s.platform}, Seguidores: ${s.followers}, Views: ${s.views}, Likes: ${s.likes}, Comentários: ${s.comments}`).join('\n')}
+  `;
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.7,
+    });
+
+    const content = response.choices[0].message.content;
+    if (!content) {
+        throw new Error("A IA não conseguiu gerar insights.");
     }
-    return output.insights;
+    const parsed = GenerateDashboardInsightsOutputSchema.parse(JSON.parse(content));
+    return parsed.insights;
+  } catch (error) {
+    console.error("Error generating insights with OpenAI:", error);
+    throw new Error("Falha ao comunicar com a IA para gerar insights.");
   }
-);
+}
 
 
 export async function generateDashboardInsights(
   input: z.infer<typeof GenerateDashboardInsightsInputSchema>
 ): Promise<DashboardInsight[]> {
-  return generateDashboardInsightsFlow(input);
+  return generateDashboardInsightsWithOpenAI(input);
 }
