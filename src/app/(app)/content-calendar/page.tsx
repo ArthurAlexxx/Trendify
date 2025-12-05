@@ -25,6 +25,8 @@ import {
   Trash2,
   CheckCircle,
   Edit,
+  Clock,
+  Info,
 } from 'lucide-react';
 import React, { useState, useMemo, useEffect } from 'react';
 import {
@@ -34,7 +36,6 @@ import {
   SheetTitle,
   SheetFooter,
   SheetClose,
-  SheetTrigger,
   SheetDescription,
 } from '@/components/ui/sheet';
 import {
@@ -69,7 +70,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { format, isSameDay, setHours, setMinutes } from 'date-fns';
+import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -93,8 +94,12 @@ const formSchema = z.object({
 export default function ContentCalendarPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteSheetOpen, setIsDeleteSheetOpen] = useState(false);
+  const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
+
   const [editingPost, setEditingPost] = useState<ConteudoAgendado | null>(null);
   const [postToDelete, setPostToDelete] = useState<string | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<ConteudoAgendado | null>(null);
+
   const firestore = useFirestore();
   const { user } = useUser();
   const { toast } = useToast();
@@ -164,6 +169,12 @@ export default function ContentCalendarPage() {
   const handleEditEvent = (event: ConteudoAgendado) => {
     setEditingPost(event);
     setIsModalOpen(true);
+    setIsDetailSheetOpen(false); // Close detail view if editing
+  };
+  
+  const handleEventClick = (event: ConteudoAgendado) => {
+    setSelectedEvent(event);
+    setIsDetailSheetOpen(true);
   };
 
 
@@ -253,6 +264,7 @@ export default function ContentCalendarPage() {
       );
       await updateDoc(postRef, { status: 'Publicado' });
       toast({ title: 'Sucesso!', description: 'Post marcado como publicado.' });
+      setIsDetailSheetOpen(false);
     } catch (error) {
       console.error('Error updating document:', error);
       toast({
@@ -266,6 +278,7 @@ export default function ContentCalendarPage() {
   const confirmDelete = (postId: string) => {
     setPostToDelete(postId);
     setIsDeleteSheetOpen(true);
+    setIsDetailSheetOpen(false);
   };
 
   const handleDeletePost = async () => {
@@ -324,6 +337,7 @@ export default function ContentCalendarPage() {
         icon={CalendarIcon}
       />
 
+      {/* Sheet for Creating/Editing */}
       <Sheet open={isModalOpen} onOpenChange={setIsModalOpen}>
         <SheetContent className="p-0 flex flex-col">
           <SheetHeader className="p-6 pb-4 border-b">
@@ -495,7 +509,54 @@ export default function ContentCalendarPage() {
             </SheetFooter>
         </SheetContent>
       </Sheet>
+
+       {/* Sheet for viewing details */}
+      {selectedEvent && (
+        <Sheet open={isDetailSheetOpen} onOpenChange={setIsDetailSheetOpen}>
+          <SheetContent className="p-0 flex flex-col">
+            <SheetHeader className="p-6 pb-4 border-b">
+              <SheetTitle className="font-headline text-xl">Detalhes do Agendamento</SheetTitle>
+              <SheetDescription>
+                <div className="flex items-center gap-2 pt-1">
+                  <Badge variant={getBadgeVariant(selectedEvent.status)}>{selectedEvent.status}</Badge>
+                  <span className='text-xs text-muted-foreground'>•</span>
+                  <p className="text-xs text-muted-foreground">{format(selectedEvent.date.toDate(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</p>
+                </div>
+              </SheetDescription>
+            </SheetHeader>
+            <ScrollArea className="flex-1">
+              <div className="p-6 space-y-4">
+                 <div>
+                    <h4 className="text-sm font-semibold text-muted-foreground">Título</h4>
+                    <p className="text-lg font-semibold">{selectedEvent.title}</p>
+                 </div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-muted-foreground">Tipo</h4>
+                    <p className="">{selectedEvent.contentType}</p>
+                 </div>
+                 {selectedEvent.notes && (
+                    <div>
+                        <h4 className="text-sm font-semibold text-muted-foreground">Anotações</h4>
+                        <p className="whitespace-pre-wrap text-muted-foreground">{selectedEvent.notes}</p>
+                    </div>
+                 )}
+              </div>
+            </ScrollArea>
+             <SheetFooter className="p-6 border-t flex-col sm:flex-row gap-2">
+                <div className="w-full flex justify-between">
+                    <div className='flex gap-2'>
+                        <Button variant="outline" onClick={() => handleEditEvent(selectedEvent)}><Edit className="mr-2 h-4 w-4" /> Editar</Button>
+                        <Button variant="outline" disabled={selectedEvent.status === 'Publicado'} onClick={() => handleMarkAsCompleted(selectedEvent.id)}><CheckCircle className="mr-2 h-4 w-4" /> Publicado</Button>
+                    </div>
+                    <Button variant="destructive" onClick={() => confirmDelete(selectedEvent.id)}><Trash2 className="mr-2 h-4 w-4" /> Excluir</Button>
+                </div>
+            </SheetFooter>
+          </SheetContent>
+        </Sheet>
+      )}
+
       
+      {/* Sheet for Deleting */}
       <Sheet open={isDeleteSheetOpen} onOpenChange={setIsDeleteSheetOpen}>
         <SheetContent side="bottom" className="p-0 rounded-t-2xl">
           <SheetHeader className="p-6 pb-4 text-center">
@@ -518,41 +579,12 @@ export default function ContentCalendarPage() {
       <FullScreenCalendar
         data={calendarData}
         onNewEvent={handleNewEventForDay}
-        renderEventActions={(event) => {
+        onEventClick={(event) => {
             const fullEvent = findFullEventById(event.id as string);
-            if (!fullEvent) return null;
-            
-            return (
-             <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreHorizontal className="h-4 w-4" />
-                        <span className="sr-only">Abrir menu</span>
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => handleMarkAsCompleted(event.id as string)} disabled={event.status === 'Publicado'}>
-                        <CheckCircle className="mr-2 h-4 w-4" />
-                        <span>Marcar como Publicado</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={(e) => { e.preventDefault(); handleEditEvent(fullEvent)}}>
-                        <Edit className="mr-2 h-4 w-4" />
-                        <span>Editar</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                        onSelect={(e) => { e.preventDefault(); confirmDelete(event.id as string); }}
-                        className="text-destructive focus:text-destructive focus:bg-destructive/10"
-                    >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        <span>Excluir</span>
-                    </DropdownMenuItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
-        )}}
-        renderEventBadge={(event) => (
-             <Badge variant={getBadgeVariant(event.status)}>{event.status}</Badge>
-        )}
+            if(fullEvent) {
+                handleEventClick(fullEvent);
+            }
+        }}
       />
     </div>
   );

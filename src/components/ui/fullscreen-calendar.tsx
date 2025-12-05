@@ -29,7 +29,6 @@ import {
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "./carousel"
 
 interface Event {
   id: string | number
@@ -49,6 +48,7 @@ interface CalendarData {
 interface FullScreenCalendarProps {
   data: CalendarData[]
   onNewEvent: (date: Date) => void
+  onEventClick?: (event: Event) => void;
   renderEventActions?: (event: Event) => React.ReactNode;
   renderEventBadge?: (event: Event) => React.ReactNode;
 }
@@ -63,7 +63,7 @@ const colStartClasses = [
   "col-start-7",
 ]
 
-export function FullScreenCalendar({ data, onNewEvent, renderEventActions, renderEventBadge }: FullScreenCalendarProps) {
+export function FullScreenCalendar({ data, onNewEvent, onEventClick, renderEventActions, renderEventBadge }: FullScreenCalendarProps) {
   const today = startOfToday()
   const [selectedDay, setSelectedDay] = React.useState(today)
   const [currentMonth, setCurrentMonth] = React.useState(
@@ -75,12 +75,6 @@ export function FullScreenCalendar({ data, onNewEvent, renderEventActions, rende
     start: startOfWeek(firstDayCurrentMonth, { locale: ptBR }),
     end: endOfWeek(endOfMonth(firstDayCurrentMonth), { locale: ptBR }),
   })
-  
-  const daysInMonth = eachDayOfInterval({
-    start: firstDayCurrentMonth,
-    end: endOfMonth(firstDayCurrentMonth),
-  })
-
 
   function previousMonth() {
     const firstDayNextMonth = add(firstDayCurrentMonth, { months: -1 })
@@ -104,7 +98,7 @@ export function FullScreenCalendar({ data, onNewEvent, renderEventActions, rende
 
   return (
     <div className="flex flex-col flex-1 min-h-[85vh] bg-card rounded-2xl shadow-lg shadow-primary/5 border-border/20 lg:flex-row">
-      <div className="flex-1 lg:flex lg:flex-col">
+      <div className="flex-1 lg:flex lg:flex-auto lg:flex-col">
         {/* Calendar Header */}
         <div className="flex flex-col space-y-4 p-4 md:flex-row md:items-center md:justify-between md:space-y-0 lg:flex-none">
           <div className="flex flex-auto">
@@ -118,7 +112,7 @@ export function FullScreenCalendar({ data, onNewEvent, renderEventActions, rende
                 </div>
               </div>
               <div className="flex flex-col">
-                <h2 className="text-lg font-semibold text-foreground">
+                <h2 className="text-lg font-semibold text-foreground capitalize">
                   {format(firstDayCurrentMonth, "MMMM, yyyy", { locale: ptBR })}
                 </h2>
               </div>
@@ -180,7 +174,9 @@ export function FullScreenCalendar({ data, onNewEvent, renderEventActions, rende
           </div>
 
           <div className="grid grid-cols-7 grid-rows-6 lg:flex-auto bg-muted/30 text-xs leading-6">
-              {days.map((day, dayIdx) => (
+              {days.map((day, dayIdx) => {
+                const dayEvents = data.find((d) => isSameDay(d.day, day))?.events ?? [];
+                return (
                 <div
                   key={dayIdx}
                   onClick={() => setSelectedDay(day)}
@@ -206,41 +202,38 @@ export function FullScreenCalendar({ data, onNewEvent, renderEventActions, rende
                       </time>
                     </button>
                   </header>
-                  <div className="flex-1 overflow-y-auto">
-                    {data
-                      .filter((event) => isSameDay(event.day, day))
-                      .flatMap(day => day.events)
-                      .slice(0, 2)
-                      .map((event) => (
-                        <div
-                          key={event.id}
-                          className="flex items-center gap-1 rounded p-1 text-xs leading-tight bg-primary/10 text-primary-foreground"
-                        >
-                           <div className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0"></div>
-                           <p className="font-medium leading-none truncate text-primary">{event.name}</p>
-                        </div>
-                      ))}
-                    {data.find(d => isSameDay(d.day, day))?.events.length > 2 && (
+                  <div className="flex-1 overflow-y-auto space-y-1">
+                    {dayEvents.slice(0, 2).map((event) => (
+                      <div
+                        key={event.id}
+                        onClick={(e) => { e.stopPropagation(); onEventClick?.(event); }}
+                        className="flex items-center gap-1 rounded p-1 text-xs leading-tight bg-primary/10 text-primary-foreground cursor-pointer hover:bg-primary/20"
+                      >
+                         <div className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0"></div>
+                         <p className="font-medium leading-none truncate text-primary">{event.name}</p>
+                      </div>
+                    ))}
+                    {dayEvents.length > 2 && (
                        <div className="text-xs text-muted-foreground mt-1">
-                          + {data.find(d => isSameDay(d.day, day))!.events.length - 2} mais
+                          + {dayEvents.length - 2} mais
                        </div>
                     )}
                   </div>
                 </div>
-              ))}
+              )})}
           </div>
         </div>
       </div>
       
       {/* Selected Day's Events */}
       <aside className="w-full lg:w-96 lg:border-l p-4 flex flex-col">
-        <h3 className="font-headline text-xl text-center sm:text-left mb-4">
+        <h3 className="font-headline text-xl text-center sm:text-left mb-4 capitalize">
           Posts para {format(selectedDay, "dd 'de' MMMM", { locale: ptBR })}
         </h3>
         {selectedDayEvents.length > 0 ? (
           <div className="space-y-4 text-left flex-1">
             {selectedDayEvents.map((event) => (
-              <div key={event.id} className="p-4 rounded-lg border bg-background/50 flex items-start justify-between gap-4">
+              <div key={event.id} onClick={() => onEventClick?.(event)} className="p-4 rounded-lg border bg-background/50 flex items-start justify-between gap-4 cursor-pointer hover:bg-muted">
                  <div className="flex items-start gap-4 flex-1 overflow-hidden">
                    <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
                       <Tag className="h-6 w-6 text-muted-foreground" />
@@ -252,7 +245,6 @@ export function FullScreenCalendar({ data, onNewEvent, renderEventActions, rende
                  </div>
                  <div className='flex items-center gap-2'>
                   {renderEventBadge && renderEventBadge(event)}
-                  {renderEventActions && renderEventActions(event)}
                  </div>
               </div>
             ))}
@@ -272,5 +264,3 @@ export function FullScreenCalendar({ data, onNewEvent, renderEventActions, rende
     </div>
   )
 }
-
-    
