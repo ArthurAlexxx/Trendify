@@ -16,6 +16,8 @@ import {
   parse,
   startOfToday,
   startOfWeek,
+  eachWeekOfInterval,
+  endOfDay,
 } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import {
@@ -32,6 +34,7 @@ import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { Card, CardContent, CardHeader, CardTitle } from "./card"
+import { ScrollArea } from "./scroll-area"
 
 interface Event {
   id: string | number
@@ -78,15 +81,28 @@ export function FullScreenCalendar({ data, onNewEvent, renderEventActions, rende
     start: startOfWeek(firstDayCurrentMonth, { locale: ptBR }),
     end: endOfWeek(endOfMonth(firstDayCurrentMonth), { locale: ptBR }),
   })
+  
+  const currentWeek = eachDayOfInterval({
+    start: startOfWeek(selectedDay, { locale: ptBR }),
+    end: endOfWeek(selectedDay, { locale: ptBR }),
+  })
 
   function previousMonth() {
     const firstDayNextMonth = add(firstDayCurrentMonth, { months: -1 })
     setCurrentMonth(format(firstDayNextMonth, "MMM-yyyy"))
   }
-
+  
   function nextMonth() {
     const firstDayNextMonth = add(firstDayCurrentMonth, { months: 1 })
     setCurrentMonth(format(firstDayNextMonth, "MMM-yyyy"))
+  }
+  
+  function previousWeek() {
+    setSelectedDay(add(selectedDay, { weeks: -1 }))
+  }
+
+  function nextWeek() {
+    setSelectedDay(add(selectedDay, { weeks: 1 }))
   }
 
   function goToToday() {
@@ -100,7 +116,7 @@ export function FullScreenCalendar({ data, onNewEvent, renderEventActions, rende
 
 
   return (
-    <div className="flex flex-col lg:flex-row flex-1 min-h-[85vh] bg-card rounded-2xl shadow-lg shadow-primary/5 border-border/20">
+    <div className="flex flex-col flex-1 min-h-[85vh] bg-card rounded-2xl shadow-lg shadow-primary/5 border-border/20 lg:flex-row">
       <div className="flex-1 lg:flex lg:flex-col">
         {/* Calendar Header */}
         <div className="flex flex-col space-y-4 p-4 md:flex-row md:items-center md:justify-between md:space-y-0 lg:flex-none">
@@ -108,10 +124,10 @@ export function FullScreenCalendar({ data, onNewEvent, renderEventActions, rende
             <div className="flex items-center gap-4">
               <div className="hidden w-20 flex-col items-center justify-center rounded-lg border bg-muted p-0.5 md:flex">
                 <h1 className="p-1 text-xs uppercase text-muted-foreground">
-                  {format(today, "MMM", { locale: ptBR })}
+                  {format(selectedDay, "MMM", { locale: ptBR })}
                 </h1>
                 <div className="flex w-full items-center justify-center rounded-lg border bg-background p-0.5 text-lg font-bold">
-                  <span>{format(today, "d", { locale: ptBR })}</span>
+                  <span>{format(selectedDay, "d", { locale: ptBR })}</span>
                 </div>
               </div>
               <div className="flex flex-col">
@@ -125,7 +141,7 @@ export function FullScreenCalendar({ data, onNewEvent, renderEventActions, rende
           <div className="flex flex-col items-center gap-4 md:flex-row md:gap-6">
             <div className="inline-flex w-full -space-x-px rounded-lg shadow-sm shadow-black/5 md:w-auto rtl:space-x-reverse">
               <Button
-                onClick={previousMonth}
+                onClick={isDesktop ? previousMonth : previousWeek}
                 className="rounded-none shadow-none first:rounded-s-lg last:rounded-e-lg focus-visible:z-10"
                 variant="outline"
                 size="icon"
@@ -141,7 +157,7 @@ export function FullScreenCalendar({ data, onNewEvent, renderEventActions, rende
                 Hoje
               </Button>
               <Button
-                onClick={nextMonth}
+                onClick={isDesktop ? nextMonth : nextWeek}
                 className="rounded-none shadow-none first:rounded-s-lg last:rounded-e-lg focus-visible:z-10"
                 variant="outline"
                 size="icon"
@@ -176,7 +192,6 @@ export function FullScreenCalendar({ data, onNewEvent, renderEventActions, rende
             <div className="py-2.5">Sáb</div>
           </div>
 
-          {/* Calendar Days */}
           <div className="flex bg-muted/30 text-xs leading-6 lg:flex-auto">
             {/* Desktop Calendar */}
             <div className="hidden w-full border-r lg:grid lg:grid-cols-7 lg:grid-rows-6">
@@ -234,38 +249,40 @@ export function FullScreenCalendar({ data, onNewEvent, renderEventActions, rende
               ))}
             </div>
             
-            {/* Mobile View */}
-            <div className="isolate grid w-full grid-cols-7 grid-rows-6 lg:hidden">
-              {days.map((day, dayIdx) => (
-                <button
-                  onClick={() => setSelectedDay(day)}
-                  key={dayIdx}
-                  type="button"
-                  className={cn(
-                    "flex h-14 flex-col border-b border-r p-1.5 hover:bg-muted focus:z-10",
-                    isSameMonth(day, firstDayCurrentMonth) ? 'bg-background text-foreground' : 'bg-muted/50 text-muted-foreground',
-                  )}
-                >
-                  <time
-                    dateTime={format(day, "yyyy-MM-dd")}
+             {/* Mobile Week View */}
+            <div className="w-full lg:hidden overflow-x-auto border-r">
+                <div className="flex w-max">
+                {currentWeek.map((day) => (
+                    <button
+                    onClick={() => setSelectedDay(day)}
+                    key={day.toString()}
+                    type="button"
                     className={cn(
-                      "ml-auto flex size-6 items-center justify-center rounded-full",
-                      isEqual(day, selectedDay) && "bg-primary text-primary-foreground font-semibold",
-                      isToday(day) && !isEqual(day, selectedDay) && "bg-accent text-accent-foreground font-semibold",
+                        "flex-1 min-w-[14.28%] h-24 flex flex-col items-center justify-center border-b border-r p-1.5",
+                        isSameMonth(day, firstDayCurrentMonth) ? 'bg-background' : 'bg-muted/50',
+                        isEqual(day, selectedDay) ? 'bg-primary/10' : 'hover:bg-muted'
                     )}
-                  >
-                    {format(day, "d")}
-                  </time>
-                  {data.filter((date) => isSameDay(date.day, day)).length > 0 && (
-                    <div className="-mx-0.5 mt-auto flex flex-wrap-reverse justify-center">
-                      {data.filter((date) => isSameDay(date.day, day))[0].events.map((event) => (
-                          <span key={event.id} className="mx-0.5 mt-1 h-1.5 w-1.5 rounded-full bg-primary" />
-                      ))}
+                    >
+                    <time
+                        dateTime={format(day, "yyyy-MM-dd")}
+                        className={cn(
+                        "flex size-8 items-center justify-center rounded-full font-semibold",
+                        isEqual(day, selectedDay) && "bg-primary text-primary-foreground",
+                        isToday(day) && !isEqual(day, selectedDay) && "bg-accent text-accent-foreground",
+                        )}
+                    >
+                        {format(day, "d")}
+                    </time>
+                    <div className="mt-2 flex justify-center gap-1">
+                        {data.filter(d => isSameDay(d.day, day)).flatMap(d => d.events).slice(0, 3).map(event => (
+                        <div key={event.id} className="h-1.5 w-1.5 rounded-full bg-primary"></div>
+                        ))}
                     </div>
-                  )}
-                </button>
-              ))}
+                    </button>
+                ))}
+                </div>
             </div>
+
           </div>
         </div>
       </div>
