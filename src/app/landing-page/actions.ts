@@ -54,24 +54,6 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-function extractJson(text: string) {
-  const match = text.match(/```json\n([\s\S]*?)\n```/);
-  if (match && match[1]) {
-    return match[1];
-  }
-  try {
-    JSON.parse(text);
-    return text;
-  } catch (e) {
-    const startIndex = text.indexOf('{');
-    const endIndex = text.lastIndexOf('}');
-    if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
-      return text.substring(startIndex, endIndex + 1);
-    }
-  }
-  return null;
-}
-
 async function calculateGrowthAI(input: FormSchemaType): Promise<GrowthCalculatorOutput> {
   const systemPrompt = `
     Você é o GrowthAI Engine v3.0, um sistema avançado de análise e projeção para criadores de conteúdo. Sua identidade é a de um consultor profissional, matemático e estrategista digital.
@@ -85,24 +67,25 @@ async function calculateGrowthAI(input: FormSchemaType): Promise<GrowthCalculato
   `;
   
   const userPrompt = `
-    Analise os dados do usuário abaixo e gere a projeção de crescimento completa em formato JSON. Siga todas as suas regras e módulos de comportamento.
+    Analise os dados do usuário abaixo e gere a projeção de crescimento completa, seguindo todas as suas regras e módulos de comportamento.
 
     - **Nicho:** ${input.niche}
     - **Seguidores Atuais:** ${input.followers}
     - **Meta de Seguidores:** ${input.goal}
     - **Média de Publicações por Mês:** ${input.postsPerMonth}
 
-    **Diretrizes:**
-    - **Interpretação de Nicho:** Mapeie o nicho para uma categoria de crescimento (Rápido: 10-18%/mês para finanças/tecnologia; Médio: 6-12%/mês para games/beleza/fitness; Lento: 3-7%/mês para humor/vlogs) e defina a taxa mensal.
-    - **Cálculo de Crescimento:** Calcule os 'months' até a meta, limitado a 24 meses.
-    - **Projeção de Data:** Calcule 'goalDate' a partir de 2025-12-01.
-    - **Ganhos:** Calcule 'currentEarnings' e 'goalEarnings' como [min, max] com base no CPM do nicho, alcance de 20-50% e 4-8 publis/mês.
-    - **Dificuldade:** Classifique 'difficultyScore' como 'Fácil', 'Realista' ou 'Difícil'.
-    - **Riscos e Recomendações:** Liste 2-3 'riskPanel' e 2-3 'recommendations' acionáveis.
-    - **Benchmark:** Forneça uma 'benchmarkComparison' concisa.
-    - **Cenários de Aceleração:** Calcule 'accelerationScenarios' para 'maintain', 'plus20', e 'plus40'.
-    - **Sugestões de Tendências:** Gere 3 'trendSuggestions' com 'hook' e 'icon'.
+    **Diretrizes para o JSON de Saída:**
+    - **months:** Calcule o número de meses até a meta, limitado a 24.
+    - **goalDate:** Calcule a data final a partir de 2025-12-01, no formato ISO 8601.
+    - **currentEarnings & goalEarnings:** Calcule como [min, max] com base no CPM do nicho, alcance de 20-50% e 4-8 publis/mês.
+    - **growthData:** Gere um array de { month, followers } para a curva de crescimento.
+    - **trendSuggestions:** Gere 3 sugestões de ganchos virais com { hook, icon }.
     - **postsPerMonth:** Retorne o valor de entrada.
+    - **difficultyScore:** Classifique como 'Fácil', 'Realista' ou 'Difícil' com base na taxa de crescimento necessária e posts/mês.
+    - **riskPanel:** Liste 2-3 riscos relevantes (ex: "baixa frequência de posts").
+    - **recommendations:** Liste 2-3 recomendações acionáveis (ex: "aumentar volume de posts", "collabs").
+    - **benchmarkComparison:** Forneça uma análise concisa comparando com a média do nicho.
+    - **accelerationScenarios:** Calcule os meses para os cenários 'maintain', 'plus20' (ceil(months / 1.20)), e 'plus40' (ceil(months / 1.40)).
 
     LEMBRE-SE: Sua única saída DEVE ser um objeto JSON VÁLIDO que se conforma estritamente com o schema e contém TODOS os campos definidos. Não omita nenhum campo.
   `;
@@ -122,10 +105,7 @@ async function calculateGrowthAI(input: FormSchemaType): Promise<GrowthCalculato
     const content = response.choices[0].message.content;
     if (!content) throw new Error('A IA não retornou nenhum conteúdo.');
 
-    const jsonString = extractJson(content);
-    if (!jsonString) throw new Error('Não foi possível encontrar um bloco JSON válido na resposta da IA.');
-
-    const parsedJson = JSON.parse(jsonString);
+    const parsedJson = JSON.parse(content);
     return GrowthCalculatorOutputSchema.parse(parsedJson);
 
   } catch (error) {
