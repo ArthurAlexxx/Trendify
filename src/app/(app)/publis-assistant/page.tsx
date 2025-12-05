@@ -36,7 +36,7 @@ import {
   Eye,
   Crown,
 } from 'lucide-react';
-import { useEffect, useTransition, useState, useMemo } from 'react';
+import { useEffect, useTransition, useState, useMemo, useRef, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { generatePubliProposalsAction, GeneratePubliProposalsOutput } from '@/app/(app)/publis-assistant/actions';
@@ -56,6 +56,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescript
 import { format as formatDate } from 'date-fns';
 import type { DailyUsage } from '@/lib/types';
 import Link from 'next/link';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 
 const formSchema = z.object({
   product: z.string().min(3, 'O nome do produto/marca deve ter pelo menos 3 caracteres.'),
@@ -163,7 +164,7 @@ function PublisAssistantPageContent() {
 
   useEffect(() => {
     if (!user || !firestore) return;
-    const usageDocRef = doc(firestore, `usageLogs/${user.uid}_${todayStr}`);
+    const usageDocRef = doc(firestore, `users/${user.uid}/dailyUsage/${todayStr}`);
     
     const unsubscribe = onSnapshot(usageDocRef, (doc) => {
         setUsageData(doc.exists() ? doc.data() as DailyUsage : null);
@@ -206,7 +207,7 @@ function PublisAssistantPageContent() {
       });
     }
     if (result && user && firestore) {
-      const usageDocRef = doc(firestore, `usageLogs/${user.uid}_${todayStr}`);
+      const usageDocRef = doc(firestore, `users/${user.uid}/dailyUsage/${todayStr}`);
       getDoc(usageDocRef).then(docSnap => {
           if (docSnap.exists()) {
               updateDoc(usageDocRef, { geracoesAI: increment(1) });
@@ -292,7 +293,26 @@ function PublisAssistantPageContent() {
                  <CardDescription>A IA atua como sua diretora de criação, combinando estratégia e criatividade.</CardDescription>
             </CardHeader>
             <CardContent>
-                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="md:hidden">
+                    <Carousel className="w-full" opts={{ align: 'start' }}>
+                        <CarouselContent className="-ml-2">
+                             {analysisCriteria.map((item, index) => (
+                                <CarouselItem key={index} className="pl-2 basis-4/5">
+                                    <div className="p-4 rounded-lg bg-muted/50 border h-full">
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <item.icon className="h-5 w-5 text-primary" />
+                                            <h4 className="font-semibold text-foreground">{item.title}</h4>
+                                        </div>
+                                        <p className="text-xs text-muted-foreground">{item.description}</p>
+                                    </div>
+                                </CarouselItem>
+                            ))}
+                        </CarouselContent>
+                        <CarouselPrevious className="left-2" />
+                        <CarouselNext className="right-2" />
+                    </Carousel>
+                </div>
+                <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-4">
                     {analysisCriteria.map((item, index) => (
                         <div key={index} className="p-4 rounded-lg bg-muted/50 border">
                             <div className="flex items-center gap-3 mb-2">

@@ -17,7 +17,7 @@ import {
   Target,
   Crown,
 } from 'lucide-react';
-import { useTransition, useEffect, useState, useCallback } from 'react';
+import { useTransition, useEffect, useState, useCallback, useRef } from 'react';
 import {
   Form,
   FormControl,
@@ -44,6 +44,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useRouter } from 'next/navigation';
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 
 const formSchema = z.object({
   niche: z.string().min(1, 'O nicho não pode estar vazio.'),
@@ -265,7 +266,7 @@ function MediaKitPageContent() {
         <SavedIdeasSheet />
       </PageHeader>
       
-        <Card className="border-0 rounded-2xl">
+        <Card className="rounded-2xl border-0">
             <CardHeader>
                 <CardTitle className="flex items-center gap-3 font-headline text-xl">
                     <Sparkles className="h-6 w-6 text-primary" />
@@ -274,18 +275,35 @@ function MediaKitPageContent() {
                  <CardDescription>A IA atua como sua gerente de talentos e foca em 4 pilares:</CardDescription>
             </CardHeader>
             <CardContent>
-                <div className="p-6">
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        {analysisCriteria.map((item, index) => (
-                            <div key={index} className="p-4 rounded-lg bg-muted/50 border">
-                                <div className="flex items-center gap-3 mb-2">
-                                    <item.icon className="h-5 w-5 text-primary" />
-                                    <h4 className="font-semibold text-foreground">{item.title}</h4>
-                                </div>
-                                <p className="text-xs text-muted-foreground">{item.description}</p>
+                <div className="md:hidden">
+                    <Carousel className="w-full" opts={{ align: 'start' }}>
+                        <CarouselContent className="-ml-2">
+                             {analysisCriteria.map((item, index) => (
+                                <CarouselItem key={index} className="pl-2 basis-4/5">
+                                    <div className="p-4 rounded-lg bg-muted/50 border h-full">
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <item.icon className="h-5 w-5 text-primary" />
+                                            <h4 className="font-semibold text-foreground">{item.title}</h4>
+                                        </div>
+                                        <p className="text-xs text-muted-foreground">{item.description}</p>
+                                    </div>
+                                </CarouselItem>
+                            ))}
+                        </CarouselContent>
+                        <CarouselPrevious className="left-2" />
+                        <CarouselNext className="right-2" />
+                    </Carousel>
+                </div>
+                <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {analysisCriteria.map((item, index) => (
+                        <div key={index} className="p-4 rounded-lg bg-muted/50 border">
+                            <div className="flex items-center gap-3 mb-2">
+                                <item.icon className="h-5 w-5 text-primary" />
+                                <h4 className="font-semibold text-foreground">{item.title}</h4>
                             </div>
-                        ))}
-                    </div>
+                            <p className="text-xs text-muted-foreground">{item.description}</p>
+                        </div>
+                    ))}
                 </div>
             </CardContent>
         </Card>
@@ -293,7 +311,7 @@ function MediaKitPageContent() {
 
       <div className="space-y-8">
           
-          <Card className="border-0 rounded-2xl">
+          <Card className="rounded-2xl border-0">
             <CardHeader>
               <CardTitle className="flex items-center gap-3 font-headline text-xl">
                 <Bot className="h-6 w-6 text-primary" />

@@ -55,6 +55,7 @@ import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/
 import { initializeFirebase } from '@/firebase';
 import { Progress } from "@/components/ui/progress";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
 
 type AnalysisStatus = "idle" | "uploading" | "loading" | "success" | "error";
@@ -137,7 +138,7 @@ function VideoReviewPageContent() {
 
   useEffect(() => {
     if (!user || !firestore) return;
-    const usageDocRef = doc(firestore, `usageLogs/${user.uid}_${todayStr}`);
+    const usageDocRef = doc(firestore, `users/${user.uid}/dailyUsage/${todayStr}`);
     
     const unsubscribe = onSnapshot(usageDocRef, (doc) => {
         setUsageData(doc.exists() ? doc.data() as DailyUsage : null);
@@ -285,7 +286,7 @@ function VideoReviewPageContent() {
             setAnalysisStatus("success");
 
             // Update usage log
-            const usageDocRef = doc(firestore, `usageLogs/${user.uid}_${todayStr}`);
+            const usageDocRef = doc(firestore, `users/${user.uid}/dailyUsage/${todayStr}`);
             const usageDocSnap = await getDoc(usageDocRef);
             if(usageDocSnap.exists()){
                 await updateDoc(usageDocRef, { videoAnalyses: increment(1) });
@@ -366,7 +367,26 @@ function VideoReviewPageContent() {
                  <CardDescription>Nossa IA atua como uma estrategista de conteúdo viral e analisa 4 pilares:</CardDescription>
             </CardHeader>
             <CardContent>
-                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="md:hidden">
+                    <Carousel className="w-full" opts={{ align: 'start' }}>
+                        <CarouselContent className="-ml-2">
+                            {analysisCriteria.map((item, index) => (
+                                <CarouselItem key={index} className="pl-2 basis-4/5">
+                                    <div className="p-4 rounded-lg bg-muted/50 border h-full">
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <item.icon className="h-5 w-5 text-primary" />
+                                            <h4 className="font-semibold text-foreground">{item.title}</h4>
+                                        </div>
+                                        <p className="text-xs text-muted-foreground">{item.description}</p>
+                                    </div>
+                                </CarouselItem>
+                            ))}
+                        </CarouselContent>
+                        <CarouselPrevious className="left-2" />
+                        <CarouselNext className="right-2" />
+                    </Carousel>
+                </div>
+                <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-4">
                     {analysisCriteria.map((item, index) => (
                         <div key={index} className="p-4 rounded-lg bg-muted/50 border">
                             <div className="flex items-center gap-3 mb-2">

@@ -22,7 +22,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Bot, Loader2, Sparkles, Trash2, Check, History, ClipboardList, BrainCircuit, Target, BarChart as BarChartIcon, Eye } from 'lucide-react';
-import { useEffect, useTransition, useState, useCallback } from 'react';
+import { useEffect, useTransition, useState, useCallback, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { generateWeeklyPlanAction, GenerateWeeklyPlanOutput } from '@/app/(app)/generate-weekly-plan/actions';
@@ -63,6 +63,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { PreviousPlansSheet } from '@/components/previous-plans-sheet';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 
 const formSchema = z.object({
   objective: z.string().min(10, 'O objetivo precisa ser mais detalhado.'),
@@ -277,18 +278,35 @@ export default function GenerateWeeklyPlanPage() {
                  <CardDescription>A IA atua como sua estrategista e analisa 4 pilares:</CardDescription>
             </CardHeader>
             <CardContent>
-                <div className="p-6">
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        {analysisCriteria.map((item, index) => (
-                            <div key={index} className="p-4 rounded-lg bg-muted/50 border">
-                                <div className="flex items-center gap-3 mb-2">
-                                    <item.icon className="h-5 w-5 text-primary" />
-                                    <h4 className="font-semibold text-foreground">{item.title}</h4>
-                                </div>
-                                <p className="text-xs text-muted-foreground">{item.description}</p>
+                <div className="md:hidden">
+                    <Carousel className="w-full" opts={{ align: 'start' }}>
+                        <CarouselContent className="-ml-2">
+                             {analysisCriteria.map((item, index) => (
+                                <CarouselItem key={index} className="pl-2 basis-4/5">
+                                    <div className="p-4 rounded-lg bg-muted/50 border h-full">
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <item.icon className="h-5 w-5 text-primary" />
+                                            <h4 className="font-semibold text-foreground">{item.title}</h4>
+                                        </div>
+                                        <p className="text-xs text-muted-foreground">{item.description}</p>
+                                    </div>
+                                </CarouselItem>
+                            ))}
+                        </CarouselContent>
+                        <CarouselPrevious className="left-2" />
+                        <CarouselNext className="right-2" />
+                    </Carousel>
+                </div>
+                <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {analysisCriteria.map((item, index) => (
+                        <div key={index} className="p-4 rounded-lg bg-muted/50 border">
+                            <div className="flex items-center gap-3 mb-2">
+                                <item.icon className="h-5 w-5 text-primary" />
+                                <h4 className="font-semibold text-foreground">{item.title}</h4>
                             </div>
-                        ))}
-                    </div>
+                            <p className="text-xs text-muted-foreground">{item.description}</p>
+                        </div>
+                    ))}
                 </div>
             </CardContent>
         </Card>
@@ -614,4 +632,3 @@ export default function GenerateWeeklyPlanPage() {
     </div>
   );
 }
-
