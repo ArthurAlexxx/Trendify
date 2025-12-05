@@ -1,3 +1,4 @@
+
 'use client';
 
 import { PageHeader } from '@/components/page-header';
@@ -18,7 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { doc, updateDoc, serverTimestamp, addDoc, collection } from 'firebase/firestore';
+import { doc, updateDoc, serverTimestamp, addDoc, collection, query, where, getDocs, Timestamp, startOfDay, endOfDay } from 'firebase/firestore';
 import type { UserProfile, InstagramProfileData, InstagramPostData, TikTokProfileData, TikTokPostData } from '@/lib/types';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -72,9 +73,6 @@ export default function IntegrationsPage() {
     },
   });
   
-  const instaAlreadySyncedToday = !!userProfile?.lastInstagramSync && isToday(userProfile.lastInstagramSync.toDate());
-  const tiktokAlreadySyncedToday = !!userProfile?.lastTikTokSync && isToday(userProfile.lastTikTokSync.toDate());
-  
   useEffect(() => {
     if (userProfile) {
       form.reset({
@@ -89,6 +87,41 @@ export default function IntegrationsPage() {
     if (num >= 10000) return `${(num / 1000).toFixed(1).replace('.', ',')}K`;
     if (num >= 1000) return num.toLocaleString('pt-BR');
     return String(num);
+  };
+
+  const updateOrCreateMetricSnapshot = async (platform: 'instagram' | 'tiktok', data: any) => {
+    if (!user || !firestore) return;
+  
+    const todayStart = startOfDay(new Date());
+    const todayEnd = endOfDay(new Date());
+    const metricSnapshotsRef = collection(firestore, `users/${user.uid}/metricSnapshots`);
+    
+    const q = query(
+      metricSnapshotsRef,
+      where('platform', '==', platform),
+      where('date', '>=', todayStart),
+      where('date', '<=', todayEnd)
+    );
+  
+    const querySnapshot = await getDocs(q);
+  
+    const snapshotData = {
+      date: serverTimestamp(),
+      platform,
+      followers: data.followers || '0',
+      views: data.views || '0',
+      likes: data.likes || '0',
+      comments: data.comments || '0',
+    };
+  
+    if (!querySnapshot.empty) {
+      // Update existing document for today
+      const docRef = querySnapshot.docs[0].ref;
+      await updateDoc(docRef, snapshotData);
+    } else {
+      // Create new document for today
+      await addDoc(metricSnapshotsRef, snapshotData);
+    }
   };
 
 
@@ -121,7 +154,7 @@ export default function IntegrationsPage() {
         form.setValue('instagramHandle', `@${profileResult.username}`);
         
         if (user && userProfileRef) {
-          const dataToSave: Partial<UserProfile> = {
+          const dataToSave = {
              instagramHandle: `@${profileResult.username}`,
              bio: userProfile?.bio || profileResult.biography,
              photoURL: userProfile?.photoURL || profileResult.profilePicUrlHd,
@@ -129,24 +162,16 @@ export default function IntegrationsPage() {
              instagramAverageViews: formatNumber(Math.round(averageViews)),
              instagramAverageLikes: formatNumber(Math.round(averageLikes)),
              instagramAverageComments: formatNumber(Math.round(averageComments)),
-             lastInstagramSync: serverTimestamp() as any,
+             lastInstagramSync: serverTimestamp(),
           };
-           Object.keys(dataToSave).forEach(keyStr => {
-            const key = keyStr as keyof typeof dataToSave;
-            if (dataToSave[key] === undefined) {
-                (dataToSave as any)[key] = null;
-            }
-          });
-          await updateDoc(userProfileRef, dataToSave);
+
+          await updateDoc(userProfileRef, dataToSave as any);
           
-          const metricSnapshotsRef = collection(firestore, `users/${user.uid}/metricSnapshots`);
-          await addDoc(metricSnapshotsRef, {
-            date: serverTimestamp(),
-            platform: 'instagram',
-            followers: dataToSave.instagramFollowers || '0',
-            views: dataToSave.instagramAverageViews || '0',
-            likes: dataToSave.instagramAverageLikes || '0',
-            comments: dataToSave.instagramAverageComments || '0',
+          await updateOrCreateMetricSnapshot('instagram', {
+            followers: dataToSave.instagramFollowers,
+            views: dataToSave.instagramAverageViews,
+            likes: dataToSave.instagramAverageLikes,
+            comments: dataToSave.instagramAverageComments,
           });
         }
         
@@ -199,7 +224,7 @@ export default function IntegrationsPage() {
         form.setValue('tiktokHandle', `@${profileResult.username}`);
        
         if (user && userProfileRef) {
-          const dataToSave: Partial<UserProfile> = {
+          const dataToSave = {
              tiktokHandle: `@${profileResult.username}`,
              photoURL: userProfile?.photoURL || profileResult.avatarUrl,
              bio: userProfile?.bio || profileResult.bio,
@@ -207,24 +232,16 @@ export default function IntegrationsPage() {
              tiktokAverageLikes: formatNumber(Math.round(averageLikes)),
              tiktokAverageComments: formatNumber(Math.round(averageComments)),
              tiktokAverageViews: formatNumber(Math.round(averageViews)),
-             lastTikTokSync: serverTimestamp() as any,
+             lastTikTokSync: serverTimestamp(),
           };
-           Object.keys(dataToSave).forEach(keyStr => {
-            const key = keyStr as keyof typeof dataToSave;
-            if (dataToSave[key] === undefined) {
-                (dataToSave as any)[key] = null;
-            }
-          });
-          await updateDoc(userProfileRef, dataToSave);
+
+          await updateDoc(userProfileRef, dataToSave as any);
           
-          const metricSnapshotsRef = collection(firestore, `users/${user.uid}/metricSnapshots`);
-          await addDoc(metricSnapshotsRef, {
-            date: serverTimestamp(),
-            platform: 'tiktok',
-            followers: dataToSave.tiktokFollowers || '0',
-            views: dataToSave.tiktokAverageViews || '0',
-            likes: dataToSave.tiktokAverageLikes || '0',
-            comments: dataToSave.tiktokAverageComments || '0',
+          await updateOrCreateMetricSnapshot('tiktok', {
+            followers: dataToSave.tiktokFollowers,
+            views: dataToSave.tiktokAverageViews,
+            likes: dataToSave.tiktokAverageLikes,
+            comments: dataToSave.tiktokAverageComments,
           });
         }
         setTiktokStatus('success');
@@ -299,7 +316,7 @@ export default function IntegrationsPage() {
                                 <AlertDialogTrigger asChild>
                                     <Button
                                         type="button"
-                                        disabled={instaStatus === 'loading' || !form.watch('instagramHandle') || instaAlreadySyncedToday}
+                                        disabled={instaStatus === 'loading' || !form.watch('instagramHandle')}
                                         className="w-full sm:w-auto"
                                     >
                                         {
@@ -323,10 +340,7 @@ export default function IntegrationsPage() {
                                 </AlertDialog>
                             </div>
                             <p className='text-xs text-muted-foreground mt-2'>
-                                {instaAlreadySyncedToday 
-                                    ? 'Você já sincronizou hoje. Volte amanhã para uma nova atualização.'
-                                    : 'Isso irá buscar seus dados públicos e métricas de posts recentes.'
-                                }
+                                Isso irá buscar seus dados públicos e métricas de posts recentes.
                             </p>
                             </CardContent>
                         </Card>
@@ -351,7 +365,7 @@ export default function IntegrationsPage() {
                                 <AlertDialogTrigger asChild>
                                      <Button
                                         type="button"
-                                        disabled={tiktokStatus === 'loading' || !form.watch('tiktokHandle') || tiktokAlreadySyncedToday}
+                                        disabled={tiktokStatus === 'loading' || !form.watch('tiktokHandle')}
                                         className="w-full sm:w-auto"
                                     >
                                         {
@@ -375,10 +389,7 @@ export default function IntegrationsPage() {
                                 </AlertDialog>
                             </div>
                             <p className='text-xs text-muted-foreground mt-2'>
-                                {tiktokAlreadySyncedToday 
-                                    ? 'Você já sincronizou hoje. Volte amanhã para uma nova atualização.'
-                                    : 'Isso irá buscar seus dados públicos e métricas de vídeos recentes.'
-                                }
+                                Isso irá buscar seus dados públicos e métricas de vídeos recentes.
                             </p>
                             </CardContent>
                         </Card>
@@ -409,3 +420,5 @@ export default function IntegrationsPage() {
     </div>
   );
 }
+
+    
