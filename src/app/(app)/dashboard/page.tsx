@@ -296,18 +296,21 @@ export default function DashboardPage() {
   }, [userProfile]);
 
   const handleGenerateInsights = async () => {
-     if (!metricSnapshots || metricSnapshots.length < 1) {
+     if (!metricSnapshots || metricSnapshots.length < 2) {
         toast({
             title: "Dados Insuficientes",
-            description: "Precisamos de mais dados de métricas para gerar uma análise. Sincronize suas contas por alguns dias.",
+            description: "Sincronize ou insira suas métricas por pelo menos 2 dias para gerar uma análise.",
             variant: "destructive"
         });
         return;
     }
+     if (!userProfile) return;
      setIsGeneratingInsights(true);
      setInsights(null);
      try {
          const result = await generateDashboardInsights({
+             niche: userProfile.niche || 'Não definido',
+             objective: `Atingir ${formatMetricValue(goalFollowers)} seguidores.`,
              metricSnapshots: metricSnapshots.map(s => ({
                  date: s.date.toDate().toISOString(),
                  platform: s.platform,
