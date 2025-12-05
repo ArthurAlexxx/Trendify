@@ -355,12 +355,12 @@ function VideoReviewPageContent() {
         <PageHeader
             title="Diagnóstico de Vídeo"
             description="Receba uma análise do potencial de viralização e um plano de ação para seu vídeo."
+            icon={Video}
         />
         
         <Card className="rounded-2xl border-0">
             <CardHeader>
-                <CardTitle className="flex items-center gap-3 font-headline text-xl">
-                    <Sparkles className="h-6 w-6 text-primary" />
+                <CardTitle className="font-headline text-xl">
                     Como Avaliamos Seu Vídeo?
                 </CardTitle>
                  <CardDescription>Nossa IA atua como uma estrategista de conteúdo viral e analisa 4 pilares:</CardDescription>
@@ -498,8 +498,8 @@ function VideoReviewPageContent() {
                     <div className="grid gap-8">
                        <div className="grid lg:grid-cols-3 gap-8 items-start">
                          <Card className="lg:col-span-1 rounded-2xl border-0">
-                             <CardHeader>
-                                <CardTitle className="font-headline text-lg text-primary text-center">Nota de Viralização</CardTitle>
+                             <CardHeader className='items-center text-center'>
+                                <CardTitle className="font-headline text-lg text-primary">Nota de Viralização</CardTitle>
                              </CardHeader>
                              <CardContent className="text-center">
                                 <div className="text-4xl font-bold text-foreground">{numericNote}/10</div>
@@ -509,9 +509,8 @@ function VideoReviewPageContent() {
 
                          <Card className="lg:col-span-2 rounded-2xl border-0">
                             <CardHeader>
-                                <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
-                                    <Lightbulb className="h-5 w-5 text-primary" />
-                                    <span>Checklist de Melhorias</span>
+                                <CardTitle className="items-center text-center">
+                                    Checklist de Melhorias
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
@@ -528,7 +527,7 @@ function VideoReviewPageContent() {
                        </div>
                        
                         <Card className="rounded-2xl border-0">
-                            <CardHeader>
+                            <CardHeader className='items-center text-center'>
                                 <CardTitle className="font-headline text-lg">Análise Detalhada</CardTitle>
                             </CardHeader>
                             <CardContent>
@@ -665,6 +664,3 @@ function VideoReviewPageContent() {
     </div>
   );
 }
-
-
-    

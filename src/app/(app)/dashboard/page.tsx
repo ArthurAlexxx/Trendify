@@ -11,7 +11,7 @@ import {
   AlertTriangle,
   LayoutGrid,
   ClipboardList,
-  Calendar,
+  Calendar as CalendarIcon,
   MoreHorizontal,
   CheckCircle,
   Tag,
@@ -84,9 +84,6 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import Image from 'next/image';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MetricCard, InstagramProfileResults, TikTokProfileResults } from '@/components/dashboard/platform-results';
-import { Calendar as CalendarIcon } from 'lucide-react';
-import { Calendar as CalendarComponent } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
 import { SavedIdeasSheet } from '@/components/saved-ideas-sheet';
@@ -576,6 +573,7 @@ export default function DashboardPage() {
           userProfile?.displayName?.split(' ')[0] || user?.displayName?.split(' ')[0] || 'Criador'
         }!`}
         description="Seu centro de comando para crescimento e monetização."
+        icon={LayoutGrid}
       >
         <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
             <div className='w-full sm:w-auto flex-1'>
@@ -788,7 +786,6 @@ export default function DashboardPage() {
                             <SheetContent className="sm:max-w-4xl p-0">
                                 <SheetHeader className="p-6 pb-4 border-b">
                                     <SheetTitle>Atividade Recente nas Plataformas</SheetTitle>
-                                    <SheetDescription>Uma visão geral das suas últimas publicações.</SheetDescription>
                                 </SheetHeader>
                                 <ScrollArea className="h-[calc(100vh-8rem)]">
                                     <div className="p-6">

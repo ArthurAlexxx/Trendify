@@ -8,7 +8,7 @@ import type { UserProfile } from '@/lib/types';
 import { collection, query, where } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAdmin } from '@/hooks/useAdmin';
-import { Users, Crown, Sparkles, DollarSign, LineChart } from 'lucide-react';
+import { Users, Crown, Sparkles, DollarSign, LineChart, LayoutGrid } from 'lucide-react';
 import { useMemo } from 'react';
 import { AreaChart, Area, CartesianGrid, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
@@ -73,6 +73,7 @@ export default function AdminPage() {
       <PageHeader
         title="Dashboard de Administração"
         description="Métricas e visão geral da plataforma."
+        icon={LayoutGrid}
       />
 
        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -121,8 +122,9 @@ export default function AdminPage() {
       <div className="grid gap-4">
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2"><LineChart className="h-5 w-5 text-primary" /> Crescimento de Usuários</CardTitle>
-             <CardDescription>Número total de usuários ao longo do tempo.</CardDescription>
+            <CardTitle>
+              Crescimento de Usuários
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? <Skeleton className="h-64 w-full" /> : 

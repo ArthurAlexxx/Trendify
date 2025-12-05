@@ -11,7 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Check, Star } from 'lucide-react';
+import { Check, Star, Crown } from 'lucide-react';
 import { useUser } from '@/firebase';
 import { useState } from 'react';
 import type { Plan } from '@/lib/types';
@@ -158,6 +158,7 @@ export default function SubscribePage() {
       <PageHeader
         title="Selecione seu Plano"
         description="Escolha o plano ideal para o seu momento e acelere seu crescimento."
+        icon={Crown}
       />
       
       <div className="flex justify-center">

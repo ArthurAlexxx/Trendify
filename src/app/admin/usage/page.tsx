@@ -10,7 +10,7 @@ import { collection, orderBy, query, limit, getDoc, doc } from 'firebase/firesto
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Video, Lightbulb, User, Loader2, Inbox } from 'lucide-react';
+import { Video, Lightbulb, User, Loader2, Inbox, Activity } from 'lucide-react';
 import { useEffect, useState, useMemo } from 'react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useAdmin } from '@/hooks/useAdmin';
@@ -94,8 +94,9 @@ export default function UsageAdminPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Uso das Ferramentas de IA"
+        title="Uso da IA"
         description="Acompanhe o consumo das principais ferramentas da plataforma."
+        icon={Activity}
       />
       
        <div className="grid gap-4 md:grid-cols-2">

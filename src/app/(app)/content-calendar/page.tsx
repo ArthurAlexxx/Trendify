@@ -321,6 +321,7 @@ export default function ContentCalendarPage() {
       <PageHeader
         title="Calendário de Conteúdo"
         description="Visualize e organize suas publicações."
+        icon={CalendarIcon}
       />
 
       <Sheet open={isModalOpen} onOpenChange={setIsModalOpen}>

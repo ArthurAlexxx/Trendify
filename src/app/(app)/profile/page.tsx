@@ -243,12 +243,12 @@ export default function ProfilePage() {
       <PageHeader
         title="Gerenciar Perfil"
         description="Mantenha suas informações atualizadas para a IA."
+        icon={UserIcon}
       />
           <Card className="rounded-2xl border-0">
             <CardHeader>
-              <CardTitle className="flex items-center gap-3 font-headline text-xl">
-                <UserIcon className="h-6 w-6 text-primary" />
-                <span>Perfil & Métricas Manuais</span>
+              <CardTitle className="font-headline text-xl">
+                Perfil & Métricas Manuais
               </CardTitle>
               <CardDescription>
                 Essas informações serão usadas pela IA para criar estratégias.
@@ -413,9 +413,8 @@ export default function ProfilePage() {
           
           <Card className="rounded-2xl border-0">
             <CardHeader>
-                <CardTitle className="flex items-center gap-3 font-headline text-xl">
-                  <Link2 className="h-6 w-6 text-primary" />
-                  <span>Integração de Plataformas</span>
+                <CardTitle className="font-headline text-xl">
+                  Integração de Plataformas
                 </CardTitle>
                 <CardDescription>
                   Sincronize seus dados para obter métricas automáticas.

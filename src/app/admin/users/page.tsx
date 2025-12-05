@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useState } from 'react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Users } from 'lucide-react';
 
 export default function AdminUsersPage() {
   const firestore = useFirestore();
@@ -39,6 +40,7 @@ export default function AdminUsersPage() {
       <PageHeader
         title="Gerenciamento de Usuários"
         description="Visualize, filtre e gerencie todos os usuários."
+        icon={Users}
       />
 
       <Card>

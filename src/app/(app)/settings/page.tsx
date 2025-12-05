@@ -121,17 +121,14 @@ export default function SettingsPage() {
       <PageHeader
         title="Configurações"
         description="Gerencie sua assinatura e informações da conta."
+        icon={SettingsIcon}
       />
 
        <Card className="border-0 rounded-2xl">
           <CardHeader>
-            <CardTitle className="flex items-center gap-3 font-headline text-xl">
-                <Crown className="h-6 w-6 text-primary" />
-                <span>Seu Plano</span>
+            <CardTitle className="font-headline text-xl">
+                Seu Plano
             </CardTitle>
-            <CardDescription>
-                Detalhes do seu plano atual e gerenciamento da assinatura.
-            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {isSubscriptionLoading ? (

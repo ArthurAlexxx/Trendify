@@ -253,18 +253,18 @@ export default function IntegrationsPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex justify-between items-center">
-        <PageHeader
-          title="Integrações"
-          description="Sincronize seus dados para obter métricas automáticas."
-        />
+      <PageHeader
+        title="Integrações"
+        description="Sincronize seus dados para obter métricas automáticas."
+        icon={Link2}
+      >
          <Button variant="ghost" asChild>
           <Link href="/profile">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Voltar para o Perfil
           </Link>
         </Button>
-      </div>
+      </PageHeader>
           
           <Card className="rounded-2xl border-0">
             <CardContent className="pt-6 space-y-6">

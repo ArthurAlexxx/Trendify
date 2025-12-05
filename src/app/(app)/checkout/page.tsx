@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Suspense, useState, useTransition, useEffect } from 'react';
-import { Loader2, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Loader2, CheckCircle, AlertTriangle, CreditCard } from 'lucide-react';
 import { useUser } from '@/firebase';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -83,6 +83,7 @@ function CheckoutPageContent() {
       <PageHeader
         title="Finalizar Assinatura"
         description="Estamos quase lá! Preencha seus dados para continuar."
+        icon={CreditCard}
       />
       <Card className="max-w-2xl mx-auto border-0 rounded-2xl">
         <CardHeader>

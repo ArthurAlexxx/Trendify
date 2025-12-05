@@ -279,14 +279,14 @@ function PublisAssistantPageContent() {
       <PageHeader
         title="Assistente de Publis"
         description="Crie pacotes de conteúdo para marcas com foco em conversão."
+        icon={Newspaper}
       >
         <SavedIdeasSheet />
       </PageHeader>
 
         <Card className="rounded-2xl border-0">
             <CardHeader>
-                <CardTitle className="flex items-center gap-3 font-headline text-xl">
-                    <Sparkles className="h-6 w-6 text-primary" />
+                <CardTitle className="font-headline text-xl">
                     Como Criamos Sua Campanha?
                 </CardTitle>
                  <CardDescription>A IA atua como sua diretora de criação, combinando estratégia e criatividade.</CardDescription>
@@ -309,9 +309,8 @@ function PublisAssistantPageContent() {
 
       <Card className="rounded-2xl border-0">
         <CardHeader>
-          <CardTitle className="flex items-center gap-3 font-headline text-xl">
-            <Bot className="h-6 w-6 text-primary" />
-            <span>Briefing da Campanha</span>
+          <CardTitle className="font-headline text-xl">
+            Briefing da Campanha
           </CardTitle>
           <CardDescription>Quanto mais detalhes, mais alinhados à marca serão os roteiros.</CardDescription>
         </CardHeader>
@@ -478,9 +477,8 @@ function PublisAssistantPageContent() {
               <div className="lg:col-span-2 space-y-6">
                 <Card className="rounded-2xl border-0">
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
-                            <Clapperboard className="h-5 w-5 text-primary" />
-                            <span>5 Roteiros Prontos para Gravar</span>
+                        <CardTitle className="text-lg font-semibold text-foreground">
+                            5 Roteiros Prontos para Gravar
                         </CardTitle>
                     </CardHeader>
                     <CardContent>

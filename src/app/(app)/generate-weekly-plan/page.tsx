@@ -263,6 +263,7 @@ export default function GenerateWeeklyPlanPage() {
       <PageHeader
         title="Plano Semanal"
         description="Transforme seu objetivo em um roteiro de conteúdo acionável."
+        icon={ClipboardList}
       >
         <PreviousPlansSheet />
       </PageHeader>

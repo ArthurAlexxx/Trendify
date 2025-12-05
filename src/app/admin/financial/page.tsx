@@ -11,7 +11,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowUpCircle, ArrowDownCircle, AlertCircle, MoreHorizontal } from 'lucide-react';
+import { ArrowUpCircle, ArrowDownCircle, AlertCircle, MoreHorizontal, DollarSign } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -56,6 +56,7 @@ export default function FinancialAdminPage() {
       <PageHeader
         title="Financeiro"
         description="Histórico de transações da plataforma."
+        icon={DollarSign}
       />
 
       <Card>

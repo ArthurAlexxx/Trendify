@@ -147,8 +147,7 @@ export default function VideoIdeasPage() {
   
   useEffect(() => {
     if (userProfile) {
-        form.setValue('goal', userProfile.followerGoal ? `Atingir ${userProfile.followerGoal.toLocaleString('pt-BR')} seguidores` : '');
-        form.setValue('goalPlatform', userProfile.followerGoalPlatform || 'total');
+        form.setValue('goal', userProfile.totalFollowerGoal ? `Atingir ${userProfile.totalFollowerGoal.toLocaleString('pt-BR')} seguidores` : '');
     }
   }, [userProfile, form]);
 
@@ -250,14 +249,14 @@ export default function VideoIdeasPage() {
       <PageHeader
         title="Gerador de Vídeos Virais"
         description="Crie roteiros completos e otimizados para viralizar."
+        icon={Lightbulb}
       >
         <SavedIdeasSheet />
       </PageHeader>
       
       <Card className="rounded-2xl border-0">
             <CardHeader>
-                <CardTitle className="flex items-center gap-3 font-headline text-xl">
-                    <Sparkles className="text-primary h-6 w-6" />
+                <CardTitle className="font-headline text-xl">
                     Como Criamos Suas Ideias?
                 </CardTitle>
                  <CardDescription>A IA atua como uma estrategista de conteúdo viral e analisa 4 pilares:</CardDescription>
@@ -280,9 +279,8 @@ export default function VideoIdeasPage() {
 
       <Card className="rounded-2xl border-0">
         <CardHeader>
-          <CardTitle className="flex items-center gap-3 font-headline text-xl">
-            <Sparkles className="h-6 w-6 text-primary" />
-            <span>Descreva sua necessidade</span>
+          <CardTitle className="font-headline text-xl">
+            Descreva sua necessidade
           </CardTitle>
           <CardDescription>Quanto mais detalhes, mais criativa e precisa será a ideia.</CardDescription>
         </CardHeader>

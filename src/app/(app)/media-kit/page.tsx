@@ -17,7 +17,7 @@ import {
   Target,
   Crown,
 } from 'lucide-react';
-import { useTransition, useEffect, useState, useMemo, useCallback } from 'react';
+import { useTransition, useEffect, useState, useCallback } from 'react';
 import {
   Form,
   FormControl,
@@ -260,6 +260,7 @@ function MediaKitPageContent() {
       <PageHeader
         title="Pacote de Prospecção"
         description="Gere propostas, preços e seu mídia kit profissional."
+        icon={Briefcase}
       >
         <SavedIdeasSheet />
       </PageHeader>
