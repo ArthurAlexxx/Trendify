@@ -578,11 +578,31 @@ export default function DashboardPage() {
 
     <div className="space-y-8">
       <PageHeader
-        title={`Bem-vindo(a) de volta, ${
+        title={`Bem-vindo(a), ${
           userProfile?.displayName?.split(' ')[0] || user?.displayName?.split(' ')[0] || 'Criador'
         }!`}
         description="Seu centro de comando para crescimento e monetização."
-      />
+      >
+        <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+            <div className='w-full sm:w-auto flex-1'>
+                <Select value={selectedPlatform} onValueChange={(value) => setSelectedPlatform(value as any)}>
+                <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Selecione a plataforma" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="total">Total</SelectItem>
+                    <SelectItem value="instagram">Instagram</SelectItem>
+                    <SelectItem value="tiktok">TikTok</SelectItem>
+                </SelectContent>
+                </Select>
+            </div>
+            {userProfile && 
+            <FollowerGoalSheet userProfile={userProfile}>
+                <Button variant="outline" size="sm" className="w-full"><Pencil className="mr-2 h-4 w-4" /> Editar Metas</Button>
+            </FollowerGoalSheet>
+            }
+        </div>
+      </PageHeader>
 
       <div className="space-y-8">
         
@@ -591,25 +611,6 @@ export default function DashboardPage() {
         {/* TOP SECTION */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             <div className="lg:col-span-1 space-y-4">
-                <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
-                    <div className='w-full sm:w-auto flex-1'>
-                        <Select value={selectedPlatform} onValueChange={(value) => setSelectedPlatform(value as any)}>
-                        <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Selecione a plataforma" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="total">Total</SelectItem>
-                            <SelectItem value="instagram">Instagram</SelectItem>
-                            <SelectItem value="tiktok">TikTok</SelectItem>
-                        </SelectContent>
-                        </Select>
-                    </div>
-                    {userProfile && 
-                    <FollowerGoalSheet userProfile={userProfile}>
-                        <Button variant="outline" size="sm" className="w-full"><Pencil className="mr-2 h-4 w-4" /> Editar Metas</Button>
-                    </FollowerGoalSheet>
-                    }
-                </div>
                 <Card className="rounded-2xl border-0">
                      <CardHeader>
                         <CardTitle className="font-headline text-lg sm:text-xl">
@@ -883,8 +884,6 @@ export default function DashboardPage() {
     </>
   );
 }
-
-    
 
     
 
