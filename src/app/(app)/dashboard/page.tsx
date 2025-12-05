@@ -396,7 +396,7 @@ export default function DashboardPage() {
         {userProfile && <ProfileCompletionAlert userProfile={userProfile} isPremium={isPremium} />}
         
         <Carousel className="w-full" opts={{ align: 'start' }}>
-          <CarouselContent className="-ml-2 md:-ml-4">
+          <CarouselContent className="-ml-2 md:-ml-4 py-4">
             <CarouselItem className="pl-2 md:pl-4 lg:basis-1/3">
               <Card className="rounded-2xl border-0 h-full">
                  <CardHeader className='items-center text-center'>
@@ -544,5 +544,7 @@ export default function DashboardPage() {
     </>
   );
 }
+
+    
 
     
