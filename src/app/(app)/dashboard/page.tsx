@@ -1,3 +1,4 @@
+
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -467,8 +468,8 @@ export default function DashboardPage() {
               </Card>
             </CarouselItem>
           </CarouselContent>
-          <CarouselPrevious className="hidden md:flex" />
-          <CarouselNext className="hidden md:flex"/>
+          <CarouselPrevious className="flex md:hidden" />
+          <CarouselNext className="flex md:hidden" />
         </Carousel>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
