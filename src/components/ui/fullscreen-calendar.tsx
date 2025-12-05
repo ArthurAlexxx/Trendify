@@ -100,8 +100,8 @@ export function FullScreenCalendar({ data, onNewEvent, renderEventActions, rende
 
 
   return (
-    <div className="flex flex-col lg:flex-row flex-1 h-[85vh] bg-card rounded-2xl shadow-lg shadow-primary/5 border-border/20">
-      <div className="flex-1">
+    <div className="flex flex-col lg:flex-row flex-1 min-h-[85vh] bg-card rounded-2xl shadow-lg shadow-primary/5 border-border/20">
+      <div className="flex-1 lg:flex lg:flex-col">
         {/* Calendar Header */}
         <div className="flex flex-col space-y-4 p-4 md:flex-row md:items-center md:justify-between md:space-y-0 lg:flex-none">
           <div className="flex flex-auto">
@@ -177,7 +177,8 @@ export function FullScreenCalendar({ data, onNewEvent, renderEventActions, rende
           </div>
 
           {/* Calendar Days */}
-          <div className="flex text-xs leading-6 lg:flex-auto">
+          <div className="flex bg-muted/30 text-xs leading-6 lg:flex-auto">
+            {/* Desktop Calendar */}
             <div className="hidden w-full border-r lg:grid lg:grid-cols-7 lg:grid-rows-6">
               {days.map((day, dayIdx) => (
                 <div
@@ -188,11 +189,11 @@ export function FullScreenCalendar({ data, onNewEvent, renderEventActions, rende
                     !isEqual(day, selectedDay) &&
                       !isSameMonth(day, firstDayCurrentMonth) &&
                       "bg-muted/30",
-                    "relative flex flex-col border-b border-r hover:bg-muted focus:z-10 cursor-pointer",
+                    "relative flex flex-col border-b border-r bg-background p-1 hover:bg-muted focus:z-10 cursor-pointer",
                     !isEqual(day, selectedDay) && "hover:bg-accent/75",
                   )}
                 >
-                  <header className="flex items-center justify-end p-2.5">
+                  <header className="flex items-center justify-end p-1.5">
                     <button
                       type="button"
                       className={cn(
@@ -207,7 +208,7 @@ export function FullScreenCalendar({ data, onNewEvent, renderEventActions, rende
                       </time>
                     </button>
                   </header>
-                  <div className="flex-1 p-1">
+                  <div className="flex-1">
                     {data
                       .filter((event) => isSameDay(event.day, day))
                       .map((day) => (
@@ -242,7 +243,7 @@ export function FullScreenCalendar({ data, onNewEvent, renderEventActions, rende
                   type="button"
                   className={cn(
                     "flex h-14 flex-col border-b border-r p-1.5 hover:bg-muted focus:z-10",
-                    isSameMonth(day, firstDayCurrentMonth) ? 'text-foreground' : 'text-muted-foreground',
+                    isSameMonth(day, firstDayCurrentMonth) ? 'bg-background text-foreground' : 'bg-muted/50 text-muted-foreground',
                   )}
                 >
                   <time
