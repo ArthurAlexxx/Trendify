@@ -175,9 +175,26 @@ function MediaKitPageContent() {
 
    useEffect(() => {
     if (userProfile) {
+      const parseMetric = (value?: string | number): number => {
+          if (typeof value === 'number') return value;
+          if (!value || typeof value !== 'string') return 0;
+          const cleanedValue = value.replace(/\./g, '').replace(',', '.');
+          const num = parseFloat(cleanedValue.replace(/K/gi, 'e3').replace(/M/gi, 'e6'));
+          return isNaN(num) ? 0 : num;
+      };
+
+      const formatNumber = (num: number): string => {
+          if (num >= 1000000) return `${(num / 1000000).toFixed(1).replace('.', ',')}M`;
+          if (num >= 1000) return `${(num / 1000).toFixed(0)}K`;
+          return String(num);
+      };
+      
+      const totalFollowers = parseMetric(userProfile.instagramFollowers) + parseMetric(userProfile.tiktokFollowers);
+      const totalViews = parseMetric(userProfile.instagramAverageViews) + parseMetric(userProfile.tiktokAverageViews);
+
       const metrics = [
-        userProfile.instagramFollowers ? `${userProfile.instagramFollowers} seguidores` : '',
-        userProfile.instagramAverageViews ? `${userProfile.instagramAverageViews} de média de views` : '',
+        totalFollowers > 0 ? `${formatNumber(totalFollowers)} seguidores no total` : '',
+        totalViews > 0 ? `${formatNumber(totalViews)} de média de views total` : '',
         userProfile.audience ? `Público: ${userProfile.audience}` : '',
       ].filter(Boolean).join(', ');
 
@@ -454,7 +471,7 @@ function MediaKitPageContent() {
                       <InfoCard title="Apresentação para Marcas" icon={FileText} content={result.executiveSummary} />
                       <div className="grid lg:grid-cols-2 gap-8 items-start">
                         <PricingCard title="Tabela de Preços Sugerida" icon={DollarSign} pricing={result.pricingTiers} />
-                        <InfoList title="Ideias de Colaboração" icon={Lightbulb} items={result.sampleCollaborationIdeas} />
+                        <InfoList title="Ideias de Colaboração" icon={Lightbulb} items={result.sampleCollaborationIdeas.map(idea => idea.ideia)} />
                       </div>
                        <div className="grid lg:grid-cols-2 gap-8 items-start">
                         <InfoCard title="Sua Proposta de Valor" icon={Target} content={result.valueProposition} />

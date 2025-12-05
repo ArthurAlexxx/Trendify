@@ -166,16 +166,32 @@ export default function GenerateWeeklyPlanPage() {
 
   useEffect(() => {
     if (userProfile) {
-       const stats = [
-        userProfile.instagramFollowers ? `${userProfile.instagramFollowers} seguidores no Instagram` : '',
-        userProfile.tiktokFollowers ? `${userProfile.tiktokFollowers} seguidores no TikTok` : '',
-        userProfile.instagramAverageViews ? `${userProfile.instagramAverageViews} de média de views` : '',
+      const parseMetric = (value?: string | number): number => {
+          if (typeof value === 'number') return value;
+          if (!value || typeof value !== 'string') return 0;
+          const cleanedValue = value.replace(/\./g, '').replace(',', '.');
+          const num = parseFloat(cleanedValue.replace(/K/gi, 'e3').replace(/M/gi, 'e6'));
+          return isNaN(num) ? 0 : num;
+      };
+
+      const formatNumber = (num: number): string => {
+          if (num >= 1000000) return `${(num / 1000000).toFixed(1).replace('.', ',')}M`;
+          if (num >= 1000) return `${(num / 1000).toFixed(0)}K`;
+          return String(num);
+      };
+
+      const totalFollowers = parseMetric(userProfile.instagramFollowers) + parseMetric(userProfile.tiktokFollowers);
+      const totalViews = parseMetric(userProfile.instagramAverageViews) + parseMetric(userProfile.tiktokAverageViews);
+
+      const stats = [
+        totalFollowers > 0 ? `${formatNumber(totalFollowers)} seguidores no total` : '',
+        totalViews > 0 ? `${formatNumber(totalViews)} de média de views total` : '',
       ].filter(Boolean).join(', ');
 
       form.reset({
         objective: form.getValues('objective') || '',
         niche: userProfile.niche || '',
-        currentStats: stats,
+        currentStats: stats || 'Nenhuma métrica disponível',
         totalFollowerGoal: userProfile.totalFollowerGoal,
         instagramFollowerGoal: userProfile.instagramFollowerGoal,
         tiktokFollowerGoal: userProfile.tiktokFollowerGoal,
@@ -570,7 +586,7 @@ export default function GenerateWeeklyPlanPage() {
                           <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                             <Card className="border-0 rounded-2xl">
                                 <CardHeader><CardTitle className="flex items-center gap-2 text-sm text-muted-foreground"><Trophy className='h-4 w-4' /> Índice de Prioridade</CardTitle></CardHeader>
-                                <CardContent><ul className="space-y-2">{result.priorityIndex.map(item => <li key={item} className='text-sm font-semibold'>{item}</li>)}</ul></CardContent>
+                                <CardContent><ul className="space-y-2 text-sm">{result.priorityIndex.map(item => <li key={item} className='font-semibold'>{item}</li>)}</ul></CardContent>
                             </Card>
                              <Card className="border-0 rounded-2xl">
                                 <CardHeader><CardTitle className="flex items-center gap-2 text-sm text-muted-foreground"><Zap className='h-4 w-4' /> Nível de Esforço</CardTitle></CardHeader>
