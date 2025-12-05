@@ -77,6 +77,7 @@ import { generateDashboardInsights, type DashboardInsight } from './actions';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import Image from 'next/image';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 
 const chartConfigBase = {
@@ -395,8 +396,8 @@ export default function DashboardPage() {
               <CarouselContent className="-ml-2 md:-ml-4 py-4">
                   <CarouselItem className="pl-2 md:pl-4 basis-full">
                   <Card className="rounded-2xl border-0 h-full">
-                      <CardHeader className='items-center text-center'>
-                        <CardTitle>Meta de Seguidores</CardTitle>
+                      <CardHeader>
+                        <CardTitle className="text-center">Meta de Seguidores</CardTitle>
                       </CardHeader>
                       <CardContent className="pt-6">
                           <div className="flex flex-col items-center justify-center text-center">
@@ -423,8 +424,8 @@ export default function DashboardPage() {
                   </CarouselItem>
                   <CarouselItem className="pl-2 md:pl-4 basis-full">
                   <Card className='rounded-2xl border-0 h-full'>
-                      <CardHeader className='items-center text-center'>
-                        <CardTitle>Métricas de Engajamento</CardTitle>
+                      <CardHeader>
+                        <CardTitle className="text-center">Métricas de Engajamento</CardTitle>
                       </CardHeader>
                       <CardContent>
                           <div className='grid grid-cols-1 gap-4'>
@@ -452,8 +453,8 @@ export default function DashboardPage() {
                   </CarouselItem>
                   <CarouselItem className="pl-2 md:pl-4 basis-full">
                   <Card className="rounded-2xl border-0 h-full flex flex-col">
-                       <CardHeader className='flex flex-col sm:flex-row items-center justify-between gap-4 text-center'>
-                           <CardTitle>Análise de Desempenho</CardTitle>
+                       <CardHeader className='flex flex-col sm:flex-row items-center justify-between gap-4'>
+                           <CardTitle className="text-center">Análise de Desempenho</CardTitle>
                            <Button variant="ghost" size="sm" onClick={handleGenerateInsights} disabled={isGeneratingInsights} className="w-full sm:w-auto">
                                {isGeneratingInsights ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
                                Analisar Desempenho
@@ -488,8 +489,8 @@ export default function DashboardPage() {
           {/* Desktop Grid */}
           <div className="hidden lg:grid lg:grid-cols-3 lg:gap-8">
               <Card className="rounded-2xl border-0 h-full">
-                  <CardHeader className='items-center text-center'>
-                      <CardTitle>Meta de Seguidores</CardTitle>
+                  <CardHeader>
+                      <CardTitle className="text-center">Meta de Seguidores</CardTitle>
                   </CardHeader>
                   <CardContent className="pt-6">
                       <div className="flex flex-col items-center justify-center text-center">
@@ -514,8 +515,8 @@ export default function DashboardPage() {
                   </CardContent>
               </Card>
               <Card className='rounded-2xl border-0 h-full'>
-                  <CardHeader className='items-center text-center'>
-                      <CardTitle>Métricas de Engajamento</CardTitle>
+                  <CardHeader>
+                      <CardTitle className="text-center">Métricas de Engajamento</CardTitle>
                   </CardHeader>
                   <CardContent>
                       <div className='grid grid-cols-1 gap-4'>
@@ -541,8 +542,8 @@ export default function DashboardPage() {
                   </CardContent>
               </Card>
               <Card className="rounded-2xl border-0 h-full flex flex-col">
-                   <CardHeader className='flex flex-row items-center justify-between text-center'>
-                       <CardTitle>Análise de Desempenho</CardTitle>
+                   <CardHeader className='flex flex-row items-center justify-between'>
+                       <CardTitle className="text-center flex-1">Análise de Desempenho</CardTitle>
                        <Button variant="ghost" size="sm" onClick={handleGenerateInsights} disabled={isGeneratingInsights}>
                            {isGeneratingInsights ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
                            Analisar
@@ -643,5 +644,7 @@ export default function DashboardPage() {
     </>
   );
 }
+
+    
 
     
