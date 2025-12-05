@@ -65,25 +65,26 @@ export async function analyzeVideo(
   } catch (e: any) {
     console.error("Falha na execução do fluxo de análise de vídeo:", e);
 
-    if (e.message && (e.message.includes('503') || e.message.toLowerCase().includes('overloaded') || e.message.toLowerCase().includes('resource has been exhausted'))) {
+    const errorMessage = e.message || '';
+    if (errorMessage.includes('429') || errorMessage.includes('503') || errorMessage.toLowerCase().includes('overloaded') || errorMessage.toLowerCase().includes('resource has been exhausted')) {
         return {
-            error: 'Ocorreu uma sobrecarga em nossos servidores de IA. Por favor, aguarde alguns instantes e tente novamente. Sua análise não foi consumida.',
+            error: 'Estamos com um grande número de requisições no momento. Por favor, aguarde alguns instantes e tente novamente.',
             isOverloaded: true,
         };
     }
     
-    const errorMessage = e.message.includes('fetch') 
-      ? `Não foi possível acessar o vídeo para análise. Verifique se a URL está correta e publicamente acessível. Detalhe: ${e.message}`
-      : `Ocorreu um erro durante a análise: ${e.message || "Erro desconhecido."}`;
+    const friendlyErrorMessage = errorMessage.includes('fetch') 
+      ? `Não foi possível acessar o vídeo para análise. Verifique se a URL está correta e publicamente acessível. Detalhe: ${errorMessage}`
+      : `Ocorreu um erro durante a análise: ${errorMessage || "Erro desconhecido."}`;
 
-    return { error: errorMessage };
+    return { error: friendlyErrorMessage };
   }
 }
 
 // 1. Define o prompt para a IA
 const prompt = ai.definePrompt({
   name: 'videoAnalysisExpert',
-  model: 'googleai/gemini-2.0-flash-lite',
+  model: 'googleai/gemini-2.0-flash',
   input: { schema: z.object({ videoDataUri: z.string(), videoDescription: z.string() }) },
   output: { schema: VideoAnalysisOutputSchema },
   prompt: `Você é uma consultora de conteúdo viral e estrategista para criadores de conteúdo. Sua tarefa é fornecer uma análise profunda, profissional e acionável em português do Brasil.

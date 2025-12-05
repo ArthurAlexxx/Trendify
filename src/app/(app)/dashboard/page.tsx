@@ -76,7 +76,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
 import { FollowerGoalSheet } from '@/components/dashboard/follower-goal-sheet';
 import { ProfileCompletionAlert } from '@/components/dashboard/profile-completion-alert';
-import { generateDashboardInsights, type DashboardInsight } from './actions';
+import { generateDashboardInsights, type DashboardInsightsOutput } from './actions';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import Image from 'next/image';
@@ -128,7 +128,7 @@ export default function DashboardPage() {
   const [showTikTokModal, setShowTikTokModal] = useState(false);
   const [currentTikTokUrl, setCurrentTikTokUrl] = useState('');
 
-  const [insights, setInsights] = useState<DashboardInsight[] | null>(null);
+  const [insights, setInsights] = useState<DashboardInsightsOutput | null>(null);
   const [isGeneratingInsights, setIsGeneratingInsights] = useState(false);
 
   const { subscription, isLoading: isSubscriptionLoading } = useSubscription();
@@ -523,13 +523,13 @@ export default function DashboardPage() {
                       <CardContent className="flex-1 flex flex-col">
                           {isGeneratingInsights ? (
                                <div className="flex-1 flex justify-center items-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
-                          ) : insights && insights.length > 0 ? (
+                          ) : insights && insights.insights.length > 0 ? (
                                <ScrollArea className="h-64 pr-4">
                                <ul className="space-y-4">
-                                   {insights.map((insight, i) => (
+                                   {insights.insights.map((insight, i) => (
                                    <li key={i} className="flex items-start gap-3">
                                        <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary flex-shrink-0 mt-0.5"><Lightbulb className="h-3.5 w-3.5" /></div>
-                                       <p className="text-sm text-muted-foreground">{insight.insight}</p>
+                                       <p className="text-sm text-muted-foreground">{insight}</p>
                                    </li>
                                    ))}
                                </ul>
@@ -650,13 +650,13 @@ export default function DashboardPage() {
                   <CardContent className="flex-1 flex flex-col">
                       {isGeneratingInsights ? (
                           <div className="flex-1 flex justify-center items-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
-                      ) : insights && insights.length > 0 ? (
+                      ) : insights && insights.insights.length > 0 ? (
                            <ScrollArea className="h-64 pr-4">
                            <ul className="space-y-4">
-                               {insights.map((insight, i) => (
+                               {insights.insights.map((insight, i) => (
                                <li key={i} className="flex items-start gap-3">
                                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary flex-shrink-0 mt-0.5"><Lightbulb className="h-3.5 w-3.5" /></div>
-                                   <p className="text-sm text-muted-foreground">{insight.insight}</p>
+                                   <p className="text-sm text-muted-foreground">{insight}</p>
                                </li>
                                ))}
                            </ul>
@@ -748,7 +748,5 @@ export default function DashboardPage() {
     </>
   );
 }
-
-    
 
     

@@ -4,9 +4,8 @@
 import { z } from 'zod';
 import OpenAI from 'openai';
 
-const DashboardInsightSchema = z.object({
-    insight: z.string().describe("Um insight curto e acionável com base na evolução das métricas fornecidas.")
-});
+// Corrigido: Agora espera uma string diretamente, não um objeto.
+const DashboardInsightSchema = z.string().describe("Um insight curto e acionável com base na evolução das métricas fornecidas.");
 
 const TrendAnalysisSchema = z.object({
     rising: z.array(z.string()).describe("Métricas que estão subindo."),
@@ -29,6 +28,7 @@ const GenerateDashboardInsightsOutputSchema = z.object({
 });
 
 export type DashboardInsightsOutput = z.infer<typeof GenerateDashboardInsightsOutputSchema>;
+// O tipo DashboardInsight agora é simplesmente 'string'
 export type DashboardInsight = z.infer<typeof DashboardInsightSchema>;
 
 const GenerateDashboardInsightsInputSchema = z.object({
@@ -92,7 +92,7 @@ export async function generateDashboardInsights(
   - Dados de Métricas (array ordenado do mais recente para o mais antigo): ${JSON.stringify(metricSnapshots, null, 2)}
 
   Para cada campo do JSON, siga estas diretrizes:
-  - insights: Gere 3 insights criativos e acionáveis, variados, sobre engajamento, alcance, etc.
+  - insights: Gere 3 insights criativos e acionáveis, variados, sobre engajamento, alcance, etc. Cada insight deve ser uma string simples.
   - trendAnalysis: Analise as métricas e liste quais estão subindo e quais estão caindo.
   - predictiveForecast: Com base na tendência atual, faça uma previsão de crescimento de seguidores para os próximos 7 e 30 dias.
   - riskAlerts: Identifique e liste quaisquer riscos, como "Queda de 15% no engajamento médio esta semana".
