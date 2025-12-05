@@ -120,16 +120,8 @@ export default function ContentCalendarPage() {
   
   // Effect to reset form when modal closes or editing post changes
   useEffect(() => {
-    if (isModalOpen && editingPost) {
-        form.reset({
-            title: editingPost.title,
-            contentType: editingPost.contentType,
-            date: editingPost.date.toDate(),
-            time: format(editingPost.date.toDate(), 'HH:mm'),
-            status: editingPost.status,
-            notes: editingPost.notes || '',
-        });
-    } else if (!isModalOpen) {
+    if (!isModalOpen) {
+        // Reset form completely when modal is closed
         setEditingPost(null);
         form.reset({
             title: '',
@@ -138,6 +130,16 @@ export default function ContentCalendarPage() {
             time: format(new Date(), 'HH:mm'),
             status: 'Agendado',
             notes: '',
+        });
+    } else if (editingPost) {
+        // If editing, set form values from the post
+        form.reset({
+            title: editingPost.title,
+            contentType: editingPost.contentType,
+            date: editingPost.date.toDate(),
+            time: format(editingPost.date.toDate(), 'HH:mm'),
+            status: editingPost.status,
+            notes: editingPost.notes || '',
         });
     }
   }, [isModalOpen, editingPost, form]);
@@ -158,7 +160,7 @@ export default function ContentCalendarPage() {
     form.reset({
         title: '',
         contentType: 'Reels',
-        date: day,
+        date: day, // Use the selected day from the calendar
         time: format(new Date(), 'HH:mm'),
         status: 'Agendado',
         notes: '',
@@ -240,9 +242,7 @@ export default function ContentCalendarPage() {
         toast({ title: 'Sucesso!', description: 'Seu post foi agendado.' });
       }
       
-      setEditingPost(null);
       setIsModalOpen(false);
-      form.reset();
 
     } catch (error) {
       console.error('Error saving document: ', error);
@@ -339,7 +339,7 @@ export default function ContentCalendarPage() {
 
       {/* Sheet for Creating/Editing */}
       <Sheet open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <SheetContent className="p-0 flex flex-col">
+        <SheetContent className="p-0 flex flex-col sm:max-w-lg">
           <SheetHeader className="p-6 pb-4 border-b">
             <SheetTitle className="font-headline text-xl">
               {editingPost ? "Editar Agendamento" : "Novo Agendamento"}
@@ -513,7 +513,7 @@ export default function ContentCalendarPage() {
        {/* Sheet for viewing details */}
       {selectedEvent && (
         <Sheet open={isDetailSheetOpen} onOpenChange={setIsDetailSheetOpen}>
-          <SheetContent className="p-0 flex flex-col">
+          <SheetContent className="p-0 flex flex-col sm:max-w-lg">
             <SheetHeader className="p-6 pb-4 border-b space-y-3">
               <Badge variant={getBadgeVariant(selectedEvent.status)} className='w-fit'>{selectedEvent.status}</Badge>
               <SheetTitle className="font-headline text-2xl">{selectedEvent.title}</SheetTitle>
@@ -543,7 +543,7 @@ export default function ContentCalendarPage() {
                     </div>
                  )}
             </ScrollArea>
-             <SheetFooter className="p-6 border-t flex flex-col sm:flex-row sm:justify-between gap-2">
+             <SheetFooter className="p-6 border-t flex flex-col-reverse sm:flex-row sm:justify-between gap-2">
                 <div className='flex flex-col sm:flex-row gap-2'>
                     <Button variant="outline" onClick={() => handleEditEvent(selectedEvent)}><Edit className="mr-2 h-4 w-4" /> Editar</Button>
                     <Button variant="outline" disabled={selectedEvent.status === 'Publicado'} onClick={() => handleMarkAsCompleted(selectedEvent.id)}><CheckCircle className="mr-2 h-4 w-4" /> Publicado</Button>
@@ -588,6 +588,8 @@ export default function ContentCalendarPage() {
     </div>
   );
 }
+
+    
 
     
 
