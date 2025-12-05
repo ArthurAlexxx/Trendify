@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
@@ -44,11 +45,11 @@ export default function AdminUsersPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Lista de Usuários</CardTitle>
-           <CardDescription>
+          <CardTitle className="text-center">Lista de Usuários</CardTitle>
+           <CardDescription className="text-center">
             Use os filtros abaixo para segmentar os usuários por plano.
           </CardDescription>
-           <div className="pt-4">
+           <div className="pt-4 flex justify-center">
              <Tabs value={planFilter} onValueChange={(value) => setPlanFilter(value as any)}>
               <TabsList>
                 <TabsTrigger value="all">Todos</TabsTrigger>

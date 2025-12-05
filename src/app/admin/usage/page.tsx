@@ -1,3 +1,4 @@
+
 'use client';
 
 import { PageHeader } from '@/components/page-header';
@@ -124,8 +125,8 @@ export default function UsageAdminPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Atividade Recente</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-center">Atividade Recente</CardTitle>
+          <CardDescription className="text-center">
             Logs de uso das ferramentas de IA pelos usuários.
           </CardDescription>
         </CardHeader>

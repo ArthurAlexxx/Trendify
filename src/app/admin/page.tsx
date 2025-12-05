@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
@@ -121,7 +122,7 @@ export default function AdminPage() {
       <div className="grid gap-4">
         <Card>
           <CardHeader>
-            <CardTitle>
+            <CardTitle className="text-center">
               Crescimento de Usuários
             </CardTitle>
           </CardHeader>

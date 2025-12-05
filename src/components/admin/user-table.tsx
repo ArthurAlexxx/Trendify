@@ -89,8 +89,8 @@ export function UserTable({ data }: UserTableProps) {
         <Sheet open={isRoleSheetOpen} onOpenChange={setIsRoleSheetOpen}>
             <SheetContent side="bottom" className='p-0 rounded-t-2xl'>
                 <SheetHeader className="p-6 pb-4 text-center">
-                    <SheetTitle className='font-headline text-xl'>Promover a Administrador?</SheetTitle>
-                    <SheetDescription>
+                    <SheetTitle className='text-center font-headline text-xl'>Promover a Administrador?</SheetTitle>
+                    <SheetDescription className="text-center">
                         Esta ação concederá a <strong>{selectedUser.displayName}</strong> acesso total ao painel de administração. Você tem certeza?
                     </SheetDescription>
                 </SheetHeader>

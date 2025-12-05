@@ -381,7 +381,7 @@ function VideoReviewPageContent() {
                             <CarouselItem key={index} className="pl-4 basis-full">
                                 <Card className="rounded-2xl border-0 h-full">
                                     <CardHeader>
-                                        <CardTitle className="flex items-center gap-3">
+                                        <CardTitle className="text-center flex items-center gap-3">
                                             <item.icon className="h-6 w-6 text-primary" />
                                             <span>{item.title}</span>
                                         </CardTitle>
@@ -401,7 +401,7 @@ function VideoReviewPageContent() {
                 {analysisCriteria.map((item, index) => (
                     <Card key={index} className="rounded-2xl border-0">
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-3">
+                            <CardTitle className="text-center flex items-center gap-3">
                                 <item.icon className="h-6 w-6 text-primary" />
                                 <span>{item.title}</span>
                             </CardTitle>
@@ -425,6 +425,10 @@ function VideoReviewPageContent() {
         </TabsList>
         <TabsContent value="generate">
             <Card className="rounded-t-none border-t-0">
+                 <CardHeader>
+                    <CardTitle className="text-center">Upload do Vídeo</CardTitle>
+                    <CardDescription className="text-center">Arraste seu vídeo ou clique para selecionar.</CardDescription>
+                </CardHeader>
                 <CardContent className="p-6 space-y-6">
                  {!file ? (
                     <div
@@ -550,7 +554,7 @@ function VideoReviewPageContent() {
                         <div className="space-y-8">
                             <Card className="lg:col-span-1 rounded-2xl border-0">
                                 <CardHeader className='items-center text-center'>
-                                    <CardTitle className="font-headline text-lg text-primary">Nota de Viralização</CardTitle>
+                                    <CardTitle className="text-center font-headline text-lg text-primary">Nota de Viralização</CardTitle>
                                 </CardHeader>
                                 <CardContent className="text-center">
                                     <div className="text-4xl font-bold text-foreground">{numericNote}/10</div>
@@ -560,7 +564,7 @@ function VideoReviewPageContent() {
 
                             <Card className="lg:col-span-2 rounded-2xl border-0">
                                 <CardHeader>
-                                    <CardTitle className="items-center flex gap-2">
+                                    <CardTitle className="text-center items-center flex gap-2">
                                          <Check className="h-5 w-5 text-primary" />
                                         Checklist de Melhorias
                                     </CardTitle>
@@ -581,7 +585,7 @@ function VideoReviewPageContent() {
                         <div className="space-y-8">
                             <Card className="rounded-2xl border-0">
                                 <CardHeader>
-                                    <CardTitle className="font-headline text-lg flex items-center gap-2">
+                                    <CardTitle className="text-center font-headline text-lg flex items-center gap-2">
                                         <Flame className="h-5 w-5 text-primary" />
                                         Análise de Retenção
                                     </CardTitle>
@@ -599,7 +603,7 @@ function VideoReviewPageContent() {
                             </Card>
                             <Card className="rounded-2xl border-0">
                                 <CardHeader className='items-center text-center'>
-                                    <CardTitle className="font-headline text-lg">Análise Detalhada</CardTitle>
+                                    <CardTitle className="text-center font-headline text-lg">Análise Detalhada</CardTitle>
                                 </CardHeader>
                                 <CardContent>
                                 <Accordion type="single" collapsible className="w-full">
@@ -660,7 +664,7 @@ function VideoReviewPageContent() {
                                             </SheetTrigger>
                                             <SheetContent className="sm:max-w-4xl">
                                                 <SheetHeader>
-                                                    <SheetTitle className="font-headline text-2xl">Análise de {analise.videoFileName}</SheetTitle>
+                                                    <SheetTitle className="text-center font-headline text-2xl">Análise de {analise.videoFileName}</SheetTitle>
                                                 </SheetHeader>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4 max-h-[calc(100vh-8rem)] overflow-y-auto">
                                                     <div className="space-y-4">
@@ -696,7 +700,7 @@ function VideoReviewPageContent() {
                                                     </div>
                                                     <Card>
                                                          <CardHeader>
-                                                            <CardTitle className="text-lg">Análise Detalhada</CardTitle>
+                                                            <CardTitle className="text-center text-lg">Análise Detalhada</CardTitle>
                                                         </CardHeader>
                                                         <CardContent>
                                                             <Accordion type="single" collapsible defaultValue="item-1">
@@ -740,3 +744,4 @@ function VideoReviewPageContent() {
     </div>
   );
 }
+

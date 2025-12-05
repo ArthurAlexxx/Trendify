@@ -307,7 +307,7 @@ function PublisAssistantPageContent() {
                             <CarouselItem key={index} className="pl-4 basis-full">
                                 <Card className="rounded-2xl border-0 h-full">
                                     <CardHeader>
-                                        <CardTitle className="flex items-center gap-3">
+                                        <CardTitle className="text-center flex items-center gap-3">
                                             <item.icon className="h-6 w-6 text-primary" />
                                             <span>{item.title}</span>
                                         </CardTitle>
@@ -327,7 +327,7 @@ function PublisAssistantPageContent() {
                 {analysisCriteria.map((item, index) => (
                     <Card key={index} className="rounded-2xl border-0">
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-3">
+                            <CardTitle className="text-center flex items-center gap-3">
                                 <item.icon className="h-6 w-6 text-primary" />
                                 <span>{item.title}</span>
                             </CardTitle>
@@ -352,10 +352,10 @@ function PublisAssistantPageContent() {
         <TabsContent value="generate">
            <Card className="rounded-t-none border-t-0">
             <CardHeader>
-              <CardTitle className="font-headline text-xl">
+              <CardTitle className="text-center font-headline text-xl">
                 Briefing da Campanha
               </CardTitle>
-              <CardDescription>Quanto mais detalhes, mais alinhados à marca serão os roteiros.</CardDescription>
+              <CardDescription className="text-center">Quanto mais detalhes, mais alinhados à marca serão os roteiros.</CardDescription>
             </CardHeader>
             <CardContent>
               <Form {...form}>
@@ -521,7 +521,7 @@ function PublisAssistantPageContent() {
                       <div className="lg:col-span-2 space-y-6">
                         <Card className="rounded-2xl border-0">
                             <CardHeader>
-                                <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
+                                <CardTitle className="text-center flex items-center gap-3 text-lg font-semibold text-foreground">
                                     <Clapperboard className="h-5 w-5 text-primary" />
                                     <span>5 Roteiros Prontos para Gravar</span>
                                 </CardTitle>
@@ -548,7 +548,7 @@ function PublisAssistantPageContent() {
                         </Card>
                         
                          <Card className="rounded-2xl border-0">
-                            <CardHeader><CardTitle className="flex items-center gap-3 text-lg font-semibold"><Lightbulb className="h-5 w-5 text-primary" />Ângulos Criativos e Tom de Voz</CardTitle></CardHeader>
+                            <CardHeader><CardTitle className="text-center flex items-center gap-3 text-lg font-semibold"><Lightbulb className="h-5 w-5 text-primary" />Ângulos Criativos e Tom de Voz</CardTitle></CardHeader>
                             <CardContent className="grid md:grid-cols-2 gap-6">
                                 <div>
                                     <h4 className="font-semibold mb-2">Ângulos para Campanha</h4>
@@ -574,7 +574,7 @@ function PublisAssistantPageContent() {
 
                       <div className="space-y-8">
                          <Card className="border-0 rounded-2xl">
-                             <CardHeader><CardTitle className="flex items-center gap-3 text-lg font-semibold"><Target className="h-5 w-5 text-primary" />Projeção de Conversão</CardTitle></CardHeader>
+                             <CardHeader><CardTitle className="text-center flex items-center gap-3 text-lg font-semibold"><Target className="h-5 w-5 text-primary" />Projeção de Conversão</CardTitle></CardHeader>
                              <CardContent className='space-y-1'>
                                 <p className='font-semibold text-foreground'>{result.conversionProjection.roteiro}</p>
                                 <p className='text-sm text-muted-foreground'>{result.conversionProjection.justificativa}</p>
@@ -616,7 +616,7 @@ function InfoListCard({
   return (
     <Card className="rounded-2xl border-0 h-full">
       <CardHeader>
-        <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
+        <CardTitle className="text-center flex items-center gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary" />
           <span>{title}</span>
         </CardTitle>
@@ -637,3 +637,4 @@ function InfoListCard({
     </Card>
   );
 }
+

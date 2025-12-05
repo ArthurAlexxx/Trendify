@@ -1,3 +1,4 @@
+
 'use client';
 
 import { PageHeader } from '@/components/page-header';
@@ -60,8 +61,8 @@ export default function FinancialAdminPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Histórico de Transações</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-center">Histórico de Transações</CardTitle>
+          <CardDescription className="text-center">
             Logs de eventos recebidos pelo gateway de pagamento.
           </CardDescription>
         </CardHeader>

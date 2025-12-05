@@ -1,3 +1,4 @@
+
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -568,6 +569,7 @@ export default function DashboardPage() {
           {/* Desktop Grid */}
           <div className="hidden lg:grid lg:grid-cols-3 gap-8 items-start">
             
+            {/* Left Column */}
             <div className="lg:col-span-1 space-y-8">
                 <Card className="rounded-2xl border-0">
                     <CardHeader>
@@ -598,7 +600,7 @@ export default function DashboardPage() {
 
                 <Card className="rounded-2xl border-0 h-full flex flex-col">
                   <CardHeader>
-                    <CardTitle className="font-headline text-xl">
+                    <CardTitle className="text-center font-headline text-xl">
                       Hub de Ação Rápida
                     </CardTitle>
                   </CardHeader>
@@ -625,7 +627,7 @@ export default function DashboardPage() {
                             <TabsContent value="atividade" className="mt-4 flex-grow flex items-center justify-center">
                               <Sheet><SheetTrigger asChild><Button variant="outline" className="w-full"><Activity className="mr-2 h-4 w-4" /> Ver Atividade Recente</Button></SheetTrigger>
                                 <SheetContent className="sm:max-w-4xl p-0">
-                                    <SheetHeader className="p-6 pb-4 border-b"><SheetTitle>Atividade Recente nas Plataformas</SheetTitle></SheetHeader>
+                                    <SheetHeader className="p-6 pb-4 border-b"><SheetTitle className="text-center">Atividade Recente nas Plataformas</SheetTitle></SheetHeader>
                                     <ScrollArea className="h-[calc(100vh-8rem)]">
                                         <div className="p-6">{isFetchingPosts ? <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div> : <div className='space-y-8'>{instaPosts && userProfile?.instagramHandle && <div><h3 className="text-lg font-semibold flex items-center gap-2 mb-4"><Instagram className="h-5 w-5"/> Instagram</h3><InstagramProfileResults profile={{ id: '', username: userProfile.instagramHandle, followersCount: parseMetric(userProfile.instagramFollowers), isPrivate: false, isBusiness: true, profilePicUrlHd: '', biography: '', fullName: '', mediaCount: 0, followingCount: 0 }} posts={instaPosts} formatNumber={formatNumber} error={null} /></div>}{tiktokPosts && userProfile?.tiktokHandle && <div><h3 className="text-lg font-semibold flex items-center gap-2 mb-4"><Film className="h-5 w-5"/> TikTok</h3><TikTokProfileResults profile={{ id: '', username: userProfile.tiktokHandle, followersCount: parseMetric(userProfile.tiktokFollowers), nickname: '', avatarUrl: '', bio: '', isVerified: false, isPrivate: false, heartsCount: 0, videoCount: 0, followingCount: 0 }} posts={tiktokPosts} formatNumber={formatNumber} error={null} onVideoClick={handleTikTokClick} /></div>}{!(instaPosts && userProfile?.instagramHandle) && !(tiktokPosts && userProfile?.tiktokHandle) && <div className="text-center py-10"><p className="text-muted-foreground">Integre suas contas no seu <Link href="/profile" className='text-primary font-semibold hover:underline'>perfil</Link> para ver seus posts aqui.</p></div>}</div>}</div>
                                     </ScrollArea>
@@ -637,9 +639,9 @@ export default function DashboardPage() {
                 </Card>
             </div>
 
-            {/* Left Column */}
+            {/* Right Column */}
             <div className="lg:col-span-2 space-y-8">
-               <Card className='rounded-2xl border-0'>
+              <Card className='rounded-2xl border-0'>
                 <CardHeader>
                     <CardTitle className="text-center">Métricas de Engajamento</CardTitle>
                 </CardHeader>
@@ -704,7 +706,7 @@ export default function DashboardPage() {
               </Card>
 
               <Card className="rounded-2xl border-0">
-                  <CardHeader><CardTitle>Evolução das Métricas</CardTitle></CardHeader>
+                  <CardHeader><CardTitle className="text-center">Evolução das Métricas</CardTitle></CardHeader>
                   <CardContent className="pl-2 pr-6">
                       {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
                       historicalChartData.length > 0 ? (

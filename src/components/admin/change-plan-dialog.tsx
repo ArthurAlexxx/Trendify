@@ -108,8 +108,8 @@ export function ChangePlanSheet({ isOpen, setIsOpen, user }: ChangePlanSheetProp
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetContent className='p-0 flex flex-col'>
         <SheetHeader className='p-6 pb-4 border-b'>
-          <SheetTitle className='font-headline text-xl'>Alterar Plano de Assinatura</SheetTitle>
-          <SheetDescription>
+          <SheetTitle className='text-center font-headline text-xl'>Alterar Plano de Assinatura</SheetTitle>
+          <SheetDescription className='text-center'>
             Alterando o plano para <strong>{user.displayName}</strong> ({user.email}).
           </SheetDescription>
         </SheetHeader>

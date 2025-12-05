@@ -283,7 +283,7 @@ export default function VideoIdeasPage() {
                             <CarouselItem key={index} className="pl-4 basis-full">
                                 <Card className="rounded-2xl border-0 h-full">
                                     <CardHeader>
-                                        <CardTitle className="flex items-center gap-3">
+                                        <CardTitle className="text-center flex items-center gap-3">
                                             <item.icon className="h-6 w-6 text-primary" />
                                             <span>{item.title}</span>
                                         </CardTitle>
@@ -303,7 +303,7 @@ export default function VideoIdeasPage() {
                 {analysisCriteria.map((item, index) => (
                     <Card key={index} className="rounded-2xl border-0">
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-3">
+                            <CardTitle className="text-center flex items-center gap-3">
                                 <item.icon className="h-6 w-6 text-primary" />
                                 <span>{item.title}</span>
                             </CardTitle>
@@ -327,6 +327,12 @@ export default function VideoIdeasPage() {
         </TabsList>
         <TabsContent value="generate">
            <Card className="rounded-t-none border-t-0">
+              <CardHeader>
+                 <CardTitle className="text-center font-headline text-xl">
+                    Briefing de Conteúdo
+                </CardTitle>
+                 <CardDescription className="text-center">Forneça os detalhes para a IA criar uma ideia de vídeo otimizada.</CardDescription>
+              </CardHeader>
               <CardContent className="p-6">
                 <Form {...form}>
                     <form
@@ -482,7 +488,7 @@ export default function VideoIdeasPage() {
                         <div className="lg:col-span-2 space-y-6">
                            <Card className="border-0 rounded-2xl">
                                 <CardHeader>
-                                    <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
+                                    <CardTitle className="text-center flex items-center gap-3 text-lg font-semibold text-foreground">
                                         <Pen className="h-5 w-5 text-primary" />
                                         <span>Roteiro do Vídeo</span>
                                     </CardTitle>
@@ -502,7 +508,7 @@ export default function VideoIdeasPage() {
                             </Card>
                             
                              <Card className="border-0 rounded-2xl">
-                                <CardHeader><CardTitle className="flex items-center gap-3 text-lg font-semibold"><AlertTriangle className="h-5 w-5 text-primary" />Análise de Concorrência</CardTitle></CardHeader>
+                                <CardHeader><CardTitle className="text-center flex items-center gap-3 text-lg font-semibold"><AlertTriangle className="h-5 w-5 text-primary" />Análise de Concorrência</CardTitle></CardHeader>
                                 <CardContent>
                                     <Accordion type="single" collapsible className="w-full">
                                         {result.nicheCompetitors.map((item, index) => (
@@ -520,7 +526,7 @@ export default function VideoIdeasPage() {
                         </div>
                         <div className="space-y-8">
                             <Card className="border-0 rounded-2xl">
-                                <CardHeader><CardTitle className="flex items-center gap-3 text-lg font-semibold"><TrendingUp className="h-5 w-5 text-primary" />Potencial de Viralização</CardTitle></CardHeader>
+                                <CardHeader><CardTitle className="text-center flex items-center gap-3 text-lg font-semibold"><TrendingUp className="h-5 w-5 text-primary" />Potencial de Viralização</CardTitle></CardHeader>
                                 <CardContent className="space-y-4">
                                      <div className="text-center">
                                         <p className="text-5xl font-bold font-headline">{result.viralScore}</p>
@@ -539,7 +545,7 @@ export default function VideoIdeasPage() {
 
                              {result.platformAdaptations && (result.platformAdaptations.tiktok || result.platformAdaptations.reels || result.platformAdaptations.shorts) && (
                                 <Card className="border-0 rounded-2xl">
-                                    <CardHeader><CardTitle className="flex items-center gap-3 text-lg font-semibold"><LightbulbIcon className="h-5 w-5 text-primary" />Adaptação para Plataformas</CardTitle></CardHeader>
+                                    <CardHeader><CardTitle className="text-center flex items-center gap-3 text-lg font-semibold"><LightbulbIcon className="h-5 w-5 text-primary" />Adaptação para Plataformas</CardTitle></CardHeader>
                                     <CardContent className="space-y-4">
                                         {result.platformAdaptations.tiktok && (
                                             <div>
@@ -564,7 +570,7 @@ export default function VideoIdeasPage() {
                              )}
 
                              <Card className="border-0 rounded-2xl">
-                                <CardHeader><CardTitle className="flex items-center gap-3 text-lg font-semibold"><Camera className="h-5 w-5 text-primary" />Checklist de Gravação</CardTitle></CardHeader>
+                                <CardHeader><CardTitle className="text-center flex items-center gap-3 text-lg font-semibold"><Camera className="h-5 w-5 text-primary" />Checklist de Gravação</CardTitle></CardHeader>
                                 <CardContent>
                                     <ul className="space-y-2">
                                         {result.takesChecklist.map((take, index) => (
@@ -659,3 +665,4 @@ function InfoCard({
     </div>
   );
 }
+

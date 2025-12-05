@@ -305,7 +305,7 @@ function MediaKitPageContent() {
                             <CarouselItem key={index} className="pl-4 basis-full">
                                 <Card className="rounded-2xl border-0 h-full">
                                     <CardHeader>
-                                        <CardTitle className="flex items-center gap-3">
+                                        <CardTitle className="text-center flex items-center gap-3">
                                             <item.icon className="h-6 w-6 text-primary" />
                                             <span>{item.title}</span>
                                         </CardTitle>
@@ -325,7 +325,7 @@ function MediaKitPageContent() {
                 {analysisCriteria.map((item, index) => (
                     <Card key={index} className="rounded-2xl border-0">
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-3">
+                            <CardTitle className="text-center flex items-center gap-3">
                                 <item.icon className="h-6 w-6 text-primary" />
                                 <span>{item.title}</span>
                             </CardTitle>
@@ -350,7 +350,7 @@ function MediaKitPageContent() {
         <TabsContent value="generate">
            <Card className="rounded-t-none border-t-0">
             <CardHeader>
-              <CardTitle className="flex items-center gap-3 font-headline text-xl">
+              <CardTitle className="text-center flex items-center gap-3 font-headline text-xl">
                 <Bot className="h-6 w-6 text-primary" />
                 <span>Assistente de Carreira</span>
               </CardTitle>
@@ -503,7 +503,7 @@ function InfoCard({
       className="border-0 rounded-2xl h-full"
     >
       <CardHeader>
-        <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
+        <CardTitle className="text-center flex items-center gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary" />
           <span>{title}</span>
         </CardTitle>
@@ -530,7 +530,7 @@ function InfoList({
   return (
     <Card className="border-0 rounded-2xl h-full">
       <CardHeader>
-        <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
+        <CardTitle className="text-center flex items-center gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary" />
           <span>{title}</span>
         </CardTitle>
@@ -566,7 +566,7 @@ function PricingCard({
       className="border-0 rounded-2xl h-full"
     >
       <CardHeader>
-        <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
+        <CardTitle className="text-center flex items-center gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary" />
           <span>{title}</span>
         </CardTitle>
@@ -603,3 +603,4 @@ function PricingCard({
     </Card>
   );
 }
+

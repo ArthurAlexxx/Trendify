@@ -305,7 +305,7 @@ export default function GenerateWeeklyPlanPage() {
                           <CarouselItem key={index} className="pl-4 basis-full">
                               <Card className="rounded-2xl border-0 h-full">
                                   <CardHeader>
-                                      <CardTitle className="flex items-center gap-3">
+                                      <CardTitle className="text-center flex items-center gap-3">
                                           <item.icon className="h-6 w-6 text-primary" />
                                           <span>{item.title}</span>
                                       </CardTitle>
@@ -325,7 +325,7 @@ export default function GenerateWeeklyPlanPage() {
               {analysisCriteria.map((item, index) => (
                   <Card key={index} className="rounded-2xl border-0">
                       <CardHeader>
-                          <CardTitle className="flex items-center gap-3">
+                          <CardTitle className="text-center flex items-center gap-3">
                               <item.icon className="h-6 w-6 text-primary" />
                               <span>{item.title}</span>
                           </CardTitle>
@@ -350,11 +350,11 @@ export default function GenerateWeeklyPlanPage() {
         <TabsContent value="generate">
           <Card className="rounded-t-none border-t-0">
             <CardHeader>
-              <CardTitle className="flex items-center gap-3 font-headline text-xl">
+              <CardTitle className="text-center flex items-center gap-3 font-headline text-xl">
                 <Bot className="h-6 w-6 text-primary" />
                 <span>Briefing da Semana</span>
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-center">
                 Forneça os detalhes para um plano melhor. Sua meta de seguidores será usada para focar a estratégia.
               </CardDescription>
             </CardHeader>
@@ -501,7 +501,7 @@ export default function GenerateWeeklyPlanPage() {
                         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
                           <Card className="rounded-2xl border-0">
                             <CardHeader>
-                              <CardTitle className="font-headline text-xl">
+                              <CardTitle className="text-center font-headline text-xl">
                                 Novo Roteiro de Conteúdo
                               </CardTitle>
                             </CardHeader>
@@ -537,7 +537,7 @@ export default function GenerateWeeklyPlanPage() {
                           <div className='space-y-8'>
                           <Card className="rounded-2xl border-0">
                             <CardHeader>
-                              <CardTitle className="font-headline text-xl">
+                              <CardTitle className="text-center font-headline text-xl">
                                 Nova Simulação de Desempenho
                               </CardTitle>
                             </CardHeader>
@@ -585,16 +585,16 @@ export default function GenerateWeeklyPlanPage() {
                           
                           <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                             <Card className="border-0 rounded-2xl">
-                                <CardHeader><CardTitle className="flex items-center gap-2 text-sm text-muted-foreground"><Trophy className='h-4 w-4' /> Índice de Prioridade</CardTitle></CardHeader>
+                                <CardHeader><CardTitle className="text-center flex items-center gap-2 text-sm text-muted-foreground"><Trophy className='h-4 w-4' /> Índice de Prioridade</CardTitle></CardHeader>
                                 <CardContent><ul className="space-y-2 text-sm">{result.priorityIndex.map(item => <li key={item} className='font-semibold'>{item}</li>)}</ul></CardContent>
                             </Card>
                              <Card className="border-0 rounded-2xl">
-                                <CardHeader><CardTitle className="flex items-center gap-2 text-sm text-muted-foreground"><Zap className='h-4 w-4' /> Nível de Esforço</CardTitle></CardHeader>
+                                <CardHeader><CardTitle className="text-center flex items-center gap-2 text-sm text-muted-foreground"><Zap className='h-4 w-4' /> Nível de Esforço</CardTitle></CardHeader>
                                 <CardContent><p className='text-xl font-bold'>{result.effortLevel}</p></CardContent>
                             </Card>
                           </div>
                            <Card className="border-0 rounded-2xl">
-                                <CardHeader><CardTitle className="flex items-center gap-2 text-sm text-muted-foreground"><AlertTriangle className='h-4 w-4' /> Dicas de Realinhamento</CardTitle></CardHeader>
+                                <CardHeader><CardTitle className="text-center flex items-center gap-2 text-sm text-muted-foreground"><AlertTriangle className='h-4 w-4' /> Dicas de Realinhamento</CardTitle></CardHeader>
                                 <CardContent><p className='text-sm'>{result.realignmentTips}</p></CardContent>
                             </Card>
                           </div>
@@ -615,3 +615,4 @@ export default function GenerateWeeklyPlanPage() {
     </div>
   );
 }
+
