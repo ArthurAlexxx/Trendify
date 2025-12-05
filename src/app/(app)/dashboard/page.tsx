@@ -114,7 +114,7 @@ const platformChartConfig = {
   tiktok: {
     ...chartConfigBase,
     followers: { ...chartConfigBase.followers, color: "hsl(var(--primary))" },
-    views: { ...chartConfigBase.views, color: "hsl(var(--chart-2))" },
+    views: { ...chartConfig-base.views, color: "hsl(var(--chart-2))" },
     likes: { ...chartConfigBase.likes, color: "hsl(var(--chart-3))" },
     comments: { ...chartConfigBase.comments, color: "hsl(var(--chart-4))" },
   },
@@ -667,55 +667,6 @@ export default function DashboardPage() {
                 <Card className="rounded-2xl border-0">
                     <CardHeader className='items-center text-center'>
                         <CardTitle className="font-headline text-lg sm:text-xl">
-                            Roteiro do Dia ({diaDaSemanaNormalizado})
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                    {isLoadingRoteiro ? <Skeleton className="h-24 w-full" /> : (
-                        roteiroDoDia && roteiroDoDia.length > 0 ? (
-                            <ul className="space-y-3">
-                                {roteiroDoDia.map((item, index) => (
-                                    <li key={index}>
-                                        <div className="flex items-start gap-3">
-                                            <Checkbox
-                                                id={`roteiro-dia-${index}`}
-                                                checked={item.concluido}
-                                                onCheckedChange={() => handleToggleRoteiro(item, index)}
-                                                className="h-5 w-5 mt-0.5"
-                                            />
-                                            <div>
-                                                <label htmlFor={`roteiro-dia-${index}`} className={cn('font-medium transition-colors cursor-pointer', item.concluido ? 'line-through text-muted-foreground' : 'text-foreground')}>
-                                                    {item.tarefa}
-                                                </label>
-                                                <p className="text-xs text-muted-foreground">{item.detalhes}</p>
-                                            </div>
-                                        </div>
-                                    </li>
-                                ))}
-                            </ul>
-                        ) : (
-                        <div className="text-center py-4 rounded-xl bg-muted/50 border border-dashed h-full flex flex-col justify-center">
-                                <ClipboardList className="mx-auto h-6 w-6 text-muted-foreground mb-2" />
-                                <h3 className="font-semibold text-foreground text-sm">
-                                    Nenhuma tarefa para hoje.
-                                </h3>
-                                <p className="text-xs text-muted-foreground">
-                                    Gere um novo <Link href="/generate-weekly-plan" className="text-primary hover:underline">plano semanal</Link>.
-                                </p>
-                            </div>
-                        )
-                    )}
-                    </CardContent>
-                </Card>
-            </div>
-        </div>
-
-        {/* MIDDLE SECTION: Histórico e Tarefas */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-            <div className="lg:col-span-1 space-y-8">
-               <Card className="rounded-2xl border-0">
-                    <CardHeader className='items-center text-center'>
-                        <CardTitle className="font-headline text-lg sm:text-xl">
                             Recursos & Atividade
                         </CardTitle>
                     </CardHeader>
@@ -828,6 +779,56 @@ export default function DashboardPage() {
                         </Sheet>
                     </CardContent>
                 </Card>
+
+            </div>
+        </div>
+
+        {/* MIDDLE SECTION: Histórico e Tarefas */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+            <div className="lg:col-span-1 space-y-8">
+               <Card className="rounded-2xl border-0">
+                    <CardHeader className='items-center text-center'>
+                        <CardTitle className="font-headline text-lg sm:text-xl">
+                            Roteiro do Dia ({diaDaSemanaNormalizado})
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                    {isLoadingRoteiro ? <Skeleton className="h-24 w-full" /> : (
+                        roteiroDoDia && roteiroDoDia.length > 0 ? (
+                            <ul className="space-y-3">
+                                {roteiroDoDia.map((item, index) => (
+                                    <li key={index}>
+                                        <div className="flex items-start gap-3">
+                                            <Checkbox
+                                                id={`roteiro-dia-${index}`}
+                                                checked={item.concluido}
+                                                onCheckedChange={() => handleToggleRoteiro(item, index)}
+                                                className="h-5 w-5 mt-0.5"
+                                            />
+                                            <div>
+                                                <label htmlFor={`roteiro-dia-${index}`} className={cn('font-medium transition-colors cursor-pointer', item.concluido ? 'line-through text-muted-foreground' : 'text-foreground')}>
+                                                    {item.tarefa}
+                                                </label>
+                                                <p className="text-xs text-muted-foreground">{item.detalhes}</p>
+                                            </div>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                        <div className="text-center py-4 rounded-xl bg-muted/50 border border-dashed h-full flex flex-col justify-center">
+                                <ClipboardList className="mx-auto h-6 w-6 text-muted-foreground mb-2" />
+                                <h3 className="font-semibold text-foreground text-sm">
+                                    Nenhuma tarefa para hoje.
+                                </h3>
+                                <p className="text-xs text-muted-foreground">
+                                    Gere um novo <Link href="/generate-weekly-plan" className="text-primary hover:underline">plano semanal</Link>.
+                                </p>
+                            </div>
+                        )
+                    )}
+                    </CardContent>
+                </Card>
             </div>
             <div className="lg:col-span-2">
                  <Card className="rounded-2xl border-0 h-full">
@@ -881,4 +882,5 @@ export default function DashboardPage() {
   );
 }
 
+    
     
