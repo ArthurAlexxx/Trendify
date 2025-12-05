@@ -351,6 +351,16 @@ export default function DashboardPage() {
      }
   }
 
+  const platformIcon = useMemo(() => {
+    if (selectedPlatform === 'instagram') {
+        return <Instagram className="h-5 w-5" />;
+    }
+    if (selectedPlatform === 'tiktok') {
+        return <Film className="h-5 w-5" />;
+    }
+    return null;
+  }, [selectedPlatform]);
+
 
   return (
     <>
@@ -376,12 +386,8 @@ export default function DashboardPage() {
               <Tabs value={selectedPlatform} onValueChange={(value) => setSelectedPlatform(value as any)}>
                 <TabsList>
                   <TabsTrigger value="total">Total</TabsTrigger>
-                  <TabsTrigger value="instagram" className="p-2">
-                    <Image src="https://firebasestorage.googleapis.com/v0/b/studio-4233590611-a8ab0.firebasestorage.app/o/pngimg.com%20-%20instagram_PNG5.png?alt=media&token=95edf789-54cd-402b-ac4e-1756774f0532" alt="Instagram" width={20} height={20} />
-                  </TabsTrigger>
-                  <TabsTrigger value="tiktok" className="p-2">
-                    <Image src="https://firebasestorage.googleapis.com/v0/b/studio-4233590611-a8ab0.firebasestorage.app/o/pngimg.com%20-%20tiktok_PNG29.png?alt=media&token=3fef3f25-88a9-4412-b955-dd1d0b40f3c3" alt="TikTok" width={20} height={20} />
-                  </TabsTrigger>
+                  <TabsTrigger value="instagram">Instagram</TabsTrigger>
+                  <TabsTrigger value="tiktok">TikTok</TabsTrigger>
                 </TabsList>
               </Tabs>
               {userProfile && 
@@ -403,7 +409,10 @@ export default function DashboardPage() {
                   <CarouselItem className="pl-2 md:pl-4 basis-full">
                   <Card className="rounded-2xl border-0 h-full">
                       <CardHeader className='items-center text-center'>
-                          <CardTitle>Meta de Seguidores</CardTitle>
+                          <CardTitle className='flex items-center gap-2'>
+                            {platformIcon}
+                            Meta de Seguidores
+                          </CardTitle>
                       </CardHeader>
                       <CardContent className="pt-6">
                           <div className="flex flex-col items-center justify-center text-center">
@@ -431,7 +440,10 @@ export default function DashboardPage() {
                   <CarouselItem className="pl-2 md:pl-4 basis-full">
                   <Card className='rounded-2xl border-0 h-full'>
                       <CardHeader>
-                          <CardTitle>Métricas de Engajamento</CardTitle>
+                          <CardTitle className='flex items-center gap-2'>
+                            {platformIcon}
+                            Métricas de Engajamento
+                          </CardTitle>
                       </CardHeader>
                       <CardContent>
                           <div className='grid grid-cols-1 gap-4'>
@@ -454,7 +466,10 @@ export default function DashboardPage() {
                   <CarouselItem className="pl-2 md:pl-4 basis-full">
                   <Card className="rounded-2xl border-0 h-full flex flex-col">
                        <CardHeader className='flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left'>
-                           <CardTitle>Análise de Desempenho</CardTitle>
+                           <CardTitle className='flex items-center gap-2'>
+                             {platformIcon}
+                             Análise de Desempenho
+                           </CardTitle>
                            <Button variant="ghost" size="sm" onClick={handleGenerateInsights} disabled={isGeneratingInsights} className="w-full sm:w-auto">
                                {isGeneratingInsights ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
                                Analisar Desempenho
@@ -490,7 +505,10 @@ export default function DashboardPage() {
           <div className="hidden lg:grid lg:grid-cols-3 lg:gap-8">
               <Card className="rounded-2xl border-0 h-full">
                   <CardHeader className='items-center text-center'>
-                      <CardTitle>Meta de Seguidores</CardTitle>
+                      <CardTitle className='flex items-center gap-2'>
+                        {platformIcon}
+                        Meta de Seguidores
+                      </CardTitle>
                   </CardHeader>
                   <CardContent className="pt-6">
                       <div className="flex flex-col items-center justify-center text-center">
@@ -516,7 +534,10 @@ export default function DashboardPage() {
               </Card>
               <Card className='rounded-2xl border-0 h-full'>
                   <CardHeader>
-                      <CardTitle>Métricas de Engajamento</CardTitle>
+                      <CardTitle className='flex items-center gap-2'>
+                        {platformIcon}
+                        Métricas de Engajamento
+                      </CardTitle>
                   </CardHeader>
                   <CardContent>
                       <div className='grid grid-cols-1 gap-4'>
@@ -537,7 +558,10 @@ export default function DashboardPage() {
               </Card>
               <Card className="rounded-2xl border-0 h-full flex flex-col">
                    <CardHeader className='flex flex-row items-center justify-between'>
-                       <CardTitle>Análise de Desempenho</CardTitle>
+                       <CardTitle className='flex items-center gap-2'>
+                          {platformIcon}
+                          Análise de Desempenho
+                       </CardTitle>
                        <Button variant="ghost" size="sm" onClick={handleGenerateInsights} disabled={isGeneratingInsights}>
                            {isGeneratingInsights ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
                            Analisar
