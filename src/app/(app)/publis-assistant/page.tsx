@@ -558,11 +558,14 @@ function PublisAssistantPageContent() {
                                 </div>
                                 <div>
                                      <h4 className="font-semibold mb-2">Adaptações de Tom</h4>
-                                     <div className="space-y-3">
-                                         <p className="text-sm"><strong className='font-semibold text-foreground'>Corporativo: </strong><span className='text-muted-foreground'>{result.brandToneAdaptations.corporativa}</span></p>
-                                         <p className="text-sm"><strong className='font-semibold text-foreground'>Jovem: </strong><span className='text-muted-foreground'>{result.brandToneAdaptations.jovem}</span></p>
-                                         <p className="text-sm"><strong className='font-semibold text-foreground'>Humor: </strong><span className='text-muted-foreground'>{result.brandToneAdaptations.humor}</span></p>
-                                     </div>
+                                      <div className="space-y-3">
+                                        {result.brandToneAdaptations.map((adaptation, i) => (
+                                            <p key={i} className="text-sm">
+                                                <strong className='font-semibold text-foreground'>{adaptation.titulo}: </strong>
+                                                <span className='text-muted-foreground'>{adaptation.texto}</span>
+                                            </p>
+                                        ))}
+                                    </div>
                                 </div>
                             </CardContent>
                         </Card>
@@ -572,7 +575,10 @@ function PublisAssistantPageContent() {
                       <div className="space-y-8">
                          <Card className="border-0 rounded-2xl">
                              <CardHeader><CardTitle className="flex items-center gap-3 text-lg font-semibold"><Target className="h-5 w-5 text-primary" />Projeção de Conversão</CardTitle></CardHeader>
-                             <CardContent><p className='text-sm text-muted-foreground'>{result.conversionProjection}</p></CardContent>
+                             <CardContent className='space-y-1'>
+                                <p className='font-semibold text-foreground'>{result.conversionProjection.roteiro}</p>
+                                <p className='text-sm text-muted-foreground'>{result.conversionProjection.justificativa}</p>
+                             </CardContent>
                          </Card>
                          <InfoListCard
                             title="Checklist de Conversão"

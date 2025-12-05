@@ -17,18 +17,23 @@ const TrendVariationSchema = z.object({
 const CreativeAngleSchema = z.string();
 
 const BrandToneAdaptationSchema = z.object({
-    corporativa: z.string(),
-    jovem: z.string(),
-    humor: z.string(),
+  titulo: z.string().describe("O tom de voz da adaptação (ex: 'Tom Corporativo', 'Tom Jovem')."),
+  texto: z.string().describe("O texto do CTA adaptado para aquele tom de voz."),
 });
+
+const ConversionProjectionSchema = z.object({
+    roteiro: z.string().describe("O título ou número do roteiro com maior potencial."),
+    justificativa: z.string().describe("A explicação concisa do porquê este roteiro tem maior potencial."),
+});
+
 
 const GeneratePubliProposalsOutputSchema = z.object({
   scripts: z.array(ScriptSchema).length(5).describe('Uma lista de 5 ideias de roteiros de vídeo prontos para gravar.'),
   trendVariations: z.array(TrendVariationSchema).min(2).max(3).describe('Uma lista de 2 a 3 variações das ideias de roteiro, adaptadas para tendências.'),
   conversionChecklist: z.array(z.string()).min(4).max(5).describe('Um checklist com 4 a 5 pontos essenciais para garantir a conversão do vídeo.'),
   creativeAngles: z.array(CreativeAngleSchema).describe("Uma lista de ângulos criativos profissionais para a campanha."),
-  brandToneAdaptations: BrandToneAdaptationSchema.describe("Adaptações de tom de voz para a campanha."),
-  conversionProjection: z.string().describe("Indicação de qual roteiro tem maior potencial de vendas e por quê."),
+  brandToneAdaptations: z.array(BrandToneAdaptationSchema).describe("Adaptações de tom de voz para a campanha."),
+  conversionProjection: ConversionProjectionSchema.describe("Indicação de qual roteiro tem maior potencial de vendas e por quê."),
 });
 
 
@@ -96,8 +101,8 @@ Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON d
   - trendVariations: Crie 2-3 sugestões de como adaptar uma das ideias para uma trend de áudio ou vídeo em alta no Instagram/TikTok. Cada item deve ser um objeto com a chave "variacao".
   - conversionChecklist: Crie um checklist com 4-5 itens para maximizar a conversão, focado no objetivo. Ex: 'Mostrar prova social' para Vendas, ou 'Gancho curioso sobre a marca' para Reconhecimento.
   - creativeAngles: Liste alguns ângulos criativos profissionais (ex: "Focar na sustentabilidade do produto", "Criar uma narrativa de superação com a marca").
-  - brandToneAdaptations: Crie 3 pequenas variações do CTA principal: uma com tom corporativo, uma com tom jovem/descolado e uma com tom de humor.
-  - conversionProjection: Indique qual dos 5 roteiros tem maior potencial de conversão para o objetivo definido e explique o porquê de forma concisa.
+  - brandToneAdaptations: Crie 3 adaptações do CTA principal em um array. Cada item deve ser um objeto com "titulo" (ex: "Tom Corporativo") e "texto" (o CTA adaptado).
+  - conversionProjection: Crie um objeto com "roteiro" (o nome do roteiro, ex: "Roteiro 3: Unboxing") e "justificativa" (a explicação do porquê ele tem maior potencial de conversão).
   `;
 
   try {
