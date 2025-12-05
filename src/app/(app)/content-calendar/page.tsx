@@ -545,14 +545,12 @@ export default function ContentCalendarPage() {
                     </div>
                  )}
             </ScrollArea>
-             <SheetFooter className="p-6 border-t flex-col sm:flex-row gap-2">
-                <div className="w-full flex justify-between">
-                    <div className='flex gap-2'>
-                        <Button variant="outline" onClick={() => handleEditEvent(selectedEvent)}><Edit className="mr-2 h-4 w-4" /> Editar</Button>
-                        <Button variant="outline" disabled={selectedEvent.status === 'Publicado'} onClick={() => handleMarkAsCompleted(selectedEvent.id)}><CheckCircle className="mr-2 h-4 w-4" /> Publicado</Button>
-                    </div>
-                    <Button variant="destructive" onClick={() => confirmDelete(selectedEvent.id)}><Trash2 className="mr-2 h-4 w-4" /> Excluir</Button>
+             <SheetFooter className="p-6 border-t flex-col sm:flex-row sm:justify-between gap-2">
+                <div className='flex flex-col sm:flex-row gap-2'>
+                    <Button variant="outline" onClick={() => handleEditEvent(selectedEvent)}><Edit className="mr-2 h-4 w-4" /> Editar</Button>
+                    <Button variant="outline" disabled={selectedEvent.status === 'Publicado'} onClick={() => handleMarkAsCompleted(selectedEvent.id)}><CheckCircle className="mr-2 h-4 w-4" /> Publicado</Button>
                 </div>
+                <Button variant="destructive" onClick={() => confirmDelete(selectedEvent.id)}><Trash2 className="mr-2 h-4 w-4" /> Excluir</Button>
             </SheetFooter>
           </SheetContent>
         </Sheet>
