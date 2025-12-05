@@ -167,13 +167,13 @@ export function ChangePlanSheet({ isOpen, setIsOpen, user }: ChangePlanSheetProp
             </div>
         </ScrollArea>
 
-        <SheetFooter className="p-6 border-t">
+        <SheetFooter className="p-6 border-t flex-col sm:flex-row gap-2">
           <SheetClose asChild>
-            <Button type="button" variant="outline">
+            <Button type="button" variant="outline" className='w-full sm:w-auto'>
               Cancelar
             </Button>
           </SheetClose>
-          <Button type="button" onClick={form.handleSubmit(onSubmit)} disabled={isPending}>
+          <Button type="button" onClick={form.handleSubmit(onSubmit)} disabled={isPending} className="w-full sm:w-auto">
             {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Salvar Alterações
           </Button>

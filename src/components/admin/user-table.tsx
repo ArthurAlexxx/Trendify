@@ -87,18 +87,18 @@ export function UserTable({ data }: UserTableProps) {
     )}
      {selectedUser && (
         <Sheet open={isRoleSheetOpen} onOpenChange={setIsRoleSheetOpen}>
-            <SheetContent side="bottom" className='rounded-t-2xl'>
-                <SheetHeader className='text-center'>
+            <SheetContent side="bottom" className='p-0 rounded-t-2xl'>
+                <SheetHeader className="p-6 pb-4 text-center">
                     <SheetTitle className='font-headline text-xl'>Promover a Administrador?</SheetTitle>
                     <SheetDescription>
                         Esta ação concederá a <strong>{selectedUser.displayName}</strong> acesso total ao painel de administração. Você tem certeza?
                     </SheetDescription>
                 </SheetHeader>
-                <SheetFooter className="mt-6 flex-col-reverse sm:flex-row gap-2 justify-center">
+                <SheetFooter className="p-6 pt-4 bg-muted/50 flex-col-reverse sm:flex-row gap-2">
                     <SheetClose asChild>
-                        <Button variant="outline">Cancelar</Button>
+                        <Button variant="outline" className="w-full sm:w-auto">Cancelar</Button>
                     </SheetClose>
-                    <Button className={cn(buttonVariants({ variant: 'default' }), "bg-amber-600 hover:bg-amber-700")} onClick={handlePromoteToAdmin}>
+                    <Button onClick={handlePromoteToAdmin} className={cn(buttonVariants({ variant: 'default' }), "bg-amber-600 hover:bg-amber-700 w-full sm:w-auto")}>
                         Sim, promover
                     </Button>
                 </SheetFooter>
@@ -162,7 +162,7 @@ export function UserTable({ data }: UserTableProps) {
                         </DropdownMenuItem>
                          {user.role !== 'admin' && (
                             <DropdownMenuItem onSelect={(e) => {e.preventDefault(); handleOpenRoleSheet(user)}}
-                                className="text-amber-600 focus:bg-amber-100 focus:text-amber-700">
+                                className="text-amber-600 focus:text-amber-700 focus:bg-amber-100">
                                 <Shield className="mr-2 h-4 w-4" />
                                 <span>Promover a Admin</span>
                             </DropdownMenuItem>

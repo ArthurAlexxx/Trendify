@@ -20,7 +20,6 @@ import { Badge } from './ui/badge';
 import { ScrollArea } from './ui/scroll-area';
 import { Textarea } from './ui/textarea';
 import React, { useState } from 'react';
-import { Separator } from './ui/separator';
 
 export function SavedIdeasSheet() {
   const { user } = useUser();
@@ -56,7 +55,7 @@ export function SavedIdeasSheet() {
         </Button>
       </SheetTrigger>
       <SheetContent className="w-full sm:max-w-lg p-0">
-        <SheetHeader className='p-6 border-b'>
+        <SheetHeader className='p-6 pb-4 border-b'>
           <SheetTitle className="font-headline text-xl">Ideias Salvas</SheetTitle>
           <SheetDescription>
             Acesse aqui todas as ideias geradas pela IA que você salvou.
@@ -119,7 +118,7 @@ export function SavedIdeasSheet() {
     {selectedIdea && (
         <Sheet open={isDetailSheetOpen} onOpenChange={setIsDetailSheetOpen}>
             <SheetContent className="w-full sm:max-w-2xl p-0 flex flex-col">
-                <SheetHeader className='p-6 border-b'>
+                <SheetHeader className='p-6 pb-4 border-b'>
                 <SheetTitle className="font-headline text-2xl">
                     {selectedIdea.titulo}
                 </SheetTitle>

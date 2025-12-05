@@ -62,7 +62,7 @@ export function PreviousPlansSheet() {
         </Button>
       </SheetTrigger>
       <SheetContent className="w-full sm:max-w-lg p-0">
-        <SheetHeader className='p-6 border-b'>
+        <SheetHeader className='p-6 pb-4 border-b'>
           <SheetTitle className="font-headline text-xl">Planos Anteriores</SheetTitle>
           <SheetDescription>
             Acesse aqui todos os planejamentos que você já gerou.
@@ -118,7 +118,7 @@ export function PreviousPlansSheet() {
     {selectedPlan && (
         <Sheet open={isDetailSheetOpen} onOpenChange={setIsDetailSheetOpen}>
             <SheetContent className="w-full sm:max-w-4xl p-0 flex flex-col">
-                <SheetHeader className='p-6 border-b'>
+                <SheetHeader className='p-6 pb-4 border-b'>
                     <SheetTitle className="font-headline text-2xl">
                     Detalhes do Plano - {selectedPlan.createdAt && format(selectedPlan.createdAt.toDate(), "dd/MM/yyyy", { locale: ptBR })}
                     </SheetTitle>
@@ -147,9 +147,9 @@ export function PreviousPlansSheet() {
                     </Card>
                     <Card className='border-0 shadow-none'>
                         <CardHeader><CardTitle>Simulação de Desempenho</CardTitle></CardHeader>
-                        <CardContent className="pl-2">
+                        <CardContent className="pl-0 sm:pl-2">
                             <ChartContainer config={chartConfig} className="h-[350px] w-full">
-                                <BarChart accessibilityLayer data={selectedPlan.desempenhoSimulado || []} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                                <BarChart accessibilityLayer data={selectedPlan.desempenhoSimulado || []} margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
                                     <CartesianGrid vertical={false} />
                                     <XAxis dataKey="data" tickLine={false} axisLine={false} />
                                     <YAxis tickLine={false} axisLine={false} tickFormatter={(value) => typeof value === 'number' && value >= 1000 ? `${value / 1000}k` : value} />
