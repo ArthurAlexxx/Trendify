@@ -48,15 +48,15 @@ const userMenuItems: {
     category: 'Menu',
     items: [
       { href: '/dashboard', icon: LineChart, label: 'Acompanhamento', plan: 'free' },
-      { href: '/generate-weekly-plan', icon: ClipboardList, label: 'Seu Plano', plan: 'pro' },
       { href: '/content-calendar', icon: Calendar, label: 'Calendário', plan: 'pro' },
     ],
   },
   {
     category: 'Ferramentas',
     items: [
-      { href: '/video-review', icon: Video, label: 'Análise de Vídeo', plan: 'pro' },
+      { href: '/generate-weekly-plan', icon: ClipboardList, label: 'Seu Plano', plan: 'pro' },
       { href: '/video-ideas', icon: Lightbulb, label: 'Ideias de Vídeos', plan: 'pro' },
+      { href: '/video-review', icon: Video, label: 'Análise de Vídeo', plan: 'pro' },
       { href: '/media-kit', icon: Briefcase, label: 'Mídia Kit & Propostas', plan: 'premium' },
       { href: '/publis-assistant', icon: Newspaper, label: 'Ideias para Publis', plan: 'premium' },
     ],
@@ -276,4 +276,3 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
     </aside>
   );
 }
-
