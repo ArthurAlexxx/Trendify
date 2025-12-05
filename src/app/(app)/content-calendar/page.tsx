@@ -129,18 +129,9 @@ export default function ContentCalendarPage() {
             status: editingPost.status,
             notes: editingPost.notes || '',
         });
-    } else if (isModalOpen) { // For new posts, ensure date is set but other fields are cleared
-        const currentDate = form.getValues('date'); // Keep the date set by handleNewEventForDay
+    } else if (!isModalOpen) {
+        setEditingPost(null);
         form.reset({
-            title: '',
-            contentType: 'Reels',
-            date: currentDate, // Preserve the selected day
-            time: format(new Date(), 'HH:mm'),
-            status: 'Agendado',
-            notes: '',
-        });
-    } else { // When modal is closed, fully reset
-         form.reset({
             title: '',
             contentType: 'Reels',
             date: new Date(),
@@ -164,7 +155,14 @@ export default function ContentCalendarPage() {
 
   const handleNewEventForDay = (day: Date) => {
     setEditingPost(null);
-    form.setValue('date', day); // Set the date for the new event
+    form.reset({
+        title: '',
+        contentType: 'Reels',
+        date: day,
+        time: format(new Date(), 'HH:mm'),
+        status: 'Agendado',
+        notes: '',
+    });
     setIsModalOpen(true);
   };
   
@@ -590,5 +588,7 @@ export default function ContentCalendarPage() {
     </div>
   );
 }
+
+    
 
     
