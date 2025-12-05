@@ -89,6 +89,7 @@ import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
+import { SavedIdeasSheet } from '@/components/saved-ideas-sheet';
 
 
 const chartConfigBase = {
@@ -725,64 +726,7 @@ export default function DashboardPage() {
         {/* MIDDLE SECTION: Histórico e Tarefas */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             <div className="lg:col-span-1 space-y-8">
-                 <Card className="rounded-2xl border-0 h-full">
-                    <CardHeader>
-                    <CardTitle className="font-headline text-xl flex items-center gap-2">
-                        <Lightbulb className="h-5 w-5 text-primary"/>
-                        Ideias e Tarefas
-                    </CardTitle>
-                    <CardDescription>Suas ideias salvas e tarefas pendentes.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                    {isLoadingIdeias ? <Skeleton className="h-24 w-full" /> : (
-                        ideiasSalvas && ideiasSalvas.length > 0 ? (
-                        <ul className="space-y-3">
-                            {ideiasSalvas.map((ideia) => (
-                            <li key={ideia.id} className="flex items-start gap-3">
-                                <Checkbox
-                                id={`ideia-${ideia.id}`}
-                                checked={ideia.concluido}
-                                onCheckedChange={() => handleToggleIdeia(ideia)}
-                                className="h-5 w-5 mt-0.5"
-                                />
-                                <div className="grid gap-0.5">
-                                <label
-                                    htmlFor={`ideia-${ideia.id}`}
-                                    className={cn(
-                                    'font-medium transition-colors cursor-pointer',
-                                    ideia.concluido
-                                        ? 'line-through text-muted-foreground'
-                                        : 'text-foreground'
-                                    )}
-                                >
-                                    {ideia.titulo}
-                                </label>
-                                <p className="text-xs text-muted-foreground">
-                                    Salvo de "{ideia.origem}"{' '}
-                                    {ideia.createdAt &&
-                                    formatDistanceToNow(ideia.createdAt.toDate(), {
-                                        addSuffix: true,
-                                        locale: ptBR,
-                                    })}
-                                </p>
-                                </div>
-                            </li>
-                            ))}
-                        </ul>
-                        ) : (
-                        <div className="text-center py-8 px-4 rounded-xl bg-muted/50 border border-dashed h-full flex flex-col justify-center">
-                            <Rocket className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
-                            <h3 className="font-semibold text-foreground">
-                            Comece a Gerar Ideias!
-                            </h3>
-                            <p className="text-sm text-muted-foreground">
-                            Suas ideias e tarefas salvas aparecerão aqui.
-                            </p>
-                        </div>
-                        )
-                    )}
-                    </CardContent>
-                </Card>
+                <SavedIdeasSheet />
                 <Sheet>
                     <SheetTrigger asChild>
                         <Button variant="outline" className="w-full">
