@@ -209,6 +209,13 @@ export default function DashboardPage() {
     return String(num);
   };
   
+    const formatNumber = (num: number): string => {
+        if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(1).replace('.', ',')}M`;
+        if (num >= 10000) return `${(num / 1000).toFixed(1).replace('.', ',')}K`;
+        if (num >= 1000) return num.toLocaleString('pt-BR');
+        return String(num);
+    };
+
   const { currentFollowers, goalFollowers } = useMemo(() => {
     if (!userProfile) return { currentFollowers: 0, goalFollowers: 0 };
     switch (selectedPlatform) {
