@@ -390,11 +390,98 @@ export default function DashboardPage() {
         
         {userProfile && <ProfileCompletionAlert userProfile={userProfile} isPremium={isPremium} />}
         
-        <Carousel className="w-full" opts={{ align: 'start', dragFree: true }}>
-          <CarouselContent className="-ml-2 md:-ml-4 py-4 lg:grid lg:grid-cols-3 lg:gap-8">
-            <CarouselItem className="pl-2 md:pl-4 basis-full lg:basis-auto">
-              <Card className="rounded-2xl border-0 h-full">
-                 <CardHeader className='items-center text-center'>
+        <div className="lg:hidden">
+            <Carousel className="w-full" opts={{ align: 'start' }}>
+            <CarouselContent className="-ml-2 md:-ml-4 py-4">
+                <CarouselItem className="pl-2 md:pl-4 basis-full">
+                <Card className="rounded-2xl border-0 h-full">
+                    <CardHeader className='items-center text-center'>
+                        <CardTitle>Meta de Seguidores</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-6">
+                        <div className="flex flex-col items-center justify-center text-center">
+                            {isLoading ? <Skeleton className="h-48 w-48 rounded-full" /> : 
+                            goalFollowers > 0 ? (
+                            <div className='relative h-48 w-48'>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart><Pie data={pieData} dataKey="value" startAngle={90} endAngle={-270} innerRadius="80%" outerRadius="100%" cornerRadius={50} paddingAngle={0} stroke="none">{pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.fill} />)}</Pie></PieChart>
+                                </ResponsiveContainer>
+                                <div className="absolute inset-0 flex flex-col items-center justify-center"><span className="text-4xl font-bold font-headline text-primary">{followerGoalProgress.toFixed(0)}%</span></div>
+                            </div>
+                            ) : (
+                                <div className='flex flex-col items-center justify-center h-48 w-48 rounded-full border-4 border-dashed bg-muted'><Target className="h-12 w-12 text-muted-foreground" /></div>
+                            )}
+                            <p className="text-3xl font-bold font-headline mt-4">{formatMetricValue(currentFollowers)}</p>
+                            {goalFollowers > 0 ? (
+                                <p className="text-sm text-muted-foreground">de {formatMetricValue(goalFollowers)} seguidores</p>
+                            ) : (
+                                <p className="text-sm text-muted-foreground">Defina uma meta para começar</p>
+                            )}
+                        </div>
+                    </CardContent>
+                </Card>
+                </CarouselItem>
+                <CarouselItem className="pl-2 md:pl-4 basis-full">
+                <Card className='rounded-2xl border-0 h-full'>
+                    <CardHeader>
+                        <CardTitle>Métricas de Engajamento</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className='grid grid-cols-1 gap-4'>
+                            <div className='p-4 rounded-lg bg-muted/50 border'>
+                                <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><Eye className="h-4 w-4" /> Views</h3>
+                                <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.views)}</p>
+                            </div>
+                            <div className='p-4 rounded-lg bg-muted/50 border'>
+                                <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><Heart className="h-4 w-4" /> Likes</h3>
+                                <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.likes)}</p>
+                            </div>
+                            <div className='p-4 rounded-lg bg-muted/50 border'>
+                                <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><MessageSquare className="h-4 w-4" /> Comentários</h3>
+                                <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.comments)}</p>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+                </CarouselItem>
+                <CarouselItem className="pl-2 md:pl-4 basis-full">
+                <Card className="rounded-2xl border-0 h-full flex flex-col">
+                    <CardHeader className='flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left'>
+                        <CardTitle>Análise de Desempenho</CardTitle>
+                        <Button variant="ghost" size="sm" onClick={handleGenerateInsights} disabled={isGeneratingInsights} className="w-full sm:w-auto">
+                            {isGeneratingInsights ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+                            Analisar Desempenho
+                        </Button>
+                    </CardHeader>
+                    <CardContent className="flex-1 flex flex-col">
+                        {isGeneratingInsights ? <div className="flex-1 flex justify-center items-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div> : insights && insights.length > 0 ? (
+                            <ScrollArea className="h-48 pr-4">
+                            <ul className="space-y-4">
+                                {insights.map((insight, i) => (
+                                <li key={i} className="flex items-start gap-3">
+                                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary flex-shrink-0 mt-0.5"><Lightbulb className="h-3.5 w-3.5" /></div>
+                                    <p className="text-sm text-muted-foreground">{insight.insight}</p>
+                                </li>
+                                ))}
+                            </ul>
+                            </ScrollArea>
+                        ) : (
+                            <div className="flex-1 flex flex-col justify-center items-center text-center text-sm text-muted-foreground p-4">
+                                <p>Clique em 'Analisar Desempenho' para receber uma análise com base nas suas últimas métricas.</p>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+                </CarouselItem>
+            </CarouselContent>
+            <CarouselPrevious className="flex -left-2" />
+            <CarouselNext className="flex -right-2" />
+            </Carousel>
+        </div>
+
+        <div className="hidden lg:grid lg:grid-cols-3 lg:gap-8">
+             <Card className="rounded-2xl border-0 h-full">
+                <CardHeader className='items-center text-center'>
                     <CardTitle>Meta de Seguidores</CardTitle>
                 </CardHeader>
                 <CardContent className="pt-6">
@@ -418,11 +505,9 @@ export default function DashboardPage() {
                         )}
                     </div>
                 </CardContent>
-              </Card>
-            </CarouselItem>
-            <CarouselItem className="pl-2 md:pl-4 basis-full lg:basis-auto">
-              <Card className='rounded-2xl border-0 h-full'>
-                 <CardHeader>
+            </Card>
+             <Card className='rounded-2xl border-0 h-full'>
+                <CardHeader>
                     <CardTitle>Métricas de Engajamento</CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -441,28 +526,26 @@ export default function DashboardPage() {
                         </div>
                     </div>
                 </CardContent>
-              </Card>
-            </CarouselItem>
-            <CarouselItem className="pl-2 md:pl-4 basis-full lg:basis-auto">
-              <Card className="rounded-2xl border-0 h-full flex flex-col">
+            </Card>
+            <Card className="rounded-2xl border-0 h-full flex flex-col">
                 <CardHeader className='flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left'>
                     <CardTitle>Análise de Desempenho</CardTitle>
                     <Button variant="ghost" size="sm" onClick={handleGenerateInsights} disabled={isGeneratingInsights} className="w-full sm:w-auto">
-                         {isGeneratingInsights ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
-                         Analisar Desempenho
+                        {isGeneratingInsights ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+                        Analisar Desempenho
                     </Button>
                 </CardHeader>
                 <CardContent className="flex-1 flex flex-col">
                     {isGeneratingInsights ? <div className="flex-1 flex justify-center items-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div> : insights && insights.length > 0 ? (
                         <ScrollArea className="h-48 pr-4">
-                          <ul className="space-y-4">
+                        <ul className="space-y-4">
                             {insights.map((insight, i) => (
-                              <li key={i} className="flex items-start gap-3">
+                            <li key={i} className="flex items-start gap-3">
                                 <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary flex-shrink-0 mt-0.5"><Lightbulb className="h-3.5 w-3.5" /></div>
                                 <p className="text-sm text-muted-foreground">{insight.insight}</p>
-                              </li>
+                            </li>
                             ))}
-                          </ul>
+                        </ul>
                         </ScrollArea>
                     ) : (
                         <div className="flex-1 flex flex-col justify-center items-center text-center text-sm text-muted-foreground p-4">
@@ -470,12 +553,9 @@ export default function DashboardPage() {
                         </div>
                     )}
                 </CardContent>
-              </Card>
-            </CarouselItem>
-          </CarouselContent>
-          <CarouselPrevious className="flex -left-2 lg:hidden" />
-          <CarouselNext className="flex -right-2 lg:hidden" />
-        </Carousel>
+            </Card>
+        </div>
+
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             <Card className="rounded-2xl border-0 lg:col-span-2">
@@ -525,7 +605,7 @@ export default function DashboardPage() {
                                 </div>
                             </TabsContent>
                              <TabsContent value="proximos" className="mt-4">
-                                 {isLoadingUpcoming ? <div className="flex justify-center items-center h-48"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div> : upcomingContent && upcomingContent.length > 0 ? (<div className="space-y-2">{upcomingContent.map(post => (<div key={post.id} className="p-3 rounded-lg border bg-background/50 flex items-start justify-between gap-4"><div className="flex items-start gap-4 flex-1 overflow-hidden"><div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0"><Tag className="h-5 w-5 text-muted-foreground" /></div><div className="flex-1 overflow-hidden"><p className="font-semibold text-foreground truncate text-sm">{post.title}</p><p className="text-xs text-muted-foreground">{post.contentType} • {formatDistanceToNow(post.date.toDate(), { addSuffix: true, locale: ptBR })}</p></div></div><DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger><DropdownMenuContent align="end"><DropdownMenuItem onClick={() => handleMarkAsPublished(post.id)}><CheckCircle className="mr-2 h-4 w-4" /><span>Marcar como Publicado</span></DropdownMenuItem></DropdownMenuContent></DropdownMenu></div>))}</div>) : (<div className="text-center py-8"><p className="text-muted-foreground text-sm">Nenhum post agendado.</p><Button variant="link" asChild><Link href="/content-calendar">Ir para o Calendário</Link></Button></div>)}
+                                 {isLoadingUpcoming ? <div className="flex justify-center items-center h-48"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div> : upcomingContent && upcomingContent.length > 0 ? (<div className="space-y-2">{upcomingContent.map(post => (<div key={post.id} className="p-3 rounded-lg border bg-background/50 flex items-start justify-between gap-4"><div className="flex items-start gap-4 flex-1 overflow-hidden"><div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0"><Tag className="h-5 w-5 text-muted-foreground" /></div><div className="flex-1 overflow-hidden"><p className="font-semibold text-foreground truncate text-sm">{post.title}</p><p className="text-xs text-muted-foreground">{post.contentType} • {formatDistanceToNow(post.date.toDate(), { addSuffix: true, locale: ptBR })}</p></div></div><DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger><DropdownMenuContent align="end"><DropdownMenuItem onClick={() => handleMarkAsPublished(post.id)}><CheckCircle className="mr-2 h-4 w-4" /><span>Marcar como Publicado</span></DropdownMenuItem></DropdownMenu></DropdownMenu></div>))}</div>) : (<div className="text-center py-8"><p className="text-muted-foreground text-sm">Nenhum post agendado.</p><Button variant="link" asChild><Link href="/content-calendar">Ir para o Calendário</Link></Button></div>)}
                             </TabsContent>
                              <TabsContent value="ideias" className="mt-4">
                                 {isLoadingIdeias ? <div className="flex justify-center items-center h-48"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div> : ideiasSalvas && ideiasSalvas.length > 0 ? <ul className="space-y-3">{ideiasSalvas.map((ideia) => (<li key={ideia.id} className="flex items-start gap-3"><Checkbox id={`ideia-${ideia.id}`} checked={ideia.concluido} onCheckedChange={() => handleToggleIdeia(ideia)} className="h-5 w-5 mt-0.5" /><div className="grid gap-0.5"><label htmlFor={`ideia-${ideia.id}`} className={cn('font-medium transition-colors cursor-pointer', ideia.concluido ? 'line-through text-muted-foreground' : 'text-foreground')}>{ideia.titulo}</label><p className="text-xs text-muted-foreground">de "{ideia.origem}"</p></div></li>))}</ul> : (<div className="text-center py-8"><p className="text-muted-foreground text-sm">Nenhuma ideia salva.</p><Button variant="link" asChild><Link href="/video-ideas">Gerar Novas Ideias</Link></Button></div>)}
