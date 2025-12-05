@@ -20,7 +20,12 @@ const GenerateDashboardInsightsOutputSchema = z.object({
     insights: z.array(DashboardInsightSchema).length(3).describe("Uma lista de exatamente 3 insights acionáveis."),
     trendAnalysis: TrendAnalysisSchema.describe("Análise de tendências de métricas."),
     predictiveForecast: PredictiveForecastSchema.describe("Previsão de crescimento."),
+    riskAlerts: z.array(z.string()).describe("Lista de 2-3 riscos ou pontos fracos que podem impedir o crescimento."),
+    recommendedActions: z.array(z.string()).describe("Lista de 2-3 recomendações estratégicas para acelerar o crescimento."),
+    bestPostTime: z.string().describe("O melhor dia e horário sugerido para postar, com base nos dados, visando máximo alcance."),
+    contentOpportunities: z.array(z.string()).describe("Lista de 2-3 oportunidades de conteúdo ou formatos a serem explorados com base nas métricas.")
 });
+
 
 export type DashboardInsightsOutput = z.infer<typeof GenerateDashboardInsightsOutputSchema>;
 export type DashboardInsight = z.infer<typeof DashboardInsightSchema>;
@@ -89,6 +94,10 @@ export async function generateDashboardInsights(
   - insights: Gere 3 insights criativos e acionáveis, variados, sobre engajamento, alcance, etc. Cada insight deve ser uma string simples.
   - trendAnalysis: Analise as métricas e liste quais estão subindo e quais estão caindo. Se nada mudou, retorne arrays vazios.
   - predictiveForecast: Com base na tendência atual, faça uma previsão de crescimento de seguidores para os próximos 7 e 30 dias.
+  - riskAlerts: Liste 2-3 riscos ou pontos fracos que podem impedir o crescimento. Ex: "Baixa frequência de posts pode diminuir o alcance".
+  - recommendedActions: Dê 2-3 recomendações estratégicas para acelerar. Ex: "Focar em collabs com criadores maiores".
+  - bestPostTime: Sugira um dia e horário de pico para postagem (ex: "Sexta-feira, 18:30h").
+  - contentOpportunities: Liste 2-3 oportunidades de conteúdo ou formatos a serem explorados com base nas métricas.
   `;
   
    try {
