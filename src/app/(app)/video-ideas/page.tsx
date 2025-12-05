@@ -537,22 +537,28 @@ export default function VideoIdeasPage() {
                                 <InfoCard title="Música em Alta" icon={Disc} content={result.trendingSong} />
                             </div>
 
-                             {result.platformAdaptations && (
+                             {result.platformAdaptations && (result.platformAdaptations.tiktok || result.platformAdaptations.reels || result.platformAdaptations.shorts) && (
                                 <Card className="border-0 rounded-2xl">
                                     <CardHeader><CardTitle className="flex items-center gap-3 text-lg font-semibold"><LightbulbIcon className="h-5 w-5 text-primary" />Adaptação para Plataformas</CardTitle></CardHeader>
                                     <CardContent className="space-y-4">
-                                        <div>
-                                            <h4 className='flex items-center gap-2 font-semibold mb-1'><TikTokIcon className="h-4 w-4" /> TikTok</h4>
-                                            <p className='text-sm text-muted-foreground'>{result.platformAdaptations.tiktok}</p>
-                                        </div>
-                                        <div>
-                                            <h4 className='flex items-center gap-2 font-semibold mb-1'><Instagram className="h-4 w-4" /> Reels</h4>
-                                            <p className='text-sm text-muted-foreground'>{result.platformAdaptations.reels}</p>
-                                        </div>
-                                        <div>
-                                            <h4 className='flex items-center gap-2 font-semibold mb-1'><Youtube className="h-4 w-4" /> Shorts</h4>
-                                            <p className='text-sm text-muted-foreground'>{result.platformAdaptations.shorts}</p>
-                                        </div>
+                                        {result.platformAdaptations.tiktok && (
+                                            <div>
+                                                <h4 className='flex items-center gap-2 font-semibold mb-1'><TikTokIcon className="h-4 w-4" /> TikTok</h4>
+                                                <p className='text-sm text-muted-foreground'>{result.platformAdaptations.tiktok}</p>
+                                            </div>
+                                        )}
+                                        {result.platformAdaptations.reels && (
+                                            <div>
+                                                <h4 className='flex items-center gap-2 font-semibold mb-1'><Instagram className="h-4 w-4" /> Reels</h4>
+                                                <p className='text-sm text-muted-foreground'>{result.platformAdaptations.reels}</p>
+                                            </div>
+                                        )}
+                                        {result.platformAdaptations.shorts && (
+                                            <div>
+                                                <h4 className='flex items-center gap-2 font-semibold mb-1'><Youtube className="h-4 w-4" /> Shorts</h4>
+                                                <p className='text-sm text-muted-foreground'>{result.platformAdaptations.shorts}</p>
+                                            </div>
+                                        )}
                                     </CardContent>
                                 </Card>
                              )}

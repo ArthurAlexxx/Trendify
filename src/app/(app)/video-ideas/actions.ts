@@ -23,9 +23,9 @@ const GenerateVideoIdeasOutputSchema = z.object({
   trendingSong: z.string().describe('Uma música atualmente em alta que se encaixe perfeitamente no estilo do vídeo.'),
   viralScore: z.number().min(0).max(100).describe('Uma nota de 0 a 100 para o potencial de viralização da ideia.'),
   platformAdaptations: z.object({
-    tiktok: z.string().describe('Dica para adaptar o conteúdo especificamente para o TikTok.'),
-    reels: z.string().describe('Dica para adaptar o conteúdo especificamente para o Instagram Reels.'),
-    shorts: z.string().describe('Dica para adaptar o conteúdo especificamente para o YouTube Shorts.'),
+    tiktok: z.string().optional().describe('Dica para adaptar o conteúdo especificamente para o TikTok.'),
+    reels: z.string().optional().describe('Dica para adaptar o conteúdo especificamente para o Instagram Reels.'),
+    shorts: z.string().optional().describe('Dica para adaptar o conteúdo especificamente para o YouTube Shorts.'),
   }).optional(),
   nicheCompetitors: z.array(NicheCompetitorSchema).length(3).describe("Uma lista de 3 vídeos virais de concorrentes do nicho e o que aprender com cada um."),
 });
