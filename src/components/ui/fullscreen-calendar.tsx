@@ -29,6 +29,7 @@ import {
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 
 interface Event {
   id: string | number
@@ -74,6 +75,12 @@ export function FullScreenCalendar({ data, onNewEvent, renderEventActions, rende
     start: startOfWeek(firstDayCurrentMonth, { locale: ptBR }),
     end: endOfWeek(endOfMonth(firstDayCurrentMonth), { locale: ptBR }),
   })
+  
+  const daysInMonth = eachDayOfInterval({
+    start: firstDayCurrentMonth,
+    end: endOfMonth(firstDayCurrentMonth),
+  })
+
 
   function previousMonth() {
     const firstDayNextMonth = add(firstDayCurrentMonth, { months: -1 })
@@ -159,17 +166,17 @@ export function FullScreenCalendar({ data, onNewEvent, renderEventActions, rende
           </div>
         </div>
 
-        {/* Calendar Grid */}
-        <div className="lg:flex lg:flex-auto lg:flex-col">
+        {/* Calendar Grid - Desktop */}
+        <div className="hidden lg:flex lg:flex-auto lg:flex-col">
           {/* Week Days Header */}
           <div className="grid grid-cols-7 border-t text-center text-xs font-semibold leading-6 lg:flex-none">
-            <div className="border-r py-2.5">D</div>
-            <div className="border-r py-2.5">S</div>
-            <div className="border-r py-2.5">T</div>
-            <div className="border-r py-2.5">Q</div>
-            <div className="border-r py-2.5">Q</div>
-            <div className="border-r py-2.5">S</div>
-            <div className="py-2.5">S</div>
+            <div className="border-r py-2.5">Dom</div>
+            <div className="border-r py-2.5">Seg</div>
+            <div className="border-r py-2.5">Ter</div>
+            <div className="border-r py-2.5">Qua</div>
+            <div className="border-r py-2.5">Qui</div>
+            <div className="border-r py-2.5">Sex</div>
+            <div className="py-2.5">Sáb</div>
           </div>
 
           <div className="grid grid-cols-7 grid-rows-6 lg:flex-auto bg-muted/30 text-xs leading-6">
@@ -223,6 +230,36 @@ export function FullScreenCalendar({ data, onNewEvent, renderEventActions, rende
               ))}
           </div>
         </div>
+
+        {/* Horizontal Scroll Calendar - Mobile */}
+        <div className="lg:hidden p-4 border-t">
+          <ScrollArea className="w-full whitespace-nowrap rounded-md">
+            <div className="flex w-max space-x-2 pb-2">
+              {daysInMonth.map((day) => {
+                const hasEvents = data.some(d => isSameDay(d.day, day) && d.events.length > 0);
+                return (
+                  <button
+                    key={day.toString()}
+                    onClick={() => setSelectedDay(day)}
+                    className={cn(
+                      "flex-shrink-0 flex flex-col items-center justify-center p-3 h-20 w-16 rounded-lg border transition-colors",
+                      isEqual(day, selectedDay)
+                        ? "bg-primary text-primary-foreground shadow-md"
+                        : "bg-muted/50 hover:bg-muted",
+                       isToday(day) && !isEqual(day, selectedDay) && "border-primary/50"
+                    )}
+                  >
+                     <span className="text-xs capitalize">{format(day, "EEE", { locale: ptBR })}</span>
+                     <span className="text-lg font-bold">{format(day, "d")}</span>
+                     {hasEvents && <div className="h-1.5 w-1.5 rounded-full bg-primary mt-1" style={isEqual(day, selectedDay) ? { backgroundColor: 'white' } : {}}></div>}
+                  </button>
+                )
+              })}
+            </div>
+             <ScrollBar orientation="horizontal" />
+          </ScrollArea>
+        </div>
+
       </div>
       
       {/* Selected Day's Events */}
