@@ -7,23 +7,23 @@ import OpenAI from 'openai';
 const DashboardInsightSchema = z.string().describe("Um insight curto e acionável com base na evolução das métricas fornecidas.");
 
 const TrendAnalysisSchema = z.object({
-    rising: z.array(z.string()).describe("Métricas que estão subindo."),
-    falling: z.array(z.string()).describe("Métricas que estão caindo."),
+    rising: z.array(z.string()).describe("Métricas que estão subindo.").optional(),
+    falling: z.array(z.string()).describe("Métricas que estão caindo.").optional(),
 });
 
 const PredictiveForecastSchema = z.object({
-    next7days: z.string().describe("Previsão de crescimento de seguidores para os próximos 7 dias."),
-    next30days: z.string().describe("Previsão de crescimento de seguidores para os próximos 30 dias."),
+    next7days: z.string().describe("Previsão de crescimento de seguidores para os próximos 7 dias.").optional(),
+    next30days: z.string().describe("Previsão de crescimento de seguidores para os próximos 30 dias.").optional(),
 });
 
 const GenerateDashboardInsightsOutputSchema = z.object({
-    insights: z.array(DashboardInsightSchema).length(3).describe("Uma lista de exatamente 3 insights acionáveis."),
-    trendAnalysis: TrendAnalysisSchema.describe("Análise de tendências de métricas."),
-    predictiveForecast: PredictiveForecastSchema.describe("Previsão de crescimento."),
-    riskAlerts: z.array(z.string()).describe("Lista de 2-3 riscos ou pontos fracos que podem impedir o crescimento."),
-    recommendedActions: z.array(z.string()).describe("Lista de 2-3 recomendações estratégicas para acelerar o crescimento."),
-    bestPostTime: z.string().describe("O melhor dia e horário sugerido para postar, com base nos dados, visando máximo alcance."),
-    contentOpportunities: z.array(z.string()).describe("Lista de 2-3 oportunidades de conteúdo ou formatos a serem explorados com base nas métricas.")
+    insights: z.array(DashboardInsightSchema).length(3).describe("Uma lista de exatamente 3 insights acionáveis.").optional(),
+    trendAnalysis: TrendAnalysisSchema.describe("Análise de tendências de métricas.").optional(),
+    predictiveForecast: PredictiveForecastSchema.describe("Previsão de crescimento.").optional(),
+    riskAlerts: z.array(z.string()).describe("Lista de 2-3 riscos ou pontos fracos que podem impedir o crescimento.").optional(),
+    recommendedActions: z.array(z.string()).describe("Lista de 2-3 recomendações estratégicas para acelerar o crescimento.").optional(),
+    bestPostTime: z.string().describe("O melhor dia e horário sugerido para postar, com base nos dados, visando máximo alcance.").optional(),
+    contentOpportunities: z.array(z.string()).describe("Lista de 2-3 oportunidades de conteúdo ou formatos a serem explorados com base nas métricas.").optional()
 });
 
 

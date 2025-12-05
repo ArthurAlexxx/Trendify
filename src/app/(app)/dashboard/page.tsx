@@ -523,7 +523,7 @@ export default function DashboardPage() {
                       <CardContent className="flex-1 flex flex-col">
                           {isGeneratingInsights ? (
                                <div className="flex-1 flex justify-center items-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
-                          ) : insights && insights.insights.length > 0 ? (
+                          ) : insights && insights.insights ? (
                                <ScrollArea className="h-64 pr-4">
                                <ul className="space-y-4">
                                    {insights.insights.map((insight, i) => (
@@ -650,7 +650,7 @@ export default function DashboardPage() {
                   <CardContent className="flex-1 flex flex-col">
                       {isGeneratingInsights ? (
                           <div className="flex-1 flex justify-center items-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
-                      ) : insights && insights.insights.length > 0 ? (
+                      ) : insights && insights.insights ? (
                            <ScrollArea className="h-64 pr-4">
                            <ul className="space-y-4">
                                {insights.insights.map((insight, i) => (
@@ -748,5 +748,3 @@ export default function DashboardPage() {
     </>
   );
 }
-
-    
