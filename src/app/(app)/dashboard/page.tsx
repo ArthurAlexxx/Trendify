@@ -369,7 +369,6 @@ export default function DashboardPage() {
       <PageHeader
         title={`Bem-vindo(a), ${userProfile?.displayName?.split(' ')[0] || 'Criador'}!`}
         description="Seu centro de comando para crescimento e monetização."
-        icon={LayoutGrid}
       >
         <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
             <div className='w-full sm:w-auto flex-1'>
@@ -468,8 +467,8 @@ export default function DashboardPage() {
               </Card>
             </CarouselItem>
           </CarouselContent>
-          <CarouselPrevious className="flex md:hidden" />
-          <CarouselNext className="flex md:hidden" />
+          <CarouselPrevious className="flex -left-2 md:-left-8" />
+          <CarouselNext className="flex -right-2 md:-right-8" />
         </Carousel>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
@@ -545,3 +544,5 @@ export default function DashboardPage() {
     </>
   );
 }
+
+    
