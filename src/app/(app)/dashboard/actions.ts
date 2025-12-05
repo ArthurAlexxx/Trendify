@@ -40,7 +40,7 @@ async function generateDashboardInsightsWithOpenAI(
   input: z.infer<typeof GenerateDashboardInsightsInputSchema>
 ): Promise<DashboardInsight[]> {
 
-  const systemPrompt = `Você é um estrategista de crescimento para criadores de conteúdo. Analise a evolução das métricas do criador nos últimos dias, seu nicho e objetivo para gerar 2 ou 3 insights rápidos e acionáveis. Foque em tendências (crescimento, queda) e em conselhos práticos para o curto prazo. Você DEVE retornar um JSON válido que siga o schema.`;
+  const systemPrompt = `Você é um estrategista de crescimento para criadores de conteúdo. Analise a evolução das métricas do criador nos últimos dias, seu nicho e objetivo para gerar 2 ou 3 insights rápidos e acionáveis. Foque em tendências (crescimento, queda) e em conselhos práticos para o curto prazo.`;
 
   const userPrompt = `
   - Nicho: ${input.niche}
@@ -56,7 +56,7 @@ async function generateDashboardInsightsWithOpenAI(
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
       ],
-      response_format: { type: "json_object" },
+      response_format: { type: "json_object", schema: GenerateDashboardInsightsOutputSchema },
       temperature: 0.7,
     });
 
@@ -64,6 +64,7 @@ async function generateDashboardInsightsWithOpenAI(
     if (!content) {
         throw new Error("A IA não conseguiu gerar insights.");
     }
+    // A API, quando usada com 'schema', já retorna um JSON que pode ser parseado com segurança.
     const parsed = GenerateDashboardInsightsOutputSchema.parse(JSON.parse(content));
     return parsed.insights;
   } catch (error) {
