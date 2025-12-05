@@ -371,18 +371,13 @@ export default function DashboardPage() {
         description="Seu centro de comando para crescimento e monetização."
       >
         <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
-            <div className='w-full sm:w-auto flex-1'>
-                <Select value={selectedPlatform} onValueChange={(value) => setSelectedPlatform(value as any)}>
-                <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Plataforma" />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="total">Total</SelectItem>
-                    <SelectItem value="instagram">Instagram</SelectItem>
-                    <SelectItem value="tiktok">TikTok</SelectItem>
-                </SelectContent>
-                </Select>
-            </div>
+            <Tabs value={selectedPlatform} onValueChange={(value) => setSelectedPlatform(value as any)}>
+              <TabsList>
+                <TabsTrigger value="total">Total</TabsTrigger>
+                <TabsTrigger value="instagram">Instagram</TabsTrigger>
+                <TabsTrigger value="tiktok">TikTok</TabsTrigger>
+              </TabsList>
+            </Tabs>
             {userProfile && 
             <FollowerGoalSheet userProfile={userProfile}>
                 <Button variant="outline" size="sm" className="w-full"><Pencil className="mr-2 h-4 w-4" /> Editar Metas</Button>
@@ -395,9 +390,9 @@ export default function DashboardPage() {
         
         {userProfile && <ProfileCompletionAlert userProfile={userProfile} isPremium={isPremium} />}
         
-        <Carousel className="w-full" opts={{ align: 'start' }}>
-          <CarouselContent className="-ml-2 md:-ml-4 py-4">
-            <CarouselItem className="pl-2 md:pl-4 basis-full lg:basis-1/3">
+        <Carousel className="w-full lg:w-auto lg:grid lg:grid-cols-3 lg:gap-8" opts={{ align: 'start', dragFree: true }}>
+          <CarouselContent className="-ml-2 md:-ml-4 py-4 lg:contents">
+            <CarouselItem className="pl-2 md:pl-4 basis-full lg:basis-auto">
               <Card className="rounded-2xl border-0 h-full">
                  <CardHeader className='items-center text-center'>
                     <CardTitle>Meta de Seguidores</CardTitle>
@@ -425,7 +420,7 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
             </CarouselItem>
-            <CarouselItem className="pl-2 md:pl-4 basis-full lg:basis-1/3">
+            <CarouselItem className="pl-2 md:pl-4 basis-full lg:basis-auto">
               <Card className='rounded-2xl border-0 h-full'>
                  <CardHeader>
                     <CardTitle>Métricas de Engajamento</CardTitle>
@@ -448,8 +443,8 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
             </CarouselItem>
-            <CarouselItem className="pl-2 md:pl-4 basis-full lg:basis-1/3">
-              <Card className="rounded-2xl border-0 h-full">
+            <CarouselItem className="pl-2 md:pl-4 basis-full lg:basis-auto">
+              <Card className="rounded-2xl border-0 h-full flex flex-col">
                 <CardHeader className='flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left'>
                     <CardTitle>Análise de Desempenho</CardTitle>
                     <Button variant="ghost" size="sm" onClick={handleGenerateInsights} disabled={isGeneratingInsights} className="w-full sm:w-auto">
@@ -457,12 +452,23 @@ export default function DashboardPage() {
                          Analisar Desempenho
                     </Button>
                 </CardHeader>
-                <CardContent>
-                    {isGeneratingInsights ? <div className="flex justify-center items-center h-24"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div> : insights && insights.length > 0 ? <ul className="space-y-4">{insights.map((insight, i) => <li key={i} className="flex items-start gap-3"><div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary flex-shrink-0 mt-0.5"><Lightbulb className="h-3.5 w-3.5" /></div><p className="text-sm text-muted-foreground">{insight.insight}</p></li>)}</ul> : 
-                    <div className="text-center text-sm text-muted-foreground p-4">
-                        Clique em 'Analisar Desempenho' para receber uma análise com base nas suas últimas métricas.
-                    </div>
-                    }
+                <CardContent className="flex-1 flex flex-col">
+                    {isGeneratingInsights ? <div className="flex-1 flex justify-center items-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div> : insights && insights.length > 0 ? (
+                        <ScrollArea className="h-48 pr-4">
+                          <ul className="space-y-4">
+                            {insights.map((insight, i) => (
+                              <li key={i} className="flex items-start gap-3">
+                                <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary flex-shrink-0 mt-0.5"><Lightbulb className="h-3.5 w-3.5" /></div>
+                                <p className="text-sm text-muted-foreground">{insight.insight}</p>
+                              </li>
+                            ))}
+                          </ul>
+                        </ScrollArea>
+                    ) : (
+                        <div className="flex-1 flex flex-col justify-center items-center text-center text-sm text-muted-foreground p-4">
+                            <p>Clique em 'Analisar Desempenho' para receber uma análise com base nas suas últimas métricas.</p>
+                        </div>
+                    )}
                 </CardContent>
               </Card>
             </CarouselItem>
@@ -544,6 +550,8 @@ export default function DashboardPage() {
     </>
   );
 }
+
+    
 
     
 
