@@ -432,7 +432,7 @@ export default function DashboardPage() {
           {userProfile && <ProfileCompletionAlert userProfile={userProfile} isPremium={isPremium} />}
 
           {/* Mobile Carousel */}
-          <div className="lg:hidden">
+          <div className="lg:hidden px-4">
               <Carousel className="w-full" opts={{ align: 'start' }}>
               <CarouselContent className="-ml-2 md:-ml-4 py-4">
                   <CarouselItem className="pl-2 md:pl-4 basis-full">
