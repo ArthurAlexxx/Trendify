@@ -29,6 +29,7 @@ import {
   Target,
   Pencil,
   Activity,
+  Lightbulb,
 } from 'lucide-react';
 import {
   ChartContainer,
@@ -608,9 +609,9 @@ export default function DashboardPage() {
         
         {userProfile && <ProfileCompletionAlert userProfile={userProfile} isPremium={isPremium} />}
         
-        {/* TOP SECTION */}
+        {/* TOP SECTION: Visão Geral */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-            <div className="lg:col-span-1 space-y-4">
+            <div className="lg:col-span-1">
                 <Card className="rounded-2xl border-0">
                      <CardHeader>
                         <CardTitle className="font-headline text-lg sm:text-xl">
@@ -721,14 +722,16 @@ export default function DashboardPage() {
             </div>
         </div>
 
-        {/* MIDDLE SECTION: CHART AND IDEAS/ACTIVITY */}
+        {/* MIDDLE SECTION: Histórico e Tarefas */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             <div className="lg:col-span-1 space-y-8">
                  <Card className="rounded-2xl border-0 h-full">
                     <CardHeader>
-                    <CardTitle className="font-headline text-xl">
-                        Ideias e Tarefas Salvas
+                    <CardTitle className="font-headline text-xl flex items-center gap-2">
+                        <Lightbulb className="h-5 w-5 text-primary"/>
+                        Ideias e Tarefas
                     </CardTitle>
+                    <CardDescription>Suas ideias salvas e tarefas pendentes.</CardDescription>
                     </CardHeader>
                     <CardContent>
                     {isLoadingIdeias ? <Skeleton className="h-24 w-full" /> : (
@@ -884,9 +887,5 @@ export default function DashboardPage() {
     </>
   );
 }
-
-    
-
-    
 
     
