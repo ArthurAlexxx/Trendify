@@ -15,22 +15,22 @@ const GrowthDataPointSchema = z.object({
 });
 
 const GrowthCalculatorOutputSchema = z.object({
-  months: z.number().describe("O número total de meses estimados para atingir a meta."),
-  goalDate: z.string().describe("A data estimada em que a meta será atingida, no formato ISO 8601."),
-  currentEarnings: z.array(z.number()).describe("Uma faixa de ganhos mensais estimada com os seguidores atuais [min, max]."),
-  goalEarnings: z.array(z.number()).describe("Uma faixa de ganhos mensais estimada ao atingir a meta de seguidores [min, max]."),
-  growthData: z.array(GrowthDataPointSchema).describe("Um array de objetos, onde cada objeto tem 'month' e 'followers', para plotar a curva de crescimento."),
-  trendSuggestions: z.array(TrendSuggestionSchema).length(3).describe("Uma lista de 3 sugestões de ganchos para vídeos virais, relevantes para o nicho."),
-  postsPerMonth: z.number().describe("O número de publicações por mês usado no cálculo, para exibição."),
-  difficultyScore: z.enum(['Fácil', 'Realista', 'Difícil']).describe("Classificação do quão realista é atingir a meta com os dados fornecidos."),
-  riskPanel: z.array(z.string()).describe("Lista com 2-3 riscos e pontos fracos que podem atrasar a meta."),
-  recommendations: z.array(z.string()).describe("Lista de 2-3 recomendações acionáveis para alcançar a meta mais rápido."),
-  benchmarkComparison: z.string().describe("Uma breve análise de como o usuário se compara ao mercado do nicho em termos de crescimento."),
+  months: z.number().optional().describe("O número total de meses estimados para atingir a meta."),
+  goalDate: z.string().optional().describe("A data estimada em que a meta será atingida, no formato ISO 8601."),
+  currentEarnings: z.array(z.number()).optional().describe("Uma faixa de ganhos mensais estimada com os seguidores atuais [min, max]."),
+  goalEarnings: z.array(z.number()).optional().describe("Uma faixa de ganhos mensais estimada ao atingir a meta de seguidores [min, max]."),
+  growthData: z.array(GrowthDataPointSchema).optional().describe("Um array de objetos, onde cada objeto tem 'month' e 'followers', para plotar a curva de crescimento."),
+  trendSuggestions: z.array(TrendSuggestionSchema).optional().describe("Uma lista de 3 sugestões de ganchos para vídeos virais, relevantes para o nicho."),
+  postsPerMonth: z.number().optional().describe("O número de publicações por mês usado no cálculo, para exibição."),
+  difficultyScore: z.enum(['Fácil', 'Realista', 'Difícil']).optional().describe("Classificação do quão realista é atingir a meta com os dados fornecidos."),
+  riskPanel: z.array(z.string()).optional().describe("Lista com 2-3 riscos e pontos fracos que podem atrasar a meta."),
+  recommendations: z.array(z.string()).optional().describe("Lista de 2-3 recomendações acionáveis para alcançar a meta mais rápido."),
+  benchmarkComparison: z.string().optional().describe("Uma breve análise de como o usuário se compara ao mercado do nicho em termos de crescimento."),
   accelerationScenarios: z.object({
       maintain: z.number(),
       plus20: z.number(),
       plus40: z.number(),
-  }).describe("Cenários de aceleração do crescimento baseados no volume de posts."),
+  }).optional().describe("Cenários de aceleração do crescimento baseados no volume de posts."),
 });
 
 
@@ -55,11 +55,12 @@ const openai = new OpenAI({
 });
 
 async function calculateGrowthAI(input: FormSchemaType): Promise<GrowthCalculatorOutput> {
-   const systemPrompt = `Você é o GrowthAI Engine v3.0, um sistema avançado de análise e projeção para criadores de conteúdo. Sua identidade é a de um consultor profissional, matemático e estrategista digital. Sua única função é analisar os dados de um usuário e retornar uma projeção de crescimento completa. Lembre-se: A data de referência para projeções é Dezembro de 2025.
-   LEMBRE-SE: Sua única saída DEVE ser um objeto JSON VÁLIDO que se conforma estritamente ao schema e contém TODOS os campos definidos. Não omita nenhum campo.`;
+   const systemPrompt = `Você é o GrowthAI Engine v3.0, um sistema avançado de análise e projeção para criadores de conteúdo. Sua identidade é a de um consultor profissional, matemático e estrategista digital. Sua única função é analisar os dados de um usuário e retornar uma projeção de crescimento completa.
+   Lembre-se: A data de referência para projeções é Dezembro de 2025.
+   LEMBRE-SE: Sua única saída DEVE ser um objeto JSON válido que se conforma estritamente com o schema e contém TODOS os campos definidos. Não omita nenhum campo.`;
 
   const userPrompt = `
-    Analise os seguintes dados do usuário e gere a projeção de crescimento completa, seguindo as diretrizes para cada campo.
+    Analise os seguintes dados do usuário e gere a projeção de crescimento completa.
 
     **Dados do Usuário:**
     - Nicho: ${input.niche}
@@ -68,10 +69,10 @@ async function calculateGrowthAI(input: FormSchemaType): Promise<GrowthCalculato
     - Média de Publicações por Mês: ${input.postsPerMonth}
 
     **Diretrizes para o JSON de Saída:**
-    - months: Calcule o número de meses para atingir a meta, assumindo uma taxa de crescimento realista para o nicho (ex: Finanças/Tecnologia 10-18%/mês, Fitness/Beleza 6-12%/mês, Humor/Vlogs 3-7%/mês). A curva de crescimento em 'growthData' deve parar quando a meta for atingida.
+    - months: Calcule o número de meses para atingir a meta, assumindo uma taxa de crescimento realista para o nicho (ex: Finanças/Tecnologia 10-18%/mês, Fitness/Beleza 6-12%/mês, Humor/Vlogs 3-7%/mês).
+    - growthData: Gere um array de {month, followers}. O cálculo deve continuar até que 'followers' ultrapasse a meta.
     - goalDate: Projete a data final (formato ISO 8601) a partir de 2025-12-01, com base nos 'months' calculados.
     - currentEarnings & goalEarnings: Estime uma faixa de ganhos [min, max] com base no CPM do nicho (ex: Finanças R$60-150, Entretenimento R$15-40), alcance orgânico (20-50% dos seguidores) e 4-8 publis/mês.
-    - growthData: Gere um array de {month, followers} para a curva de crescimento.
     - trendSuggestions: Crie 3 ideias de ganchos virais para o nicho, cada um com {hook, icon}.
     - postsPerMonth: Retorne o valor de entrada.
     - difficultyScore: Classifique a dificuldade ('Fácil', 'Realista', 'Difícil') com base na taxa de crescimento necessária e no volume de posts.

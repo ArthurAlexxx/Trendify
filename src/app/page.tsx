@@ -520,8 +520,8 @@ export default function LandingPage() {
                       </div>
                       
                       {/* Mobile Carousel */}
-                       <div className="lg:hidden">
-                        <Carousel className="w-full" opts={{ align: 'start' }}>
+                       <div className="lg:hidden flex justify-center">
+                        <Carousel className="w-full max-w-xs" opts={{ align: 'start' }}>
                           <CarouselContent className="-ml-2 md:-ml-4 py-4">
                             {results.growthData && results.growthData.length > 0 && (
                             <CarouselItem className="pl-2 md:pl-4 basis-[90%]">
@@ -565,8 +565,8 @@ export default function LandingPage() {
                             </CarouselItem>
                             )}
                           </CarouselContent>
-                          <CarouselPrevious className="left-2" />
-                          <CarouselNext className="right-2" />
+                          <CarouselPrevious className="-left-4" />
+                          <CarouselNext className="-right-4" />
                         </Carousel>
                        </div>
 
@@ -614,7 +614,7 @@ export default function LandingPage() {
                                     <Card className="bg-primary/5 border-primary/20 text-center"><CardContent className="p-4"><p className="text-sm text-muted-foreground">Nível da Meta</p><p className="text-2xl font-bold">{results.difficultyScore}</p></CardContent></Card>
                                   )}
                               </div>
-                               {(results.currentEarnings || results.goalEarnings) && (
+                               {(results.currentEarnings && results.goalEarnings) && (
                                 <Card>
                                   <CardHeader>
                                     <CardTitle className="text-lg font-bold">
