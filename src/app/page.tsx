@@ -18,6 +18,7 @@ import {
   BrainCircuit,
   Rocket,
   BarChart as BarChartIcon,
+  AlertTriangle,
 } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { useUser } from '@/firebase';
@@ -516,159 +517,100 @@ export default function LandingPage() {
                           .
                         </p>
                       </div>
-
-                      <div className="grid md:grid-cols-2 gap-4 max-w-4xl mx-auto">
-                        <Card className="bg-primary/5 border-primary/20">
-                          <CardHeader>
-                            <CardTitle className="text-base font-semibold text-primary flex items-center gap-2">
-                              <Target className="h-5 w-5" /> Tempo até a Meta
-                            </CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <p className="text-4xl font-bold text-foreground">
-                              {results.months} meses
-                            </p>
-                            <p className="text-muted-foreground">
-                              Data prevista:{' '}
-                              {new Date(results.goalDate).toLocaleDateString(
-                                'pt-BR',
-                                { month: 'long', year: 'numeric' }
+                      
+                      {/* Main Results */}
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                          {/* Left Column */}
+                          <div className="space-y-8">
+                              {results.growthData && (
+                              <Card className="rounded-2xl">
+                                  <CardHeader><CardTitle className="text-lg font-bold">Curva de Crescimento</CardTitle></CardHeader>
+                                  <CardContent>
+                                      <div className="h-64 w-full">
+                                          <ResponsiveContainer>
+                                              <AreaChart data={results.growthData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+                                                  <defs><linearGradient id="colorFollowers" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.8}/><stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/></linearGradient></defs>
+                                                  <XAxis dataKey="month" tickFormatter={(v) => `Mês ${v}`} />
+                                                  <YAxis tickFormatter={(v) => `${v / 1000}k`} />
+                                                  <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }} />
+                                                  <Area type="monotone" dataKey="followers" stroke="hsl(var(--primary))" fillOpacity={1} fill="url(#colorFollowers)" />
+                                              </AreaChart>
+                                          </ResponsiveContainer>
+                                      </div>
+                                  </CardContent>
+                              </Card>
                               )}
-                            </p>
-                          </CardContent>
-                        </Card>
-                        <Card className="bg-primary/5 border-primary/20">
-                          <CardHeader>
-                            <CardTitle className="text-base font-semibold text-primary flex items-center gap-2">
-                              <Sparkles className="h-5 w-5" /> Potencial de Ganhos/mês
-                            </CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <p className="text-xl font-bold text-foreground">
-                              {formatCurrency(results.currentEarnings[0])} -{' '}
-                              {formatCurrency(results.currentEarnings[1])}
-                              <span className="text-sm font-normal text-muted-foreground ml-2">
-                                (agora)
-                              </span>
-                            </p>
-                            <p className="text-xl font-bold text-foreground mt-1">
-                              {formatCurrency(results.goalEarnings[0])} -{' '}
-                              {formatCurrency(results.goalEarnings[1])}
-                              <span className="text-sm font-normal text-muted-foreground ml-2">
-                                (na meta)
-                              </span>
-                            </p>
-                          </CardContent>
-                        </Card>
-                      </div>
-
-                      <Card className="max-w-4xl mx-auto bg-card">
-                        <CardHeader>
-                          <h4 className="font-bold text-lg text-center">
-                            Curva de Crescimento de Seguidores
-                          </h4>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="h-64 w-full">
-                            <ResponsiveContainer>
-                              <AreaChart data={results.growthData}>
-                                <defs>
-                                  <linearGradient
-                                    id="colorFollowers"
-                                    x1="0"
-                                    y1="0"
-                                    x2="0"
-                                    y2="1"
-                                  >
-                                    <stop
-                                      offset="5%"
-                                      stopColor="hsl(var(--primary))"
-                                      stopOpacity={0.8}
-                                    />
-                                    <stop
-                                      offset="95%"
-                                      stopColor="hsl(var(--primary))"
-                                      stopOpacity={0}
-                                    />
-                                  </linearGradient>
-                                </defs>
-                                <XAxis
-                                  dataKey="month"
-                                  tickFormatter={(v) => `Mês ${v}`}
-                                />
-                                <YAxis tickFormatter={(v) => `${v / 1000}k`} />
-                                <Tooltip
-                                  contentStyle={{
-                                    backgroundColor: 'hsl(var(--background))',
-                                    border: '1px solid hsl(var(--border))',
-                                  }}
-                                />
-                                <Area
-                                  type="monotone"
-                                  dataKey="followers"
-                                  stroke="hsl(var(--primary))"
-                                  fillOpacity={1}
-                                  fill="url(#colorFollowers)"
-                                />
-                              </AreaChart>
-                            </ResponsiveContainer>
+                              {results.accelerationScenarios && (
+                              <Card className="rounded-2xl">
+                                  <CardHeader><CardTitle className="text-lg font-bold">Cenários de Aceleração</CardTitle></CardHeader>
+                                  <CardContent className="grid grid-cols-3 gap-4 text-center">
+                                      <div><p className="font-bold text-2xl">{results.accelerationScenarios.maintain}</p><p className="text-xs text-muted-foreground">Meses (Ritmo Atual)</p></div>
+                                      <div><p className="font-bold text-2xl">{results.accelerationScenarios.plus20}</p><p className="text-xs text-muted-foreground">Meses (+20% Posts)</p></div>
+                                      <div><p className="font-bold text-2xl">{results.accelerationScenarios.plus40}</p><p className="text-xs text-muted-foreground">Meses (+40% Posts)</p></div>
+                                  </CardContent>
+                              </Card>
+                              )}
                           </div>
-                        </CardContent>
-                      </Card>
 
-                      <Card className="max-w-4xl mx-auto bg-card">
-                        <CardHeader>
-                          <h4 className="font-bold text-lg text-center">
-                            Seu Plano Inicial para Acelerar
-                          </h4>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 text-center">
-                            <Card className="bg-muted/50">
-                              <CardContent className="p-4">
-                                <p className="text-sm text-muted-foreground">
-                                  Publicações/Mês
-                                </p>
-                                <p className="text-lg font-bold">
-                                  {results.postsPerMonth}
-                                </p>
-                              </CardContent>
-                            </Card>
-                            {results.trendSuggestions.map(
-                              (sug: any, index: number) => (
-                                <Card key={index} className="bg-muted/50">
-                                  <CardContent className="p-4">
-                                    <p className="text-sm text-muted-foreground">
-                                      Gancho Sugerido
-                                    </p>
-                                    <p className="text-base font-semibold">
-                                      {sug.icon} {sug.hook}
-                                    </p>
+                          {/* Right Column */}
+                          <div className="space-y-8">
+                              <div className="grid grid-cols-2 gap-4">
+                                  <Card className="bg-primary/5 border-primary/20 text-center"><CardContent className="p-4"><p className="text-sm text-muted-foreground">Tempo até a Meta</p><p className="text-2xl font-bold">{results.months ?? 'N/A'} meses</p></CardContent></Card>
+                                  <Card className="bg-primary/5 border-primary/20 text-center"><CardContent className="p-4"><p className="text-sm text-muted-foreground">Nível da Meta</p><p className="text-2xl font-bold">{results.difficultyScore ?? 'N/A'}</p></CardContent></Card>
+                              </div>
+                              {results.currentEarnings && results.goalEarnings && (
+                                <Card><CardHeader><CardTitle className="text-lg font-bold">Potencial de Ganhos/Mês</CardTitle></CardHeader>
+                                  <CardContent>
+                                    <p className="text-lg font-semibold">{formatCurrency(results.currentEarnings[0])} - {formatCurrency(results.currentEarnings[1])}<span className="text-sm font-normal text-muted-foreground ml-2">(agora)</span></p>
+                                    <p className="text-lg font-semibold mt-1">{formatCurrency(results.goalEarnings[0])} - {formatCurrency(results.goalEarnings[1])}<span className="text-sm font-normal text-muted-foreground ml-2">(na meta)</span></p>
                                   </CardContent>
                                 </Card>
-                              )
-                            )}
+                              )}
+                              {results.benchmarkComparison && (
+                                <Card><CardHeader><CardTitle className="text-lg font-bold">Análise do Mercado</CardTitle></CardHeader><CardContent><p className="text-sm text-muted-foreground">{results.benchmarkComparison}</p></CardContent></Card>
+                              )}
                           </div>
-                          <div className="text-center mt-8 space-y-4">
-                            <Button
-                              onClick={() => setStep(0)}
-                              variant="outline"
-                              size="lg"
-                              className="h-12 text-base"
-                            >
-                              Calcular Novamente
-                            </Button>
-                            <Button asChild size="lg" className="h-12 text-base ml-4">
-                               <Link href="/sign-up">
-                                  Criar conta grátis para acelerar
-                               </Link>
-                            </Button>
-                          </div>
-                        </CardContent>
+                      </div>
+                      
+                      {/* Action Plan */}
+                       {(results.recommendations || results.riskPanel || results.trendSuggestions) && (
+                      <Card className="bg-card">
+                          <CardHeader><h4 className="font-bold text-lg text-center">Seu Plano Inicial para Acelerar</h4></CardHeader>
+                          <CardContent className="grid sm:grid-cols-2 lg:grid-cols-2 gap-8">
+                              {results.recommendations && (
+                              <div>
+                                <h5 className="font-semibold mb-3 flex items-center gap-2"><Rocket className="h-5 w-5 text-primary" />Recomendações Estratégicas</h5>
+                                <ul className="space-y-2 text-sm">
+                                    {results.recommendations.map(rec => <li key={rec} className="flex items-start gap-2"><Check className="h-4 w-4 text-primary shrink-0 mt-1" /><span>{rec}</span></li>)}
+                                </ul>
+                              </div>
+                              )}
+                              {results.riskPanel && (
+                              <div>
+                                <h5 className="font-semibold mb-3 flex items-center gap-2"><AlertTriangle className="h-5 w-5 text-amber-500" />Pontos de Atenção (Riscos)</h5>
+                                <ul className="space-y-2 text-sm">
+                                    {results.riskPanel.map(risk => <li key={risk} className="flex items-start gap-2"><AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-1" /><span>{risk}</span></li>)}
+                                </ul>
+                              </div>
+                              )}
+                              {results.trendSuggestions && (
+                              <div className="lg:col-span-2">
+                                <h5 className="font-semibold mb-3 flex items-center gap-2"><Sparkles className="h-5 w-5 text-primary" />Ideias de Ganchos Virais</h5>
+                                <div className="grid sm:grid-cols-3 gap-4">
+                                     {results.trendSuggestions.map(sug => <div key={sug.hook} className="p-3 rounded-lg bg-muted/50 border text-center"><p className="text-2xl mb-1">{sug.icon}</p><p className="text-sm font-medium">{sug.hook}</p></div>)}
+                                </div>
+                              </div>
+                              )}
+                          </CardContent>
                       </Card>
+                       )}
+
+                      <div className="text-center mt-8 space-y-4">
+                          <Button onClick={() => setStep(0)} variant="outline" size="lg" className="h-12 text-base">Calcular Novamente</Button>
+                          <Button asChild size="lg" className="h-12 text-base ml-4"><Link href="/sign-up">Criar conta grátis para acelerar</Link></Button>
+                      </div>
                       <p className="text-xs text-muted-foreground text-center pt-2 max-w-4xl mx-auto">
-                        Estimativas com base em benchmarks do nicho. Resultados
-                        variam por conteúdo, mercado e consistência.
+                        Estimativas com base em benchmarks do nicho. Resultados variam por conteúdo, mercado e consistência.
                       </p>
                     </div>
                   )}
