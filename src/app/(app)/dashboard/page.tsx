@@ -397,7 +397,7 @@ export default function DashboardPage() {
         
         <Carousel className="w-full" opts={{ align: 'start' }}>
           <CarouselContent className="-ml-2 md:-ml-4 py-4">
-            <CarouselItem className="pl-2 md:pl-4 lg:basis-1/3">
+            <CarouselItem className="pl-2 md:pl-4 basis-full lg:basis-1/3">
               <Card className="rounded-2xl border-0 h-full">
                  <CardHeader className='items-center text-center'>
                     <CardTitle>Meta de Seguidores</CardTitle>
@@ -425,7 +425,7 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
             </CarouselItem>
-            <CarouselItem className="pl-2 md:pl-4 lg:basis-1/3">
+            <CarouselItem className="pl-2 md:pl-4 basis-full lg:basis-1/3">
               <Card className='rounded-2xl border-0 h-full'>
                  <CardHeader>
                     <CardTitle>Métricas de Engajamento</CardTitle>
@@ -448,7 +448,7 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
             </CarouselItem>
-            <CarouselItem className="pl-2 md:pl-4 lg:basis-1/3">
+            <CarouselItem className="pl-2 md:pl-4 basis-full lg:basis-1/3">
               <Card className="rounded-2xl border-0 h-full">
                 <CardHeader className='flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left'>
                     <CardTitle>Análise de Desempenho</CardTitle>
@@ -467,8 +467,8 @@ export default function DashboardPage() {
               </Card>
             </CarouselItem>
           </CarouselContent>
-          <CarouselPrevious className="flex -left-2 md:-left-8" />
-          <CarouselNext className="flex -right-2 md:-right-8" />
+          <CarouselPrevious className="flex -left-2 lg:hidden" />
+          <CarouselNext className="flex -right-2 lg:hidden" />
         </Carousel>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
