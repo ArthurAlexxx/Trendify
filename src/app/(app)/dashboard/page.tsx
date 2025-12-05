@@ -406,7 +406,7 @@ export default function DashboardPage() {
           </DialogContent>
       </Dialog>
 
-      <div className="space-y-8 max-w-7xl mx-auto">
+      <div className="space-y-8">
         <PageHeader
           icon={LayoutGrid}
           title={`Bem-vindo(a), ${userProfile?.displayName?.split(' ')[0] || 'Criador'}!`}
@@ -432,142 +432,8 @@ export default function DashboardPage() {
           
           {userProfile && <ProfileCompletionAlert userProfile={userProfile} isPremium={isPremium} />}
 
-          {/* Mobile Carousel */}
-          <div className="lg:hidden">
-              <Carousel className="w-full" opts={{ align: 'start' }}>
-              <CarouselContent className="py-4">
-                  <CarouselItem className="basis-full">
-                  <Card className="rounded-2xl border-0 h-full">
-                      <CardHeader>
-                        <CardTitle className="text-center">Meta de Seguidores</CardTitle>
-                      </CardHeader>
-                      <CardContent className="pt-6">
-                          <div className="flex flex-col items-center justify-center text-center">
-                              {isLoading ? <Skeleton className="h-48 w-48 rounded-full" /> : 
-                              goalFollowers > 0 ? (
-                              <div className='relative h-48 w-48'>
-                                  <ResponsiveContainer width="100%" height="100%">
-                                      <PieChart><Pie data={pieData} dataKey="value" startAngle={90} endAngle={-270} innerRadius="80%" outerRadius="100%" cornerRadius={50} paddingAngle={0} stroke="none">{pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.fill} />)}</Pie></PieChart>
-                                  </ResponsiveContainer>
-                                  <div className="absolute inset-0 flex flex-col items-center justify-center"><span className="text-4xl font-bold font-headline text-primary">{followerGoalProgress.toFixed(0)}%</span></div>
-                              </div>
-                              ) : (
-                                  <div className='flex flex-col items-center justify-center h-48 w-48 rounded-full border-4 border-dashed bg-muted'><Target className="h-12 w-12 text-muted-foreground" /></div>
-                              )}
-                              <p className="text-3xl font-bold font-headline mt-4">{formatMetricValue(currentFollowers)}</p>
-                              {goalFollowers > 0 ? (
-                                  <p className="text-sm text-muted-foreground">de {formatMetricValue(goalFollowers)} seguidores</p>
-                              ) : (
-                                  <p className="text-sm text-muted-foreground">Defina uma meta para começar</p>
-                              )}
-                          </div>
-                      </CardContent>
-                  </Card>
-                  </CarouselItem>
-                  <CarouselItem className="basis-full">
-                  <Card className='rounded-2xl border-0 h-full'>
-                      <CardHeader>
-                        <CardTitle className="text-center">Métricas de Engajamento</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                          <div className='grid grid-cols-1 gap-4'>
-                              <div className='p-4 rounded-lg bg-muted/50 border flex justify-between items-center'>
-                                  <div>
-                                    <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><Eye className="h-4 w-4" /> Views</h3>
-                                    <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.views)}</p>
-                                  </div>
-                                  <div>
-                                      {latestMetrics?.views !== undefined && latestMetrics.followers > 0 && (() => {
-                                        const rating = getMetricRating(latestMetrics.views, 'views', latestMetrics.followers);
-                                        return (
-                                          <div className={cn('h-7 w-7', rating.color)}>
-                                            {rating.iconName === 'Smile' && <Smile className="h-full w-full" />}
-                                            {rating.iconName === 'Meh' && <Meh className="h-full w-full" />}
-                                            {rating.iconName === 'Frown' && <Frown className="h-full w-full" />}
-                                          </div>
-                                        )
-                                      })()}
-                                  </div>
-                              </div>
-                              <div className='p-4 rounded-lg bg-muted/50 border flex justify-between items-center'>
-                                  <div>
-                                    <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><Heart className="h-4 w-4" /> Likes</h3>
-                                    <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.likes)}</p>
-                                  </div>
-                                   <div>
-                                      {latestMetrics?.likes !== undefined && latestMetrics.followers > 0 && (() => {
-                                        const rating = getMetricRating(latestMetrics.likes, 'likes', latestMetrics.followers);
-                                        return (
-                                          <div className={cn('h-7 w-7', rating.color)}>
-                                            {rating.iconName === 'Smile' && <Smile className="h-full w-full" />}
-                                            {rating.iconName === 'Meh' && <Meh className="h-full w-full" />}
-                                            {rating.iconName === 'Frown' && <Frown className="h-full w-full" />}
-                                          </div>
-                                        )
-                                      })()}
-                                  </div>
-                              </div>
-                              <div className='p-4 rounded-lg bg-muted/50 border flex justify-between items-center'>
-                                  <div>
-                                    <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><MessageSquare className="h-4 w-4" /> Comentários</h3>
-                                    <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.comments)}</p>
-                                  </div>
-                                   <div>
-                                      {latestMetrics?.comments !== undefined && latestMetrics.followers > 0 && (() => {
-                                        const rating = getMetricRating(latestMetrics.comments, 'comments', latestMetrics.followers);
-                                        return (
-                                          <div className={cn('h-7 w-7', rating.color)}>
-                                            {rating.iconName === 'Smile' && <Smile className="h-full w-full" />}
-                                            {rating.iconName === 'Meh' && <Meh className="h-full w-full" />}
-                                            {rating.iconName === 'Frown' && <Frown className="h-full w-full" />}
-                                          </div>
-                                        )
-                                      })()}
-                                  </div>
-                              </div>
-                          </div>
-                      </CardContent>
-                  </Card>
-                  </CarouselItem>
-                  <CarouselItem className="basis-full">
-                  <Card className="rounded-2xl border-0 h-full flex flex-col">
-                       <CardHeader>
-                           <CardTitle className="text-center">Análise de Desempenho</CardTitle>
-                       </CardHeader>
-                      <CardContent className="flex-1 flex flex-col">
-                          {isGeneratingInsights ? (
-                               <div className="flex-1 flex justify-center items-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
-                          ) : insights && insights.insights ? (
-                               <ScrollArea className="h-64 pr-4">
-                               <ul className="space-y-4">
-                                   {insights.insights.map((insight, i) => (
-                                   <li key={i} className="flex items-start gap-3">
-                                       <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary flex-shrink-0 mt-0.5"><Lightbulb className="h-3.5 w-3.5" /></div>
-                                       <p className="text-sm text-muted-foreground">{insight}</p>
-                                   </li>
-                                   ))}
-                               </ul>
-                               </ScrollArea>
-                          ) : (
-                               <div className="flex-1 flex flex-col justify-center items-center text-center p-4 gap-4">
-                                  <p className="text-sm text-muted-foreground">Clique em 'Analisar Desempenho' para receber uma análise com base nas suas últimas métricas.</p>
-                                  <Button variant="ghost" size="sm" onClick={handleGenerateInsights} disabled={isGeneratingInsights}>
-                                      {isGeneratingInsights ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
-                                      Analisar Desempenho
-                                  </Button>
-                              </div>
-                          )}
-                      </CardContent>
-                  </Card>
-                  </CarouselItem>
-              </CarouselContent>
-              <CarouselPrevious className="left-2" />
-              <CarouselNext className="right-2" />
-              </Carousel>
-          </div>
-
-          {/* Desktop Grid */}
-          <div className="hidden lg:grid lg:grid-cols-3 gap-8 items-start">
+          {/* Main Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             
             {/* Left Column */}
             <div className="lg:col-span-1 space-y-8">
@@ -626,7 +492,7 @@ export default function DashboardPage() {
                             </TabsContent>
                             <TabsContent value="atividade" className="mt-4 flex-grow flex items-center justify-center">
                               <Sheet><SheetTrigger asChild><Button variant="outline" className="w-full"><Activity className="mr-2 h-4 w-4" /> Ver Atividade Recente</Button></SheetTrigger>
-                                <SheetContent className="sm:max-w-4xl p-0">
+                                <SheetContent className="w-full sm:max-w-4xl p-0">
                                     <SheetHeader className="p-6 pb-4 border-b"><SheetTitle className="text-center">Atividade Recente nas Plataformas</SheetTitle></SheetHeader>
                                     <ScrollArea className="h-[calc(100vh-8rem)]">
                                         <div className="p-6">{isFetchingPosts ? <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div> : <div className='space-y-8'>{instaPosts && userProfile?.instagramHandle && <div><h3 className="text-lg font-semibold flex items-center gap-2 mb-4"><Instagram className="h-5 w-5"/> Instagram</h3><InstagramProfileResults profile={{ id: '', username: userProfile.instagramHandle, followersCount: parseMetric(userProfile.instagramFollowers), isPrivate: false, isBusiness: true, profilePicUrlHd: '', biography: '', fullName: '', mediaCount: 0, followingCount: 0 }} posts={instaPosts} formatNumber={formatNumber} error={null} /></div>}{tiktokPosts && userProfile?.tiktokHandle && <div><h3 className="text-lg font-semibold flex items-center gap-2 mb-4"><Film className="h-5 w-5"/> TikTok</h3><TikTokProfileResults profile={{ id: '', username: userProfile.tiktokHandle, followersCount: parseMetric(userProfile.tiktokFollowers), nickname: '', avatarUrl: '', bio: '', isVerified: false, isPrivate: false, heartsCount: 0, videoCount: 0, followingCount: 0 }} posts={tiktokPosts} formatNumber={formatNumber} error={null} onVideoClick={handleTikTokClick} /></div>}{!(instaPosts && userProfile?.instagramHandle) && !(tiktokPosts && userProfile?.tiktokHandle) && <div className="text-center py-10"><p className="text-muted-foreground">Integre suas contas no seu <Link href="/profile" className='text-primary font-semibold hover:underline'>perfil</Link> para ver seus posts aqui.</p></div>}</div>}</div>
@@ -763,7 +629,6 @@ export default function DashboardPage() {
                     )}
                 </CardContent>
               </Card>
-
             </div>
           </div>
         </div>
@@ -771,7 +636,3 @@ export default function DashboardPage() {
     </>
   );
 }
-
-
-
-    
