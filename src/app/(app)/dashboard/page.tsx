@@ -76,6 +76,7 @@ import { FollowerGoalSheet } from '@/components/dashboard/follower-goal-sheet';
 import { ProfileCompletionAlert } from '@/components/dashboard/profile-completion-alert';
 import { generateDashboardInsights, type DashboardInsight } from './actions';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 
 const chartConfigBase = {
@@ -139,6 +140,11 @@ export default function DashboardPage() {
   ), [firestore]);
   const { data: roteiroData, isLoading: isLoadingRoteiro } = useCollection<PlanoSemanal>(roteiroQuery);
   const roteiro = roteiroData?.[0];
+  
+  const ideiasQuery = useMemoFirebase(() => (
+      firestore && user ? query(collection(firestore, `users/${user.uid}/ideiasSalvas`), where('concluido', '==', false), limit(5)) : null
+  ), [firestore, user]);
+  const { data: ideiasSalvas, isLoading: isLoadingIdeias } = useCollection<IdeiaSalva>(ideiasQuery);
 
   const upcomingContentQuery = useMemoFirebase(() => (
       firestore && user ? query(collection(firestore, `users/${user.uid}/conteudoAgendado`), where('status', '==', 'Agendado'), orderBy('date', 'asc'), limit(3)) : null
@@ -150,12 +156,26 @@ export default function DashboardPage() {
   ), [firestore, user]);
   const { data: metricSnapshots, isLoading: isLoadingMetrics } = useCollection<MetricSnapshot>(metricSnapshotsQuery);
 
-  const isLoading = isLoadingProfile || isLoadingRoteiro || isLoadingUpcoming || isLoadingMetrics || isSubscriptionLoading;
+  const isLoading = isLoadingProfile || isLoadingRoteiro || isLoadingUpcoming || isLoadingMetrics || isSubscriptionLoading || isLoadingIdeias;
   
   const handleTikTokClick = (post: TikTokProfileData) => {
     if (post.shareUrl) {
         setCurrentTikTokUrl(post.shareUrl);
         setShowTikTokModal(true);
+    }
+  };
+  
+  const handleToggleIdeia = async (ideia: IdeiaSalva) => {
+    if (!firestore || !user) return;
+    const ideaRef = doc(firestore, `users/${user.uid}/ideiasSalvas`, ideia.id);
+    try {
+        await updateDoc(ideaRef, { 
+            concluido: !ideia.concluido,
+            completedAt: !ideia.concluido ? serverTimestamp() : null,
+        });
+        toast({ title: "Tarefa atualizada!"});
+    } catch (e: any) {
+        toast({ title: "Erro", description: e.message, variant: 'destructive'})
     }
   };
 
@@ -237,8 +257,7 @@ export default function DashboardPage() {
     if (selectedPlatform === 'total') {
         return {
             views: parseMetric(userProfile.instagramAverageViews) + parseMetric(userProfile.tiktokAverageViews),
-            likes: parseMetric(userProfile.instagramAverageLikes) + parseMetric(userProfile.tiktokAverageLikes),
-            comments: parseMetric(userProfile.instagramAverageComments) + parseMetric(userProfile.tiktokAverageComments),
+            likes: parseMetric(userProfile.instagramAverageLikes) + parseMetric(userProfile.tiktokAverageComments),
         }
     }
     return selectedPlatform === 'instagram' ? {
@@ -477,32 +496,38 @@ export default function DashboardPage() {
 
             <div className="lg:col-span-1 space-y-8">
                  <Card className="rounded-2xl border-0">
-                    <CardHeader><CardTitle>Recursos &amp; Atividade</CardTitle></CardHeader>
-                    <CardContent className="flex flex-col gap-4">
-                        <div className='grid grid-cols-2 gap-2 pt-2'>
-                            <SavedIdeasSheet />
-                             <Sheet><SheetTrigger asChild><Button variant="outline" className="w-full"><CalendarPlus className="mr-2 h-4 w-4" /> Próximos</Button></SheetTrigger>
-                                <SheetContent className="sm:max-w-2xl p-0">
-                                    <SheetHeader className="p-6 pb-4 border-b"><SheetTitle>Próximos Posts Agendados</SheetTitle><SheetDescription>Uma visão rápida do que está por vir.</SheetDescription></SheetHeader>
-                                    <ScrollArea className="h-[calc(100vh-8rem)]">
-                                        <div className="p-6 space-y-4">{isLoadingUpcoming ? <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div> : upcomingContent && upcomingContent.length > 0 ? (upcomingContent.map(post => (<div key={post.id} className="p-4 rounded-lg border bg-background/50 flex items-start justify-between gap-4"><div className="flex items-start gap-4 flex-1 overflow-hidden"><div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0"><Tag className="h-6 w-6 text-muted-foreground" /></div><div className="flex-1 overflow-hidden"><p className="font-semibold text-foreground truncate">{post.title}</p><p className="text-sm text-muted-foreground">{post.contentType} • {formatDistanceToNow(post.date.toDate(), { addSuffix: true, locale: ptBR })}</p></div></div><DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger><DropdownMenuContent align="end"><DropdownMenuItem onClick={() => handleMarkAsPublished(post.id)}><CheckCircle className="mr-2 h-4 w-4" /><span>Marcar como Publicado</span></DropdownMenuItem></DropdownMenuContent></DropdownMenu></div>))) : (<div className="text-center py-10"><p className="text-muted-foreground">Nenhum post agendado.</p><Button variant="link" asChild><Link href="/content-calendar">Ir para o Calendário</Link></Button></div>)}</div>
-                                    </ScrollArea>
-                                </SheetContent>
-                            </Sheet>
-                            <Sheet><SheetTrigger asChild><Button variant="outline" className="w-full"><Activity className="mr-2 h-4 w-4" /> Atividade</Button></SheetTrigger>
+                    <CardHeader><CardTitle>Hub de Ação Rápida</CardTitle></CardHeader>
+                    <CardContent>
+                         <Tabs defaultValue="roteiro" className="w-full">
+                            <TabsList className="grid w-full grid-cols-4">
+                                <TabsTrigger value="roteiro">Roteiro</TabsTrigger>
+                                <TabsTrigger value="proximos">Próximos</TabsTrigger>
+                                <TabsTrigger value="ideias">Ideias</TabsTrigger>
+                                <TabsTrigger value="atividade">Atividade</TabsTrigger>
+                            </TabsList>
+                            <TabsContent value="roteiro" className="mt-4">
+                                <div className='space-y-2'>
+                                    <h4 className='text-center text-sm font-medium text-muted-foreground'>Roteiro do Dia ({diaDaSemanaNormalizado})</h4>
+                                    {isLoadingRoteiro ? <Skeleton className="h-24 w-full" /> : roteiroDoDia && roteiroDoDia.length > 0 ? <ul className="space-y-3">{roteiroDoDia.map((item, index) => <li key={index}><div className="flex items-start gap-3"><Checkbox id={`roteiro-dia-${index}`} checked={item.concluido} onCheckedChange={() => handleToggleRoteiro(item, index)} className="h-5 w-5 mt-0.5" /><div><label htmlFor={`roteiro-dia-${index}`} className={cn('font-medium transition-colors cursor-pointer', item.concluido ? 'line-through text-muted-foreground' : 'text-foreground')}>{item.tarefa}</label><p className="text-xs text-muted-foreground">{item.detalhes}</p></div></div></li>)}</ul> : <div className="text-center py-4 rounded-xl bg-muted/50 border border-dashed h-full flex flex-col justify-center"><ClipboardList className="mx-auto h-6 w-6 text-muted-foreground mb-2" /><h3 className="font-semibold text-foreground text-sm">Nenhuma tarefa para hoje.</h3><p className="text-xs text-muted-foreground">Gere um novo <Link href="/generate-weekly-plan" className="text-primary hover:underline">plano semanal</Link>.</p></div>}
+                                </div>
+                            </TabsContent>
+                             <TabsContent value="proximos" className="mt-4">
+                                 {isLoadingUpcoming ? <div className="flex justify-center items-center h-48"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div> : upcomingContent && upcomingContent.length > 0 ? (<div className="space-y-2">{upcomingContent.map(post => (<div key={post.id} className="p-3 rounded-lg border bg-background/50 flex items-start justify-between gap-4"><div className="flex items-start gap-4 flex-1 overflow-hidden"><div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0"><Tag className="h-5 w-5 text-muted-foreground" /></div><div className="flex-1 overflow-hidden"><p className="font-semibold text-foreground truncate text-sm">{post.title}</p><p className="text-xs text-muted-foreground">{post.contentType} • {formatDistanceToNow(post.date.toDate(), { addSuffix: true, locale: ptBR })}</p></div></div><DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger><DropdownMenuContent align="end"><DropdownMenuItem onClick={() => handleMarkAsPublished(post.id)}><CheckCircle className="mr-2 h-4 w-4" /><span>Marcar como Publicado</span></DropdownMenuItem></DropdownMenuContent></DropdownMenu></div>))}</div>) : (<div className="text-center py-8"><p className="text-muted-foreground text-sm">Nenhum post agendado.</p><Button variant="link" asChild><Link href="/content-calendar">Ir para o Calendário</Link></Button></div>)}
+                            </TabsContent>
+                             <TabsContent value="ideias" className="mt-4">
+                                {isLoadingIdeias ? <div className="flex justify-center items-center h-48"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div> : ideiasSalvas && ideiasSalvas.length > 0 ? <ul className="space-y-3">{ideiasSalvas.map((ideia) => (<li key={ideia.id} className="flex items-start gap-3"><Checkbox id={`ideia-${ideia.id}`} checked={ideia.concluido} onCheckedChange={() => handleToggleIdeia(ideia)} className="h-5 w-5 mt-0.5" /><div className="grid gap-0.5"><label htmlFor={`ideia-${ideia.id}`} className={cn('font-medium transition-colors cursor-pointer', ideia.concluido ? 'line-through text-muted-foreground' : 'text-foreground')}>{ideia.titulo}</label><p className="text-xs text-muted-foreground">de "{ideia.origem}"</p></div></li>))}</ul> : (<div className="text-center py-8"><p className="text-muted-foreground text-sm">Nenhuma ideia salva.</p><Button variant="link" asChild><Link href="/video-ideas">Gerar Novas Ideias</Link></Button></div>)}
+                            </TabsContent>
+                            <TabsContent value="atividade" className="mt-4">
+                               <Sheet><SheetTrigger asChild><Button variant="outline" className="w-full"><Activity className="mr-2 h-4 w-4" /> Ver Atividade Recente</Button></SheetTrigger>
                                 <SheetContent className="sm:max-w-4xl p-0">
-                                    <SheetHeader className="p-6 pb-4 border-b"><SheetTitle>Atividade Recente</SheetTitle></SheetHeader>
+                                    <SheetHeader className="p-6 pb-4 border-b"><SheetTitle>Atividade Recente nas Plataformas</SheetTitle></SheetHeader>
                                     <ScrollArea className="h-[calc(100vh-8rem)]">
                                         <div className="p-6">{isFetchingPosts ? <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div> : <div className='space-y-8'>{instaPosts && userProfile?.instagramHandle && <div><h3 className="text-lg font-semibold flex items-center gap-2 mb-4"><Instagram className="h-5 w-5"/> Instagram</h3><InstagramProfileResults profile={{ id: '', username: userProfile.instagramHandle, followersCount: parseMetric(userProfile.instagramFollowers), isPrivate: false, isBusiness: true, profilePicUrlHd: '', biography: '', fullName: '', mediaCount: 0, followingCount: 0 }} posts={instaPosts} formatNumber={formatNumber} error={null} /></div>}{tiktokPosts && userProfile?.tiktokHandle && <div><h3 className="text-lg font-semibold flex items-center gap-2 mb-4"><Film className="h-5 w-5"/> TikTok</h3><TikTokProfileResults profile={{ id: '', username: userProfile.tiktokHandle, followersCount: parseMetric(userProfile.tiktokFollowers), nickname: '', avatarUrl: '', bio: '', isVerified: false, isPrivate: false, heartsCount: 0, videoCount: 0, followingCount: 0 }} posts={tiktokPosts} formatNumber={formatNumber} error={null} onVideoClick={handleTikTokClick} /></div>}{!(instaPosts && userProfile?.instagramHandle) && !(tiktokPosts && userProfile?.tiktokHandle) && <div className="text-center py-10"><p className="text-muted-foreground">Integre suas contas no seu <Link href="/profile" className='text-primary font-semibold hover:underline'>perfil</Link> para ver seus posts aqui.</p></div>}</div>}</div>
                                     </ScrollArea>
                                 </SheetContent>
                             </Sheet>
-                        </div>
-                        <Separator />
-                        <div className='space-y-2'>
-                            <h4 className='text-center text-sm font-medium text-muted-foreground'>Roteiro do Dia ({diaDaSemanaNormalizado})</h4>
-                             {isLoadingRoteiro ? <Skeleton className="h-24 w-full" /> : roteiroDoDia && roteiroDoDia.length > 0 ? <ul className="space-y-3">{roteiroDoDia.map((item, index) => <li key={index}><div className="flex items-start gap-3"><Checkbox id={`roteiro-dia-${index}`} checked={item.concluido} onCheckedChange={() => handleToggleRoteiro(item, index)} className="h-5 w-5 mt-0.5" /><div><label htmlFor={`roteiro-dia-${index}`} className={cn('font-medium transition-colors cursor-pointer', item.concluido ? 'line-through text-muted-foreground' : 'text-foreground')}>{item.tarefa}</label><p className="text-xs text-muted-foreground">{item.detalhes}</p></div></div></li>)}</ul> : <div className="text-center py-4 rounded-xl bg-muted/50 border border-dashed h-full flex flex-col justify-center"><ClipboardList className="mx-auto h-6 w-6 text-muted-foreground mb-2" /><h3 className="font-semibold text-foreground text-sm">Nenhuma tarefa para hoje.</h3><p className="text-xs text-muted-foreground">Gere um novo <Link href="/generate-weekly-plan" className="text-primary hover:underline">plano semanal</Link>.</p></div>}
-                        </div>
+                            </TabsContent>
+                         </Tabs>
                     </CardContent>
                 </Card>
             </div>
@@ -512,3 +537,5 @@ export default function DashboardPage() {
     </>
   );
 }
+
+    
