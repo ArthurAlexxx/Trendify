@@ -117,7 +117,7 @@ export default function DashboardPage() {
   const [selectedPlatform, setSelectedPlatform] = useState<'total' | 'instagram' | 'tiktok'>('total');
 
   const [instaPosts, setInstaPosts] = useState<InstagramPostData[] | null>(null);
-  const [tiktokPosts, setTiktokPosts] = useState<TikTokPostData[] | null>(null);
+  const [tiktokPosts, setTiktokPosts] = useState<TikTokProfileData[] | null>(null);
   const [isFetchingPosts, setIsFetchingPosts] = useState(false);
   
   const [showTikTokModal, setShowTikTokModal] = useState(false);
@@ -458,7 +458,7 @@ export default function DashboardPage() {
 
             <div className="lg:col-span-1 space-y-8">
                  <Card className="rounded-2xl border-0">
-                    <CardHeader><CardTitle>Recursos & Atividade</CardTitle></CardHeader>
+                    <CardHeader><CardTitle>Recursos &amp; Atividade</CardTitle></CardHeader>
                     <CardContent className="flex flex-col gap-4">
                         <SavedIdeasSheet />
                          <Sheet><SheetTrigger asChild><Button variant="outline" className="w-full"><CalendarPlus className="mr-2 h-4 w-4" /> Próximos Agendamentos</Button></SheetTrigger>
