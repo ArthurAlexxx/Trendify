@@ -112,25 +112,27 @@ export function FollowerGoalSheet({ userProfile, children }: FollowerGoalSheetPr
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>{children}</SheetTrigger>
             <SheetContent>
-                <SheetHeader>
+                <SheetHeader className="p-6">
                     <SheetTitle className="font-headline text-xl">Definir Metas de Seguidores</SheetTitle>
                     <SheetDescription>
                         Defina suas metas para cada plataforma ou uma meta geral. Isso ajudará a IA a criar estratégias melhores.
                     </SheetDescription>
                 </SheetHeader>
-                <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-6">
-                        {renderNumericInput('totalFollowerGoal', 'Meta Total (Insta + TikTok)')}
-                        {renderNumericInput('instagramFollowerGoal', 'Meta do Instagram')}
-                        {renderNumericInput('tiktokFollowerGoal', 'Meta do TikTok')}
-                         <div className='pt-4'>
-                            <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
-                                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                Salvar Metas
-                            </Button>
-                        </div>
-                    </form>
-                </Form>
+                <div className="p-6">
+                    <Form {...form}>
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                            {renderNumericInput('totalFollowerGoal', 'Meta Total (Insta + TikTok)')}
+                            {renderNumericInput('instagramFollowerGoal', 'Meta do Instagram')}
+                            {renderNumericInput('tiktokFollowerGoal', 'Meta do TikTok')}
+                            <div className='pt-4'>
+                                <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
+                                    {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    Salvar Metas
+                                </Button>
+                            </div>
+                        </form>
+                    </Form>
+                </div>
             </SheetContent>
         </Sheet>
     )
