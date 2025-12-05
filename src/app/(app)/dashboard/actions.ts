@@ -40,7 +40,7 @@ async function generateDashboardInsightsWithOpenAI(
   input: z.infer<typeof GenerateDashboardInsightsInputSchema>
 ): Promise<DashboardInsight[]> {
 
-  const systemPrompt = `Você é um estrategista de crescimento para criadores de conteúdo. Analise as métricas dos últimos dias, o nicho e o objetivo do criador para gerar 2 ou 3 insights rápidos e acionáveis para ajudar o criador a atingir seu objetivo. Seja direto e prático. Foco em ações de curto prazo. Você DEVE retornar um JSON válido que siga o schema.`;
+  const systemPrompt = `Você é um estrategista de crescimento para criadores de conteúdo. Analise a evolução das métricas do criador nos últimos dias, seu nicho e objetivo para gerar 2 ou 3 insights rápidos e acionáveis. Foque em tendências (crescimento, queda) e em conselhos práticos para o curto prazo. Você DEVE retornar um JSON válido que siga o schema.`;
 
   const userPrompt = `
   - Nicho: ${input.niche}
