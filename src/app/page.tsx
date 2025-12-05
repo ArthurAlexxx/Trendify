@@ -534,7 +534,7 @@ export default function LandingPage() {
                                         <AreaChart data={results.growthData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                                         <defs><linearGradient id="colorFollowers" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.8}/><stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/></linearGradient></defs>
                                         <XAxis dataKey="month" tickFormatter={(v) => `Mês ${v}`} />
-                                        <YAxis tickFormatter={(v) => `${v / 1000}k`} />
+                                        <YAxis domain={['auto', 'auto']} tickFormatter={(v) => v > 1000 ? `${v / 1000}k` : v.toString()} />
                                         <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }} />
                                         <Area type="monotone" dataKey="followers" stroke="hsl(var(--primary))" fillOpacity={1} fill="url(#colorFollowers)" />
                                         </AreaChart>
@@ -584,7 +584,7 @@ export default function LandingPage() {
                                               <AreaChart data={results.growthData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                                                   <defs><linearGradient id="colorFollowers" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.8}/><stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/></linearGradient></defs>
                                                   <XAxis dataKey="month" tickFormatter={(v) => `Mês ${v}`} />
-                                                  <YAxis tickFormatter={(v) => `${v / 1000}k`} />
+                                                  <YAxis domain={['auto', 'auto']} tickFormatter={(v) => v > 1000 ? `${v / 1000}k` : v.toString()} />
                                                   <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }} />
                                                   <Area type="monotone" dataKey="followers" stroke="hsl(var(--primary))" fillOpacity={1} fill="url(#colorFollowers)" />
                                               </AreaChart>
