@@ -523,7 +523,7 @@ export default function LandingPage() {
                       {/* Mobile Carousel */}
                        <div className="lg:hidden flex justify-center">
                         <Carousel className="w-full max-w-xs" opts={{ align: 'start' }}>
-                          <CarouselContent className="-ml-2 md:-ml-4 py-4">
+                          <CarouselContent className="-ml-2 md:-ml-4 py-8">
                             {results.growthData && results.growthData.length > 0 && (
                             <CarouselItem className="pl-2 md:pl-4 basis-[90%]">
                                 <Card className="rounded-2xl h-full">
