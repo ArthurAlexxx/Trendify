@@ -284,7 +284,6 @@ export default function DashboardPage() {
         setIsFetchingPosts(true);
         setInsights(null);
 
-        // Fetch Social Media Posts
         if (userProfile.instagramHandle) {
             getInstagramPosts(userProfile.instagramHandle.replace('@', '')).catch(e => console.error("Failed to fetch instagram posts", e));
         }
@@ -294,7 +293,6 @@ export default function DashboardPage() {
         }
         setIsFetchingPosts(false);
 
-        // Fetch AI Insights
         if (metricSnapshots && metricSnapshots.length > 1 && isPremium) {
             setIsGeneratingInsights(true);
             try {
@@ -308,7 +306,7 @@ export default function DashboardPage() {
                         views: parseMetric(s.views),
                         likes: parseMetric(s.likes),
                         comments: parseMetric(s.comments),
-                    })).slice(0, 14), // last 14 days
+                    })).slice(0, 14),
                 });
                 setInsights(result);
             } catch (e: any) {
@@ -320,7 +318,7 @@ export default function DashboardPage() {
         }
     };
     if (userProfile) fetchPostsAndInsights();
-  }, [userProfile, metricSnapshots, isPremium, goalFollowers, toast]); // Added toast to dependency array
+  }, [userProfile, metricSnapshots, isPremium, goalFollowers, toast]);
 
 
   return (
@@ -369,8 +367,8 @@ export default function DashboardPage() {
         
         {userProfile && <ProfileCompletionAlert userProfile={userProfile} isPremium={isPremium} />}
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-start">
-            <Card className="rounded-2xl border-0 lg:col-span-2">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+            <Card className="rounded-2xl border-0 lg:col-span-1">
                  <CardHeader className='items-center text-center'>
                     <CardTitle className="font-headline text-lg sm:text-xl">Meta de Seguidores</CardTitle>
                 </CardHeader>
@@ -397,10 +395,18 @@ export default function DashboardPage() {
                 </CardContent>
             </Card>
             
-            <div className='lg:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-6'>
-                <Card className='rounded-xl p-4 bg-muted/50'><h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-2"><Eye className="h-4 w-4" /> Views</h3><p className="text-xl font-bold font-headline">{isLoading ? <Skeleton className="h-6 w-12" /> : formatMetricValue(latestMetrics?.views)}</p></Card>
-                <Card className='rounded-xl p-4 bg-muted/50'><h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-2"><Heart className="h-4 w-4" /> Likes</h3><p className="text-xl font-bold font-headline">{isLoading ? <Skeleton className="h-6 w-12" /> : formatMetricValue(latestMetrics?.likes)}</p></Card>
-                <Card className='rounded-xl p-4 bg-muted/50'><h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-2"><MessageSquare className="h-4 w-4" /> Comentários</h3><p className="text-xl font-bold font-headline">{isLoading ? <Skeleton className="h-6 w-12" /> : formatMetricValue(latestMetrics?.comments)}</p></Card>
+            <div className='lg:col-span-2 grid grid-cols-1 gap-6'>
+                <div className='grid grid-cols-1 sm:grid-cols-3 gap-6'>
+                    <Card className='rounded-xl p-4 bg-muted/50'><h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-2"><Eye className="h-4 w-4" /> Views</h3><p className="text-xl font-bold font-headline">{isLoading ? <Skeleton className="h-6 w-12" /> : formatMetricValue(latestMetrics?.views)}</p></Card>
+                    <Card className='rounded-xl p-4 bg-muted/50'><h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-2"><Heart className="h-4 w-4" /> Likes</h3><p className="text-xl font-bold font-headline">{isLoading ? <Skeleton className="h-6 w-12" /> : formatMetricValue(latestMetrics?.likes)}</p></Card>
+                    <Card className='rounded-xl p-4 bg-muted/50'><h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-2"><MessageSquare className="h-4 w-4" /> Comentários</h3><p className="text-xl font-bold font-headline">{isLoading ? <Skeleton className="h-6 w-12" /> : formatMetricValue(latestMetrics?.comments)}</p></Card>
+                </div>
+                 <Card className="rounded-2xl border-0">
+                    <CardHeader className='items-center text-center'><CardTitle className="font-headline text-xl">Insights da IA</CardTitle></CardHeader>
+                    <CardContent>
+                        {isGeneratingInsights ? <div className="flex justify-center items-center h-24"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div> : insights && insights.length > 0 ? <ul className="space-y-4">{insights.map((insight, i) => <li key={i} className="flex items-start gap-3"><div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary flex-shrink-0 mt-0.5"><Lightbulb className="h-3.5 w-3.5" /></div><p className="text-sm text-muted-foreground">{insight.insight}</p></li>)}</ul> : <div className="text-center text-sm text-muted-foreground">Gere ou sincronize suas métricas por alguns dias para começar a receber insights.</div>}
+                    </CardContent>
+                </Card>
             </div>
         </div>
 
@@ -436,7 +442,7 @@ export default function DashboardPage() {
 
             <div className="lg:col-span-1 space-y-8">
                 <Card className="rounded-2xl border-0">
-                    <CardHeader className='items-center text-center'><CardTitle className="font-headline text-xl">Recursos & Atividade</CardTitle></CardHeader>
+                    <CardHeader className='items-center text-center'><CardTitle className="font-headline text-xl">Recursos & Roteiro</CardTitle></CardHeader>
                     <CardContent className="flex flex-col gap-4">
                         <SavedIdeasSheet />
                         <Sheet><SheetTrigger asChild><Button variant="outline" className="w-full"><CalendarPlus className="mr-2 h-4 w-4" /> Próximos Agendamentos</Button></SheetTrigger>
@@ -455,28 +461,17 @@ export default function DashboardPage() {
                                 </ScrollArea>
                             </SheetContent>
                         </Sheet>
+                        <Separator />
+                        <div className='space-y-2'>
+                            <h4 className='text-center text-sm font-medium text-muted-foreground'>Roteiro do Dia ({diaDaSemanaNormalizado})</h4>
+                             {isLoadingRoteiro ? <Skeleton className="h-24 w-full" /> : roteiroDoDia && roteiroDoDia.length > 0 ? <ul className="space-y-3">{roteiroDoDia.map((item, index) => <li key={index}><div className="flex items-start gap-3"><Checkbox id={`roteiro-dia-${index}`} checked={item.concluido} onCheckedChange={() => handleToggleRoteiro(item, index)} className="h-5 w-5 mt-0.5" /><div><label htmlFor={`roteiro-dia-${index}`} className={cn('font-medium transition-colors cursor-pointer', item.concluido ? 'line-through text-muted-foreground' : 'text-foreground')}>{item.tarefa}</label><p className="text-xs text-muted-foreground">{item.detalhes}</p></div></div></li>)}</ul> : <div className="text-center py-4 rounded-xl bg-muted/50 border border-dashed h-full flex flex-col justify-center"><ClipboardList className="mx-auto h-6 w-6 text-muted-foreground mb-2" /><h3 className="font-semibold text-foreground text-sm">Nenhuma tarefa para hoje.</h3><p className="text-xs text-muted-foreground">Gere um novo <Link href="/generate-weekly-plan" className="text-primary hover:underline">plano semanal</Link>.</p></div>}
+                        </div>
                     </CardContent>
                 </Card>
             </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-           <Card className="rounded-2xl border-0 lg:col-span-2">
-              <CardHeader className='items-center text-center'><CardTitle className="font-headline text-xl">Roteiro do Dia ({diaDaSemanaNormalizado})</CardTitle></CardHeader>
-              <CardContent>{isLoadingRoteiro ? <Skeleton className="h-24 w-full" /> : roteiroDoDia && roteiroDoDia.length > 0 ? <ul className="space-y-3">{roteiroDoDia.map((item, index) => <li key={index}><div className="flex items-start gap-3"><Checkbox id={`roteiro-dia-${index}`} checked={item.concluido} onCheckedChange={() => handleToggleRoteiro(item, index)} className="h-5 w-5 mt-0.5" /><div><label htmlFor={`roteiro-dia-${index}`} className={cn('font-medium transition-colors cursor-pointer', item.concluido ? 'line-through text-muted-foreground' : 'text-foreground')}>{item.tarefa}</label><p className="text-xs text-muted-foreground">{item.detalhes}</p></div></div></li>)}</ul> : <div className="text-center py-4 rounded-xl bg-muted/50 border border-dashed h-full flex flex-col justify-center"><ClipboardList className="mx-auto h-6 w-6 text-muted-foreground mb-2" /><h3 className="font-semibold text-foreground text-sm">Nenhuma tarefa para hoje.</h3><p className="text-xs text-muted-foreground">Gere um novo <Link href="/generate-weekly-plan" className="text-primary hover:underline">plano semanal</Link>.</p></div>}</CardContent>
-           </Card>
-           
-           <Card className="rounded-2xl border-0 lg:col-span-1">
-              <CardHeader className='items-center text-center'><CardTitle className="font-headline text-xl">Insights da IA</CardTitle></CardHeader>
-              <CardContent>
-                {isGeneratingInsights ? <div className="flex justify-center items-center h-24"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div> : insights && insights.length > 0 ? <ul className="space-y-4">{insights.map((insight, i) => <li key={i} className="flex items-start gap-3"><div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary flex-shrink-0 mt-0.5"><Lightbulb className="h-3.5 w-3.5" /></div><p className="text-sm text-muted-foreground">{insight.insight}</p></li>)}</ul> : <div className="text-center text-sm text-muted-foreground">Gere ou sincronize suas métricas por alguns dias para começar a receber insights.</div>}
-              </CardContent>
-           </Card>
         </div>
       </div>
     </div>
     </>
   );
 }
-
-    
