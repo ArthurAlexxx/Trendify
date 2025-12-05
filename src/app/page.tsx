@@ -158,7 +158,7 @@ export default function LandingPage() {
     setIsCalculating(true);
     setResults(null);
     try {
-      const result = await calculateGrowthAction(data);
+      const result = await calculateGrowthAction(null, data);
       if (result.error) {
         toast({ title: "Erro ao Calcular", description: result.error, variant: 'destructive'});
         setIsCalculating(false);
@@ -695,7 +695,7 @@ export default function LandingPage() {
                 <h3 className="text-2xl font-bold font-headline mb-2">
                   Grátis
                 </h3>
-                <p className="text-muted-foreground mb-6 flex-grow">
+                <p className="text-muted-foreground mb-6 flex-grow text-sm">
                   Para quem está começando e quer testar a plataforma.
                 </p>
                 <p className="text-4xl font-bold mb-6">
@@ -729,7 +729,7 @@ export default function LandingPage() {
                   Mais Popular
                 </Badge>
                 <h3 className="text-2xl font-bold font-headline mb-2">Pro</h3>
-                <p className="text-muted-foreground mb-6 flex-grow">
+                <p className="text-muted-foreground mb-6 flex-grow text-sm">
                   Para criadores que levam o crescimento a sério e querem otimizar seu conteúdo.
                 </p>
                 <p className="text-4xl font-bold mb-6">
@@ -775,7 +775,7 @@ export default function LandingPage() {
                   Premium
                   <Crown className="h-5 w-5 text-yellow-500 fill-yellow-500" />
                 </h3>
-                <p className="text-muted-foreground mb-6 flex-grow">
+                <p className="text-muted-foreground mb-6 flex-grow text-sm">
                   Acesso total para criadores que querem monetizar e profissionalizar sua carreira.
                 </p>
                 <p className="text-4xl font-bold mb-6">
@@ -894,3 +894,4 @@ export default function LandingPage() {
     </div>
   );
 }
+

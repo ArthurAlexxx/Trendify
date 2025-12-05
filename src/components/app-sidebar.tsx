@@ -149,19 +149,21 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
       </div>
 
       <nav className="flex-1 px-4 py-4">
-        <div className='relative'>
-             <Link href={isAdmin ? "/admin" : "/subscribe"} onClick={handleLinkClick} className="block w-full text-left p-4 rounded-xl bg-gradient-to-br from-primary via-purple-500 to-violet-600 text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-shadow">
-                <div className='flex items-center gap-3'>
-                    {getPlanIcon()}
-                    <div className='flex flex-col'>
-                        {isSubscriptionLoading ? <Skeleton className="h-5 w-20" /> : <span className='font-semibold text-lg leading-tight'>{getPlanName()}</span>}
-                        <span className='text-sm opacity-80'>{isAdmin ? "Painel de Controle" : "Gerenciar assinatura"}</span>
-                    </div>
-                </div>
-            </Link>
-        </div>
+        {!isMobile && (
+          <div className='relative'>
+              <Link href={isAdmin ? "/admin" : "/subscribe"} onClick={handleLinkClick} className="block w-full text-left p-4 rounded-xl bg-gradient-to-br from-primary via-purple-500 to-violet-600 text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-shadow">
+                  <div className='flex items-center gap-3'>
+                      {getPlanIcon()}
+                      <div className='flex flex-col'>
+                          {isSubscriptionLoading ? <Skeleton className="h-5 w-20" /> : <span className='font-semibold text-lg leading-tight'>{getPlanName()}</span>}
+                          <span className='text-sm opacity-80'>{isAdmin ? "Painel de Controle" : "Gerenciar assinatura"}</span>
+                      </div>
+                  </div>
+              </Link>
+          </div>
+        )}
         
-        <div className="flex flex-col gap-4 mt-6">
+        <div className={cn("flex flex-col gap-4", !isMobile && "mt-6")}>
           {currentMenuItems.map(group => (
             <div key={group.category} className='px-2'>
               <h3 className="text-xs font-semibold text-muted-foreground tracking-wider uppercase mb-2">
@@ -274,3 +276,4 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
     </aside>
   );
 }
+

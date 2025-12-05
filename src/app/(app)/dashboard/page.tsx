@@ -296,10 +296,10 @@ export default function DashboardPage() {
   }, [userProfile]);
 
   const handleGenerateInsights = async () => {
-     if (!metricSnapshots || metricSnapshots.length < 2) {
+     if (!metricSnapshots || metricSnapshots.length < 1) {
         toast({
             title: "Dados Insuficientes",
-            description: "Sincronize ou insira suas métricas por pelo menos 2 dias para gerar uma análise.",
+            description: "Sincronize ou insira suas métricas por pelo menos um dia para gerar uma análise.",
             variant: "destructive"
         });
         return;
@@ -452,7 +452,7 @@ export default function DashboardPage() {
                     {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
                     historicalChartData.length > 0 ? (
                         <ChartContainer config={platformChartConfig[selectedPlatform]} className="h-[350px] w-full">
-                        <BarChart accessibilityLayer data={historicalChartData} margin={{ left: 12, right: 12, top: 5, bottom: 5 }}>
+                        <BarChart accessibilityLayer data={historicalChartData} margin={{ left: 0, right: 12, top: 5, bottom: 5 }}>
                             <CartesianGrid vertical={false} strokeDasharray="3 3" />
                             <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} />
                             <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
@@ -479,23 +479,25 @@ export default function DashboardPage() {
                  <Card className="rounded-2xl border-0">
                     <CardHeader><CardTitle>Recursos &amp; Atividade</CardTitle></CardHeader>
                     <CardContent className="flex flex-col gap-4">
-                        <SavedIdeasSheet />
-                         <Sheet><SheetTrigger asChild><Button variant="outline" className="w-full"><CalendarPlus className="mr-2 h-4 w-4" /> Próximos Agendamentos</Button></SheetTrigger>
-                            <SheetContent className="sm:max-w-2xl p-0">
-                                <SheetHeader className="p-6 pb-4 border-b"><SheetTitle>Próximos Posts Agendados</SheetTitle><SheetDescription>Uma visão rápida do que está por vir.</SheetDescription></SheetHeader>
-                                <ScrollArea className="h-[calc(100vh-8rem)]">
-                                    <div className="p-6 space-y-4">{isLoadingUpcoming ? <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div> : upcomingContent && upcomingContent.length > 0 ? (upcomingContent.map(post => (<div key={post.id} className="p-4 rounded-lg border bg-background/50 flex items-start justify-between gap-4"><div className="flex items-start gap-4 flex-1 overflow-hidden"><div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0"><Tag className="h-6 w-6 text-muted-foreground" /></div><div className="flex-1 overflow-hidden"><p className="font-semibold text-foreground truncate">{post.title}</p><p className="text-sm text-muted-foreground">{post.contentType} • {formatDistanceToNow(post.date.toDate(), { addSuffix: true, locale: ptBR })}</p></div></div><DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger><DropdownMenuContent align="end"><DropdownMenuItem onClick={() => handleMarkAsPublished(post.id)}><CheckCircle className="mr-2 h-4 w-4" /><span>Marcar como Publicado</span></DropdownMenuItem></DropdownMenuContent></DropdownMenu></div>))) : (<div className="text-center py-10"><p className="text-muted-foreground">Nenhum post agendado.</p><Button variant="link" asChild><Link href="/content-calendar">Ir para o Calendário</Link></Button></div>)}</div>
-                                </ScrollArea>
-                            </SheetContent>
-                        </Sheet>
-                        <Sheet><SheetTrigger asChild><Button variant="outline" className="w-full"><Activity className="mr-2 h-4 w-4" /> Ver Atividade Recente</Button></SheetTrigger>
-                            <SheetContent className="sm:max-w-4xl p-0">
-                                <SheetHeader className="p-6 pb-4 border-b"><SheetTitle>Atividade Recente</SheetTitle></SheetHeader>
-                                <ScrollArea className="h-[calc(100vh-8rem)]">
-                                    <div className="p-6">{isFetchingPosts ? <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div> : <div className='space-y-8'>{instaPosts && userProfile?.instagramHandle && <div><h3 className="text-lg font-semibold flex items-center gap-2 mb-4"><Instagram className="h-5 w-5"/> Instagram</h3><InstagramProfileResults profile={{ id: '', username: userProfile.instagramHandle, followersCount: parseMetric(userProfile.instagramFollowers), isPrivate: false, isBusiness: true, profilePicUrlHd: '', biography: '', fullName: '', mediaCount: 0, followingCount: 0 }} posts={instaPosts} formatNumber={formatNumber} error={null} /></div>}{tiktokPosts && userProfile?.tiktokHandle && <div><h3 className="text-lg font-semibold flex items-center gap-2 mb-4"><Film className="h-5 w-5"/> TikTok</h3><TikTokProfileResults profile={{ id: '', username: userProfile.tiktokHandle, followersCount: parseMetric(userProfile.tiktokFollowers), nickname: '', avatarUrl: '', bio: '', isVerified: false, isPrivate: false, heartsCount: 0, videoCount: 0, followingCount: 0 }} posts={tiktokPosts} formatNumber={formatNumber} error={null} onVideoClick={handleTikTokClick} /></div>}{!(instaPosts && userProfile?.instagramHandle) && !(tiktokPosts && userProfile?.tiktokHandle) && <div className="text-center py-10"><p className="text-muted-foreground">Integre suas contas no seu <Link href="/profile" className='text-primary font-semibold hover:underline'>perfil</Link> para ver seus posts aqui.</p></div>}</div>}</div>
-                                </ScrollArea>
-                            </SheetContent>
-                        </Sheet>
+                        <div className='grid grid-cols-2 gap-2 pt-2'>
+                            <SavedIdeasSheet />
+                             <Sheet><SheetTrigger asChild><Button variant="outline" className="w-full"><CalendarPlus className="mr-2 h-4 w-4" /> Próximos</Button></SheetTrigger>
+                                <SheetContent className="sm:max-w-2xl p-0">
+                                    <SheetHeader className="p-6 pb-4 border-b"><SheetTitle>Próximos Posts Agendados</SheetTitle><SheetDescription>Uma visão rápida do que está por vir.</SheetDescription></SheetHeader>
+                                    <ScrollArea className="h-[calc(100vh-8rem)]">
+                                        <div className="p-6 space-y-4">{isLoadingUpcoming ? <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div> : upcomingContent && upcomingContent.length > 0 ? (upcomingContent.map(post => (<div key={post.id} className="p-4 rounded-lg border bg-background/50 flex items-start justify-between gap-4"><div className="flex items-start gap-4 flex-1 overflow-hidden"><div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0"><Tag className="h-6 w-6 text-muted-foreground" /></div><div className="flex-1 overflow-hidden"><p className="font-semibold text-foreground truncate">{post.title}</p><p className="text-sm text-muted-foreground">{post.contentType} • {formatDistanceToNow(post.date.toDate(), { addSuffix: true, locale: ptBR })}</p></div></div><DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger><DropdownMenuContent align="end"><DropdownMenuItem onClick={() => handleMarkAsPublished(post.id)}><CheckCircle className="mr-2 h-4 w-4" /><span>Marcar como Publicado</span></DropdownMenuItem></DropdownMenuContent></DropdownMenu></div>))) : (<div className="text-center py-10"><p className="text-muted-foreground">Nenhum post agendado.</p><Button variant="link" asChild><Link href="/content-calendar">Ir para o Calendário</Link></Button></div>)}</div>
+                                    </ScrollArea>
+                                </SheetContent>
+                            </Sheet>
+                            <Sheet><SheetTrigger asChild><Button variant="outline" className="w-full"><Activity className="mr-2 h-4 w-4" /> Atividade</Button></SheetTrigger>
+                                <SheetContent className="sm:max-w-4xl p-0">
+                                    <SheetHeader className="p-6 pb-4 border-b"><SheetTitle>Atividade Recente</SheetTitle></SheetHeader>
+                                    <ScrollArea className="h-[calc(100vh-8rem)]">
+                                        <div className="p-6">{isFetchingPosts ? <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div> : <div className='space-y-8'>{instaPosts && userProfile?.instagramHandle && <div><h3 className="text-lg font-semibold flex items-center gap-2 mb-4"><Instagram className="h-5 w-5"/> Instagram</h3><InstagramProfileResults profile={{ id: '', username: userProfile.instagramHandle, followersCount: parseMetric(userProfile.instagramFollowers), isPrivate: false, isBusiness: true, profilePicUrlHd: '', biography: '', fullName: '', mediaCount: 0, followingCount: 0 }} posts={instaPosts} formatNumber={formatNumber} error={null} /></div>}{tiktokPosts && userProfile?.tiktokHandle && <div><h3 className="text-lg font-semibold flex items-center gap-2 mb-4"><Film className="h-5 w-5"/> TikTok</h3><TikTokProfileResults profile={{ id: '', username: userProfile.tiktokHandle, followersCount: parseMetric(userProfile.tiktokFollowers), nickname: '', avatarUrl: '', bio: '', isVerified: false, isPrivate: false, heartsCount: 0, videoCount: 0, followingCount: 0 }} posts={tiktokPosts} formatNumber={formatNumber} error={null} onVideoClick={handleTikTokClick} /></div>}{!(instaPosts && userProfile?.instagramHandle) && !(tiktokPosts && userProfile?.tiktokHandle) && <div className="text-center py-10"><p className="text-muted-foreground">Integre suas contas no seu <Link href="/profile" className='text-primary font-semibold hover:underline'>perfil</Link> para ver seus posts aqui.</p></div>}</div>}</div>
+                                    </ScrollArea>
+                                </SheetContent>
+                            </Sheet>
+                        </div>
                         <Separator />
                         <div className='space-y-2'>
                             <h4 className='text-center text-sm font-medium text-muted-foreground'>Roteiro do Dia ({diaDaSemanaNormalizado})</h4>
@@ -510,3 +512,4 @@ export default function DashboardPage() {
     </>
   );
 }
+

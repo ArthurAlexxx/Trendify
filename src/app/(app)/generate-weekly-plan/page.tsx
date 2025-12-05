@@ -375,7 +375,7 @@ export default function GenerateWeeklyPlanPage() {
                     </div>
                 </div>
 
-                <div className="pt-2 flex flex-col sm:flex-row items-center gap-4">
+                <div className="pt-2 flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-4">
                     <Button
                     type="submit"
                     disabled={isGenerating || isSaving || isLoadingProfile}
@@ -476,11 +476,11 @@ export default function GenerateWeeklyPlanPage() {
                 </Card>
                 <Card className="rounded-2xl border-0">
                   <CardHeader><CardTitle className="font-headline text-xl">Desempenho (Simulado)</CardTitle></CardHeader>
-                  <CardContent className="pl-2">
+                  <CardContent className="pl-0 sm:pl-2">
                     {isLoadingRoteiro ? <Skeleton className="h-[350px] w-full" /> : 
                      <div className="p-6">
                         <ChartContainer config={chartConfig} className="h-[350px] w-full">
-                        <BarChart accessibilityLayer data={currentDesempenho || []} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                        <BarChart accessibilityLayer data={currentDesempenho || []} margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
                             <CartesianGrid vertical={false} />
                             <XAxis dataKey="data" tickLine={false} axisLine={false} />
                             <YAxis tickLine={false} axisLine={false} tickFormatter={(value) => typeof value === 'number' && value >= 1000 ? `${value / 1000}k` : value} />
@@ -564,7 +564,7 @@ export default function GenerateWeeklyPlanPage() {
                     Nova Simulação de Desempenho
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="pl-2">
+                <CardContent className="pl-0 sm:pl-2">
                   <div className="p-6">
                     <ChartContainer
                         config={chartConfig}
@@ -573,7 +573,7 @@ export default function GenerateWeeklyPlanPage() {
                         <BarChart
                         accessibilityLayer
                         data={result.desempenhoSimulado}
-                        margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+                        margin={{ top: 20, right: 20, bottom: 20, left: 0 }}
                         >
                         <CartesianGrid vertical={false} />
                         <XAxis
@@ -615,4 +615,3 @@ export default function GenerateWeeklyPlanPage() {
   );
 }
 
-    
