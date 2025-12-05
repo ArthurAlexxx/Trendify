@@ -78,6 +78,7 @@ import { generateDashboardInsights, type DashboardInsight } from './actions';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import Image from 'next/image';
 
 
 const chartConfigBase = {
@@ -375,8 +376,12 @@ export default function DashboardPage() {
               <Tabs value={selectedPlatform} onValueChange={(value) => setSelectedPlatform(value as any)}>
                 <TabsList>
                   <TabsTrigger value="total">Total</TabsTrigger>
-                  <TabsTrigger value="instagram">Instagram</TabsTrigger>
-                  <TabsTrigger value="tiktok">TikTok</TabsTrigger>
+                  <TabsTrigger value="instagram" className="p-2">
+                    <Image src="https://firebasestorage.googleapis.com/v0/b/studio-4233590611-a8ab0.firebasestorage.app/o/pngimg.com%20-%20instagram_PNG5.png?alt=media&token=95edf789-54cd-402b-ac4e-1756774f0532" alt="Instagram" width={20} height={20} />
+                  </TabsTrigger>
+                  <TabsTrigger value="tiktok" className="p-2">
+                    <Image src="https://firebasestorage.googleapis.com/v0/b/studio-4233590611-a8ab0.firebasestorage.app/o/pngimg.com%20-%20tiktok_PNG29.png?alt=media&token=3fef3f25-88a9-4412-b955-dd1d0b40f3c3" alt="TikTok" width={20} height={20} />
+                  </TabsTrigger>
                 </TabsList>
               </Tabs>
               {userProfile && 
@@ -635,3 +640,4 @@ export default function DashboardPage() {
 }
 
     
+
