@@ -448,7 +448,7 @@ export default function DashboardPage() {
         handle: userProfile.tiktokHandle,
         views: parseMetric(userProfile.tiktokAverageViews),
         likes: parseMetric(userProfile.tiktokAverageLikes),
-        comments: parseMetric(userProfile.tiktokAverageComments),
+        comments: parseMetric(userProfile.instagramAverageComments),
     }
   }, [userProfile, selectedPlatform]);
 
@@ -731,6 +731,61 @@ export default function DashboardPage() {
                     </CardHeader>
                     <CardContent className="flex flex-col gap-4">
                         <SavedIdeasSheet />
+                         <Sheet>
+                            <SheetTrigger asChild>
+                                <Button variant="outline" className="w-full">
+                                    <CalendarPlus className="mr-2 h-4 w-4" />
+                                    Próximos Agendamentos
+                                </Button>
+                            </SheetTrigger>
+                            <SheetContent className="sm:max-w-2xl p-0">
+                                <SheetHeader className="p-6 pb-4 border-b">
+                                    <SheetTitle>Próximos Posts Agendados</SheetTitle>
+                                    <SheetDescription>Uma visão rápida do que está por vir no seu calendário.</SheetDescription>
+                                </SheetHeader>
+                                <ScrollArea className="h-[calc(100vh-8rem)]">
+                                    <div className="p-6 space-y-4">
+                                    {isLoadingUpcoming ? (
+                                        <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>
+                                    ) : (
+                                        upcomingContent && upcomingContent.length > 0 ? (
+                                            upcomingContent.map(post => (
+                                                <div key={post.id} className="p-4 rounded-lg border bg-background/50 flex items-start justify-between gap-4">
+                                                    <div className="flex items-start gap-4 flex-1 overflow-hidden">
+                                                        <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                                                            <Tag className="h-6 w-6 text-muted-foreground" />
+                                                        </div>
+                                                        <div className="flex-1 overflow-hidden">
+                                                            <p className="font-semibold text-foreground truncate">{post.title}</p>
+                                                            <p className="text-sm text-muted-foreground">{post.contentType} • {formatDistanceToNow(post.date.toDate(), { addSuffix: true, locale: ptBR })}</p>
+                                                        </div>
+                                                    </div>
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+                                                                <MoreHorizontal className="h-4 w-4" />
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end">
+                                                            <DropdownMenuItem onClick={() => handleMarkAsPublished(post.id)}>
+                                                                <CheckCircle className="mr-2 h-4 w-4" />
+                                                                <span>Marcar como Publicado</span>
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                </div>
+                                            ))
+                                        ) : (
+                                             <div className="text-center py-10">
+                                                <p className="text-muted-foreground">Nenhum post agendado para os próximos dias.</p>
+                                                <Button variant="link" asChild><Link href="/content-calendar">Ir para o Calendário</Link></Button>
+                                            </div>
+                                        )
+                                    )}
+                                    </div>
+                                </ScrollArea>
+                            </SheetContent>
+                        </Sheet>
                         <Sheet>
                             <SheetTrigger asChild>
                                 <Button variant="outline" className="w-full">
@@ -836,7 +891,5 @@ export default function DashboardPage() {
     </>
   );
 }
-
-    
 
     
