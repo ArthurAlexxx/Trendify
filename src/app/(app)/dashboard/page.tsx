@@ -432,7 +432,6 @@ export default function DashboardPage() {
 
         return {
             handle: hasInsta && hasTiktok ? 'Total' : hasInsta ? userProfile.instagramHandle : hasTiktok ? userProfile.tiktokHandle : 'N/A',
-            followers: parseMetric(userProfile.instagramFollowers) + parseMetric(userProfile.tiktokFollowers),
             views: parseMetric(userProfile.instagramAverageViews) + parseMetric(userProfile.tiktokAverageViews),
             likes: parseMetric(userProfile.instagramAverageLikes) + parseMetric(userProfile.tiktokAverageLikes),
             comments: parseMetric(userProfile.instagramAverageComments) + parseMetric(userProfile.tiktokAverageComments),
@@ -440,13 +439,11 @@ export default function DashboardPage() {
     }
     return selectedPlatform === 'instagram' ? {
         handle: userProfile.instagramHandle,
-        followers: parseMetric(userProfile.instagramFollowers),
         views: parseMetric(userProfile.instagramAverageViews),
         likes: parseMetric(userProfile.instagramAverageLikes),
         comments: parseMetric(userProfile.instagramAverageComments),
     } : {
         handle: userProfile.tiktokHandle,
-        followers: parseMetric(userProfile.tiktokFollowers),
         views: parseMetric(userProfile.tiktokAverageViews),
         likes: parseMetric(userProfile.tiktokAverageLikes),
         comments: parseMetric(userProfile.tiktokAverageComments),
@@ -591,34 +588,32 @@ export default function DashboardPage() {
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             <div className="lg:col-span-1 flex flex-col gap-4">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <div>
-                        <h2 className="font-headline text-lg sm:text-xl font-bold tracking-tight">
-                            Meta de Seguidores
-                        </h2>
-                        <p className="text-muted-foreground text-sm">Acompanhe seu progresso.</p>
-                    </div>
-                </div>
-                <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
-                    <div className='w-full sm:w-auto'>
-                        <Select value={selectedPlatform} onValueChange={(value) => setSelectedPlatform(value as any)}>
-                        <SelectTrigger className="w-full sm:w-48">
-                            <SelectValue placeholder="Selecione a plataforma" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="total">Total</SelectItem>
-                            <SelectItem value="instagram">Instagram</SelectItem>
-                            <SelectItem value="tiktok">TikTok</SelectItem>
-                        </SelectContent>
-                        </Select>
-                    </div>
-                    {userProfile && 
-                    <FollowerGoalSheet userProfile={userProfile}>
-                        <Button variant="outline" size="sm" className="w-full"><Pencil className="mr-2 h-4 w-4" /> Editar Metas</Button>
-                    </FollowerGoalSheet>
-                    }
-                </div>
                 <Card className="rounded-2xl border-0">
+                    <CardHeader>
+                        <CardTitle className="font-headline text-lg sm:text-xl">
+                            Meta de Seguidores
+                        </CardTitle>
+                        <CardDescription>Acompanhe seu progresso.</CardDescription>
+                         <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto pt-2">
+                            <div className='w-full sm:w-auto'>
+                                <Select value={selectedPlatform} onValueChange={(value) => setSelectedPlatform(value as any)}>
+                                <SelectTrigger className="w-full sm:w-48">
+                                    <SelectValue placeholder="Selecione a plataforma" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="total">Total</SelectItem>
+                                    <SelectItem value="instagram">Instagram</SelectItem>
+                                    <SelectItem value="tiktok">TikTok</SelectItem>
+                                </SelectContent>
+                                </Select>
+                            </div>
+                            {userProfile && 
+                            <FollowerGoalSheet userProfile={userProfile}>
+                                <Button variant="outline" size="sm" className="w-full"><Pencil className="mr-2 h-4 w-4" /> Editar Metas</Button>
+                            </FollowerGoalSheet>
+                            }
+                        </div>
+                    </CardHeader>
                     <CardContent className="pt-6">
                         <div className="flex flex-col items-center justify-center text-center">
                             {isLoading ? <Skeleton className="h-48 w-48 rounded-full" /> : 
@@ -950,15 +945,4 @@ export default function DashboardPage() {
     </>
   );
 }
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
+ 
