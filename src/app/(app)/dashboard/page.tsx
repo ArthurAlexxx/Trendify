@@ -588,10 +588,8 @@ export default function DashboardPage() {
         {userProfile && <ProfileCompletionAlert userProfile={userProfile} isPremium={isPremium} />}
         
         {/* TOP SECTION */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-            
-            {/* LEFT COLUMN: GOAL */}
-            <div className="space-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+            <div className="lg:col-span-1 space-y-4">
                 <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
                     <div className='w-full sm:w-auto flex-1'>
                         <Select value={selectedPlatform} onValueChange={(value) => setSelectedPlatform(value as any)}>
@@ -612,7 +610,7 @@ export default function DashboardPage() {
                     }
                 </div>
                 <Card className="rounded-2xl border-0">
-                    <CardHeader>
+                     <CardHeader>
                         <CardTitle className="font-headline text-lg sm:text-xl">
                             Meta de Seguidores
                         </CardTitle>
@@ -649,9 +647,8 @@ export default function DashboardPage() {
                     </CardContent>
                 </Card>
             </div>
-
-            {/* RIGHT COLUMN: METRICS & TODAY'S PLAN */}
-            <div className="space-y-8">
+            
+            <div className="lg:col-span-2 space-y-8">
                 <Card className="rounded-2xl border-0">
                     <CardHeader>
                         <CardTitle className="font-headline text-lg sm:text-xl">
@@ -722,153 +719,152 @@ export default function DashboardPage() {
             </div>
         </div>
 
-        {/* MIDDLE SECTION: FULL-WIDTH CHART */}
-        <div className="grid grid-cols-1 gap-8">
-            <Card className="rounded-2xl border-0 h-full">
-                <CardHeader>
+        {/* MIDDLE SECTION: CHART AND IDEAS/ACTIVITY */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+            <div className="lg:col-span-1 space-y-8">
+                 <Card className="rounded-2xl border-0 h-full">
+                    <CardHeader>
                     <CardTitle className="font-headline text-xl">
-                    Evolução das Métricas ({selectedPlatform === 'instagram' ? 'Instagram' : selectedPlatform === 'tiktok' ? 'TikTok' : 'Total'})
+                        Ideias e Tarefas Salvas
                     </CardTitle>
-                    <CardDescription>Acompanhe seu progresso nos dias em que você registrou suas métricas.</CardDescription>
-                </CardHeader>
-                <CardContent className="pl-2 pr-6">
-                    {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
-                    historicalChartData.length > 0 ? (
-                        <ChartContainer config={chartConfig} className="h-[350px] w-full">
-                        <BarChart accessibilityLayer data={historicalChartData} margin={{ left: 12, right: 12, top: 5, bottom: 5 }}>
-                            <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                            <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => value} />
-                            <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => typeof value === 'number' && value >= 1000 ? `${value / 1000}k` : value} />
-                            <RechartsTooltip content={<ChartTooltipContent indicator="dot" />} />
-                            <Bar dataKey="followers" fill="var(--color-followers)" radius={4} name="Seguidores" />
-                            <Bar dataKey="views" fill="var(--color-views)" radius={4} name="Views"/>
-                            <Bar dataKey="likes" fill="var(--color-likes)" radius={4} name="Likes"/>
-                            <Bar dataKey="comments" fill="var(--color-comments)" radius={4} name="Comentários"/>
-                        </BarChart>
-                        </ChartContainer>
-                    ) : (
-                        <div className="h-[350px] w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
-                            <div>
-                            <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+                    </CardHeader>
+                    <CardContent>
+                    {isLoadingIdeias ? <Skeleton className="h-24 w-full" /> : (
+                        ideiasSalvas && ideiasSalvas.length > 0 ? (
+                        <ul className="space-y-3">
+                            {ideiasSalvas.map((ideia) => (
+                            <li key={ideia.id} className="flex items-start gap-3">
+                                <Checkbox
+                                id={`ideia-${ideia.id}`}
+                                checked={ideia.concluido}
+                                onCheckedChange={() => handleToggleIdeia(ideia)}
+                                className="h-5 w-5 mt-0.5"
+                                />
+                                <div className="grid gap-0.5">
+                                <label
+                                    htmlFor={`ideia-${ideia.id}`}
+                                    className={cn(
+                                    'font-medium transition-colors cursor-pointer',
+                                    ideia.concluido
+                                        ? 'line-through text-muted-foreground'
+                                        : 'text-foreground'
+                                    )}
+                                >
+                                    {ideia.titulo}
+                                </label>
+                                <p className="text-xs text-muted-foreground">
+                                    Salvo de "{ideia.origem}"{' '}
+                                    {ideia.createdAt &&
+                                    formatDistanceToNow(ideia.createdAt.toDate(), {
+                                        addSuffix: true,
+                                        locale: ptBR,
+                                    })}
+                                </p>
+                                </div>
+                            </li>
+                            ))}
+                        </ul>
+                        ) : (
+                        <div className="text-center py-8 px-4 rounded-xl bg-muted/50 border border-dashed h-full flex flex-col justify-center">
+                            <Rocket className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
                             <h3 className="font-semibold text-foreground">
-                                {userProfile?.instagramHandle || userProfile?.tiktokHandle ? "Dados insuficientes para o gráfico." : "Nenhuma plataforma conectada."}
+                            Comece a Gerar Ideias!
                             </h3>
                             <p className="text-sm text-muted-foreground">
-                                {userProfile && (
-                                    <Link href="/profile" className="text-primary font-medium hover:underline cursor-pointer">
-                                            Atualize suas métricas
-                                    </Link>
-                                )}
-                                {userProfile?.instagramHandle || userProfile?.tiktokHandle ? " para começar a ver seus dados." : " para começar."}
+                            Suas ideias e tarefas salvas aparecerão aqui.
                             </p>
-                            </div>
                         </div>
-                    )
-                    }
-                </CardContent>
-            </Card>
-        </div>
-
-        {/* BOTTOM SECTION: 2-COLUMN GRID */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-            <Card className="rounded-2xl border-0 h-full">
-                <CardHeader>
-                <CardTitle className="font-headline text-xl">
-                    Ideias e Tarefas Salvas
-                </CardTitle>
-                </CardHeader>
-                <CardContent>
-                {isLoadingIdeias ? <Skeleton className="h-24 w-full" /> : (
-                    ideiasSalvas && ideiasSalvas.length > 0 ? (
-                    <ul className="space-y-3">
-                        {ideiasSalvas.map((ideia) => (
-                        <li key={ideia.id} className="flex items-start gap-3">
-                            <Checkbox
-                            id={`ideia-${ideia.id}`}
-                            checked={ideia.concluido}
-                            onCheckedChange={() => handleToggleIdeia(ideia)}
-                            className="h-5 w-5 mt-0.5"
-                            />
-                            <div className="grid gap-0.5">
-                            <label
-                                htmlFor={`ideia-${ideia.id}`}
-                                className={cn(
-                                'font-medium transition-colors cursor-pointer',
-                                ideia.concluido
-                                    ? 'line-through text-muted-foreground'
-                                    : 'text-foreground'
-                                )}
-                            >
-                                {ideia.titulo}
-                            </label>
-                            <p className="text-xs text-muted-foreground">
-                                Salvo de "{ideia.origem}"{' '}
-                                {ideia.createdAt &&
-                                formatDistanceToNow(ideia.createdAt.toDate(), {
-                                    addSuffix: true,
-                                    locale: ptBR,
-                                })}
-                            </p>
-                            </div>
-                        </li>
-                        ))}
-                    </ul>
-                    ) : (
-                    <div className="text-center py-8 px-4 rounded-xl bg-muted/50 border border-dashed h-full flex flex-col justify-center">
-                        <Rocket className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
-                        <h3 className="font-semibold text-foreground">
-                        Comece a Gerar Ideias!
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                        Suas ideias e tarefas salvas aparecerão aqui.
-                        </p>
-                    </div>
-                    )
-                )}
-                </CardContent>
-            </Card>
-            
-            <Card className="rounded-2xl border-0 h-full">
-                <CardHeader>
-                    <CardTitle>Atividade Recente nas Plataformas</CardTitle>
-                    <CardDescription>Uma visão geral das suas últimas publicações.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                     {isFetchingPosts ? (
-                        <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>
-                    ) : (
-                        <div className='space-y-8'>
-                        {instaPosts && userProfile?.instagramHandle && (
-                            <div>
-                                <h3 className="text-lg font-semibold flex items-center gap-2 mb-4"><Instagram className="h-5 w-5"/> Instagram</h3>
-                                <InstagramProfileResults profile={{
-                                    id: '', username: userProfile.instagramHandle,
-                                    followersCount: parseMetric(userProfile.instagramFollowers),
-                                    isPrivate: false, isBusiness: true, profilePicUrlHd: '', biography: '', fullName: '', mediaCount: 0, followingCount: 0
-                                }} posts={instaPosts} formatNumber={formatNumber} error={null} />
-                            </div>
-                        )}
-
-                        {tiktokPosts && userProfile?.tiktokHandle && (
-                            <div>
-                                <h3 className="text-lg font-semibold flex items-center gap-2 mb-4"><Film className="h-5 w-5"/> TikTok</h3>
-                                <TikTokProfileResults profile={{
-                                    id: '', username: userProfile.tiktokHandle,
-                                    followersCount: parseMetric(userProfile.tiktokFollowers),
-                                    nickname: '', avatarUrl: '', bio: '', isVerified: false, isPrivate: false, heartsCount: 0, videoCount: 0, followingCount: 0
-                                }} posts={tiktokPosts} formatNumber={formatNumber} error={null} onVideoClick={handleTikTokClick} />
-                            </div>
-                        )}
-
-                        {!(instaPosts && userProfile?.instagramHandle) && !(tiktokPosts && userProfile?.tiktokHandle) && (
-                             <div className="text-center py-10">
-                                <p className="text-muted-foreground">Integre suas contas no seu <Link href="/profile" className='text-primary font-semibold hover:underline'>perfil</Link> para ver seus posts aqui.</p>
-                            </div>
-                        )}
-                        </div>
+                        )
                     )}
-                </CardContent>
-            </Card>
+                    </CardContent>
+                </Card>
+                 <Card className="rounded-2xl border-0 h-full">
+                    <CardHeader>
+                        <CardTitle>Atividade Recente nas Plataformas</CardTitle>
+                        <CardDescription>Uma visão geral das suas últimas publicações.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        {isFetchingPosts ? (
+                            <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>
+                        ) : (
+                            <div className='space-y-8'>
+                            {instaPosts && userProfile?.instagramHandle && (
+                                <div>
+                                    <h3 className="text-lg font-semibold flex items-center gap-2 mb-4"><Instagram className="h-5 w-5"/> Instagram</h3>
+                                    <InstagramProfileResults profile={{
+                                        id: '', username: userProfile.instagramHandle,
+                                        followersCount: parseMetric(userProfile.instagramFollowers),
+                                        isPrivate: false, isBusiness: true, profilePicUrlHd: '', biography: '', fullName: '', mediaCount: 0, followingCount: 0
+                                    }} posts={instaPosts} formatNumber={formatNumber} error={null} />
+                                </div>
+                            )}
+
+                            {tiktokPosts && userProfile?.tiktokHandle && (
+                                <div>
+                                    <h3 className="text-lg font-semibold flex items-center gap-2 mb-4"><Film className="h-5 w-5"/> TikTok</h3>
+                                    <TikTokProfileResults profile={{
+                                        id: '', username: userProfile.tiktokHandle,
+                                        followersCount: parseMetric(userProfile.tiktokFollowers),
+                                        nickname: '', avatarUrl: '', bio: '', isVerified: false, isPrivate: false, heartsCount: 0, videoCount: 0, followingCount: 0
+                                    }} posts={tiktokPosts} formatNumber={formatNumber} error={null} onVideoClick={handleTikTokClick} />
+                                </div>
+                            )}
+
+                            {!(instaPosts && userProfile?.instagramHandle) && !(tiktokPosts && userProfile?.tiktokHandle) && (
+                                <div className="text-center py-10">
+                                    <p className="text-muted-foreground">Integre suas contas no seu <Link href="/profile" className='text-primary font-semibold hover:underline'>perfil</Link> para ver seus posts aqui.</p>
+                                </div>
+                            )}
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+            </div>
+            <div className="lg:col-span-2">
+                 <Card className="rounded-2xl border-0 h-full">
+                    <CardHeader>
+                        <CardTitle className="font-headline text-xl">
+                        Evolução das Métricas ({selectedPlatform === 'instagram' ? 'Instagram' : selectedPlatform === 'tiktok' ? 'TikTok' : 'Total'})
+                        </CardTitle>
+                        <CardDescription>Acompanhe seu progresso nos dias em que você registrou suas métricas.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="pl-2 pr-6">
+                        {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
+                        historicalChartData.length > 0 ? (
+                            <ChartContainer config={chartConfig} className="h-[350px] w-full">
+                            <BarChart accessibilityLayer data={historicalChartData} margin={{ left: 12, right: 12, top: 5, bottom: 5 }}>
+                                <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                                <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => value} />
+                                <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => typeof value === 'number' && value >= 1000 ? `${value / 1000}k` : value} />
+                                <RechartsTooltip content={<ChartTooltipContent indicator="dot" />} />
+                                <Bar dataKey="followers" fill="var(--color-followers)" radius={4} name="Seguidores" />
+                                <Bar dataKey="views" fill="var(--color-views)" radius={4} name="Views"/>
+                                <Bar dataKey="likes" fill="var(--color-likes)" radius={4} name="Likes"/>
+                                <Bar dataKey="comments" fill="var(--color-comments)" radius={4} name="Comentários"/>
+                            </BarChart>
+                            </ChartContainer>
+                        ) : (
+                            <div className="h-[350px] w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
+                                <div>
+                                <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+                                <h3 className="font-semibold text-foreground">
+                                    {userProfile?.instagramHandle || userProfile?.tiktokHandle ? "Dados insuficientes para o gráfico." : "Nenhuma plataforma conectada."}
+                                </h3>
+                                <p className="text-sm text-muted-foreground">
+                                    {userProfile && (
+                                        <Link href="/profile" className="text-primary font-medium hover:underline cursor-pointer">
+                                                Atualize suas métricas
+                                        </Link>
+                                    )}
+                                    {userProfile?.instagramHandle || userProfile?.tiktokHandle ? " para começar a ver seus dados." : " para começar."}
+                                </p>
+                                </div>
+                            </div>
+                        )
+                        }
+                    </CardContent>
+                </Card>
+            </div>
         </div>
 
       </div>
@@ -876,6 +872,8 @@ export default function DashboardPage() {
     </>
   );
 }
+
+    
 
     
 
