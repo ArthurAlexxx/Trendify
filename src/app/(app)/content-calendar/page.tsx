@@ -16,6 +16,8 @@ import {
   doc,
   updateDoc,
   deleteDoc,
+  setHours,
+  setMinutes,
 } from 'firebase/firestore';
 import {
   Plus,
@@ -514,33 +516,34 @@ export default function ContentCalendarPage() {
       {selectedEvent && (
         <Sheet open={isDetailSheetOpen} onOpenChange={setIsDetailSheetOpen}>
           <SheetContent className="p-0 flex flex-col">
-            <SheetHeader className="p-6 pb-4 border-b">
-              <SheetTitle className="font-headline text-xl">Detalhes do Agendamento</SheetTitle>
-              <SheetDescription>
-                <div className="flex items-center gap-2 pt-1">
-                  <Badge variant={getBadgeVariant(selectedEvent.status)}>{selectedEvent.status}</Badge>
-                  <span className='text-xs text-muted-foreground'>•</span>
-                  <p className="text-xs text-muted-foreground">{format(selectedEvent.date.toDate(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</p>
+            <SheetHeader className="p-6 pb-4 border-b space-y-3">
+              <Badge variant={getBadgeVariant(selectedEvent.status)} className='w-fit'>{selectedEvent.status}</Badge>
+              <SheetTitle className="font-headline text-2xl">{selectedEvent.title}</SheetTitle>
+              <SheetDescription className="!mt-2">
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 text-xs text-muted-foreground">
+                    <div className='flex items-center gap-1.5'>
+                        <Tag className="h-3 w-3" />
+                        <span>{selectedEvent.contentType}</span>
+                    </div>
+                    <div className='flex items-center gap-1.5'>
+                        <Clock className="h-3 w-3" />
+                        <span>{format(selectedEvent.date.toDate(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</span>
+                    </div>
                 </div>
               </SheetDescription>
             </SheetHeader>
             <ScrollArea className="flex-1">
-              <div className="p-6 space-y-4">
-                 <div>
-                    <h4 className="text-sm font-semibold text-muted-foreground">Título</h4>
-                    <p className="text-lg font-semibold">{selectedEvent.title}</p>
-                 </div>
-                  <div>
-                    <h4 className="text-sm font-semibold text-muted-foreground">Tipo</h4>
-                    <p className="">{selectedEvent.contentType}</p>
-                 </div>
                  {selectedEvent.notes && (
-                    <div>
-                        <h4 className="text-sm font-semibold text-muted-foreground">Anotações</h4>
-                        <p className="whitespace-pre-wrap text-muted-foreground">{selectedEvent.notes}</p>
+                    <div className="p-6">
+                        <h4 className="font-semibold text-foreground mb-2 flex items-center gap-2">
+                          <Info className="h-4 w-4 text-primary"/>
+                          Anotações
+                        </h4>
+                        <div className="p-4 rounded-lg bg-muted/50 border">
+                           <p className="whitespace-pre-wrap text-muted-foreground text-sm">{selectedEvent.notes}</p>
+                        </div>
                     </div>
                  )}
-              </div>
             </ScrollArea>
              <SheetFooter className="p-6 border-t flex-col sm:flex-row gap-2">
                 <div className="w-full flex justify-between">
@@ -589,3 +592,5 @@ export default function ContentCalendarPage() {
     </div>
   );
 }
+
+    
