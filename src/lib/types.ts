@@ -1,3 +1,4 @@
+
 import type { Timestamp } from 'firebase/firestore';
 
 export type Plan = 'pro' | 'free' | 'premium';
@@ -17,8 +18,6 @@ export interface UserProfile {
   tiktokFollowerGoal?: number;
   
   niche?: string;
-  bio?: string;
-  audience?: string;
   instagramHandle?: string;
   instagramFollowers?: string;
   instagramAverageViews?: string;

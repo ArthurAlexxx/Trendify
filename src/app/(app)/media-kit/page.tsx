@@ -195,7 +195,6 @@ function MediaKitPageContent() {
       const metrics = [
         totalFollowers > 0 ? `${formatNumber(totalFollowers)} seguidores no total` : '',
         totalViews > 0 ? `${formatNumber(totalViews)} de média de views total` : '',
-        userProfile.audience ? `Público: ${userProfile.audience}` : '',
       ].filter(Boolean).join(', ');
 
       form.reset({

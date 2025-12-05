@@ -29,14 +29,6 @@
             "type": "string",
             "description": "The creator's content niche (e.g., 'Lifestyle and sustainable fashion')."
         },
-        "bio": {
-            "type": "string",
-            "description": "A short, professional biography for the media kit."
-        },
-        "audience": {
-            "type": "string",
-            "description": "Description of the audience demographics."
-        },
         "instagramHandle": {
             "type": "string",
             "description": "User's Instagram handle (e.g., @username)."

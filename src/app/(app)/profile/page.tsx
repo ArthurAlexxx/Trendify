@@ -43,8 +43,6 @@ const profileFormSchema = z.object({
   displayName: z.string().min(2, 'O nome deve ter pelo menos 2 caracteres.'),
   photoURL: z.string().url().optional().nullable(),
   niche: z.string().optional(),
-  bio: z.string().optional(),
-  audience: z.string().optional(),
   instagramHandle: z.string().optional(),
   instagramFollowers: z.string().optional(),
   instagramAverageViews: z.string().optional(),
@@ -88,8 +86,6 @@ export default function ProfilePage() {
       displayName: '',
       photoURL: null,
       niche: '',
-      bio: '',
-      audience: '',
       instagramHandle: '',
       instagramFollowers: '',
       instagramAverageViews: '',
@@ -109,8 +105,6 @@ export default function ProfilePage() {
         displayName: userProfile.displayName || '',
         photoURL: userProfile.photoURL || null,
         niche: userProfile.niche || '',
-        bio: userProfile.bio || '',
-        audience: userProfile.audience || '',
         instagramHandle: userProfile.instagramHandle || '',
         instagramFollowers: userProfile.instagramFollowers || '',
         instagramAverageViews: userProfile.instagramAverageViews || '',
@@ -139,8 +133,6 @@ export default function ProfilePage() {
             displayName: values.displayName,
             photoURL: values.photoURL,
             niche: values.niche,
-            bio: values.bio,
-            audience: values.audience,
             instagramHandle: values.instagramHandle,
             instagramFollowers: values.instagramFollowers,
             instagramAverageViews: values.instagramAverageViews,
@@ -302,27 +294,7 @@ export default function ProfilePage() {
                       className="h-11"
                     />
                   </div>
-                
-                 <div className="space-y-2">
-                    <Label htmlFor="bio">Bio para Mídia Kit</Label>
-                    <Textarea
-                      id="bio"
-                      placeholder="Uma bio curta e profissional sobre você..."
-                      {...form.register('bio')}
-                      className="min-h-[120px] rounded-xl"
-                    />
-                  </div>
-                  
-                <div className="space-y-2">
-                    <Label htmlFor="audience">Demografia do Público</Label>
-                    <Input
-                        id="audience"
-                        placeholder="Ex: 75% Mulheres, 18-24 anos, Brasil"
-                        {...form.register('audience')}
-                        className="h-11"
-                    />
-                </div>
-                
+
                 <Separator />
 
                 {/* Instagram */}
