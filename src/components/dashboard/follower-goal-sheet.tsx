@@ -123,12 +123,12 @@ export function FollowerGoalSheet({ userProfile, children }: FollowerGoalSheetPr
                         {renderNumericInput('totalFollowerGoal', 'Meta Total (Insta + TikTok)')}
                         {renderNumericInput('instagramFollowerGoal', 'Meta do Instagram')}
                         {renderNumericInput('tiktokFollowerGoal', 'Meta do TikTok')}
-                         <SheetFooter className='pt-4'>
+                         <div className='pt-4'>
                             <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
                                 {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                 Salvar Metas
                             </Button>
-                        </SheetFooter>
+                        </div>
                     </form>
                 </Form>
             </SheetContent>
