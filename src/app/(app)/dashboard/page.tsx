@@ -463,13 +463,16 @@ export default function DashboardPage() {
                                     <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.views)}</p>
                                   </div>
                                   <div>
-                                      {latestMetrics?.views !== undefined && latestMetrics.followers > 0 && (
-                                          <div className={cn('h-7 w-7', getMetricRating(latestMetrics.views, 'views', latestMetrics.followers).color)}>
-                                            {getMetricRating(latestMetrics.views, 'views', latestMetrics.followers).iconName === 'Smile' && <Smile className="h-full w-full" />}
-                                            {getMetricRating(latestMetrics.views, 'views', latestMetrics.followers).iconName === 'Meh' && <Meh className="h-full w-full" />}
-                                            {getMetricRating(latestMetrics.views, 'views', latestMetrics.followers).iconName === 'Frown' && <Frown className="h-full w-full" />}
+                                      {latestMetrics?.views !== undefined && latestMetrics.followers > 0 && (() => {
+                                        const rating = getMetricRating(latestMetrics.views, 'views', latestMetrics.followers);
+                                        return (
+                                          <div className={cn('h-7 w-7', rating.color)}>
+                                            {rating.iconName === 'Smile' && <Smile className="h-full w-full" />}
+                                            {rating.iconName === 'Meh' && <Meh className="h-full w-full" />}
+                                            {rating.iconName === 'Frown' && <Frown className="h-full w-full" />}
                                           </div>
-                                      )}
+                                        )
+                                      })()}
                                   </div>
                               </div>
                               <div className='p-4 rounded-lg bg-muted/50 border flex justify-between items-center'>
@@ -478,13 +481,16 @@ export default function DashboardPage() {
                                     <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.likes)}</p>
                                   </div>
                                    <div>
-                                      {latestMetrics?.likes !== undefined && latestMetrics.followers > 0 && (
-                                          <div className={cn('h-7 w-7', getMetricRating(latestMetrics.likes, 'likes', latestMetrics.followers).color)}>
-                                            {getMetricRating(latestMetrics.likes, 'likes', latestMetrics.followers).iconName === 'Smile' && <Smile className="h-full w-full" />}
-                                            {getMetricRating(latestMetrics.likes, 'likes', latestMetrics.followers).iconName === 'Meh' && <Meh className="h-full w-full" />}
-                                            {getMetricRating(latestMetrics.likes, 'likes', latestMetrics.followers).iconName === 'Frown' && <Frown className="h-full w-full" />}
+                                      {latestMetrics?.likes !== undefined && latestMetrics.followers > 0 && (() => {
+                                        const rating = getMetricRating(latestMetrics.likes, 'likes', latestMetrics.followers);
+                                        return (
+                                          <div className={cn('h-7 w-7', rating.color)}>
+                                            {rating.iconName === 'Smile' && <Smile className="h-full w-full" />}
+                                            {rating.iconName === 'Meh' && <Meh className="h-full w-full" />}
+                                            {rating.iconName === 'Frown' && <Frown className="h-full w-full" />}
                                           </div>
-                                      )}
+                                        )
+                                      })()}
                                   </div>
                               </div>
                               <div className='p-4 rounded-lg bg-muted/50 border flex justify-between items-center'>
@@ -493,13 +499,16 @@ export default function DashboardPage() {
                                     <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.comments)}</p>
                                   </div>
                                    <div>
-                                      {latestMetrics?.comments !== undefined && latestMetrics.followers > 0 && (
-                                          <div className={cn('h-7 w-7', getMetricRating(latestMetrics.comments, 'comments', latestMetrics.followers).color)}>
-                                            {getMetricRating(latestMetrics.comments, 'comments', latestMetrics.followers).iconName === 'Smile' && <Smile className="h-full w-full" />}
-                                            {getMetricRating(latestMetrics.comments, 'comments', latestMetrics.followers).iconName === 'Meh' && <Meh className="h-full w-full" />}
-                                            {getMetricRating(latestMetrics.comments, 'comments', latestMetrics.followers).iconName === 'Frown' && <Frown className="h-full w-full" />}
+                                      {latestMetrics?.comments !== undefined && latestMetrics.followers > 0 && (() => {
+                                        const rating = getMetricRating(latestMetrics.comments, 'comments', latestMetrics.followers);
+                                        return (
+                                          <div className={cn('h-7 w-7', rating.color)}>
+                                            {rating.iconName === 'Smile' && <Smile className="h-full w-full" />}
+                                            {rating.iconName === 'Meh' && <Meh className="h-full w-full" />}
+                                            {rating.iconName === 'Frown' && <Frown className="h-full w-full" />}
                                           </div>
-                                      )}
+                                        )
+                                      })()}
                                   </div>
                               </div>
                           </div>
@@ -538,8 +547,8 @@ export default function DashboardPage() {
                   </Card>
                   </CarouselItem>
               </CarouselContent>
-              <CarouselPrevious className="hidden sm:flex left-2 lg:hidden" />
-              <CarouselNext className="hidden sm:flex right-2 lg:hidden" />
+              <CarouselPrevious className="left-2" />
+              <CarouselNext className="right-2" />
               </Carousel>
           </div>
 
@@ -583,13 +592,16 @@ export default function DashboardPage() {
                                 <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.views)}</p>
                               </div>
                               <div>
-                                   {latestMetrics?.views !== undefined && latestMetrics.followers > 0 && (
-                                      <div className={cn('h-7 w-7', getMetricRating(latestMetrics.views, 'views', latestMetrics.followers).color)}>
-                                        {getMetricRating(latestMetrics.views, 'views', latestMetrics.followers).iconName === 'Smile' && <Smile className="h-full w-full" />}
-                                        {getMetricRating(latestMetrics.views, 'views', latestMetrics.followers).iconName === 'Meh' && <Meh className="h-full w-full" />}
-                                        {getMetricRating(latestMetrics.views, 'views', latestMetrics.followers).iconName === 'Frown' && <Frown className="h-full w-full" />}
-                                      </div>
-                                  )}
+                                   {latestMetrics?.views !== undefined && latestMetrics.followers > 0 && (() => {
+                                        const rating = getMetricRating(latestMetrics.views, 'views', latestMetrics.followers);
+                                        return (
+                                          <div className={cn('h-7 w-7', rating.color)}>
+                                            {rating.iconName === 'Smile' && <Smile className="h-full w-full" />}
+                                            {rating.iconName === 'Meh' && <Meh className="h-full w-full" />}
+                                            {rating.iconName === 'Frown' && <Frown className="h-full w-full" />}
+                                          </div>
+                                        )
+                                    })()}
                               </div>
                           </div>
                           <div className='p-4 rounded-lg bg-muted/50 border flex justify-between items-center'>
@@ -598,13 +610,16 @@ export default function DashboardPage() {
                                 <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.likes)}</p>
                               </div>
                                <div>
-                                   {latestMetrics?.likes !== undefined && latestMetrics.followers > 0 && (
-                                      <div className={cn('h-7 w-7', getMetricRating(latestMetrics.likes, 'likes', latestMetrics.followers).color)}>
-                                        {getMetricRating(latestMetrics.likes, 'likes', latestMetrics.followers).iconName === 'Smile' && <Smile className="h-full w-full" />}
-                                        {getMetricRating(latestMetrics.likes, 'likes', latestMetrics.followers).iconName === 'Meh' && <Meh className="h-full w-full" />}
-                                        {getMetricRating(latestMetrics.likes, 'likes', latestMetrics.followers).iconName === 'Frown' && <Frown className="h-full w-full" />}
+                                   {latestMetrics?.likes !== undefined && latestMetrics.followers > 0 && (() => {
+                                    const rating = getMetricRating(latestMetrics.likes, 'likes', latestMetrics.followers);
+                                    return (
+                                      <div className={cn('h-7 w-7', rating.color)}>
+                                        {rating.iconName === 'Smile' && <Smile className="h-full w-full" />}
+                                        {rating.iconName === 'Meh' && <Meh className="h-full w-full" />}
+                                        {rating.iconName === 'Frown' && <Frown className="h-full w-full" />}
                                       </div>
-                                  )}
+                                    )
+                                   })()}
                               </div>
                           </div>
                           <div className='p-4 rounded-lg bg-muted/50 border flex justify-between items-center'>
@@ -613,13 +628,16 @@ export default function DashboardPage() {
                                 <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.comments)}</p>
                               </div>
                                <div>
-                                   {latestMetrics?.comments !== undefined && latestMetrics.followers > 0 && (
-                                      <div className={cn('h-7 w-7', getMetricRating(latestMetrics.comments, 'comments', latestMetrics.followers).color)}>
-                                        {getMetricRating(latestMetrics.comments, 'comments', latestMetrics.followers).iconName === 'Smile' && <Smile className="h-full w-full" />}
-                                        {getMetricRating(latestMetrics.comments, 'comments', latestMetrics.followers).iconName === 'Meh' && <Meh className="h-full w-full" />}
-                                        {getMetricRating(latestMetrics.comments, 'comments', latestMetrics.followers).iconName === 'Frown' && <Frown className="h-full w-full" />}
-                                      </div>
-                                  )}
+                                   {latestMetrics?.comments !== undefined && latestMetrics.followers > 0 && (() => {
+                                        const rating = getMetricRating(latestMetrics.comments, 'comments', latestMetrics.followers);
+                                        return (
+                                          <div className={cn('h-7 w-7', rating.color)}>
+                                            {rating.iconName === 'Smile' && <Smile className="h-full w-full" />}
+                                            {rating.iconName === 'Meh' && <Meh className="h-full w-full" />}
+                                            {rating.iconName === 'Frown' && <Frown className="h-full w-full" />}
+                                          </div>
+                                        )
+                                    })()}
                               </div>
                           </div>
                       </div>
@@ -730,5 +748,7 @@ export default function DashboardPage() {
     </>
   );
 }
+
+    
 
     
