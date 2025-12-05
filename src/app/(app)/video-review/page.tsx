@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useCallback, useRef, type ChangeEvent, type DragEvent, useEffect, useId } from "react";
@@ -14,7 +13,7 @@ import {
   Lightbulb,
   BrainCircuit,
   Target,
-  BarChart,
+  BarChart as BarChartIcon,
   Eye,
   Crown,
   History,
@@ -43,7 +42,7 @@ import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from "@
 import { collection, addDoc, serverTimestamp, doc, setDoc, increment, query, orderBy, limit, getDoc, updateDoc, onSnapshot } from "firebase/firestore";
 import { useTransition } from "react";
 import { Separator } from "@/components/ui/separator";
-import { useSubscription } from "@/hooks/useSubscription";
+import { useSubscription } from '@/hooks/useSubscription';
 import { Plan, AnaliseVideo } from "@/lib/types";
 import Link from "next/link";
 import type { DailyUsage } from '@/lib/types';
@@ -345,7 +344,7 @@ function VideoReviewPageContent() {
         description: "Verificamos se a chamada para ação é clara e está alinhada com o objetivo do vídeo."
     },
      {
-        icon: BarChart,
+        icon: BarChartIcon,
         title: "Potencial de Viralização",
         description: "Com base em todos os fatores, atribuímos uma nota e um checklist de melhorias para seu vídeo."
     }
@@ -359,26 +358,28 @@ function VideoReviewPageContent() {
             icon={Video}
         />
         
-        <Card className="rounded-2xl border-0">
-            <CardHeader>
-                <CardTitle className="font-headline text-xl">
-                    Como Avaliamos Seu Vídeo?
-                </CardTitle>
-                 <CardDescription>Nossa IA atua como uma estrategista de conteúdo viral e analisa 4 pilares:</CardDescription>
-            </CardHeader>
-            <CardContent>
+        <div className="space-y-4">
+            <div className="text-left">
+                <h2 className="text-xl font-bold font-headline">Como Avaliamos Seu Vídeo?</h2>
+                <p className="text-muted-foreground">Nossa IA atua como uma estrategista de conteúdo viral e analisa 4 pilares:</p>
+            </div>
+            <div>
                 <div className="md:hidden">
                     <Carousel className="w-full" opts={{ align: 'start' }}>
-                        <CarouselContent className="-ml-2">
+                        <CarouselContent className="-ml-4">
                             {analysisCriteria.map((item, index) => (
-                                <CarouselItem key={index} className="pl-2 basis-4/5">
-                                    <div className="p-4 rounded-lg bg-muted/50 border h-full">
-                                        <div className="flex items-center gap-3 mb-2">
-                                            <item.icon className="h-5 w-5 text-primary" />
-                                            <h4 className="font-semibold text-foreground">{item.title}</h4>
-                                        </div>
-                                        <p className="text-xs text-muted-foreground">{item.description}</p>
-                                    </div>
+                                <CarouselItem key={index} className="pl-4 basis-full">
+                                    <Card className="rounded-2xl border-0 h-full">
+                                        <CardHeader>
+                                            <CardTitle className="flex items-center gap-3">
+                                                <item.icon className="h-6 w-6 text-primary" />
+                                                <span>{item.title}</span>
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <p className="text-muted-foreground">{item.description}</p>
+                                        </CardContent>
+                                    </Card>
                                 </CarouselItem>
                             ))}
                         </CarouselContent>
@@ -388,17 +389,21 @@ function VideoReviewPageContent() {
                 </div>
                 <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-4">
                     {analysisCriteria.map((item, index) => (
-                        <div key={index} className="p-4 rounded-lg bg-muted/50 border">
-                            <div className="flex items-center gap-3 mb-2">
-                                <item.icon className="h-5 w-5 text-primary" />
-                                <h4 className="font-semibold text-foreground">{item.title}</h4>
-                            </div>
-                            <p className="text-xs text-muted-foreground">{item.description}</p>
-                        </div>
+                        <Card key={index} className="rounded-2xl border-0">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-3">
+                                    <item.icon className="h-6 w-6 text-primary" />
+                                    <span>{item.title}</span>
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-muted-foreground">{item.description}</p>
+                            </CardContent>
+                        </Card>
                     ))}
                 </div>
-            </CardContent>
-        </Card>
+            </div>
+        </div>
         
         <Separator />
 
