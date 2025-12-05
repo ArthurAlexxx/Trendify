@@ -522,6 +522,7 @@ export default function LandingPage() {
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
                           {/* Left Column */}
                           <div className="space-y-8">
+                              {results.growthData && (
                               <Card className="rounded-2xl">
                                   <CardHeader><CardTitle className="text-lg font-bold">Curva de Crescimento</CardTitle></CardHeader>
                                   <CardContent>
@@ -538,6 +539,8 @@ export default function LandingPage() {
                                       </div>
                                   </CardContent>
                               </Card>
+                              )}
+                              {results.accelerationScenarios && (
                               <Card className="rounded-2xl">
                                   <CardHeader><CardTitle className="text-lg font-bold">Cenários de Aceleração</CardTitle></CardHeader>
                                   <CardContent className="grid grid-cols-3 gap-4 text-center">
@@ -546,43 +549,56 @@ export default function LandingPage() {
                                       <div><p className="font-bold text-2xl">{results.accelerationScenarios.plus40}</p><p className="text-xs text-muted-foreground">Meses (+40% Posts)</p></div>
                                   </CardContent>
                               </Card>
+                              )}
                           </div>
 
                           {/* Right Column */}
                           <div className="space-y-8">
                               <div className="grid grid-cols-2 gap-4">
-                                  <Card className="bg-primary/5 border-primary/20 text-center"><CardContent className="p-4"><p className="text-sm text-muted-foreground">Tempo até a Meta</p><p className="text-2xl font-bold">{results.months} meses</p></CardContent></Card>
-                                  <Card className="bg-primary/5 border-primary/20 text-center"><CardContent className="p-4"><p className="text-sm text-muted-foreground">Nível da Meta</p><p className="text-2xl font-bold">{results.difficultyScore}</p></CardContent></Card>
+                                  <Card className="bg-primary/5 border-primary/20 text-center"><CardContent className="p-4"><p className="text-sm text-muted-foreground">Tempo até a Meta</p><p className="text-2xl font-bold">{results.months ?? 'N/A'} meses</p></CardContent></Card>
+                                  <Card className="bg-primary/5 border-primary/20 text-center"><CardContent className="p-4"><p className="text-sm text-muted-foreground">Nível da Meta</p><p className="text-2xl font-bold">{results.difficultyScore ?? 'N/A'}</p></CardContent></Card>
                               </div>
-                              <Card><CardHeader><CardTitle className="text-lg font-bold">Potencial de Ganhos/Mês</CardTitle></CardHeader><CardContent><p className="text-lg font-semibold">{formatCurrency(results.goalEarnings[0])} - {formatCurrency(results.goalEarnings[1])}</p><p className="text-sm text-muted-foreground">Estimativa ao atingir a meta</p></CardContent></Card>
-                              <Card><CardHeader><CardTitle className="text-lg font-bold">Análise do Mercado</CardTitle></CardHeader><CardContent><p className="text-sm text-muted-foreground">{results.benchmarkComparison}</p></CardContent></Card>
+                              {results.goalEarnings && (
+                                <Card><CardHeader><CardTitle className="text-lg font-bold">Potencial de Ganhos/Mês</CardTitle></CardHeader><CardContent><p className="text-lg font-semibold">{formatCurrency(results.goalEarnings[0])} - {formatCurrency(results.goalEarnings[1])}</p><p className="text-sm text-muted-foreground">Estimativa ao atingir a meta</p></CardContent></Card>
+                              )}
+                              {results.benchmarkComparison && (
+                                <Card><CardHeader><CardTitle className="text-lg font-bold">Análise do Mercado</CardTitle></CardHeader><CardContent><p className="text-sm text-muted-foreground">{results.benchmarkComparison}</p></CardContent></Card>
+                              )}
                           </div>
                       </div>
                       
                       {/* Action Plan */}
+                       {(results.recommendations || results.riskPanel || results.trendSuggestions) && (
                       <Card className="bg-card">
                           <CardHeader><h4 className="font-bold text-lg text-center">Seu Plano Inicial para Acelerar</h4></CardHeader>
                           <CardContent className="grid sm:grid-cols-2 lg:grid-cols-2 gap-8">
+                              {results.recommendations && (
                               <div>
                                 <h5 className="font-semibold mb-3 flex items-center gap-2"><Rocket className="h-5 w-5 text-primary" />Recomendações Estratégicas</h5>
                                 <ul className="space-y-2 text-sm">
                                     {results.recommendations.map(rec => <li key={rec} className="flex items-start gap-2"><Check className="h-4 w-4 text-primary shrink-0 mt-1" /><span>{rec}</span></li>)}
                                 </ul>
                               </div>
+                              )}
+                              {results.riskPanel && (
                               <div>
                                 <h5 className="font-semibold mb-3 flex items-center gap-2"><AlertTriangle className="h-5 w-5 text-amber-500" />Pontos de Atenção (Riscos)</h5>
                                 <ul className="space-y-2 text-sm">
                                     {results.riskPanel.map(risk => <li key={risk} className="flex items-start gap-2"><AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-1" /><span>{risk}</span></li>)}
                                 </ul>
                               </div>
+                              )}
+                              {results.trendSuggestions && (
                               <div className="lg:col-span-2">
                                 <h5 className="font-semibold mb-3 flex items-center gap-2"><Sparkles className="h-5 w-5 text-primary" />Ideias de Ganchos Virais</h5>
                                 <div className="grid sm:grid-cols-3 gap-4">
                                      {results.trendSuggestions.map(sug => <div key={sug.hook} className="p-3 rounded-lg bg-muted/50 border text-center"><p className="text-2xl mb-1">{sug.icon}</p><p className="text-sm font-medium">{sug.hook}</p></div>)}
                                 </div>
                               </div>
+                              )}
                           </CardContent>
                       </Card>
+                       )}
 
                       <div className="text-center mt-8 space-y-4">
                           <Button onClick={() => setStep(0)} variant="outline" size="lg" className="h-12 text-base">Calcular Novamente</Button>
@@ -815,5 +831,3 @@ export default function LandingPage() {
     </div>
   );
 }
-
-
