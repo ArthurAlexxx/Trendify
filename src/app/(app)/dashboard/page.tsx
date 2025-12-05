@@ -434,8 +434,8 @@ export default function DashboardPage() {
           {/* Mobile Carousel */}
           <div className="lg:hidden px-4">
               <Carousel className="w-full" opts={{ align: 'start' }}>
-              <CarouselContent className="-ml-2 md:-ml-4 py-4">
-                  <CarouselItem className="pl-2 md:pl-4 basis-full">
+              <CarouselContent className="py-4">
+                  <CarouselItem className="basis-full">
                   <Card className="rounded-2xl border-0 h-full">
                       <CardHeader>
                         <CardTitle className="text-center">Meta de Seguidores</CardTitle>
@@ -463,7 +463,7 @@ export default function DashboardPage() {
                       </CardContent>
                   </Card>
                   </CarouselItem>
-                  <CarouselItem className="pl-2 md:pl-4 basis-full">
+                  <CarouselItem className="basis-full">
                   <Card className='rounded-2xl border-0 h-full'>
                       <CardHeader>
                         <CardTitle className="text-center">Métricas de Engajamento</CardTitle>
@@ -528,7 +528,7 @@ export default function DashboardPage() {
                       </CardContent>
                   </Card>
                   </CarouselItem>
-                  <CarouselItem className="pl-2 md:pl-4 basis-full">
+                  <CarouselItem className="basis-full">
                   <Card className="rounded-2xl border-0 h-full flex flex-col">
                        <CardHeader>
                            <CardTitle className="text-center">Análise de Desempenho</CardTitle>
@@ -566,34 +566,66 @@ export default function DashboardPage() {
           </div>
 
           {/* Desktop Grid */}
-          <div className="hidden lg:grid lg:grid-cols-3 lg:gap-8">
-              <Card className="rounded-2xl border-0 h-full">
-                  <CardHeader>
-                      <CardTitle className="text-center">Meta de Seguidores</CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-6">
-                      <div className="flex flex-col items-center justify-center text-center">
-                          {isLoading ? <Skeleton className="h-48 w-48 rounded-full" /> : 
-                          goalFollowers > 0 ? (
-                          <div className='relative h-48 w-48'>
-                              <ResponsiveContainer width="100%" height="100%">
-                                  <PieChart><Pie data={pieData} dataKey="value" startAngle={90} endAngle={-270} innerRadius="80%" outerRadius="100%" cornerRadius={50} paddingAngle={0} stroke="none">{pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.fill} />)}</Pie></PieChart>
-                              </ResponsiveContainer>
-                              <div className="absolute inset-0 flex flex-col items-center justify-center"><span className="text-4xl font-bold font-headline text-primary">{followerGoalProgress.toFixed(0)}%</span></div>
-                          </div>
-                          ) : (
-                              <div className='flex flex-col items-center justify-center h-48 w-48 rounded-full border-4 border-dashed bg-muted'><Target className="h-12 w-12 text-muted-foreground" /></div>
-                          )}
-                          <p className="text-3xl font-bold font-headline mt-4">{formatMetricValue(currentFollowers)}</p>
-                          {goalFollowers > 0 ? (
-                              <p className="text-sm text-muted-foreground">de {formatMetricValue(goalFollowers)} seguidores</p>
-                          ) : (
-                              <p className="text-sm text-muted-foreground">Defina uma meta para começar</p>
-                          )}
-                      </div>
+          <div className="hidden lg:grid lg:grid-cols-2 gap-8">
+              <div className='space-y-8'>
+                <Card className="rounded-2xl border-0 h-full">
+                    <CardHeader>
+                        <CardTitle className="text-center">Meta de Seguidores</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-6">
+                        <div className="flex flex-col items-center justify-center text-center">
+                            {isLoading ? <Skeleton className="h-48 w-48 rounded-full" /> : 
+                            goalFollowers > 0 ? (
+                            <div className='relative h-48 w-48'>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart><Pie data={pieData} dataKey="value" startAngle={90} endAngle={-270} innerRadius="80%" outerRadius="100%" cornerRadius={50} paddingAngle={0} stroke="none">{pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.fill} />)}</Pie></PieChart>
+                                </ResponsiveContainer>
+                                <div className="absolute inset-0 flex flex-col items-center justify-center"><span className="text-4xl font-bold font-headline text-primary">{followerGoalProgress.toFixed(0)}%</span></div>
+                            </div>
+                            ) : (
+                                <div className='flex flex-col items-center justify-center h-48 w-48 rounded-full border-4 border-dashed bg-muted'><Target className="h-12 w-12 text-muted-foreground" /></div>
+                            )}
+                            <p className="text-3xl font-bold font-headline mt-4">{formatMetricValue(currentFollowers)}</p>
+                            {goalFollowers > 0 ? (
+                                <p className="text-sm text-muted-foreground">de {formatMetricValue(goalFollowers)} seguidores</p>
+                            ) : (
+                                <p className="text-sm text-muted-foreground">Defina uma meta para começar</p>
+                            )}
+                        </div>
+                    </CardContent>
+                </Card>
+                <Card className="rounded-2xl border-0 h-full flex flex-col">
+                   <CardHeader>
+                       <CardTitle className="text-center">Análise de Desempenho</CardTitle>
+                   </CardHeader>
+                  <CardContent className="flex-1 flex flex-col">
+                      {isGeneratingInsights ? (
+                          <div className="flex-1 flex justify-center items-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
+                      ) : insights && insights.insights ? (
+                           <ScrollArea className="h-64 pr-4">
+                           <ul className="space-y-4">
+                               {insights.insights.map((insight, i) => (
+                               <li key={i} className="flex items-start gap-3">
+                                   <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary flex-shrink-0 mt-0.5"><Lightbulb className="h-3.5 w-3.5" /></div>
+                                   <p className="text-sm text-muted-foreground">{insight}</p>
+                               </li>
+                               ))}
+                           </ul>
+                           </ScrollArea>
+                      ) : (
+                        <div className="flex-1 flex flex-col justify-center items-center text-center p-4 gap-4">
+                           <p className="text-sm text-muted-foreground">Clique em 'Analisar Desempenho' para receber uma análise com base nas suas últimas métricas.</p>
+                           <Button variant="ghost" size="sm" onClick={handleGenerateInsights} disabled={isGeneratingInsights}>
+                               {isGeneratingInsights ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+                               Analisar
+                           </Button>
+                       </div>
+                      )}
                   </CardContent>
               </Card>
-              <Card className='rounded-2xl border-0 h-full'>
+              </div>
+
+               <Card className='rounded-2xl border-0 h-full'>
                   <CardHeader>
                       <CardTitle className="text-center">Métricas de Engajamento</CardTitle>
                   </CardHeader>
@@ -656,35 +688,7 @@ export default function DashboardPage() {
                       </div>
                   </CardContent>
               </Card>
-              <Card className="rounded-2xl border-0 h-full flex flex-col">
-                   <CardHeader>
-                       <CardTitle className="text-center">Análise de Desempenho</CardTitle>
-                   </CardHeader>
-                  <CardContent className="flex-1 flex flex-col">
-                      {isGeneratingInsights ? (
-                          <div className="flex-1 flex justify-center items-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
-                      ) : insights && insights.insights ? (
-                           <ScrollArea className="h-64 pr-4">
-                           <ul className="space-y-4">
-                               {insights.insights.map((insight, i) => (
-                               <li key={i} className="flex items-start gap-3">
-                                   <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary flex-shrink-0 mt-0.5"><Lightbulb className="h-3.5 w-3.5" /></div>
-                                   <p className="text-sm text-muted-foreground">{insight}</p>
-                               </li>
-                               ))}
-                           </ul>
-                           </ScrollArea>
-                      ) : (
-                        <div className="flex-1 flex flex-col justify-center items-center text-center p-4 gap-4">
-                           <p className="text-sm text-muted-foreground">Clique em 'Analisar Desempenho' para receber uma análise com base nas suas últimas métricas.</p>
-                           <Button variant="ghost" size="sm" onClick={handleGenerateInsights} disabled={isGeneratingInsights}>
-                               {isGeneratingInsights ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
-                               Analisar
-                           </Button>
-                       </div>
-                      )}
-                  </CardContent>
-              </Card>
+
           </div>
 
 
