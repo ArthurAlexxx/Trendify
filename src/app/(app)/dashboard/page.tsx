@@ -528,6 +528,69 @@ export default function DashboardPage() {
       </Card>
   );
 
+  const PerformanceAnalysisCard = () => (
+    <Card className="rounded-2xl border-0 h-full flex flex-col">
+       <CardHeader>
+           <CardTitle className="text-center">Análise de Desempenho</CardTitle>
+       </CardHeader>
+      <CardContent className="flex-1 flex flex-col">
+          {isGeneratingInsights ? (
+              <div className="flex-1 flex justify-center items-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
+          ) : insights && insights.insights ? (
+              <ScrollArea className="h-64 pr-4">
+              <ul className="space-y-4">
+                  {insights.insights.map((insight, i) => (
+                  <li key={i} className="flex items-start gap-3">
+                      <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary flex-shrink-0 mt-0.5"><Lightbulb className="h-3.5 w-3.5" /></div>
+                      <p className="text-sm text-muted-foreground">{insight}</p>
+                  </li>
+                  ))}
+              </ul>
+              </ScrollArea>
+          ) : (
+            <div className="flex-1 flex flex-col justify-center items-center text-center p-4 gap-4">
+              <p className="text-sm text-muted-foreground">Clique em 'Analisar' para receber uma análise com base nas suas últimas métricas.</p>
+              <Button variant="ghost" size="sm" onClick={handleGenerateInsights} disabled={isGeneratingInsights}>
+                  {isGeneratingInsights ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+                  Analisar
+              </Button>
+          </div>
+          )}
+      </CardContent>
+    </Card>
+  );
+  
+  const EvolutionChartCard = () => (
+    <Card className="rounded-2xl border-0">
+        <CardHeader><CardTitle className="text-center">Evolução das Métricas</CardTitle></CardHeader>
+        <CardContent className="pl-2 pr-6">
+            {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
+            historicalChartData.length > 0 ? (
+                <ChartContainer config={platformChartConfig[selectedPlatform]} className="h-[350px] w-full">
+                <BarChart accessibilityLayer data={historicalChartData} margin={{ left: 0, right: 12, top: 5, bottom: 5 }}>
+                    <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                    <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} />
+                    <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
+                    <RechartsTooltip content={<ChartTooltipContent indicator="dot" />} />
+                    <Bar dataKey="followers" fill="var(--color-followers)" radius={4} name="Seguidores" />
+                    <Bar dataKey="views" fill="var(--color-views)" radius={4} name="Views"/>
+                    <Bar dataKey="likes" fill="var(--color-likes)" radius={4} name="Likes"/>
+                    <Bar dataKey="comments" fill="var(--color-comments)" radius={4} name="Comentários"/>
+                </BarChart>
+                </ChartContainer>
+            ) : (
+                <div className="h-[350px] w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
+                    <div>
+                    <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+                    <h3 className="font-semibold text-foreground">{(userProfile?.instagramHandle || userProfile?.tiktokHandle) ? "Dados insuficientes." : "Nenhuma plataforma conectada."}</h3>
+                    <p className="text-sm text-muted-foreground"> {userProfile && <Link href="/profile/integrations" className="text-primary font-medium hover:underline cursor-pointer">Sincronize suas métricas</Link>} para começar a ver seus dados.</p>
+                    </div>
+                </div>
+            )}
+        </CardContent>
+    </Card>
+  );
+
   return (
     <>
       <Dialog open={showTikTokModal} onOpenChange={setShowTikTokModal}>
@@ -570,22 +633,18 @@ export default function DashboardPage() {
           {userProfile && <ProfileCompletionAlert userProfile={userProfile} isPremium={isPremium} />}
 
           {/* Mobile Carousel */}
-            <div className="lg:hidden">
+            <div className="lg:hidden space-y-8">
                 <Carousel>
                     <CarouselContent>
-                        <CarouselItem>
-                            <GoalCard />
-                        </CarouselItem>
-                        <CarouselItem>
-                            <ActionHubCard />
-                        </CarouselItem>
-                         <CarouselItem>
-                            <EngagementMetricsCard />
-                        </CarouselItem>
+                        <CarouselItem><GoalCard /></CarouselItem>
+                        <CarouselItem><EngagementMetricsCard /></CarouselItem>
+                         <CarouselItem><PerformanceAnalysisCard /></CarouselItem>
                     </CarouselContent>
                     <CarouselPrevious />
                     <CarouselNext />
                 </Carousel>
+                <EvolutionChartCard />
+                <ActionHubCard />
             </div>
 
           {/* Main Grid */}
@@ -600,65 +659,8 @@ export default function DashboardPage() {
             {/* Right Column */}
             <div className="lg:col-span-2 space-y-8">
               <EngagementMetricsCard />
-
-              <Card className="rounded-2xl border-0">
-                  <CardHeader><CardTitle className="text-center">Evolução das Métricas</CardTitle></CardHeader>
-                  <CardContent className="pl-2 pr-6">
-                      {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
-                      historicalChartData.length > 0 ? (
-                          <ChartContainer config={platformChartConfig[selectedPlatform]} className="h-[350px] w-full">
-                          <BarChart accessibilityLayer data={historicalChartData} margin={{ left: 0, right: 12, top: 5, bottom: 5 }}>
-                              <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                              <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} />
-                              <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
-                              <RechartsTooltip content={<ChartTooltipContent indicator="dot" />} />
-                              <Bar dataKey="followers" fill="var(--color-followers)" radius={4} name="Seguidores" />
-                              <Bar dataKey="views" fill="var(--color-views)" radius={4} name="Views"/>
-                              <Bar dataKey="likes" fill="var(--color-likes)" radius={4} name="Likes"/>
-                              <Bar dataKey="comments" fill="var(--color-comments)" radius={4} name="Comentários"/>
-                          </BarChart>
-                          </ChartContainer>
-                      ) : (
-                          <div className="h-[350px] w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
-                              <div>
-                              <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
-                              <h3 className="font-semibold text-foreground">{(userProfile?.instagramHandle || userProfile?.tiktokHandle) ? "Dados insuficientes." : "Nenhuma plataforma conectada."}</h3>
-                              <p className="text-sm text-muted-foreground"> {userProfile && <Link href="/profile/integrations" className="text-primary font-medium hover:underline cursor-pointer">Sincronize suas métricas</Link>} para começar a ver seus dados.</p>
-                              </div>
-                          </div>
-                      )}
-                  </CardContent>
-              </Card>
-
-              <Card className="rounded-2xl border-0 h-full flex flex-col">
-                 <CardHeader>
-                     <CardTitle className="text-center">Análise de Desempenho</CardTitle>
-                 </CardHeader>
-                <CardContent className="flex-1 flex flex-col">
-                    {isGeneratingInsights ? (
-                        <div className="flex-1 flex justify-center items-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
-                    ) : insights && insights.insights ? (
-                        <ScrollArea className="h-64 pr-4">
-                        <ul className="space-y-4">
-                            {insights.insights.map((insight, i) => (
-                            <li key={i} className="flex items-start gap-3">
-                                <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary flex-shrink-0 mt-0.5"><Lightbulb className="h-3.5 w-3.5" /></div>
-                                <p className="text-sm text-muted-foreground">{insight}</p>
-                            </li>
-                            ))}
-                        </ul>
-                        </ScrollArea>
-                    ) : (
-                      <div className="flex-1 flex flex-col justify-center items-center text-center p-4 gap-4">
-                        <p className="text-sm text-muted-foreground">Clique em 'Analisar' para receber uma análise com base nas suas últimas métricas.</p>
-                        <Button variant="ghost" size="sm" onClick={handleGenerateInsights} disabled={isGeneratingInsights}>
-                            {isGeneratingInsights ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
-                            Analisar
-                        </Button>
-                    </div>
-                    )}
-                </CardContent>
-              </Card>
+              <EvolutionChartCard />
+              <PerformanceAnalysisCard />
             </div>
           </div>
         </div>
