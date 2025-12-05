@@ -75,7 +75,6 @@ import { FollowerGoalSheet } from '@/components/dashboard/follower-goal-sheet';
 import { ProfileCompletionAlert } from '@/components/dashboard/profile-completion-alert';
 import { generateDashboardInsights, type DashboardInsight } from './actions';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import Image from 'next/image';
 
@@ -424,22 +423,28 @@ export default function DashboardPage() {
                   </CarouselItem>
                   <CarouselItem className="pl-2 md:pl-4 basis-full">
                   <Card className='rounded-2xl border-0 h-full'>
-                      <CardHeader>
+                      <CardHeader className='items-center text-center'>
                         <CardTitle>Métricas de Engajamento</CardTitle>
                       </CardHeader>
                       <CardContent>
                           <div className='grid grid-cols-1 gap-4'>
-                              <div className='p-4 rounded-lg bg-muted/50 border'>
-                                  <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><Eye className="h-4 w-4" /> Views</h3>
-                                  <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.views)}</p>
+                              <div className='p-4 rounded-lg bg-muted/50 border flex justify-between items-center'>
+                                  <div>
+                                    <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><Eye className="h-4 w-4" /> Views</h3>
+                                    <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.views)}</p>
+                                  </div>
                               </div>
-                              <div className='p-4 rounded-lg bg-muted/50 border'>
-                                  <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><Heart className="h-4 w-4" /> Likes</h3>
-                                  <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.likes)}</p>
+                              <div className='p-4 rounded-lg bg-muted/50 border flex justify-between items-center'>
+                                  <div>
+                                    <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><Heart className="h-4 w-4" /> Likes</h3>
+                                    <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.likes)}</p>
+                                  </div>
                               </div>
-                              <div className='p-4 rounded-lg bg-muted/50 border'>
-                                  <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><MessageSquare className="h-4 w-4" /> Comentários</h3>
-                                  <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.comments)}</p>
+                              <div className='p-4 rounded-lg bg-muted/50 border flex justify-between items-center'>
+                                  <div>
+                                    <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><MessageSquare className="h-4 w-4" /> Comentários</h3>
+                                    <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.comments)}</p>
+                                  </div>
                               </div>
                           </div>
                       </CardContent>
@@ -447,7 +452,7 @@ export default function DashboardPage() {
                   </CarouselItem>
                   <CarouselItem className="pl-2 md:pl-4 basis-full">
                   <Card className="rounded-2xl border-0 h-full flex flex-col">
-                       <CardHeader className='flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left'>
+                       <CardHeader className='flex flex-col sm:flex-row items-center justify-between gap-4 text-center'>
                            <CardTitle>Análise de Desempenho</CardTitle>
                            <Button variant="ghost" size="sm" onClick={handleGenerateInsights} disabled={isGeneratingInsights} className="w-full sm:w-auto">
                                {isGeneratingInsights ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
@@ -509,28 +514,34 @@ export default function DashboardPage() {
                   </CardContent>
               </Card>
               <Card className='rounded-2xl border-0 h-full'>
-                  <CardHeader>
+                  <CardHeader className='items-center text-center'>
                       <CardTitle>Métricas de Engajamento</CardTitle>
                   </CardHeader>
                   <CardContent>
                       <div className='grid grid-cols-1 gap-4'>
-                          <div className='p-4 rounded-lg bg-muted/50 border'>
-                              <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><Eye className="h-4 w-4" /> Views</h3>
-                              <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.views)}</p>
+                           <div className='p-4 rounded-lg bg-muted/50 border flex justify-between items-center'>
+                              <div>
+                                <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><Eye className="h-4 w-4" /> Views</h3>
+                                <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.views)}</p>
+                              </div>
                           </div>
-                          <div className='p-4 rounded-lg bg-muted/50 border'>
-                              <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><Heart className="h-4 w-4" /> Likes</h3>
-                              <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.likes)}</p>
+                          <div className='p-4 rounded-lg bg-muted/50 border flex justify-between items-center'>
+                              <div>
+                                <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><Heart className="h-4 w-4" /> Likes</h3>
+                                <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.likes)}</p>
+                              </div>
                           </div>
-                          <div className='p-4 rounded-lg bg-muted/50 border'>
-                              <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><MessageSquare className="h-4 w-4" /> Comentários</h3>
-                              <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.comments)}</p>
+                          <div className='p-4 rounded-lg bg-muted/50 border flex justify-between items-center'>
+                              <div>
+                                <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><MessageSquare className="h-4 w-4" /> Comentários</h3>
+                                <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.comments)}</p>
+                              </div>
                           </div>
                       </div>
                   </CardContent>
               </Card>
               <Card className="rounded-2xl border-0 h-full flex flex-col">
-                   <CardHeader className='flex flex-row items-center justify-between'>
+                   <CardHeader className='flex flex-row items-center justify-between text-center'>
                        <CardTitle>Análise de Desempenho</CardTitle>
                        <Button variant="ghost" size="sm" onClick={handleGenerateInsights} disabled={isGeneratingInsights}>
                            {isGeneratingInsights ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
@@ -632,7 +643,5 @@ export default function DashboardPage() {
     </>
   );
 }
-
-    
 
     
