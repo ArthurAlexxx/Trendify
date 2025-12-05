@@ -4,7 +4,6 @@
 import { z } from 'zod';
 import OpenAI from 'openai';
 
-// Corrigido: Agora espera uma string diretamente, não um objeto.
 const DashboardInsightSchema = z.string().describe("Um insight curto e acionável com base na evolução das métricas fornecidas.");
 
 const TrendAnalysisSchema = z.object({
@@ -21,14 +20,9 @@ const GenerateDashboardInsightsOutputSchema = z.object({
     insights: z.array(DashboardInsightSchema).length(3).describe("Uma lista de exatamente 3 insights acionáveis."),
     trendAnalysis: TrendAnalysisSchema.describe("Análise de tendências de métricas."),
     predictiveForecast: PredictiveForecastSchema.describe("Previsão de crescimento."),
-    riskAlerts: z.array(z.string()).describe("Alertas sobre riscos potenciais, como queda de engajamento ou ritmo de posts."),
-    recommendedActions: z.array(z.string()).length(3).describe("Três ações imediatas recomendadas para melhorar as métricas."),
-    bestPostTime: z.string().describe("Sugestão de melhores horários para postar com base nos dados recentes."),
-    contentOpportunities: z.array(z.string()).length(2).describe("Duas oportunidades de conteúdo baseadas em tendências do nicho ou dados do perfil."),
 });
 
 export type DashboardInsightsOutput = z.infer<typeof GenerateDashboardInsightsOutputSchema>;
-// O tipo DashboardInsight agora é simplesmente 'string'
 export type DashboardInsight = z.infer<typeof DashboardInsightSchema>;
 
 const GenerateDashboardInsightsInputSchema = z.object({
@@ -81,11 +75,11 @@ export async function generateDashboardInsights(
   }
   
   const systemPrompt = `Você é um "AI Growth Strategist" e Analista de Dados, especialista em transformar métricas de redes sociais em conselhos práticos e previsões para criadores.
-  Sua tarefa é analisar a evolução das métricas de um criador e fornecer um dashboard completo de inteligência.
+  Sua tarefa é analisar a evolução das métricas de um criador e fornecer um dashboard de inteligência.
   Você DEVE responder com um objeto JSON válido, e NADA MAIS, estritamente conforme o schema.`;
 
   const userPrompt = `
-  Analise os seguintes dados e gere um dashboard de inteligência completo:
+  Analise os seguintes dados e gere um dashboard de inteligência:
 
   - Nicho do Criador: ${niche}
   - Objetivo Atual: ${objective}
@@ -93,12 +87,8 @@ export async function generateDashboardInsights(
 
   Para cada campo do JSON, siga estas diretrizes:
   - insights: Gere 3 insights criativos e acionáveis, variados, sobre engajamento, alcance, etc. Cada insight deve ser uma string simples.
-  - trendAnalysis: Analise as métricas e liste quais estão subindo e quais estão caindo.
+  - trendAnalysis: Analise as métricas e liste quais estão subindo e quais estão caindo. Se nada mudou, retorne arrays vazios.
   - predictiveForecast: Com base na tendência atual, faça uma previsão de crescimento de seguidores para os próximos 7 e 30 dias.
-  - riskAlerts: Identifique e liste quaisquer riscos, como "Queda de 15% no engajamento médio esta semana".
-  - recommendedActions: Sugira 3 ações imediatas e práticas para melhorar as métricas.
-  - bestPostTime: Com base nos dados, sugira os melhores dias/horários para postar.
-  - contentOpportunities: Sugira 2 novas oportunidades de conteúdo baseadas nas tendências do nicho e nos dados do perfil.
   `;
   
    try {

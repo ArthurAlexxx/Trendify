@@ -89,7 +89,7 @@ async function calculateGrowthAI(input: FormSchemaType): Promise<GrowthCalculato
 
   - months: Calcule o número de meses para atingir a meta, com um máximo de 24 meses. Seja realista, considerando que o crescimento é exponencial. Uma taxa de crescimento mensal entre 5% e 15% é razoável, dependendo do nicho e da consistência (publicações/mês). Nichos como finanças e tecnologia crescem mais rápido.
   - goalDate: Calcule a data futura com base no número de meses e retorne em formato ISO 8601.
-  - currentEarnings e goalEarnings: Estime uma FAIXA de ganhos [mínimo, máximo] com publicidade com MÁXIMA PRECISÃO. Use um CPM (Custo por Mil visualizações) médio para o Brasil que varia entre R$15 (entretenimento) e R$150 (finanças/tecnologia), ajustado para o nicho de '${input.niche}'. Detalhe sua lógica: estime que 20-50% dos seguidores veem uma publicação e que o criador pode fazer cerca de 4-8 publis por mês.
+  - currentEarnings e goalEarnings: Estime uma FAIXA de ganhos mensais [mínimo, máximo] com publicidade com MÁXIMA PRECISÃO. Use um CPM (Custo por Mil visualizações) médio para o Brasil que varia entre R$15 (entretenimento) e R$150 (finanças/tecnologia), ajustado para o nicho de '${input.niche}'. Detalhe sua lógica: estime que 20-50% dos seguidores veem uma publicação e que o criador pode fazer cerca de 4-8 publis por mês.
   - growthData: Crie um array de objetos. CADA objeto deve ter duas chaves: 'month' (o número do mês) e 'followers' (o número projetado de seguidores).
   - trendSuggestions: Forneça EXATAMENTE 3 ideias de ganchos para vídeos virais, relevantes para o nicho '${input.niche}'. Cada item no array DEVE ser um objeto com as chaves "hook" (string) e "icon" (string de emoji).
   - postsPerMonth: Apenas retorne o valor de entrada.
@@ -108,6 +108,7 @@ async function calculateGrowthAI(input: FormSchemaType): Promise<GrowthCalculato
         { role: 'user', content: userPrompt },
       ],
       temperature: 0.5,
+      response_format: { type: "json_object" },
     });
 
     const content = response.choices[0].message.content;

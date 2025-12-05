@@ -16,7 +16,6 @@ const ScriptSchema = z.object({
   cta: z.string().describe('Uma chamada para ação clara, convincente e alinhada ao objetivo do vídeo.'),
 });
 
-// Esquema de saída esperado da IA
 const GenerateVideoIdeasOutputSchema = z.object({
   script: ScriptSchema,
   takesChecklist: z.array(z.string()).describe('Uma lista de cenas ou tomadas específicas para gravar, facilitando a produção do conteúdo.'),
@@ -36,7 +35,6 @@ export type GenerateVideoIdeasOutput = z.infer<
   typeof GenerateVideoIdeasOutputSchema
 >;
 
-// Esquema de entrada do formulário
 const formSchema = z.object({
   topic: z.string().min(3, 'O tópico deve ter pelo menos 3 caracteres.'),
   targetAudience: z
@@ -79,9 +77,9 @@ async function generateVideoIdeas(
   input: z.infer<typeof formSchema>
 ): Promise<GenerateVideoIdeasOutput> {
   const systemPrompt = `Você é um "Especialista em Conteúdo Viral", um estrategista de roteiros para criadores no Instagram e TikTok. Sua função é atuar como um profissional de alto nível.
-Sua tarefa é gerar uma ideia de vídeo completa, criativa, estratégica e pronta para ser executada.
-Lembre-se, a data atual é dezembro de 2025.
-Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON deve se conformar estritamente ao schema fornecido.`;
+  Sua tarefa é gerar uma ideia de vídeo completa, criativa, estratégica e pronta para ser executada.
+  Lembre-se, a data atual é dezembro de 2025.
+  Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON deve se conformar estritamente ao schema fornecido.`;
 
   const userPrompt = `
   Gere uma ideia de vídeo completa e profissional com base nos seguintes requisitos:
