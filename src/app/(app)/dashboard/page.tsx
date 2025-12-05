@@ -396,11 +396,22 @@ export default function DashboardPage() {
             </Card>
             
             <div className='lg:col-span-2 grid grid-cols-1 gap-6'>
-                <div className='grid grid-cols-1 sm:grid-cols-3 gap-6'>
-                    <Card className='rounded-xl p-4 bg-muted/50'><h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-2"><Eye className="h-4 w-4" /> Views</h3><p className="text-xl font-bold font-headline">{isLoading ? <Skeleton className="h-6 w-12" /> : formatMetricValue(latestMetrics?.views)}</p></Card>
-                    <Card className='rounded-xl p-4 bg-muted/50'><h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-2"><Heart className="h-4 w-4" /> Likes</h3><p className="text-xl font-bold font-headline">{isLoading ? <Skeleton className="h-6 w-12" /> : formatMetricValue(latestMetrics?.likes)}</p></Card>
-                    <Card className='rounded-xl p-4 bg-muted/50'><h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-2"><MessageSquare className="h-4 w-4" /> Comentários</h3><p className="text-xl font-bold font-headline">{isLoading ? <Skeleton className="h-6 w-12" /> : formatMetricValue(latestMetrics?.comments)}</p></Card>
-                </div>
+                <Card className='rounded-xl p-4 bg-muted/50'>
+                    <div className='grid grid-cols-1 sm:grid-cols-3 gap-4 divide-y sm:divide-y-0 sm:divide-x'>
+                        <div className='p-2 text-center sm:text-left'>
+                            <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-center sm:justify-start gap-2"><Eye className="h-4 w-4" /> Views</h3>
+                            <p className="text-xl font-bold font-headline">{isLoading ? <Skeleton className="h-6 w-12" /> : formatMetricValue(latestMetrics?.views)}</p>
+                        </div>
+                         <div className='p-2 text-center sm:text-left pt-4 sm:pt-2'>
+                            <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-center sm:justify-start gap-2"><Heart className="h-4 w-4" /> Likes</h3>
+                            <p className="text-xl font-bold font-headline">{isLoading ? <Skeleton className="h-6 w-12" /> : formatMetricValue(latestMetrics?.likes)}</p>
+                        </div>
+                         <div className='p-2 text-center sm:text-left pt-4 sm:pt-2'>
+                            <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-center sm:justify-start gap-2"><MessageSquare className="h-4 w-4" /> Comentários</h3>
+                            <p className="text-xl font-bold font-headline">{isLoading ? <Skeleton className="h-6 w-12" /> : formatMetricValue(latestMetrics?.comments)}</p>
+                        </div>
+                    </div>
+                </Card>
                  <Card className="rounded-2xl border-0">
                     <CardHeader className='items-center text-center'><CardTitle className="font-headline text-xl">Insights da IA</CardTitle></CardHeader>
                     <CardContent>
@@ -441,11 +452,11 @@ export default function DashboardPage() {
             </Card>
 
             <div className="lg:col-span-1 space-y-8">
-                <Card className="rounded-2xl border-0">
-                    <CardHeader className='items-center text-center'><CardTitle className="font-headline text-xl">Recursos & Roteiro</CardTitle></CardHeader>
+                 <Card className="rounded-2xl border-0">
+                    <CardHeader className='items-center text-center'><CardTitle className="font-headline text-xl">Recursos & Atividade</CardTitle></CardHeader>
                     <CardContent className="flex flex-col gap-4">
                         <SavedIdeasSheet />
-                        <Sheet><SheetTrigger asChild><Button variant="outline" className="w-full"><CalendarPlus className="mr-2 h-4 w-4" /> Próximos Agendamentos</Button></SheetTrigger>
+                         <Sheet><SheetTrigger asChild><Button variant="outline" className="w-full"><CalendarPlus className="mr-2 h-4 w-4" /> Próximos Agendamentos</Button></SheetTrigger>
                             <SheetContent className="sm:max-w-2xl p-0">
                                 <SheetHeader className="p-6 pb-4 border-b"><SheetTitle>Próximos Posts Agendados</SheetTitle><SheetDescription>Uma visão rápida do que está por vir.</SheetDescription></SheetHeader>
                                 <ScrollArea className="h-[calc(100vh-8rem)]">
@@ -475,3 +486,5 @@ export default function DashboardPage() {
     </>
   );
 }
+
+    
