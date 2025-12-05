@@ -166,8 +166,8 @@ export function FullScreenCalendar({ data, onNewEvent, renderEventActions, rende
           </div>
         </div>
 
-        {/* Calendar Grid - Desktop */}
-        <div className="hidden lg:flex lg:flex-auto lg:flex-col">
+        {/* Calendar Grid */}
+        <div className="flex flex-auto flex-col">
           {/* Week Days Header */}
           <div className="grid grid-cols-7 border-t text-center text-xs font-semibold leading-6 lg:flex-none">
             <div className="border-r py-2.5">Dom</div>
@@ -230,39 +230,6 @@ export function FullScreenCalendar({ data, onNewEvent, renderEventActions, rende
               ))}
           </div>
         </div>
-
-        {/* Horizontal Scroll Calendar - Mobile */}
-        <div className="lg:hidden p-4 border-t">
-            <Carousel opts={{ align: "start" }} className="w-full">
-              <CarouselContent className="-ml-1">
-                {daysInMonth.map((day, index) => {
-                  const hasEvents = data.some(d => isSameDay(d.day, day) && d.events.length > 0);
-                  return (
-                    <CarouselItem key={index} className="basis-auto pl-2">
-                       <button
-                        key={day.toString()}
-                        onClick={() => setSelectedDay(day)}
-                        className={cn(
-                          "flex-shrink-0 flex flex-col items-center justify-center p-3 h-20 w-16 rounded-lg border transition-colors",
-                          isEqual(day, selectedDay)
-                            ? "bg-primary text-primary-foreground shadow-md"
-                            : "bg-muted/50 hover:bg-muted",
-                          isToday(day) && !isEqual(day, selectedDay) && "border-primary/50"
-                        )}
-                      >
-                        <span className="text-xs capitalize">{format(day, "EEE", { locale: ptBR })}</span>
-                        <span className="text-lg font-bold">{format(day, "d")}</span>
-                        {hasEvents && <div className="h-1.5 w-1.5 rounded-full bg-primary mt-1" style={isEqual(day, selectedDay) ? { backgroundColor: 'white' } : {}}></div>}
-                      </button>
-                    </CarouselItem>
-                  )
-                })}
-              </CarouselContent>
-              <CarouselPrevious className="absolute left-[-10px] top-1/2 -translate-y-1/2" />
-              <CarouselNext className="absolute right-[-10px] top-1/2 -translate-y-1/2" />
-            </Carousel>
-        </div>
-
       </div>
       
       {/* Selected Day's Events */}
@@ -305,3 +272,5 @@ export function FullScreenCalendar({ data, onNewEvent, renderEventActions, rende
     </div>
   )
 }
+
+    
