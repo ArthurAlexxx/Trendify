@@ -1,4 +1,3 @@
-
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -408,6 +407,7 @@ export default function DashboardPage() {
 
       <div className="space-y-8 max-w-7xl mx-auto">
         <PageHeader
+          icon={LayoutGrid}
           title={`Bem-vindo(a), ${userProfile?.displayName?.split(' ')[0] || 'Criador'}!`}
           description="Seu centro de comando para crescimento e monetização."
         >
@@ -432,7 +432,7 @@ export default function DashboardPage() {
           {userProfile && <ProfileCompletionAlert userProfile={userProfile} isPremium={isPremium} />}
 
           {/* Mobile Carousel */}
-          <div className="lg:hidden px-4">
+          <div className="lg:hidden">
               <Carousel className="w-full" opts={{ align: 'start' }}>
               <CarouselContent className="py-4">
                   <CarouselItem className="basis-full">
@@ -566,7 +566,8 @@ export default function DashboardPage() {
           </div>
 
           {/* Desktop Grid */}
-          <div className="hidden lg:grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+          <div className="hidden lg:grid lg:grid-cols-3 gap-8 items-start">
+            
             <div className="lg:col-span-1 space-y-8">
                 <Card className="rounded-2xl border-0">
                     <CardHeader>
