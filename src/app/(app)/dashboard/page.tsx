@@ -142,7 +142,6 @@ const followerGoalSchema = z.object({
 });
 
 const ProfileCompletionAlert = ({ userProfile, isPremium }: { userProfile: UserProfile | null, isPremium: boolean }) => {
-    const isProfileSetup = userProfile?.niche && (userProfile.instagramHandle || userProfile.tiktokHandle);
     const hasAnyPlatform = userProfile?.instagramHandle || userProfile.tiktokHandle;
 
     if (!userProfile?.niche) {
@@ -588,255 +587,188 @@ export default function DashboardPage() {
         
         {userProfile && <ProfileCompletionAlert userProfile={userProfile} isPremium={isPremium} />}
         
+        {/* TOP SECTION: 3-COLUMN GRID */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-            <div className="lg:col-span-1 flex flex-col gap-4">
-                <Card className="rounded-2xl border-0">
-                    <CardHeader>
-                        <CardTitle className="font-headline text-lg sm:text-xl">
-                            Meta de Seguidores
-                        </CardTitle>
-                        <CardDescription>Acompanhe seu progresso.</CardDescription>
-                         <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto pt-2">
-                            <div className='w-full sm:w-auto'>
-                                <Select value={selectedPlatform} onValueChange={(value) => setSelectedPlatform(value as any)}>
-                                <SelectTrigger className="w-full sm:w-48">
-                                    <SelectValue placeholder="Selecione a plataforma" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="total">Total</SelectItem>
-                                    <SelectItem value="instagram">Instagram</SelectItem>
-                                    <SelectItem value="tiktok">TikTok</SelectItem>
-                                </SelectContent>
-                                </Select>
-                            </div>
-                            {userProfile && 
-                            <FollowerGoalSheet userProfile={userProfile}>
-                                <Button variant="outline" size="sm" className="w-full"><Pencil className="mr-2 h-4 w-4" /> Editar Metas</Button>
-                            </FollowerGoalSheet>
-                            }
-                        </div>
-                    </CardHeader>
-                    <CardContent className="pt-6">
-                        <div className="flex flex-col items-center justify-center text-center">
-                            {isLoading ? <Skeleton className="h-48 w-48 rounded-full" /> : 
-                            goalFollowers > 0 ? (
-                            <div className='relative h-48 w-48'>
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <PieChart>
-                                        <Pie data={pieData} dataKey="value" startAngle={90} endAngle={-270} innerRadius="80%" outerRadius="100%" cornerRadius={50} paddingAngle={0} stroke="none">
-                                        {pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.fill} />)}
-                                        </Pie>
-                                    </PieChart>
-                                </ResponsiveContainer>
-                                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                    <span className="text-4xl font-bold font-headline text-primary">{followerGoalProgress.toFixed(0)}%</span>
-                                </div>
-                            </div>
-                            ) : (
-                                <div className='flex flex-col items-center justify-center h-48 w-48 rounded-full border-4 border-dashed bg-muted'>
-                                    <Target className="h-12 w-12 text-muted-foreground" />
-                                </div>
-                            )}
-                            <p className="text-3xl font-bold font-headline mt-4">{formatMetricValue(currentFollowers)}</p>
-                            {goalFollowers > 0 ? (
-                                <p className="text-sm text-muted-foreground">de {formatMetricValue(goalFollowers)} seguidores</p>
-                            ) : (
-                                <p className="text-sm text-muted-foreground">Defina uma meta para começar</p>
-                            )}
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-            <div className="lg:col-span-2 flex flex-col gap-8">
-                <Card className="rounded-2xl border-0">
-                    <CardHeader>
-                        <CardTitle className="font-headline text-lg sm:text-xl">
-                            Métricas de Engajamento
-                        </CardTitle>
-                        <CardDescription>Views, likes e comentários para a plataforma selecionada.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                        <div className="p-4 rounded-lg bg-muted/50 flex flex-col justify-center">
-                            <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-2"><Eye className="h-4 w-4" />Média de Views</h3>
-                            <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-8 w-16" /> : formatMetricValue(latestMetrics?.views)}</p>
-                        </div>
-                        <div className="p-4 rounded-lg bg-muted/50 flex flex-col justify-center">
-                            <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-2"><Heart className="h-4 w-4" />Média de Likes</h3>
-                            <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-8 w-16" /> : formatMetricValue(latestMetrics?.likes)}</p>
-                        </div>
-                        <div className="p-4 rounded-lg bg-muted/50 flex flex-col justify-center">
-                            <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-2"><MessageSquare className="h-4 w-4" />Média de Comentários</h3>
-                            <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-8 w-16" /> : formatMetricValue(latestMetrics?.comments)}</p>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card className="rounded-2xl border-0">
-                    <CardHeader>
-                        <CardTitle className="font-headline text-lg sm:text-xl">
-                            Roteiro do Dia ({diaDaSemanaNormalizado})
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                    {isLoadingRoteiro ? <Skeleton className="h-24 w-full" /> : (
-                        roteiroDoDia && roteiroDoDia.length > 0 ? (
-                            <ul className="space-y-3">
-                                {roteiroDoDia.map((item, index) => (
-                                    <li key={index}>
-                                        <div className="flex items-start gap-3">
-                                            <Checkbox
-                                                id={`roteiro-dia-${index}`}
-                                                checked={item.concluido}
-                                                onCheckedChange={() => handleToggleRoteiro(item, index)}
-                                                className="h-5 w-5 mt-0.5"
-                                            />
-                                            <div>
-                                                <label htmlFor={`roteiro-dia-${index}`} className={cn('font-medium transition-colors cursor-pointer', item.concluido ? 'line-through text-muted-foreground' : 'text-foreground')}>
-                                                    {item.tarefa}
-                                                </label>
-                                                <p className="text-xs text-muted-foreground">{item.detalhes}</p>
-                                            </div>
-                                        </div>
-                                    </li>
-                                ))}
-                            </ul>
-                        ) : (
-                           <div className="text-center py-4 rounded-xl bg-muted/50 border border-dashed">
-                                <ClipboardList className="mx-auto h-6 w-6 text-muted-foreground mb-2" />
-                                <h3 className="font-semibold text-foreground text-sm">
-                                    Nenhuma tarefa para hoje.
-                                </h3>
-                                <p className="text-xs text-muted-foreground">
-                                    Gere um novo <Link href="/generate-weekly-plan" className="text-primary hover:underline">plano semanal</Link>.
-                                </p>
-                            </div>
-                        )
-                    )}
-                    </CardContent>
-                </Card>
-            </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-            <div className="lg:col-span-2 space-y-8">
-                 <Card className="rounded-2xl border-0 h-full">
-                    <CardHeader>
-                        <CardTitle className="font-headline text-xl">
-                        Evolução das Métricas ({selectedPlatform === 'instagram' ? 'Instagram' : selectedPlatform === 'tiktok' ? 'TikTok' : 'Total'})
-                        </CardTitle>
-                        <CardDescription>Acompanhe seu progresso nos dias em que você registrou suas métricas.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="pl-2 pr-6">
-                        {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
-                        historicalChartData.length > 0 ? (
-                            <ChartContainer config={chartConfig} className="h-[350px] w-full">
-                            <BarChart accessibilityLayer data={historicalChartData} margin={{ left: 12, right: 12, top: 5, bottom: 5 }}>
-                                <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                                <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => value} />
-                                <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => typeof value === 'number' && value >= 1000 ? `${value / 1000}k` : value} />
-                                <RechartsTooltip content={<ChartTooltipContent indicator="dot" />} />
-                                <Bar dataKey="followers" fill="var(--color-followers)" radius={4} name="Seguidores" />
-                                <Bar dataKey="views" fill="var(--color-views)" radius={4} name="Views"/>
-                                <Bar dataKey="likes" fill="var(--color-likes)" radius={4} name="Likes"/>
-                                <Bar dataKey="comments" fill="var(--color-comments)" radius={4} name="Comentários"/>
-                            </BarChart>
-                            </ChartContainer>
-                        ) : (
-                            <div className="h-[350px] w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
-                                <div>
-                                <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
-                                <h3 className="font-semibold text-foreground">
-                                    {userProfile?.instagramHandle || userProfile?.tiktokHandle ? "Dados insuficientes para o gráfico." : "Nenhuma plataforma conectada."}
-                                </h3>
-                                <p className="text-sm text-muted-foreground">
-                                    {userProfile && (
-                                        <Link href="/profile" className="text-primary font-medium hover:underline cursor-pointer">
-                                                Atualize suas métricas
-                                        </Link>
-                                    )}
-                                    {userProfile?.instagramHandle || userProfile?.tiktokHandle ? " para começar a ver seus dados." : " para começar."}
-                                </p>
-                                </div>
-                            </div>
-                        )
-                        }
-                    </CardContent>
-                </Card>
-            </div>
-             <div className="lg:col-span-1 space-y-8">
-                  <Card className="rounded-2xl border-0 flex flex-col h-full">
-                  <CardHeader>
-                    <CardTitle className="font-headline text-xl">
-                      Próximos Posts
+            
+            {/* GOAL CARD */}
+            <Card className="rounded-2xl border-0">
+                <CardHeader>
+                    <CardTitle className="font-headline text-lg sm:text-xl">
+                        Meta de Seguidores
                     </CardTitle>
-                  </CardHeader>
-                  <CardContent className='flex-grow flex flex-col'>
-                    {isLoadingUpcoming ? <Skeleton className="h-28 w-full" /> : (
-                        upcomingContent && upcomingContent.length > 0 ? (
-                        <div className="space-y-4 flex-grow flex flex-col">
-                            {upcomingContent.map((post) => (
-                            <div
-                                key={post.id}
-                                className="p-3 rounded-lg border bg-background/50 flex items-start justify-between gap-4"
-                            >
-                                <div className="flex items-start gap-3 flex-1 overflow-hidden">
-                                <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
-                                    <Tag className="h-5 w-5 text-primary" />
-                                </div>
-                                <div className="flex-1 overflow-hidden">
-                                    <p className="font-semibold text-foreground text-sm leading-tight truncate">
-                                    {post.title}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground">
-                                    {post.contentType} •{' '}
-                                    {post.date && formatDistanceToNow(post.date.toDate(), {
-                                        addSuffix: true,
-                                        locale: ptBR,
-                                    })}
-                                    </p>
-                                </div>
-                                </div>
-                                <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
-                                        <MoreHorizontal className="h-4 w-4" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuItem onClick={() => handleMarkAsPublished(post.id)}>
-                                    <CheckCircle className="mr-2 h-4 w-4" />
-                                    <span>Marcar como Publicado</span>
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                                </DropdownMenu>
-                            </div>
-                            ))}
-                            <div className='mt-auto pt-4'>
-                            <Button variant="link" asChild className="w-full">
-                                <Link href="/content-calendar">
-                                Ver calendário completo
-                                </Link>
-                            </Button>
+                    <CardDescription>Acompanhe seu progresso.</CardDescription>
+                </CardHeader>
+                <CardContent className="pt-6">
+                    <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto pb-6">
+                        <div className='w-full sm:w-auto flex-1'>
+                            <Select value={selectedPlatform} onValueChange={(value) => setSelectedPlatform(value as any)}>
+                            <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Selecione a plataforma" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="total">Total</SelectItem>
+                                <SelectItem value="instagram">Instagram</SelectItem>
+                                <SelectItem value="tiktok">TikTok</SelectItem>
+                            </SelectContent>
+                            </Select>
+                        </div>
+                        {userProfile && 
+                        <FollowerGoalSheet userProfile={userProfile}>
+                            <Button variant="outline" size="sm" className="w-full"><Pencil className="mr-2 h-4 w-4" /> Editar Metas</Button>
+                        </FollowerGoalSheet>
+                        }
+                    </div>
+                    <div className="flex flex-col items-center justify-center text-center">
+                        {isLoading ? <Skeleton className="h-48 w-48 rounded-full" /> : 
+                        goalFollowers > 0 ? (
+                        <div className='relative h-48 w-48'>
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie data={pieData} dataKey="value" startAngle={90} endAngle={-270} innerRadius="80%" outerRadius="100%" cornerRadius={50} paddingAngle={0} stroke="none">
+                                    {pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.fill} />)}
+                                    </Pie>
+                                </PieChart>
+                            </ResponsiveContainer>
+                            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                <span className="text-4xl font-bold font-headline text-primary">{followerGoalProgress.toFixed(0)}%</span>
                             </div>
                         </div>
                         ) : (
-                        <div className="text-center py-8 px-4 rounded-xl bg-muted/50 border border-dashed flex-grow flex flex-col items-center justify-center">
-                            <Calendar className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
-                            <h3 className="font-semibold text-foreground">
-                            Nenhum post futuro.
+                            <div className='flex flex-col items-center justify-center h-48 w-48 rounded-full border-4 border-dashed bg-muted'>
+                                <Target className="h-12 w-12 text-muted-foreground" />
+                            </div>
+                        )}
+                        <p className="text-3xl font-bold font-headline mt-4">{formatMetricValue(currentFollowers)}</p>
+                        {goalFollowers > 0 ? (
+                            <p className="text-sm text-muted-foreground">de {formatMetricValue(goalFollowers)} seguidores</p>
+                        ) : (
+                            <p className="text-sm text-muted-foreground">Defina uma meta para começar</p>
+                        )}
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* ENGAGEMENT METRICS CARD */}
+            <Card className="rounded-2xl border-0">
+                <CardHeader>
+                    <CardTitle className="font-headline text-lg sm:text-xl">
+                        Métricas de Engajamento
+                    </CardTitle>
+                    <CardDescription>Views, likes e comentários para a plataforma selecionada.</CardDescription>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-6">
+                    <div className="p-4 rounded-lg bg-muted/50 flex flex-col justify-center">
+                        <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-2"><Eye className="h-4 w-4" />Média de Views</h3>
+                        <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-8 w-16" /> : formatMetricValue(latestMetrics?.views)}</p>
+                    </div>
+                    <div className="p-4 rounded-lg bg-muted/50 flex flex-col justify-center">
+                        <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-2"><Heart className="h-4 w-4" />Média de Likes</h3>
+                        <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-8 w-16" /> : formatMetricValue(latestMetrics?.likes)}</p>
+                    </div>
+                    <div className="p-4 rounded-lg bg-muted/50 flex flex-col justify-center">
+                        <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-2"><MessageSquare className="h-4 w-4" />Média de Comentários</h3>
+                        <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-8 w-16" /> : formatMetricValue(latestMetrics?.comments)}</p>
+                    </div>
+                </CardContent>
+            </Card>
+
+             {/* TODAY'S PLAN CARD */}
+            <Card className="rounded-2xl border-0">
+                <CardHeader>
+                    <CardTitle className="font-headline text-lg sm:text-xl">
+                        Roteiro do Dia ({diaDaSemanaNormalizado})
+                    </CardTitle>
+                    <CardDescription>Suas tarefas de conteúdo para hoje.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                {isLoadingRoteiro ? <Skeleton className="h-24 w-full" /> : (
+                    roteiroDoDia && roteiroDoDia.length > 0 ? (
+                        <ul className="space-y-3">
+                            {roteiroDoDia.map((item, index) => (
+                                <li key={index}>
+                                    <div className="flex items-start gap-3">
+                                        <Checkbox
+                                            id={`roteiro-dia-${index}`}
+                                            checked={item.concluido}
+                                            onCheckedChange={() => handleToggleRoteiro(item, index)}
+                                            className="h-5 w-5 mt-0.5"
+                                        />
+                                        <div>
+                                            <label htmlFor={`roteiro-dia-${index}`} className={cn('font-medium transition-colors cursor-pointer', item.concluido ? 'line-through text-muted-foreground' : 'text-foreground')}>
+                                                {item.tarefa}
+                                            </label>
+                                            <p className="text-xs text-muted-foreground">{item.detalhes}</p>
+                                        </div>
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+                    ) : (
+                       <div className="text-center py-4 rounded-xl bg-muted/50 border border-dashed h-full flex flex-col justify-center">
+                            <ClipboardList className="mx-auto h-6 w-6 text-muted-foreground mb-2" />
+                            <h3 className="font-semibold text-foreground text-sm">
+                                Nenhuma tarefa para hoje.
                             </h3>
-                            <p className="text-sm text-muted-foreground">
-                            Agende seu próximo conteúdo no calendário.
+                            <p className="text-xs text-muted-foreground">
+                                Gere um novo <Link href="/generate-weekly-plan" className="text-primary hover:underline">plano semanal</Link>.
                             </p>
                         </div>
-                        )
-                    )}
-                  </CardContent>
-                </Card>
-             </div>
+                    )
+                )}
+                </CardContent>
+            </Card>
         </div>
 
+        {/* MIDDLE SECTION: FULL-WIDTH CHART */}
+        <div className="grid grid-cols-1 gap-8">
+            <Card className="rounded-2xl border-0 h-full">
+                <CardHeader>
+                    <CardTitle className="font-headline text-xl">
+                    Evolução das Métricas ({selectedPlatform === 'instagram' ? 'Instagram' : selectedPlatform === 'tiktok' ? 'TikTok' : 'Total'})
+                    </CardTitle>
+                    <CardDescription>Acompanhe seu progresso nos dias em que você registrou suas métricas.</CardDescription>
+                </CardHeader>
+                <CardContent className="pl-2 pr-6">
+                    {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
+                    historicalChartData.length > 0 ? (
+                        <ChartContainer config={chartConfig} className="h-[350px] w-full">
+                        <BarChart accessibilityLayer data={historicalChartData} margin={{ left: 12, right: 12, top: 5, bottom: 5 }}>
+                            <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                            <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => value} />
+                            <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => typeof value === 'number' && value >= 1000 ? `${value / 1000}k` : value} />
+                            <RechartsTooltip content={<ChartTooltipContent indicator="dot" />} />
+                            <Bar dataKey="followers" fill="var(--color-followers)" radius={4} name="Seguidores" />
+                            <Bar dataKey="views" fill="var(--color-views)" radius={4} name="Views"/>
+                            <Bar dataKey="likes" fill="var(--color-likes)" radius={4} name="Likes"/>
+                            <Bar dataKey="comments" fill="var(--color-comments)" radius={4} name="Comentários"/>
+                        </BarChart>
+                        </ChartContainer>
+                    ) : (
+                        <div className="h-[350px] w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
+                            <div>
+                            <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+                            <h3 className="font-semibold text-foreground">
+                                {userProfile?.instagramHandle || userProfile?.tiktokHandle ? "Dados insuficientes para o gráfico." : "Nenhuma plataforma conectada."}
+                            </h3>
+                            <p className="text-sm text-muted-foreground">
+                                {userProfile && (
+                                    <Link href="/profile" className="text-primary font-medium hover:underline cursor-pointer">
+                                            Atualize suas métricas
+                                    </Link>
+                                )}
+                                {userProfile?.instagramHandle || userProfile?.tiktokHandle ? " para começar a ver seus dados." : " para começar."}
+                            </p>
+                            </div>
+                        </div>
+                    )
+                    }
+                </CardContent>
+            </Card>
+        </div>
+
+        {/* BOTTOM SECTION: 2-COLUMN GRID */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-             <Card className="rounded-2xl border-0 h-full">
+            <Card className="rounded-2xl border-0 h-full">
                 <CardHeader>
                 <CardTitle className="font-headline text-xl">
                     Ideias e Tarefas Salvas
@@ -941,5 +873,5 @@ export default function DashboardPage() {
     </>
   );
 }
- 
 
+    
