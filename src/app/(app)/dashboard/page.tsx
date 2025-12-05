@@ -432,7 +432,7 @@ export default function DashboardPage() {
           {userProfile && <ProfileCompletionAlert userProfile={userProfile} isPremium={isPremium} />}
 
           {/* Mobile Carousel */}
-          <div className="lg:hidden">
+          <div className="lg:hidden px-4">
               <Carousel className="w-full" opts={{ align: 'start' }}>
               <CarouselContent className="py-4">
                   <CarouselItem className="basis-full">
@@ -567,7 +567,6 @@ export default function DashboardPage() {
 
           {/* Desktop Grid */}
           <div className="hidden lg:grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-            {/* Left Column */}
             <div className="lg:col-span-2 space-y-8">
                <Card className='rounded-2xl border-0'>
                 <CardHeader>
@@ -665,6 +664,33 @@ export default function DashboardPage() {
 
             {/* Right Column */}
             <div className="lg:col-span-1 space-y-8">
+                <Card className="rounded-2xl border-0">
+                    <CardHeader>
+                      <CardTitle className="text-center">Meta de Seguidores</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-6">
+                        <div className="flex flex-col items-center justify-center text-center">
+                            {isLoading ? <Skeleton className="h-48 w-48 rounded-full" /> : 
+                            goalFollowers > 0 ? (
+                            <div className='relative h-48 w-48'>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart><Pie data={pieData} dataKey="value" startAngle={90} endAngle={-270} innerRadius="80%" outerRadius="100%" cornerRadius={50} paddingAngle={0} stroke="none">{pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.fill} />)}</Pie></PieChart>
+                                </ResponsiveContainer>
+                                <div className="absolute inset-0 flex flex-col items-center justify-center"><span className="text-4xl font-bold font-headline text-primary">{followerGoalProgress.toFixed(0)}%</span></div>
+                            </div>
+                            ) : (
+                                <div className='flex flex-col items-center justify-center h-48 w-48 rounded-full border-4 border-dashed bg-muted'><Target className="h-12 w-12 text-muted-foreground" /></div>
+                            )}
+                             <p className="text-3xl font-bold font-headline mt-4">{formatMetricValue(currentFollowers)}</p>
+                            {goalFollowers > 0 ? (
+                                <p className="text-sm text-muted-foreground">de {formatMetricValue(goalFollowers)} seguidores</p>
+                            ) : (
+                                <p className="text-sm text-muted-foreground">Defina uma meta para começar</p>
+                            )}
+                        </div>
+                    </CardContent>
+                </Card>
+
                 <Card className="rounded-2xl border-0 h-full flex flex-col">
                   <CardHeader>
                     <CardTitle className="font-headline text-xl">
