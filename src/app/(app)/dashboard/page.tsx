@@ -390,8 +390,8 @@ export default function DashboardPage() {
         
         {userProfile && <ProfileCompletionAlert userProfile={userProfile} isPremium={isPremium} />}
         
-        <Carousel className="w-full lg:w-auto lg:grid lg:grid-cols-3 lg:gap-8" opts={{ align: 'start', dragFree: true }}>
-          <CarouselContent className="-ml-2 md:-ml-4 py-4 lg:contents">
+        <Carousel className="w-full" opts={{ align: 'start', dragFree: true }}>
+          <CarouselContent className="-ml-2 md:-ml-4 py-4 lg:grid lg:grid-cols-3 lg:gap-8">
             <CarouselItem className="pl-2 md:pl-4 basis-full lg:basis-auto">
               <Card className="rounded-2xl border-0 h-full">
                  <CardHeader className='items-center text-center'>
@@ -550,9 +550,5 @@ export default function DashboardPage() {
     </>
   );
 }
-
-    
-
-    
 
     
