@@ -29,7 +29,7 @@ import {
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "./carousel"
 
 interface Event {
   id: string | number
@@ -111,10 +111,10 @@ export function FullScreenCalendar({ data, onNewEvent, renderEventActions, rende
             <div className="flex items-center gap-4">
               <div className="hidden w-20 flex-col items-center justify-center rounded-lg border bg-muted p-0.5 md:flex">
                 <h1 className="p-1 text-xs uppercase text-muted-foreground">
-                  {format(selectedDay, "MMM", { locale: ptBR })}
+                  {format(firstDayCurrentMonth, "MMM", { locale: ptBR })}
                 </h1>
                 <div className="flex w-full items-center justify-center rounded-lg border bg-background p-0.5 text-lg font-bold">
-                  <span>{format(selectedDay, "d", { locale: ptBR })}</span>
+                  <span>{format(firstDayCurrentMonth, "d")}</span>
                 </div>
               </div>
               <div className="flex flex-col">
@@ -233,31 +233,34 @@ export function FullScreenCalendar({ data, onNewEvent, renderEventActions, rende
 
         {/* Horizontal Scroll Calendar - Mobile */}
         <div className="lg:hidden p-4 border-t">
-          <ScrollArea className="w-full whitespace-nowrap rounded-md">
-            <div className="flex w-max space-x-2 pb-2">
-              {daysInMonth.map((day) => {
-                const hasEvents = data.some(d => isSameDay(d.day, day) && d.events.length > 0);
-                return (
-                  <button
-                    key={day.toString()}
-                    onClick={() => setSelectedDay(day)}
-                    className={cn(
-                      "flex-shrink-0 flex flex-col items-center justify-center p-3 h-20 w-16 rounded-lg border transition-colors",
-                      isEqual(day, selectedDay)
-                        ? "bg-primary text-primary-foreground shadow-md"
-                        : "bg-muted/50 hover:bg-muted",
-                       isToday(day) && !isEqual(day, selectedDay) && "border-primary/50"
-                    )}
-                  >
-                     <span className="text-xs capitalize">{format(day, "EEE", { locale: ptBR })}</span>
-                     <span className="text-lg font-bold">{format(day, "d")}</span>
-                     {hasEvents && <div className="h-1.5 w-1.5 rounded-full bg-primary mt-1" style={isEqual(day, selectedDay) ? { backgroundColor: 'white' } : {}}></div>}
-                  </button>
-                )
-              })}
-            </div>
-             <ScrollBar orientation="horizontal" />
-          </ScrollArea>
+            <Carousel opts={{ align: "start" }} className="w-full">
+              <CarouselContent className="-ml-1">
+                {daysInMonth.map((day, index) => {
+                  const hasEvents = data.some(d => isSameDay(d.day, day) && d.events.length > 0);
+                  return (
+                    <CarouselItem key={index} className="basis-auto pl-2">
+                       <button
+                        key={day.toString()}
+                        onClick={() => setSelectedDay(day)}
+                        className={cn(
+                          "flex-shrink-0 flex flex-col items-center justify-center p-3 h-20 w-16 rounded-lg border transition-colors",
+                          isEqual(day, selectedDay)
+                            ? "bg-primary text-primary-foreground shadow-md"
+                            : "bg-muted/50 hover:bg-muted",
+                          isToday(day) && !isEqual(day, selectedDay) && "border-primary/50"
+                        )}
+                      >
+                        <span className="text-xs capitalize">{format(day, "EEE", { locale: ptBR })}</span>
+                        <span className="text-lg font-bold">{format(day, "d")}</span>
+                        {hasEvents && <div className="h-1.5 w-1.5 rounded-full bg-primary mt-1" style={isEqual(day, selectedDay) ? { backgroundColor: 'white' } : {}}></div>}
+                      </button>
+                    </CarouselItem>
+                  )
+                })}
+              </CarouselContent>
+              <CarouselPrevious className="absolute left-[-10px] top-1/2 -translate-y-1/2" />
+              <CarouselNext className="absolute right-[-10px] top-1/2 -translate-y-1/2" />
+            </Carousel>
         </div>
 
       </div>
