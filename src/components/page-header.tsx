@@ -11,19 +11,21 @@ interface PageHeaderProps {
 
 export function PageHeader({ title, description, children, icon: Icon }: PageHeaderProps) {
   return (
-     <div className="flex flex-col md:flex-row items-center justify-between gap-4 w-full mb-12">
-      <div className="flex-1 grid gap-2 text-center md:text-left">
-        <div className="flex items-center justify-center md:justify-start gap-3">
-            {Icon && <Icon className="h-8 w-8 text-primary" />}
+    <div className="flex flex-col items-center gap-8 w-full mb-12">
+        <div className="flex flex-col items-center gap-4 text-center">
+            {Icon && (
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20 text-primary mb-2">
+                    <Icon className="h-8 w-8" />
+                </div>
+            )}
             <h1 className="text-3xl md:text-4xl font-bold font-headline tracking-tighter text-foreground">
-            {title}
+                {title}
             </h1>
+            {description && (
+                <p className="text-lg text-muted-foreground max-w-2xl">{description}</p>
+            )}
         </div>
-        {description && (
-          <p className="text-lg text-muted-foreground">{description}</p>
-        )}
-      </div>
-      {children && <div className="flex w-full md:w-auto items-center justify-center gap-2">{children}</div>}
+        {children && <div className="flex w-full md:w-auto items-center justify-center gap-2">{children}</div>}
     </div>
   );
 }
