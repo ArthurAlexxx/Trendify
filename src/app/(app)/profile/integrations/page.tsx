@@ -19,7 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { doc, updateDoc, serverTimestamp, addDoc, collection, query, where, getDocs, Timestamp, startOfDay, endOfDay } from 'firebase/firestore';
+import { doc, updateDoc, serverTimestamp, addDoc, collection, query, where, getDocs, Timestamp } from 'firebase/firestore';
 import type { UserProfile, InstagramProfileData, InstagramPostData, TikTokProfileData, TikTokPostData } from '@/lib/types';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -30,7 +30,7 @@ import { useSubscription } from '@/hooks/useSubscription';
 import Link from 'next/link';
 import { InstagramProfileResults, TikTokProfileResults } from '@/components/dashboard/platform-results';
 import { useRouter } from 'next/navigation';
-import { isToday } from 'date-fns';
+import { isToday, startOfDay, endOfDay } from 'date-fns';
 
 
 const profileFormSchema = z.object({
@@ -321,8 +321,8 @@ export default function IntegrationsPage() {
                                     >
                                         {
                                          instaStatus === 'loading' ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Buscando...</> :
-                                         userProfile?.instagramHandle ? <><RefreshCw className="mr-2 h-4 w-4" />Sincronizar</> : 
-                                         <><Search className="mr-2 h-4 w-4" />Buscar</>}
+                                         <><RefreshCw className="mr-2 h-4 w-4" />Sincronizar</>
+                                         }
                                     </Button>
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
@@ -370,8 +370,8 @@ export default function IntegrationsPage() {
                                     >
                                         {
                                          tiktokStatus === 'loading' ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Buscando...</> :
-                                         userProfile?.tiktokHandle ? <><RefreshCw className="mr-2 h-4 w-4" />Sincronizar</> : 
-                                         <><Search className="mr-2 h-4 w-4" />Buscar</>}
+                                         <><RefreshCw className="mr-2 h-4 w-4" />Sincronizar</>
+                                         }
                                     </Button>
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
@@ -420,5 +420,3 @@ export default function IntegrationsPage() {
     </div>
   );
 }
-
-    
