@@ -586,6 +586,8 @@ export default function DashboardPage() {
 
       <div className="space-y-8">
         
+        {userProfile && <ProfileCompletionAlert userProfile={userProfile} isPremium={isPremium} />}
+        
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             <div className="lg:col-span-1 flex flex-col gap-4">
                 <Card className="rounded-2xl border-0">
@@ -646,8 +648,6 @@ export default function DashboardPage() {
                 </Card>
             </div>
             <div className="lg:col-span-2 flex flex-col gap-8">
-                 {userProfile && <ProfileCompletionAlert userProfile={userProfile} isPremium={isPremium} />}
-
                 <Card className="rounded-2xl border-0">
                     <CardHeader>
                         <CardTitle className="font-headline text-lg sm:text-xl">
@@ -892,12 +892,8 @@ export default function DashboardPage() {
                 )}
                 </CardContent>
             </Card>
-        </div>
-
-
-         {/* Recent Posts Section */}
-        <div className="grid grid-cols-1 gap-8">
-            <Card className="rounded-2xl border-0">
+            
+            <Card className="rounded-2xl border-0 h-full">
                 <CardHeader>
                     <CardTitle>Atividade Recente nas Plataformas</CardTitle>
                     <CardDescription>Uma visão geral das suas últimas publicações.</CardDescription>
@@ -946,3 +942,4 @@ export default function DashboardPage() {
   );
 }
  
+
