@@ -43,7 +43,7 @@ const AiCareerPackageOutputSchema = z.object({
       ),
   }),
   sampleCollaborationIdeas: z
-    .array(z.string())
+    .array(CollaborationIdeaSchema)
     .length(3)
     .describe(
       'Uma lista de 3 ideias de colaboração criativas e de alto nível que se encaixam no nicho do criador e da marca alvo.'
@@ -113,7 +113,7 @@ Sua resposta DEVE ser um bloco de código JSON válido, e NADA MAIS. O JSON deve
 
   - pricingTiers: Com base nas métricas (${input.keyMetrics}), calcule faixas de preço realistas para o mercado brasileiro. É OBRIGATÓRIO que você retorne uma STRING formatada para CADA um dos campos (reels, storySequence, staticPost, monthlyPackage), como "R$ X - R$ Y".
 
-  - sampleCollaborationIdeas: Gere EXATAMENTE 3 ideias de colaboração criativas, autênticas e alinhadas com a marca alvo (${input.targetBrand}) e o nicho (${input.niche}).
+  - sampleCollaborationIdeas: Gere EXATAMENTE 3 ideias de colaboração criativas e de alto nível, alinhadas com a marca alvo (${input.targetBrand}) e o nicho (${input.niche}). Cada ideia deve ser um objeto com a chave "ideia".
 
   - valueProposition: Crie uma frase de impacto que resuma por que a marca deveria fechar com você. Ex: "Conecto sua marca a um público engajado que confia na minha curadoria para decisões de compra."
 
