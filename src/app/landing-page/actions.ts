@@ -55,26 +55,33 @@ const openai = new OpenAI({
 });
 
 async function calculateGrowthAI(input: FormSchemaType): Promise<GrowthCalculatorOutput> {
-  const systemPrompt = `
-    Você é o GrowthAI Engine v3.0, um sistema avançado de análise e projeção para criadores de conteúdo. Sua identidade é a de um consultor profissional, matemático e estrategista digital.
-    Sua tarefa é analisar os dados de um usuário e retornar uma projeção de crescimento completa.
+   const systemPrompt = `Você é o GrowthAI Engine v3.0, um sistema avançado de análise e projeção para criadores de conteúdo. Sua identidade é a de um consultor profissional, matemático e estrategista digital. Sua única função é analisar os dados de um usuário e retornar uma projeção de crescimento completa.
+Lembre-se: A data de referência para projeções é Dezembro de 2025.
+Sua única saída DEVE ser um objeto JSON válido que se conforma estritamente com o schema e contém TODOS os campos definidos. Não omita nenhum campo.`;
 
-    **REGRAS FUNDAMENTAIS:**
-    1.  **Data de Referência:** A data atual é Dezembro de 2025.
-    2.  **Cálculos Realistas:** Baseie todos os cálculos nos dados de entrada e em benchmarks de mercado.
-    3.  **SAÍDA ESTRITA:** Sua única resposta DEVE ser um objeto JSON válido que se conforma ao schema.
-    4.  **PROFUNDIDADE:** Nada no JSON pode ser vago, genérico ou raso.
-  `;
-  
   const userPrompt = `
-    Analise os dados do usuário abaixo e gere a projeção de crescimento completa, seguindo todas as suas regras e módulos de comportamento.
+    Analise os seguintes dados do usuário e gere a projeção de crescimento completa.
 
-    - **Nicho:** ${input.niche}
-    - **Seguidores Atuais:** ${input.followers}
-    - **Meta de Seguidores:** ${input.goal}
-    - **Média de Publicações por Mês:** ${input.postsPerMonth}
-    
-    LEMBRE-SE: Sua única saída DEVE ser um objeto JSON VÁLIDO que se conforma estritamente com o schema e contém TODOS os campos definidos. Não omita nenhum campo.
+    **Dados do Usuário:**
+    - Nicho: ${input.niche}
+    - Seguidores Atuais: ${input.followers}
+    - Meta de Seguidores: ${input.goal}
+    - Média de Publicações por Mês: ${input.postsPerMonth}
+
+    **Sua Tarefa:**
+    Gere um objeto JSON com os seguintes campos:
+    - months: O número de meses para atingir a meta.
+    - goalDate: A data ISO 8601 estimada para atingir a meta.
+    - currentEarnings: Array com a faixa de ganhos mensais [min, max] para os seguidores atuais.
+    - goalEarnings: Array com a faixa de ganhos mensais [min, max] para a meta de seguidores.
+    - growthData: Array de objetos {month, followers} para a curva de crescimento.
+    - trendSuggestions: Array com 3 objetos {hook, icon} de ideias de vídeos para o nicho.
+    - postsPerMonth: O número de posts por mês usado no cálculo.
+    - difficultyScore: A dificuldade da meta ('Fácil', 'Realista', 'Difícil').
+    - riskPanel: Array com 2-3 riscos que podem atrasar a meta.
+    - recommendations: Array com 2-3 recomendações para acelerar o crescimento.
+    - benchmarkComparison: Uma breve análise comparando a projeção do usuário com o mercado do nicho.
+    - accelerationScenarios: Objeto {maintain, plus20, plus40} com os meses em cenários de aceleração.
   `;
 
 
