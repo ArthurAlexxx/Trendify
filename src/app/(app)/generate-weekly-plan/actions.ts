@@ -24,7 +24,7 @@ const GenerateWeeklyPlanOutputSchema = z.object({
     .array(ItemRoteiroSchema)
     .describe(
       'Um array de 7 itens, um para cada dia da semana, com tarefas de conteúdo.'
-    ).transform(items => items.map(item => ({ ...item, concluido: false }))),
+    ),
   simulatedPerformance: z
     .array(PontoDadosGraficoSchema)
     .describe(
@@ -131,7 +131,16 @@ async function generateWeeklyPlan(
     if (!jsonString) throw new Error('Não foi possível encontrar um bloco JSON válido na resposta da IA.');
 
     const parsedJson = JSON.parse(jsonString);
-    return GenerateWeeklyPlanOutputSchema.parse(parsedJson);
+    const validatedData = GenerateWeeklyPlanOutputSchema.parse(parsedJson);
+    
+    // Ensure `concluido` is set to false for all items
+    const finalPlan = {
+      ...validatedData,
+      weeklyPlan: validatedData.weeklyPlan.map(item => ({ ...item, concluido: false })),
+    };
+
+    return finalPlan;
+
   } catch (error) {
     console.error('Error in generateWeeklyPlan:', error);
     const errorMessage =
@@ -159,5 +168,3 @@ export async function generateWeeklyPlanAction(
     return { error: `Falha ao gerar plano: ${errorMessage}` };
   }
 }
-
-    

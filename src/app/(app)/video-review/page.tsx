@@ -19,6 +19,8 @@ import {
   Crown,
   History,
   Inbox,
+  AlertTriangle,
+  Flame,
 } from "lucide-react";
 import {
   Card,
@@ -57,6 +59,7 @@ import { Progress } from "@/components/ui/progress";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 
 
 type AnalysisStatus = "idle" | "uploading" | "loading" | "success" | "error";
@@ -126,6 +129,7 @@ function VideoReviewPageContent() {
   const [analysisError, setAnalysisError] = useState<string>("");
   const [uploadProgress, setUploadProgress] = useState(0);
   const [activeTab, setActiveTab] = useState("generate");
+  const [videoDescription, setVideoDescription] = useState("");
 
   const { user } = useUser();
   const firestore = useFirestore();
@@ -277,7 +281,7 @@ function VideoReviewPageContent() {
           const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
           setAnalysisStatus("loading");
 
-          const result = await analyzeVideo({ videoUrl: downloadURL });
+          const result = await analyzeVideo({ videoUrl: downloadURL, videoDescription });
 
           if (result?.isOverloaded) {
               setAnalysisError(result.error || "Servidor sobrecarregado.");
@@ -421,7 +425,7 @@ function VideoReviewPageContent() {
         </TabsList>
         <TabsContent value="generate">
             <Card className="rounded-t-none border-t-0">
-                <CardContent className="p-6">
+                <CardContent className="p-6 space-y-6">
                  {!file ? (
                     <div
                         className={`flex w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed p-12 text-center transition-colors ${
@@ -475,6 +479,12 @@ function VideoReviewPageContent() {
                                 </Button>
                             </div>
                         </div>
+                         <Textarea
+                            placeholder="Opcional: Adicione um contexto para a IA (ex: 'Este é um vídeo de unboxing para meu público de tecnologia...')"
+                            value={videoDescription}
+                            onChange={(e) => setVideoDescription(e.target.value)}
+                            className="mt-4"
+                        />
                     </div>
                 )}
                  <div className="text-center mt-6">
@@ -536,8 +546,8 @@ function VideoReviewPageContent() {
                     )}
 
                     {analysisStatus === 'success' && analysisResult && (
-                        <div className="grid gap-8">
-                        <div className="grid lg:grid-cols-3 gap-8 items-start">
+                        <div className="grid lg:grid-cols-2 gap-8 items-start">
+                        <div className="space-y-8">
                             <Card className="lg:col-span-1 rounded-2xl border-0">
                                 <CardHeader className='items-center text-center'>
                                     <CardTitle className="font-headline text-lg text-primary">Nota de Viralização</CardTitle>
@@ -550,7 +560,8 @@ function VideoReviewPageContent() {
 
                             <Card className="lg:col-span-2 rounded-2xl border-0">
                                 <CardHeader>
-                                    <CardTitle className="items-center text-center">
+                                    <CardTitle className="items-center flex gap-2">
+                                         <Check className="h-5 w-5 text-primary" />
                                         Checklist de Melhorias
                                     </CardTitle>
                                 </CardHeader>
@@ -567,6 +578,25 @@ function VideoReviewPageContent() {
                             </Card>
                         </div>
                         
+                        <div className="space-y-8">
+                            <Card className="rounded-2xl border-0">
+                                <CardHeader>
+                                    <CardTitle className="font-headline text-lg flex items-center gap-2">
+                                        <Flame className="h-5 w-5 text-primary" />
+                                        Análise de Retenção
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div>
+                                        <h4 className="font-semibold mb-1">Mapa de Calor Estimado</h4>
+                                        <p className="text-sm text-muted-foreground">{analysisResult.estimatedHeatmap}</p>
+                                    </div>
+                                    <div>
+                                        <h4 className="font-semibold mb-1">Análise Comparativa</h4>
+                                        <p className="text-sm text-muted-foreground">{analysisResult.comparativeAnalysis}</p>
+                                    </div>
+                                </CardContent>
+                            </Card>
                             <Card className="rounded-2xl border-0">
                                 <CardHeader className='items-center text-center'>
                                     <CardTitle className="font-headline text-lg">Análise Detalhada</CardTitle>
@@ -588,6 +618,7 @@ function VideoReviewPageContent() {
                                     </Accordion>
                                 </CardContent>
                             </Card>
+                        </div>
                         </div>
                     )}
                 </div>
@@ -709,5 +740,3 @@ function VideoReviewPageContent() {
     </div>
   );
 }
-
-    

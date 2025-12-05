@@ -77,7 +77,7 @@ function extractJson(text: string) {
 async function generatePubliProposals(
   input: z.infer<typeof formSchema>
 ): Promise<GeneratePubliProposalsOutput> {
-  const systemPrompt = `Você é um "AI Creative Director", especialista em criar campanhas de conteúdo para redes sociais que convertem.
+  const systemPrompt = `Você é uma "AI Creative Director", especialista em criar campanhas de conteúdo para redes sociais que convertem.
 Sua tarefa é gerar um pacote de conteúdo completo para um criador de conteúdo promover um produto ou marca.
 Lembre-se, a data atual é dezembro de 2025.
 Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON deve se conformar estritamente ao schema fornecido.`;
@@ -93,7 +93,7 @@ Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON d
 
   Para cada campo do JSON, siga estas diretrizes:
   - scripts: Crie 5 roteiros de vídeo distintos (com gancho, script, cta), cada um com um ângulo diferente (tutorial, POV, unboxing, etc.).
-  - trendVariations: Crie 2-3 sugestões de como adaptar uma das ideias para uma trend de áudio ou vídeo em alta no Instagram/TikTok.
+  - trendVariations: Crie 2-3 sugestões de como adaptar uma das ideias para uma trend de áudio ou vídeo em alta no Instagram/TikTok. Cada item deve ser um objeto com a chave "variacao".
   - conversionChecklist: Crie um checklist com 4-5 itens para maximizar a conversão, focado no objetivo. Ex: 'Mostrar prova social' para Vendas, ou 'Gancho curioso sobre a marca' para Reconhecimento.
   - creativeAngles: Liste alguns ângulos criativos profissionais (ex: "Focar na sustentabilidade do produto", "Criar uma narrativa de superação com a marca").
   - brandToneAdaptations: Crie 3 pequenas variações do CTA principal: uma com tom corporativo, uma com tom jovem/descolado e uma com tom de humor.
@@ -108,6 +108,7 @@ Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON d
         { role: 'user', content: userPrompt },
       ],
       temperature: 0.8,
+      response_format: { type: "json_object" },
     });
 
     const content = response.choices[0].message.content;

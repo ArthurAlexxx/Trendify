@@ -21,7 +21,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Bot, Loader2, Sparkles, Trash2, Check, History, ClipboardList, BrainCircuit, Target, Eye, BarChart as BarChartIcon } from 'lucide-react';
+import { Bot, Loader2, Sparkles, Trash2, Check, History, ClipboardList, BrainCircuit, Target, Eye, BarChart as BarChartIcon, Zap, AlertTriangle, Trophy } from 'lucide-react';
 import { useEffect, useTransition, useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -162,7 +162,7 @@ export default function GenerateWeeklyPlanPage() {
         setActiveTab("result");
       }
     });
-  }, [startTransition]);
+  }, [startTransition, setState, setActiveTab]);
 
   useEffect(() => {
     if (userProfile) {
@@ -216,8 +216,8 @@ export default function GenerateWeeklyPlanPage() {
       startSavingTransition(async () => {
         try {
           await addDoc(collection(firestore, 'roteiro'), {
-            items: result.roteiro,
-            desempenhoSimulado: result.desempenhoSimulado,
+            items: result.weeklyPlan,
+            desempenhoSimulado: result.simulatedPerformance,
             createdAt: serverTimestamp(),
           });
 
@@ -326,7 +326,7 @@ export default function GenerateWeeklyPlanPage() {
        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="generate">Gerar Novo Plano</TabsTrigger>
-          <TabsTrigger value="result" disabled={!result && !currentPlan}>
+          <TabsTrigger value="result" disabled={!result}>
             Resultado
             {isGenerating && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
           </TabsTrigger>
@@ -343,7 +343,6 @@ export default function GenerateWeeklyPlanPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="p-6">
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(formAction)} className="space-y-8">
                     <div className="space-y-6">
@@ -381,7 +380,6 @@ export default function GenerateWeeklyPlanPage() {
                                     placeholder="Defina em seu Perfil"
                                     className="h-11"
                                     {...field}
-                                    readOnly
                                     />
                                 )}
                                 </FormControl>
@@ -458,7 +456,6 @@ export default function GenerateWeeklyPlanPage() {
                     </div>
                     </form>
                 </Form>
-              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -484,7 +481,7 @@ export default function GenerateWeeklyPlanPage() {
                             Nossa IA está montando sua estratégia...
                           </p>
                         </div>
-                      ) : (
+                      ) : result ? (
                         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
                           <Card className="rounded-2xl border-0">
                             <CardHeader>
@@ -493,9 +490,8 @@ export default function GenerateWeeklyPlanPage() {
                               </CardTitle>
                             </CardHeader>
                             <CardContent>
-                              <div className="p-6">
                                 <ul className="space-y-2">
-                                    {(result ? result.roteiro : currentRoteiroItems)?.map((item, index) => (
+                                    {result.weeklyPlan.map((item, index) => (
                                     <li key={index}>
                                         <div className="flex items-start gap-4 p-2 rounded-lg">
                                         <div className='h-5 w-5 mt-1 flex items-center justify-center shrink-0'>
@@ -513,16 +509,16 @@ export default function GenerateWeeklyPlanPage() {
                                             </p>
                                         </div>
                                         </div>
-                                        {index < (result ? result.roteiro : currentRoteiroItems)!.length - 1 && (
+                                        {index < result.weeklyPlan.length - 1 && (
                                         <Separator className="my-2" />
                                         )}
                                     </li>
                                     ))}
                                 </ul>
-                              </div>
                             </CardContent>
                           </Card>
 
+                          <div className='space-y-8'>
                           <Card className="rounded-2xl border-0">
                             <CardHeader>
                               <CardTitle className="font-headline text-xl">
@@ -530,14 +526,13 @@ export default function GenerateWeeklyPlanPage() {
                               </CardTitle>
                             </CardHeader>
                             <CardContent className="pl-0 sm:pl-2">
-                              <div className="p-6">
                                 <ChartContainer
                                     config={chartConfig}
                                     className="h-[350px] w-full"
                                 >
                                     <BarChart
                                     accessibilityLayer
-                                    data={(result ? result.desempenhoSimulado : currentDesempenho) || []}
+                                    data={result.simulatedPerformance}
                                     margin={{ top: 20, right: 20, bottom: 20, left: 0 }}
                                     >
                                     <CartesianGrid vertical={false} />
@@ -569,9 +564,31 @@ export default function GenerateWeeklyPlanPage() {
                                     />
                                     </BarChart>
                                 </ChartContainer>
-                              </div>
                             </CardContent>
                           </Card>
+                          
+                          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                            <Card className="border-0 rounded-2xl">
+                                <CardHeader><CardTitle className="flex items-center gap-2 text-sm text-muted-foreground"><Trophy className='h-4 w-4' /> Índice de Prioridade</CardTitle></CardHeader>
+                                <CardContent><ul className="space-y-2">{result.priorityIndex.map(item => <li key={item} className='text-sm font-semibold'>{item}</li>)}</ul></CardContent>
+                            </Card>
+                             <Card className="border-0 rounded-2xl">
+                                <CardHeader><CardTitle className="flex items-center gap-2 text-sm text-muted-foreground"><Zap className='h-4 w-4' /> Nível de Esforço</CardTitle></CardHeader>
+                                <CardContent><p className='text-xl font-bold'>{result.effortLevel}</p></CardContent>
+                            </Card>
+                          </div>
+                           <Card className="border-0 rounded-2xl">
+                                <CardHeader><CardTitle className="flex items-center gap-2 text-sm text-muted-foreground"><AlertTriangle className='h-4 w-4' /> Dicas de Realinhamento</CardTitle></CardHeader>
+                                <CardContent><p className='text-sm'>{result.realignmentTips}</p></CardContent>
+                            </Card>
+                          </div>
+                        </div>
+                      ) : (
+                         <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-96">
+                          <ClipboardList className="h-10 w-10 text-muted-foreground" />
+                          <p className="mt-4 text-muted-foreground">
+                            Gere um plano para ver os resultados.
+                          </p>
                         </div>
                       )}
                     </div>
@@ -582,5 +599,3 @@ export default function GenerateWeeklyPlanPage() {
     </div>
   );
 }
-
-    

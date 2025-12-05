@@ -33,6 +33,9 @@ import {
   BrainCircuit,
   Target,
   Crown,
+  Lightbulb,
+  Briefcase,
+  AlertTriangle,
 } from 'lucide-react';
 import { useEffect, useTransition, useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
@@ -193,7 +196,7 @@ function PublisAssistantPageContent() {
   
   const result = state?.data;
 
-  const formAction = async (formData: FormSchemaType) => {
+  const formAction = useCallback(async (formData: FormSchemaType) => {
     startTransition(async () => {
       const result = await generatePubliProposalsAction(null, formData);
       setState(result);
@@ -201,7 +204,7 @@ function PublisAssistantPageContent() {
         setActiveTab("result");
       }
     });
-  };
+  }, [startTransition, setState, setActiveTab]);
 
   useEffect(() => {
     if (state?.error) {
@@ -341,7 +344,7 @@ function PublisAssistantPageContent() {
        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="generate">Gerar Campanha</TabsTrigger>
-          <TabsTrigger value="result" disabled={!result && !isGenerating}>
+          <TabsTrigger value="result" disabled={!result}>
             Resultado
             {isGenerating && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
           </TabsTrigger>
@@ -515,13 +518,12 @@ function PublisAssistantPageContent() {
                     </div>
                   ) : result ? (
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-
-                      {/* Scripts */}
                       <div className="lg:col-span-2 space-y-6">
                         <Card className="rounded-2xl border-0">
                             <CardHeader>
-                                <CardTitle className="text-lg font-semibold text-foreground">
-                                    5 Roteiros Prontos para Gravar
+                                <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
+                                    <Clapperboard className="h-5 w-5 text-primary" />
+                                    <span>5 Roteiros Prontos para Gravar</span>
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
@@ -544,10 +546,34 @@ function PublisAssistantPageContent() {
                                 </Accordion>
                             </CardContent>
                         </Card>
+                        
+                         <Card className="rounded-2xl border-0">
+                            <CardHeader><CardTitle className="flex items-center gap-3 text-lg font-semibold"><Lightbulb className="h-5 w-5 text-primary" />Ângulos Criativos e Tom de Voz</CardTitle></CardHeader>
+                            <CardContent className="grid md:grid-cols-2 gap-6">
+                                <div>
+                                    <h4 className="font-semibold mb-2">Ângulos para Campanha</h4>
+                                    <ul className="space-y-2 text-sm text-muted-foreground">
+                                        {result.creativeAngles.map((angle, i) => <li key={i} className='flex items-start gap-2'><Sparkles className='h-4 w-4 text-primary shrink-0 mt-1' /><span>{angle}</span></li>)}
+                                    </ul>
+                                </div>
+                                <div>
+                                     <h4 className="font-semibold mb-2">Adaptações de Tom</h4>
+                                     <div className="space-y-3">
+                                         <p className="text-sm"><strong className='font-semibold text-foreground'>Corporativo: </strong><span className='text-muted-foreground'>{result.brandToneAdaptations.corporativa}</span></p>
+                                         <p className="text-sm"><strong className='font-semibold text-foreground'>Jovem: </strong><span className='text-muted-foreground'>{result.brandToneAdaptations.jovem}</span></p>
+                                         <p className="text-sm"><strong className='font-semibold text-foreground'>Humor: </strong><span className='text-muted-foreground'>{result.brandToneAdaptations.humor}</span></p>
+                                     </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
                       </div>
 
-                      {/* Side Cards */}
                       <div className="space-y-8">
+                         <Card className="border-0 rounded-2xl">
+                             <CardHeader><CardTitle className="flex items-center gap-3 text-lg font-semibold"><Target className="h-5 w-5 text-primary" />Projeção de Conversão</CardTitle></CardHeader>
+                             <CardContent><p className='text-sm text-muted-foreground'>{result.conversionProjection}</p></CardContent>
+                         </Card>
                          <InfoListCard
                             title="Checklist de Conversão"
                             icon={Check}
@@ -605,5 +631,3 @@ function InfoListCard({
     </Card>
   );
 }
-
-    

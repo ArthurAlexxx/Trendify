@@ -43,13 +43,10 @@ const AiCareerPackageOutputSchema = z.object({
       ),
   }),
   sampleCollaborationIdeas: z
-    .array(CollaborationIdeaSchema)
+    .array(z.string())
     .length(3)
     .describe(
       'Uma lista de 3 ideias de colaboração criativas e de alto nível que se encaixam no nicho do criador e da marca alvo.'
-    )
-    .transform((ideas) =>
-      ideas.map((idea) => idea.ideia)
     ),
     valueProposition: z.string().describe("Uma frase curta e poderosa que resume por que a marca deveria contratar o influenciador."),
     negotiationTips: z.array(z.string()).length(3).describe("Três dicas práticas para o criador negociar melhor com a marca."),
@@ -133,6 +130,7 @@ Sua resposta DEVE ser um bloco de código JSON válido, e NADA MAIS. O JSON deve
         { role: 'user', content: userPrompt },
       ],
       temperature: 0.7,
+      response_format: { type: "json_object" },
     });
 
     const content = response.choices[0].message.content;

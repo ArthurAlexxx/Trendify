@@ -16,6 +16,8 @@ import {
   BrainCircuit,
   Target,
   Crown,
+  Handshake,
+  AlignLeft,
 } from 'lucide-react';
 import { useTransition, useEffect, useState, useCallback } from 'react';
 import {
@@ -161,7 +163,7 @@ function MediaKitPageContent() {
     },
   });
 
-  const formAction = async (formData: FormSchemaType) => {
+  const formAction = useCallback(async (formData: FormSchemaType) => {
     startTransition(async () => {
       const result = await getAiCareerPackageAction(null, formData);
       setState(result);
@@ -169,7 +171,7 @@ function MediaKitPageContent() {
         setActiveTab("result");
       }
     });
-  };
+  }, [startTransition, setState, setActiveTab]);
 
    useEffect(() => {
     if (userProfile) {
@@ -324,7 +326,7 @@ function MediaKitPageContent() {
        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="generate">Gerar Pacote</TabsTrigger>
-          <TabsTrigger value="result" disabled={!result && !isGenerating}>
+          <TabsTrigger value="result" disabled={!result}>
             Resultado
             {isGenerating && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
           </TabsTrigger>
@@ -448,12 +450,17 @@ function MediaKitPageContent() {
                       <p className="mt-4 text-muted-foreground">Criando seu pacote...</p>
                     </div>
                   ) : result ? (
-                     <div className="grid gap-8">
+                     <div className="space-y-8">
                       <InfoCard title="Apresentação para Marcas" icon={FileText} content={result.executiveSummary} />
                       <div className="grid lg:grid-cols-2 gap-8 items-start">
                         <PricingCard title="Tabela de Preços Sugerida" icon={DollarSign} pricing={result.pricingTiers} />
                         <InfoList title="Ideias de Colaboração" icon={Lightbulb} items={result.sampleCollaborationIdeas} />
                       </div>
+                       <div className="grid lg:grid-cols-2 gap-8 items-start">
+                        <InfoCard title="Sua Proposta de Valor" icon={Target} content={result.valueProposition} />
+                        <InfoCard title="Alinhamento com a Marca" icon={Briefcase} content={result.brandAlignment} />
+                       </div>
+                       <InfoList title="Dicas de Negociação" icon={Handshake} items={result.negotiationTips} />
                     </div>
                   ) : null}
                 </div>
@@ -486,11 +493,9 @@ function InfoCard({
         </CardTitle>
       </CardHeader>
       <CardContent>
-         <div className="p-6">
-            <div className="p-4 rounded-xl border bg-muted/30 text-base text-foreground whitespace-pre-wrap">
-                {content}
-            </div>
-         </div>
+         <div className="p-4 rounded-xl border bg-muted/30 text-sm text-foreground whitespace-pre-wrap leading-relaxed">
+            {content}
+          </div>
       </CardContent>
     </Card>
   );
@@ -515,17 +520,15 @@ function InfoList({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="p-6">
-            <div className="space-y-3">
-            {items.map((item, index) => (
-                <div
-                key={index}
-                className="text-sm p-3 rounded-xl bg-muted/30 border"
-                >
-                {item}
-                </div>
-            ))}
+        <div className="space-y-3">
+          {items.map((item, index) => (
+            <div
+              key={index}
+              className="text-sm p-3 rounded-xl bg-muted/30 border"
+            >
+              {item}
             </div>
+          ))}
         </div>
       </CardContent>
     </Card>
@@ -553,38 +556,34 @@ function PricingCard({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="p-6">
-            <p className='text-xs text-muted-foreground mb-4'>Valores baseados em suas métricas. Use como ponto de partida.</p>
-            <Table>
-            <TableHeader>
-                <TableRow>
-                <TableHead>Formato</TableHead>
-                <TableHead className="text-right">Faixa de Preço</TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                <TableRow>
-                <TableCell className="font-medium">Reels</TableCell>
-                <TableCell className="text-right font-mono">{pricing.reels || 'A calcular'}</TableCell>
-                </TableRow>
-                <TableRow>
-                <TableCell className="font-medium">Sequência de Stories</TableCell>
-                <TableCell className="text-right font-mono">{pricing.storySequence || 'A calcular'}</TableCell>
-                </TableRow>
-                <TableRow>
-                <TableCell className="font-medium">Post Estático (Feed)</TableCell>
-                <TableCell className="text-right font-mono">{pricing.staticPost || 'A calcular'}</TableCell>
-                </TableRow>
-                <TableRow>
-                <TableCell className="font-medium text-primary">Pacote Mensal</TableCell>
-                <TableCell className="text-right font-mono text-primary font-bold">{pricing.monthlyPackage || 'A calcular'}</TableCell>
-                </TableRow>
-            </TableBody>
-            </Table>
-        </div>
+        <p className='text-xs text-muted-foreground mb-4'>Valores baseados em suas métricas. Use como ponto de partida.</p>
+        <Table>
+        <TableHeader>
+            <TableRow>
+            <TableHead>Formato</TableHead>
+            <TableHead className="text-right">Faixa de Preço</TableHead>
+            </TableRow>
+        </TableHeader>
+        <TableBody>
+            <TableRow>
+            <TableCell className="font-medium">Reels</TableCell>
+            <TableCell className="text-right font-mono">{pricing.reels || 'A calcular'}</TableCell>
+            </TableRow>
+            <TableRow>
+            <TableCell className="font-medium">Sequência de Stories</TableCell>
+            <TableCell className="text-right font-mono">{pricing.storySequence || 'A calcular'}</TableCell>
+            </TableRow>
+            <TableRow>
+            <TableCell className="font-medium">Post Estático (Feed)</TableCell>
+            <TableCell className="text-right font-mono">{pricing.staticPost || 'A calcular'}</TableCell>
+            </TableRow>
+            <TableRow>
+            <TableCell className="font-medium text-primary">Pacote Mensal</TableCell>
+            <TableCell className="text-right font-mono text-primary font-bold">{pricing.monthlyPackage || 'A calcular'}</TableCell>
+            </TableRow>
+        </TableBody>
+        </Table>
       </CardContent>
     </Card>
   );
 }
-
-    
