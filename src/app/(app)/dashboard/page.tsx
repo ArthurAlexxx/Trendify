@@ -1,3 +1,4 @@
+
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -295,10 +296,10 @@ export default function DashboardPage() {
   }, [userProfile]);
 
   const handleGenerateInsights = async () => {
-     if (!userProfile || !metricSnapshots || metricSnapshots.length < 1 || !isPremium) {
+     if (!metricSnapshots || metricSnapshots.length < 1) {
         toast({
             title: "Dados Insuficientes",
-            description: "Precisamos de mais dados de métricas para gerar insights. Sincronize suas contas por alguns dias.",
+            description: "Precisamos de mais dados de métricas para gerar uma análise. Sincronize suas contas por alguns dias.",
             variant: "destructive"
         });
         return;
@@ -307,8 +308,6 @@ export default function DashboardPage() {
      setInsights(null);
      try {
          const result = await generateDashboardInsights({
-             niche: userProfile.niche || 'Não definido',
-             objective: `Atingir ${formatMetricValue(goalFollowers)} seguidores.`,
              metricSnapshots: metricSnapshots.map(s => ({
                  date: s.date.toDate().toISOString(),
                  platform: s.platform,
@@ -321,7 +320,7 @@ export default function DashboardPage() {
          setInsights(result);
      } catch (e: any) {
          console.error("Error generating insights:", e.message);
-         toast({ title: "Erro ao Gerar Insights", description: e.message, variant: "destructive" });
+         toast({ title: "Erro ao Gerar Análise", description: e.message, variant: "destructive" });
      } finally {
          setIsGeneratingInsights(false);
      }
@@ -402,7 +401,7 @@ export default function DashboardPage() {
                 </CardContent>
             </Card>
             
-            <div className='lg:col-span-2 grid grid-cols-1 gap-6'>
+            <div className='lg:col-span-2 space-y-6'>
                 <Card className='rounded-2xl border-0'>
                      <CardHeader>
                         <CardTitle>Métricas de Engajamento</CardTitle>
@@ -426,16 +425,16 @@ export default function DashboardPage() {
                 </Card>
                  <Card className="rounded-2xl border-0">
                     <CardHeader className='flex flex-row items-center justify-between'>
-                        <CardTitle>Insights da IA</CardTitle>
-                        <Button variant="ghost" size="sm" onClick={handleGenerateInsights} disabled={isGeneratingInsights || !isPremium}>
+                        <CardTitle>Análise de Desempenho</CardTitle>
+                        <Button variant="ghost" size="sm" onClick={handleGenerateInsights} disabled={isGeneratingInsights}>
                              {isGeneratingInsights ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
-                             Gerar Novos Insights
+                             Analisar Desempenho
                         </Button>
                     </CardHeader>
                     <CardContent>
                         {isGeneratingInsights ? <div className="flex justify-center items-center h-24"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div> : insights && insights.length > 0 ? <ul className="space-y-4">{insights.map((insight, i) => <li key={i} className="flex items-start gap-3"><div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary flex-shrink-0 mt-0.5"><Lightbulb className="h-3.5 w-3.5" /></div><p className="text-sm text-muted-foreground">{insight.insight}</p></li>)}</ul> : 
                         <div className="text-center text-sm text-muted-foreground p-4">
-                            {isPremium ? "Clique em 'Gerar Novos Insights' para receber conselhos da IA com base nas suas últimas métricas." : "Faça upgrade para Premium para desbloquear os insights da IA."}
+                            Clique em 'Analisar Desempenho' para receber uma análise com base nas suas últimas métricas.
                         </div>
                         }
                     </CardContent>
@@ -508,7 +507,3 @@ export default function DashboardPage() {
     </>
   );
 }
-
-    
-
-    

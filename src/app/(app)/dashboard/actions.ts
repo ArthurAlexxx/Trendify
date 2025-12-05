@@ -2,7 +2,6 @@
 'use server';
 
 import { z } from 'zod';
-import OpenAI from 'openai';
 
 const MetricSnapshotSchema = z.object({
   date: z.string().datetime(),
@@ -20,62 +19,74 @@ const DashboardInsightSchema = z.object({
 export type DashboardInsight = z.infer<typeof DashboardInsightSchema>;
 
 const GenerateDashboardInsightsInputSchema = z.object({
-  niche: z.string(),
-  objective: z.string(),
   metricSnapshots: z.array(MetricSnapshotSchema),
 });
 
-const GenerateDashboardInsightsOutputSchema = z.object({
-  insights: z
-    .array(DashboardInsightSchema)
-    .describe('Uma lista de 2 a 3 insights acionáveis sobre o desempenho do criador.'),
-});
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-
-async function generateDashboardInsightsWithOpenAI(
-  input: z.infer<typeof GenerateDashboardInsightsInputSchema>
-): Promise<DashboardInsight[]> {
-
-  const systemPrompt = `Você é um estrategista de crescimento para criadores de conteúdo. Analise a evolução das métricas do criador nos últimos dias, seu nicho e objetivo para gerar 2 ou 3 insights rápidos e acionáveis. Foque em tendências (crescimento, queda) e em conselhos práticos para o curto prazo.`;
-
-  const userPrompt = `
-  - Nicho: ${input.niche}
-  - Objetivo: ${input.objective}
-  - Métricas Recentes:
-  ${input.metricSnapshots.map(s => `  - Dia: ${s.date}, Plataforma: ${s.platform}, Seguidores: ${s.followers}, Views: ${s.views}, Likes: ${s.likes}, Comentários: ${s.comments}`).join('\n')}
-  `;
-
-  try {
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-      response_format: { type: "json_object", schema: GenerateDashboardInsightsOutputSchema },
-      temperature: 0.7,
-    });
-
-    const content = response.choices[0].message.content;
-    if (!content) {
-        throw new Error("A IA não conseguiu gerar insights.");
-    }
-    // A API, quando usada com 'schema', já retorna um JSON que pode ser parseado com segurança.
-    const parsed = GenerateDashboardInsightsOutputSchema.parse(JSON.parse(content));
-    return parsed.insights;
-  } catch (error) {
-    console.error("Error generating insights with OpenAI:", error);
-    throw new Error("Falha ao comunicar com a IA para gerar insights.");
+function calculateTrend(current: number, previous: number): { percentage: number, text: string } {
+  if (previous === 0) {
+    return { percentage: current > 0 ? 100 : 0, text: 'crescimento' };
   }
+  const percentage = ((current - previous) / previous) * 100;
+  const text = percentage >= 0 ? 'crescimento' : 'queda';
+  return { percentage, text };
 }
 
-
+/**
+ * Genera insights analisando a tendência de uma lista de métricas, sem usar IA.
+ * @param input - Um objeto contendo a lista de metricSnapshots.
+ * @returns Uma lista de insights acionáveis.
+ */
 export async function generateDashboardInsights(
   input: z.infer<typeof GenerateDashboardInsightsInputSchema>
 ): Promise<DashboardInsight[]> {
-  return generateDashboardInsightsWithOpenAI(input);
+  const { metricSnapshots } = input;
+
+  if (metricSnapshots.length < 2) {
+    return [{ insight: "Colete dados por mais alguns dias para ver as tendências de crescimento." }];
+  }
+
+  // Ordena do mais antigo para o mais recente
+  const sortedSnaps = metricSnapshots.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+  const latestSnap = sortedSnaps[sortedSnaps.length - 1];
+  const oldestSnap = sortedSnaps[0];
+  const insights: DashboardInsight[] = [];
+
+  // Insight de Seguidores
+  const followersTrend = calculateTrend(latestSnap.followers, oldestSnap.followers);
+  if (Math.abs(followersTrend.percentage) > 2) { // Só mostra se a mudança for > 2%
+      insights.push({
+          insight: `Seu número de seguidores teve um ${followersTrend.text} de ${followersTrend.percentage.toFixed(0)}% desde ${new Date(oldestSnap.date).toLocaleDateString('pt-BR')}.`
+      });
+  }
+
+  // Insight de Visualizações
+  const totalViews = sortedSnaps.reduce((acc, s) => acc + s.views, 0);
+  const avgViews = totalViews / sortedSnaps.length;
+
+  const viewsTrend = calculateTrend(latestSnap.views, avgViews);
+   if (latestSnap.views > 0 && Math.abs(viewsTrend.percentage) > 10) {
+     const direction = viewsTrend.percentage > 0 ? 'acima' : 'abaixo';
+     insights.push({
+         insight: `Suas visualizações no último dia estão ${viewsTrend.percentage.toFixed(0)}% ${direction} da sua média recente.`
+     });
+  }
+
+  // Insight de Engajamento (Likes + Comentários)
+  const latestEngagement = latestSnap.likes + latestSnap.comments;
+  const oldestEngagement = oldestSnap.likes + oldestSnap.comments;
+  const engagementTrend = calculateTrend(latestEngagement, oldestEngagement);
+
+  if (latestEngagement > 0 && Math.abs(engagementTrend.percentage) > 5) {
+     insights.push({
+         insight: `Seu engajamento (curtidas + comentários) teve uma variação de ${engagementTrend.percentage.toFixed(0)}% no período.`
+     });
+  }
+  
+  if (insights.length === 0) {
+      return [{ insight: "Suas métricas estão estáveis. Continue publicando para ver novas tendências!" }];
+  }
+
+  return insights.slice(0, 3); // Limita a 3 insights
 }
