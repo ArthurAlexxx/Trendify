@@ -1,4 +1,3 @@
-
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -77,6 +76,7 @@ import { ProfileCompletionAlert } from '@/components/dashboard/profile-completio
 import { generateDashboardInsights, type DashboardInsight } from './actions';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 
 
 const chartConfigBase = {
@@ -395,8 +395,10 @@ export default function DashboardPage() {
         
         {userProfile && <ProfileCompletionAlert userProfile={userProfile} isPremium={isPremium} />}
         
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-            <Card className="rounded-2xl border-0 lg:col-span-1">
+        <Carousel className="w-full" opts={{ align: 'start' }}>
+          <CarouselContent className="-ml-2 md:-ml-4">
+            <CarouselItem className="pl-2 md:pl-4 lg:basis-1/3">
+              <Card className="rounded-2xl border-0 h-full">
                  <CardHeader className='items-center text-center'>
                     <CardTitle>Meta de Seguidores</CardTitle>
                 </CardHeader>
@@ -421,48 +423,53 @@ export default function DashboardPage() {
                         )}
                     </div>
                 </CardContent>
-            </Card>
-            
-            <div className='lg:col-span-2 space-y-6'>
-                <Card className='rounded-2xl border-0'>
-                     <CardHeader>
-                        <CardTitle>Métricas de Engajamento</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className='grid grid-cols-1 sm:grid-cols-3 gap-4'>
-                            <div className='p-4 rounded-lg bg-muted/50 border'>
-                                <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><Eye className="h-4 w-4" /> Views</h3>
-                                <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.views)}</p>
-                            </div>
-                            <div className='p-4 rounded-lg bg-muted/50 border'>
-                                <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><Heart className="h-4 w-4" /> Likes</h3>
-                                <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.likes)}</p>
-                            </div>
-                            <div className='p-4 rounded-lg bg-muted/50 border'>
-                                <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><MessageSquare className="h-4 w-4" /> Comentários</h3>
-                                <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.comments)}</p>
-                            </div>
+              </Card>
+            </CarouselItem>
+            <CarouselItem className="pl-2 md:pl-4 lg:basis-1/3">
+              <Card className='rounded-2xl border-0 h-full'>
+                 <CardHeader>
+                    <CardTitle>Métricas de Engajamento</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className='grid grid-cols-1 gap-4'>
+                        <div className='p-4 rounded-lg bg-muted/50 border'>
+                            <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><Eye className="h-4 w-4" /> Views</h3>
+                            <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.views)}</p>
                         </div>
-                    </CardContent>
-                </Card>
-                 <Card className="rounded-2xl border-0">
-                    <CardHeader className='flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left'>
-                        <CardTitle>Análise de Desempenho</CardTitle>
-                        <Button variant="ghost" size="sm" onClick={handleGenerateInsights} disabled={isGeneratingInsights} className="w-full sm:w-auto">
-                             {isGeneratingInsights ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
-                             Analisar Desempenho
-                        </Button>
-                    </CardHeader>
-                    <CardContent>
-                        {isGeneratingInsights ? <div className="flex justify-center items-center h-24"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div> : insights && insights.length > 0 ? <ul className="space-y-4">{insights.map((insight, i) => <li key={i} className="flex items-start gap-3"><div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary flex-shrink-0 mt-0.5"><Lightbulb className="h-3.5 w-3.5" /></div><p className="text-sm text-muted-foreground">{insight.insight}</p></li>)}</ul> : 
-                        <div className="text-center text-sm text-muted-foreground p-4">
-                            Clique em 'Analisar Desempenho' para receber uma análise com base nas suas últimas métricas.
+                        <div className='p-4 rounded-lg bg-muted/50 border'>
+                            <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><Heart className="h-4 w-4" /> Likes</h3>
+                            <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.likes)}</p>
                         </div>
-                        }
-                    </CardContent>
-                </Card>
-            </div>
-        </div>
+                        <div className='p-4 rounded-lg bg-muted/50 border'>
+                            <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><MessageSquare className="h-4 w-4" /> Comentários</h3>
+                            <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.comments)}</p>
+                        </div>
+                    </div>
+                </CardContent>
+              </Card>
+            </CarouselItem>
+            <CarouselItem className="pl-2 md:pl-4 lg:basis-1/3">
+              <Card className="rounded-2xl border-0 h-full">
+                <CardHeader className='flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left'>
+                    <CardTitle>Análise de Desempenho</CardTitle>
+                    <Button variant="ghost" size="sm" onClick={handleGenerateInsights} disabled={isGeneratingInsights} className="w-full sm:w-auto">
+                         {isGeneratingInsights ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+                         Analisar Desempenho
+                    </Button>
+                </CardHeader>
+                <CardContent>
+                    {isGeneratingInsights ? <div className="flex justify-center items-center h-24"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div> : insights && insights.length > 0 ? <ul className="space-y-4">{insights.map((insight, i) => <li key={i} className="flex items-start gap-3"><div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary flex-shrink-0 mt-0.5"><Lightbulb className="h-3.5 w-3.5" /></div><p className="text-sm text-muted-foreground">{insight.insight}</p></li>)}</ul> : 
+                    <div className="text-center text-sm text-muted-foreground p-4">
+                        Clique em 'Analisar Desempenho' para receber uma análise com base nas suas últimas métricas.
+                    </div>
+                    }
+                </CardContent>
+              </Card>
+            </CarouselItem>
+          </CarouselContent>
+          <CarouselPrevious className="hidden md:flex" />
+          <CarouselNext className="hidden md:flex"/>
+        </Carousel>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             <Card className="rounded-2xl border-0 lg:col-span-2">
@@ -497,7 +504,7 @@ export default function DashboardPage() {
             <div className="lg:col-span-1 space-y-8">
                  <Card className="rounded-2xl border-0">
                     <CardHeader><CardTitle>Hub de Ação Rápida</CardTitle></CardHeader>
-                    <CardContent>
+                    <CardContent className="pt-4">
                          <Tabs defaultValue="roteiro" className="w-full">
                             <TabsList className="grid w-full grid-cols-4">
                                 <TabsTrigger value="roteiro">Roteiro</TabsTrigger>
@@ -537,5 +544,3 @@ export default function DashboardPage() {
     </>
   );
 }
-
-    
