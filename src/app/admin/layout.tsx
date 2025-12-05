@@ -25,6 +25,22 @@ export default function AdminLayout({
     }
   }, [isAdmin, isLoading, router]);
 
+  // Global error handler for ChunkLoadError
+  useEffect(() => {
+    const handleChunkLoadError = (event: PromiseRejectionEvent) => {
+      if (event.reason && event.reason.name === 'ChunkLoadError') {
+        console.warn('ChunkLoadError detected, forcing page reload.');
+        window.location.reload();
+      }
+    };
+
+    window.addEventListener('unhandledrejection', handleChunkLoadError);
+
+    return () => {
+      window.removeEventListener('unhandledrejection', handleChunkLoadError);
+    };
+  }, []);
+
   // While checking for admin status, show a full-screen loader.
   if (isLoading) {
     return (
