@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import {
   Sheet,
   SheetContent,
@@ -9,17 +9,20 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
+  SheetFooter,
 } from '@/components/ui/sheet';
 import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import { IdeiaSalva } from '@/lib/types';
 import { collection, orderBy, query } from 'firebase/firestore';
-import { BookMarked, Eye, Inbox, Loader2 } from 'lucide-react';
+import { BookMarked, Eye, Inbox, Loader2, Edit, Calendar } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Badge } from './ui/badge';
 import { ScrollArea } from './ui/scroll-area';
 import { Textarea } from './ui/textarea';
 import React, { useState } from 'react';
+import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 export function SavedIdeasSheet() {
   const { user } = useUser();
@@ -44,6 +47,25 @@ export function SavedIdeasSheet() {
     setSelectedIdea(idea);
     setIsDetailSheetOpen(true);
   };
+  
+  const getActionLink = (idea: IdeiaSalva | null): string => {
+    if (!idea) return '/';
+
+    const topic = encodeURIComponent(idea.titulo || '');
+    const context = encodeURIComponent(idea.conteudo || '');
+
+    switch (idea.origem) {
+      case 'Ideias de Vídeo':
+        return `/video-ideas?topic=${topic}&context=${context}`;
+      case 'Propostas & Publis':
+        return `/publis-assistant?product=${topic}&differentiators=${context}`;
+      case 'Mídia Kit & Prospecção':
+         return `/media-kit?topic=${topic}&context=${context}`; // Assume a similar pattern
+      default:
+        return '/dashboard';
+    }
+  }
+
 
   return (
     <>
@@ -135,6 +157,14 @@ export function SavedIdeasSheet() {
                 />
                 </div>
                 </ScrollArea>
+                 <SheetFooter className="p-4 border-t flex flex-col sm:flex-row gap-2 justify-end">
+                    <Link href={getActionLink(selectedIdea)} className={cn(buttonVariants({ variant: 'outline', className: 'w-full sm:w-auto' }))}>
+                        <Edit className="mr-2 h-4 w-4" /> Usar esta Ideia
+                    </Link>
+                    <Link href={`/content-calendar?title=${encodeURIComponent(selectedIdea.titulo)}&notes=${encodeURIComponent(selectedIdea.conteudo)}`} className={cn(buttonVariants({ variant: 'default', className: 'w-full sm:w-auto' }))}>
+                        <Calendar className="mr-2 h-4 w-4" /> Agendar Post
+                    </Link>
+                </SheetFooter>
             </SheetContent>
         </Sheet>
     )}
