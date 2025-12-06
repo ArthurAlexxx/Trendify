@@ -253,7 +253,7 @@ function MediaKitPageContent() {
         content += `- Stories: ${data.pricingTiers.storySequence || 'N/A'}\n`;
         content += `- Post: ${data.pricingTiers.staticPost || 'N/A'}\n`;
         content += `- Pacote: ${data.pricingTiers.monthlyPackage || 'N/A'}\n\n`;
-        content += `**Ideias de Colaboração:**\n${data.sampleCollaborationIdeas.map(idea => `- ${idea.ideia}`).join('\n')}`;
+        content += `**Ideias de Colaboração:**\n${data.sampleCollaborationIdeas.map(idea => `- ${idea}`).join('\n')}`;
 
         await addDoc(collection(firestore, `users/${user.uid}/ideiasSalvas`), {
           userId: user.uid,
@@ -470,7 +470,7 @@ function MediaKitPageContent() {
                       <InfoCard title="Apresentação para Marcas" icon={FileText} content={result.executiveSummary} />
                       <div className="grid lg:grid-cols-2 gap-8 items-start">
                         <PricingCard title="Tabela de Preços Sugerida" icon={DollarSign} pricing={result.pricingTiers} />
-                        <InfoList title="Ideias de Colaboração" icon={Lightbulb} items={result.sampleCollaborationIdeas.map(idea => idea.ideia)} />
+                        <InfoList title="Ideias de Colaboração" icon={Lightbulb} items={result.sampleCollaborationIdeas} />
                       </div>
                        <div className="grid lg:grid-cols-2 gap-8 items-start">
                         <InfoCard title="Sua Proposta de Valor" icon={Target} content={result.valueProposition} />

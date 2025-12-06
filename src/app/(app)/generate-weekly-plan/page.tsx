@@ -509,7 +509,7 @@ export default function GenerateWeeklyPlanPage() {
                             </CardHeader>
                             <CardContent>
                                 <ul className="space-y-2">
-                                    {result.items.map((item, index) => (
+                                    {result.items.map((item: ItemRoteiro, index: number) => (
                                     <li key={index}>
                                         <div className="flex items-start gap-4 p-2 rounded-lg">
                                         <div className='h-5 w-5 mt-1 flex items-center justify-center shrink-0'>
@@ -642,7 +642,7 @@ export default function GenerateWeeklyPlanPage() {
                                 </CardHeader>
                                 <CardContent>
                                     <ul className="space-y-2">
-                                        {activePlan.items.map((item, index) => (
+                                        {activePlan.items.map((item: ItemRoteiro, index: number) => (
                                             <li key={index}>
                                             <div className="flex items-start gap-4 p-2 rounded-lg hover:bg-muted/50">
                                                 <Checkbox
