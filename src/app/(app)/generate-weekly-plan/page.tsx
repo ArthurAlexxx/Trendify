@@ -1,4 +1,3 @@
-
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -133,8 +132,8 @@ export default function GenerateWeeklyPlanPage() {
     useDoc<UserProfile>(userProfileRef);
 
   const roteiroQuery = useMemoFirebase(
-    () => (firestore ? query(collection(firestore, 'weeklyPlans'), orderBy('createdAt', 'desc'), limit(1)) : null),
-    [firestore]
+    () => (firestore && user ? query(collection(firestore, `users/${user.uid}/weeklyPlans`), orderBy('createdAt', 'desc'), limit(1)) : null),
+    [firestore, user]
   );
   const { data: roteiroData, isLoading: isLoadingRoteiro } = useCollection<PlanoSemanal>(roteiroQuery);
   const currentPlan = roteiroData?.[0];
@@ -228,16 +227,17 @@ export default function GenerateWeeklyPlanPage() {
         variant: 'destructive',
       });
     }
-    if (result && firestore) {
+    if (result && firestore && user) {
       startSavingTransition(async () => {
         try {
-          await addDoc(collection(firestore, 'weeklyPlans'), {
+          await addDoc(collection(firestore, `users/${user.uid}/weeklyPlans`), {
             items: result.items,
             desempenhoSimulado: result.desempenhoSimulado,
             effortLevel: result.effortLevel,
             priorityIndex: result.priorityIndex,
             realignmentTips: result.realignmentTips,
             createdAt: serverTimestamp(),
+            userId: user.uid,
           });
 
           toast({
@@ -254,11 +254,11 @@ export default function GenerateWeeklyPlanPage() {
         }
       });
     }
-  }, [state, result, firestore, toast]);
+  }, [state, result, firestore, toast, user]);
 
   const handleToggleRoteiro = async (item: ItemRoteiro) => {
-    if (!firestore || !currentPlan) return;
-    const planoRef = doc(firestore, 'weeklyPlans', currentPlan.id);
+    if (!firestore || !currentPlan || !user) return;
+    const planoRef = doc(firestore, `users/${user.uid}/weeklyPlans`, currentPlan.id);
     const updatedItems = currentRoteiroItems?.map((i) =>
       i.tarefa === item.tarefa ? { ...i, concluido: !i.concluido } : i
     );
@@ -270,13 +270,13 @@ export default function GenerateWeeklyPlanPage() {
   };
 
   const handleDeleteCurrentPlan = async () => {
-    if (!firestore || !currentPlan) {
+    if (!firestore || !currentPlan || !user) {
       toast({ title: 'Nenhum plano para deletar.', variant: 'destructive'});
       return;
     }
 
     try {
-      await deleteDoc(doc(firestore, 'weeklyPlans', currentPlan.id));
+      await deleteDoc(doc(firestore, `users/${user.uid}/weeklyPlans`, currentPlan.id));
       toast({ title: 'Plano atual deletado com sucesso!'});
     } catch (error: any) {
       toast({ title: 'Erro ao deletar plano', description: error.message, variant: 'destructive'});

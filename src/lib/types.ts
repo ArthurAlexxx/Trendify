@@ -1,4 +1,3 @@
-
 import type { Timestamp } from 'firebase/firestore';
 
 export type Plan = 'pro' | 'free' | 'premium';
@@ -76,6 +75,7 @@ export interface ItemRoteiro {
 
 export interface PlanoSemanal {
   id: string;
+  userId: string;
   items: ItemRoteiro[];
   desempenhoSimulado: { data: string; alcance: number; engajamento: number }[];
   effortLevel?: "Baixo" | "Médio" | "Alto";

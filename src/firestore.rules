@@ -22,21 +22,10 @@ service cloud.firestore {
       allow list: if request.auth != null && isAdmin();
     }
 
-    // Subcoleções do usuário (ideias, agendamentos, análises, métricas, etc.)
+    // Subcoleções do usuário (ideias, agendamentos, análises, métricas, planos, etc.)
     match /users/{userId}/{subcollection}/{docId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write, list: if request.auth != null && request.auth.uid == userId;
     }
-
-    // Coleção de Planos Semanais
-    match /weeklyPlans/{planId} {
-      allow read, write, list: if request.auth != null;
-    }
-    
-    // Roteiro
-    match /roteiro/{document=**} {
-        allow read, write, list: if request.auth != null;
-    }
-
 
      // Webhook Logs (somente admin para leitura, mas aberto para criação pelo webhook)
     match /webhookLogs/{logId} {

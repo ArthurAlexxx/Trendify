@@ -253,6 +253,7 @@
       "description": "Armazena o plano de conteúdo semanal completo gerado pela IA.",
       "type": "object",
       "properties": {
+        "userId": { "type": "string", "description": "O ID do usuário que gerou o plano." },
         "items": {
           "type": "array",
           "items": { "$ref": "#/entities/ItemRoteiro" },
@@ -263,13 +264,27 @@
             "items": { "$ref": "#/entities/PontoDadosGrafico" },
             "description": "Uma simulação do desempenho para o plano semanal."
         },
+         "effortLevel": {
+            "type": "string",
+            "enum": ["Baixo", "Médio", "Alto"],
+            "description": "A carga de trabalho estimada para executar o plano da semana."
+        },
+        "priorityIndex": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "As 3 tarefas da semana com maior impacto potencial no crescimento."
+        },
+        "realignmentTips": {
+            "type": "string",
+            "description": "Dicas sobre o que fazer caso o usuário perca 1 ou 2 dias do plano."
+        },
         "createdAt": {
           "type": "string",
           "format": "date-time",
           "description": "O timestamp de quando o plano foi gerado."
         }
       },
-      "required": ["items", "createdAt", "desempenhoSimulado"]
+      "required": ["userId", "items", "createdAt", "desempenhoSimulado"]
     },
     "IdeiaSalva": {
       "title": "Ideia Salva",
@@ -347,11 +362,10 @@
       "schema": { "$ref": "#/entities/AnaliseVideo" },
       "description": "Stores video analysis results for a specific user."
     },
-    "/weeklyPlans/{planoId}": {
+    "/users/{userId}/weeklyPlans/{planoId}": {
       "schema": { "$ref": "#/entities/PlanoSemanal" },
-      "description": "Stores AI-generated weekly content plans."
+      "description": "Stores AI-generated weekly content plans for a specific user."
     }
   }
 }
-
     

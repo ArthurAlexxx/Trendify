@@ -141,8 +141,8 @@ export default function DashboardPage() {
   const { data: userProfile, isLoading: isLoadingProfile } = useDoc<UserProfile>(userProfileRef);
 
   const roteiroQuery = useMemoFirebase(() => (
-      firestore ? query(collection(firestore, 'roteiro'), orderBy('createdAt', 'desc'), limit(1)) : null
-  ), [firestore]);
+      firestore && user ? query(collection(firestore, `users/${user.uid}/weeklyPlans`), orderBy('createdAt', 'desc'), limit(1)) : null
+  ), [firestore, user]);
   const { data: roteiroData, isLoading: isLoadingRoteiro } = useCollection<PlanoSemanal>(roteiroQuery);
   const roteiro = roteiroData?.[0];
   
@@ -185,8 +185,8 @@ export default function DashboardPage() {
   };
 
   const handleToggleRoteiro = async (toggledItem: ItemRoteiro, index: number) => {
-    if (!firestore || !roteiro) return;
-    const roteiroRef = doc(firestore, 'roteiro', roteiro.id);
+    if (!firestore || !roteiro || !user) return;
+    const roteiroRef = doc(firestore, `users/${user.uid}/weeklyPlans`, roteiro.id);
     
     const originalIndex = roteiro.items.findIndex(item => item.tarefa === toggledItem.tarefa && item.dia === toggledItem.dia);
     if (originalIndex === -1) return;

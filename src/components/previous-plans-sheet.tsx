@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -10,7 +9,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import { PlanoSemanal } from '@/lib/types';
 import { collection, orderBy, query } from 'firebase/firestore';
 import { History, Eye, Inbox, Loader2 } from 'lucide-react';
@@ -30,19 +29,20 @@ const chartConfig = {
 
 
 export function PreviousPlansSheet() {
+  const { user } = useUser();
   const firestore = useFirestore();
   const [selectedPlan, setSelectedPlan] = useState<PlanoSemanal | null>(null);
   const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
 
   const previousPlansQuery = useMemoFirebase(
     () =>
-      firestore
+      firestore && user
         ? query(
-            collection(firestore, 'weeklyPlans'),
+            collection(firestore, `users/${user.uid}/weeklyPlans`),
             orderBy('createdAt', 'desc')
           )
         : null,
-    [firestore]
+    [firestore, user]
   );
   const { data: previousPlans, isLoading } =
     useCollection<PlanoSemanal>(previousPlansQuery);
