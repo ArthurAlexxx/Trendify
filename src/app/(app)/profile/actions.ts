@@ -238,35 +238,43 @@ export async function getInstagramPosts(username: string): Promise<InstagramPost
 
 
 export async function getTikTokProfile(username: string): Promise<TikTokProfileData> {
-    try {
-        const result = await fetchFromRapidApi('tiktok-profile', username);
-        const parsed = TikTokApi6ProfileSchema.parse(result.data);
+  try {
+      const result = await fetchFromRapidApi('tiktok-profile', username);
 
-        if (parsed.is_private) {
-            throw new Error("Este perfil é privado. A integração funciona apenas com perfis públicos.");
-        }
-        
-        return {
-            id: parsed.user_id!,
-            username: parsed.username!,
-            nickname: parsed.nickname || '',
-            avatarUrl: parsed.profile_image || '',
-            bio: parsed.description || '',
-            isVerified: parsed.verified || false,
-            isPrivate: parsed.is_private || false,
-            secUid: parsed.secondary_id,
-            followersCount: parsed.followers || 0,
-            followingCount: parsed.following || 0,
-            heartsCount: parsed.total_heart || 0,
-            videoCount: parsed.total_videos || 0,
-        };
-    } catch (e: any) {
-        console.error(`[ACTION ERROR - getTikTokProfile]`, e);
-        if (e.issues) {
-             throw new Error(`Falha na validação dos dados do perfil do TikTok: ${e.issues.map((issue: any) => `${issue.path.join('.')} - ${issue.message}`).join(', ')}`);
-        }
-        throw e;
-    }
+      const userData = result?.data?.user || result?.data;
+
+      if (!userData || typeof userData !== 'object') {
+        console.error("Resposta real do TikTok:", result);
+        throw new Error("A resposta da API do TikTok não contém os dados esperados do usuário.");
+      }
+
+      const parsed = TikTokApi6ProfileSchema.parse(userData);
+
+      if (parsed.is_private) {
+        throw new Error("Este perfil é privado. A integração funciona apenas com perfis públicos.");
+      }
+
+      return {
+          id: parsed.user_id!,
+          username: parsed.username!,
+          nickname: parsed.nickname || '',
+          avatarUrl: parsed.profile_image || '',
+          bio: parsed.description || '',
+          isVerified: parsed.verified || false,
+          isPrivate: parsed.is_private || false,
+          secUid: parsed.secondary_id,
+          followersCount: parsed.followers || 0,
+          followingCount: parsed.following || 0,
+          heartsCount: parsed.total_heart || 0,
+          videoCount: parsed.total_videos || 0,
+      };
+  } catch (e: any) {
+      console.error(`[ACTION ERROR - getTikTokProfile]`, e);
+      if (e.issues) {
+          throw new Error(`Falha na validação dos dados do perfil do TikTok: ${e.issues.map((issue: any) => `${issue.path.join('.')} - ${issue.message}`).join(', ')}`);
+      }
+      throw e;
+  }
 }
 
 
@@ -299,5 +307,6 @@ export async function getTikTokPosts(username: string): Promise<TikTokPostData[]
         throw e;
     }
 }
+
 
 
