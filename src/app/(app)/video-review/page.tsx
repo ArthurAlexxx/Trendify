@@ -487,7 +487,7 @@ function VideoReviewPageContent() {
                             placeholder="Opcional: Adicione um contexto para a IA (ex: 'Este é um vídeo de unboxing para meu público de tecnologia...')"
                             value={videoDescription}
                             onChange={(e) => setVideoDescription(e.target.value)}
-                            className="mt-4"
+                            className="mt-4 bg-muted/50"
                         />
                     </div>
                 )}
@@ -744,5 +744,3 @@ function VideoReviewPageContent() {
     </div>
   );
 }
-
-    

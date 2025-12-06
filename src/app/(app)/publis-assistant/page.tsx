@@ -374,7 +374,7 @@ function PublisAssistantPageContent() {
                               <FormControl>
                                 <Input
                                   placeholder="Ex: Tênis de corrida da Nike"
-                                  className="h-11"
+                                  className="h-12 bg-muted/50"
                                   {...field}
                                 />
                               </FormControl>
@@ -391,7 +391,7 @@ function PublisAssistantPageContent() {
                               <FormControl>
                                 <Textarea
                                   placeholder="Ex: Mulheres de 25-35 anos, interessadas em vida saudável."
-                                  className="min-h-[120px]"
+                                  className="min-h-[120px] bg-muted/50"
                                   {...field}
                                 />
                               </FormControl>
@@ -410,7 +410,7 @@ function PublisAssistantPageContent() {
                               <FormControl>
                                <Textarea
                                   placeholder="Ex: Material reciclado, leve, absorção de impacto, design moderno."
-                                  className="min-h-[120px]"
+                                  className="min-h-[120px] bg-muted/50"
                                   {...field}
                                 />
                               </FormControl>
@@ -429,7 +429,7 @@ function PublisAssistantPageContent() {
                           <FormLabel>Objetivo Principal</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value} name={field.name}>
                             <FormControl>
-                              <SelectTrigger className="h-11">
+                              <SelectTrigger className="h-12 bg-muted/50">
                                 <SelectValue placeholder="Selecione" />
                               </SelectTrigger>
                             </FormControl>
@@ -453,7 +453,7 @@ function PublisAssistantPageContent() {
                             <FormControl>
                               <Input
                                 placeholder="Restrições, cupons, links, etc."
-                                className="h-11"
+                                className="h-12 bg-muted/50"
                                 {...field}
                               />
                             </FormControl>

@@ -378,7 +378,7 @@ export default function GenerateWeeklyPlanPage() {
             <CardContent>
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(formAction)} className="space-y-8">
-                    <div className="space-y-6">
+                    <div className="space-y-8">
                         <FormField
                         control={form.control}
                         name="objective"
@@ -390,7 +390,7 @@ export default function GenerateWeeklyPlanPage() {
                             <FormControl>
                                 <Input
                                 placeholder="Ex: Aumentar o engajamento com Reels de humor"
-                                className="h-11"
+                                className="h-12 bg-muted/50"
                                 {...field}
                                 />
                             </FormControl>
@@ -398,7 +398,7 @@ export default function GenerateWeeklyPlanPage() {
                             </FormItem>
                         )}
                         />
-                        <div className="grid md:grid-cols-2 gap-6">
+                        <div className="grid md:grid-cols-2 gap-x-6 gap-y-8">
                         <FormField
                             control={form.control}
                             name="niche"
@@ -407,11 +407,11 @@ export default function GenerateWeeklyPlanPage() {
                                 <FormLabel>Seu Nicho</FormLabel>
                                 <FormControl>
                                 {isLoadingProfile ? (
-                                    <Skeleton className="h-11 w-full" />
+                                    <Skeleton className="h-12 w-full" />
                                 ) : (
                                     <Input
                                     placeholder="Defina em seu Perfil"
-                                    className="h-11"
+                                    className="h-12 bg-muted/50"
                                     {...field}
                                     />
                                 )}
@@ -428,11 +428,11 @@ export default function GenerateWeeklyPlanPage() {
                                 <FormLabel>Métricas Atuais</FormLabel>
                                 <FormControl>
                                 {isLoadingProfile ? (
-                                    <Skeleton className="h-11 w-full" />
+                                    <Skeleton className="h-12 w-full" />
                                 ) : (
                                     <Input
                                     placeholder="Defina em seu Perfil"
-                                    className="h-11"
+                                    className="h-12 bg-muted/50"
                                     {...field}
                                     readOnly
                                     />

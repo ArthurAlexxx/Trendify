@@ -362,7 +362,7 @@ function MediaKitPageContent() {
                     onSubmit={form.handleSubmit(formAction)}
                     className="space-y-8"
                     >
-                    <div className="space-y-6">
+                    <div className="space-y-8">
                         <FormField
                         control={form.control}
                         name="niche"
@@ -370,10 +370,10 @@ function MediaKitPageContent() {
                             <FormItem>
                             <FormLabel>Seu Nicho</FormLabel>
                             <FormControl>
-                                {isLoadingProfile ? <Skeleton className="h-11 w-full" /> : 
+                                {isLoadingProfile ? <Skeleton className="h-12 w-full" /> : 
                                 <Input
                                     placeholder="Defina em seu Perfil"
-                                    className="h-11"
+                                    className="h-12 bg-muted/50"
                                     {...field}
                                 />
                                 }
@@ -382,7 +382,7 @@ function MediaKitPageContent() {
                             </FormItem>
                         )}
                         />
-                        <div className="grid md:grid-cols-2 gap-x-6 gap-y-6">
+                        <div className="grid md:grid-cols-2 gap-x-6 gap-y-8">
                         <FormField
                             control={form.control}
                             name="keyMetrics"
@@ -390,10 +390,10 @@ function MediaKitPageContent() {
                             <FormItem>
                                 <FormLabel>Métricas Chave</FormLabel>
                                 <FormControl>
-                                {isLoadingProfile ? <Skeleton className="h-11 w-full" /> :
+                                {isLoadingProfile ? <Skeleton className="h-12 w-full" /> :
                                     <Input
                                     placeholder="Defina em seu Perfil"
-                                    className="h-11"
+                                    className="h-12 bg-muted/50"
                                     {...field}
                                     readOnly
                                     />
@@ -412,7 +412,7 @@ function MediaKitPageContent() {
                                 <FormControl>
                                 <Input
                                     placeholder="Ex: Sallve, Natura, Nike"
-                                    className="h-11"
+                                    className="h-12 bg-muted/50"
                                     {...field}
                                 />
                                 </FormControl>

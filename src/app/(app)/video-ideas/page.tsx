@@ -339,7 +339,7 @@ export default function VideoIdeasPage() {
                     onSubmit={form.handleSubmit(formAction)}
                     className="space-y-8"
                     >
-                    <div className="grid md:grid-cols-2 gap-x-6 gap-y-6">
+                    <div className="grid md:grid-cols-2 gap-x-6 gap-y-8">
                         <FormField
                         control={form.control}
                         name="topic"
@@ -349,7 +349,7 @@ export default function VideoIdeasPage() {
                             <FormControl>
                                 <Input
                                 placeholder="Ex: Rotina de skincare para pele oleosa"
-                                className="h-11"
+                                className="h-12 bg-muted/50"
                                 {...field}
                                 />
                             </FormControl>
@@ -366,7 +366,7 @@ export default function VideoIdeasPage() {
                             <FormControl>
                                 <Input
                                 placeholder="Ex: Mulheres de 25-35 anos"
-                                className="h-11"
+                                className="h-12 bg-muted/50"
                                 {...field}
                                 />
                             </FormControl>
@@ -374,11 +374,7 @@ export default function VideoIdeasPage() {
                             </FormItem>
                         )}
                         />
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-6">
-                    
-                        <FormField
+                         <FormField
                             control={form.control}
                             name="objective"
                             render={({ field }) => (
@@ -390,7 +386,7 @@ export default function VideoIdeasPage() {
                                 name={field.name}
                                 >
                                 <FormControl>
-                                    <SelectTrigger className="h-11">
+                                    <SelectTrigger className="h-12 bg-muted/50">
                                     <SelectValue placeholder="Selecione" />
                                     </SelectTrigger>
                                 </FormControl>
@@ -408,6 +404,7 @@ export default function VideoIdeasPage() {
                             )}
                         />
                     </div>
+
 
                     <div className="pt-4 flex flex-col sm:flex-row items-center gap-4">
                         <Button
@@ -665,3 +662,4 @@ function InfoCard({
     </div>
   );
 }
+
