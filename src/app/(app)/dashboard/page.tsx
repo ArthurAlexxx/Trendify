@@ -631,7 +631,7 @@ export default function DashboardPage() {
         setIsFetchingPosts(true);
 
         if (userProfile.instagramHandle) {
-            getInstagramPosts(userProfile.instagramHandle.replace('@', '')).catch(e => console.error("Failed to fetch instagram posts", e));
+            getInstagramPosts(userProfile.instagramHandle.replace('@', '')).then(setInstaPosts).catch(e => console.error("Failed to fetch instagram posts", e));
         }
         if (userProfile.tiktokHandle) {
             getTikTokPosts(userProfile.tiktokHandle.replace('@', '')).then(setTiktokPosts)
