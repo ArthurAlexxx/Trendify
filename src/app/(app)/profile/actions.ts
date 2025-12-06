@@ -46,9 +46,9 @@ const InstagramLooterProfileSchema = z.object({
 // --- TikTok Schemas ---
 
 const TikTokApi6ProfileSchema = z.object({
-    username: z.string(),
+    username: z.string().optional(),
     nickname: z.string().optional(),
-    user_id: z.string(),
+    user_id: z.string().optional(),
     profile_image: z.string().url().optional(),
     followers: z.number().optional(),
     following: z.number().optional(),
@@ -244,6 +244,10 @@ export async function getTikTokProfile(username: string): Promise<TikTokProfileD
 
         if (parsed.is_private) {
             throw new Error("Este perfil é privado. A integração funciona apenas com perfis públicos.");
+        }
+        
+        if (!parsed.user_id || !parsed.username) {
+            throw new Error("A API não retornou o ID de usuário ou nome de usuário, que são obrigatórios.");
         }
 
         return {
