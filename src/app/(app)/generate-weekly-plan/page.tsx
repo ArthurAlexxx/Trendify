@@ -280,9 +280,7 @@ export default function GenerateWeeklyPlanPage() {
         title="Plano Semanal"
         description="Transforme seu objetivo em um roteiro de conteúdo acionável."
         icon={ClipboardList}
-      >
-        <PreviousPlansSheet />
-      </PageHeader>
+      />
       
       <div>
         <div className="text-center">
@@ -603,8 +601,13 @@ export default function GenerateWeeklyPlanPage() {
          <TabsContent value="activePlan">
             <Card className="rounded-t-none border-t-0">
                 <CardHeader>
-                    <CardTitle className="text-center font-headline text-xl">Plano Semanal Ativo</CardTitle>
-                    <CardDescription className="text-center">Este é o plano que está atualmente visível no seu dashboard.</CardDescription>
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 text-center sm:text-left">
+                        <div>
+                            <CardTitle className="font-headline text-xl">Plano Semanal Ativo</CardTitle>
+                            <CardDescription>Este é o plano visível no seu dashboard.</CardDescription>
+                        </div>
+                        <PreviousPlansSheet />
+                    </div>
                 </CardHeader>
                 <CardContent>
                      {isLoadingActivePlan ? (
