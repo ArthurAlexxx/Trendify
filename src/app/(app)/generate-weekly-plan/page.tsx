@@ -615,5 +615,3 @@ export default function GenerateWeeklyPlanPage() {
   );
 }
 
-
-
