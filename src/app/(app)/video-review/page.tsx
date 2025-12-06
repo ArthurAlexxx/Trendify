@@ -379,7 +379,7 @@ function VideoReviewPageContent() {
                     <CarouselContent className="-ml-4">
                         {analysisCriteria.map((item, index) => (
                             <CarouselItem key={index} className="pl-4 basis-full">
-                                <Card className="rounded-2xl border-0 h-full">
+                                <Card className="h-full">
                                     <CardHeader>
                                         <CardTitle className="text-center flex items-center gap-3">
                                             <item.icon className="h-6 w-6 text-primary" />
@@ -399,7 +399,7 @@ function VideoReviewPageContent() {
             </div>
             <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {analysisCriteria.map((item, index) => (
-                    <Card key={index} className="rounded-2xl border-0">
+                    <Card key={index}>
                         <CardHeader>
                             <CardTitle className="text-center flex items-center gap-3">
                                 <item.icon className="h-6 w-6 text-primary" />
@@ -512,7 +512,7 @@ function VideoReviewPageContent() {
             <CardContent className="p-6">
               {(analysisStatus !== 'idle') && (
                 <div className="space-y-8 animate-fade-in">
-                    <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <div className="flex flex-col sm:flex-row justify-between items-start gap-4 text-center sm:text-left">
                         <div className="flex-1">
                         <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Resultado da Análise</h2>
                         <p className="text-muted-foreground">
@@ -552,7 +552,7 @@ function VideoReviewPageContent() {
                     {analysisStatus === 'success' && analysisResult && (
                         <div className="grid lg:grid-cols-2 gap-8 items-start">
                         <div className="space-y-8">
-                            <Card className="lg:col-span-1 rounded-2xl border-0">
+                            <Card className="lg:col-span-1">
                                 <CardHeader className='items-center text-center'>
                                     <CardTitle className="text-center font-headline text-lg text-primary">Nota de Viralização</CardTitle>
                                 </CardHeader>
@@ -562,7 +562,7 @@ function VideoReviewPageContent() {
                                 </CardContent>
                             </Card>
 
-                            <Card className="lg:col-span-2 rounded-2xl border-0">
+                            <Card className="lg:col-span-2">
                                 <CardHeader>
                                     <CardTitle className="text-center items-center flex gap-2">
                                          <Check className="h-5 w-5 text-primary" />
@@ -583,7 +583,7 @@ function VideoReviewPageContent() {
                         </div>
                         
                         <div className="space-y-8">
-                            <Card className="rounded-2xl border-0">
+                            <Card>
                                 <CardHeader>
                                     <CardTitle className="text-center font-headline text-lg flex items-center gap-2">
                                         <Flame className="h-5 w-5 text-primary" />
@@ -601,7 +601,7 @@ function VideoReviewPageContent() {
                                     </div>
                                 </CardContent>
                             </Card>
-                            <Card className="rounded-2xl border-0">
+                            <Card>
                                 <CardHeader className='items-center text-center'>
                                     <CardTitle className="text-center font-headline text-lg">Análise Detalhada</CardTitle>
                                 </CardHeader>
@@ -641,7 +641,7 @@ function VideoReviewPageContent() {
                     Aqui estão os últimos vídeos que você analisou.
                 </p>
             </div>
-             <Card className="rounded-2xl border-0">
+             <Card>
                 <CardContent className="pt-6">
                     {isLoadingAnalyses && (
                          <div className="flex justify-center items-center h-40">

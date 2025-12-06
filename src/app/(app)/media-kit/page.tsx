@@ -303,7 +303,7 @@ function MediaKitPageContent() {
                     <CarouselContent className="-ml-4">
                         {analysisCriteria.map((item, index) => (
                             <CarouselItem key={index} className="pl-4 basis-full">
-                                <Card className="rounded-2xl border-0 h-full">
+                                <Card className="h-full">
                                     <CardHeader>
                                         <CardTitle className="text-center flex items-center gap-3">
                                             <item.icon className="h-6 w-6 text-primary" />
@@ -323,7 +323,7 @@ function MediaKitPageContent() {
             </div>
             <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {analysisCriteria.map((item, index) => (
-                    <Card key={index} className="rounded-2xl border-0">
+                    <Card key={index}>
                         <CardHeader>
                             <CardTitle className="text-center flex items-center gap-3">
                                 <item.icon className="h-6 w-6 text-primary" />
@@ -447,7 +447,7 @@ function MediaKitPageContent() {
             <CardContent className="p-6">
               {(isGenerating || result) && (
                 <div className="space-y-8 animate-fade-in">
-                  <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                  <div className="flex flex-col sm:flex-row justify-between items-start gap-4 text-center sm:text-left">
                     <div className='flex-1'>
                       <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Resultado Gerado</h2>
                       <p className="text-muted-foreground">Um pacote completo para sua prospecção.</p>
@@ -500,7 +500,7 @@ function InfoCard({
 }) {
   return (
     <Card
-      className="border-0 rounded-2xl h-full"
+      className="h-full"
     >
       <CardHeader>
         <CardTitle className="text-center flex items-center gap-3 text-lg font-semibold text-foreground">
@@ -528,7 +528,7 @@ function InfoList({
   items: string[];
 }) {
   return (
-    <Card className="border-0 rounded-2xl h-full">
+    <Card className="h-full">
       <CardHeader>
         <CardTitle className="text-center flex items-center gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary" />
@@ -563,7 +563,7 @@ function PricingCard({
 }) {
   return (
     <Card
-      className="border-0 rounded-2xl h-full"
+      className="h-full"
     >
       <CardHeader>
         <CardTitle className="text-center flex items-center gap-3 text-lg font-semibold text-foreground">

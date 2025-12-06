@@ -316,7 +316,7 @@ export default function GenerateWeeklyPlanPage() {
                   <CarouselContent className="-ml-4">
                       {analysisCriteria.map((item, index) => (
                           <CarouselItem key={index} className="pl-4 basis-full">
-                              <Card className="rounded-2xl border-0 h-full">
+                              <Card className="h-full">
                                   <CardHeader>
                                       <CardTitle className="text-center flex items-center gap-3">
                                           <item.icon className="h-6 w-6 text-primary" />
@@ -336,7 +336,7 @@ export default function GenerateWeeklyPlanPage() {
           </div>
           <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-4">
               {analysisCriteria.map((item, index) => (
-                  <Card key={index} className="rounded-2xl border-0">
+                  <Card key={index}>
                       <CardHeader>
                           <CardTitle className="text-center flex items-center gap-3">
                               <item.icon className="h-6 w-6 text-primary" />
@@ -473,7 +473,7 @@ export default function GenerateWeeklyPlanPage() {
         <TabsContent value="result">
              <Card className="rounded-t-none border-t-0">
                 <CardHeader>
-                    <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
+                    <div className="flex flex-col sm:flex-row justify-between items-start gap-4 text-center sm:text-left">
                         <div className="flex-1">
                           <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">
                             Plano Gerado
@@ -501,7 +501,7 @@ export default function GenerateWeeklyPlanPage() {
                         </div>
                       ) : result ? (
                         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
-                          <Card className="rounded-2xl border-0">
+                          <Card>
                             <CardHeader>
                               <CardTitle className="text-center font-headline text-xl">
                                 Novo Roteiro de Conteúdo
@@ -537,7 +537,7 @@ export default function GenerateWeeklyPlanPage() {
                           </Card>
 
                           <div className='space-y-8'>
-                          <Card className="rounded-2xl border-0">
+                          <Card>
                             <CardHeader>
                               <CardTitle className="text-center font-headline text-xl">
                                 Nova Simulação de Desempenho
@@ -593,16 +593,16 @@ export default function GenerateWeeklyPlanPage() {
                           </Card>
                           
                           <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                            <Card className="border-0 rounded-2xl">
+                            <Card>
                                 <CardHeader><CardTitle className="text-center flex items-center gap-2 text-sm text-muted-foreground"><Trophy className='h-4 w-4' /> Índice de Prioridade</CardTitle></CardHeader>
                                 <CardContent><ul className="space-y-2 text-sm">{result.priorityIndex.map(item => <li key={item} className='font-semibold'>{item}</li>)}</ul></CardContent>
                             </Card>
-                             <Card className="border-0 rounded-2xl">
+                             <Card>
                                 <CardHeader><CardTitle className="text-center flex items-center gap-2 text-sm text-muted-foreground"><Zap className='h-4 w-4' /> Nível de Esforço</CardTitle></CardHeader>
                                 <CardContent><p className='text-xl font-bold'>{result.effortLevel}</p></CardContent>
                             </Card>
                           </div>
-                           <Card className="border-0 rounded-2xl">
+                           <Card>
                                 <CardHeader><CardTitle className="text-center flex items-center gap-2 text-sm text-muted-foreground"><AlertTriangle className='h-4 w-4' /> Dicas de Realinhamento</CardTitle></CardHeader>
                                 <CardContent><p className='text-sm'>{result.realignmentTips}</p></CardContent>
                             </Card>
@@ -636,7 +636,7 @@ export default function GenerateWeeklyPlanPage() {
                          <div className="flex justify-center items-center h-64"><Loader2 className="h-8 w-8 animate-spin" /></div>
                      ) : activePlan ? (
                         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
-                             <Card className="rounded-2xl border-0">
+                             <Card>
                                 <CardHeader>
                                 <CardTitle className="font-headline text-xl">Roteiro de Conteúdo</CardTitle>
                                 </CardHeader>
@@ -670,7 +670,7 @@ export default function GenerateWeeklyPlanPage() {
                                     </ul>
                                 </CardContent>
                             </Card>
-                             <Card className="rounded-2xl border-0">
+                             <Card>
                                 <CardHeader><CardTitle className="font-headline text-xl">Desempenho Semanal (Simulado)</CardTitle></CardHeader>
                                 <CardContent className="pl-0 sm:pl-2">
                                     <ChartContainer config={chartConfig} className="h-[350px] w-full">
@@ -700,5 +700,3 @@ export default function GenerateWeeklyPlanPage() {
     </div>
   );
 }
-
-    

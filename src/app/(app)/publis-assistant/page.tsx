@@ -305,7 +305,7 @@ function PublisAssistantPageContent() {
                     <CarouselContent className="-ml-4">
                         {analysisCriteria.map((item, index) => (
                             <CarouselItem key={index} className="pl-4 basis-full">
-                                <Card className="rounded-2xl border-0 h-full">
+                                <Card className="h-full">
                                     <CardHeader>
                                         <CardTitle className="text-center flex items-center gap-3">
                                             <item.icon className="h-6 w-6 text-primary" />
@@ -325,7 +325,7 @@ function PublisAssistantPageContent() {
             </div>
             <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {analysisCriteria.map((item, index) => (
-                    <Card key={index} className="rounded-2xl border-0">
+                    <Card key={index}>
                         <CardHeader>
                             <CardTitle className="text-center flex items-center gap-3">
                                 <item.icon className="h-6 w-6 text-primary" />
@@ -492,7 +492,7 @@ function PublisAssistantPageContent() {
              <CardContent className="p-6">
                {(isGenerating || result) && (
                 <div className="space-y-8 animate-fade-in">
-                  <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                  <div className="flex flex-col sm:flex-row justify-between items-start gap-4 text-center sm:text-left">
                     <div className="flex-1">
                       <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">
                         Pacote de Conteúdo Gerado
@@ -519,7 +519,7 @@ function PublisAssistantPageContent() {
                   ) : result ? (
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                       <div className="lg:col-span-2 space-y-6">
-                        <Card className="rounded-2xl border-0">
+                        <Card>
                             <CardHeader>
                                 <CardTitle className="text-center flex items-center gap-3 text-lg font-semibold text-foreground">
                                     <Clapperboard className="h-5 w-5 text-primary" />
@@ -547,7 +547,7 @@ function PublisAssistantPageContent() {
                             </CardContent>
                         </Card>
                         
-                         <Card className="rounded-2xl border-0">
+                         <Card>
                             <CardHeader><CardTitle className="text-center flex items-center gap-3 text-lg font-semibold"><Lightbulb className="h-5 w-5 text-primary" />Ângulos Criativos e Tom de Voz</CardTitle></CardHeader>
                             <CardContent className="grid md:grid-cols-2 gap-6">
                                 <div>
@@ -573,7 +573,7 @@ function PublisAssistantPageContent() {
                       </div>
 
                       <div className="space-y-8">
-                         <Card className="border-0 rounded-2xl">
+                         <Card>
                              <CardHeader><CardTitle className="text-center flex items-center gap-3 text-lg font-semibold"><Target className="h-5 w-5 text-primary" />Projeção de Conversão</CardTitle></CardHeader>
                              <CardContent className='space-y-1'>
                                 <p className='font-semibold text-foreground'>{result.conversionProjection.roteiro}</p>
@@ -614,7 +614,7 @@ function InfoListCard({
   items: string[];
 }) {
   return (
-    <Card className="rounded-2xl border-0 h-full">
+    <Card className="h-full">
       <CardHeader>
         <CardTitle className="text-center flex items-center gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary" />
@@ -637,4 +637,3 @@ function InfoListCard({
     </Card>
   );
 }
-
