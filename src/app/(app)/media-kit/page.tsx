@@ -1,4 +1,5 @@
 
+
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -530,7 +531,7 @@ function InfoCard({
 }) {
   return (
     <Card
-      className="h-full rounded-2xl border-0"
+      className="h-full shadow-none border-0"
     >
       <CardHeader>
         <CardTitle className="text-center flex items-center gap-3 text-lg font-semibold text-foreground">
@@ -558,7 +559,7 @@ function InfoList({
   items: string[];
 }) {
   return (
-    <Card className="h-full rounded-2xl border-0">
+    <Card className="h-full shadow-none border-0">
       <CardHeader>
         <CardTitle className="text-center flex items-center gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary" />
@@ -593,7 +594,7 @@ function PricingCard({
 }) {
   return (
     <Card
-      className="h-full rounded-2xl border-0"
+      className="h-full shadow-none border-0"
     >
       <CardHeader>
         <CardTitle className="text-center flex items-center gap-3 text-lg font-semibold text-foreground">

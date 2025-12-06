@@ -1,4 +1,5 @@
 
+
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -406,7 +407,7 @@ export default function VideoIdeasPage() {
                   ) : result ? (
                     <div className="grid lg:grid-cols-3 gap-8 items-start">
                         <div className="lg:col-span-2 space-y-6">
-                           <Card className="border-0 rounded-2xl">
+                           <Card className="shadow-none border-0">
                                 <CardHeader>
                                     <CardTitle className="text-center flex items-center gap-3 text-lg font-semibold text-foreground">
                                         <Pen className="h-5 w-5 text-primary" />
@@ -427,7 +428,7 @@ export default function VideoIdeasPage() {
                                 </CardContent>
                             </Card>
                             
-                             <Card className="border-0 rounded-2xl">
+                             <Card className="shadow-none border-0">
                                 <CardHeader><CardTitle className="text-center flex items-center gap-3 text-lg font-semibold"><AlertTriangle className="h-5 w-5 text-primary" />Análise de Concorrência</CardTitle></CardHeader>
                                 <CardContent>
                                     <Accordion type="single" collapsible className="w-full">
@@ -445,7 +446,7 @@ export default function VideoIdeasPage() {
                             </Card>
                         </div>
                         <div className="space-y-8">
-                            <Card className="border-0 rounded-2xl">
+                            <Card className="shadow-none border-0">
                                 <CardHeader><CardTitle className="text-center flex items-center gap-3 text-lg font-semibold"><TrendingUp className="h-5 w-5 text-primary" />Potencial de Viralização</CardTitle></CardHeader>
                                 <CardContent className="space-y-4">
                                      <div className="text-center">
@@ -464,7 +465,7 @@ export default function VideoIdeasPage() {
                             </div>
 
                              {result.platformAdaptations && (result.platformAdaptations.tiktok || result.platformAdaptations.reels || result.platformAdaptations.shorts) && (
-                                <Card className="border-0 rounded-2xl">
+                                <Card className="shadow-none border-0">
                                     <CardHeader><CardTitle className="text-center flex items-center gap-3 text-lg font-semibold"><LightbulbIcon className="h-5 w-5 text-primary" />Adaptação para Plataformas</CardTitle></CardHeader>
                                     <CardContent className="space-y-4">
                                         {result.platformAdaptations.tiktok && (
@@ -489,7 +490,7 @@ export default function VideoIdeasPage() {
                                 </Card>
                              )}
 
-                             <Card className="border-0 rounded-2xl">
+                             <Card className="shadow-none border-0">
                                 <CardHeader><CardTitle className="text-center flex items-center gap-3 text-lg font-semibold"><Camera className="h-5 w-5 text-primary" />Checklist de Gravação</CardTitle></CardHeader>
                                 <CardContent>
                                     <ul className="space-y-2">

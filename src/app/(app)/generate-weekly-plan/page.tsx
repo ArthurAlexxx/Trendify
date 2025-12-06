@@ -1,4 +1,5 @@
 
+
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -509,7 +510,7 @@ export default function GenerateWeeklyPlanPage() {
                       ) : result ? (
                         <div className="space-y-8">
                             <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
-                            <Card className='rounded-2xl border-0'>
+                            <Card className="shadow-none border-0">
                                 <CardHeader>
                                 <CardTitle className="text-center font-headline text-xl">
                                     Novo Roteiro de Conteúdo
@@ -545,7 +546,7 @@ export default function GenerateWeeklyPlanPage() {
                             </Card>
 
                             <div className='space-y-8'>
-                            <Card className='rounded-2xl border-0'>
+                            <Card className="shadow-none border-0">
                                 <CardHeader>
                                 <CardTitle className="text-center font-headline text-xl">
                                     Nova Simulação de Desempenho
@@ -601,16 +602,16 @@ export default function GenerateWeeklyPlanPage() {
                             </Card>
                             
                             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                                <Card className='rounded-2xl border-0'>
+                                <Card className="shadow-none border-0">
                                     <CardHeader><CardTitle className="text-center flex items-center gap-2 text-sm text-muted-foreground"><Trophy className='h-4 w-4' /> Índice de Prioridade</CardTitle></CardHeader>
                                     <CardContent><ul className="space-y-2 text-sm">{result.priorityIndex.map(item => <li key={item} className='font-semibold'>{item}</li>)}</ul></CardContent>
                                 </Card>
-                                <Card className='rounded-2xl border-0'>
+                                <Card className="shadow-none border-0">
                                     <CardHeader><CardTitle className="text-center flex items-center gap-2 text-sm text-muted-foreground"><Zap className='h-4 w-4' /> Nível de Esforço</CardTitle></CardHeader>
                                     <CardContent><p className='text-xl font-bold'>{result.effortLevel}</p></CardContent>
                                 </Card>
                             </div>
-                            <Card className='rounded-2xl border-0'>
+                            <Card className="shadow-none border-0">
                                     <CardHeader><CardTitle className="text-center flex items-center gap-2 text-sm text-muted-foreground"><AlertTriangle className='h-4 w-4' /> Dicas de Realinhamento</CardTitle></CardHeader>
                                     <CardContent><p className='text-sm'>{result.realignmentTips}</p></CardContent>
                                 </Card>
@@ -651,7 +652,7 @@ export default function GenerateWeeklyPlanPage() {
                          <div className="flex justify-center items-center h-64"><Loader2 className="h-8 w-8 animate-spin" /></div>
                      ) : activePlan ? (
                         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
-                             <Card className='rounded-2xl border-0'>
+                             <Card className="shadow-none border-0">
                                 <CardHeader>
                                 <CardTitle className="font-headline text-xl">Roteiro de Conteúdo</CardTitle>
                                 </CardHeader>
@@ -685,7 +686,7 @@ export default function GenerateWeeklyPlanPage() {
                                     </ul>
                                 </CardContent>
                             </Card>
-                             <Card className='rounded-2xl border-0'>
+                             <Card className="shadow-none border-0">
                                 <CardHeader><CardTitle className="font-headline text-xl">Desempenho Semanal (Simulado)</CardTitle></CardHeader>
                                 <CardContent className="pl-0 sm:pl-2">
                                     <ChartContainer config={chartConfig} className="h-[350px] w-full">

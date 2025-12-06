@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useCallback, useRef, type ChangeEvent, type DragEvent, useEffect, useId } from "react";
@@ -552,7 +553,7 @@ function VideoReviewPageContent() {
                     {analysisStatus === 'success' && analysisResult && (
                         <div className="grid lg:grid-cols-2 gap-8 items-start">
                         <div className="space-y-8">
-                            <Card className="lg:col-span-1">
+                            <Card className="lg:col-span-1 shadow-none border-0">
                                 <CardHeader className='items-center text-center'>
                                     <CardTitle className="text-center font-headline text-lg text-primary">Nota de Viralização</CardTitle>
                                 </CardHeader>
@@ -562,7 +563,7 @@ function VideoReviewPageContent() {
                                 </CardContent>
                             </Card>
 
-                            <Card className="lg:col-span-2">
+                            <Card className="lg:col-span-2 shadow-none border-0">
                                 <CardHeader>
                                     <CardTitle className="text-center items-center flex gap-2">
                                          <Check className="h-5 w-5 text-primary" />
@@ -583,7 +584,7 @@ function VideoReviewPageContent() {
                         </div>
                         
                         <div className="space-y-8">
-                            <Card>
+                            <Card className="shadow-none border-0">
                                 <CardHeader>
                                     <CardTitle className="text-center font-headline text-lg flex items-center gap-2">
                                         <Flame className="h-5 w-5 text-primary" />
@@ -601,7 +602,7 @@ function VideoReviewPageContent() {
                                     </div>
                                 </CardContent>
                             </Card>
-                            <Card>
+                            <Card className="shadow-none border-0">
                                 <CardHeader className='items-center text-center'>
                                     <CardTitle className="text-center font-headline text-lg">Análise Detalhada</CardTitle>
                                 </CardHeader>
@@ -672,7 +673,7 @@ function VideoReviewPageContent() {
                                                             <video controls src={analise.videoUrl} className="w-full rounded-lg bg-black"></video>
                                                          )}
                                                         
-                                                        <Card>
+                                                        <Card className="shadow-none border-0">
                                                             <CardHeader>
                                                                 <CardTitle className="text-lg text-primary">Nota de Viralização</CardTitle>
                                                             </CardHeader>
@@ -682,7 +683,7 @@ function VideoReviewPageContent() {
                                                             </CardContent>
                                                         </Card>
 
-                                                         <Card>
+                                                         <Card className="shadow-none border-0">
                                                             <CardHeader>
                                                                 <CardTitle className="flex items-center gap-2 text-lg"><Lightbulb className="h-5 w-5 text-primary" /> Checklist de Melhorias</CardTitle>
                                                             </CardHeader>
@@ -698,7 +699,7 @@ function VideoReviewPageContent() {
                                                             </CardContent>
                                                         </Card>
                                                     </div>
-                                                    <Card>
+                                                    <Card className="shadow-none border-0">
                                                          <CardHeader>
                                                             <CardTitle className="text-center text-lg">Análise Detalhada</CardTitle>
                                                         </CardHeader>

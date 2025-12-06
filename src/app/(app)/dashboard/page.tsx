@@ -1,4 +1,5 @@
 
+
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -116,7 +117,7 @@ const platformChartConfig = {
 } satisfies Record<string, ChartConfig>;
 
 const DailyPlanCard = ({ isLoadingWeeklyPlans, tasksForToday, currentPlan, handleToggleRoteiro }: any) => (
-  <Card className="rounded-2xl border-0">
+  <Card>
     <CardHeader>
       <CardTitle className="text-center font-headline text-xl">
         Plano para Hoje
@@ -166,7 +167,7 @@ const DailyPlanCard = ({ isLoadingWeeklyPlans, tasksForToday, currentPlan, handl
 );
 
 const GoalCard = ({ isLoading, goalFollowers, currentFollowers, followerGoalProgress, pieData, formatMetricValue }: any) => (
-  <Card className="rounded-2xl border-0 h-full">
+  <Card className="h-full">
     <CardHeader>
       <CardTitle className="text-center">Meta de Seguidores</CardTitle>
     </CardHeader>
@@ -237,7 +238,7 @@ const ActionHubCard = ({
     handleTikTokClick,
     formatNumber,
 }: any) => (
-  <Card className="rounded-2xl border-0 h-full flex flex-col">
+  <Card className="h-full flex flex-col">
     <CardHeader>
       <CardTitle className="text-center font-headline text-xl">
         Hub de Ação Rápida
@@ -365,7 +366,7 @@ const EngagementMetricsCard = ({ isLoading, latestMetrics, formatMetricValue, ge
 );
 
 const PerformanceAnalysisCard = ({ isGeneratingInsights, insights, handleGenerateInsights }: any) => (
-  <Card className="rounded-2xl border-0 h-full flex flex-col">
+  <Card className="h-full flex flex-col">
      <CardHeader>
          <CardTitle className="text-center">Análise de Desempenho</CardTitle>
      </CardHeader>
