@@ -9,7 +9,8 @@ import {
   SheetHeader,
   SheetTitle,
   SheetFooter,
-  SheetClose
+  SheetClose,
+  SheetTrigger,
 } from '@/components/ui/sheet';
 import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import { IdeiaSalva } from '@/lib/types';
@@ -94,7 +95,7 @@ export function SavedIdeasSheet() {
       case 'Propostas & Publis':
         return `/publis-assistant?product=${topic}&differentiators=${context}`;
       case 'Mídia Kit & Prospecção':
-        const valueProposition = idea.aiResponseData?.valueProposition || context;
+         const valueProposition = idea.aiResponseData?.valueProposition || context;
         return `/publis-assistant?product=${topic}&differentiators=${encodeURIComponent(valueProposition)}`;
       case 'Plano Semanal':
         return `/video-ideas?topic=Com base no meu plano semanal&context=${context}`;
