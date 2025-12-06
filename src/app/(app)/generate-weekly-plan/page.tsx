@@ -1,4 +1,3 @@
-
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -21,7 +20,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Bot, Loader2, Sparkles, Trash2, Check, History, ClipboardList, BrainCircuit, Target, Eye, BarChart as BarChartIcon, Zap, AlertTriangle, Trophy, Save } from 'lucide-react';
+import { Bot, Loader2, Sparkles, Check, History, ClipboardList, BrainCircuit, Target, Eye, BarChart as BarChartIcon, Zap, AlertTriangle, Trophy, Save } from 'lucide-react';
 import { useEffect, useTransition, useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -36,15 +35,10 @@ import {
   query,
   orderBy,
   limit,
-  updateDoc,
-  addDoc,
-  deleteDoc,
+  writeBatch,
   getDocs,
-  setDoc,
 } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Checkbox } from '@/components/ui/checkbox';
-import { cn } from '@/lib/utils';
 import {
   BarChart,
   Bar,
@@ -53,17 +47,6 @@ import {
   CartesianGrid,
 } from 'recharts';
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PreviousPlansSheet } from '@/components/previous-plans-sheet';
@@ -134,6 +117,15 @@ export default function GenerateWeeklyPlanPage() {
   const { data: userProfile, isLoading: isLoadingProfile } =
     useDoc<UserProfile>(userProfileRef);
 
+  // Query to get the currently active plan (there should only be one)
+  const activePlanQuery = useMemoFirebase(
+    () => user && firestore ? query(collection(firestore, `users/${user.uid}/weeklyPlans`), limit(1)) : null,
+    [user, firestore]
+  );
+  const { data: activePlanData, isLoading: isLoadingActivePlan } = useCollection<PlanoSemanal>(activePlanQuery);
+  const activePlan = activePlanData?.[0];
+
+
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -168,37 +160,46 @@ export default function GenerateWeeklyPlanPage() {
 
     startSavingTransition(async () => {
       try {
+        const batch = writeBatch(firestore);
         const planCollectionRef = collection(firestore, `users/${user.uid}/weeklyPlans`);
-        
-        // 1. Delete all existing plans for the user
+        const ideasCollectionRef = collection(firestore, `users/${user.uid}/ideiasSalvas`);
+
+        // 1. Archive the current active plan (if it exists)
         const oldPlansSnapshot = await getDocs(planCollectionRef);
         for (const planDoc of oldPlansSnapshot.docs) {
-          await deleteDoc(planDoc.ref);
+          const oldPlanData = planDoc.data() as PlanoSemanal;
+          const archiveContent = oldPlanData.items.map(item => `**${item.dia}:** ${item.tarefa}\n*Detalhes:* ${item.detalhes}`).join('\n\n');
+          
+          const newArchivedRef = doc(ideasCollectionRef);
+          batch.set(newArchivedRef, {
+             userId: user.uid,
+             titulo: `Plano Arquivado em ${new Date().toLocaleDateString('pt-BR')}`,
+             conteudo: archiveContent,
+             origem: "Plano Semanal",
+             concluido: false, // Archived plans are not 'tasks' to be completed
+             createdAt: oldPlanData.createdAt,
+             fullPlanData: oldPlanData,
+          });
+          batch.delete(planDoc.ref); // Delete from the active collection
         }
 
-        // 2. Save the new plan
-        const newPlanDocRef = doc(planCollectionRef);
-        await setDoc(newPlanDocRef, {
+        // 2. Save the new plan as the single active plan
+        const newPlanDocRef = doc(planCollectionRef); // Create a new doc reference in the active collection
+        batch.set(newPlanDocRef, {
           userId: user.uid,
           ...result,
           createdAt: serverTimestamp(),
         });
         
-        // 3. Save a copy in "Ideias Salvas" for history
-        const content = result.items.map(item => `**${item.dia}:** ${item.tarefa}\n*Detalhes:* ${item.detalhes}`).join('\n\n');
-        await addDoc(collection(firestore, `users/${user.uid}/ideiasSalvas`), {
-           userId: user.uid,
-           titulo: `Plano Semanal Gerado em ${new Date().toLocaleDateString('pt-BR')}`,
-           conteudo: content,
-           origem: "Plano Semanal",
-           concluido: false,
-           createdAt: serverTimestamp(),
-        });
+        // 3. Commit the batch transaction
+        await batch.commit();
 
         toast({
           title: 'Sucesso!',
-          description: 'Seu novo plano semanal foi salvo e está ativo no dashboard.',
+          description: 'Seu novo plano semanal foi salvo e ativado. O plano anterior foi movido para o histórico.',
         });
+        setActiveTab('generate');
+        setState(null);
       } catch (e: any) {
         toast({
           title: 'Erro ao Salvar Plano',
@@ -207,7 +208,7 @@ export default function GenerateWeeklyPlanPage() {
         });
       }
     });
-  }, [result, user, firestore, toast, startSavingTransition]);
+  }, [result, user, firestore, toast, startSavingTransition, setActiveTab, setState]);
 
   useEffect(() => {
     if (userProfile) {
@@ -243,24 +244,6 @@ export default function GenerateWeeklyPlanPage() {
       });
     }
   }, [userProfile, form]);
-  
-  const watchedNiche = form.watch('niche');
-
-    const debouncedNicheUpdate = useCallback(() => {
-        if (userProfileRef && watchedNiche !== userProfile?.niche) {
-        updateDoc(userProfileRef, { niche: watchedNiche });
-        }
-    }, [watchedNiche, userProfileRef, userProfile?.niche]);
-
-    useEffect(() => {
-        const handler = setTimeout(() => {
-        debouncedNicheUpdate();
-        }, 500); // 500ms delay
-
-        return () => {
-        clearTimeout(handler);
-        };
-    }, [watchedNiche, debouncedNicheUpdate]);
 
   useEffect(() => {
     if (state?.error) {

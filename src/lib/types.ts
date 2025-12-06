@@ -1,4 +1,3 @@
-
 import type { Timestamp } from 'firebase/firestore';
 
 export type Plan = 'pro' | 'free' | 'premium';
@@ -69,6 +68,7 @@ export interface IdeiaSalva {
   concluido: boolean;
   createdAt: Timestamp;
   completedAt?: Timestamp;
+  fullPlanData?: PlanoSemanal; // Campo opcional para armazenar o plano completo
 }
 
 export interface ConteudoAgendado {
