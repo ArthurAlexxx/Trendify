@@ -190,7 +190,11 @@ export default function GenerateWeeklyPlanPage() {
         const newPlanData = {
           userId: user.uid,
           createdAt: serverTimestamp(),
-          ...result,
+          items: result.items,
+          desempenhoSimulado: result.desempenhoSimulado,
+          effortLevel: result.effortLevel,
+          priorityIndex: result.priorityIndex,
+          realignmentTips: result.realignmentTips,
         };
         batch.set(newPlanDocRef, newPlanData);
         
