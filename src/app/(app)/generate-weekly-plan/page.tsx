@@ -28,7 +28,7 @@ import { z } from 'zod';
 import { generateWeeklyPlanAction, GenerateWeeklyPlanOutput } from '@/app/(app)/generate-weekly-plan/actions';
 import { Separator } from '@/components/ui/separator';
 import { useDoc, useFirestore, useMemoFirebase, useUser, useCollection } from '@/firebase';
-import type { UserProfile, ItemRoteiro, PlanoSemanal } from '@/lib/types';
+import type { UserProfile } from '@/lib/types';
 import {
   doc,
   collection,
@@ -132,16 +132,6 @@ export default function GenerateWeeklyPlanPage() {
   const { data: userProfile, isLoading: isLoadingProfile } =
     useDoc<UserProfile>(userProfileRef);
 
-  const roteiroQuery = useMemoFirebase(
-    () => (firestore && user ? query(collection(firestore, `users/${user.uid}/weeklyPlans`), orderBy('createdAt', 'desc'), limit(1)) : null),
-    [firestore, user]
-  );
-  const { data: roteiroData, isLoading: isLoadingRoteiro } = useCollection<PlanoSemanal>(roteiroQuery);
-  const currentPlan = roteiroData?.[0];
-  const currentRoteiroItems = currentPlan?.items;
-  const currentDesempenho = currentPlan?.desempenhoSimulado;
-
-
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -228,35 +218,7 @@ export default function GenerateWeeklyPlanPage() {
         variant: 'destructive',
       });
     }
-    // A LÓGICA DE SALVAMENTO FOI REMOVIDA DAQUI PARA CORRIGIR O BUILD.
   }, [state, toast]);
-
-  const handleToggleRoteiro = async (item: ItemRoteiro) => {
-    if (!firestore || !currentPlan || !user) return;
-    const planoRef = doc(firestore, `users/${user.uid}/weeklyPlans`, currentPlan.id);
-    const updatedItems = currentRoteiroItems?.map((i) =>
-      i.tarefa === item.tarefa ? { ...i, concluido: !i.concluido } : i
-    );
-    try {
-      await updateDoc(planoRef, { items: updatedItems });
-    } catch (error) {
-      console.error('Failed to update roteiro status:', error);
-    }
-  };
-
-  const handleDeleteCurrentPlan = async () => {
-    if (!firestore || !currentPlan || !user) {
-      toast({ title: 'Nenhum plano para deletar.', variant: 'destructive'});
-      return;
-    }
-
-    try {
-      await deleteDoc(doc(firestore, `users/${user.uid}/weeklyPlans`, currentPlan.id));
-      toast({ title: 'Plano atual deletado com sucesso!'});
-    } catch (error: any) {
-      toast({ title: 'Erro ao deletar plano', description: error.message, variant: 'destructive'});
-    }
-  }
 
 
   return (
@@ -428,7 +390,7 @@ export default function GenerateWeeklyPlanPage() {
                         
                         <AlertDialog>
                         <AlertDialogTrigger asChild>
-                            <Button variant="destructive" type='button' disabled={!currentPlan || isGenerating || isSaving} className="w-full sm:w-auto">
+                            <Button variant="destructive" type='button' disabled={isGenerating || isSaving} className="w-full sm:w-auto">
                             <Trash2 className="mr-2 h-4 w-4" />
                             Limpar Plano Atual
                             </Button>
@@ -442,7 +404,7 @@ export default function GenerateWeeklyPlanPage() {
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction onClick={handleDeleteCurrentPlan} className={cn(buttonVariants({variant: 'destructive'}))}>Deletar Plano</AlertDialogAction>
+                            <AlertDialogAction className={cn(buttonVariants({variant: 'destructive'}))}>Deletar Plano</AlertDialogAction>
                             </AlertDialogFooter>
                         </AlertDialogContent>
                         </AlertDialog>
@@ -600,3 +562,5 @@ export default function GenerateWeeklyPlanPage() {
     </div>
   );
 }
+
+    
