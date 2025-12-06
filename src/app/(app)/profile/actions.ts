@@ -76,9 +76,7 @@ const TikTokPostSchema = z.object({
 
 
 const TikTokPostResponseSchema = z.object({
-  data: z.object({
-    videos: z.array(TikTokPostSchema).optional().default([]),
-  }).optional(),
+  videos: z.array(TikTokPostSchema).optional().default([]),
 }).passthrough();
 
 
@@ -94,6 +92,12 @@ async function fetchFromRapidApi(platform: 'instagram-profile' | 'tiktok-profile
     let host: string;
     let path: string;
     let paramName: string = 'username';
+    let method: 'GET' | 'POST' = 'GET';
+    let body: string | undefined = undefined;
+
+    const headers: Record<string, string> = {
+        'x-rapidapi-key': apiKey,
+    };
 
     switch (platform) {
         case 'instagram-profile':
@@ -107,6 +111,9 @@ async function fetchFromRapidApi(platform: 'instagram-profile' | 'tiktok-profile
         case 'tiktok-posts':
             host = 'tiktok-api6.p.rapidapi.com';
             path = 'user/videos';
+            method = 'POST';
+            headers['Content-Type'] = 'application/json';
+            body = JSON.stringify({ username: identifier });
             break;
         case 'tiktok-video-details':
             host = 'tiktok-api6.p.rapidapi.com';
@@ -117,15 +124,17 @@ async function fetchFromRapidApi(platform: 'instagram-profile' | 'tiktok-profile
             throw new Error(`Plataforma '${platform}' desconhecida.`);
     }
 
+    headers['x-rapidapi-host'] = host;
+    
     const finalUrl = new URL(`https://${host}/${path}`);
-    finalUrl.searchParams.set(paramName, identifier);
+    if (method === 'GET') {
+        finalUrl.searchParams.set(paramName, identifier);
+    }
 
     const options: RequestInit = {
-        method: 'GET',
-        headers: {
-            'x-rapidapi-key': apiKey,
-            'x-rapidapi-host': host,
-        }
+        method,
+        headers,
+        body
     };
 
     return fetchData(finalUrl.toString(), options);
@@ -246,6 +255,7 @@ export async function getInstagramPosts(username: string): Promise<InstagramPost
 export async function getTikTokProfile(username: string): Promise<TikTokProfileData> {
   try {
       const result = await fetchFromRapidApi('tiktok-profile', username);
+      console.log('Resposta da API de Perfil TikTok:', JSON.stringify(result, null, 2));
 
       const userData = result?.data?.user || result?.data || result;
 
@@ -293,7 +303,7 @@ export async function getTikTokPosts(username: string): Promise<TikTokPostData[]
         console.log('Resposta da API de Vídeos TikTok:', JSON.stringify(result, null, 2));
         const parsed = TikTokPostResponseSchema.parse(result);
         
-        const videos = parsed.data?.videos ?? [];
+        const videos = parsed.videos ?? [];
 
         return videos.map(post => ({
             id: post.video_id,
