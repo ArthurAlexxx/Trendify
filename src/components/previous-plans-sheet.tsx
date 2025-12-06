@@ -38,7 +38,7 @@ export function PreviousPlansSheet() {
     () =>
       firestore
         ? query(
-            collection(firestore, 'roteiro'),
+            collection(firestore, 'weeklyPlans'),
             orderBy('createdAt', 'desc')
           )
         : null,
