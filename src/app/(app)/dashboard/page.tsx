@@ -473,7 +473,7 @@ export default function DashboardPage() {
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="proximos">Próximos</TabsTrigger>
             <TabsTrigger value="ideias">Ideias</TabsTrigger>
-            <TabsTrigger value="hoje">Plano de Hoje</TabsTrigger>
+            <TabsTrigger value="hoje">Plano</TabsTrigger>
             <TabsTrigger value="posts">Recentes</TabsTrigger>
           </TabsList>
           <div className="flex-1 mt-4">
