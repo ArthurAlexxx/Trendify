@@ -36,7 +36,7 @@ async function getScheduledContentForTomorrow(firestore: ReturnType<typeof getFi
     } as ConteudoAgendado));
 
     // Filtra as tarefas para o dia de amanhã
-    const tomorrowTasks = allTasks.filter(task => {
+    const tomorrowTasks = allTasks.filter((task: ConteudoAgendado) => {
         if (!task.date || typeof task.date.toDate !== 'function') return false;
         const taskDate = task.date.toDate();
         return taskDate >= tomorrowStart && taskDate <= tomorrowEnd;
