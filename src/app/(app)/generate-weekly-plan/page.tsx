@@ -21,14 +21,14 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Bot, Loader2, Sparkles, Trash2, Check, History, ClipboardList, BrainCircuit, Target, Eye, BarChart as BarChartIcon, Zap, AlertTriangle, Trophy } from 'lucide-react';
+import { Bot, Loader2, Sparkles, Trash2, Check, History, ClipboardList, BrainCircuit, Target, Eye, BarChart as BarChartIcon, Zap, AlertTriangle, Trophy, Save } from 'lucide-react';
 import { useEffect, useTransition, useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { generateWeeklyPlanAction, GenerateWeeklyPlanOutput } from '@/app/(app)/generate-weekly-plan/actions';
 import { Separator } from '@/components/ui/separator';
 import { useDoc, useFirestore, useMemoFirebase, useUser, useCollection } from '@/firebase';
-import type { UserProfile } from '@/lib/types';
+import type { UserProfile, PlanoSemanal, ItemRoteiro } from '@/lib/types';
 import {
   doc,
   collection,
@@ -152,30 +152,49 @@ export default function GenerateWeeklyPlanPage() {
     startTransition(async () => {
       const result = await generateWeeklyPlanAction(null, formData);
       setState(result);
-      if (result?.data) {
-        startSavingTransition(async () => {
-          try {
-            await addDoc(collection(firestore, `users/${user.uid}/weeklyPlans`), {
-              userId: user.uid,
-              ...result.data,
-              createdAt: serverTimestamp(),
-            });
-            toast({
-              title: 'Sucesso!',
-              description: 'Seu novo plano semanal foi salvo.',
-            });
-            setActiveTab("result");
-          } catch (e: any) {
-            toast({
-              title: 'Erro ao Salvar Plano',
-              description: `Não foi possível salvar os dados: ${e.message}`,
-              variant: 'destructive',
-            });
-          }
+      if(result?.data){
+         setActiveTab("result");
+      }
+    });
+  }, [user, firestore, toast, startTransition, setState, setActiveTab]);
+  
+  const handleSavePlan = useCallback(async () => {
+    if (!result || !user || !firestore) return;
+
+    startSavingTransition(async () => {
+      try {
+        // Salvar em weeklyPlans (plano ativo)
+        const planDocRef = doc(collection(firestore, `users/${user.uid}/weeklyPlans`));
+        await setDoc(planDocRef, {
+          userId: user.uid,
+          ...result,
+          createdAt: serverTimestamp(),
+        });
+        
+        // Salvar em ideiasSalvas (para histórico)
+        const content = result.items.map(item => `**${item.dia}:** ${item.tarefa}\n*Detalhes:* ${item.detalhes}`).join('\n\n');
+        await addDoc(collection(firestore, `users/${user.uid}/ideiasSalvas`), {
+           userId: user.uid,
+           titulo: `Plano Semanal Gerado em ${new Date().toLocaleDateString('pt-BR')}`,
+           conteudo: content,
+           origem: "Plano Semanal",
+           concluido: false,
+           createdAt: serverTimestamp(),
+        });
+
+        toast({
+          title: 'Sucesso!',
+          description: 'Seu novo plano semanal foi salvo e está ativo no dashboard.',
+        });
+      } catch (e: any) {
+        toast({
+          title: 'Erro ao Salvar Plano',
+          description: `Não foi possível salvar os dados: ${e.message}`,
+          variant: 'destructive',
         });
       }
     });
-  }, [user, firestore, toast, startTransition, setState, setActiveTab, startSavingTransition]);
+  }, [result, user, firestore, toast, startSavingTransition]);
 
   useEffect(() => {
     if (userProfile) {
@@ -417,19 +436,59 @@ export default function GenerateWeeklyPlanPage() {
         </TabsContent>
         <TabsContent value="result">
              <Card className="rounded-t-none border-t-0">
-                <CardContent className="p-6">
-                    <div className="space-y-8 animate-fade-in">
-                      <div className="flex flex-col sm:flex-row justify-between items-start gap-4 text-center sm:text-left">
+                <CardHeader>
+                    <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
                         <div className="flex-1">
                           <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">
                             Plano Gerado
                           </h2>
                           <p className="text-muted-foreground">
-                            Seu novo plano semanal foi salvo com sucesso.
+                            Seu novo plano semanal está pronto. Salve-o para ativá-lo no seu dashboard.
                           </p>
                         </div>
-                      </div>
-
+                        <div className="flex w-full sm:w-auto flex-col sm:flex-row gap-2">
+                             <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                <Button variant="destructive" className="w-full sm:w-auto">
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Limpar Plano Atual
+                                </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                    <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        Esta ação irá deletar o plano ativo no seu dashboard. Ele não poderá ser recuperado.
+                                    </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction
+                                        onClick={async () => {
+                                           const querySnapshot = await getDocs(query(collection(firestore, `users/${user!.uid}/weeklyPlans`), limit(1)));
+                                            if (!querySnapshot.empty) {
+                                                await deleteDoc(querySnapshot.docs[0].ref);
+                                                toast({ title: 'Plano atual limpo com sucesso!' });
+                                            } else {
+                                                toast({ title: 'Nenhum plano ativo para limpar.' });
+                                            }
+                                        }}
+                                        className={cn(buttonVariants({ variant: 'destructive' }))}
+                                    >
+                                        Deletar Plano
+                                    </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                             <Button onClick={handleSavePlan} disabled={isSaving} className="w-full sm:w-auto">
+                                <Save className="mr-2 h-4 w-4" />
+                                {isSaving ? 'Salvando...' : 'Salvar e Ativar Plano'}
+                            </Button>
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent className="p-6">
+                    <div className="space-y-8 animate-fade-in">
                       {isGenerating && !result ? (
                         <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-96">
                           <Loader2 className="h-10 w-10 animate-spin text-primary" />

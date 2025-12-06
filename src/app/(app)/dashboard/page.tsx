@@ -198,6 +198,12 @@ export default function DashboardPage() {
   const diaDaSemana = format(new Date(), 'EEEE', { locale: ptBR });
   const diaDaSemanaNormalizado = diaDaSemana.charAt(0).toUpperCase() + diaDaSemana.slice(1);
 
+  const todaysPlanItem = useMemo(() => {
+    if (!currentPlan) return null;
+    return currentPlan.items.find(item => item.dia.toLowerCase() === diaDaSemana.toLowerCase().split('-')[0]) || null;
+  }, [currentPlan, diaDaSemana]);
+
+
   const parseMetric = (value?: string | number): number => {
     if (typeof value === 'number') return value;
     if (!value || typeof value !== 'string') return 0;
@@ -414,7 +420,7 @@ export default function DashboardPage() {
                 <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="proximos">Próximos</TabsTrigger>
                     <TabsTrigger value="ideias">Ideias</TabsTrigger>
-                    <TabsTrigger value="atividade">Atividade</TabsTrigger>
+                    <TabsTrigger value="hoje">Plano de Hoje</TabsTrigger>
                 </TabsList>
                 <TabsContent value="proximos" className="mt-4 flex-grow">
                     {isLoadingUpcoming ? <div className="flex justify-center items-center h-48"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div> : upcomingContent && upcomingContent.length > 0 ? (<div className="space-y-2">{upcomingContent.map(post => (<div key={post.id} className="p-3 rounded-lg border bg-background/50 flex items-start justify-between gap-4"><div className="flex items-start gap-4 flex-1 overflow-hidden"><div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0"><Tag className="h-5 w-5 text-muted-foreground" /></div><div className="flex-1 overflow-hidden"><p className="font-semibold text-foreground truncate text-sm">{post.title}</p><p className="text-xs text-muted-foreground">{post.contentType} • {formatDistanceToNow(post.date.toDate(), { addSuffix: true, locale: ptBR })}</p></div></div><DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger><DropdownMenuContent align="end"><DropdownMenuItem onClick={() => handleMarkAsPublished(post.id)}><CheckCircle className="mr-2 h-4 w-4" /><span>Marcar como Publicado</span></DropdownMenuItem></DropdownMenuContent></DropdownMenu></div>))}</div>) : (<div className="text-center py-8"><p className="text-muted-foreground text-sm">Nenhum post agendado.</p><Button variant="link" asChild><Link href="/content-calendar">Ir para o Calendário</Link></Button></div>)}
@@ -422,15 +428,16 @@ export default function DashboardPage() {
                 <TabsContent value="ideias" className="mt-4 flex-grow">
                     {isLoadingIdeias ? <div className="flex justify-center items-center h-48"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div> : ideiasSalvas && ideiasSalvas.length > 0 ? <ul className="space-y-3">{ideiasSalvas.map((ideia) => (<li key={ideia.id} className="flex items-start gap-3"><Checkbox id={`ideia-${ideia.id}`} checked={ideia.concluido} onCheckedChange={() => handleToggleIdeia(ideia)} className="h-5 w-5 mt-0.5" /><div className="grid gap-0.5"><label htmlFor={`ideia-${ideia.id}`} className={cn('font-medium transition-colors cursor-pointer', ideia.concluido ? 'line-through text-muted-foreground' : 'text-foreground')}>{ideia.titulo}</label><p className="text-xs text-muted-foreground">de "{ideia.origem}"</p></div></li>))}</ul> : (<div className="text-center py-8"><p className="text-muted-foreground text-sm">Nenhuma ideia salva.</p><Button variant="link" asChild><Link href="/video-ideas">Gerar Novas Ideias</Link></Button></div>)}
                 </TabsContent>
-                <TabsContent value="atividade" className="mt-4 flex-grow flex items-center justify-center">
-                    <Sheet><SheetTrigger asChild><Button variant="outline" className="w-full"><Activity className="mr-2 h-4 w-4" /> Ver Atividade Recente</Button></SheetTrigger>
-                    <SheetContent className="w-full sm:max-w-4xl p-0">
-                        <SheetHeader className="p-6 pb-4 border-b"><SheetTitle className="text-center">Atividade Recente nas Plataformas</SheetTitle></SheetHeader>
-                        <ScrollArea className="h-[calc(100vh-8rem)]">
-                            <div className="p-6">{isFetchingPosts ? <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div> : <div className='space-y-8'>{instaPosts && userProfile?.instagramHandle && <div><h3 className="text-lg font-semibold flex items-center gap-2 mb-4"><Instagram className="h-5 w-5"/> Instagram</h3><InstagramProfileResults profile={{ id: '', username: userProfile.instagramHandle, followersCount: parseMetric(userProfile.instagramFollowers), isPrivate: false, isBusiness: true, profilePicUrlHd: '', biography: '', fullName: '', mediaCount: 0, followingCount: 0 }} posts={instaPosts} formatNumber={formatNumber} error={null} /></div>}{tiktokPosts && userProfile?.tiktokHandle && <div><h3 className="text-lg font-semibold flex items-center gap-2 mb-4"><Film className="h-5 w-5"/> TikTok</h3><TikTokProfileResults profile={{ id: '', username: userProfile.tiktokHandle, followersCount: parseMetric(userProfile.tiktokFollowers), nickname: '', avatarUrl: '', bio: '', isVerified: false, isPrivate: false, heartsCount: 0, videoCount: 0, followingCount: 0 }} posts={tiktokPosts} formatNumber={formatNumber} error={null} onVideoClick={handleTikTokClick} /></div>}{!(instaPosts && userProfile?.instagramHandle) && !(tiktokPosts && userProfile?.tiktokHandle) && <div className="text-center py-10"><p className="text-muted-foreground">Integre suas contas no seu <Link href="/profile" className='text-primary font-semibold hover:underline'>perfil</Link> para ver seus posts aqui.</p></div>}</div>}</div>
-                        </ScrollArea>
-                    </SheetContent>
-                </Sheet>
+                 <TabsContent value="hoje" className="mt-4 flex-grow">
+                    {isLoadingWeeklyPlans ? <div className="flex justify-center items-center h-48"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div> :
+                    todaysPlanItem ? (
+                        <div className="p-3 rounded-lg border bg-background/50 space-y-2">
+                           <p className="font-semibold text-foreground">{todaysPlanItem.tarefa}</p>
+                           <p className="text-xs text-muted-foreground">{todaysPlanItem.detalhes}</p>
+                        </div>
+                    ) : (
+                        <div className="text-center py-8"><p className="text-muted-foreground text-sm">Nenhuma tarefa no plano para hoje.</p><Button variant="link" asChild><Link href="/generate-weekly-plan">Gerar Novo Plano</Link></Button></div>
+                    )}
                 </TabsContent>
             </Tabs>
       </CardContent>
