@@ -63,7 +63,7 @@ const TikTokApi6ProfileSchema = z.object({
 
 const TikTokPostSchema = z.object({
     video_id: z.string(),
-    share_url: z.string().url().optional(),
+    share_url: z.string().url(),
     description: z.string().optional(),
     cover: z.string().url(),
     create_time: z.number().optional(),
@@ -257,7 +257,7 @@ export async function getTikTokProfile(username: string): Promise<TikTokProfileD
       const result = await fetchFromRapidApi('tiktok-profile', username);
       console.log('Resposta da API de Perfil TikTok:', JSON.stringify(result, null, 2));
 
-      const userData = result?.data?.user || result?.data || result;
+      const userData = result?.data?.user || result;
 
       if (!userData || typeof userData !== 'object') {
         console.error("Resposta real do TikTok:", result);

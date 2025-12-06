@@ -1,4 +1,3 @@
-
 {
   "entities": {
     "UserProfile": {
@@ -25,9 +24,34 @@
           "format": "date-time",
           "description": "The timestamp when the user profile was created."
         },
+        "role": {
+          "type": "string",
+          "enum": ["admin", "user"],
+          "description": "The user's role in the system. Defaults to 'user'."
+        },
+        "totalFollowerGoal": {
+          "type": "number",
+          "description": "The user's target number of total followers (Instagram + TikTok)."
+        },
+        "instagramFollowerGoal": {
+            "type": "number",
+            "description": "The user's target number of Instagram followers."
+        },
+        "tiktokFollowerGoal": {
+            "type": "number",
+            "description": "The user's target number of TikTok followers."
+        },
         "niche": {
             "type": "string",
             "description": "The creator's content niche (e.g., 'Lifestyle and sustainable fashion')."
+        },
+        "bio": {
+            "type": "string",
+            "description": "A short, professional biography for the media kit."
+        },
+        "audience": {
+            "type": "string",
+            "description": "Description of the audience demographics."
         },
         "instagramHandle": {
             "type": "string",
@@ -93,6 +117,11 @@
               "enum": ["pro", "free", "premium"],
               "description": "The subscribed plan."
             },
+             "cycle": {
+              "type": "string",
+              "enum": ["monthly", "annual"],
+              "description": "The billing cycle of the subscription."
+            },
             "expiresAt": {
               "type": "string",
               "format": "date-time",
@@ -107,15 +136,77 @@
       },
       "required": ["displayName", "email", "createdAt"]
     },
+    "InstagramPost": {
+      "title": "Instagram Post",
+      "description": "Represents a single Instagram post fetched from the API.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "shortcode": { "type": "string" },
+        "caption": { "type": "string" },
+        "mediaUrl": { "type": "string", "format": "uri" },
+        "likes": { "type": "number" },
+        "comments": { "type": "number" },
+        "video_view_count": { "type": "number" },
+        "is_video": { "type": "boolean" },
+        "fetchedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "shortcode", "mediaUrl", "fetchedAt"]
+    },
+    "TikTokPost": {
+      "title": "TikTok Post",
+      "description": "Represents a single TikTok video fetched from the API.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "shareUrl": { "type": "string", "format": "uri" },
+        "description": { "type": "string" },
+        "coverUrl": { "type": "string", "format": "uri" },
+        "views": { "type": "number" },
+        "likes": { "type": "number" },
+        "comments": { "type": "number" },
+        "fetchedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "coverUrl", "fetchedAt"]
+    },
+     "WebhookLog": {
+      "title": "Webhook Log",
+      "description": "Stores a record of every webhook event received from the payment gateway.",
+      "type": "object",
+      "properties": {
+        "receivedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp when the webhook was received by our server."
+        },
+        "eventType": {
+          "type": "string",
+          "description": "The type of event (e.g., 'billing.paid')."
+        },
+        "payload": {
+          "type": "object",
+          "description": "The full JSON payload received from the webhook."
+        },
+        "isSuccess": {
+          "type": "boolean",
+          "description": "Indicates if the event represents a successful transaction."
+        },
+        "amount": {
+          "type": "number",
+          "description": "The transaction amount in cents (if applicable)."
+        },
+        "customerEmail": {
+          "type": "string",
+          "description": "The email of the customer involved in the transaction."
+        }
+      },
+      "required": ["receivedAt", "eventType", "payload"]
+    },
     "MetricSnapshot": {
         "title": "Metric Snapshot",
         "description": "A snapshot of a user's social media metrics for a specific day and platform.",
         "type": "object",
         "properties": {
-            "userId": {
-                "type": "string",
-                "description": "The ID of the user."
-            },
             "date": {
                 "type": "string",
                 "format": "date-time",
@@ -143,7 +234,7 @@
                 "description": "Average comments at the time of the snapshot."
             }
         },
-        "required": ["userId", "date", "platform", "followers"]
+        "required": ["date", "platform", "followers"]
     },
     "DailyUsage": {
       "title": "Daily Usage",
@@ -164,7 +255,7 @@
           "description": "Number of general AI generations (video ideas, plans, etc.) on this date."
         }
       },
-      "required": ["date", "videoAnalyses", "geracoesAI"]
+      "required": ["date"]
     },
     "PontoDadosGrafico": {
       "title": "Ponto de Dados do Gráfico",
@@ -194,6 +285,7 @@
       "description": "Armazena o plano de conteúdo semanal completo gerado pela IA.",
       "type": "object",
       "properties": {
+        "userId": { "type": "string", "description": "O ID do usuário que gerou o plano." },
         "items": {
           "type": "array",
           "items": { "$ref": "#/entities/ItemRoteiro" },
@@ -204,13 +296,27 @@
             "items": { "$ref": "#/entities/PontoDadosGrafico" },
             "description": "Uma simulação do desempenho para o plano semanal."
         },
+         "effortLevel": {
+            "type": "string",
+            "enum": ["Baixo", "Médio", "Alto"],
+            "description": "A carga de trabalho estimada para executar o plano da semana."
+        },
+        "priorityIndex": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "As 3 tarefas da semana com maior impacto potencial no crescimento."
+        },
+        "realignmentTips": {
+            "type": "string",
+            "description": "Dicas sobre o que fazer caso o usuário perca 1 ou 2 dias do plano."
+        },
         "createdAt": {
           "type": "string",
           "format": "date-time",
           "description": "O timestamp de quando o plano foi gerado."
         }
       },
-      "required": ["items", "createdAt", "desempenhoSimulado"]
+      "required": ["userId", "items", "createdAt", "desempenhoSimulado"]
     },
     "IdeiaSalva": {
       "title": "Ideia Salva",
@@ -223,7 +329,12 @@
         "origem": { "type": "string", "description": "A página onde a ideia foi gerada (ex: 'Ideias de Vídeo')." },
         "concluido": { "type": "boolean", "description": "Indica se a tarefa relacionada à ideia foi concluída." },
         "createdAt": { "type": "string", "format": "date-time", "description": "O timestamp de quando a ideia foi salva." },
-        "completedAt": { "type": "string", "format": "date-time", "description": "O timestamp de quando a ideia foi marcada como concluída." }
+        "completedAt": { "type": "string", "format": "date-time", "description": "O timestamp de quando a ideia foi marcada como concluída." },
+        "fullPlanData": {
+          "type": "object",
+          "$ref": "#/entities/PlanoSemanal",
+          "description": "Campo opcional para armazenar o objeto completo de um plano semanal arquivado."
+        }
       },
       "required": ["userId", "titulo", "conteudo", "origem", "concluido", "createdAt"]
     },
@@ -264,13 +375,25 @@
       "schema": { "$ref": "#/entities/UserProfile" },
       "description": "Stores user profile data."
     },
-    "/users/{userId}/metricSnapshots/{snapshotId}": {
-        "schema": { "$ref": "#/entities/MetricSnapshot" },
-        "description": "Stores daily metric snapshots for a user, per platform."
+     "/users/{userId}/instagramPosts/{postId}": {
+      "schema": { "$ref": "#/entities/InstagramPost" },
+      "description": "Stores fetched Instagram posts for a user."
+    },
+    "/users/{userId}/tiktokPosts/{postId}": {
+      "schema": { "$ref": "#/entities/TikTokPost" },
+      "description": "Stores fetched TikTok videos for a user."
+    },
+    "/webhookLogs/{logId}": {
+      "schema": { "$ref": "#/entities/WebhookLog" },
+      "description": "Logs all incoming webhook events from the payment gateway."
     },
     "/users/{userId}/dailyUsage/{usageId}": {
         "schema": { "$ref": "#/entities/DailyUsage" },
         "description": "Tracks daily usage of features for a specific user. The document ID is the date in YYYY-MM-DD format."
+    },
+    "/users/{userId}/metricSnapshots/{snapshotId}": {
+        "schema": { "$ref": "#/entities/MetricSnapshot" },
+        "description": "Stores daily metric snapshots for a user, per platform."
     },
     "/users/{userId}/ideiasSalvas/{ideiaId}": {
       "schema": { "$ref": "#/entities/IdeiaSalva" },
@@ -284,9 +407,9 @@
       "schema": { "$ref": "#/entities/AnaliseVideo" },
       "description": "Stores video analysis results for a specific user."
     },
-    "/roteiro/{planoId}": {
+    "/users/{userId}/weeklyPlans/{planoId}": {
       "schema": { "$ref": "#/entities/PlanoSemanal" },
-      "description": "Coleção para armazenar os roteiros de conteúdo semanais gerados pela IA."
+      "description": "Stores AI-generated weekly content plans for a specific user."
     }
   }
 }
