@@ -39,6 +39,8 @@ import {
   updateDoc,
   addDoc,
   deleteDoc,
+  getDocs,
+  setDoc,
 } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -143,6 +145,8 @@ export default function GenerateWeeklyPlanPage() {
     },
   });
   
+  const result = state?.data;
+
   const formAction = useCallback(async (formData: FormSchemaType) => {
     if (!user || !firestore) {
       toast({ title: "Erro", description: "Usuário não autenticado.", variant: "destructive" });
@@ -163,15 +167,15 @@ export default function GenerateWeeklyPlanPage() {
 
     startSavingTransition(async () => {
       try {
-        // Salvar em weeklyPlans (plano ativo)
-        const planDocRef = doc(collection(firestore, `users/${user.uid}/weeklyPlans`));
+        const planCollectionRef = collection(firestore, `users/${user.uid}/weeklyPlans`);
+        const planDocRef = doc(planCollectionRef);
+
         await setDoc(planDocRef, {
           userId: user.uid,
           ...result,
           createdAt: serverTimestamp(),
         });
         
-        // Salvar em ideiasSalvas (para histórico)
         const content = result.items.map(item => `**${item.dia}:** ${item.tarefa}\n*Detalhes:* ${item.detalhes}`).join('\n\n');
         await addDoc(collection(firestore, `users/${user.uid}/ideiasSalvas`), {
            userId: user.uid,
@@ -248,9 +252,6 @@ export default function GenerateWeeklyPlanPage() {
         clearTimeout(handler);
         };
     }, [watchedNiche, debouncedNicheUpdate]);
-
-
-  const result = state?.data;
 
   useEffect(() => {
     if (state?.error) {
@@ -621,5 +622,7 @@ export default function GenerateWeeklyPlanPage() {
     </div>
   );
 }
+
+    
 
     
