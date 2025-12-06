@@ -228,34 +228,8 @@ export default function GenerateWeeklyPlanPage() {
         variant: 'destructive',
       });
     }
-    if (result && firestore && user) {
-      startSavingTransition(async () => {
-        try {
-          await addDoc(collection(firestore, `users/${user.uid}/weeklyPlans`), {
-            userId: user.uid,
-            items: result.items,
-            desempenhoSimulado: result.desempenhoSimulado,
-            effortLevel: result.effortLevel,
-            priorityIndex: result.priorityIndex,
-            realignmentTips: result.realignmentTips,
-            createdAt: serverTimestamp(),
-          });
-
-          toast({
-            title: 'Sucesso!',
-            description:
-              'Seu novo roteiro foi salvo.',
-          });
-        } catch (e: any) {
-          toast({
-            title: 'Erro ao Salvar Plano',
-            description: `Não foi possível salvar: ${e.message}`,
-            variant: 'destructive',
-          });
-        }
-      });
-    }
-  }, [state, result, firestore, toast, user]);
+    // A LÓGICA DE SALVAMENTO FOI REMOVIDA DAQUI PARA CORRIGIR O BUILD.
+  }, [state, toast]);
 
   const handleToggleRoteiro = async (item: ItemRoteiro) => {
     if (!firestore || !currentPlan || !user) return;
