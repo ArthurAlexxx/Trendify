@@ -24,7 +24,6 @@ import { useTransition, useEffect, useState, useCallback } from 'react';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -367,17 +366,18 @@ function MediaKitPageContent() {
                            {isGenerating ? (
                               <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Gerando...</>
                             ) : (
-                              <><Edit className="mr-2 h-5 w-5" />Definir Briefing</>
+                              <><Sparkles className="mr-2 h-5 w-5" />Gerar Pacote</>
                             )}
                          </Button>
                       </DialogTrigger>
                        <DialogContent className="sm:max-w-2xl p-0">
-                          <SheetContent className="flex flex-col gap-0 p-0 sm:max-w-2xl" side="right">
+                          <SheetContent side="right" className="p-0 sm:max-w-2xl flex flex-col gap-0">
                             <SheetHeader className="p-6 pb-4 border-b">
                                 <SheetTitle className="flex items-center justify-center gap-3 font-headline text-xl">
                                     <Bot className="h-6 w-6 text-primary" />
                                     <span>Assistente de Carreira</span>
                                 </SheetTitle>
+                                <SheetDescription className='text-center'>Forneça os detalhes para a IA criar um pacote de prospecção completo.</SheetDescription>
                             </SheetHeader>
                             <ScrollArea className="flex-1">
                               <div className="p-6">
@@ -633,4 +633,3 @@ function PricingCard({
     </Card>
   );
 }
-

@@ -369,12 +369,12 @@ function PublisAssistantPageContent() {
                                 {isGenerating ? (
                                     <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Gerando...</>
                                 ) : (
-                                    <><Edit className="mr-2 h-5 w-5" />Definir Briefing</>
+                                    <><Sparkles className="mr-2 h-5 w-5" />Gerar Campanha</>
                                 )}
                             </Button>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-2xl p-0">
-                             <SheetContent className="flex flex-col gap-0 p-0 sm:max-w-2xl" side="right">
+                             <SheetContent side="right" className="p-0 sm:max-w-2xl flex flex-col gap-0">
                                 <SheetHeader className="p-6 pb-4 border-b">
                                 <SheetTitle className="flex items-center justify-center font-headline text-xl gap-2">
                                     <Bot className="h-6 w-6 text-primary" />
@@ -660,5 +660,3 @@ function InfoListCard({
     </Card>
   );
 }
-
-    

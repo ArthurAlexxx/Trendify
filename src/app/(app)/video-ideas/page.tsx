@@ -286,14 +286,14 @@ export default function VideoIdeasPage() {
                     <CarouselContent className="-ml-4">
                         {analysisCriteria.map((item, index) => (
                             <CarouselItem key={index} className="pl-4 basis-full">
-                                <Card className="rounded-2xl border-0 h-full">
+                                <Card className="rounded-2xl border-0 h-full text-center">
                                     <CardHeader className="items-center">
-                                        <CardTitle className="text-center flex flex-col items-center gap-2">
+                                        <CardTitle className="flex flex-col items-center gap-2">
                                             <item.icon className="h-5 w-5 text-primary" />
                                             <span className="text-base font-semibold">{item.title}</span>
                                         </CardTitle>
                                     </CardHeader>
-                                    <CardContent className="text-center">
+                                    <CardContent>
                                         <p className="text-muted-foreground text-sm">{item.description}</p>
                                     </CardContent>
                                 </Card>
@@ -306,14 +306,14 @@ export default function VideoIdeasPage() {
             </div>
             <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {analysisCriteria.map((item, index) => (
-                    <Card key={index} className="rounded-2xl border-0">
+                    <Card key={index} className="rounded-2xl border-0 text-center">
                         <CardHeader className="items-center">
-                            <CardTitle className="text-center flex flex-col items-center gap-2">
+                            <CardTitle className="flex flex-col items-center gap-2">
                                 <item.icon className="h-5 w-5 text-primary" />
                                 <span className="text-base font-semibold">{item.title}</span>
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="text-center">
+                        <CardContent>
                             <p className="text-muted-foreground text-sm">{item.description}</p>
                         </CardContent>
                     </Card>
@@ -344,7 +344,7 @@ export default function VideoIdeasPage() {
                            {isGenerating ? (
                               <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Carregando...</>
                             ) : (
-                              <><Edit className="mr-2 h-5 w-5" />Definir Briefing</>
+                              <><Sparkles className="mr-2 h-5 w-5" />Gerar Ideia</>
                             )}
                          </Button>
                       </DialogTrigger>
