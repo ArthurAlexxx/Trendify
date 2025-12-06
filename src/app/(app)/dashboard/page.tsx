@@ -1,5 +1,4 @@
 
-
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -85,6 +84,7 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import Image from 'next/image';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { RecentPostsSheet } from '@/components/dashboard/recent-posts-sheet';
 
 
 const chartConfigBase = {
@@ -263,40 +263,20 @@ const ActionHubCard = ({
               {isLoadingIdeias ? <div className="flex justify-center items-center h-full"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div> : ideiasSalvas && ideiasSalvas.length > 0 ? <ul className="space-y-3">{ideiasSalvas.map((ideia: IdeiaSalva) => (<li key={ideia.id} className="flex items-start gap-3"><Checkbox id={`ideia-${ideia.id}`} checked={ideia.concluido} onCheckedChange={() => handleToggleIdeia(ideia)} className="h-5 w-5 mt-0.5" /><div className="grid gap-0.5"><label htmlFor={`ideia-${ideia.id}`} className={cn('font-medium transition-colors cursor-pointer', ideia.concluido ? 'line-through text-muted-foreground' : 'text-foreground')}>{ideia.titulo}</label><p className="text-xs text-muted-foreground">de "{ideia.origem}"</p></div></li>))}</ul> : (<div className="text-center h-full flex flex-col items-center justify-center"><p className="text-muted-foreground text-sm">Nenhuma ideia salva.</p><Button variant="link" asChild><Link href="/video-ideas">Gerar Novas Ideias</Link></Button></div>)}
             </TabsContent>
              <TabsContent value="posts" className="h-full">
-               {isFetchingPosts ? (
-                  <div className="flex justify-center items-center h-full"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
-               ) : (
-                  <ScrollArea className="h-full max-h-96 pr-3">
-                      <div className='space-y-4'>
-                      {instaPosts && instaProfile && (
-                          <div>
-                              <h3 className="text-base font-semibold flex items-center gap-2 mb-2">
-                                <Instagram className="h-4 w-4"/> Posts Recentes do Instagram
-                                <Avatar className="h-5 w-5"><AvatarImage src={instaProfile.profilePicUrlHd} /></Avatar>
-                              </h3>
-                              <InstagramProfileResults profile={instaProfile} posts={instaPosts} formatNumber={formatNumber} error={null} />
-                          </div>
-                      )}
-
-                      {tiktokPosts && tiktokProfile && (
-                          <div>
-                             <h3 className="text-base font-semibold flex items-center gap-2 mb-2">
-                               <Film className="h-4 w-4"/> Vídeos Recentes do TikTok
-                               <Avatar className="h-5 w-5"><AvatarImage src={tiktokProfile.avatarUrl} /></Avatar>
-                             </h3>
-                              <TikTokProfileResults profile={tiktokProfile} posts={tiktokPosts} formatNumber={formatNumber} error={null} onVideoClick={handleTikTokClick} />
-                          </div>
-                      )}
-
-                      {!instaPosts && !tiktokPosts && (
-                           <div className="text-center h-full flex flex-col items-center justify-center">
-                              <p className="text-muted-foreground text-sm">Integre suas contas para ver os posts.</p>
-                              <Button variant="link" asChild><Link href="/profile/integrations">Conectar Plataformas</Link></Button>
-                          </div>
-                      )}
-                      </div>
-                  </ScrollArea>
-               )}
+                <div className="flex flex-col items-center justify-center h-full text-center">
+                    <p className="text-muted-foreground text-sm mb-2">Veja os posts sincronizados de suas plataformas.</p>
+                     <RecentPostsSheet
+                        instaProfile={instaProfile}
+                        instaPosts={instaPosts}
+                        tiktokProfile={tiktokProfile}
+                        tiktokPosts={tiktokPosts}
+                        isLoading={isFetchingPosts}
+                        formatNumber={formatNumber}
+                        onTikTokClick={handleTikTokClick}
+                     >
+                        <Button variant="outline">Ver Posts Sincronizados</Button>
+                    </RecentPostsSheet>
+                </div>
             </TabsContent>
           </div>
         </Tabs>
@@ -821,8 +801,3 @@ export default function DashboardPage() {
     </>
   );
 }
-
-    
-
-    
-
