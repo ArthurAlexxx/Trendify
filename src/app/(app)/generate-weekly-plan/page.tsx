@@ -28,7 +28,7 @@ import { z } from 'zod';
 import { generateWeeklyPlanAction, GenerateWeeklyPlanOutput } from '@/app/(app)/generate-weekly-plan/actions';
 import { Separator } from '@/components/ui/separator';
 import { useDoc, useFirestore, useMemoFirebase, useUser, useCollection } from '@/firebase';
-import type { UserProfile, PlanoSemanal } from '@/lib/types';
+import type { UserProfile, PlanoSemanal, ItemRoteiro } from '@/lib/types';
 import {
   doc,
   collection,
@@ -51,6 +51,8 @@ import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PreviousPlansSheet } from '@/components/previous-plans-sheet';
+import { cn } from '@/lib/utils';
+import { Checkbox } from '@/components/ui/checkbox';
 
 
 const formSchema = z.object({
@@ -255,6 +257,21 @@ export default function GenerateWeeklyPlanPage() {
       });
     }
   }, [state, toast]);
+  
+  const handleToggleRoteiro = async (itemIndex: number) => {
+    if (!firestore || !activePlan) return;
+
+    const planRef = doc(firestore, `users/${user!.uid}/weeklyPlans`, activePlan.id);
+    const updatedItems = activePlan.items.map((item, index) =>
+      index === itemIndex ? { ...item, concluido: !item.concluido } : item
+    );
+
+    try {
+      await updateDoc(planRef, { items: updatedItems });
+    } catch (e: any) {
+      toast({ title: 'Erro ao atualizar tarefa', description: e.message, variant: 'destructive' });
+    }
+  };
 
 
   return (
@@ -316,11 +333,15 @@ export default function GenerateWeeklyPlanPage() {
       </div>
 
        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="generate">Gerar Novo Plano</TabsTrigger>
           <TabsTrigger value="result" disabled={!result}>
             Resultado
             {isGenerating && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
+          </TabsTrigger>
+           <TabsTrigger value="activePlan" disabled={!activePlan && !isLoadingActivePlan}>
+            Plano Ativo
+            {isLoadingActivePlan && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
           </TabsTrigger>
         </TabsList>
         <TabsContent value="generate">
@@ -579,7 +600,79 @@ export default function GenerateWeeklyPlanPage() {
                 </CardContent>
             </Card>
         </TabsContent>
+         <TabsContent value="activePlan">
+            <Card className="rounded-t-none border-t-0">
+                <CardHeader>
+                    <CardTitle className="text-center font-headline text-xl">Plano Semanal Ativo</CardTitle>
+                    <CardDescription className="text-center">Este é o plano que está atualmente visível no seu dashboard.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                     {isLoadingActivePlan ? (
+                         <div className="flex justify-center items-center h-64"><Loader2 className="h-8 w-8 animate-spin" /></div>
+                     ) : activePlan ? (
+                        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
+                             <Card className="rounded-2xl border-0">
+                                <CardHeader>
+                                <CardTitle className="font-headline text-xl">Roteiro de Conteúdo</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <ul className="space-y-2">
+                                        {activePlan.items.map((item, index) => (
+                                            <li key={index}>
+                                            <div className="flex items-start gap-4 p-2 rounded-lg hover:bg-muted/50">
+                                                <Checkbox
+                                                id={`active-roteiro-${index}`}
+                                                checked={item.concluido}
+                                                onCheckedChange={() => handleToggleRoteiro(index)}
+                                                className="h-5 w-5 mt-1"
+                                                />
+                                                <div>
+                                                <label
+                                                    htmlFor={`active-roteiro-${index}`}
+                                                    className={cn(
+                                                    'font-medium text-base transition-colors cursor-pointer',
+                                                    item.concluido ? 'line-through text-muted-foreground' : 'text-foreground'
+                                                    )}
+                                                >
+                                                    <span className="font-semibold text-primary">{item.dia}:</span> {item.tarefa}
+                                                </label>
+                                                <p className="text-sm text-muted-foreground">{item.detalhes}</p>
+                                                </div>
+                                            </div>
+                                            {index < activePlan.items.length - 1 && <Separator className="my-2" />}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </CardContent>
+                            </Card>
+                             <Card className="rounded-2xl border-0">
+                                <CardHeader><CardTitle className="font-headline text-xl">Desempenho Semanal (Simulado)</CardTitle></CardHeader>
+                                <CardContent className="pl-0 sm:pl-2">
+                                    <ChartContainer config={chartConfig} className="h-[350px] w-full">
+                                    <BarChart data={activePlan.desempenhoSimulado} margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
+                                        <CartesianGrid vertical={false} />
+                                        <XAxis dataKey="data" tickLine={false} axisLine={false} />
+                                        <YAxis tickLine={false} axisLine={false} tickFormatter={(value) => typeof value === 'number' && value >= 1000 ? `${value / 1000}k` : value} />
+                                        <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
+                                        <Bar dataKey="alcance" fill="var(--color-alcance)" radius={[4, 4, 0, 0]} />
+                                        <Bar dataKey="engajamento" fill="var(--color-engajamento)" radius={[4, 4, 0, 0]} />
+                                    </BarChart>
+                                    </ChartContainer>
+                                </CardContent>
+                            </Card>
+                        </div>
+                     ) : (
+                        <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-64">
+                            <ClipboardList className="h-10 w-10 text-muted-foreground" />
+                            <p className="mt-4 text-muted-foreground">Nenhum plano ativo no momento.</p>
+                            <p className="text-sm text-muted-foreground">Gere um novo plano e salve-o para ativá-lo.</p>
+                        </div>
+                     )}
+                </CardContent>
+            </Card>
+        </TabsContent>
       </Tabs>
     </div>
   );
 }
+
