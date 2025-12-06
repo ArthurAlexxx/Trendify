@@ -18,6 +18,8 @@ export interface UserProfile {
   tiktokFollowerGoal?: number;
   
   niche?: string;
+  bio?: string;
+  audience?: string;
   instagramHandle?: string;
   instagramFollowers?: string;
   instagramAverageViews?: string;
