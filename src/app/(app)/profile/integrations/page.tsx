@@ -31,6 +31,7 @@ import Link from 'next/link';
 import { InstagramProfileResults, TikTokProfileResults } from '@/components/dashboard/platform-results';
 import { useRouter } from 'next/navigation';
 import { isToday, startOfDay, endOfDay } from 'date-fns';
+import { CodeBlock } from '@/components/ui/code-block';
 
 
 const profileFormSchema = z.object({
@@ -58,6 +59,8 @@ export default function IntegrationsPage() {
 
   const [tiktokStatus, setTiktokStatus] = useState<SearchStatus>('idle');
   const [tiktokError, setTiktokError] = useState<string | null>(null);
+  const [tiktokRawResponse, setTiktokRawResponse] = useState<string | null>(null);
+
 
   const userProfileRef = useMemoFirebase(
     () => (firestore && user ? doc(firestore, `users/${user.uid}`) : null),
@@ -200,28 +203,28 @@ export default function IntegrationsPage() {
     }
     setTiktokStatus('loading');
     setTiktokError(null);
+    setTiktokRawResponse(null);
     form.setValue('tiktokProfile', undefined);
     form.setValue('tiktokPosts', undefined);
 
     const cleanedUsername = tiktokUsername.replace('@', '');
 
     try {
-      const profileResult = await getTikTokProfile(cleanedUsername);
-      
-      let fetchedPosts: TikTokPostData[] = [];
-      try {
-          fetchedPosts = await getTikTokPosts(cleanedUsername);
-      } catch(postsError: any) {
-          setTiktokError('Perfil encontrado, mas não foi possível carregar os vídeos. ' + postsError.message);
-      }
+      const [profileResult, postsResult] = await Promise.all([
+        getTikTokProfile(cleanedUsername),
+        getTikTokPosts(cleanedUsername),
+      ]);
 
-        const averageLikes = fetchedPosts.length > 0 ? fetchedPosts.reduce((acc, p) => acc + p.likes, 0) / fetchedPosts.length : 0;
-        const averageComments = fetchedPosts.length > 0 ? fetchedPosts.reduce((acc, p) => acc + p.comments, 0) / fetchedPosts.length : 0;
-        const averageViews = fetchedPosts.length > 0 ? fetchedPosts.reduce((acc, p) => acc + p.views, 0) / fetchedPosts.length : 0;
+        const averageLikes = postsResult.length > 0 ? postsResult.reduce((acc, p) => acc + p.likes, 0) / postsResult.length : 0;
+        const averageComments = postsResult.length > 0 ? postsResult.reduce((acc, p) => acc + p.comments, 0) / postsResult.length : 0;
+        const averageViews = postsResult.length > 0 ? postsResult.reduce((acc, p) => acc + p.views, 0) / postsResult.length : 0;
 
         form.setValue('tiktokProfile', profileResult);
-        form.setValue('tiktokPosts', fetchedPosts);
+        form.setValue('tiktokPosts', postsResult);
         form.setValue('tiktokHandle', `@${profileResult.username}`);
+        
+        setTiktokRawResponse(JSON.stringify({ profile: profileResult, posts: postsResult }, null, 2));
+
        
         if (user && userProfileRef) {
           const dataToSave = {
@@ -395,7 +398,17 @@ export default function IntegrationsPage() {
                         </Card>
                          {tiktokStatus === 'loading' && <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>}
                          {tiktokStatus === 'error' && tiktokError && <Alert variant="destructive" className="mt-4"><AlertTriangle className="h-4 w-4" /><AlertTitle>Erro ao Buscar Perfil</AlertTitle><AlertDescription>{tiktokError}</AlertDescription></Alert>}
-                         {tiktokStatus === 'success' && <TikTokProfileResults profile={form.watch('tiktokProfile')!} posts={form.watch('tiktokPosts') ?? null} formatNumber={formatNumber} error={tiktokError} />}
+                         {tiktokStatus === 'success' && (
+                          <>
+                           <TikTokProfileResults profile={form.watch('tiktokProfile')!} posts={form.watch('tiktokPosts') ?? null} formatNumber={formatNumber} error={tiktokError} />
+                           {tiktokRawResponse && (
+                              <div className="mt-4">
+                                <h3 className="text-lg font-semibold mb-2">Resposta da API TikTok (JSON)</h3>
+                                <CodeBlock value={tiktokRawResponse} language="json" />
+                              </div>
+                           )}
+                          </>
+                         )}
                     </TabsContent>
                   </Tabs>
                 </>
