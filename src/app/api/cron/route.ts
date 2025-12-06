@@ -1,6 +1,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getFirestore } from 'firebase-admin/firestore';
+import { getFirestore, QueryDocumentSnapshot, DocumentData } from 'firebase-admin/firestore';
 import { initializeFirebaseAdmin } from '@/firebase/admin';
 import type { ConteudoAgendado } from '@/lib/types';
 
@@ -30,7 +30,7 @@ async function getScheduledContentForTomorrow(firestore: ReturnType<typeof getFi
         return [];
     }
 
-    const allTasks = snapshot.docs.map(doc => ({
+    const allTasks = snapshot.docs.map((doc: QueryDocumentSnapshot<DocumentData>) => ({
         id: doc.id,
         ...doc.data(),
     } as ConteudoAgendado));
