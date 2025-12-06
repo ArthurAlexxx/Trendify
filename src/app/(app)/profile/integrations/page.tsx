@@ -19,7 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { doc, updateDoc, serverTimestamp, addDoc, collection, query, where, getDocs, Timestamp, writeBatch } from 'firebase/firestore';
+import { doc, updateDoc, serverTimestamp, addDoc, collection, query, where, getDocs, Timestamp, writeBatch, setDoc } from 'firebase/firestore';
 import type { UserProfile, InstagramProfileData, InstagramPostData, TikTokProfileData, TikTokPostData } from '@/lib/types';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -30,7 +30,7 @@ import { useSubscription } from '@/hooks/useSubscription';
 import Link from 'next/link';
 import { InstagramProfileResults, TikTokProfileResults } from '@/components/dashboard/platform-results';
 import { useRouter } from 'next/navigation';
-import { isToday, startOfDay, endOfDay } from 'date-fns';
+import { format as formatDate, isToday } from 'date-fns';
 import { CodeBlock } from '@/components/ui/code-block';
 
 
@@ -95,21 +95,13 @@ export default function IntegrationsPage() {
   const updateOrCreateMetricSnapshot = async (platform: 'instagram' | 'tiktok', data: any) => {
     if (!user || !firestore) return;
   
-    const todayStart = startOfDay(new Date());
-    const todayEnd = endOfDay(new Date());
-    const metricSnapshotsRef = collection(firestore, `users/${user.uid}/metricSnapshots`);
-    
-    const q = query(
-      metricSnapshotsRef,
-      where('platform', '==', platform),
-      where('date', '>=', todayStart),
-      where('date', '<=', todayEnd)
-    );
-  
-    const querySnapshot = await getDocs(q);
+    // Use a consistent date string (YYYY-MM-DD) as the document ID
+    // to avoid timezone issues.
+    const todayDateString = new Date().toISOString().split('T')[0];
+    const snapshotDocRef = doc(firestore, `users/${user.uid}/metricSnapshots`, `${platform}_${todayDateString}`);
   
     const snapshotData = {
-      date: serverTimestamp(),
+      date: serverTimestamp(), // Keep server timestamp for sorting/logging
       platform,
       followers: data.followers || '0',
       views: data.views || '0',
@@ -117,14 +109,8 @@ export default function IntegrationsPage() {
       comments: data.comments || '0',
     };
   
-    if (!querySnapshot.empty) {
-      // Update existing document for today
-      const docRef = querySnapshot.docs[0].ref;
-      await updateDoc(docRef, snapshotData);
-    } else {
-      // Create new document for today
-      await addDoc(metricSnapshotsRef, snapshotData);
-    }
+    // Use setDoc with merge:true to create or update the document for today.
+    await setDoc(snapshotDocRef, snapshotData, { merge: true });
   };
 
 
@@ -223,10 +209,9 @@ export default function IntegrationsPage() {
     const cleanedUsername = tiktokUsername.replace('@', '');
 
     try {
-      const [profileResult, postsResult] = await Promise.all([
-        getTikTokProfile(cleanedUsername),
-        getTikTokPosts(cleanedUsername),
-      ]);
+      const postsResult = await getTikTokPosts(cleanedUsername);
+      const profileResult = await getTikTokProfile(cleanedUsername);
+
 
         const averageLikes = postsResult.length > 0 ? postsResult.reduce((acc, p) => acc + p.likes, 0) / postsResult.length : 0;
         const averageComments = postsResult.length > 0 ? postsResult.reduce((acc, p) => acc + p.comments, 0) / postsResult.length : 0;
@@ -426,7 +411,7 @@ export default function IntegrationsPage() {
                          {tiktokStatus === 'error' && tiktokError && <Alert variant="destructive" className="mt-4"><AlertTriangle className="h-4 w-4" /><AlertTitle>Erro ao Buscar Perfil</AlertTitle><AlertDescription>{tiktokError}</AlertDescription></Alert>}
                          {tiktokStatus === 'success' && (
                           <>
-                           <TikTokProfileResults profile={form.watch('tiktokProfile')!} posts={form.watch('tiktokPosts') ?? null} formatNumber={formatNumber} error={tiktokError} />
+                           <TikTokProfileResults profile={form.watch('tiktokProfile')!} posts={form.watch('tiktokPosts') ?? null} formatNumber={formatNumber} />
                            {tiktokRawResponse && (
                               <div className="mt-4">
                                 <h3 className="text-lg font-semibold mb-2">Resposta da API TikTok (JSON)</h3>

@@ -394,7 +394,7 @@
     },
     "/users/{userId}/metricSnapshots/{snapshotId}": {
         "schema": { "$ref": "#/entities/MetricSnapshot" },
-        "description": "Stores daily metric snapshots for a user, per platform."
+        "description": "Stores daily metric snapshots for a user, per platform. The document ID is a composite key like 'instagram_YYYY-MM-DD'."
     },
     "/users/{userId}/ideiasSalvas/{ideiaId}": {
       "schema": { "$ref": "#/entities/IdeiaSalva" },
