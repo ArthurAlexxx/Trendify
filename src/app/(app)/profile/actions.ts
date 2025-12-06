@@ -63,7 +63,7 @@ const TikTokApi6ProfileSchema = z.object({
 
 const TikTokPostSchema = z.object({
     video_id: z.string(),
-    share_url: z.string().url().optional(), // Tornando opcional para a busca inicial
+    share_url: z.string().url().optional(),
     description: z.string().optional(),
     cover: z.string().url(),
     create_time: z.number().optional(),
@@ -76,9 +76,7 @@ const TikTokPostSchema = z.object({
 
 
 const TikTokPostResponseSchema = z.object({
-  data: z.object({
     videos: z.array(TikTokPostSchema).optional().default([]),
-  }).optional(),
 }).passthrough();
 
 
@@ -103,8 +101,9 @@ async function fetchFromRapidApi(platform: 'instagram-profile' | 'tiktok-profile
 
     switch (platform) {
         case 'instagram-profile':
-            host = 'instagram-looter.p.rapidapi.com';
-            path = 'v1/profile';
+            host = 'instagram-looter2.p.rapidapi.com';
+            path = 'profile';
+            paramName = 'username';
             break;
         case 'tiktok-profile':
             host = 'tiktok-api6.p.rapidapi.com';
@@ -118,10 +117,10 @@ async function fetchFromRapidApi(platform: 'instagram-profile' | 'tiktok-profile
             body = JSON.stringify({ username: identifier });
             break;
         case 'tiktok-video-details':
-            host = 'tiktok-api6.p.rapidapi.com';
-            path = 'video/details';
-            paramName = 'video_id';
-            break;
+             host = 'tiktok-api6.p.rapidapi.com';
+             path = 'video/details';
+             paramName = 'video_id';
+             break;
         default:
             throw new Error(`Plataforma '${platform}' desconhecida.`);
     }
@@ -180,9 +179,9 @@ async function fetchData(url: string, options: RequestInit) {
 export async function getInstagramProfile(username: string): Promise<InstagramProfileData> {
     try {
         const result = await fetchFromRapidApi('instagram-profile', username);
-        const dataToParse = result.data;
+        const dataToParse = result; // Data is at the root
         if (!dataToParse) {
-            throw new Error("A resposta da API não continha os dados do usuário em 'data'.");
+            throw new Error("A resposta da API não continha os dados do usuário.");
         }
         
         const parsed = InstagramLooterProfileSchema.parse(dataToParse);
@@ -224,7 +223,7 @@ export async function getInstagramPosts(username: string): Promise<InstagramPost
     try {
         const result = await fetchFromRapidApi('instagram-profile', username);
         
-        const postsArray = result?.data?.edge_owner_to_timeline_media?.edges;
+        const postsArray = result?.edge_owner_to_timeline_media?.edges;
 
         if (!Array.isArray(postsArray)) {
              throw new Error('A resposta da API de posts não continha uma lista de publicações.');
@@ -304,11 +303,9 @@ export async function getTikTokPosts(username: string): Promise<TikTokPostData[]
         const result = await fetchFromRapidApi('tiktok-posts', username);
         console.log('Resposta da API de Vídeos TikTok:', JSON.stringify(result, null, 2));
 
-        // Ajuste para lidar com a resposta que pode ou não ter o 'data'
-        const dataToParse = result.data || result;
-        const parsed = TikTokPostResponseSchema.parse({data: dataToParse});
+        const parsed = TikTokPostResponseSchema.parse(result);
         
-        const videos = parsed.data?.videos ?? [];
+        const videos = parsed.videos ?? [];
 
         return videos.map(post => ({
             id: post.video_id,
