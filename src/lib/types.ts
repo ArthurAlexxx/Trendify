@@ -77,9 +77,12 @@ export interface ItemRoteiro {
 export interface PlanoSemanal {
   id: string;
   items: ItemRoteiro[];
-  desempenhoSimulado: PontoDadosGrafico[];
+  desempenhoSimulado: { data: string; alcance: number; engajamento: number }[];
+  effortLevel?: "Baixo" | "Médio" | "Alto";
+  priorityIndex?: string[];
+  realignmentTips?: string;
   createdAt: Timestamp;
-}
+};
 
 export interface IdeiaSalva {
   id: string;

@@ -234,6 +234,9 @@ export default function GenerateWeeklyPlanPage() {
           await addDoc(collection(firestore, 'weeklyPlans'), {
             items: result.items,
             desempenhoSimulado: result.desempenhoSimulado,
+            effortLevel: result.effortLevel,
+            priorityIndex: result.priorityIndex,
+            realignmentTips: result.realignmentTips,
             createdAt: serverTimestamp(),
           });
 
