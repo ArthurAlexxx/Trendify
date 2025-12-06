@@ -1,3 +1,4 @@
+
 import type { Timestamp } from 'firebase/firestore';
 
 export type Plan = 'pro' | 'free' | 'premium';
@@ -173,3 +174,5 @@ export type TikTokPostData = {
     likes: number;
     comments: number;
 };
+
+    

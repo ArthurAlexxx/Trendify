@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { DailyUsage, UserProfile } from '@/lib/types';
-import { collection, orderBy, query, limit, getDoc, doc } from 'firebase/firestore';
+import { collectionGroup, getDocs, query, where, doc, getDoc } from 'firebase/firestore';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -25,12 +25,27 @@ export default function UsageAdminPage() {
   const [enrichedUsage, setEnrichedUsage] = useState<EnrichedUsage[]>([]);
   const [isEnriching, setIsEnriching] = useState(true);
 
+  // Query for all documents in the 'dailyUsage' collection group
   const usageQuery = useMemoFirebase(
-    () => firestore && isAdmin ? query(collection(firestore, 'usageLogs'), orderBy('date', 'desc'), limit(50)) : null,
+    () => (firestore && isAdmin ? query(collectionGroup(firestore, 'dailyUsage')) : null),
     [firestore, isAdmin]
   );
-  const { data: usageData, isLoading: isLoadingUsage } = useCollection<DailyUsage>(usageQuery);
   
+  const [usageData, setUsageData] = useState<DailyUsage[] | null>(null);
+  const [isLoadingUsage, setIsLoadingUsage] = useState(true);
+
+  useEffect(() => {
+    if (!usageQuery) {
+        setIsLoadingUsage(false);
+        return;
+    };
+    getDocs(usageQuery).then(snapshot => {
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as DailyUsage));
+      setUsageData(data);
+    }).finally(() => setIsLoadingUsage(false));
+  }, [usageQuery]);
+
+
   useEffect(() => {
     if (!isAdmin || isLoadingUsage || !firestore) {
       if (!isAdmin && !isAdminLoading) {
@@ -51,8 +66,7 @@ export default function UsageAdminPage() {
       const userCache = new Map<string, UserProfile>();
 
       for (const usage of usageData) {
-        // The document ID is now a composite: 'userId_YYYY-MM-DD'. Extract the userId.
-        const userId = usage.id.split('_')[0];
+        const userId = usage.id.split('_')[0]; // Assuming ID is still composite for uniqueness
         if (!userId) continue;
 
         let userProfile: UserProfile | undefined = userCache.get(userId);
@@ -74,7 +88,7 @@ export default function UsageAdminPage() {
             user: userProfile,
         });
       }
-      setEnrichedUsage(enriched);
+      setEnrichedUsage(enriched.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
       setIsEnriching(false);
     };
 
@@ -107,7 +121,7 @@ export default function UsageAdminPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{isLoading ? <Skeleton className='h-8 w-16' /> : totalVideoAnalyses}</div>
-            <p className="text-xs text-muted-foreground">Nos últimos 50 registros.</p>
+            <p className="text-xs text-muted-foreground">Total de análises realizadas.</p>
           </CardContent>
         </Card>
         <Card>
@@ -117,7 +131,7 @@ export default function UsageAdminPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{isLoading ? <Skeleton className='h-8 w-16' /> : totalGeracoesAI}</div>
-            <p className="text-xs text-muted-foreground">Nos últimos 50 registros.</p>
+            <p className="text-xs text-muted-foreground">Total de ideias e planos gerados.</p>
           </CardContent>
         </Card>
       </div>
@@ -194,3 +208,5 @@ export default function UsageAdminPage() {
     </div>
   );
 }
+
+    
