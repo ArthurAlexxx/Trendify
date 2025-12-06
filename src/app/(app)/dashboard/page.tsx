@@ -591,11 +591,10 @@ export default function DashboardPage() {
                     <div>
                         {latestMetrics?.views !== undefined && latestMetrics.followers > 0 && (() => {
                               const rating = getMetricRating(latestMetrics.views, 'views', latestMetrics.followers);
+                              const Icon = rating.iconName === 'Smile' ? Smile : rating.iconName === 'Meh' ? Meh : Frown;
                               return (
                                 <div className={cn('h-7 w-7', rating.color)}>
-                                  {rating.iconName === 'Smile' && <Smile className="h-full w-full" />}
-                                  {rating.iconName === 'Meh' && <Meh className="h-full w-full" />}
-                                  {rating.iconName === 'Frown' && <Frown className="h-full w-full" />}
+                                  <Icon className="h-full w-full" />
                                 </div>
                               )
                           })()}
@@ -609,11 +608,10 @@ export default function DashboardPage() {
                       <div>
                         {latestMetrics?.likes !== undefined && latestMetrics.followers > 0 && (() => {
                           const rating = getMetricRating(latestMetrics.likes, 'likes', latestMetrics.followers);
+                          const Icon = rating.iconName === 'Smile' ? Smile : rating.iconName === 'Meh' ? Meh : Frown;
                           return (
                             <div className={cn('h-7 w-7', rating.color)}>
-                              {rating.iconName === 'Smile' && <Smile className="h-full w-full" />}
-                              {rating.iconName === 'Meh' && <Meh className="h-full w-full" />}
-                              {rating.iconName === 'Frown' && <Frown className="h-full w-full" />}
+                              <Icon className="h-full w-full" />
                             </div>
                           )
                         })()}
@@ -627,11 +625,10 @@ export default function DashboardPage() {
                       <div>
                         {latestMetrics?.comments !== undefined && latestMetrics.followers > 0 && (() => {
                           const rating = getMetricRating(latestMetrics.comments, 'comments', latestMetrics.followers);
+                          const Icon = rating.iconName === 'Smile' ? Smile : rating.iconName === 'Meh' ? Meh : Frown;
                           return (
                             <div className={cn('h-7 w-7', rating.color)}>
-                              {rating.iconName === 'Smile' && <Smile className="h-full w-full" />}
-                              {rating.iconName === 'Meh' && <Meh className="h-full w-full" />}
-                              {rating.iconName === 'Frown' && <Frown className="h-full w-full" />}
+                              <Icon className="h-full w-full" />
                             </div>
                           )
                         })()}
@@ -784,5 +781,4 @@ export default function DashboardPage() {
     </>
   );
 }
-
     
