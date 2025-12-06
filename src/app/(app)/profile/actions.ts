@@ -76,7 +76,9 @@ const TikTokPostSchema = z.object({
 
 
 const TikTokPostResponseSchema = z.object({
-  videos: z.array(TikTokPostSchema).optional().default([]),
+  data: z.object({
+    videos: z.array(TikTokPostSchema).optional().default([]),
+  }).optional(),
 }).passthrough();
 
 
@@ -98,11 +100,11 @@ async function fetchFromRapidApi(platform: 'instagram-profile' | 'tiktok-profile
             path = 'v1/profile';
             break;
         case 'tiktok-profile':
-            host = 'tiktok-video-no-watermark2.p.rapidapi.com';
+            host = 'tiktok-api6.p.rapidapi.com';
             path = 'user/details';
             break;
         case 'tiktok-posts':
-            host = 'tiktok-video-no-watermark2.p.rapidapi.com';
+            host = 'tiktok-api6.p.rapidapi.com';
             path = 'user/videos';
             break;
         default:
@@ -274,9 +276,11 @@ export async function getTikTokPosts(username: string): Promise<TikTokPostData[]
     }
     try {
         const result = await fetchFromRapidApi('tiktok-posts', username);
-        const parsed = TikTokPostResponseSchema.parse(result.data);
+        const parsed = TikTokPostResponseSchema.parse(result);
         
-        return parsed.videos.map(post => ({
+        const videos = parsed.data?.videos ?? [];
+
+        return videos.map(post => ({
             id: post.video_id,
             shareUrl: post.share_url,
             description: post.description || '',
@@ -295,5 +299,3 @@ export async function getTikTokPosts(username: string): Promise<TikTokPostData[]
         throw e;
     }
 }
-
-    
