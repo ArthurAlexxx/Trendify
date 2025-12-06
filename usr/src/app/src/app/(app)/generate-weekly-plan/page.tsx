@@ -21,14 +21,14 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Bot, Loader2, Sparkles, Trash2, Check, History, ClipboardList, BrainCircuit, Target, BarChart as BarChartIcon, Eye } from 'lucide-react';
-import { useEffect, useTransition, useState } from 'react';
+import { Bot, Loader2, Sparkles, Check, History, ClipboardList, BrainCircuit, Target, Eye, BarChart as BarChartIcon, Zap, AlertTriangle, Trophy, Save } from 'lucide-react';
+import { useEffect, useTransition, useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { generateWeeklyPlanAction, GenerateWeeklyPlanOutput } from '@/app/(app)/generate-weekly-plan/actions';
 import { Separator } from '@/components/ui/separator';
 import { useDoc, useFirestore, useMemoFirebase, useUser, useCollection } from '@/firebase';
-import type { UserProfile, ItemRoteiro, PlanoSemanal } from '@/lib/types';
+import type { UserProfile, PlanoSemanal, ItemRoteiro } from '@/lib/types';
 import {
   doc,
   collection,
@@ -36,13 +36,11 @@ import {
   query,
   orderBy,
   limit,
+  writeBatch,
+  getDocs,
   updateDoc,
-  addDoc,
-  deleteDoc,
 } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Checkbox } from '@/components/ui/checkbox';
-import { cn } from '@/lib/utils';
 import {
   BarChart,
   Bar,
@@ -51,23 +49,20 @@ import {
   CartesianGrid,
 } from 'recharts';
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PreviousPlansSheet } from '@/components/previous-plans-sheet';
+import { cn } from '@/lib/utils';
+import { Checkbox } from '@/components/ui/checkbox';
+
 
 const formSchema = z.object({
   objective: z.string().min(10, 'O objetivo precisa ser mais detalhado.'),
   niche: z.string().min(1, 'O nicho é obrigatório.'),
   currentStats: z.string().min(1, 'As estatísticas são obrigatórias.'),
+  totalFollowerGoal: z.number().optional(),
+  instagramFollowerGoal: z.number().optional(),
+  tiktokFollowerGoal: z.number().optional(),
 });
 
 type FormSchemaType = z.infer<typeof formSchema>;
@@ -112,6 +107,7 @@ export default function GenerateWeeklyPlanPage() {
   const { toast } = useToast();
   const [isGenerating, startTransition] = useTransition();
   const [state, setState] = useState<WeeklyPlanState>(null);
+  const [activeTab, setActiveTab] = useState("generate");
   
   const [isSaving, startSavingTransition] = useTransition();
 
@@ -125,48 +121,154 @@ export default function GenerateWeeklyPlanPage() {
   const { data: userProfile, isLoading: isLoadingProfile } =
     useDoc<UserProfile>(userProfileRef);
 
-  const roteiroQuery = useMemoFirebase(
-    () => (firestore ? query(collection(firestore, 'roteiro'), orderBy('createdAt', 'desc'), limit(1)) : null),
-    [firestore]
+  // Query to get the currently active plan (there should only be one)
+  const activePlanQuery = useMemoFirebase(
+    () => user && firestore ? query(collection(firestore, `users/${user.uid}/weeklyPlans`), limit(1)) : null,
+    [user, firestore]
   );
-  const { data: roteiroData, isLoading: isLoadingRoteiro } = useCollection<PlanoSemanal>(roteiroQuery);
-  const currentPlan = roteiroData?.[0];
-  const currentRoteiroItems = currentPlan?.items;
-  const currentDesempenho = currentPlan?.desempenhoSimulado;
+  const { data: activePlanData, isLoading: isLoadingActivePlan } = useCollection<PlanoSemanal>(activePlanQuery);
+  const activePlan = activePlanData?.[0];
 
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      objective: '',
+      objective: 'Aumentar o engajamento em 15% com conteúdo de valor',
       niche: '',
       currentStats: '',
+      totalFollowerGoal: 0,
+      instagramFollowerGoal: 0,
+      tiktokFollowerGoal: 0,
     },
   });
   
-  const formAction = async (formData: FormSchemaType) => {
+  const result = state?.data;
+
+  const formAction = useCallback(async (formData: FormSchemaType) => {
+    if (!user || !firestore) {
+      toast({ title: "Erro", description: "Usuário não autenticado.", variant: "destructive" });
+      return;
+    }
+    
     startTransition(async () => {
       const result = await generateWeeklyPlanAction(null, formData);
       setState(result);
+      if(result?.data){
+         setActiveTab("result");
+      }
     });
-  };
+  }, [user, firestore, toast, startTransition, setState, setActiveTab]);
+  
+  const handleSavePlan = useCallback(async () => {
+    if (!result || !user || !firestore) return;
+  
+    startSavingTransition(async () => {
+      try {
+        const batch = writeBatch(firestore);
+        const planCollectionRef = collection(firestore, `users/${user.uid}/weeklyPlans`);
+        const ideasCollectionRef = collection(firestore, `users/${user.uid}/ideiasSalvas`);
+  
+        // 1. Archive the current active plan
+        const oldPlansSnapshot = await getDocs(planCollectionRef);
+        for (const planDoc of oldPlansSnapshot.docs) {
+          const oldPlanData = planDoc.data() as PlanoSemanal;
+          const newArchivedRef = doc(ideasCollectionRef);
+          
+          interface ArchivedPlan {
+            userId: string;
+            titulo: string;
+            conteudo: string;
+            origem: string;
+            concluido: boolean;
+            createdAt: any;
+            fullPlanData: PlanoSemanal;
+          }
+          
+          const archivedPlan: ArchivedPlan = {
+            userId: user.uid,
+            titulo: `Plano Arquivado em ${new Date().toLocaleDateString('pt-BR')}`,
+            conteudo: oldPlanData.items.map(item => `**${item.dia}:** ${item.tarefa}\n*Detalhes:* ${item.detalhes}`).join('\n\n'),
+            origem: "Plano Semanal",
+            concluido: false, 
+            createdAt: oldPlanData.createdAt,
+            fullPlanData: oldPlanData,
+          };
+          
+          batch.set(newArchivedRef, archivedPlan);
+          batch.delete(planDoc.ref);
+        }
+  
+        // 2. Save the new plan as the single active plan
+        const newPlanDocRef = doc(planCollectionRef);
+        
+        const newPlanData: Omit<PlanoSemanal, 'id'> = {
+          userId: user.uid,
+          createdAt: serverTimestamp(),
+          items: result.items.map(item => ({
+            ...item,
+            concluido: false
+          })),
+          desempenhoSimulado: result.desempenhoSimulado,
+          effortLevel: result.effortLevel,
+          priorityIndex: result.priorityIndex,
+          realignmentTips: result.realignmentTips,
+        };
+        
+        batch.set(newPlanDocRef, newPlanData);
+        
+        await batch.commit();
+  
+        toast({
+          title: 'Sucesso!',
+          description: 'Seu novo plano semanal foi salvo e ativado. O plano anterior foi movido para o histórico.',
+        });
+        setActiveTab('generate');
+        setState(null);
+      } catch (e: any) {
+        console.error('Erro ao salvar plano:', e);
+        toast({
+          title: 'Erro ao Salvar Plano',
+          description: `Não foi possível salvar os dados: ${e.message}`,
+          variant: 'destructive',
+        });
+      }
+    });
+  }, [result, user, firestore, toast, startSavingTransition, setActiveTab, setState]);
 
   useEffect(() => {
     if (userProfile) {
-       const stats = [
-        userProfile.instagramFollowers ? `${userProfile.instagramFollowers} seguidores` : '',
-        userProfile.instagramAverageViews ? `${userProfile.instagramAverageViews} de média de views` : '',
+      const parseMetric = (value?: string | number): number => {
+          if (typeof value === 'number') return value;
+          if (!value || typeof value !== 'string') return 0;
+          const cleanedValue = value.replace(/\./g, '').replace(',', '.');
+          const num = parseFloat(cleanedValue.replace(/K/gi, 'e3').replace(/M/gi, 'e6'));
+          return isNaN(num) ? 0 : num;
+      };
+
+      const formatNumber = (num: number): string => {
+          if (num >= 1000000) return `${(num / 1000000).toFixed(1).replace('.', ',')}M`;
+          if (num >= 1000) return `${(num / 1000).toFixed(0)}K`;
+          return String(num);
+      };
+
+      const totalFollowers = parseMetric(userProfile.instagramFollowers) + parseMetric(userProfile.tiktokFollowers);
+      const totalViews = parseMetric(userProfile.instagramAverageViews) + parseMetric(userProfile.tiktokAverageViews);
+
+      const stats = [
+        totalFollowers > 0 ? `${formatNumber(totalFollowers)} seguidores no total` : '',
+        totalViews > 0 ? `${formatNumber(totalViews)} de média de views total` : '',
       ].filter(Boolean).join(', ');
 
       form.reset({
-        objective: 'Aumentar o engajamento em 15% com conteúdo de valor',
+        objective: form.getValues('objective') || 'Aumentar o engajamento em 15% com conteúdo de valor',
         niche: userProfile.niche || '',
-        currentStats: stats,
+        currentStats: stats || 'Nenhuma métrica disponível',
+        totalFollowerGoal: userProfile.totalFollowerGoal,
+        instagramFollowerGoal: userProfile.instagramFollowerGoal,
+        tiktokFollowerGoal: userProfile.tiktokFollowerGoal,
       });
     }
   }, [userProfile, form]);
-
-  const result = state?.data;
 
   useEffect(() => {
     if (state?.error) {
@@ -176,405 +278,425 @@ export default function GenerateWeeklyPlanPage() {
         variant: 'destructive',
       });
     }
-    if (result && firestore) {
-      startSavingTransition(async () => {
-        try {
-          await addDoc(collection(firestore, 'roteiro'), {
-            items: result.roteiro,
-            desempenhoSimulado: result.desempenhoSimulado,
-            createdAt: serverTimestamp(),
-          });
+  }, [state, toast]);
+  
+  const handleToggleRoteiro = async (itemIndex: number) => {
+    if (!firestore || !activePlan || !user) return;
 
-          toast({
-            title: 'Sucesso!',
-            description:
-              'Seu novo roteiro e simulação de desempenho foram salvos e estão no dashboard.',
-          });
-        } catch (e: any) {
-          toast({
-            title: 'Erro ao Salvar Plano',
-            description: `Não foi possível salvar os dados no Firestore: ${e.message}`,
-            variant: 'destructive',
-          });
-        }
-      });
-    }
-  }, [state, result, firestore, toast]);
-
-  const handleToggleRoteiro = async (item: ItemRoteiro) => {
-    if (!firestore || !currentPlan) return;
-    const planoRef = doc(firestore, 'roteiro', currentPlan.id);
-    const updatedItems = currentRoteiroItems?.map((i) =>
-      i.tarefa === item.tarefa ? { ...i, concluido: !i.concluido } : i
+    const planRef = doc(firestore, `users/${user.uid}/weeklyPlans`, activePlan.id);
+    const updatedItems = activePlan.items.map((item, index) =>
+      index === itemIndex ? { ...item, concluido: !item.concluido } : item
     );
+
     try {
-      await updateDoc(planoRef, { items: updatedItems });
-    } catch (error) {
-      console.error('Failed to update roteiro status:', error);
+      await updateDoc(planRef, { items: updatedItems });
+    } catch (e: any) {
+      toast({ title: 'Erro ao atualizar tarefa', description: e.message, variant: 'destructive' });
     }
   };
-
-  const handleDeleteCurrentPlan = async () => {
-    if (!firestore || !currentPlan) {
-      toast({ title: 'Nenhum plano para deletar.', variant: 'destructive'});
-      return;
-    }
-
-    try {
-      await deleteDoc(doc(firestore, 'roteiro', currentPlan.id));
-      toast({ title: 'Plano atual deletado com sucesso!'});
-    } catch (error: any) {
-      toast({ title: 'Erro ao deletar plano', description: error.message, variant: 'destructive'});
-    }
-  }
 
 
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Crie seu Plano Semanal"
-        description="Transforme seu objetivo da semana em um roteiro de conteúdo acionável."
-      >
-        <PreviousPlansSheet />
-      </PageHeader>
+        title="Plano Semanal"
+        description="Transforme seu objetivo em um roteiro de conteúdo acionável."
+        icon={ClipboardList}
+      />
       
-        <Card className="border-0 rounded-2xl">
+      <div>
+        <div className="text-center">
+            <h2 className="text-xl font-bold font-headline">Como Montamos seu Plano?</h2>
+            <p className="text-muted-foreground">A IA atua como sua estrategista e analisa 4 pilares:</p>
+        </div>
+        <Separator className="w-1/2 mx-auto my-4" />
+        <div className="py-8">
+          <div className="md:hidden">
+              <Carousel className="w-full" opts={{ align: 'start' }}>
+                  <CarouselContent className="-ml-4">
+                      {analysisCriteria.map((item, index) => (
+                          <CarouselItem key={index} className="pl-4 basis-full">
+                              <Card className="rounded-2xl border-0 h-full">
+                                  <CardHeader>
+                                      <CardTitle className="text-center flex items-center gap-3">
+                                          <item.icon className="h-6 w-6 text-primary" />
+                                          <span>{item.title}</span>
+                                      </CardTitle>
+                                  </CardHeader>
+                                  <CardContent>
+                                      <p className="text-muted-foreground">{item.description}</p>
+                                  </CardContent>
+                              </Card>
+                          </CarouselItem>
+                      ))}
+                  </CarouselContent>
+                  <CarouselPrevious className="left-2" />
+                  <CarouselNext className="right-2" />
+              </Carousel>
+          </div>
+          <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {analysisCriteria.map((item, index) => (
+                  <Card key={index} className="rounded-2xl border-0">
+                      <CardHeader>
+                          <CardTitle className="text-center flex items-center gap-3">
+                              <item.icon className="h-6 w-6 text-primary" />
+                              <span>{item.title}</span>
+                          </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                          <p className="text-muted-foreground">{item.description}</p>
+                      </CardContent>
+                  </Card>
+              ))}
+          </div>
+        </div>
+      </div>
+
+       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="generate">Gerar Novo Plano</TabsTrigger>
+          <TabsTrigger value="result" disabled={!result}>
+            Resultado
+            {isGenerating && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
+          </TabsTrigger>
+           <TabsTrigger value="activePlan" disabled={!activePlan && !isLoadingActivePlan}>
+            Plano Ativo
+            {isLoadingActivePlan && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="generate">
+          <Card className="rounded-t-none border-t-0">
             <CardHeader>
-                <CardTitle className="flex items-center gap-3 font-headline text-xl">
-                    <Sparkles className="h-6 w-6 text-primary" />
-                    Como Montamos seu Plano Estratégico?
-                </CardTitle>
-                 <CardDescription>Nossa plataforma foi treinada para atuar como uma estrategista de crescimento. Ela analisa sua necessidade em busca de 4 pilares:</CardDescription>
+              <CardTitle className="text-center flex items-center gap-3 font-headline text-xl">
+                <Bot className="h-6 w-6 text-primary" />
+                <span>Briefing da Semana</span>
+              </CardTitle>
+              <CardDescription className="text-center">
+                Forneça os detalhes para um plano melhor. Sua meta de seguidores será usada para focar a estratégia.
+              </CardDescription>
             </CardHeader>
             <CardContent>
-                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {analysisCriteria.map((item, index) => (
-                        <div key={index} className="p-4 rounded-lg bg-muted/50 border">
-                            <div className="flex items-center gap-3 mb-2">
-                                <item.icon className="h-5 w-5 text-primary" />
-                                <h4 className="font-semibold text-foreground">{item.title}</h4>
-                            </div>
-                            <p className="text-xs text-muted-foreground">{item.description}</p>
-                        </div>
-                    ))}
-                </div>
-            </CardContent>
-        </Card>
-
-
-      <Card className="border-0 rounded-2xl">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-3 font-headline text-xl">
-            <Bot className="h-6 w-6 text-primary" />
-            <span>Briefing da Semana</span>
-          </CardTitle>
-          <CardDescription>
-            Quanto mais detalhes você fornecer, melhor será o plano gerado.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(formAction)} className="space-y-8">
-              <div className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="objective"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Qual seu principal objetivo para esta semana?
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Ex: 'Aumentar o engajamento com Reels de humor'"
-                          className="h-11"
-                          {...field}
+                <Form {...form}>
+                    <form onSubmit={form.handleSubmit(formAction)} className="space-y-8">
+                    <div className="space-y-6">
+                        <FormField
+                        control={form.control}
+                        name="objective"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>
+                                Qual seu principal objetivo para a semana?
+                            </FormLabel>
+                            <FormControl>
+                                <Input
+                                placeholder="Ex: Aumentar o engajamento com Reels de humor"
+                                className="h-11"
+                                {...field}
+                                />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
                         />
-                      </FormControl>
-                      <FormDescription>Seja específico. Ex: "ganhar 500 seguidores", "aumentar o alcance em 20%", "divulgar meu e-book".</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <div className="grid md:grid-cols-2 gap-6">
-                  <FormField
-                    control={form.control}
-                    name="niche"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Seu Nicho</FormLabel>
-                        <FormControl>
-                          {isLoadingProfile ? (
-                            <Skeleton className="h-11 w-full" />
-                          ) : (
-                            <Input
-                              placeholder="Defina em Configurações > Perfil"
-                              className="h-11"
-                              {...field}
-                              readOnly
-                            />
-                          )}
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="currentStats"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Métricas Atuais</FormLabel>
-                        <FormControl>
-                          {isLoadingProfile ? (
-                            <Skeleton className="h-11 w-full" />
-                          ) : (
-                            <Input
-                              placeholder="Defina em Configurações > Perfil"
-                              className="h-11"
-                              {...field}
-                              readOnly
-                            />
-                          )}
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-
-              <div className="pt-2 flex flex-col sm:flex-row items-center gap-4">
-                <Button
-                  type="submit"
-                  disabled={isGenerating || isSaving || isLoadingProfile}
-                  size="lg"
-                  className="font-manrope w-full sm:w-auto h-12 px-10 rounded-full text-base font-bold"
-                >
-                  {isGenerating || isSaving ? (
-                    <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      {isSaving ? 'Salvando...' : 'Gerando Plano...'}
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="mr-2 h-5 w-5" />
-                      Gerar Novo Plano
-                    </>
-                  )}
-                </Button>
-                
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="destructive" type='button' disabled={!currentPlan || isGenerating || isSaving} className="w-full sm:w-auto">
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Limpar Plano Atual
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Esta ação irá deletar o plano semanal atual. Ele não poderá ser recuperado. 
-                        Planos anteriores no histórico não serão afetados.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                      <AlertDialogAction onClick={handleDeleteCurrentPlan} className={cn(buttonVariants({variant: 'destructive'}))}>Deletar Plano</AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-
-              </div>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
-      
-      {!result && isLoadingRoteiro && (
-         <div className="space-y-8">
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
-              <Card className="rounded-2xl border-0"><CardHeader><Skeleton className="h-6 w-40" /></CardHeader><CardContent><div className="space-y-4"><Skeleton className="h-12 w-full" /><Skeleton className="h-12 w-full" /><Skeleton className="h-12 w-full" /></div></CardContent></Card>
-              <Card className="rounded-2xl border-0"><CardHeader><Skeleton className="h-6 w-48" /></CardHeader><CardContent><Skeleton className="h-[350px] w-full" /></CardContent></Card>
-            </div>
-          </div>
-      )}
-
-      {!result && !isLoadingRoteiro && currentRoteiroItems && currentRoteiroItems.length > 0 && (
-         <div className="space-y-8 animate-fade-in">
-           <Separator />
-            <div className="text-center">
-              <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Seu Plano Atual</h2>
-              <p className="text-muted-foreground">Este é o roteiro que está ativo no seu painel.</p>
-            </div>
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
-                <Card className="rounded-2xl border-0">
-                  <CardHeader><CardTitle className="font-headline text-xl">Roteiro de Conteúdo</CardTitle></CardHeader>
-                  <CardContent>
-                    <ul className="space-y-2">
-                      {currentRoteiroItems.map((item, index) => (
-                        <li key={index}>
-                          <div className="flex items-start gap-4 p-2 rounded-lg hover:bg-muted/50">
-                            <Checkbox
-                              id={`current-roteiro-${index}`}
-                              checked={item.concluido}
-                              onCheckedChange={() => handleToggleRoteiro(item)}
-                              className="h-5 w-5 mt-1"
-                            />
-                            <div>
-                              <label
-                                htmlFor={`current-roteiro-${index}`}
-                                className={cn(
-                                  'font-medium text-base transition-colors cursor-pointer',
-                                  item.concluido ? 'line-through text-muted-foreground' : 'text-foreground'
+                        <div className="grid md:grid-cols-2 gap-6">
+                        <FormField
+                            control={form.control}
+                            name="niche"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Seu Nicho</FormLabel>
+                                <FormControl>
+                                {isLoadingProfile ? (
+                                    <Skeleton className="h-11 w-full" />
+                                ) : (
+                                    <Input
+                                    placeholder="Defina em seu Perfil"
+                                    className="h-11"
+                                    {...field}
+                                    />
                                 )}
-                              >
-                                <span className="font-semibold text-primary">{item.dia}:</span> {item.tarefa}
-                              </label>
-                              <p className="text-sm text-muted-foreground">{item.detalhes}</p>
-                            </div>
-                          </div>
-                          {index < currentRoteiroItems.length - 1 && <Separator className="my-2" />}
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
-                <Card className="rounded-2xl border-0">
-                  <CardHeader><CardTitle className="font-headline text-xl">Desempenho Semanal (Simulado)</CardTitle></CardHeader>
-                  <CardContent className="pl-2">
-                    {isLoadingRoteiro ? <Skeleton className="h-[350px] w-full" /> : 
-                     <ChartContainer config={chartConfig} className="h-[350px] w-full">
-                       <BarChart accessibilityLayer data={currentDesempenho || []} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
-                          <CartesianGrid vertical={false} />
-                          <XAxis dataKey="data" tickLine={false} axisLine={false} />
-                          <YAxis tickLine={false} axisLine={false} tickFormatter={(value) => typeof value === 'number' && value >= 1000 ? `${value / 1000}k` : value} />
-                          <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
-                          <Bar dataKey="alcance" fill="var(--color-alcance)" radius={8} className="fill-primary" />
-                          <Bar dataKey="engajamento" fill="var(--color-engajamento)" radius={8} />
-                       </BarChart>
-                     </ChartContainer>
-                    }
-                  </CardContent>
-                </Card>
-            </div>
-         </div>
-      )}
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="currentStats"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Métricas Atuais</FormLabel>
+                                <FormControl>
+                                {isLoadingProfile ? (
+                                    <Skeleton className="h-11 w-full" />
+                                ) : (
+                                    <Input
+                                    placeholder="Defina em seu Perfil"
+                                    className="h-11"
+                                    {...field}
+                                    readOnly
+                                    />
+                                )}
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                        </div>
+                    </div>
 
-
-      {(isGenerating || result) && (
-        <div className="space-y-8 animate-fade-in">
-          <Separator />
-          <div className="flex flex-col sm:flex-row justify-between items-start gap-4 text-center sm:text-left">
-            <div className="flex-1">
-              <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">
-                Plano Gerado
-              </h2>
-              <p className="text-muted-foreground">
-                Revise o plano abaixo. Se estiver bom, ele será salvo e
-                substituirá o plano atual.
-              </p>
-            </div>
-          </div>
-
-          {isGenerating && !result ? (
-            <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-96">
-              <Loader2 className="h-10 w-10 animate-spin text-primary" />
-              <p className="mt-4 text-muted-foreground">
-                Nossa plataforma está montando sua estratégia...
-              </p>
-            </div>
-          ) : result ? (
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
-              <Card className="rounded-2xl border-0">
+                    <div className="pt-2 flex flex-col sm:flex-row items-center justify-start gap-4">
+                        <Button
+                        type="submit"
+                        disabled={isGenerating || isSaving || isLoadingProfile}
+                        size="lg"
+                        className="w-full sm:w-auto"
+                        >
+                        {isGenerating || isSaving ? (
+                            <>
+                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                            {isSaving ? 'Salvando...' : 'Gerando...'}
+                            </>
+                        ) : (
+                            <>
+                            <Sparkles className="mr-2 h-5 w-5" />
+                            Gerar Novo Plano
+                            </>
+                        )}
+                        </Button>
+                    </div>
+                    </form>
+                </Form>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="result">
+             <Card className="rounded-t-none border-t-0">
                 <CardHeader>
-                  <CardTitle className="font-headline text-xl">
-                    Novo Roteiro de Conteúdo
-                  </CardTitle>
+                    <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
+                        <div className="flex-1">
+                          <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">
+                            Plano Gerado
+                          </h2>
+                          <p className="text-muted-foreground">
+                            Seu novo plano semanal está pronto. Salve-o para ativá-lo no seu dashboard.
+                          </p>
+                        </div>
+                        <div className="flex w-full sm:w-auto flex-col sm:flex-row gap-2">
+                             <Button onClick={handleSavePlan} disabled={isSaving} className="w-full sm:w-auto">
+                                <Save className="mr-2 h-4 w-4" />
+                                {isSaving ? 'Salvando...' : 'Salvar e Ativar Plano'}
+                            </Button>
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent className="p-6">
+                    <div className="space-y-8 animate-fade-in">
+                      {isGenerating && !result ? (
+                        <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-96">
+                          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                          <p className="mt-4 text-muted-foreground">
+                            Nossa IA está montando sua estratégia...
+                          </p>
+                        </div>
+                      ) : result ? (
+                        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
+                          <Card className="rounded-2xl border-0">
+                            <CardHeader>
+                              <CardTitle className="text-center font-headline text-xl">
+                                Novo Roteiro de Conteúdo
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <ul className="space-y-2">
+                                    {result.items.map((item: ItemRoteiro, index: number) => (
+                                    <li key={index}>
+                                        <div className="flex items-start gap-4 p-2 rounded-lg">
+                                        <div className='h-5 w-5 mt-1 flex items-center justify-center shrink-0'>
+                                            <Check className='h-4 w-4 text-primary' />
+                                        </div>
+                                        <div>
+                                            <p className={'font-medium text-base text-foreground'}>
+                                            <span className="font-semibold text-primary">
+                                                {item.dia}:
+                                            </span>{' '}
+                                            {item.tarefa}
+                                            </p>
+                                            <p className="text-sm text-muted-foreground">
+                                            {item.detalhes}
+                                            </p>
+                                        </div>
+                                        </div>
+                                        {index < result.items.length - 1 && (
+                                        <Separator className="my-2" />
+                                        )}
+                                    </li>
+                                    ))}
+                                </ul>
+                            </CardContent>
+                          </Card>
+
+                          <div className='space-y-8'>
+                          <Card className="rounded-2xl border-0">
+                            <CardHeader>
+                              <CardTitle className="text-center font-headline text-xl">
+                                Nova Simulação de Desempenho
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent className="pl-0 sm:pl-2">
+                               <ChartContainer
+                                  config={chartConfig}
+                                  className="h-[350px] w-full"
+                                >
+                                  <BarChart
+                                    accessibilityLayer
+                                    data={result.desempenhoSimulado}
+                                    margin={{ top: 20, right: 20, bottom: 20, left: 0 }}
+                                  >
+                                    <CartesianGrid vertical={false} />
+
+                                    <XAxis
+                                      dataKey="data"
+                                      tickLine={false}
+                                      axisLine={false}
+                                    />
+
+                                    <YAxis
+                                      tickLine={false}
+                                      axisLine={false}
+                                      tickFormatter={(value) =>
+                                        typeof value === 'number' && value >= 1000
+                                          ? `${value / 1000}k`
+                                          : value
+                                      }
+                                    />
+
+                                    <ChartTooltip
+                                      cursor={false}
+                                      content={<ChartTooltipContent indicator="dot" />}
+                                    />
+
+                                    <Bar
+                                      dataKey="alcance"
+                                      fill="hsl(var(--primary))"
+                                      radius={[4, 4, 0, 0]}
+                                    />
+
+                                    <Bar
+                                      dataKey="engajamento"
+                                      fill="hsl(var(--chart-2))"
+                                      radius={[4, 4, 0, 0]}
+                                    />
+                                  </BarChart>
+                                </ChartContainer>
+                            </CardContent>
+                          </Card>
+                          
+                          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                            <Card className="border-0 rounded-2xl">
+                                <CardHeader><CardTitle className="text-center flex items-center gap-2 text-sm text-muted-foreground"><Trophy className='h-4 w-4' /> Índice de Prioridade</CardTitle></CardHeader>
+                                <CardContent><ul className="space-y-2 text-sm">{result.priorityIndex.map(item => <li key={item} className='font-semibold'>{item}</li>)}</ul></CardContent>
+                            </Card>
+                             <Card className="border-0 rounded-2xl">
+                                <CardHeader><CardTitle className="text-center flex items-center gap-2 text-sm text-muted-foreground"><Zap className='h-4 w-4' /> Nível de Esforço</CardTitle></CardHeader>
+                                <CardContent><p className='text-xl font-bold'>{result.effortLevel}</p></CardContent>
+                            </Card>
+                          </div>
+                           <Card className="border-0 rounded-2xl">
+                                <CardHeader><CardTitle className="text-center flex items-center gap-2 text-sm text-muted-foreground"><AlertTriangle className='h-4 w-4' /> Dicas de Realinhamento</CardTitle></CardHeader>
+                                <CardContent><p className='text-sm'>{result.realignmentTips}</p></CardContent>
+                            </Card>
+                          </div>
+                        </div>
+                      ) : (
+                         <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-96">
+                          <ClipboardList className="h-10 w-10 text-muted-foreground" />
+                          <p className="mt-4 text-muted-foreground">
+                            Gere um plano para ver os resultados.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                </CardContent>
+            </Card>
+        </TabsContent>
+         <TabsContent value="activePlan">
+            <Card className="rounded-t-none border-t-0">
+                <CardHeader>
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 text-center sm:text-left">
+                        <div>
+                            <CardTitle className="font-headline text-xl">Plano Semanal Ativo</CardTitle>
+                            <CardDescription>Este é o plano visível no seu dashboard.</CardDescription>
+                        </div>
+                        <PreviousPlansSheet />
+                    </div>
                 </CardHeader>
                 <CardContent>
-                  <ul className="space-y-2">
-                    {result.roteiro.map((item, index) => (
-                      <li key={index}>
-                        <div className="flex items-start gap-4 p-2 rounded-lg">
-                           <div className='h-5 w-5 mt-1 flex items-center justify-center shrink-0'>
-                            <Check className='h-4 w-4 text-primary' />
-                           </div>
-                          <div>
-                            <p className={'font-medium text-base text-foreground'}>
-                              <span className="font-semibold text-primary">
-                                {item.dia}:
-                              </span>{' '}
-                              {item.tarefa}
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              {item.detalhes}
-                            </p>
-                          </div>
+                     {isLoadingActivePlan ? (
+                         <div className="flex justify-center items-center h-64"><Loader2 className="h-8 w-8 animate-spin" /></div>
+                     ) : activePlan ? (
+                        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
+                             <Card className="rounded-2xl border-0">
+                                <CardHeader>
+                                <CardTitle className="font-headline text-xl">Roteiro de Conteúdo</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <ul className="space-y-2">
+                                        {activePlan.items.map((item: ItemRoteiro, index: number) => (
+                                            <li key={index}>
+                                            <div className="flex items-start gap-4 p-2 rounded-lg hover:bg-muted/50">
+                                                <Checkbox
+                                                id={`active-roteiro-${index}`}
+                                                checked={item.concluido}
+                         nano src/app/(app)/generate-weekly-plan/page.tsx                       onCheckedChange={() => handleToggleRoteiro(index)}
+                                                className="h-5 w-5 mt-1"
+                                                />
+                                                <div>
+                                                <label
+                                                    htmlFor={`active-roteiro-${index}`}
+                                                    className={cn(
+                                                    'font-medium text-base transition-colors cursor-pointer',
+                                                    item.concluido ? 'line-through text-muted-foreground' : 'text-foreground'
+                                                    )}
+                                                >
+                                                    <span className="font-semibold text-primary">{item.dia}:</span> {item.tarefa}
+                                                </label>
+                                                <p className="text-sm text-muted-foreground">{item.detalhes}</p>
+                                                </div>
+                                            </div>
+                                            {index < activePlan.items.length - 1 && <Separator className="my-2" />}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </CardContent>
+                            </Card>
+                             <Card className="rounded-2xl border-0">
+                                <CardHeader><CardTitle className="font-headline text-xl">Desempenho Semanal (Simulado)</CardTitle></CardHeader>
+                                <CardContent className="pl-0 sm:pl-2">
+                                    <ChartContainer config={chartConfig} className="h-[350px] w-full">
+                                    <BarChart data={activePlan.desempenhoSimulado} margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
+                                        <CartesianGrid vertical={false} />
+                                        <XAxis dataKey="data" tickLine={false} axisLine={false} />
+                                        <YAxis tickLine={false} axisLine={false} tickFormatter={(value) => typeof value === 'number' && value >= 1000 ? `${value / 1000}k` : value} />
+                                        <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
+                                        <Bar dataKey="alcance" fill="var(--color-alcance)" radius={[4, 4, 0, 0]} />
+                                        <Bar dataKey="engajamento" fill="var(--color-engajamento)" radius={[4, 4, 0, 0]} />
+                                    </BarChart>
+                                    </ChartContainer>
+                                </CardContent>
+                            </Card>
                         </div>
-                        {index < result.roteiro.length - 1 && (
-                          <Separator className="my-2" />
-                        )}
-                      </li>
-                    ))}
-                  </ul>
+                     ) : (
+                        <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-64">
+                            <ClipboardList className="h-10 w-10 text-muted-foreground" />
+                            <p className="mt-4 text-muted-foreground">Nenhum plano ativo no momento.</p>
+                            <p className="text-sm text-muted-foreground">Gere um novo plano e salve-o para ativá-lo.</p>
+                        </div>
+                     )}
                 </CardContent>
-              </Card>
-
-              <Card className="rounded-2xl border-0">
-                <CardHeader>
-                  <CardTitle className="font-headline text-xl">
-                    Nova Simulação de Desempenho
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pl-2">
-                  <ChartContainer
-                    config={chartConfig}
-                    className="h-[350px] w-full"
-                  >
-                    <BarChart
-                      accessibilityLayer
-                      data={result.desempenhoSimulado}
-                      margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
-                    >
-                      <CartesianGrid vertical={false} />
-                      <XAxis
-                        dataKey="data"
-                        tickLine={false}
-                        axisLine={false}
-                      />
-                      <YAxis
-                        tickLine={false}
-                        axisLine={false}
-                        tickFormatter={(value) =>
-                          typeof value === 'number' && value >= 1000
-                            ? `${value / 1000}k`
-                            : value
-                        }
-                      />
-                      <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
-                      <Bar
-                        dataKey="alcance"
-                        fill="var(--color-alcance)"
-                        radius={8}
-                        className="fill-primary"
-                      />
-                      <Bar
-                        dataKey="engajamento"
-                        fill="var(--color-engajamento)"
-                        radius={8}
-                      />
-                    </BarChart>
-                  </ChartContainer>
-                </CardContent>
-              </Card>
-            </div>
-          ) : null}
-        </div>
-      )}
+            </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
-
-    

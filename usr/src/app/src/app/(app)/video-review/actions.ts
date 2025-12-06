@@ -3,15 +3,17 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import { initializeFirebaseAdmin } from '@/firebase/admin';
 
 const VideoAnalysisOutputSchema = z.object({
   geral: z.string().describe('Uma nota geral de 0 a 10 para o potencial de viralização do vídeo, sempre acompanhada de uma justificativa concisa.'),
   gancho: z.string().describe('Análise dos primeiros 3 segundos do vídeo. Dê uma nota de 0 a 10 para o gancho e justifique, avaliando se é forte, gera curiosidade e retém a atenção.'),
   conteudo: z.string().describe('Análise do desenvolvimento, ritmo e entrega de valor do vídeo. Aponte pontos que podem estar causando perda de retenção.'),
   cta: z.string().describe('Avaliação da chamada para ação (call to action), verificando se é clara, convincente e alinhada ao objetivo do vídeo.'),
-  melhorias: z.array(z.string()).describe('Uma lista de 3 dicas práticas e acionáveis, em formato de checklist, para o criador melhorar o vídeo.'),
+  melhorias: z.array(z.string()).length(3).describe('Uma lista de 3 dicas práticas e acionáveis, em formato de checklist, para o criador melhorar o vídeo.'),
+  estimatedHeatmap: z.string().describe("Uma análise textual de onde a retenção do público provavelmente cai, com base no ritmo e estrutura do vídeo. Ex: 'A retenção provavelmente cai entre 8s-12s devido à explicação muito longa.'"),
+  comparativeAnalysis: z.string().describe("Uma breve comparação do vídeo analisado com padrões de sucesso do nicho. Ex: 'Comparado a outros vídeos de receita, o seu tem uma ótima fotografia, mas o ritmo é 20% mais lento.'"),
 });
+
 
 export type VideoAnalysisOutput = z.infer<typeof VideoAnalysisOutputSchema>;
 
@@ -24,6 +26,7 @@ type ActionState = {
 
 const formSchema = z.object({
   videoUrl: z.string().url(),
+  videoDescription: z.string().optional(),
 });
 
 async function urlToDataUri(url: string): Promise<string> {
@@ -42,7 +45,7 @@ async function urlToDataUri(url: string): Promise<string> {
  * Server Action to analyze a video provided as a data URI.
  */
 export async function analyzeVideo(
-  input: { videoUrl: string }
+  input: { videoUrl: string, videoDescription?: string }
 ): Promise<ActionState> {
   
   const parsed = formSchema.safeParse(input);
@@ -52,47 +55,54 @@ export async function analyzeVideo(
     console.error(error, parsed.error.issues);
     return { error };
   }
+  
+  const { videoUrl, videoDescription } = parsed.data;
 
   try {
-    const videoDataUri = await urlToDataUri(parsed.data.videoUrl);
-    const analysis = await analyzeVideoFlow({ videoDataUri: videoDataUri });
+    const videoDataUri = await urlToDataUri(videoUrl);
+    const analysis = await analyzeVideoFlow({ videoDataUri, videoDescription: videoDescription || 'N/A' });
     return { data: analysis };
   } catch (e: any) {
     console.error("Falha na execução do fluxo de análise de vídeo:", e);
 
-    if (e.message && (e.message.includes('503') || e.message.toLowerCase().includes('overloaded') || e.message.toLowerCase().includes('resource has been exhausted'))) {
+    const errorMessage = e.message || '';
+    if (errorMessage.includes('429') || errorMessage.includes('503') || errorMessage.toLowerCase().includes('overloaded') || errorMessage.toLowerCase().includes('resource has been exhausted')) {
         return {
-            error: 'Ocorreu uma sobrecarga em nossos servidores de IA. Por favor, aguarde alguns instantes e tente novamente. Sua análise não foi consumida.',
+            error: 'Estamos com um grande número de requisições no momento. Por favor, aguarde alguns instantes e tente novamente.',
             isOverloaded: true,
         };
     }
     
-    const errorMessage = e.message.includes('fetch') 
-      ? `Não foi possível acessar o vídeo para análise. Verifique se a URL está correta e publicamente acessível. Detalhe: ${e.message}`
-      : `Ocorreu um erro durante a análise: ${e.message || "Erro desconhecido."}`;
+    const friendlyErrorMessage = errorMessage.includes('fetch') 
+      ? `Não foi possível acessar o vídeo para análise. Verifique se a URL está correta e publicamente acessível. Detalhe: ${errorMessage}`
+      : `Ocorreu um erro durante a análise: ${errorMessage || "Erro desconhecido."}`;
 
-    return { error: errorMessage };
+    return { error: friendlyErrorMessage };
   }
 }
 
 // 1. Define o prompt para a IA
 const prompt = ai.definePrompt({
   name: 'videoAnalysisExpert',
-  model: 'googleai/gemini-2.5-flash',
-  input: { schema: z.object({ videoDataUri: z.string() }) },
+  model: 'googleai/gemini-1.5-flash',
+  input: { schema: z.object({ videoDataUri: z.string(), videoDescription: z.string() }) },
   output: { schema: VideoAnalysisOutputSchema },
   prompt: `Você é uma consultora de conteúdo viral e estrategista para criadores de conteúdo. Sua tarefa é fornecer uma análise profunda, profissional e acionável em português do Brasil.
+  Lembre-se, a data atual é dezembro de 2025.
 
-Analise o vídeo fornecido e retorne sua análise ESTRITAMENTE no formato JSON solicitado.
+Analise o vídeo fornecido e sua descrição, e retorne sua análise ESTRITAMENTE no formato JSON solicitado.
 
-Vídeo: {{media url=videoDataUri}}
+- Descrição do vídeo/contexto: {{videoDescription}}
+- Vídeo: {{media url=videoDataUri}}
 
 Diretrizes para a Análise Profissional:
-- geral: Dê uma nota de 0 a 10 para o potencial de viralização. É OBRIGATÓRIO que você forneça uma justificativa clara e concisa para a nota, mesmo que seja 0. Ex: "Nota 3/10: O vídeo tem boa qualidade, mas o gancho é fraco e não cria curiosidade inicial."
-- gancho: Dê uma nota de 0 a 10 para os primeiros 3 segundos. Avalie se o gancho é forte, se gera curiosidade ou quebra um padrão. Justifique sua nota. Ex: "Nota 8/10: Excelente. A pergunta inicial cria um loop de curiosidade imediato."
-- conteudo: Analise o desenvolvimento. O ritmo é bom? A mensagem é clara? Existem partes lentas onde o usuário pode sair? Aponte um ponto específico que pode estar causando perda de retenção.
-- cta: Avalie a chamada para ação. Ela é clara, direta e alinhada com o objetivo do vídeo? (vendas, comentários, seguidores, etc.). Sugira uma alternativa se necessário.
-- melhorias: Forneça EXATAMENTE 3 dicas em formato de checklist. As dicas devem ser práticas e focadas nos maiores pontos de melhoria. Comece cada dica com um verbo de ação. Ex: "Adicione legendas dinâmicas para aumentar a retenção", "Corte os primeiros 2 segundos para ir direto ao ponto", "Use um gancho mais polêmico para gerar debate".`,
+- geral: Dê uma nota de 0 a 10 para o potencial de viralização. É OBRIGATÓRIO que você forneça uma justificativa clara e concisa para a nota.
+- gancho: Dê uma nota de 0 a 10 para os primeiros 3 segundos. Avalie se o gancho é forte, se gera curiosidade ou quebra um padrão. Justifique sua nota.
+- conteudo: Analise o desenvolvimento, ritmo e entrega de valor do vídeo. Aponte um ponto específico que pode estar causando perda de retenção.
+- cta: Avalie a chamada para ação. Ela é clara, direta e alinhada com o objetivo do vídeo?
+- melhorias: Forneça EXATAMENTE 3 dicas em formato de checklist, práticas e acionáveis, para o criador melhorar o vídeo.
+- estimatedHeatmap: Estime textualmente onde a retenção provavelmente cai, com base no ritmo e estrutura. Ex: "A retenção deve cair entre 8s-12s devido à explicação longa."
+- comparativeAnalysis: Compare o vídeo com padrões de sucesso do nicho. Ex: "Comparado a outros vídeos de receita, o seu tem ótima fotografia, mas o ritmo é 20% mais lento."`,
   config: {
     safetySettings: [
         {
@@ -120,7 +130,7 @@ Diretrizes para a Análise Profissional:
 const analyzeVideoFlow = ai.defineFlow(
   {
     name: 'videoAnalysisFlow',
-    inputSchema: z.object({ videoDataUri: z.string() }),
+    inputSchema: z.object({ videoDataUri: z.string(), videoDescription: z.string() }),
     outputSchema: VideoAnalysisOutputSchema,
   },
   async input => {

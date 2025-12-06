@@ -1,5 +1,4 @@
-
-import type { Timestamp } from 'firebase/firestore';
+import type { Timestamp, FieldValue } from 'firebase/firestore';
 
 export type Plan = 'pro' | 'free' | 'premium';
 export type UserRole = 'admin' | 'user';
@@ -11,6 +10,12 @@ export interface UserProfile {
   photoURL?: string | null;
   createdAt: Timestamp;
   role?: UserRole;
+  
+  // Metas de seguidores
+  totalFollowerGoal?: number;
+  instagramFollowerGoal?: number;
+  tiktokFollowerGoal?: number;
+  
   niche?: string;
   bio?: string;
   audience?: string;
@@ -54,27 +59,6 @@ export interface DailyUsage {
 }
 
 
-export interface PontoDadosGrafico {
-  id?: string; // Optional as it might be nested
-  data: string;
-  alcance: number;
-  engajamento: number;
-}
-
-export interface ItemRoteiro {
-  dia: string;
-  tarefa: string;
-  detalhes: string;
-  concluido: boolean;
-}
-
-export interface PlanoSemanal {
-  id: string;
-  items: ItemRoteiro[];
-  desempenhoSimulado: PontoDadosGrafico[];
-  createdAt: Timestamp;
-}
-
 export interface IdeiaSalva {
   id: string;
   userId: string;
@@ -84,6 +68,7 @@ export interface IdeiaSalva {
   concluido: boolean;
   createdAt: Timestamp;
   completedAt?: Timestamp;
+  fullPlanData?: PlanoSemanal; // Campo opcional para armazenar o plano completo
 }
 
 export interface ConteudoAgendado {
@@ -108,7 +93,6 @@ export interface AnaliseVideo {
 
 export interface MetricSnapshot {
     id: string;
-    userId: string;
     date: Timestamp;
     platform: 'instagram' | 'tiktok';
     followers: string;
@@ -128,7 +112,7 @@ export type InstagramProfileData = {
     mediaCount: number;
     followersCount: number;
     followingCount: number;
-}
+};
 
 export type InstagramPostData = {
     id: string;
@@ -165,3 +149,27 @@ export type TikTokPostData = {
     likes: number;
     comments: number;
 };
+
+export interface PontoDadosGrafico {
+  data: string;
+  alcance: number;
+  engajamento: number;
+}
+
+export interface ItemRoteiro {
+  dia: string;
+  tarefa: string;
+  detalhes: string;
+  concluido: boolean;
+}
+
+export interface PlanoSemanal {
+  id: string;
+  userId: string;
+  items: ItemRoteiro[];
+  desempenhoSimulado: PontoDadosGrafico[];
+  effortLevel: 'Baixo' | 'Médio' | 'Alto';
+  priorityIndex: string[];
+  realignmentTips: string;
+  createdAt: Timestamp | FieldValue;
+}

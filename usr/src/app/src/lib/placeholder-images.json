@@ -1,0 +1,34 @@
+{
+  "placeholderImages": [
+    {
+      "id": "creator-profile",
+      "description": "A placeholder image for a creator's profile picture.",
+      "imageUrl": "https://images.unsplash.com/photo-1636153279424-cb5d1e00f5a2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxwb3J0cmFpdCUyMHdvbWFufGVufDB8fHx8MTc2MzU3MjcxNnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "portrait woman"
+    },
+    {
+      "id": "trend-example-1",
+      "description": "A placeholder for a trending video example.",
+      "imageUrl": "https://images.unsplash.com/photo-1747323952942-e8171143f65f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxkYW5jaW5nJTIwc3RyZWV0fGVufDB8fHx8MTc2MzU3MjA3M3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "dancing street"
+    },
+    {
+      "id": "trend-example-2",
+      "description": "A placeholder for a trending video example.",
+      "imageUrl": "https://images.unsplash.com/photo-1627984464075-cc47d83d70ee?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxmb29kJTIwY29va2luZ3xlbnwwfHx8fDE3NjM1Mzc4MzZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "food cooking"
+    },
+    {
+      "id": "case-study-1",
+      "description": "A placeholder for a media kit case study.",
+      "imageUrl": "https://images.unsplash.com/photo-1687201068249-ac276f3184f4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxwcm9kdWN0JTIwY29zbWV0aWN8ZW58MHx8fHwxNzYzNjM4ODQ2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "product cosmetic"
+    },
+    {
+      "id": "case-study-2",
+      "description": "A placeholder for a media kit case study.",
+      "imageUrl": "https://images.unsplash.com/photo-1511511450040-677116ff389e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8ZmFzaGlvbiUyMGNsb3RoaW5nfGVufDB8fHx8MTc2MzUzOTQwMXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "fashion clothing"
+    }
+  ]
+}

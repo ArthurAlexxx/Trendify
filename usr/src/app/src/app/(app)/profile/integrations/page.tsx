@@ -19,7 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { doc, updateDoc, serverTimestamp, addDoc, collection } from 'firebase/firestore';
+import { doc, updateDoc, serverTimestamp, addDoc, collection, query, where, getDocs, Timestamp } from 'firebase/firestore';
 import type { UserProfile, InstagramProfileData, InstagramPostData, TikTokProfileData, TikTokPostData } from '@/lib/types';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -30,6 +30,7 @@ import { useSubscription } from '@/hooks/useSubscription';
 import Link from 'next/link';
 import { InstagramProfileResults, TikTokProfileResults } from '@/components/dashboard/platform-results';
 import { useRouter } from 'next/navigation';
+import { isToday, startOfDay, endOfDay } from 'date-fns';
 
 
 const profileFormSchema = z.object({
@@ -88,6 +89,41 @@ export default function IntegrationsPage() {
     return String(num);
   };
 
+  const updateOrCreateMetricSnapshot = async (platform: 'instagram' | 'tiktok', data: any) => {
+    if (!user || !firestore) return;
+  
+    const todayStart = startOfDay(new Date());
+    const todayEnd = endOfDay(new Date());
+    const metricSnapshotsRef = collection(firestore, `users/${user.uid}/metricSnapshots`);
+    
+    const q = query(
+      metricSnapshotsRef,
+      where('platform', '==', platform),
+      where('date', '>=', todayStart),
+      where('date', '<=', todayEnd)
+    );
+  
+    const querySnapshot = await getDocs(q);
+  
+    const snapshotData = {
+      date: serverTimestamp(),
+      platform,
+      followers: data.followers || '0',
+      views: data.views || '0',
+      likes: data.likes || '0',
+      comments: data.comments || '0',
+    };
+  
+    if (!querySnapshot.empty) {
+      // Update existing document for today
+      const docRef = querySnapshot.docs[0].ref;
+      await updateDoc(docRef, snapshotData);
+    } else {
+      // Create new document for today
+      await addDoc(metricSnapshotsRef, snapshotData);
+    }
+  };
+
 
   const handleInstagramSearch = async () => {
     const username = form.getValues('instagramHandle') || '';
@@ -118,7 +154,7 @@ export default function IntegrationsPage() {
         form.setValue('instagramHandle', `@${profileResult.username}`);
         
         if (user && userProfileRef) {
-          const dataToSave: Partial<UserProfile> = {
+          const dataToSave = {
              instagramHandle: `@${profileResult.username}`,
              bio: userProfile?.bio || profileResult.biography,
              photoURL: userProfile?.photoURL || profileResult.profilePicUrlHd,
@@ -126,25 +162,16 @@ export default function IntegrationsPage() {
              instagramAverageViews: formatNumber(Math.round(averageViews)),
              instagramAverageLikes: formatNumber(Math.round(averageLikes)),
              instagramAverageComments: formatNumber(Math.round(averageComments)),
-             lastInstagramSync: serverTimestamp() as any,
+             lastInstagramSync: serverTimestamp(),
           };
-           Object.keys(dataToSave).forEach(keyStr => {
-            const key = keyStr as keyof typeof dataToSave;
-            if (dataToSave[key] === undefined) {
-                (dataToSave as any)[key] = null;
-            }
-          });
-          await updateDoc(userProfileRef, dataToSave);
+
+          await updateDoc(userProfileRef, dataToSave as any);
           
-          const metricSnapshotsRef = collection(firestore, `users/${user.uid}/metricSnapshots`);
-          await addDoc(metricSnapshotsRef, {
-            userId: user.uid,
-            date: serverTimestamp(),
-            platform: 'instagram',
-            followers: dataToSave.instagramFollowers || '0',
-            views: dataToSave.instagramAverageViews || '0',
-            likes: dataToSave.instagramAverageLikes || '0',
-            comments: dataToSave.instagramAverageComments || '0',
+          await updateOrCreateMetricSnapshot('instagram', {
+            followers: dataToSave.instagramFollowers,
+            views: dataToSave.instagramAverageViews,
+            likes: dataToSave.instagramAverageLikes,
+            comments: dataToSave.instagramAverageComments,
           });
         }
         
@@ -185,7 +212,7 @@ export default function IntegrationsPage() {
       try {
           fetchedPosts = await getTikTokPosts(cleanedUsername);
       } catch(postsError: any) {
-          setTiktokError('Perfil encontrado, mas não foi possível carregar os vídeos recentes. ' + postsError.message);
+          setTiktokError('Perfil encontrado, mas não foi possível carregar os vídeos. ' + postsError.message);
       }
 
         const averageLikes = fetchedPosts.length > 0 ? fetchedPosts.reduce((acc, p) => acc + p.likes, 0) / fetchedPosts.length : 0;
@@ -197,7 +224,7 @@ export default function IntegrationsPage() {
         form.setValue('tiktokHandle', `@${profileResult.username}`);
        
         if (user && userProfileRef) {
-          const dataToSave: Partial<UserProfile> = {
+          const dataToSave = {
              tiktokHandle: `@${profileResult.username}`,
              photoURL: userProfile?.photoURL || profileResult.avatarUrl,
              bio: userProfile?.bio || profileResult.bio,
@@ -205,25 +232,16 @@ export default function IntegrationsPage() {
              tiktokAverageLikes: formatNumber(Math.round(averageLikes)),
              tiktokAverageComments: formatNumber(Math.round(averageComments)),
              tiktokAverageViews: formatNumber(Math.round(averageViews)),
-             lastTikTokSync: serverTimestamp() as any,
+             lastTikTokSync: serverTimestamp(),
           };
-           Object.keys(dataToSave).forEach(keyStr => {
-            const key = keyStr as keyof typeof dataToSave;
-            if (dataToSave[key] === undefined) {
-                (dataToSave as any)[key] = null;
-            }
-          });
-          await updateDoc(userProfileRef, dataToSave);
+
+          await updateDoc(userProfileRef, dataToSave as any);
           
-          const metricSnapshotsRef = collection(firestore, `users/${user.uid}/metricSnapshots`);
-          await addDoc(metricSnapshotsRef, {
-            userId: user.uid,
-            date: serverTimestamp(),
-            platform: 'tiktok',
-            followers: dataToSave.tiktokFollowers || '0',
-            views: dataToSave.tiktokAverageViews || '0',
-            likes: dataToSave.tiktokAverageLikes || '0',
-            comments: dataToSave.tiktokAverageComments || '0',
+          await updateOrCreateMetricSnapshot('tiktok', {
+            followers: dataToSave.tiktokFollowers,
+            views: dataToSave.tiktokAverageViews,
+            likes: dataToSave.tiktokAverageLikes,
+            comments: dataToSave.tiktokAverageComments,
           });
         }
         setTiktokStatus('success');
@@ -249,18 +267,18 @@ export default function IntegrationsPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex justify-between items-center">
-        <PageHeader
-          title="Integração de Plataformas"
-          description="Sincronize seus dados do Instagram e TikTok para obter métricas automáticas."
-        />
+      <PageHeader
+        title="Integrações"
+        description="Sincronize seus dados para obter métricas automáticas."
+        icon={Link2}
+      >
          <Button variant="ghost" asChild>
           <Link href="/profile">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Voltar para o Perfil
           </Link>
         </Button>
-      </div>
+      </PageHeader>
           
           <Card className="rounded-2xl border-0">
             <CardContent className="pt-6 space-y-6">
@@ -272,7 +290,7 @@ export default function IntegrationsPage() {
                     <AlertTriangle className="h-4 w-4" />
                     <AlertTitle>Importante!</AlertTitle>
                     <AlertDescription>
-                        Para a integração automática funcionar, sua conta do Instagram deve ser pública e estar configurada como {"'Comercial'"} ou {"'Criador de Conteúdo'"}. A integração com TikTok funciona com qualquer conta pública.
+                        Para a integração funcionar, sua conta do Instagram deve ser {'"Comercial"'} ou {'"Criador de Conteúdo"'}. A do TikTok deve ser pública.
                     </AlertDescription>
                   </Alert>
 
@@ -303,15 +321,15 @@ export default function IntegrationsPage() {
                                     >
                                         {
                                          instaStatus === 'loading' ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Buscando...</> :
-                                         userProfile?.instagramHandle ? <><RefreshCw className="mr-2 h-4 w-4" />Sincronizar Dados</> : 
-                                         <><Search className="mr-2 h-4 w-4" />Buscar Dados</>}
+                                         <><RefreshCw className="mr-2 h-4 w-4" />Sincronizar</>
+                                         }
                                     </Button>
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
                                     <AlertDialogHeader>
                                     <AlertDialogTitle>Confirmação de Busca</AlertDialogTitle>
                                     <AlertDialogDescription>
-                                        Você confirma que é o proprietário ou tem permissão para buscar os dados do perfil <strong>@{form.watch('instagramHandle')?.replace('@', '')}</strong>?
+                                        Você confirma que tem permissão para buscar os dados do perfil <strong>@{form.watch('instagramHandle')?.replace('@', '')}</strong>?
                                     </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
@@ -321,7 +339,9 @@ export default function IntegrationsPage() {
                                 </AlertDialogContent>
                                 </AlertDialog>
                             </div>
-                            <p className='text-xs text-muted-foreground mt-2'>Isso irá buscar e preencher sua foto, @, bio e métricas de seguidores, curtidas e comentários.</p>
+                            <p className='text-xs text-muted-foreground mt-2'>
+                                Isso irá buscar seus dados públicos e métricas de posts recentes.
+                            </p>
                             </CardContent>
                         </Card>
                          {instaStatus === 'loading' && <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>}
@@ -350,15 +370,15 @@ export default function IntegrationsPage() {
                                     >
                                         {
                                          tiktokStatus === 'loading' ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Buscando...</> :
-                                         userProfile?.tiktokHandle ? <><RefreshCw className="mr-2 h-4 w-4" />Sincronizar Dados</> : 
-                                         <><Search className="mr-2 h-4 w-4" />Buscar Dados</>}
+                                         <><RefreshCw className="mr-2 h-4 w-4" />Sincronizar</>
+                                         }
                                     </Button>
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
                                     <AlertDialogHeader>
                                     <AlertDialogTitle>Confirmação de Busca</AlertDialogTitle>
                                     <AlertDialogDescription>
-                                        Você confirma que é o proprietário ou tem permissão para buscar os dados do perfil <strong>@{form.watch('tiktokHandle')?.replace('@', '')}</strong>?
+                                        Você confirma que tem permissão para buscar os dados do perfil <strong>@{form.watch('tiktokHandle')?.replace('@', '')}</strong>?
                                     </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
@@ -368,7 +388,9 @@ export default function IntegrationsPage() {
                                 </AlertDialogContent>
                                 </AlertDialog>
                             </div>
-                            <p className='text-xs text-muted-foreground mt-2'>Isso irá buscar e preencher sua foto, @, bio e métricas do TikTok.</p>
+                            <p className='text-xs text-muted-foreground mt-2'>
+                                Isso irá buscar seus dados públicos e métricas de vídeos recentes.
+                            </p>
                             </CardContent>
                         </Card>
                          {tiktokStatus === 'loading' && <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>}
@@ -386,7 +408,7 @@ export default function IntegrationsPage() {
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <p className="text-muted-foreground">A integração automática com redes sociais é um recurso exclusivo para assinantes do plano Premium.</p>
+                            <p className="text-muted-foreground">A integração automática é um recurso para assinantes Premium.</p>
                             <Button asChild>
                                 <Link href="/subscribe">Ver Planos</Link>
                             </Button>

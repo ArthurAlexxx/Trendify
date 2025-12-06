@@ -16,8 +16,10 @@ import {
   BrainCircuit,
   Target,
   Crown,
+  Handshake,
+  AlignLeft,
 } from 'lucide-react';
-import { useTransition, useEffect, useState, useMemo } from 'react';
+import { useTransition, useEffect, useState, useCallback } from 'react';
 import {
   Form,
   FormControl,
@@ -36,7 +38,7 @@ import {
 } from '@/app/(app)/media-kit/actions';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { collection, addDoc, serverTimestamp, doc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
 import { SavedIdeasSheet } from '@/components/saved-ideas-sheet';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import type { UserProfile } from '@/lib/types';
@@ -44,6 +46,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useRouter } from 'next/navigation';
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
 
 const formSchema = z.object({
   niche: z.string().min(1, 'O nicho não pode estar vazio.'),
@@ -63,22 +69,22 @@ const analysisCriteria = [
     {
         icon: BrainCircuit,
         title: "Gerente de Talentos",
-        description: "A plataforma atua como uma gerente de talentos, usando suas métricas e nicho para criar um pacote de prospecção profissional."
+        description: "A IA atua como sua gerente, usando suas métricas para criar um pacote de prospecção."
     },
     {
         icon: FileText,
         title: "Apresentação Impactante",
-        description: "Cria um parágrafo de apresentação em primeira pessoa, focado em como você agrega valor para marcas dentro do seu nicho."
+        description: "Cria um parágrafo de apresentação em primeira pessoa, focado em como você agrega valor."
     },
      {
         icon: DollarSign,
         title: "Preços Realistas",
-        description: "Com base nas suas métricas, calculamos faixas de preço realistas para o mercado, te dando um ponto de partida para negociações."
+        description: "Calculamos faixas de preço realistas com base nas suas métricas para suas negociações."
     },
     {
         icon: Lightbulb,
         title: "Ideias Criativas",
-        description: "Gera 3 ideias de colaboração autênticas e alinhadas tanto com seu nicho quanto com a marca alvo que você definir."
+        description: "Gera ideias de colaboração autênticas e alinhadas ao seu nicho e à marca alvo."
     }
   ]
 
@@ -102,13 +108,13 @@ function PremiumFeatureGuard({ children }: { children: React.ReactNode }) {
         return (
              <AlertDialog open={true} onOpenChange={(open) => !open && router.push('/subscribe')}>
               <AlertDialogContent>
-                <AlertDialogHeader className="text-center items-center">
+                 <AlertDialogHeader className="text-center items-center">
                   <div className="h-16 w-16 rounded-full bg-yellow-400/10 flex items-center justify-center mb-2 border-2 border-yellow-400/20">
                     <Crown className="h-8 w-8 text-yellow-500 animate-pulse" />
                   </div>
                   <AlertDialogTitle className="font-headline text-xl">Funcionalidade Premium</AlertDialogTitle>
                   <AlertDialogDescription>
-                    O Mídia Kit é um recurso exclusivo para assinantes do plano Premium. Faça o upgrade para ter acesso!
+                    O Mídia Kit é um recurso exclusivo para assinantes Premium.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -136,6 +142,7 @@ function MediaKitPageContent() {
   const { toast } = useToast();
   const [isGenerating, startTransition] = useTransition();
   const [state, setState] = useState<CareerPackageState>(null);
+  const [activeTab, setActiveTab] = useState("generate");
   
   const [isSaving, startSavingTransition] = useTransition();
   const { user } = useUser();
@@ -156,29 +163,66 @@ function MediaKitPageContent() {
     },
   });
 
-  const formAction = async (formData: FormSchemaType) => {
+  const formAction = useCallback(async (formData: FormSchemaType) => {
     startTransition(async () => {
       const result = await getAiCareerPackageAction(null, formData);
       setState(result);
+      if (result?.data) {
+        setActiveTab("result");
+      }
     });
-  };
+  }, [startTransition, setState, setActiveTab]);
 
    useEffect(() => {
     if (userProfile) {
+      const parseMetric = (value?: string | number): number => {
+          if (typeof value === 'number') return value;
+          if (!value || typeof value !== 'string') return 0;
+          const cleanedValue = value.replace(/\./g, '').replace(',', '.');
+          const num = parseFloat(cleanedValue.replace(/K/gi, 'e3').replace(/M/gi, 'e6'));
+          return isNaN(num) ? 0 : num;
+      };
+
+      const formatNumber = (num: number): string => {
+          if (num >= 1000000) return `${(num / 1000000).toFixed(1).replace('.', ',')}M`;
+          if (num >= 1000) return `${(num / 1000).toFixed(0)}K`;
+          return String(num);
+      };
+      
+      const totalFollowers = parseMetric(userProfile.instagramFollowers) + parseMetric(userProfile.tiktokFollowers);
+      const totalViews = parseMetric(userProfile.instagramAverageViews) + parseMetric(userProfile.tiktokAverageViews);
+
       const metrics = [
-        userProfile.instagramFollowers ? `${userProfile.instagramFollowers} seguidores` : '',
-        userProfile.instagramAverageViews ? `${userProfile.instagramAverageViews} de média de views` : '',
-        userProfile.audience ? `Público: ${userProfile.audience}` : '',
+        totalFollowers > 0 ? `${formatNumber(totalFollowers)} seguidores no total` : '',
+        totalViews > 0 ? `${formatNumber(totalViews)} de média de views total` : '',
       ].filter(Boolean).join(', ');
 
       form.reset({
         niche: userProfile.niche || '',
         keyMetrics: metrics,
-        targetBrand: 'Sallve',
+        targetBrand: form.getValues('targetBrand') || 'Sallve',
       });
     }
   }, [userProfile, form]);
   
+  const watchedNiche = form.watch('niche');
+
+  const debouncedNicheUpdate = useCallback(() => {
+    if (userProfileRef && watchedNiche !== userProfile?.niche) {
+      updateDoc(userProfileRef, { niche: watchedNiche });
+    }
+  }, [watchedNiche, userProfileRef, userProfile?.niche]);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      debouncedNicheUpdate();
+    }, 500); // 500ms delay
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [watchedNiche, debouncedNicheUpdate]);
+
   useEffect(() => {
     if (state?.error) {
       toast({
@@ -222,7 +266,7 @@ function MediaKitPageContent() {
 
         toast({
           title: 'Sucesso!',
-          description: 'Seu pacote de prospecção foi salvo no painel.',
+          description: 'Seu pacote de prospecção foi salvo.',
         });
       } catch (error) {
         console.error('Failed to save idea:', error);
@@ -240,172 +284,207 @@ function MediaKitPageContent() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Pacote de Prospecção para Marcas"
-        description="Gere propostas, calcule preços e crie seu mídia kit profissional em um só lugar."
+        title="Pacote de Prospecção"
+        description="Gere propostas, preços e seu mídia kit profissional."
+        icon={Briefcase}
       >
         <SavedIdeasSheet />
       </PageHeader>
       
-        <Card className="border-0 rounded-2xl">
-            <CardHeader>
-                <CardTitle className="flex items-center gap-3 font-headline text-xl">
-                    <Sparkles className="h-6 w-6 text-primary" />
-                    Como Criamos seu Pacote de Prospecção?
-                </CardTitle>
-                 <CardDescription>Nossa plataforma atua como uma gerente de talentos para monetizar sua influência. Focamos em 4 pilares:</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {analysisCriteria.map((item, index) => (
-                        <div key={index} className="p-4 rounded-lg bg-muted/50 border">
-                            <div className="flex items-center gap-3 mb-2">
-                                <item.icon className="h-5 w-5 text-primary" />
-                                <h4 className="font-semibold text-foreground">{item.title}</h4>
-                            </div>
-                            <p className="text-xs text-muted-foreground">{item.description}</p>
-                        </div>
-                    ))}
-                </div>
-            </CardContent>
-        </Card>
+      <div>
+        <div className="text-center">
+            <h2 className="text-xl font-bold font-headline">Como Criamos seu Pacote?</h2>
+            <p className="text-muted-foreground">A IA atua como sua gerente de talentos e foca em 4 pilares:</p>
+        </div>
+        <Separator className="w-1/2 mx-auto my-4" />
+        <div className="py-8">
+            <div className="md:hidden">
+                <Carousel className="w-full" opts={{ align: 'start' }}>
+                    <CarouselContent className="-ml-4">
+                        {analysisCriteria.map((item, index) => (
+                            <CarouselItem key={index} className="pl-4 basis-full">
+                                <Card className="rounded-2xl border-0 h-full">
+                                    <CardHeader>
+                                        <CardTitle className="text-center flex items-center gap-3">
+                                            <item.icon className="h-6 w-6 text-primary" />
+                                            <span>{item.title}</span>
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <p className="text-muted-foreground">{item.description}</p>
+                                    </CardContent>
+                                </Card>
+                            </CarouselItem>
+                        ))}
+                    </CarouselContent>
+                    <CarouselPrevious className="left-2" />
+                    <CarouselNext className="right-2" />
+                </Carousel>
+            </div>
+            <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {analysisCriteria.map((item, index) => (
+                    <Card key={index} className="rounded-2xl border-0">
+                        <CardHeader>
+                            <CardTitle className="text-center flex items-center gap-3">
+                                <item.icon className="h-6 w-6 text-primary" />
+                                <span>{item.title}</span>
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="text-muted-foreground">{item.description}</p>
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
+        </div>
+      </div>
 
-
-      <div className="space-y-8">
-          
-          <Card className="border-0 rounded-2xl">
+       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="generate">Gerar Pacote</TabsTrigger>
+          <TabsTrigger value="result" disabled={!result}>
+            Resultado
+            {isGenerating && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="generate">
+           <Card className="rounded-t-none border-t-0">
             <CardHeader>
-              <CardTitle className="flex items-center gap-3 font-headline text-xl">
+              <CardTitle className="text-center flex items-center gap-3 font-headline text-xl">
                 <Bot className="h-6 w-6 text-primary" />
                 <span>Assistente de Carreira</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <Form {...form}>
-                <form
-                  onSubmit={form.handleSubmit(formAction)}
-                  className="space-y-8"
-                >
-                  <div className="space-y-6">
-                     <FormField
-                      control={form.control}
-                      name="niche"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Seu Nicho de Atuação</FormLabel>
-                          <FormControl>
-                             {isLoadingProfile ? <Skeleton className="h-11 w-full" /> : 
-                              <Input
-                                placeholder="Defina seu nicho em Configurações > Perfil"
-                                className="h-11"
-                                {...field}
-                                readOnly
-                              />
-                            }
-                          </FormControl>
-                          <FormDescription>
-                            Ex: "Moda sustentável", "Finanças para autônomos", "Receitas veganas".
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                     <div className="grid md:grid-cols-2 gap-x-6 gap-y-6">
-                       <FormField
-                        control={form.control}
-                        name="keyMetrics"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Suas Métricas Chave</FormLabel>
-                            <FormControl>
-                              {isLoadingProfile ? <Skeleton className="h-11 w-full" /> :
-                                <Input
-                                  placeholder="Defina suas métricas em Configurações > Perfil"
-                                  className="h-11"
-                                  {...field}
-                                  readOnly
-                                />
-                              }
-                            </FormControl>
-                             <FormDescription>
-                                Os números que as marcas querem ver. Ex: "10 mil seguidores, 5k de views em média".
-                             </FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                       <FormField
-                        control={form.control}
-                        name="targetBrand"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Marca Alvo (para contexto)</FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder="Ex: 'Sallve', 'Natura', 'Nike'"
-                                className="h-11"
-                                {...field}
-                              />
-                            </FormControl>
-                             <FormDescription>
-                                A plataforma usará esta marca para criar ideias de colaboração mais relevantes.
-                             </FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                     </div>
-                  </div>
-                  <div className="pt-2 flex justify-start">
-                    <Button
-                      type="submit"
-                      disabled={isGenerating || isLoadingProfile}
-                      size="lg"
-                      className="font-manrope w-full sm:w-auto h-12 px-10 rounded-full text-base font-bold"
+              <div className="p-6">
+                <Form {...form}>
+                    <form
+                    onSubmit={form.handleSubmit(formAction)}
+                    className="space-y-8"
                     >
-                      {isGenerating ? (
-                        <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Gerando...</>
-                      ) : (
-                        <><Sparkles className="mr-2 h-5 w-5" />Gerar Pacote de Prospecção</>
-                      )}
-                    </Button>
-                  </div>
-                </form>
-              </Form>
+                    <div className="space-y-6">
+                        <FormField
+                        control={form.control}
+                        name="niche"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Seu Nicho</FormLabel>
+                            <FormControl>
+                                {isLoadingProfile ? <Skeleton className="h-11 w-full" /> : 
+                                <Input
+                                    placeholder="Defina em seu Perfil"
+                                    className="h-11"
+                                    {...field}
+                                />
+                                }
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                        <div className="grid md:grid-cols-2 gap-x-6 gap-y-6">
+                        <FormField
+                            control={form.control}
+                            name="keyMetrics"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Métricas Chave</FormLabel>
+                                <FormControl>
+                                {isLoadingProfile ? <Skeleton className="h-11 w-full" /> :
+                                    <Input
+                                    placeholder="Defina em seu Perfil"
+                                    className="h-11"
+                                    {...field}
+                                    readOnly
+                                    />
+                                }
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="targetBrand"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Marca Alvo</FormLabel>
+                                <FormControl>
+                                <Input
+                                    placeholder="Ex: Sallve, Natura, Nike"
+                                    className="h-11"
+                                    {...field}
+                                />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                        </div>
+                    </div>
+                    <div className="pt-2 flex justify-start">
+                        <Button
+                        type="submit"
+                        disabled={isGenerating || isLoadingProfile}
+                        size="lg"
+                        className="w-full sm:w-auto"
+                        >
+                        {isGenerating ? (
+                            <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Gerando...</>
+                        ) : (
+                            <><Sparkles className="mr-2 h-5 w-5" />Gerar Pacote de Prospecção</>
+                        )}
+                        </Button>
+                    </div>
+                    </form>
+                </Form>
+              </div>
             </CardContent>
           </Card>
-
-          {(isGenerating || result) && (
-            <div className="space-y-8 animate-fade-in">
-              <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-                <div className='flex-1'>
-                  <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Resultado Gerado</h2>
-                  <p className="text-muted-foreground">Um pacote completo para sua prospecção de marcas.</p>
-                </div>
-                {result && (
-                  <Button onClick={() => handleSave(result)} disabled={isSaving} className="w-full sm:w-auto rounded-full font-manrope">
-                    {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                    Salvar Pacote
-                  </Button>
-                )}
-              </div>
-
-              {isGenerating && !result ? (
-                <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-96">
-                  <Loader2 className="h-10 w-10 animate-spin text-primary" />
-                  <p className="mt-4 text-muted-foreground">Estamos criando seu pacote de prospecção...</p>
-                </div>
-              ) : result ? (
-                 <div className="grid gap-8">
-                  <InfoCard title="Apresentação para Marcas" icon={FileText} content={result.executiveSummary} />
-                  <div className="grid lg:grid-cols-2 gap-8 items-start">
-                    <PricingCard title="Tabela de Preços Sugerida" icon={DollarSign} pricing={result.pricingTiers} />
-                    <InfoList title="Ideias de Colaboração" icon={Lightbulb} items={result.sampleCollaborationIdeas} />
+        </TabsContent>
+        <TabsContent value="result">
+          <Card className="rounded-t-none border-t-0">
+            <CardContent className="p-6">
+              {(isGenerating || result) && (
+                <div className="space-y-8 animate-fade-in">
+                  <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <div className='flex-1'>
+                      <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Resultado Gerado</h2>
+                      <p className="text-muted-foreground">Um pacote completo para sua prospecção.</p>
+                    </div>
+                    {result && (
+                      <Button onClick={() => handleSave(result)} disabled={isSaving} className="w-full sm:w-auto">
+                        {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                        Salvar Pacote
+                      </Button>
+                    )}
                   </div>
+
+                  {isGenerating && !result ? (
+                    <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-96">
+                      <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                      <p className="mt-4 text-muted-foreground">Criando seu pacote...</p>
+                    </div>
+                  ) : result ? (
+                     <div className="space-y-8">
+                      <InfoCard title="Apresentação para Marcas" icon={FileText} content={result.executiveSummary} />
+                      <div className="grid lg:grid-cols-2 gap-8 items-start">
+                        <PricingCard title="Tabela de Preços Sugerida" icon={DollarSign} pricing={result.pricingTiers} />
+                        <InfoList title="Ideias de Colaboração" icon={Lightbulb} items={result.sampleCollaborationIdeas} />
+                      </div>
+                       <div className="grid lg:grid-cols-2 gap-8 items-start">
+                        <InfoCard title="Sua Proposta de Valor" icon={Target} content={result.valueProposition} />
+                        <InfoCard title="Alinhamento com a Marca" icon={Briefcase} content={result.brandAlignment} />
+                       </div>
+                       <InfoList title="Dicas de Negociação" icon={Handshake} items={result.negotiationTips} />
+                    </div>
+                  ) : null}
                 </div>
-              ) : null}
-            </div>
-          )}
-      </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+       </Tabs>
     </div>
   );
 }
@@ -424,13 +503,13 @@ function InfoCard({
       className="border-0 rounded-2xl h-full"
     >
       <CardHeader>
-        <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
+        <CardTitle className="text-center flex items-center gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary" />
           <span>{title}</span>
         </CardTitle>
       </CardHeader>
       <CardContent>
-         <div className="p-4 rounded-xl border bg-muted/30 text-base text-foreground whitespace-pre-wrap">
+         <div className="p-4 rounded-xl border bg-muted/30 text-sm text-foreground whitespace-pre-wrap leading-relaxed">
             {content}
           </div>
       </CardContent>
@@ -451,7 +530,7 @@ function InfoList({
   return (
     <Card className="border-0 rounded-2xl h-full">
       <CardHeader>
-        <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
+        <CardTitle className="text-center flex items-center gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary" />
           <span>{title}</span>
         </CardTitle>
@@ -487,38 +566,38 @@ function PricingCard({
       className="border-0 rounded-2xl h-full"
     >
       <CardHeader>
-        <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
+        <CardTitle className="text-center flex items-center gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary" />
           <span>{title}</span>
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <p className='text-xs text-muted-foreground mb-4'>Valores baseados nas suas métricas. Use como ponto de partida para negociações.</p>
+        <p className='text-xs text-muted-foreground mb-4'>Valores baseados em suas métricas. Use como ponto de partida.</p>
         <Table>
-          <TableHeader>
+        <TableHeader>
             <TableRow>
-              <TableHead>Formato</TableHead>
-              <TableHead className="text-right">Faixa de Preço</TableHead>
+            <TableHead>Formato</TableHead>
+            <TableHead className="text-right">Faixa de Preço</TableHead>
             </TableRow>
-          </TableHeader>
-          <TableBody>
+        </TableHeader>
+        <TableBody>
             <TableRow>
-              <TableCell className="font-medium">Reels</TableCell>
-              <TableCell className="text-right font-mono">{pricing.reels || 'A calcular'}</TableCell>
+            <TableCell className="font-medium">Reels</TableCell>
+            <TableCell className="text-right font-mono">{pricing.reels || 'A calcular'}</TableCell>
             </TableRow>
-             <TableRow>
-              <TableCell className="font-medium">Sequência de Stories</TableCell>
-              <TableCell className="text-right font-mono">{pricing.storySequence || 'A calcular'}</TableCell>
+            <TableRow>
+            <TableCell className="font-medium">Sequência de Stories</TableCell>
+            <TableCell className="text-right font-mono">{pricing.storySequence || 'A calcular'}</TableCell>
             </TableRow>
-             <TableRow>
-              <TableCell className="font-medium">Post Estático (Feed)</TableCell>
-              <TableCell className="text-right font-mono">{pricing.staticPost || 'A calcular'}</TableCell>
+            <TableRow>
+            <TableCell className="font-medium">Post Estático (Feed)</TableCell>
+            <TableCell className="text-right font-mono">{pricing.staticPost || 'A calcular'}</TableCell>
             </TableRow>
-             <TableRow>
-              <TableCell className="font-medium text-primary">Pacote Mensal</TableCell>
-              <TableCell className="text-right font-mono text-primary font-bold">{pricing.monthlyPackage || 'A calcular'}</TableCell>
+            <TableRow>
+            <TableCell className="font-medium text-primary">Pacote Mensal</TableCell>
+            <TableCell className="text-right font-mono text-primary font-bold">{pricing.monthlyPackage || 'A calcular'}</TableCell>
             </TableRow>
-          </TableBody>
+        </TableBody>
         </Table>
       </CardContent>
     </Card>

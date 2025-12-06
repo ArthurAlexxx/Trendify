@@ -36,17 +36,23 @@ import {
   Lightbulb,
   BrainCircuit,
   Target,
-  BarChart,
   Eye,
+  BarChart as BarChartIcon,
+  Youtube,
+  Instagram,
+  Clapperboard as TikTokIcon,
+  TrendingUp,
+  AlertTriangle,
+  LightbulbIcon,
 } from 'lucide-react';
-import { useEffect, useTransition, useState } from 'react';
+import { useEffect, useTransition, useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { generateVideoIdeasAction, GenerateVideoIdeasOutput } from '@/app/(app)/video-ideas/actions';
-import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
+import { useCollection, useFirestore, useUser, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, addDoc, serverTimestamp, where, query, orderBy, setDoc, doc, increment, getDoc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { SavedIdeasSheet } from '@/components/saved-ideas-sheet';
-import type { DailyUsage, IdeiaSalva } from '@/lib/types';
+import type { DailyUsage, IdeiaSalva, UserProfile } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -54,6 +60,11 @@ import { formatDistanceToNow, format as formatDate } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useSubscription } from '@/hooks/useSubscription';
 import Link from 'next/link';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import { Progress } from '@/components/ui/progress';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+
 
 const formSchema = z.object({
   topic: z.string().min(3, 'O tópico deve ter pelo menos 3 caracteres.'),
@@ -83,7 +94,7 @@ const analysisCriteria = [
         description: "Criação de ganchos de 2-3 segundos para capturar a atenção imediatamente."
     },
      {
-        icon: BarChart,
+        icon: BarChartIcon,
         title: "Otimizado para Algoritmo",
         description: "Roteiros estruturados para reter a atenção e sugestões de músicas em alta."
     },
@@ -99,10 +110,18 @@ export default function VideoIdeasPage() {
   const { toast } = useToast();
   const [isGenerating, startTransition] = useTransition();
   const [state, setState] = useState<VideoIdeasState>(null);
+  const [activeTab, setActiveTab] = useState("generate");
+
 
   const [isSaving, startSavingTransition] = useTransition();
   const { user } = useUser();
   const firestore = useFirestore();
+  
+  const userProfileRef = useMemoFirebase(
+    () => (firestore && user ? doc(firestore, `users/${user.uid}`) : null),
+    [firestore, user]
+  );
+  const { data: userProfile } = useDoc<UserProfile>(userProfileRef);
 
   const { subscription, isTrialActive } = useSubscription();
   const todayStr = formatDate(new Date(), 'yyyy-MM-dd');
@@ -129,18 +148,21 @@ export default function VideoIdeasPage() {
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      topic: '',
-      targetAudience: '',
+      topic: 'Rotina de skincare para pele oleosa',
+      targetAudience: 'Mulheres de 25-35 anos',
       objective: 'Engajamento',
     },
   });
-
-  const formAction = async (formData: FormSchemaType) => {
+  
+  const formAction = useCallback(async (formData: FormSchemaType) => {
     startTransition(async () => {
       const result = await generateVideoIdeasAction(null, formData);
       setState(result);
+       if (result?.data) {
+        setActiveTab("result");
+      }
     });
-  };
+  }, [startTransition, setState, setActiveTab]);
   
   const completedIdeasQuery = useMemoFirebase(
     () =>
@@ -156,6 +178,17 @@ export default function VideoIdeasPage() {
   
   const { data: completedIdeas, isLoading: isLoadingCompleted } = useCollection<IdeiaSalva>(completedIdeasQuery);
   const result = state?.data;
+
+  useEffect(() => {
+    if (userProfile) {
+      form.reset({
+        topic: form.getValues('topic') || '',
+        targetAudience: userProfile.audience || 'Mulheres de 25-35 anos',
+        objective: form.getValues('objective') || 'Engajamento',
+      });
+    }
+  }, [userProfile, form]);
+  
 
   useEffect(() => {
     if (state?.error) {
@@ -194,10 +227,8 @@ export default function VideoIdeasPage() {
     startSavingTransition(async () => {
       try {
         const title = `Ideia: ${form.getValues('topic').substring(0, 40)}...`;
-        const scriptContent = typeof data.script === 'string'
-          ? data.script
-          : JSON.stringify(data.script, null, 2);
-        const content = `**Gancho:**\n${data.gancho}\n\n**Roteiro:**\n${scriptContent}\n\n**CTA:**\n${data.cta}`;
+        const { gancho, scriptLongo, scriptCurto, cta } = data.script;
+        const content = `**Gancho:**\n${gancho}\n\n**Roteiro Longo:**\n${scriptLongo}\n\n**Roteiro Curto:**\n${scriptCurto}\n\n**CTA:**\n${cta}`;
 
         await addDoc(collection(firestore, `users/${user.uid}/ideiasSalvas`), {
           userId: user.uid,
@@ -233,229 +264,334 @@ export default function VideoIdeasPage() {
       <PageHeader
         title="Gerador de Vídeos Virais"
         description="Crie roteiros completos e otimizados para viralizar."
+        icon={Lightbulb}
       >
         <SavedIdeasSheet />
       </PageHeader>
       
-      <Card className="rounded-2xl border-0">
-            <CardHeader>
-                <CardTitle className="flex items-center gap-3 font-headline text-xl">
-                    <Sparkles className="text-primary h-6 w-6" />
-                    Como Criamos Suas Ideias?
-                </CardTitle>
-                 <CardDescription>A IA atua como uma estrategista de conteúdo viral e analisa 4 pilares:</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {analysisCriteria.map((item, index) => (
-                        <div key={index} className="p-4 rounded-lg bg-muted/50 border">
-                            <div className="flex items-center gap-3 mb-2">
-                                <item.icon className="h-5 w-5 text-primary" />
-                                <h4 className="font-semibold text-foreground">{item.title}</h4>
-                            </div>
-                            <p className="text-xs text-muted-foreground">{item.description}</p>
-                        </div>
-                    ))}
-                </div>
-            </CardContent>
-      </Card>
-
-
-      <Card className="rounded-2xl border-0">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-3 font-headline text-xl">
-            <Sparkles className="h-6 w-6 text-primary" />
-            <span>Descreva sua necessidade</span>
-          </CardTitle>
-          <CardDescription>Quanto mais detalhes, mais criativa e precisa será a ideia.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(formAction)}
-              className="space-y-8"
-            >
-              <div className="grid md:grid-cols-2 gap-x-6 gap-y-6">
-                <FormField
-                  control={form.control}
-                  name="topic"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tópico Principal</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Ex: Rotina de skincare para pele oleosa"
-                          className="h-11"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="targetAudience"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Público-Alvo</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Ex: Mulheres de 25-35 anos"
-                          className="h-11"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-6">
-               
-                 <FormField
-                    control={form.control}
-                    name="objective"
-                    render={({ field }) => (
-                      <FormItem className='md:col-span-2'>
-                        <FormLabel>Objetivo</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                          name={field.name}
-                        >
-                          <FormControl>
-                            <SelectTrigger className="h-11">
-                              <SelectValue placeholder="Selecione" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="Engajamento">
-                              Engajamento
-                            </SelectItem>
-                            <SelectItem value="Alcance">Alcance</SelectItem>
-                            <SelectItem value="Vendas">Vendas</SelectItem>
-                            <SelectItem value="Educar">Educar</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-              </div>
-
-              <div className="pt-4 flex flex-col sm:flex-row items-center gap-4">
-                <Button
-                  type="submit"
-                  disabled={isButtonDisabled}
-                  size="lg"
-                  className="w-full sm:w-auto"
-                >
-                  {isGenerating ? (
-                    <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Gerando Ideia...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="mr-2 h-5 w-5" />
-                      Gerar Ideia
-                    </>
-                  )}
-                </Button>
-                  {isFreePlan && (
-                  <p className="text-sm text-muted-foreground text-center sm:text-left">
-                    {isLoadingUsage ? <Skeleton className="h-4 w-32" /> : hasReachedFreeLimit 
-                      ? 'Você atingiu seu limite de hoje.'
-                      : `Gerações restantes hoje: ${2 - generationsToday}/2.`
-                    }
-                    {' '}
-                    <Link href="/subscribe" className='underline text-primary font-semibold'>Faça upgrade para mais.</Link>
-                  </p>
-                )}
-              </div>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
-
-      {(isGenerating || result) && (
-        <div className="space-y-8 animate-fade-in">
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div className="flex-1">
-              <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">
-                Resultado Gerado
-              </h2>
-              <p className="text-muted-foreground">
-                Um plano de conteúdo completo para seu próximo vídeo.
-              </p>
-            </div>
-            {result && (
-              <div className="flex w-full sm:w-auto gap-2">
-                <Button
-                  onClick={() => handleSave(result)}
-                  disabled={isSaving}
-                  className="w-full sm:w-auto"
-                >
-                  {isSaving ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <Save className="mr-2 h-4 w-4" />
-                  )}
-                  Salvar Ideia
-                </Button>
-              </div>
-            )}
-          </div>
-
-          {isGenerating && !result ? (
-            <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-96">
-              <Loader2 className="h-10 w-10 animate-spin text-primary" />
-              <p className="mt-4 text-muted-foreground">
-                Criando algo incrível para você...
-              </p>
-            </div>
-          ) : result ? (
-            <div className="grid gap-6">
-              <div className="grid lg:grid-cols-2 gap-6">
-                <InfoCard
-                  title="Gancho"
-                  icon={Mic}
-                  content={result.gancho}
-                />
-                <InfoCard
-                  title="CTA"
-                  icon={Heart}
-                  content={result.cta}
-                />
-              </div>
-              <InfoCard
-                title="Roteiro do Vídeo"
-                icon={Pen}
-                content={typeof result.script === 'string' ? result.script : JSON.stringify(result.script, null, 2)}
-              />
-              <InfoListCard
-                title="Takes para Gravar"
-                icon={Camera}
-                content={result.takes}
-              />
-              <div className="grid lg:grid-cols-2 gap-6">
-                <InfoCard
-                  title="Horário Sugerido"
-                  icon={Clock}
-                  content={result.suggestedPostTime}
-                />
-                <InfoCard
-                  title="Música em Alta"
-                  icon={Disc}
-                  content={result.trendingSong}
-                />
-              </div>
-            </div>
-          ) : null}
+      <div>
+        <div className="text-center">
+          <h2 className="text-xl font-bold font-headline">Como Criamos Suas Ideias?</h2>
+          <p className="text-muted-foreground">A IA atua como uma estrategista de conteúdo viral e analisa 4 pilares:</p>
         </div>
-      )}
+        <Separator className="w-1/2 mx-auto my-4" />
+        <div className="py-8">
+            <div className="md:hidden">
+                <Carousel className="w-full" opts={{ align: 'start' }}>
+                    <CarouselContent className="-ml-4">
+                        {analysisCriteria.map((item, index) => (
+                            <CarouselItem key={index} className="pl-4 basis-full">
+                                <Card className="rounded-2xl border-0 h-full">
+                                    <CardHeader>
+                                        <CardTitle className="text-center flex items-center gap-3">
+                                            <item.icon className="h-6 w-6 text-primary" />
+                                            <span>{item.title}</span>
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <p className="text-muted-foreground">{item.description}</p>
+                                    </CardContent>
+                                </Card>
+                            </CarouselItem>
+                        ))}
+                    </CarouselContent>
+                    <CarouselPrevious className="left-2" />
+                    <CarouselNext className="right-2" />
+                </Carousel>
+            </div>
+            <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {analysisCriteria.map((item, index) => (
+                    <Card key={index} className="rounded-2xl border-0">
+                        <CardHeader>
+                            <CardTitle className="text-center flex items-center gap-3">
+                                <item.icon className="h-6 w-6 text-primary" />
+                                <span>{item.title}</span>
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="text-muted-foreground">{item.description}</p>
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
+        </div>
+      </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="generate">Gerar Nova Ideia</TabsTrigger>
+          <TabsTrigger value="result" disabled={!result && !isGenerating}>
+            Resultado
+            {isGenerating && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="generate">
+           <Card className="rounded-t-none border-t-0">
+              <CardHeader>
+                 <CardTitle className="text-center font-headline text-xl">
+                    Briefing de Conteúdo
+                </CardTitle>
+                 <CardDescription className="text-center">Forneça os detalhes para a IA criar uma ideia de vídeo otimizada.</CardDescription>
+              </CardHeader>
+              <CardContent className="p-6">
+                <Form {...form}>
+                    <form
+                    onSubmit={form.handleSubmit(formAction)}
+                    className="space-y-8"
+                    >
+                    <div className="grid md:grid-cols-2 gap-x-6 gap-y-6">
+                        <FormField
+                        control={form.control}
+                        name="topic"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Tópico Principal</FormLabel>
+                            <FormControl>
+                                <Input
+                                placeholder="Ex: Rotina de skincare para pele oleosa"
+                                className="h-11"
+                                {...field}
+                                />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                        <FormField
+                        control={form.control}
+                        name="targetAudience"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Público-Alvo</FormLabel>
+                            <FormControl>
+                                <Input
+                                placeholder="Ex: Mulheres de 25-35 anos"
+                                className="h-11"
+                                {...field}
+                                />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-6">
+                    
+                        <FormField
+                            control={form.control}
+                            name="objective"
+                            render={({ field }) => (
+                            <FormItem className='md:col-span-2'>
+                                <FormLabel>Objetivo</FormLabel>
+                                <Select
+                                onValueChange={field.onChange}
+                                defaultValue={field.value}
+                                name={field.name}
+                                >
+                                <FormControl>
+                                    <SelectTrigger className="h-11">
+                                    <SelectValue placeholder="Selecione" />
+                                    </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    <SelectItem value="Engajamento">
+                                    Engajamento
+                                    </SelectItem>
+                                    <SelectItem value="Alcance">Alcance</SelectItem>
+                                    <SelectItem value="Vendas">Vendas</SelectItem>
+                                    <SelectItem value="Educar">Educar</SelectItem>
+                                </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                    </div>
+
+                    <div className="pt-4 flex flex-col sm:flex-row items-center gap-4">
+                        <Button
+                        type="submit"
+                        disabled={isButtonDisabled}
+                        size="lg"
+                        className="w-full sm:w-auto"
+                        >
+                        {isGenerating ? (
+                            <>
+                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                            Gerando Ideia...
+                            </>
+                        ) : (
+                            <>
+                            <Sparkles className="mr-2 h-5 w-5" />
+                            Gerar Ideia
+                            </>
+                        )}
+                        </Button>
+                        {isFreePlan && (
+                        <p className="text-sm text-muted-foreground text-center sm:text-left">
+                            {isLoadingUsage ? <Skeleton className="h-4 w-32" /> : hasReachedFreeLimit 
+                            ? 'Você atingiu seu limite de hoje.'
+                            : `Gerações restantes hoje: ${2 - generationsToday}/2.`
+                            }
+                            {' '}
+                            <Link href="/subscribe" className='underline text-primary font-semibold'>Faça upgrade para mais.</Link>
+                        </p>
+                        )}
+                    </div>
+                    </form>
+                </Form>
+              </CardContent>
+           </Card>
+        </TabsContent>
+        <TabsContent value="result">
+          <Card className="rounded-t-none border-t-0">
+             <CardContent className="p-6">
+              {(isGenerating || result) && (
+                <div className="space-y-8 animate-fade-in">
+                  <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <div className="flex-1">
+                      <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">
+                        Resultado Gerado
+                      </h2>
+                      <p className="text-muted-foreground">
+                        Um plano de conteúdo completo para seu próximo vídeo.
+                      </p>
+                    </div>
+                    {result && (
+                      <div className="flex w-full sm:w-auto gap-2">
+                        <Button
+                          onClick={() => handleSave(result)}
+                          disabled={isSaving}
+                          className="w-full sm:w-auto"
+                        >
+                          {isSaving ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          ) : (
+                            <Save className="mr-2 h-4 w-4" />
+                          )}
+                          Salvar Ideia
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+
+                  {isGenerating && !result ? (
+                    <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-96">
+                      <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                      <p className="mt-4 text-muted-foreground">
+                        Criando algo incrível para você...
+                      </p>
+                    </div>
+                  ) : result ? (
+                    <div className="grid lg:grid-cols-3 gap-8 items-start">
+                        <div className="lg:col-span-2 space-y-6">
+                           <Card className="border-0 rounded-2xl">
+                                <CardHeader>
+                                    <CardTitle className="text-center flex items-center gap-3 text-lg font-semibold text-foreground">
+                                        <Pen className="h-5 w-5 text-primary" />
+                                        <span>Roteiro do Vídeo</span>
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <Accordion type="single" collapsible defaultValue='item-1' className="w-full">
+                                        <AccordionItem value="item-1">
+                                            <AccordionTrigger>Roteiro Longo (45-60s)</AccordionTrigger>
+                                            <AccordionContent className="text-base text-muted-foreground whitespace-pre-wrap">{result.script.scriptLongo}</AccordionContent>
+                                        </AccordionItem>
+                                        <AccordionItem value="item-2">
+                                            <AccordionTrigger>Roteiro Curto (15-25s)</AccordionTrigger>
+                                            <AccordionContent className="text-base text-muted-foreground whitespace-pre-wrap">{result.script.scriptCurto}</AccordionContent>
+                                        </AccordionItem>
+                                    </Accordion>
+                                </CardContent>
+                            </Card>
+                            
+                             <Card className="border-0 rounded-2xl">
+                                <CardHeader><CardTitle className="text-center flex items-center gap-3 text-lg font-semibold"><AlertTriangle className="h-5 w-5 text-primary" />Análise de Concorrência</CardTitle></CardHeader>
+                                <CardContent>
+                                    <Accordion type="single" collapsible className="w-full">
+                                        {result.nicheCompetitors.map((item, index) => (
+                                            <AccordionItem value={`comp-${index}`} key={index}>
+                                                <AccordionTrigger className='text-left'>{item.videoTitle}</AccordionTrigger>
+                                                <AccordionContent>
+                                                    <p className="font-semibold text-foreground mb-1">O que aprender:</p>
+                                                    <p className="text-sm text-muted-foreground">{item.learning}</p>
+                                                </AccordionContent>
+                                            </AccordionItem>
+                                        ))}
+                                    </Accordion>
+                                </CardContent>
+                            </Card>
+                        </div>
+                        <div className="space-y-8">
+                            <Card className="border-0 rounded-2xl">
+                                <CardHeader><CardTitle className="text-center flex items-center gap-3 text-lg font-semibold"><TrendingUp className="h-5 w-5 text-primary" />Potencial de Viralização</CardTitle></CardHeader>
+                                <CardContent className="space-y-4">
+                                     <div className="text-center">
+                                        <p className="text-5xl font-bold font-headline">{result.viralScore}</p>
+                                        <p className="text-sm text-muted-foreground">de 100</p>
+                                     </div>
+                                     <Progress value={result.viralScore} />
+                                </CardContent>
+                            </Card>
+
+                            <div className='space-y-2'>
+                                <InfoCard title="Gancho" icon={Mic} content={result.script.gancho} />
+                                <InfoCard title="CTA" icon={Heart} content={result.script.cta} />
+                                <InfoCard title="Horário Sugerido" icon={Clock} content={result.suggestedPostTime} />
+                                <InfoCard title="Música em Alta" icon={Disc} content={result.trendingSong} />
+                            </div>
+
+                             {result.platformAdaptations && (result.platformAdaptations.tiktok || result.platformAdaptations.reels || result.platformAdaptations.shorts) && (
+                                <Card className="border-0 rounded-2xl">
+                                    <CardHeader><CardTitle className="text-center flex items-center gap-3 text-lg font-semibold"><LightbulbIcon className="h-5 w-5 text-primary" />Adaptação para Plataformas</CardTitle></CardHeader>
+                                    <CardContent className="space-y-4">
+                                        {result.platformAdaptations.tiktok && (
+                                            <div>
+                                                <h4 className='flex items-center gap-2 font-semibold mb-1'><TikTokIcon className="h-4 w-4" /> TikTok</h4>
+                                                <p className='text-sm text-muted-foreground'>{result.platformAdaptations.tiktok}</p>
+                                            </div>
+                                        )}
+                                        {result.platformAdaptations.reels && (
+                                            <div>
+                                                <h4 className='flex items-center gap-2 font-semibold mb-1'><Instagram className="h-4 w-4" /> Reels</h4>
+                                                <p className='text-sm text-muted-foreground'>{result.platformAdaptations.reels}</p>
+                                            </div>
+                                        )}
+                                        {result.platformAdaptations.shorts && (
+                                            <div>
+                                                <h4 className='flex items-center gap-2 font-semibold mb-1'><Youtube className="h-4 w-4" /> Shorts</h4>
+                                                <p className='text-sm text-muted-foreground'>{result.platformAdaptations.shorts}</p>
+                                            </div>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                             )}
+
+                             <Card className="border-0 rounded-2xl">
+                                <CardHeader><CardTitle className="text-center flex items-center gap-3 text-lg font-semibold"><Camera className="h-5 w-5 text-primary" />Checklist de Gravação</CardTitle></CardHeader>
+                                <CardContent>
+                                    <ul className="space-y-2">
+                                        {result.takesChecklist.map((take, index) => (
+                                            <li key={index} className="flex items-center gap-2 text-sm text-muted-foreground">
+                                                <Check className="h-4 w-4 text-primary shrink-0" />
+                                                <span>{take}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </div>
+                  ) : null}
+                </div>
+              )}
+             </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
 
       <Separator />
 
@@ -516,56 +652,16 @@ function InfoCard({
   className?: string;
 }) {
   return (
-    <Card
-      className={cn("border-0 rounded-2xl", className)}
+    <div
+      className={cn("p-4 rounded-lg bg-muted/50 border", className)}
     >
-      <CardHeader>
-        <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
-          <Icon className="h-5 w-5 text-primary" />
+        <h4 className="flex items-center gap-2 text-sm font-semibold text-muted-foreground mb-1">
+          <Icon className="h-4 w-4" />
           <span>{title}</span>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {title === 'Roteiro do Vídeo' ? (
-          <Textarea
-            readOnly
-            value={content}
-            className="h-48 bg-muted/30 text-base leading-relaxed resize-none rounded-xl"
-          />
-        ) : (
-          <p className="p-4 rounded-xl border bg-muted/30 text-base text-foreground">
+        </h4>
+          <p className="font-semibold text-foreground">
             {content}
           </p>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
-function InfoListCard({
-  title,
-  icon: Icon,
-  content,
-}: {
-  title: string;
-  icon: React.ElementType;
-  content: string[];
-}) {
-  return (
-    <Card className="rounded-2xl border-0">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
-          <Icon className="h-5 w-5 text-primary" />
-          <span>{title}</span>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Textarea
-          readOnly
-          value={content.map((take, index) => `${index + 1}. ${take}`).join('\n')}
-          className="h-48 bg-muted/30 text-base leading-relaxed resize-none rounded-xl"
-        />
-      </CardContent>
-    </Card>
+    </div>
   );
 }

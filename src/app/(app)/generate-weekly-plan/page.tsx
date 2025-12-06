@@ -648,7 +648,7 @@ export default function GenerateWeeklyPlanPage() {
                                                 <Checkbox
                                                 id={`active-roteiro-${index}`}
                                                 checked={item.concluido}
-                                                onCheckedChange={() => handleToggleRoteiro(index)}
+                         nano src/app/(app)/generate-weekly-plan/page.tsx                       onCheckedChange={() => handleToggleRoteiro(index)}
                                                 className="h-5 w-5 mt-1"
                                                 />
                                                 <div>
