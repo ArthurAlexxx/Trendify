@@ -1,3 +1,4 @@
+
 rules_version = '2';
 
 service cloud.firestore {
@@ -22,14 +23,20 @@ service cloud.firestore {
       allow list: if request.auth != null && isAdmin();
     }
 
-    // Subcoleções do usuário
-    match /users/{userId}/{subcollection=**} {
+    // Subcoleções do usuário (ideias, agendamentos, análises, métricas, etc.)
+    match /users/{userId}/{subcollection}/{docId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Coleção roteiro (livre)
-    match /roteiro/{itemRoteiroId} {
-      allow read, write: if request.auth != null;
+    // Coleção de Planos Semanais
+    match /weeklyPlans/{planId} {
+      allow read, write, list: if request.auth != null;
+    }
+
+     // Webhook Logs (somente admin para leitura, mas aberto para criação pelo webhook)
+    match /webhookLogs/{logId} {
+      allow read, list: if request.auth != null && isAdmin();
+      allow create: if true;
     }
   }
 }
