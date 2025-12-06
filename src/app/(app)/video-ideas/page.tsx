@@ -287,14 +287,14 @@ export default function VideoIdeasPage() {
                         {analysisCriteria.map((item, index) => (
                             <CarouselItem key={index} className="pl-4 basis-full">
                                 <Card className="rounded-2xl border-0 h-full">
-                                    <CardHeader>
-                                        <CardTitle className="text-center flex items-center gap-3">
-                                            <item.icon className="h-6 w-6 text-primary" />
-                                            <span>{item.title}</span>
+                                    <CardHeader className="items-center">
+                                        <CardTitle className="text-center flex flex-col items-center gap-2">
+                                            <item.icon className="h-5 w-5 text-primary" />
+                                            <span className="text-base font-semibold">{item.title}</span>
                                         </CardTitle>
                                     </CardHeader>
-                                    <CardContent>
-                                        <p className="text-muted-foreground">{item.description}</p>
+                                    <CardContent className="text-center">
+                                        <p className="text-muted-foreground text-sm">{item.description}</p>
                                     </CardContent>
                                 </Card>
                             </CarouselItem>
@@ -307,14 +307,14 @@ export default function VideoIdeasPage() {
             <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {analysisCriteria.map((item, index) => (
                     <Card key={index} className="rounded-2xl border-0">
-                        <CardHeader>
-                            <CardTitle className="text-center flex items-center gap-3">
-                                <item.icon className="h-6 w-6 text-primary" />
-                                <span>{item.title}</span>
+                        <CardHeader className="items-center">
+                            <CardTitle className="text-center flex flex-col items-center gap-2">
+                                <item.icon className="h-5 w-5 text-primary" />
+                                <span className="text-base font-semibold">{item.title}</span>
                             </CardTitle>
                         </CardHeader>
-                        <CardContent>
-                            <p className="text-muted-foreground">{item.description}</p>
+                        <CardContent className="text-center">
+                            <p className="text-muted-foreground text-sm">{item.description}</p>
                         </CardContent>
                     </Card>
                 ))}
@@ -348,7 +348,7 @@ export default function VideoIdeasPage() {
                             )}
                          </Button>
                       </DialogTrigger>
-                      <DialogContent className="p-0 bg-transparent border-none shadow-none w-full max-w-2xl">
+                      <DialogContent className="p-0 bg-transparent border-none shadow-none w-full max-w-lg">
                         <ObjectiveFormCard
                           initialData={form.getValues()}
                           onSubmit={form.handleSubmit(formAction)}
@@ -372,20 +372,15 @@ export default function VideoIdeasPage() {
         </TabsContent>
         <TabsContent value="result">
           <Card className="rounded-t-none border-t-0">
+             <CardHeader className="text-center">
+                <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Resultado Gerado</h2>
+                <p className="text-muted-foreground">Um plano de conteúdo completo para seu próximo vídeo.</p>
+            </CardHeader>
              <CardContent className="p-6">
               {(isGenerating || result) && (
                 <div className="space-y-8 animate-fade-in">
-                  <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-                    <div className="flex-1">
-                      <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">
-                        Resultado Gerado
-                      </h2>
-                      <p className="text-muted-foreground">
-                        Um plano de conteúdo completo para seu próximo vídeo.
-                      </p>
-                    </div>
-                    {result && (
-                      <div className="flex w-full sm:w-auto gap-2">
+                  {result && (
+                      <div className="flex justify-center">
                         <Button
                           onClick={() => handleSave(result)}
                           disabled={isSaving}
@@ -400,7 +395,6 @@ export default function VideoIdeasPage() {
                         </Button>
                       </div>
                     )}
-                  </div>
 
                   {isGenerating && !result ? (
                     <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-96">
