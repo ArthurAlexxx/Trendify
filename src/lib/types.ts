@@ -1,4 +1,4 @@
-import type { Timestamp } from 'firebase/firestore';
+import type { Timestamp, FieldValue } from 'firebase/firestore';
 
 export type Plan = 'pro' | 'free' | 'premium';
 export type UserRole = 'admin' | 'user';
@@ -171,5 +171,5 @@ export interface PlanoSemanal {
   effortLevel: 'Baixo' | 'Médio' | 'Alto';
   priorityIndex: string[];
   realignmentTips: string;
-  createdAt: Timestamp;
+  createdAt: Timestamp | FieldValue;
 }
