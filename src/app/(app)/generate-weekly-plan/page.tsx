@@ -1,3 +1,4 @@
+
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -621,5 +622,3 @@ export default function GenerateWeeklyPlanPage() {
     </div>
   );
 }
-
-    
