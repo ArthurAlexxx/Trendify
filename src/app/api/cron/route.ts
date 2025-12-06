@@ -98,7 +98,7 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({ message: 'Nenhuma tarefa agendada para amanhã.' });
         }
         
-        const enrichedTasks = (await Promise.all(tasks.map(async (task) => {
+        const enrichedTasks = (await Promise.all(tasks.map(async (task: ConteudoAgendado) => {
             if (!task.userId) return null;
             const userEmail = await getUserEmail(firestore, task.userId);
             if (!userEmail) return null;
