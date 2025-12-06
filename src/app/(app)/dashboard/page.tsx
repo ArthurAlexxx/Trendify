@@ -793,27 +793,27 @@ export default function DashboardPage() {
             <div className="lg:col-span-1 space-y-8">
                 <GoalCard isLoading={isLoading} goalFollowers={goalFollowers} currentFollowers={currentFollowers} followerGoalProgress={followerGoalProgress} pieData={pieData} formatMetricValue={formatMetricValue} />
                 <DailyPlanCard isLoadingWeeklyPlans={isLoadingWeeklyPlans} tasksForToday={tasksForToday} currentPlan={currentPlan} handleToggleRoteiro={handleToggleRoteiro} />
+                 <ActionHubCard 
+                    isLoadingUpcoming={isLoadingUpcoming}
+                    upcomingContent={upcomingContent}
+                    isLoadingIdeias={isLoadingIdeias}
+                    ideiasSalvas={ideiasSalvas}
+                    isFetchingPosts={isFetchingPosts}
+                    instaPosts={instaPosts}
+                    userProfile={userProfile}
+                    tiktokPosts={tiktokPosts}
+                    handleToggleIdeia={handleToggleIdeia}
+                    handleMarkAsPublished={handleMarkAsPublished}
+                    handleTikTokClick={handleTikTokClick}
+                    formatNumber={formatNumber}
+                />
             </div>
 
             {/* Right Column */}
             <div className="lg:col-span-2 space-y-8">
               <EngagementMetricsCard isLoading={isLoading} latestMetrics={latestMetrics} formatMetricValue={formatMetricValue} getMetricRating={getMetricRating} />
               <EvolutionChartCard isLoading={isLoading} historicalChartData={historicalChartData} selectedPlatform={selectedPlatform} userProfile={userProfile} />
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-stretch">
-                    <ActionHubCard 
-                        isLoadingUpcoming={isLoadingUpcoming}
-                        upcomingContent={upcomingContent}
-                        isLoadingIdeias={isLoadingIdeias}
-                        ideiasSalvas={ideiasSalvas}
-                        isFetchingPosts={isFetchingPosts}
-                        instaPosts={instaPosts}
-                        userProfile={userProfile}
-                        tiktokPosts={tiktokPosts}
-                        handleToggleIdeia={handleToggleIdeia}
-                        handleMarkAsPublished={handleMarkAsPublished}
-                        handleTikTokClick={handleTikTokClick}
-                        formatNumber={formatNumber}
-                    />
+                <div className="grid grid-cols-1 items-stretch">
                     <PerformanceAnalysisCard isGeneratingInsights={isGeneratingInsights} insights={insights} handleGenerateInsights={handleGenerateInsights} />
               </div>
             </div>
@@ -823,7 +823,3 @@ export default function DashboardPage() {
     </>
   );
 }
-
-    
-
-    
