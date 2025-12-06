@@ -49,6 +49,7 @@ import type {
   MetricSnapshot,
   InstagramPostData,
   TikTokProfileData,
+  TikTokPostData,
 } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -122,7 +123,7 @@ export default function DashboardPage() {
   const [selectedPlatform, setSelectedPlatform] = useState<'total' | 'instagram' | 'tiktok'>('total');
 
   const [instaPosts, setInstaPosts] = useState<InstagramPostData[] | null>(null);
-  const [tiktokPosts, setTiktokPosts] = useState<TikTokProfileData[] | null>(null);
+  const [tiktokPosts, setTiktokPosts] = useState<TikTokPostData[] | null>(null);
   const [isFetchingPosts, setIsFetchingPosts] = useState(false);
   
   const [showTikTokModal, setShowTikTokModal] = useState(false);
@@ -162,7 +163,7 @@ export default function DashboardPage() {
 
   const isLoading = isLoadingProfile || isLoadingRoteiro || isLoadingUpcoming || isLoadingMetrics || isSubscriptionLoading || isLoadingIdeias;
   
-  const handleTikTokClick = (post: TikTokProfileData) => {
+  const handleTikTokClick = (post: TikTokPostData) => {
     if (post.shareUrl) {
         setCurrentTikTokUrl(post.shareUrl);
         setShowTikTokModal(true);
