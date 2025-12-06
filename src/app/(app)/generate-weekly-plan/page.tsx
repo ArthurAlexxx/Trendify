@@ -622,3 +622,5 @@ export default function GenerateWeeklyPlanPage() {
     </div>
   );
 }
+
+    
