@@ -310,8 +310,8 @@ function PublisAssistantPageContent() {
                         {analysisCriteria.map((item, index) => (
                             <CarouselItem key={index} className="pl-4 basis-full">
                                 <Card className="h-full rounded-2xl border-0">
-                                    <CardHeader className="items-center">
-                                        <CardTitle className="text-center flex flex-col items-center gap-2">
+                                    <CardHeader className="items-center text-center">
+                                        <CardTitle className="flex flex-col items-center gap-2">
                                             <item.icon className="h-5 w-5 text-primary" />
                                             <span className="text-base font-semibold">{item.title}</span>
                                         </CardTitle>
@@ -330,8 +330,8 @@ function PublisAssistantPageContent() {
             <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {analysisCriteria.map((item, index) => (
                     <Card key={index} className='rounded-2xl border-0'>
-                        <CardHeader className="items-center">
-                            <CardTitle className="text-center flex flex-col items-center gap-2">
+                        <CardHeader className="items-center text-center">
+                            <CardTitle className="flex flex-col items-center gap-2">
                                 <item.icon className="h-5 w-5 text-primary" />
                                 <span className="text-base font-semibold">{item.title}</span>
                             </CardTitle>
@@ -386,105 +386,101 @@ function PublisAssistantPageContent() {
                                     onSubmit={form.handleSubmit(formAction)}
                                     className="space-y-6"
                                     >
-                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-6">
-                                        <div className="space-y-6">
-                                            <FormField
-                                            control={form.control}
-                                            name="product"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                <FormLabel>Produto ou Marca</FormLabel>
-                                                <FormControl>
-                                                    <Input
-                                                    placeholder="Ex: Tênis de corrida da Nike"
-                                                    className="h-12 bg-muted/50"
-                                                    {...field}
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                                </FormItem>
-                                            )}
-                                            />
-                                            <FormField
-                                            control={form.control}
-                                            name="targetAudience"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                <FormLabel>Público-Alvo</FormLabel>
-                                                <FormControl>
-                                                    <Textarea
-                                                    placeholder="Ex: Mulheres de 25-35 anos, interessadas em vida saudável."
-                                                    className="min-h-[120px] bg-muted/50"
-                                                    {...field}
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                                </FormItem>
-                                            )}
-                                            />
-                                        </div>
-                                        <div className="space-y-6">
-                                            <FormField
-                                            control={form.control}
-                                            name="differentiators"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                <FormLabel>Diferenciais do Produto</FormLabel>
-                                                <FormControl>
-                                                <Textarea
-                                                    placeholder="Ex: Material reciclado, leve, absorção de impacto, design moderno."
-                                                    className="min-h-[120px] bg-muted/50"
-                                                    {...field}
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                                </FormItem>
-                                            )}
-                                            />
-                                        </div>
-                                    </div>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                                    <div className="space-y-6">
                                         <FormField
                                         control={form.control}
-                                        name="objective"
+                                        name="product"
                                         render={({ field }) => (
                                             <FormItem>
-                                            <FormLabel>Objetivo Principal</FormLabel>
-                                            <Select onValueChange={field.onChange} defaultValue={field.value} name={field.name}>
-                                                <FormControl>
-                                                <SelectTrigger className="h-12 bg-muted/50">
-                                                    <SelectValue placeholder="Selecione" />
-                                                </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                <SelectItem value="Gerar Vendas">Gerar Vendas (Conversão)</SelectItem>
-                                                <SelectItem value="Aumentar Reconhecimento da Marca">Aumentar Reconhecimento (Alcance)</SelectItem>
-                                                <SelectItem value="Gerar Leads">Gerar Leads (Cadastros)</SelectItem>
-                                                <SelectItem value="Engajar a Comunidade">Engajar a Comunidade</SelectItem>
-                                                </SelectContent>
-                                            </Select>
+                                            <FormLabel>Produto ou Marca</FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                placeholder="Ex: Tênis de corrida da Nike"
+                                                className="h-12 bg-muted/50"
+                                                {...field}
+                                                />
+                                            </FormControl>
                                             <FormMessage />
                                             </FormItem>
                                         )}
                                         />
                                         <FormField
-                                            control={form.control}
-                                            name="extraInfo"
-                                            render={({ field }) => (
+                                        control={form.control}
+                                        name="targetAudience"
+                                        render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Informações Adicionais (Opcional)</FormLabel>
-                                                <FormControl>
-                                                <Input
-                                                    placeholder="Restrições, cupons, links, etc."
-                                                    className="h-12 bg-muted/50"
-                                                    {...field}
+                                            <FormLabel>Público-Alvo</FormLabel>
+                                            <FormControl>
+                                                <Textarea
+                                                placeholder="Ex: Mulheres de 25-35 anos, interessadas em vida saudável."
+                                                className="min-h-[100px] bg-muted/50"
+                                                {...field}
                                                 />
-                                                </FormControl>
-                                                <FormMessage />
+                                            </FormControl>
+                                            <FormMessage />
                                             </FormItem>
-                                            )}
+                                        )}
+                                        />
+                                        <FormField
+                                        control={form.control}
+                                        name="differentiators"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                            <FormLabel>Diferenciais do Produto</FormLabel>
+                                            <FormControl>
+                                            <Textarea
+                                                placeholder="Ex: Material reciclado, leve, absorção de impacto, design moderno."
+                                                className="min-h-[100px] bg-muted/50"
+                                                {...field}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                            </FormItem>
+                                        )}
                                         />
                                     </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                                    <FormField
+                                    control={form.control}
+                                    name="objective"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                        <FormLabel>Objetivo Principal</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value} name={field.name}>
+                                            <FormControl>
+                                            <SelectTrigger className="h-12 bg-muted/50">
+                                                <SelectValue placeholder="Selecione" />
+                                            </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                            <SelectItem value="Gerar Vendas">Gerar Vendas (Conversão)</SelectItem>
+                                            <SelectItem value="Aumentar Reconhecimento da Marca">Aumentar Reconhecimento (Alcance)</SelectItem>
+                                            <SelectItem value="Gerar Leads">Gerar Leads (Cadastros)</SelectItem>
+                                            <SelectItem value="Engajar a Comunidade">Engajar a Comunidade</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                        </FormItem>
+                                    )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="extraInfo"
+                                        render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Informações Adicionais (Opcional)</FormLabel>
+                                            <FormControl>
+                                            <Input
+                                                placeholder="Restrições, cupons, links, etc."
+                                                className="h-12 bg-muted/50"
+                                                {...field}
+                                            />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                        )}
+                                    />
+                                </div>
                                     <div className="pt-4 flex flex-col sm:flex-row items-center justify-end gap-4">
                                         <Button type="button" variant="ghost" onClick={() => setIsFormOpen(false)}>Cancelar</Button>
                                         <Button
@@ -544,7 +540,7 @@ function PublisAssistantPageContent() {
                       <div className="lg:col-span-2 space-y-6">
                         <Card className='rounded-2xl border-0'>
                             <CardHeader>
-                                <CardTitle className="text-center flex items-center gap-3 text-lg font-semibold text-foreground">
+                                <CardTitle className="text-center flex items-center justify-center gap-3 text-lg font-semibold text-foreground">
                                     <Clapperboard className="h-5 w-5 text-primary" />
                                     <span>5 Roteiros Prontos para Gravar</span>
                                 </CardTitle>
@@ -571,7 +567,7 @@ function PublisAssistantPageContent() {
                         </Card>
                         
                          <Card className='rounded-2xl border-0'>
-                            <CardHeader><CardTitle className="text-center flex items-center gap-3 text-lg font-semibold"><Lightbulb className="h-5 w-5 text-primary" />Ângulos Criativos e Tom de Voz</CardTitle></CardHeader>
+                            <CardHeader><CardTitle className="text-center flex items-center justify-center gap-3 text-lg font-semibold"><Lightbulb className="h-5 w-5 text-primary" />Ângulos Criativos e Tom de Voz</CardTitle></CardHeader>
                             <CardContent className="grid md:grid-cols-2 gap-6">
                                 <div>
                                     <h4 className="font-semibold mb-2">Ângulos para Campanha</h4>
@@ -597,8 +593,8 @@ function PublisAssistantPageContent() {
 
                       <div className="space-y-8">
                          <Card className='rounded-2xl border-0'>
-                             <CardHeader><CardTitle className="text-center flex items-center gap-3 text-lg font-semibold"><Target className="h-5 w-5 text-primary" />Projeção de Conversão</CardTitle></CardHeader>
-                             <CardContent className='space-y-1'>
+                             <CardHeader><CardTitle className="text-center flex items-center justify-center gap-3 text-lg font-semibold"><Target className="h-5 w-5 text-primary" />Projeção de Conversão</CardTitle></CardHeader>
+                             <CardContent className='space-y-1 text-center'>
                                 <p className='font-semibold text-foreground'>{result.conversionProjection.roteiro}</p>
                                 <p className='text-sm text-muted-foreground'>{result.conversionProjection.justificativa}</p>
                              </CardContent>
@@ -639,7 +635,7 @@ function InfoListCard({
   return (
     <Card className="h-full rounded-2xl border-0">
       <CardHeader>
-        <CardTitle className="text-center flex items-center gap-3 text-lg font-semibold text-foreground">
+        <CardTitle className="text-center flex items-center justify-center gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary" />
           <span>{title}</span>
         </CardTitle>
@@ -660,3 +656,5 @@ function InfoListCard({
     </Card>
   );
 }
+
+    
