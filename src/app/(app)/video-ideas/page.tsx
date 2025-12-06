@@ -48,6 +48,7 @@ import {
   Edit,
   Newspaper,
   Calendar,
+  Trash2,
 } from 'lucide-react';
 import { useEffect, useTransition, useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
@@ -83,10 +84,7 @@ const formSchema = z.object({
 
 type FormSchemaType = z.infer<typeof formSchema>;
 
-type VideoIdeasState = {
-  data?: GenerateVideoIdeasOutput;
-  error?: string;
-} | null;
+const LOCAL_STORAGE_KEY = 'video-ideas-result';
 
 
 const analysisCriteria = [
@@ -116,7 +114,7 @@ const analysisCriteria = [
 export default function VideoIdeasPage() {
   const { toast } = useToast();
   const [isGenerating, startTransition] = useTransition();
-  const [state, setState] = useState<VideoIdeasState>(null);
+  const [result, setResult] = useState<GenerateVideoIdeasOutput | null>(null);
   const [activeTab, setActiveTab] = useState("generate");
 
   const [isSaving, startSavingTransition] = useTransition();
@@ -136,6 +134,19 @@ export default function VideoIdeasPage() {
   const [usageData, setUsageData] = useState<DailyUsage | null>(null);
   const [isLoadingUsage, setIsLoadingUsage] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
+
+  useEffect(() => {
+    try {
+        const savedResult = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (savedResult) {
+            setResult(JSON.parse(savedResult));
+            setActiveTab('result');
+        }
+    } catch (error) {
+        console.error("Failed to parse saved result from localStorage", error);
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
+    }
+  }, []);
 
   useEffect(() => {
     if (!user || !firestore) return;
@@ -162,7 +173,6 @@ export default function VideoIdeasPage() {
     },
   });
   
-  // Effect to pre-fill form from URL params
   useEffect(() => {
     const topicParam = searchParams.get('topic');
     const contextParam = searchParams.get('context');
@@ -172,7 +182,7 @@ export default function VideoIdeasPage() {
         fullTopic += ` (Contexto: ${contextParam})`;
       }
       form.setValue('topic', fullTopic);
-      setIsFormOpen(true); // Automatically open the form
+      setIsFormOpen(true); 
     }
   }, [searchParams, form]);
 
@@ -180,13 +190,20 @@ export default function VideoIdeasPage() {
   const formAction = useCallback(async (formData: FormSchemaType) => {
     setIsFormOpen(false);
     startTransition(async () => {
-      const result = await generateVideoIdeasAction(null, formData);
-      setState(result);
-       if (result?.data) {
+      const actionResult = await generateVideoIdeasAction(null, formData);
+       if (actionResult?.error) {
+           toast({
+                title: 'Erro ao Gerar Ideias',
+                description: actionResult.error,
+                variant: 'destructive',
+            });
+       } else if(actionResult?.data) {
+        setResult(actionResult.data);
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(actionResult.data));
         setActiveTab("result");
       }
     });
-  }, [startTransition, setState, setActiveTab]);
+  }, [startTransition, setActiveTab, toast]);
   
   const completedIdeasQuery = useMemoFirebase(
     () =>
@@ -201,7 +218,6 @@ export default function VideoIdeasPage() {
   );
   
   const { data: completedIdeas, isLoading: isLoadingCompleted } = useCollection<IdeiaSalva>(completedIdeasQuery);
-  const result = state?.data;
 
   useEffect(() => {
     if (userProfile && !searchParams.get('topic')) {
@@ -215,13 +231,6 @@ export default function VideoIdeasPage() {
   
 
   useEffect(() => {
-    if (state?.error) {
-      toast({
-        title: 'Erro ao Gerar Ideias',
-        description: state.error,
-        variant: 'destructive',
-      });
-    }
      if (result && user && firestore) {
       const usageDocRef = doc(firestore, `users/${user.uid}/dailyUsage/${todayStr}`);
       getDoc(usageDocRef).then(docSnap => {
@@ -236,7 +245,7 @@ export default function VideoIdeasPage() {
         }
       });
     }
-  }, [state, result, firestore, user, todayStr, toast]);
+  }, [result, firestore, user, todayStr]);
 
   const handleSave = (data: GenerateVideoIdeasOutput) => {
     if (!user || !firestore) {
@@ -268,6 +277,9 @@ export default function VideoIdeasPage() {
           title: 'Sucesso!',
           description: 'Sua ideia foi salva.',
         });
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
+        setResult(null);
+        setActiveTab('generate');
       } catch (error) {
         console.error('Failed to save idea:', error);
         toast({
@@ -278,6 +290,16 @@ export default function VideoIdeasPage() {
       }
     });
   };
+
+  const handleDiscard = () => {
+    localStorage.removeItem(LOCAL_STORAGE_KEY);
+    setResult(null);
+    setActiveTab("generate");
+    toast({
+        title: 'Resultado Descartado',
+        description: 'Você pode gerar uma nova ideia agora.',
+    });
+  }
 
   const isButtonDisabled = isGenerating || hasReachedFreeLimit;
   const isFreePlan = subscription?.plan === 'free';
@@ -403,6 +425,10 @@ export default function VideoIdeasPage() {
                         <Button onClick={() => handleSave(result)} disabled={isSaving} className="w-full sm:w-auto">
                           {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                           Salvar Ideia
+                        </Button>
+                        <Button onClick={handleDiscard} variant="outline" className="w-full sm:w-auto">
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Descartar e Gerar Nova
                         </Button>
                         <Link href={`/publis-assistant?product=${encodeURIComponent(form.getValues('topic'))}&differentiators=${encodeURIComponent(result.script.gancho)}&targetAudience=${encodeURIComponent(form.getValues('targetAudience'))}`}
                          className={cn(buttonVariants({ variant: 'outline', className: 'w-full sm:w-auto' }))}>

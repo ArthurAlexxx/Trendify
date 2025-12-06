@@ -20,6 +20,7 @@ import {
   Handshake,
   AlignLeft,
   Edit,
+  Trash2,
 } from 'lucide-react';
 import { useTransition, useEffect, useState, useCallback } from 'react';
 import {
@@ -63,10 +64,7 @@ const formSchema = z.object({
 
 type FormSchemaType = z.infer<typeof formSchema>;
 
-type CareerPackageState = {
-  data?: AiCareerPackageOutput;
-  error?: string;
-} | null;
+const LOCAL_STORAGE_KEY = 'media-kit-result';
 
 
 const analysisCriteria = [
@@ -145,13 +143,26 @@ export default function MediaKitPage() {
 function MediaKitPageContent() {
   const { toast } = useToast();
   const [isGenerating, startTransition] = useTransition();
-  const [state, setState] = useState<CareerPackageState>(null);
+  const [result, setResult] = useState<AiCareerPackageOutput | null>(null);
   const [activeTab, setActiveTab] = useState("generate");
   const [isFormOpen, setIsFormOpen] = useState(false);
   
   const [isSaving, startSavingTransition] = useTransition();
   const { user } = useUser();
   const firestore = useFirestore();
+
+  useEffect(() => {
+    try {
+        const savedResult = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (savedResult) {
+            setResult(JSON.parse(savedResult));
+            setActiveTab('result');
+        }
+    } catch (error) {
+        console.error("Failed to parse saved result from localStorage", error);
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
+    }
+  }, []);
 
   const userProfileRef = useMemoFirebase(
     () => (firestore && user ? doc(firestore, `users/${user.uid}`) : null),
@@ -171,13 +182,20 @@ function MediaKitPageContent() {
   const formAction = useCallback(async (formData: FormSchemaType) => {
     setIsFormOpen(false);
     startTransition(async () => {
-      const result = await getAiCareerPackageAction(null, formData);
-      setState(result);
-      if (result?.data) {
+      const actionResult = await getAiCareerPackageAction(null, formData);
+      if(actionResult?.error) {
+          toast({
+            title: 'Erro',
+            description: actionResult.error,
+            variant: 'destructive',
+          });
+      } else if (actionResult?.data) {
+        setResult(actionResult.data);
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(actionResult.data));
         setActiveTab("result");
       }
     });
-  }, [startTransition, setState, setActiveTab]);
+  }, [startTransition, setActiveTab, toast]);
 
    useEffect(() => {
     if (userProfile) {
@@ -229,16 +247,6 @@ function MediaKitPageContent() {
     };
   }, [watchedNiche, debouncedNicheUpdate]);
 
-  useEffect(() => {
-    if (state?.error) {
-      toast({
-        title: 'Erro',
-        description: state.error,
-        variant: 'destructive',
-      });
-    }
-  }, [state, toast]);
-
   const handleSave = (data: AiCareerPackageOutput) => {
     if (!user || !firestore) {
       toast({
@@ -274,6 +282,9 @@ function MediaKitPageContent() {
           title: 'Sucesso!',
           description: 'Seu pacote de prospecção foi salvo.',
         });
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
+        setResult(null);
+        setActiveTab("generate");
       } catch (error) {
         console.error('Failed to save idea:', error);
         toast({
@@ -284,8 +295,16 @@ function MediaKitPageContent() {
       }
     });
   };
-
-  const result = state?.data;
+  
+  const handleDiscard = () => {
+    localStorage.removeItem(LOCAL_STORAGE_KEY);
+    setResult(null);
+    setActiveTab("generate");
+    toast({
+        title: 'Resultado Descartado',
+        description: 'Você pode gerar um novo pacote agora.',
+    });
+  }
 
   return (
     <div className="space-y-8">
@@ -483,10 +502,14 @@ function MediaKitPageContent() {
               {(isGenerating || result) && (
                 <div className="space-y-8 animate-fade-in">
                   {result && (
-                      <div className='flex justify-center'>
+                      <div className='flex justify-center gap-2'>
                          <Button onClick={() => handleSave(result)} disabled={isSaving} className="w-full sm:w-auto">
                             {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                             Salvar Pacote
+                        </Button>
+                        <Button onClick={handleDiscard} variant="outline" className="w-full sm:w-auto">
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Descartar
                         </Button>
                       </div>
                     )}

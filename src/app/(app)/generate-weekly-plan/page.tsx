@@ -22,7 +22,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Bot, Loader2, Sparkles, Check, History, ClipboardList, BrainCircuit, Target, Eye, BarChart as BarChartIcon, Zap, AlertTriangle, Trophy, Save, Edit, Lightbulb } from 'lucide-react';
+import { Bot, Loader2, Sparkles, Check, History, ClipboardList, BrainCircuit, Target, Eye, BarChart as BarChartIcon, Zap, AlertTriangle, Trophy, Save, Edit, Lightbulb, Trash2 } from 'lucide-react';
 import { useEffect, useTransition, useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -73,10 +73,7 @@ const formSchema = z.object({
 
 type FormSchemaType = z.infer<typeof formSchema>;
 
-type WeeklyPlanState = {
-  data?: GenerateWeeklyPlanOutput;
-  error?: string;
-} | null;
+const LOCAL_STORAGE_KEY = 'weekly-plan-result';
 
 
 const chartConfig = {
@@ -112,7 +109,7 @@ const analysisCriteria = [
 export default function GenerateWeeklyPlanPage() {
   const { toast } = useToast();
   const [isGenerating, startTransition] = useTransition();
-  const [state, setState] = useState<WeeklyPlanState>(null);
+  const [result, setResult] = useState<GenerateWeeklyPlanOutput | null>(null);
   const [activeTab, setActiveTab] = useState("generate");
   const [isFormOpen, setIsFormOpen] = useState(false);
   
@@ -121,6 +118,19 @@ export default function GenerateWeeklyPlanPage() {
   const { user } = useUser();
   const firestore = useFirestore();
 
+  useEffect(() => {
+    try {
+        const savedResult = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (savedResult) {
+            setResult(JSON.parse(savedResult));
+            setActiveTab('result');
+        }
+    } catch (error) {
+        console.error("Failed to parse saved result from localStorage", error);
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
+    }
+  }, []);
+
   const userProfileRef = useMemoFirebase(
     () => (firestore && user ? doc(firestore, `users/${user.uid}`) : null),
     [firestore, user]
@@ -128,7 +138,6 @@ export default function GenerateWeeklyPlanPage() {
   const { data: userProfile, isLoading: isLoadingProfile } =
     useDoc<UserProfile>(userProfileRef);
 
-  // Query to get the currently active plan (there should only be one)
   const activePlanQuery = useMemoFirebase(
     () => user && firestore ? query(collection(firestore, `users/${user.uid}/weeklyPlans`), limit(1)) : null,
     [user, firestore]
@@ -149,8 +158,6 @@ export default function GenerateWeeklyPlanPage() {
     },
   });
   
-  const result = state?.data;
-
   const formAction = useCallback(async (formData: FormSchemaType) => {
     if (!user || !firestore) {
       toast({ title: "Erro", description: "Usuário não autenticado.", variant: "destructive" });
@@ -159,13 +166,20 @@ export default function GenerateWeeklyPlanPage() {
     
     setIsFormOpen(false);
     startTransition(async () => {
-      const result = await generateWeeklyPlanAction(null, formData);
-      setState(result);
-      if(result?.data){
-         setActiveTab("result");
-      }
+        const actionResult = await generateWeeklyPlanAction(null, formData);
+        if(actionResult?.error){
+            toast({
+                title: 'Erro ao Gerar Plano',
+                description: actionResult.error,
+                variant: 'destructive',
+            });
+        } else if (actionResult?.data) {
+            setResult(actionResult.data);
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(actionResult.data));
+            setActiveTab("result");
+        }
     });
-  }, [user, firestore, toast, startTransition, setState, setActiveTab]);
+  }, [user, firestore, toast, startTransition]);
   
   const handleSavePlan = useCallback(async () => {
     if (!result || !user || !firestore) return;
@@ -176,7 +190,6 @@ export default function GenerateWeeklyPlanPage() {
         const planCollectionRef = collection(firestore, `users/${user.uid}/weeklyPlans`);
         const ideasCollectionRef = collection(firestore, `users/${user.uid}/ideiasSalvas`);
   
-        // 1. Archive the current active plan
         const oldPlansSnapshot = await getDocs(planCollectionRef);
         for (const planDoc of oldPlansSnapshot.docs) {
           const oldPlanData = planDoc.data() as PlanoSemanal;
@@ -206,7 +219,6 @@ export default function GenerateWeeklyPlanPage() {
           batch.delete(planDoc.ref);
         }
   
-        // 2. Save the new plan as the single active plan
         const newPlanDocRef = doc(planCollectionRef);
         
         const newPlanData: Omit<PlanoSemanal, 'id'> = {
@@ -230,8 +242,9 @@ export default function GenerateWeeklyPlanPage() {
           title: 'Sucesso!',
           description: 'Seu novo plano semanal foi salvo e ativado. O plano anterior foi movido para o histórico.',
         });
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
+        setResult(null);
         setActiveTab('generate');
-        setState(null);
       } catch (e: any) {
         console.error('Erro ao salvar plano:', e);
         toast({
@@ -241,7 +254,17 @@ export default function GenerateWeeklyPlanPage() {
         });
       }
     });
-  }, [result, user, firestore, toast, startSavingTransition, setActiveTab, setState]);
+  }, [result, user, firestore, toast, startSavingTransition, setActiveTab]);
+
+  const handleDiscard = () => {
+    localStorage.removeItem(LOCAL_STORAGE_KEY);
+    setResult(null);
+    setActiveTab("generate");
+    toast({
+        title: 'Resultado Descartado',
+        description: 'Você pode gerar um novo plano agora.',
+    });
+  }
 
   useEffect(() => {
     if (userProfile) {
@@ -278,16 +301,6 @@ export default function GenerateWeeklyPlanPage() {
     }
   }, [userProfile, form]);
 
-  useEffect(() => {
-    if (state?.error) {
-      toast({
-        title: 'Erro ao Gerar Plano',
-        description: state.error,
-        variant: 'destructive',
-      });
-    }
-  }, [state, toast]);
-  
   const handleToggleRoteiro = async (itemIndex: number) => {
     if (!firestore || !activePlan || !user) return;
 
@@ -633,10 +646,14 @@ export default function GenerateWeeklyPlanPage() {
                                 </Card>
                             </div>
                             </div>
-                            <div className='flex justify-center pt-4'>
+                            <div className='flex justify-center pt-4 gap-2'>
                                 <Button onClick={handleSavePlan} disabled={isSaving} className="w-full sm:w-auto">
                                     <Save className="mr-2 h-4 w-4" />
                                     {isSaving ? 'Salvando...' : 'Salvar e Ativar Plano'}
+                                </Button>
+                                <Button onClick={handleDiscard} variant="outline" className="w-full sm:w-auto">
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Descartar
                                 </Button>
                             </div>
                         </div>
@@ -746,5 +763,6 @@ export default function GenerateWeeklyPlanPage() {
     </div>
   );
 }
+
 
 

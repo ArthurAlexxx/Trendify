@@ -39,6 +39,7 @@ import {
   AlertTriangle,
   Edit,
   Calendar,
+  Trash2,
 } from 'lucide-react';
 import { useEffect, useTransition, useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
@@ -79,10 +80,7 @@ const formSchema = z.object({
 
 type FormSchemaType = z.infer<typeof formSchema>;
 
-type PubliProposalsState = {
-  data?: GeneratePubliProposalsOutput;
-  error?: string;
-} | null;
+const LOCAL_STORAGE_KEY = 'publis-assistant-result';
 
 
 const analysisCriteria = [
@@ -161,7 +159,7 @@ export default function PublisAssistantPage() {
 function PublisAssistantPageContent() {
   const { toast } = useToast();
   const [isGenerating, startTransition] = useTransition();
-  const [state, setState] = useState<PubliProposalsState>(null);
+  const [result, setResult] = useState<GeneratePubliProposalsOutput | null>(null);
   const [activeTab, setActiveTab] = useState("generate");
   const [isFormOpen, setIsFormOpen] = useState(false);
   
@@ -175,6 +173,19 @@ function PublisAssistantPageContent() {
   
   const [usageData, setUsageData] = useState<DailyUsage | null>(null);
   const [isLoadingUsage, setIsLoadingUsage] = useState(true);
+
+  useEffect(() => {
+    try {
+        const savedResult = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (savedResult) {
+            setResult(JSON.parse(savedResult));
+            setActiveTab('result');
+        }
+    } catch (error) {
+        console.error("Failed to parse saved result from localStorage", error);
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
+    }
+  }, []);
 
   useEffect(() => {
     if (!user || !firestore) return;
@@ -216,27 +227,25 @@ function PublisAssistantPageContent() {
   }, [searchParams, form]);
 
 
-  const result = state?.data;
-
   const formAction = useCallback(async (formData: FormSchemaType) => {
     setIsFormOpen(false);
     startTransition(async () => {
-      const result = await generatePubliProposalsAction(null, formData);
-      setState(result);
-      if (result?.data) {
+      const actionResult = await generatePubliProposalsAction(null, formData);
+      if(actionResult?.error) {
+          toast({
+            title: 'Erro ao Gerar Propostas',
+            description: actionResult.error,
+            variant: 'destructive',
+          });
+      } else if (actionResult?.data) {
+        setResult(actionResult.data);
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(actionResult.data));
         setActiveTab("result");
       }
     });
-  }, [startTransition, setState, setActiveTab]);
+  }, [startTransition, setActiveTab, toast]);
 
   useEffect(() => {
-    if (state?.error) {
-      toast({
-        title: 'Erro ao Gerar Propostas',
-        description: state.error,
-        variant: 'destructive',
-      });
-    }
     if (result && user && firestore) {
       const usageDocRef = doc(firestore, `users/${user.uid}/dailyUsage/${todayStr}`);
       getDoc(usageDocRef).then(docSnap => {
@@ -251,7 +260,7 @@ function PublisAssistantPageContent() {
           }
       });
     }
-  }, [state, result, toast, user, firestore, todayStr]);
+  }, [result, user, firestore, todayStr]);
 
   const handleSave = (data: GeneratePubliProposalsOutput) => {
     if (!user || !firestore) {
@@ -291,6 +300,9 @@ function PublisAssistantPageContent() {
           title: 'Sucesso!',
           description: 'Sua campanha foi salva.',
         });
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
+        setResult(null);
+        setActiveTab("generate");
       } catch (error) {
         console.error('Failed to save idea:', error);
         toast({
@@ -301,6 +313,16 @@ function PublisAssistantPageContent() {
       }
     });
   };
+
+  const handleDiscard = () => {
+    localStorage.removeItem(LOCAL_STORAGE_KEY);
+    setResult(null);
+    setActiveTab("generate");
+    toast({
+        title: 'Resultado Descartado',
+        description: 'Você pode gerar uma nova campanha agora.',
+    });
+  }
   
   const isButtonDisabled = isGenerating || hasReachedFreeLimit;
   const isFreePlan = subscription?.plan === 'free';
@@ -546,6 +568,10 @@ function PublisAssistantPageContent() {
                             {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                             Salvar Campanha
                          </Button>
+                          <Button onClick={handleDiscard} variant="outline" className="w-full sm:w-auto">
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Descartar e Gerar Nova
+                        </Button>
                          <Link href={`/content-calendar?title=${encodeURIComponent(form.getValues('product'))}&notes=${encodeURIComponent(result.scripts[0].script)}`}
                          className={cn(buttonVariants({ variant: 'outline', className: 'w-full sm:w-auto' }))}>
                            <Calendar className="mr-2 h-4 w-4" />
