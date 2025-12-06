@@ -83,6 +83,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import Image from 'next/image';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 
 const chartConfigBase = {
@@ -230,77 +231,78 @@ const ActionHubCard = ({
   isLoadingIdeias,
   ideiasSalvas,
   isFetchingPosts,
+  instaProfile,
   instaPosts,
-  userProfile,
+  tiktokProfile,
   tiktokPosts,
   handleToggleIdeia,
   handleMarkAsPublished,
   handleTikTokClick,
   formatNumber,
-}: any) => (
-  <Card className="h-full flex flex-col">
-    <CardHeader>
-      <CardTitle className="text-center font-headline text-xl">
-        Hub de Ação Rápida
-      </CardTitle>
-    </CardHeader>
-    <CardContent className="flex-1 flex flex-col">
-      <Tabs defaultValue="proximos" className="w-full flex-1 flex flex-col">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="proximos">Próximos</TabsTrigger>
-          <TabsTrigger value="ideias">Ideias</TabsTrigger>
-          <TabsTrigger value="posts">Recentes</TabsTrigger>
-        </TabsList>
-        <div className="flex-1 mt-4">
-          <TabsContent value="proximos" className="h-full">
-            {isLoadingUpcoming ? <div className="flex justify-center items-center h-full"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div> : upcomingContent && upcomingContent.length > 0 ? (<div className="space-y-2">{upcomingContent.map((post: ConteudoAgendado) => (<div key={post.id} className="p-3 rounded-lg border bg-background/50 flex items-start justify-between gap-4"><div className="flex items-start gap-4 flex-1 overflow-hidden"><div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0"><Tag className="h-5 w-5 text-muted-foreground" /></div><div className="flex-1 overflow-hidden"><p className="font-semibold text-foreground truncate text-sm">{post.title}</p><p className="text-xs text-muted-foreground">{post.contentType} • {formatDistanceToNow(post.date.toDate(), { addSuffix: true, locale: ptBR })}</p></div></div><DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger><DropdownMenuContent align="end"><DropdownMenuItem onClick={() => handleMarkAsPublished(post.id)}><CheckCircle className="mr-2 h-4 w-4" /><span>Marcar como Publicado</span></DropdownMenuItem></DropdownMenuContent></DropdownMenu></div>))}</div>) : (<div className="text-center h-full flex flex-col items-center justify-center"><p className="text-muted-foreground text-sm">Nenhum post agendado.</p><Button variant="link" asChild><Link href="/content-calendar">Ir para o Calendário</Link></Button></div>)}
-          </TabsContent>
-          <TabsContent value="ideias" className="h-full">
-            {isLoadingIdeias ? <div className="flex justify-center items-center h-full"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div> : ideiasSalvas && ideiasSalvas.length > 0 ? <ul className="space-y-3">{ideiasSalvas.map((ideia: IdeiaSalva) => (<li key={ideia.id} className="flex items-start gap-3"><Checkbox id={`ideia-${ideia.id}`} checked={ideia.concluido} onCheckedChange={() => handleToggleIdeia(ideia)} className="h-5 w-5 mt-0.5" /><div className="grid gap-0.5"><label htmlFor={`ideia-${ideia.id}`} className={cn('font-medium transition-colors cursor-pointer', ideia.concluido ? 'line-through text-muted-foreground' : 'text-foreground')}>{ideia.titulo}</label><p className="text-xs text-muted-foreground">de "{ideia.origem}"</p></div></li>))}</ul> : (<div className="text-center h-full flex flex-col items-center justify-center"><p className="text-muted-foreground text-sm">Nenhuma ideia salva.</p><Button variant="link" asChild><Link href="/video-ideas">Gerar Novas Ideias</Link></Button></div>)}
-          </TabsContent>
-           <TabsContent value="posts" className="h-full">
-             {isFetchingPosts ? (
-                <div className="flex justify-center items-center h-full"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
-             ) : (
-                <ScrollArea className="h-full max-h-96 pr-3">
-                    <div className='space-y-4'>
-                    {instaPosts && userProfile?.instagramHandle && (
-                        <div>
-                            <h3 className="text-base font-semibold flex items-center gap-2 mb-2"><Instagram className="h-4 w-4"/> Posts Recentes do Instagram</h3>
-                            <InstagramProfileResults profile={{
-                                id: '', username: userProfile.instagramHandle,
-                                followersCount: 0,
-                                isPrivate: false, isBusiness: true, profilePicUrlHd: '', biography: '', fullName: '', mediaCount: 0, followingCount: 0
-                            }} posts={instaPosts} formatNumber={formatNumber} error={null} />
-                        </div>
-                    )}
+}: any) => {
+  return (
+    <Card className="h-full flex flex-col">
+      <CardHeader>
+        <CardTitle className="text-center font-headline text-xl">
+          Hub de Ação Rápida
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="flex-1 flex flex-col">
+        <Tabs defaultValue="proximos" className="w-full flex-1 flex flex-col">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="proximos">Próximos</TabsTrigger>
+            <TabsTrigger value="ideias">Ideias</TabsTrigger>
+            <TabsTrigger value="posts">Recentes</TabsTrigger>
+          </TabsList>
+          <div className="flex-1 mt-4">
+            <TabsContent value="proximos" className="h-full">
+              {isLoadingUpcoming ? <div className="flex justify-center items-center h-full"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div> : upcomingContent && upcomingContent.length > 0 ? (<div className="space-y-2">{upcomingContent.map((post: ConteudoAgendado) => (<div key={post.id} className="p-3 rounded-lg border bg-background/50 flex items-start justify-between gap-4"><div className="flex items-start gap-4 flex-1 overflow-hidden"><div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0"><Tag className="h-5 w-5 text-muted-foreground" /></div><div className="flex-1 overflow-hidden"><p className="font-semibold text-foreground truncate text-sm">{post.title}</p><p className="text-xs text-muted-foreground">{post.contentType} • {formatDistanceToNow(post.date.toDate(), { addSuffix: true, locale: ptBR })}</p></div></div><DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger><DropdownMenuContent align="end"><DropdownMenuItem onClick={() => handleMarkAsPublished(post.id)}><CheckCircle className="mr-2 h-4 w-4" /><span>Marcar como Publicado</span></DropdownMenuItem></DropdownMenuContent></DropdownMenu></div>))}</div>) : (<div className="text-center h-full flex flex-col items-center justify-center"><p className="text-muted-foreground text-sm">Nenhum post agendado.</p><Button variant="link" asChild><Link href="/content-calendar">Ir para o Calendário</Link></Button></div>)}
+            </TabsContent>
+            <TabsContent value="ideias" className="h-full">
+              {isLoadingIdeias ? <div className="flex justify-center items-center h-full"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div> : ideiasSalvas && ideiasSalvas.length > 0 ? <ul className="space-y-3">{ideiasSalvas.map((ideia: IdeiaSalva) => (<li key={ideia.id} className="flex items-start gap-3"><Checkbox id={`ideia-${ideia.id}`} checked={ideia.concluido} onCheckedChange={() => handleToggleIdeia(ideia)} className="h-5 w-5 mt-0.5" /><div className="grid gap-0.5"><label htmlFor={`ideia-${ideia.id}`} className={cn('font-medium transition-colors cursor-pointer', ideia.concluido ? 'line-through text-muted-foreground' : 'text-foreground')}>{ideia.titulo}</label><p className="text-xs text-muted-foreground">de "{ideia.origem}"</p></div></li>))}</ul> : (<div className="text-center h-full flex flex-col items-center justify-center"><p className="text-muted-foreground text-sm">Nenhuma ideia salva.</p><Button variant="link" asChild><Link href="/video-ideas">Gerar Novas Ideias</Link></Button></div>)}
+            </TabsContent>
+             <TabsContent value="posts" className="h-full">
+               {isFetchingPosts ? (
+                  <div className="flex justify-center items-center h-full"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
+               ) : (
+                  <ScrollArea className="h-full max-h-96 pr-3">
+                      <div className='space-y-4'>
+                      {instaPosts && instaProfile && (
+                          <div>
+                              <h3 className="text-base font-semibold flex items-center gap-2 mb-2">
+                                <Instagram className="h-4 w-4"/> Posts Recentes do Instagram
+                                <Avatar className="h-5 w-5"><AvatarImage src={instaProfile.profilePicUrlHd} /></Avatar>
+                              </h3>
+                              <InstagramProfileResults profile={instaProfile} posts={instaPosts} formatNumber={formatNumber} error={null} />
+                          </div>
+                      )}
 
-                    {tiktokPosts && userProfile?.tiktokHandle && (
-                        <div>
-                           <h3 className="text-base font-semibold flex items-center gap-2 mb-2"><Film className="h-4 w-4"/> Vídeos Recentes do TikTok</h3>
-                            <TikTokProfileResults profile={{
-                                id: '', username: userProfile.tiktokHandle,
-                                followersCount: 0,
-                                nickname: '', avatarUrl: '', bio: '', isVerified: false, isPrivate: false, heartsCount: 0, videoCount: 0, followingCount: 0
-                            }} posts={tiktokPosts} formatNumber={formatNumber} error={null} onVideoClick={handleTikTokClick} />
-                        </div>
-                    )}
+                      {tiktokPosts && tiktokProfile && (
+                          <div>
+                             <h3 className="text-base font-semibold flex items-center gap-2 mb-2">
+                               <Film className="h-4 w-4"/> Vídeos Recentes do TikTok
+                               <Avatar className="h-5 w-5"><AvatarImage src={tiktokProfile.avatarUrl} /></Avatar>
+                             </h3>
+                              <TikTokProfileResults profile={tiktokProfile} posts={tiktokPosts} formatNumber={formatNumber} error={null} onVideoClick={handleTikTokClick} />
+                          </div>
+                      )}
 
-                    {!(instaPosts && userProfile?.instagramHandle) && !(tiktokPosts && userProfile?.tiktokHandle) && (
-                         <div className="text-center h-full flex flex-col items-center justify-center">
-                            <p className="text-muted-foreground text-sm">Integre suas contas para ver os posts.</p>
-                            <Button variant="link" asChild><Link href="/profile/integrations">Conectar Plataformas</Link></Button>
-                        </div>
-                    )}
-                    </div>
-                </ScrollArea>
-             )}
-          </TabsContent>
-        </div>
-      </Tabs>
-    </CardContent>
-  </Card>
-);
+                      {!instaPosts && !tiktokPosts && (
+                           <div className="text-center h-full flex flex-col items-center justify-center">
+                              <p className="text-muted-foreground text-sm">Integre suas contas para ver os posts.</p>
+                              <Button variant="link" asChild><Link href="/profile/integrations">Conectar Plataformas</Link></Button>
+                          </div>
+                      )}
+                      </div>
+                  </ScrollArea>
+               )}
+            </TabsContent>
+          </div>
+        </Tabs>
+      </CardContent>
+    </Card>
+  )
+};
 
 const EngagementMetricsCard = ({ isLoading, latestMetrics, formatMetricValue, getMetricRating }: any) => (
     <Card>
@@ -434,7 +436,9 @@ export default function DashboardPage() {
   const { toast } = useToast();
   const [selectedPlatform, setSelectedPlatform] = useState<'total' | 'instagram' | 'tiktok'>('total');
 
+  const [instaProfile, setInstaProfile] = useState<InstagramProfileData | null>(null);
   const [instaPosts, setInstaPosts] = useState<InstagramPostData[] | null>(null);
+  const [tiktokProfile, setTiktokProfile] = useState<TikTokProfileData | null>(null);
   const [tiktokPosts, setTiktokPosts] = useState<TikTokPostData[] | null>(null);
   const [isFetchingPosts, setIsFetchingPosts] = useState(false);
   
@@ -630,13 +634,32 @@ export default function DashboardPage() {
         if (!userProfile) return;
         setIsFetchingPosts(true);
 
-        if (userProfile.instagramHandle) {
-            getInstagramPosts(userProfile.instagramHandle.replace('@', '')).then(setInstaPosts).catch(e => console.error("Failed to fetch instagram posts", e));
+        const fetchInsta = async () => {
+          if (userProfile.instagramHandle) {
+            try {
+              const res = await getInstagramPosts(userProfile.instagramHandle.replace('@', ''));
+              setInstaPosts(res);
+              // Assuming profile pic URL comes from the main profile data for simplicity
+              setInstaProfile({ profilePicUrlHd: userProfile.photoURL, username: userProfile.instagramHandle } as InstagramProfileData);
+            } catch(e) { console.error("Failed to fetch instagram posts", e); }
+          }
         }
-        if (userProfile.tiktokHandle) {
-            getTikTokPosts(userProfile.tiktokHandle.replace('@', '')).then(setTiktokPosts)
-                .catch(e => console.error("Failed to fetch tiktok posts", e));
+
+        const fetchTiktok = async () => {
+          if (userProfile.tiktokHandle) {
+            try {
+              const [profileRes, postsRes] = await Promise.all([
+                  getTikTokProfile(userProfile.tiktokHandle.replace('@', '')),
+                  getTikTokPosts(userProfile.tiktokHandle.replace('@', ''))
+              ]);
+              setTiktokProfile(profileRes);
+              setTiktokPosts(postsRes);
+            } catch(e) { console.error("Failed to fetch tiktok posts", e); }
+          }
         }
+        
+        await Promise.all([fetchInsta(), fetchTiktok()]);
+        
         setIsFetchingPosts(false);
     };
     if (userProfile) fetchPosts();
@@ -770,8 +793,9 @@ export default function DashboardPage() {
                                 isLoadingIdeias={isLoadingIdeias}
                                 ideiasSalvas={ideiasSalvas}
                                 isFetchingPosts={isFetchingPosts}
+                                instaProfile={instaProfile}
                                 instaPosts={instaPosts}
-                                userProfile={userProfile}
+                                tiktokProfile={tiktokProfile}
                                 tiktokPosts={tiktokPosts}
                                 handleToggleIdeia={handleToggleIdeia}
                                 handleMarkAsPublished={handleMarkAsPublished}
@@ -800,8 +824,9 @@ export default function DashboardPage() {
                     isLoadingIdeias={isLoadingIdeias}
                     ideiasSalvas={ideiasSalvas}
                     isFetchingPosts={isFetchingPosts}
+                    instaProfile={instaProfile}
                     instaPosts={instaPosts}
-                    userProfile={userProfile}
+                    tiktokProfile={tiktokProfile}
                     tiktokPosts={tiktokPosts}
                     handleToggleIdeia={handleToggleIdeia}
                     handleMarkAsPublished={handleMarkAsPublished}
