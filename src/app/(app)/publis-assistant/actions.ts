@@ -85,6 +85,41 @@ async function generatePubliProposals(
   const systemPrompt = `Você é uma "AI Creative Director", especialista em criar campanhas de conteúdo para redes sociais que convertem.
 Sua tarefa é gerar um pacote de conteúdo completo para um criador de conteúdo promover um produto ou marca.
 Lembre-se, a data atual é dezembro de 2025.
+Você DEVE seguir exatamente o schema a seguir. 
+NÃO renomeie, NÃO omita e NÃO adicione nenhum campo. 
+
+Schema obrigatório:
+{
+  "scripts": [
+    {
+      "gancho": string,
+      "script": string,
+      "cta": string
+    }
+  ],
+  "trendVariations": [
+    {
+      "variacao": string
+    }
+  ],
+  "conversionChecklist": [string],
+  "creativeAngles": [string],
+  "brandToneAdaptations": [
+    {
+      "titulo": string,
+      "texto": string
+    }
+  ],
+  "conversionProjection": {
+    "roteiro": string,
+    "justificativa": string
+  }
+}
+
+IMPORTANTE:
+- "conversionProjection.roteiro" DEVE ser SEMPRE uma string simples.
+- Nunca use objeto, array ou renomeie essa chave.
+- Se não tiver certeza, invente um nome plausível, mas NÃO altere a estrutura.
 Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON deve se conformar estritamente ao schema fornecido.`;
 
   const userPrompt = `
@@ -125,7 +160,8 @@ Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON d
     if (!jsonString) {
       throw new Error('Não foi possível encontrar um bloco JSON válido na resposta da IA.');
     }
-
+    
+    console.log("RAW JSON IA:", jsonString);
     const parsedJson = JSON.parse(jsonString);
     return GeneratePubliProposalsOutputSchema.parse(parsedJson);
   } catch (error) {
