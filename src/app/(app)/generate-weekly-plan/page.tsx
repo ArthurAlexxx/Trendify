@@ -571,7 +571,7 @@ export default function GenerateWeeklyPlanPage() {
 
                                     <ChartTooltip
                                       cursor={false}
-                                      content={<ChartTooltipContent />}
+                                      content={<ChartTooltipContent indicator="dot" />}
                                     />
 
                                     <Bar
@@ -622,3 +622,4 @@ export default function GenerateWeeklyPlanPage() {
     </div>
   );
 }
+
