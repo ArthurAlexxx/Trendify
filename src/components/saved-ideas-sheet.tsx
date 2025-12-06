@@ -8,13 +8,13 @@ import {
   SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
   SheetFooter,
+  SheetClose
 } from '@/components/ui/sheet';
 import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import { IdeiaSalva } from '@/lib/types';
-import { collection, orderBy, query } from 'firebase/firestore';
-import { BookMarked, Eye, Inbox, Loader2, Edit, Calendar } from 'lucide-react';
+import { collection, orderBy, query, doc, deleteDoc } from 'firebase/firestore';
+import { BookMarked, Eye, Inbox, Loader2, Edit, Calendar, Trash2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Badge } from './ui/badge';
@@ -25,12 +25,18 @@ import { cn } from '@/lib/utils';
 import { VideoIdeasResultView } from '@/app/(app)/video-ideas/page';
 import { PublisAssistantResultView } from '@/app/(app)/publis-assistant/page';
 import { MediaKitResultView } from '@/app/(app)/media-kit/page';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from './ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
 
 export function SavedIdeasSheet() {
   const { user } = useUser();
   const firestore = useFirestore();
+  const { toast } = useToast();
   const [selectedIdea, setSelectedIdea] = useState<IdeiaSalva | null>(null);
+  const [ideaToDelete, setIdeaToDelete] = useState<IdeiaSalva | null>(null);
   const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
 
   const ideiasSalvasQuery = useMemoFirebase(
     () =>
@@ -49,6 +55,32 @@ export function SavedIdeasSheet() {
     setSelectedIdea(idea);
     setIsDetailSheetOpen(true);
   };
+  
+  const confirmDelete = (idea: IdeiaSalva) => {
+    setIdeaToDelete(idea);
+    setIsDeleteDialogOpen(true);
+  }
+
+  const handleDelete = async () => {
+    if (!ideaToDelete || !user || !firestore) return;
+    
+    try {
+      await deleteDoc(doc(firestore, `users/${user.uid}/ideiasSalvas`, ideaToDelete.id));
+      toast({
+        title: "Ideia Excluída",
+        description: `"${ideaToDelete.titulo}" foi removido permanentemente.`,
+      });
+      setIsDeleteDialogOpen(false);
+      setIdeaToDelete(null);
+    } catch(e: any) {
+        toast({
+          title: "Erro ao Excluir",
+          description: e.message,
+          variant: "destructive"
+        });
+    }
+  }
+
   
   const getActionLink = (idea: IdeiaSalva | null): string => {
     if (!idea) return '/';
@@ -72,6 +104,9 @@ export function SavedIdeasSheet() {
   }
 
   const renderResultView = (idea: IdeiaSalva) => {
+    if (!idea.aiResponseData) {
+       return <p className="text-muted-foreground p-6 whitespace-pre-wrap">{idea.conteudo}</p>;
+    }
     switch (idea.origem) {
         case 'Ideias de Vídeo':
             return <VideoIdeasResultView result={idea.aiResponseData} formValues={{ topic: idea.titulo, targetAudience: 'N/A', objective: 'N/A' }} isSheetView={true} />;
@@ -80,7 +115,7 @@ export function SavedIdeasSheet() {
         case 'Mídia Kit & Prospecção':
             return <MediaKitResultView result={idea.aiResponseData} formValues={{ targetBrand: idea.titulo, niche: 'N/A', keyMetrics: 'N/A' }} isSheetView={true} />;
         default:
-            return <p className="text-muted-foreground p-6">{idea.conteudo}</p>;
+            return <p className="text-muted-foreground p-6 whitespace-pre-wrap">{idea.conteudo}</p>;
     }
   }
 
@@ -129,10 +164,14 @@ export function SavedIdeasSheet() {
                               locale: ptBR,
                             })}
                         </p>
-                        <Button variant="ghost" size="sm" className='h-8' onClick={() => handleViewDetails(ideia)}>
-                            <Eye className="mr-2 h-4 w-4" />
-                            Ver Completo
-                        </Button>
+                        <div className='flex items-center gap-1'>
+                            <Button variant="ghost" size="icon" className='h-8 w-8' onClick={() => handleViewDetails(ideia)}>
+                                <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className='h-8 w-8 text-destructive/70 hover:text-destructive' onClick={() => confirmDelete(ideia)}>
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
+                        </div>
                        </div>
                     </div>
                   </li>
@@ -155,6 +194,27 @@ export function SavedIdeasSheet() {
         </ScrollArea>
       </SheetContent>
     </Sheet>
+    
+    {/* Delete Confirmation Dialog */}
+    <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Tem certeza que deseja excluir?</AlertDialogTitle>
+          <AlertDialogDescription>
+            A ideia "{ideaToDelete?.titulo}" será removida permanentemente. Esta ação não pode ser desfeita.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={() => setIdeaToDelete(null)}>Cancelar</AlertDialogCancel>
+          <AlertDialogAction onClick={handleDelete} className={cn(buttonVariants({variant: 'destructive'}))}>
+            Sim, Excluir
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+
+
+    {/* Detail View Sheet */}
     {selectedIdea && (
         <Sheet open={isDetailSheetOpen} onOpenChange={setIsDetailSheetOpen}>
             <SheetContent className="w-full sm:max-w-3xl p-0 flex flex-col">
