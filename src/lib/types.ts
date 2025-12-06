@@ -112,7 +112,7 @@ export type InstagramProfileData = {
     mediaCount: number;
     followersCount: number;
     followingCount: number;
-}
+};
 
 export type InstagramPostData = {
     id: string;

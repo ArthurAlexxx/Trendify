@@ -47,7 +47,7 @@ const userMenuItems: {
   {
     category: 'Menu',
     items: [
-      { href: '/dashboard', icon: LineChart, label: 'Acompanhamento', plan: 'free' },
+      { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', plan: 'free' },
       { href: '/content-calendar', icon: Calendar, label: 'Calendário', plan: 'pro' },
       { href: '/generate-weekly-plan', icon: ClipboardList, label: 'Plano Semanal', plan: 'pro' },
     ],
@@ -276,5 +276,3 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
     </aside>
   );
 }
-
-    
