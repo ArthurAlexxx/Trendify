@@ -88,21 +88,21 @@ async function fetchFromRapidApi(platform: 'instagram-profile' | 'tiktok-profile
     if (!apiKey) {
       throw new Error('A chave da API (RAPIDAPI_KEY) não está configurada no servidor.');
     }
-
-    const host = process.env.INSTAGRAM_RAPIDAPI_HOST;
-    if (!host) {
-        throw new Error(`O host da API (INSTAGRAM_RAPIDAPI_HOST) não está configurado.`);
-    }
     
+    let host: string;
     let path: string;
+
     switch (platform) {
         case 'instagram-profile':
-            path = 'web-profile';
+            host = 'instagram-looter.p.rapidapi.com';
+            path = 'v1/profile';
             break;
         case 'tiktok-profile':
+            host = 'tiktok-video-no-watermark2.p.rapidapi.com';
             path = 'user/details';
             break;
         case 'tiktok-posts':
+            host = 'tiktok-video-no-watermark2.p.rapidapi.com';
             path = 'user/videos';
             break;
         default:
@@ -161,9 +161,9 @@ async function fetchData(url: string, options: RequestInit) {
 export async function getInstagramProfile(username: string): Promise<InstagramProfileData> {
     try {
         const result = await fetchFromRapidApi('instagram-profile', username);
-        const dataToParse = result.data?.user;
+        const dataToParse = result.data;
         if (!dataToParse) {
-            throw new Error("A resposta da API não continha os dados do usuário em 'data.user'.");
+            throw new Error("A resposta da API não continha os dados do usuário em 'data'.");
         }
         
         const parsed = InstagramLooterProfileSchema.parse(dataToParse);
@@ -205,7 +205,7 @@ export async function getInstagramPosts(username: string): Promise<InstagramPost
     try {
         const result = await fetchFromRapidApi('instagram-profile', username);
         
-        const postsArray = result?.data?.user?.edge_owner_to_timeline_media?.edges;
+        const postsArray = result?.data?.edge_owner_to_timeline_media?.edges;
 
         if (!Array.isArray(postsArray)) {
              throw new Error('A resposta da API de posts não continha uma lista de publicações.');
@@ -238,7 +238,7 @@ export async function getInstagramPosts(username: string): Promise<InstagramPost
 export async function getTikTokProfile(username: string): Promise<TikTokProfileData> {
     try {
         const result = await fetchFromRapidApi('tiktok-profile', username);
-        const parsed = TikTokApi6ProfileSchema.parse(result);
+        const parsed = TikTokApi6ProfileSchema.parse(result.data);
 
         if (parsed.is_private) {
             throw new Error("Este perfil é privado. A integração funciona apenas com perfis públicos.");
@@ -274,7 +274,7 @@ export async function getTikTokPosts(username: string): Promise<TikTokPostData[]
     }
     try {
         const result = await fetchFromRapidApi('tiktok-posts', username);
-        const parsed = TikTokPostResponseSchema.parse(result);
+        const parsed = TikTokPostResponseSchema.parse(result.data);
         
         return parsed.videos.map(post => ({
             id: post.video_id,
@@ -295,3 +295,5 @@ export async function getTikTokPosts(username: string): Promise<TikTokPostData[]
         throw e;
     }
 }
+
+    
