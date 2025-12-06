@@ -784,4 +784,3 @@ export default function DashboardPage() {
     </>
   );
 }
-
