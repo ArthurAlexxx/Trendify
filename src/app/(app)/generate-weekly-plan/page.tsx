@@ -62,7 +62,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { PreviousPlansSheet } from '@/components/previous-plans-sheet';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -228,7 +227,6 @@ export default function GenerateWeeklyPlanPage() {
         description="Transforme seu objetivo em um roteiro de conteúdo acionável."
         icon={ClipboardList}
       >
-        <PreviousPlansSheet />
       </PageHeader>
       
       <div>
@@ -562,5 +560,3 @@ export default function GenerateWeeklyPlanPage() {
     </div>
   );
 }
-
-    
