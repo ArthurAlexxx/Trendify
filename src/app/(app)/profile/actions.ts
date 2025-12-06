@@ -63,7 +63,7 @@ const TikTokApi6ProfileSchema = z.object({
 
 const TikTokPostSchema = z.object({
     video_id: z.string(),
-    share_url: z.string().url(),
+    share_url: z.string().url().optional(),
     description: z.string().optional(),
     cover: z.string().url(),
     create_time: z.number().optional(),
