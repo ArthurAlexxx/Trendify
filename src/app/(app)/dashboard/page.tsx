@@ -115,6 +115,319 @@ const platformChartConfig = {
   },
 } satisfies Record<string, ChartConfig>;
 
+// --- Internal Components ---
+
+const DailyPlanCard = ({ isLoadingWeeklyPlans, tasksForToday, currentPlan, handleToggleRoteiro }: any) => (
+  <Card className="rounded-2xl border-0">
+    <CardHeader>
+      <CardTitle className="text-center font-headline text-xl">
+        Plano para Hoje
+      </CardTitle>
+    </CardHeader>
+    <CardContent>
+      {isLoadingWeeklyPlans ? (
+        <div className="flex justify-center items-center h-24"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
+      ) : tasksForToday && tasksForToday.length > 0 ? (
+        <ul className="space-y-3">
+          {tasksForToday.map((item: any, index: number) => {
+            const originalIndex = currentPlan!.items.findIndex((pItem: any) => pItem.dia === item.dia && pItem.tarefa === item.tarefa);
+            return (
+              <li key={index} className="flex items-start gap-3">
+                <Checkbox
+                  id={`daily-plan-task-${index}`}
+                  checked={item.concluido}
+                  onCheckedChange={() => handleToggleRoteiro(originalIndex)}
+                  className="h-5 w-5 mt-0.5 shrink-0"
+                />
+                <div className="grid gap-0.5">
+                  <label
+                    htmlFor={`daily-plan-task-${index}`}
+                    className={cn(
+                      'font-medium transition-colors cursor-pointer',
+                      item.concluido ? 'line-through text-muted-foreground' : 'text-foreground'
+                    )}
+                  >
+                    {item.tarefa}
+                  </label>
+                  <p className="text-xs text-muted-foreground">{item.detalhes}</p>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <div className="text-center py-4">
+          <p className="text-muted-foreground text-sm">Nenhuma tarefa para hoje.</p>
+          <Button variant="link" asChild size="sm">
+            <Link href="/generate-weekly-plan">Ver plano completo</Link>
+          </Button>
+        </div>
+      )}
+    </CardContent>
+  </Card>
+);
+
+const GoalCard = ({ isLoading, goalFollowers, currentFollowers, followerGoalProgress, pieData, formatMetricValue }: any) => (
+  <Card className="rounded-2xl border-0 h-full">
+    <CardHeader>
+      <CardTitle className="text-center">Meta de Seguidores</CardTitle>
+    </CardHeader>
+    <CardContent className="pt-6">
+      <div className="flex flex-col items-center justify-center text-center">
+        {isLoading ? (
+          <Skeleton className="h-48 w-48 rounded-full" />
+        ) : goalFollowers > 0 ? (
+          <div className="relative h-48 w-48">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={pieData}
+                  dataKey="value"
+                  startAngle={90}
+                  endAngle={-270}
+                  innerRadius="80%"
+                  outerRadius="100%"
+                  cornerRadius={50}
+                  paddingAngle={0}
+                  stroke="none"
+                >
+                  {pieData.map((entry: any, index: number) => (
+                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                  ))}
+                </Pie>
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="text-4xl font-bold font-headline text-primary">
+                {followerGoalProgress.toFixed(0)}%
+              </span>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center h-48 w-48 rounded-full border-4 border-dashed bg-muted">
+            <Target className="h-12 w-12 text-muted-foreground" />
+          </div>
+        )}
+        <p className="text-3xl font-bold font-headline mt-4">
+          {formatMetricValue(currentFollowers)}
+        </p>
+        {goalFollowers > 0 ? (
+          <p className="text-sm text-muted-foreground">
+            de {formatMetricValue(goalFollowers)} seguidores
+          </p>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            Defina uma meta para começar
+          </p>
+        )}
+      </div>
+    </CardContent>
+  </Card>
+);
+
+const ActionHubCard = ({
+    isLoadingUpcoming,
+    upcomingContent,
+    isLoadingIdeias,
+    ideiasSalvas,
+    isFetchingPosts,
+    instaPosts,
+    userProfile,
+    tiktokPosts,
+    handleToggleIdeia,
+    handleMarkAsPublished,
+    handleTikTokClick,
+    formatNumber,
+}: any) => (
+  <Card className="rounded-2xl border-0 h-full flex flex-col">
+    <CardHeader>
+      <CardTitle className="text-center font-headline text-xl">
+        Hub de Ação Rápida
+      </CardTitle>
+    </CardHeader>
+    <CardContent className="flex-1 flex flex-col">
+      <Tabs defaultValue="proximos" className="w-full flex-1 flex flex-col">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="proximos">Próximos</TabsTrigger>
+          <TabsTrigger value="ideias">Ideias</TabsTrigger>
+          <TabsTrigger value="posts">Recentes</TabsTrigger>
+        </TabsList>
+        <div className="flex-1 mt-4">
+          <TabsContent value="proximos" className="h-full">
+            {isLoadingUpcoming ? <div className="flex justify-center items-center h-full"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div> : upcomingContent && upcomingContent.length > 0 ? (<div className="space-y-2">{upcomingContent.map((post: ConteudoAgendado) => (<div key={post.id} className="p-3 rounded-lg border bg-background/50 flex items-start justify-between gap-4"><div className="flex items-start gap-4 flex-1 overflow-hidden"><div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0"><Tag className="h-5 w-5 text-muted-foreground" /></div><div className="flex-1 overflow-hidden"><p className="font-semibold text-foreground truncate text-sm">{post.title}</p><p className="text-xs text-muted-foreground">{post.contentType} • {formatDistanceToNow(post.date.toDate(), { addSuffix: true, locale: ptBR })}</p></div></div><DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger><DropdownMenuContent align="end"><DropdownMenuItem onClick={() => handleMarkAsPublished(post.id)}><CheckCircle className="mr-2 h-4 w-4" /><span>Marcar como Publicado</span></DropdownMenuItem></DropdownMenuContent></DropdownMenu></div>))}</div>) : (<div className="text-center h-full flex flex-col items-center justify-center"><p className="text-muted-foreground text-sm">Nenhum post agendado.</p><Button variant="link" asChild><Link href="/content-calendar">Ir para o Calendário</Link></Button></div>)}
+          </TabsContent>
+          <TabsContent value="ideias" className="h-full">
+            {isLoadingIdeias ? <div className="flex justify-center items-center h-full"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div> : ideiasSalvas && ideiasSalvas.length > 0 ? <ul className="space-y-3">{ideiasSalvas.map((ideia: IdeiaSalva) => (<li key={ideia.id} className="flex items-start gap-3"><Checkbox id={`ideia-${ideia.id}`} checked={ideia.concluido} onCheckedChange={() => handleToggleIdeia(ideia)} className="h-5 w-5 mt-0.5" /><div className="grid gap-0.5"><label htmlFor={`ideia-${ideia.id}`} className={cn('font-medium transition-colors cursor-pointer', ideia.concluido ? 'line-through text-muted-foreground' : 'text-foreground')}>{ideia.titulo}</label><p className="text-xs text-muted-foreground">de "{ideia.origem}"</p></div></li>))}</ul> : (<div className="text-center h-full flex flex-col items-center justify-center"><p className="text-muted-foreground text-sm">Nenhuma ideia salva.</p><Button variant="link" asChild><Link href="/video-ideas">Gerar Novas Ideias</Link></Button></div>)}
+          </TabsContent>
+           <TabsContent value="posts" className="h-full">
+             {isFetchingPosts ? (
+                <div className="flex justify-center items-center h-full"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
+             ) : (
+                <ScrollArea className="h-full max-h-96 pr-3">
+                    <div className='space-y-4'>
+                    {instaPosts && userProfile?.instagramHandle && (
+                        <div>
+                            <h3 className="text-base font-semibold flex items-center gap-2 mb-2"><Instagram className="h-4 w-4"/> Posts Recentes do Instagram</h3>
+                            <InstagramProfileResults profile={{
+                                id: '', username: userProfile.instagramHandle,
+                                followersCount: 0,
+                                isPrivate: false, isBusiness: true, profilePicUrlHd: '', biography: '', fullName: '', mediaCount: 0, followingCount: 0
+                            }} posts={instaPosts} formatNumber={formatNumber} error={null} />
+                        </div>
+                    )}
+
+                    {tiktokPosts && userProfile?.tiktokHandle && (
+                        <div>
+                           <h3 className="text-base font-semibold flex items-center gap-2 mb-2"><Film className="h-4 w-4"/> Vídeos Recentes do TikTok</h3>
+                            <TikTokProfileResults profile={{
+                                id: '', username: userProfile.tiktokHandle,
+                                followersCount: 0,
+                                nickname: '', avatarUrl: '', bio: '', isVerified: false, isPrivate: false, heartsCount: 0, videoCount: 0, followingCount: 0
+                            }} posts={tiktokPosts} formatNumber={formatNumber} error={null} onVideoClick={handleTikTokClick} />
+                        </div>
+                    )}
+
+                    {!(instaPosts && userProfile?.instagramHandle) && !(tiktokPosts && userProfile?.tiktokHandle) && (
+                         <div className="text-center h-full flex flex-col items-center justify-center">
+                            <p className="text-muted-foreground text-sm">Integre suas contas para ver os posts.</p>
+                            <Button variant="link" asChild><Link href="/profile/integrations">Conectar Plataformas</Link></Button>
+                        </div>
+                    )}
+                    </div>
+                </ScrollArea>
+             )}
+          </TabsContent>
+        </div>
+      </Tabs>
+    </CardContent>
+  </Card>
+);
+
+const EngagementMetricsCard = ({ isLoading, latestMetrics, formatMetricValue, getMetricRating }: any) => (
+    <Card>
+      <CardHeader>
+          <CardTitle className="text-center">Métricas de Engajamento</CardTitle>
+      </CardHeader>
+      <CardContent>
+          <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+              <div className='p-4 rounded-lg bg-muted/50 border flex justify-between items-center'>
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><Eye className="h-4 w-4" /> Views</h3>
+                    <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.views)}</p>
+                  </div>
+                  <div>
+                      {latestMetrics?.views !== undefined && latestMetrics.followers > 0 && (() => {
+                            const rating = getMetricRating(latestMetrics.views, 'views', latestMetrics.followers);
+                            const Icon = rating.iconName === 'Smile' ? Smile : rating.iconName === 'Meh' ? Meh : Frown;
+                            return (
+                              <div className={cn('h-7 w-7', rating.color)}>
+                                <Icon className="h-full w-full" />
+                              </div>
+                            )
+                        })()}
+                  </div>
+              </div>
+              <div className='p-4 rounded-lg bg-muted/50 border flex justify-between items-center'>
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><Heart className="h-4 w-4" /> Likes</h3>
+                    <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.likes)}</p>
+                  </div>
+                    <div>
+                      {latestMetrics?.likes !== undefined && latestMetrics.followers > 0 && (() => {
+                        const rating = getMetricRating(latestMetrics.likes, 'likes', latestMetrics.followers);
+                        const Icon = rating.iconName === 'Smile' ? Smile : rating.iconName === 'Meh' ? Meh : Frown;
+                        return (
+                          <div className={cn('h-7 w-7', rating.color)}>
+                            <Icon className="h-full w-full" />
+                          </div>
+                        )
+                      })()}
+                  </div>
+              </div>
+              <div className='p-4 rounded-lg bg-muted/50 border flex justify-between items-center'>
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><MessageSquare className="h-4 w-4" /> Comentários</h3>
+                    <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.comments)}</p>
+                  </div>
+                    <div>
+                      {latestMetrics?.comments !== undefined && latestMetrics.followers > 0 && (() => {
+                        const rating = getMetricRating(latestMetrics.comments, 'comments', latestMetrics.followers);
+                        const Icon = rating.iconName === 'Smile' ? Smile : rating.iconName === 'Meh' ? Meh : Frown;
+                        return (
+                          <div className={cn('h-7 w-7', rating.color)}>
+                            <Icon className="h-full w-full" />
+                          </div>
+                        )
+                      })()}
+                  </div>
+              </div>
+          </div>
+      </CardContent>
+    </Card>
+);
+
+const PerformanceAnalysisCard = ({ isGeneratingInsights, insights, handleGenerateInsights }: any) => (
+  <Card className="rounded-2xl border-0 h-full flex flex-col">
+     <CardHeader>
+         <CardTitle className="text-center">Análise de Desempenho</CardTitle>
+     </CardHeader>
+    <CardContent className="flex-1 flex flex-col">
+        {isGeneratingInsights ? (
+            <div className="flex-1 flex justify-center items-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
+        ) : insights && insights.insights ? (
+            <ScrollArea className="h-64 pr-4">
+            <ul className="space-y-4">
+                {insights.insights.map((insight: string, i: number) => (
+                <li key={i} className="flex items-start gap-3">
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary flex-shrink-0 mt-0.5"><Lightbulb className="h-3.5 w-3.5" /></div>
+                    <p className="text-sm text-muted-foreground">{insight}</p>
+                </li>
+                ))}
+            </ul >
+            </ScrollArea>
+        ) : (
+          <div className="flex-1 flex flex-col justify-center items-center text-center p-4 gap-4">
+            <p className="text-sm text-muted-foreground">Clique em 'Analisar' para receber uma análise com base nas suas últimas métricas.</p>
+            <Button variant="ghost" size="sm" onClick={handleGenerateInsights} disabled={isGeneratingInsights}>
+                {isGeneratingInsights ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+                Analisar
+            </Button>
+        </div>
+        )}
+    </CardContent>
+  </Card>
+);
+
+const EvolutionChartCard = ({ isLoading, historicalChartData, selectedPlatform, userProfile }: any) => (
+  <Card>
+      <CardHeader><CardTitle className="text-center">Evolução das Métricas</CardTitle></CardHeader>
+      <CardContent className="pl-2 pr-6">
+          {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
+          historicalChartData.length > 0 ? (
+              <ChartContainer config={platformChartConfig[selectedPlatform]} className="h-[350px] w-full">
+              <BarChart accessibilityLayer data={historicalChartData} margin={{ left: 0, right: 12, top: 5, bottom: 5 }}>
+                  <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                  <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} />
+                  <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
+                  <RechartsTooltip content={<ChartTooltipContent indicator="dot" />} />
+                  <Bar dataKey="followers" fill="var(--color-followers)" radius={4} name="Seguidores" />
+                  <Bar dataKey="views" fill="var(--color-views)" radius={4} name="Views"/>
+                  <Bar dataKey="likes" fill="var(--color-likes)" radius={4} name="Likes"/>
+                  <Bar dataKey="comments" fill="var(--color-comments)" radius={4} name="Comentários"/>
+              </BarChart>
+              </ChartContainer>
+          ) : (
+              <div className="h-[350px] w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
+                  <div>
+                  <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+                  <h3 className="font-semibold text-foreground">{(userProfile?.instagramHandle || userProfile?.tiktokHandle) ? "Dados insuficientes." : "Nenhuma plataforma conectada."}</h3>
+                  <p className="text-sm text-muted-foreground"> {userProfile && <Link href="/profile/integrations" className="text-primary font-medium hover:underline cursor-pointer">Sincronize suas métricas</Link>} para começar a ver seus dados.</p>
+                  </div>
+              </div>
+          )}
+      </CardContent>
+  </Card>
+);
 
 export default function DashboardPage() {
   const { user } = useUser();
@@ -403,305 +716,6 @@ export default function DashboardPage() {
     return { iconName: 'Frown', color: 'text-red-500' };
   };
 
-  const DailyPlanCard = () => (
-    <Card className="rounded-2xl border-0">
-      <CardHeader>
-        <CardTitle className="text-center font-headline text-xl">
-          Plano para Hoje
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {isLoadingWeeklyPlans ? (
-          <div className="flex justify-center items-center h-24"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
-        ) : tasksForToday && tasksForToday.length > 0 ? (
-          <ul className="space-y-3">
-            {tasksForToday.map((item, index) => {
-              const originalIndex = currentPlan!.items.findIndex(pItem => pItem.dia === item.dia && pItem.tarefa === item.tarefa);
-              return (
-                <li key={index} className="flex items-start gap-3">
-                  <Checkbox
-                    id={`daily-plan-task-${index}`}
-                    checked={item.concluido}
-                    onCheckedChange={() => handleToggleRoteiro(originalIndex)}
-                    className="h-5 w-5 mt-0.5 shrink-0"
-                  />
-                  <div className="grid gap-0.5">
-                    <label
-                      htmlFor={`daily-plan-task-${index}`}
-                      className={cn(
-                        'font-medium transition-colors cursor-pointer',
-                        item.concluido ? 'line-through text-muted-foreground' : 'text-foreground'
-                      )}
-                    >
-                      {item.tarefa}
-                    </label>
-                    <p className="text-xs text-muted-foreground">{item.detalhes}</p>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        ) : (
-          <div className="text-center py-4">
-            <p className="text-muted-foreground text-sm">Nenhuma tarefa para hoje.</p>
-            <Button variant="link" asChild size="sm">
-              <Link href="/generate-weekly-plan">Ver plano completo</Link>
-            </Button>
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-  
-  const GoalCard = () => (
-    <Card className="rounded-2xl border-0 h-full">
-      <CardHeader>
-        <CardTitle className="text-center">Meta de Seguidores</CardTitle>
-      </CardHeader>
-      <CardContent className="pt-6">
-        <div className="flex flex-col items-center justify-center text-center">
-          {isLoading ? (
-            <Skeleton className="h-48 w-48 rounded-full" />
-          ) : goalFollowers > 0 ? (
-            <div className="relative h-48 w-48">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={pieData}
-                    dataKey="value"
-                    startAngle={90}
-                    endAngle={-270}
-                    innerRadius="80%"
-                    outerRadius="100%"
-                    cornerRadius={50}
-                    paddingAngle={0}
-                    stroke="none"
-                  >
-                    {pieData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.fill} />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-4xl font-bold font-headline text-primary">
-                  {followerGoalProgress.toFixed(0)}%
-                </span>
-              </div>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center h-48 w-48 rounded-full border-4 border-dashed bg-muted">
-              <Target className="h-12 w-12 text-muted-foreground" />
-            </div>
-          )}
-          <p className="text-3xl font-bold font-headline mt-4">
-            {formatMetricValue(currentFollowers)}
-          </p>
-          {goalFollowers > 0 ? (
-            <p className="text-sm text-muted-foreground">
-              de {formatMetricValue(goalFollowers)} seguidores
-            </p>
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              Defina uma meta para começar
-            </p>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  );
-
-  const ActionHubCard = () => (
-    <Card className="rounded-2xl border-0 h-full flex flex-col">
-      <CardHeader>
-        <CardTitle className="text-center font-headline text-xl">
-          Hub de Ação Rápida
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="flex-1 flex flex-col">
-        <Tabs defaultValue="proximos" className="w-full flex-1 flex flex-col">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="proximos">Próximos</TabsTrigger>
-            <TabsTrigger value="ideias">Ideias</TabsTrigger>
-            <TabsTrigger value="posts">Recentes</TabsTrigger>
-          </TabsList>
-          <div className="flex-1 mt-4">
-            <TabsContent value="proximos" className="h-full">
-              {isLoadingUpcoming ? <div className="flex justify-center items-center h-full"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div> : upcomingContent && upcomingContent.length > 0 ? (<div className="space-y-2">{upcomingContent.map(post => (<div key={post.id} className="p-3 rounded-lg border bg-background/50 flex items-start justify-between gap-4"><div className="flex items-start gap-4 flex-1 overflow-hidden"><div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0"><Tag className="h-5 w-5 text-muted-foreground" /></div><div className="flex-1 overflow-hidden"><p className="font-semibold text-foreground truncate text-sm">{post.title}</p><p className="text-xs text-muted-foreground">{post.contentType} • {formatDistanceToNow(post.date.toDate(), { addSuffix: true, locale: ptBR })}</p></div></div><DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger><DropdownMenuContent align="end"><DropdownMenuItem onClick={() => handleMarkAsPublished(post.id)}><CheckCircle className="mr-2 h-4 w-4" /><span>Marcar como Publicado</span></DropdownMenuItem></DropdownMenu></div>))}</div>) : (<div className="text-center h-full flex flex-col items-center justify-center"><p className="text-muted-foreground text-sm">Nenhum post agendado.</p><Button variant="link" asChild><Link href="/content-calendar">Ir para o Calendário</Link></Button></div>)}
-            </TabsContent>
-            <TabsContent value="ideias" className="h-full">
-              {isLoadingIdeias ? <div className="flex justify-center items-center h-full"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div> : ideiasSalvas && ideiasSalvas.length > 0 ? <ul className="space-y-3">{ideiasSalvas.map((ideia) => (<li key={ideia.id} className="flex items-start gap-3"><Checkbox id={`ideia-${ideia.id}`} checked={ideia.concluido} onCheckedChange={() => handleToggleIdeia(ideia)} className="h-5 w-5 mt-0.5" /><div className="grid gap-0.5"><label htmlFor={`ideia-${ideia.id}`} className={cn('font-medium transition-colors cursor-pointer', ideia.concluido ? 'line-through text-muted-foreground' : 'text-foreground')}>{ideia.titulo}</label><p className="text-xs text-muted-foreground">de "{ideia.origem}"</p></div></li>))}</ul> : (<div className="text-center h-full flex flex-col items-center justify-center"><p className="text-muted-foreground text-sm">Nenhuma ideia salva.</p><Button variant="link" asChild><Link href="/video-ideas">Gerar Novas Ideias</Link></Button></div>)}
-            </TabsContent>
-             <TabsContent value="posts" className="h-full">
-               {isFetchingPosts ? (
-                  <div className="flex justify-center items-center h-full"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
-               ) : (
-                  <ScrollArea className="h-full max-h-96 pr-3">
-                      <div className='space-y-4'>
-                      {instaPosts && userProfile?.instagramHandle && (
-                          <div>
-                              <h3 className="text-base font-semibold flex items-center gap-2 mb-2"><Instagram className="h-4 w-4"/> Posts Recentes do Instagram</h3>
-                              <InstagramProfileResults profile={{
-                                  id: '', username: userProfile.instagramHandle,
-                                  followersCount: parseMetric(userProfile.instagramFollowers),
-                                  isPrivate: false, isBusiness: true, profilePicUrlHd: '', biography: '', fullName: '', mediaCount: 0, followingCount: 0
-                              }} posts={instaPosts} formatNumber={formatNumber} error={null} />
-                          </div>
-                      )}
-
-                      {tiktokPosts && userProfile?.tiktokHandle && (
-                          <div>
-                             <h3 className="text-base font-semibold flex items-center gap-2 mb-2"><Film className="h-4 w-4"/> Vídeos Recentes do TikTok</h3>
-                              <TikTokProfileResults profile={{
-                                  id: '', username: userProfile.tiktokHandle,
-                                  followersCount: parseMetric(userProfile.tiktokFollowers),
-                                  nickname: '', avatarUrl: '', bio: '', isVerified: false, isPrivate: false, heartsCount: 0, videoCount: 0, followingCount: 0
-                              }} posts={tiktokPosts} formatNumber={formatNumber} error={null} onVideoClick={handleTikTokClick} />
-                          </div>
-                      )}
-
-                      {!(instaPosts && userProfile?.instagramHandle) && !(tiktokPosts && userProfile?.tiktokHandle) && (
-                           <div className="text-center h-full flex flex-col items-center justify-center">
-                              <p className="text-muted-foreground text-sm">Integre suas contas para ver os posts.</p>
-                              <Button variant="link" asChild><Link href="/profile/integrations">Conectar Plataformas</Link></Button>
-                          </div>
-                      )}
-                      </div>
-                  </ScrollArea>
-               )}
-            </TabsContent>
-          </div>
-        </Tabs>
-      </CardContent>
-    </Card>
-  );
-
-  const EngagementMetricsCard = () => (
-      <Card>
-        <CardHeader>
-            <CardTitle className="text-center">Métricas de Engajamento</CardTitle>
-        </CardHeader>
-        <CardContent>
-            <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
-                <div className='p-4 rounded-lg bg-muted/50 border flex justify-between items-center'>
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><Eye className="h-4 w-4" /> Views</h3>
-                      <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.views)}</p>
-                    </div>
-                    <div>
-                        {latestMetrics?.views !== undefined && latestMetrics.followers > 0 && (() => {
-                              const rating = getMetricRating(latestMetrics.views, 'views', latestMetrics.followers);
-                              const Icon = rating.iconName === 'Smile' ? Smile : rating.iconName === 'Meh' ? Meh : Frown;
-                              return (
-                                <div className={cn('h-7 w-7', rating.color)}>
-                                  <Icon className="h-full w-full" />
-                                </div>
-                              )
-                          })()}
-                    </div>
-                </div>
-                <div className='p-4 rounded-lg bg-muted/50 border flex justify-between items-center'>
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><Heart className="h-4 w-4" /> Likes</h3>
-                      <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.likes)}</p>
-                    </div>
-                      <div>
-                        {latestMetrics?.likes !== undefined && latestMetrics.followers > 0 && (() => {
-                          const rating = getMetricRating(latestMetrics.likes, 'likes', latestMetrics.followers);
-                          const Icon = rating.iconName === 'Smile' ? Smile : rating.iconName === 'Meh' ? Meh : Frown;
-                          return (
-                            <div className={cn('h-7 w-7', rating.color)}>
-                              <Icon className="h-full w-full" />
-                            </div>
-                          )
-                        })()}
-                    </div>
-                </div>
-                <div className='p-4 rounded-lg bg-muted/50 border flex justify-between items-center'>
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><MessageSquare className="h-4 w-4" /> Comentários</h3>
-                      <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.comments)}</p>
-                    </div>
-                      <div>
-                        {latestMetrics?.comments !== undefined && latestMetrics.followers > 0 && (() => {
-                          const rating = getMetricRating(latestMetrics.comments, 'comments', latestMetrics.followers);
-                          const Icon = rating.iconName === 'Smile' ? Smile : rating.iconName === 'Meh' ? Meh : Frown;
-                          return (
-                            <div className={cn('h-7 w-7', rating.color)}>
-                              <Icon className="h-full w-full" />
-                            </div>
-                          )
-                        })()}
-                    </div>
-                </div>
-            </div>
-        </CardContent>
-      </Card>
-  );
-
-  const PerformanceAnalysisCard = () => (
-    <Card className="rounded-2xl border-0 h-full flex flex-col">
-       <CardHeader>
-           <CardTitle className="text-center">Análise de Desempenho</CardTitle>
-       </CardHeader>
-      <CardContent className="flex-1 flex flex-col">
-          {isGeneratingInsights ? (
-              <div className="flex-1 flex justify-center items-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
-          ) : insights && insights.insights ? (
-              <ScrollArea className="h-64 pr-4">
-              <ul className="space-y-4">
-                  {insights.insights.map((insight, i) => (
-                  <li key={i} className="flex items-start gap-3">
-                      <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary flex-shrink-0 mt-0.5"><Lightbulb className="h-3.5 w-3.5" /></div>
-                      <p className="text-sm text-muted-foreground">{insight}</p>
-                  </li>
-                  ))}
-              </ul >
-              </ScrollArea>
-          ) : (
-            <div className="flex-1 flex flex-col justify-center items-center text-center p-4 gap-4">
-              <p className="text-sm text-muted-foreground">Clique em 'Analisar' para receber uma análise com base nas suas últimas métricas.</p>
-              <Button variant="ghost" size="sm" onClick={handleGenerateInsights} disabled={isGeneratingInsights}>
-                  {isGeneratingInsights ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
-                  Analisar
-              </Button>
-          </div>
-          )}
-      </CardContent>
-    </Card>
-  );
-  
-  const EvolutionChartCard = () => (
-    <Card>
-        <CardHeader><CardTitle className="text-center">Evolução das Métricas</CardTitle></CardHeader>
-        <CardContent className="pl-2 pr-6">
-            {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
-            historicalChartData.length > 0 ? (
-                <ChartContainer config={platformChartConfig[selectedPlatform]} className="h-[350px] w-full">
-                <BarChart accessibilityLayer data={historicalChartData} margin={{ left: 0, right: 12, top: 5, bottom: 5 }}>
-                    <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                    <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} />
-                    <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
-                    <RechartsTooltip content={<ChartTooltipContent indicator="dot" />} />
-                    <Bar dataKey="followers" fill="var(--color-followers)" radius={4} name="Seguidores" />
-                    <Bar dataKey="views" fill="var(--color-views)" radius={4} name="Views"/>
-                    <Bar dataKey="likes" fill="var(--color-likes)" radius={4} name="Likes"/>
-                    <Bar dataKey="comments" fill="var(--color-comments)" radius={4} name="Comentários"/>
-                </BarChart>
-                </ChartContainer>
-            ) : (
-                <div className="h-[350px] w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
-                    <div>
-                    <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
-                    <h3 className="font-semibold text-foreground">{(userProfile?.instagramHandle || userProfile?.tiktokHandle) ? "Dados insuficientes." : "Nenhuma plataforma conectada."}</h3>
-                    <p className="text-sm text-muted-foreground"> {userProfile && <Link href="/profile/integrations" className="text-primary font-medium hover:underline cursor-pointer">Sincronize suas métricas</Link>} para começar a ver seus dados.</p>
-                    </div>
-                </div>
-            )}
-        </CardContent>
-    </Card>
-  );
-
   return (
     <>
       <Dialog open={showTikTokModal} onOpenChange={setShowTikTokModal}>
@@ -747,16 +761,29 @@ export default function DashboardPage() {
             <div className="lg:hidden space-y-8">
                 <Carousel>
                     <CarouselContent>
-                        <CarouselItem><GoalCard /></CarouselItem>
-                        <CarouselItem><DailyPlanCard /></CarouselItem>
-                        <CarouselItem><EngagementMetricsCard /></CarouselItem>
-                         <CarouselItem><PerformanceAnalysisCard /></CarouselItem>
+                        <CarouselItem><GoalCard isLoading={isLoading} goalFollowers={goalFollowers} currentFollowers={currentFollowers} followerGoalProgress={followerGoalProgress} pieData={pieData} formatMetricValue={formatMetricValue} /></CarouselItem>
+                        <CarouselItem><DailyPlanCard isLoadingWeeklyPlans={isLoadingWeeklyPlans} tasksForToday={tasksForToday} currentPlan={currentPlan} handleToggleRoteiro={handleToggleRoteiro} /></CarouselItem>
+                        <CarouselItem><EngagementMetricsCard isLoading={isLoading} latestMetrics={latestMetrics} formatMetricValue={formatMetricValue} getMetricRating={getMetricRating} /></CarouselItem>
+                         <CarouselItem><PerformanceAnalysisCard isGeneratingInsights={isGeneratingInsights} insights={insights} handleGenerateInsights={handleGenerateInsights} /></CarouselItem>
                     </CarouselContent>
                     <CarouselPrevious />
                     <CarouselNext />
                 </Carousel>
-                <EvolutionChartCard />
-                <ActionHubCard />
+                <EvolutionChartCard isLoading={isLoading} historicalChartData={historicalChartData} selectedPlatform={selectedPlatform} userProfile={userProfile} />
+                <ActionHubCard 
+                  isLoadingUpcoming={isLoadingUpcoming}
+                  upcomingContent={upcomingContent}
+                  isLoadingIdeias={isLoadingIdeias}
+                  ideiasSalvas={ideiasSalvas}
+                  isFetchingPosts={isFetchingPosts}
+                  instaPosts={instaPosts}
+                  userProfile={userProfile}
+                  tiktokPosts={tiktokPosts}
+                  handleToggleIdeia={handleToggleIdeia}
+                  handleMarkAsPublished={handleMarkAsPublished}
+                  handleTikTokClick={handleTikTokClick}
+                  formatNumber={formatNumber}
+                />
             </div>
 
           {/* Main Grid */}
@@ -764,16 +791,29 @@ export default function DashboardPage() {
             
             {/* Left Column */}
             <div className="lg:col-span-1 space-y-8">
-                <GoalCard />
-                <DailyPlanCard />
-                <ActionHubCard />
+                <GoalCard isLoading={isLoading} goalFollowers={goalFollowers} currentFollowers={currentFollowers} followerGoalProgress={followerGoalProgress} pieData={pieData} formatMetricValue={formatMetricValue} />
+                <DailyPlanCard isLoadingWeeklyPlans={isLoadingWeeklyPlans} tasksForToday={tasksForToday} currentPlan={currentPlan} handleToggleRoteiro={handleToggleRoteiro} />
+                <ActionHubCard 
+                  isLoadingUpcoming={isLoadingUpcoming}
+                  upcomingContent={upcomingContent}
+                  isLoadingIdeias={isLoadingIdeias}
+                  ideiasSalvas={ideiasSalvas}
+                  isFetchingPosts={isFetchingPosts}
+                  instaPosts={instaPosts}
+                  userProfile={userProfile}
+                  tiktokPosts={tiktokPosts}
+                  handleToggleIdeia={handleToggleIdeia}
+                  handleMarkAsPublished={handleMarkAsPublished}
+                  handleTikTokClick={handleTikTokClick}
+                  formatNumber={formatNumber}
+                />
             </div>
 
             {/* Right Column */}
             <div className="lg:col-span-2 space-y-8">
-              <EngagementMetricsCard />
-              <EvolutionChartCard />
-              <PerformanceAnalysisCard />
+              <EngagementMetricsCard isLoading={isLoading} latestMetrics={latestMetrics} formatMetricValue={formatMetricValue} getMetricRating={getMetricRating} />
+              <EvolutionChartCard isLoading={isLoading} historicalChartData={historicalChartData} selectedPlatform={selectedPlatform} userProfile={userProfile} />
+              <PerformanceAnalysisCard isGeneratingInsights={isGeneratingInsights} insights={insights} handleGenerateInsights={handleGenerateInsights} />
             </div>
           </div>
         </div>
@@ -781,8 +821,3 @@ export default function DashboardPage() {
     </>
   );
 }
-    
-
-    
-
-    
