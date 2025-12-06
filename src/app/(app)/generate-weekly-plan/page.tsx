@@ -416,6 +416,7 @@ export default function GenerateWeeklyPlanPage() {
                                     <Input
                                     placeholder="Defina em seu Perfil"
                                     className="h-11"
+                                    {...field}
                                     readOnly
                                     />
                                 )}
@@ -614,5 +615,3 @@ export default function GenerateWeeklyPlanPage() {
     </div>
   );
 }
-
-    
