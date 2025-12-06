@@ -186,7 +186,7 @@ export default function GenerateWeeklyPlanPage() {
         }
 
         // 2. Save the new plan as the single active plan
-        const newPlanDocRef = doc(planCollectionRef); // Create a new doc reference in the active collection
+        const newPlanDocRef = doc(planCollectionRef);
         const newPlanData = {
           userId: user.uid,
           createdAt: serverTimestamp(),
