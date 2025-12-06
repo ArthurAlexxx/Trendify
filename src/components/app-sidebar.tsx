@@ -54,7 +54,6 @@ const userMenuItems: {
   {
     category: 'Ferramentas',
     items: [
-      { href: '/generate-weekly-plan', icon: ClipboardList, label: 'Seu Plano', plan: 'pro' },
       { href: '/video-ideas', icon: Lightbulb, label: 'Ideias de Vídeos', plan: 'pro' },
       { href: '/video-review', icon: Video, label: 'Análise de Vídeo', plan: 'pro' },
       { href: '/media-kit', icon: Briefcase, label: 'Mídia Kit & Propostas', plan: 'premium' },

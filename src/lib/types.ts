@@ -60,31 +60,6 @@ export interface DailyUsage {
 }
 
 
-export interface PontoDadosGrafico {
-  id?: string; // Optional as it might be nested
-  data: string;
-  alcance: number;
-  engajamento: number;
-}
-
-export interface ItemRoteiro {
-  dia: string;
-  tarefa: string;
-  detalhes: string;
-  concluido: boolean;
-}
-
-export interface PlanoSemanal {
-  id: string;
-  userId: string;
-  items: ItemRoteiro[];
-  desempenhoSimulado: { data: string; alcance: number; engajamento: number }[];
-  effortLevel?: "Baixo" | "Médio" | "Alto";
-  priorityIndex?: string[];
-  realignmentTips?: string;
-  createdAt: Timestamp;
-};
-
 export interface IdeiaSalva {
   id: string;
   userId: string;
@@ -174,5 +149,3 @@ export type TikTokPostData = {
     likes: number;
     comments: number;
 };
-
-    

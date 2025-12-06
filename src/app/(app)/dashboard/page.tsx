@@ -41,11 +41,9 @@ import { ChartConfig } from '@/components/ui/chart';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import type {
-  ItemRoteiro,
   IdeiaSalva,
   ConteudoAgendado,
   UserProfile,
-  PlanoSemanal,
   MetricSnapshot,
   InstagramPostData,
   TikTokProfileData,
@@ -140,12 +138,6 @@ export default function DashboardPage() {
   ), [firestore, user]);
   const { data: userProfile, isLoading: isLoadingProfile } = useDoc<UserProfile>(userProfileRef);
 
-  const roteiroQuery = useMemoFirebase(() => (
-      firestore && user ? query(collection(firestore, `users/${user.uid}/weeklyPlans`), orderBy('createdAt', 'desc'), limit(1)) : null
-  ), [firestore, user]);
-  const { data: roteiroData, isLoading: isLoadingRoteiro } = useCollection<PlanoSemanal>(roteiroQuery);
-  const roteiro = roteiroData?.[0];
-  
   const ideiasQuery = useMemoFirebase(() => (
       firestore && user ? query(collection(firestore, `users/${user.uid}/ideiasSalvas`), where('concluido', '==', false), limit(5)) : null
   ), [firestore, user]);
@@ -161,7 +153,7 @@ export default function DashboardPage() {
   ), [firestore, user]);
   const { data: metricSnapshots, isLoading: isLoadingMetrics } = useCollection<MetricSnapshot>(metricSnapshotsQuery);
 
-  const isLoading = isLoadingProfile || isLoadingRoteiro || isLoadingUpcoming || isLoadingMetrics || isSubscriptionLoading || isLoadingIdeias;
+  const isLoading = isLoadingProfile || isLoadingUpcoming || isLoadingMetrics || isSubscriptionLoading || isLoadingIdeias;
   
   const handleTikTokClick = (post: TikTokPostData) => {
     if (post.shareUrl) {
@@ -184,24 +176,6 @@ export default function DashboardPage() {
     }
   };
 
-  const handleToggleRoteiro = async (toggledItem: ItemRoteiro, index: number) => {
-    if (!firestore || !roteiro || !user) return;
-    const roteiroRef = doc(firestore, `users/${user.uid}/weeklyPlans`, roteiro.id);
-    
-    const originalIndex = roteiro.items.findIndex(item => item.tarefa === toggledItem.tarefa && item.dia === toggledItem.dia);
-    if (originalIndex === -1) return;
-
-    const updatedItems = roteiro.items.map((item, i) => 
-        i === originalIndex ? { ...item, concluido: !item.concluido } : item
-    );
-
-    try {
-        await updateDoc(roteiroRef, { items: updatedItems });
-    } catch (e: any) {
-        toast({ title: "Erro ao atualizar roteiro", description: e.message, variant: 'destructive'});
-    }
-  };
-
   const handleMarkAsPublished = async (postId: string) => {
     if (!firestore || !user) return;
     const postRef = doc(firestore, `users/${user.uid}/conteudoAgendado`, postId);
@@ -215,7 +189,6 @@ export default function DashboardPage() {
 
   const diaDaSemana = format(new Date(), 'EEEE', { locale: ptBR });
   const diaDaSemanaNormalizado = diaDaSemana.charAt(0).toUpperCase() + diaDaSemana.slice(1);
-  const roteiroDoDia = roteiro?.items.filter(item => item.dia.toLowerCase() === diaDaSemanaNormalizado.toLowerCase().replace('-feira', ''));
 
   const parseMetric = (value?: string | number): number => {
     if (typeof value === 'number') return value;
@@ -429,19 +402,12 @@ export default function DashboardPage() {
         </CardTitle>
       </CardHeader>
       <CardContent className="flex-grow">
-            <Tabs defaultValue="roteiro" className="w-full h-full flex flex-col">
-                <TabsList className="grid w-full grid-cols-4">
-                    <TabsTrigger value="roteiro">Roteiro</TabsTrigger>
+            <Tabs defaultValue="proximos" className="w-full h-full flex flex-col">
+                <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="proximos">Próximos</TabsTrigger>
                     <TabsTrigger value="ideias">Ideias</TabsTrigger>
                     <TabsTrigger value="atividade">Atividade</TabsTrigger>
                 </TabsList>
-                  <TabsContent value="roteiro" className="mt-4 flex-grow">
-                    <div className='space-y-2'>
-                        <h4 className='text-center text-sm font-medium text-muted-foreground'>Roteiro do Dia ({diaDaSemanaNormalizado})</h4>
-                        {isLoadingRoteiro ? <Skeleton className="h-24 w-full" /> : roteiroDoDia && roteiroDoDia.length > 0 ? <ul className="space-y-3">{roteiroDoDia.map((item, index) => <li key={index}><div className="flex items-start gap-3"><Checkbox id={`roteiro-dia-${index}`} checked={item.concluido} onCheckedChange={() => handleToggleRoteiro(item, index)} className="h-5 w-5 mt-0.5" /><div><label htmlFor={`roteiro-dia-${index}`} className={cn('font-medium transition-colors cursor-pointer', item.concluido ? 'line-through text-muted-foreground' : 'text-foreground')}>{item.tarefa}</label><p className="text-xs text-muted-foreground">{item.detalhes}</p></div></div></li>)}</ul> : <div className="text-center py-4 rounded-xl bg-muted/50 border border-dashed h-full flex flex-col justify-center"><ClipboardList className="mx-auto h-6 w-6 text-muted-foreground mb-2" /><h3 className="font-semibold text-foreground text-sm">Nenhuma tarefa para hoje.</h3><p className="text-xs text-muted-foreground">Gere um novo <Link href="/generate-weekly-plan" className="text-primary hover:underline">plano semanal</Link>.</p></div>}
-                    </div>
-                </TabsContent>
                 <TabsContent value="proximos" className="mt-4 flex-grow">
                     {isLoadingUpcoming ? <div className="flex justify-center items-center h-48"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div> : upcomingContent && upcomingContent.length > 0 ? (<div className="space-y-2">{upcomingContent.map(post => (<div key={post.id} className="p-3 rounded-lg border bg-background/50 flex items-start justify-between gap-4"><div className="flex items-start gap-4 flex-1 overflow-hidden"><div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0"><Tag className="h-5 w-5 text-muted-foreground" /></div><div className="flex-1 overflow-hidden"><p className="font-semibold text-foreground truncate text-sm">{post.title}</p><p className="text-xs text-muted-foreground">{post.contentType} • {formatDistanceToNow(post.date.toDate(), { addSuffix: true, locale: ptBR })}</p></div></div><DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger><DropdownMenuContent align="end"><DropdownMenuItem onClick={() => handleMarkAsPublished(post.id)}><CheckCircle className="mr-2 h-4 w-4" /><span>Marcar como Publicado</span></DropdownMenuItem></DropdownMenuContent></DropdownMenu></div>))}</div>) : (<div className="text-center py-8"><p className="text-muted-foreground text-sm">Nenhum post agendado.</p><Button variant="link" asChild><Link href="/content-calendar">Ir para o Calendário</Link></Button></div>)}
                 </TabsContent>
@@ -669,5 +635,3 @@ export default function DashboardPage() {
     </>
   );
 }
-
-    
