@@ -241,7 +241,7 @@ export async function getTikTokProfile(username: string): Promise<TikTokProfileD
   try {
       const result = await fetchFromRapidApi('tiktok-profile', username);
 
-      const userData = result?.data?.user || result?.data;
+      const userData = result?.data?.user || result;
 
       if (!userData || typeof userData !== 'object') {
         console.error("Resposta real do TikTok:", result);
@@ -307,6 +307,3 @@ export async function getTikTokPosts(username: string): Promise<TikTokPostData[]
         throw e;
     }
 }
-
-
-
