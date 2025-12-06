@@ -50,17 +50,22 @@ export function SavedIdeasSheet() {
   
   const getActionLink = (idea: IdeiaSalva | null): string => {
     if (!idea) return '/';
-
+  
     const topic = encodeURIComponent(idea.titulo || '');
     const context = encodeURIComponent(idea.conteudo || '');
-
+  
     switch (idea.origem) {
       case 'Ideias de Vídeo':
         return `/video-ideas?topic=${topic}&context=${context}`;
       case 'Propostas & Publis':
         return `/publis-assistant?product=${topic}&differentiators=${context}`;
       case 'Mídia Kit & Prospecção':
-         return `/media-kit?topic=${topic}&context=${context}`; // Assume a similar pattern
+        // A "proposta de valor" é um bom campo para os diferenciais no fluxo de publi
+        const valueProposition = idea.fullPlanData?.realignmentTips || context;
+        return `/publis-assistant?product=${topic}&differentiators=${encodeURIComponent(valueProposition)}`;
+      case 'Plano Semanal':
+        // Leva para ideias de vídeo, usando o plano como contexto
+        return `/video-ideas?topic=Com base no meu plano semanal&context=${context}`;
       default:
         return '/dashboard';
     }
