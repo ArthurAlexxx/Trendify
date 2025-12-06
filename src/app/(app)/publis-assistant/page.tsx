@@ -1,4 +1,5 @@
 
+
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -37,6 +38,7 @@ import {
   Briefcase,
   AlertTriangle,
   Edit,
+  Calendar,
 } from 'lucide-react';
 import { useEffect, useTransition, useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
@@ -53,7 +55,7 @@ import {
 } from '@/components/ui/accordion';
 import { Textarea } from '@/components/ui/textarea';
 import { useSubscription } from '@/hooks/useSubscription';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { format as formatDate } from 'date-fns';
 import type { DailyUsage } from '@/lib/types';
@@ -64,6 +66,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { cn } from '@/lib/utils';
+import { buttonVariants } from '@/components/ui/button';
 
 
 const formSchema = z.object({
@@ -165,6 +169,7 @@ function PublisAssistantPageContent() {
   const [isSaving, startSavingTransition] = useTransition();
   const { user } = useUser();
   const firestore = useFirestore();
+  const searchParams = useSearchParams();
 
   const { subscription, isTrialActive } = useSubscription();
   const todayStr = formatDate(new Date(), 'yyyy-MM-dd');
@@ -199,6 +204,19 @@ function PublisAssistantPageContent() {
     },
   });
   
+  useEffect(() => {
+    const product = searchParams.get('product');
+    const differentiators = searchParams.get('differentiators');
+    const targetAudience = searchParams.get('targetAudience');
+    if (product || differentiators || targetAudience) {
+      form.setValue('product', product || form.getValues('product'));
+      form.setValue('differentiators', differentiators || form.getValues('differentiators'));
+      form.setValue('targetAudience', targetAudience || form.getValues('targetAudience'));
+      setIsFormOpen(true);
+    }
+  }, [searchParams, form]);
+
+
   const result = state?.data;
 
   const formAction = useCallback(async (formData: FormSchemaType) => {
@@ -524,11 +542,16 @@ function PublisAssistantPageContent() {
                {(isGenerating || result) && (
                 <div className="space-y-8 animate-fade-in">
                     {result && (
-                      <div className='flex justify-center'>
-                       <Button onClick={() => handleSave(result)} disabled={isSaving} className="w-full sm:w-auto">
-                        {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                        Salvar Pacote
-                      </Button>
+                       <div className="flex flex-col sm:flex-row justify-center items-center gap-2">
+                         <Button onClick={() => handleSave(result)} disabled={isSaving} className="w-full sm:w-auto">
+                            {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                            Salvar Campanha
+                         </Button>
+                         <Link href={`/content-calendar?title=${encodeURIComponent(form.getValues('product'))}&notes=${encodeURIComponent(result.scripts[0].script)}`}
+                         className={cn(buttonVariants({ variant: 'outline', className: 'w-full sm:w-auto' }))}>
+                           <Calendar className="mr-2 h-4 w-4" />
+                           Agendar Post
+                        </Link>
                       </div>
                     )}
 
@@ -550,7 +573,7 @@ function PublisAssistantPageContent() {
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <Accordion type="single" collapsible className="w-full">
+                                <Accordion type="single" collapsible defaultValue='item-1' className="w-full">
                                     {result.scripts.map((script, index) => (
                                         <AccordionItem value={`item-${index}`} key={index}>
                                         <AccordionTrigger className="font-semibold text-base hover:no-underline text-left">Roteiro {index + 1}: {script.gancho}</AccordionTrigger>

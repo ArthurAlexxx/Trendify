@@ -1,4 +1,5 @@
 
+
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -79,6 +80,7 @@ import { useToast } from '@/hooks/use-toast';
 import { FullScreenCalendar } from '@/components/ui/fullscreen-calendar';
 import { Calendar } from '@/components/ui/calendar';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useSearchParams } from 'next/navigation';
 
 const formSchema = z.object({
   title: z.string().min(3, 'O título deve ter pelo menos 3 caracteres.'),
@@ -103,6 +105,7 @@ export default function ContentCalendarPage() {
   const firestore = useFirestore();
   const { user } = useUser();
   const { toast } = useToast();
+  const searchParams = useSearchParams();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -116,6 +119,21 @@ export default function ContentCalendarPage() {
     },
   });
   
+  // Effect for pre-filling from URL
+  useEffect(() => {
+    const title = searchParams.get('title');
+    const notes = searchParams.get('notes');
+    if (title) {
+        form.reset({
+            ...form.getValues(),
+            title: title,
+            notes: notes || '',
+        });
+        setIsModalOpen(true);
+    }
+  }, [searchParams, form]);
+
+
   // Effect to reset form when modal closes or editing post changes
   useEffect(() => {
     if (!isModalOpen) {

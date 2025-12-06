@@ -46,6 +46,8 @@ import {
   AlertTriangle,
   LightbulbIcon,
   Edit,
+  Newspaper,
+  Calendar,
 } from 'lucide-react';
 import { useEffect, useTransition, useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
@@ -68,6 +70,7 @@ import { Progress } from '@/components/ui/progress';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { ObjectiveFormCard } from '@/components/ui/objective-form-card';
+import { useSearchParams } from 'next/navigation';
 
 
 const formSchema = z.object({
@@ -116,10 +119,10 @@ export default function VideoIdeasPage() {
   const [state, setState] = useState<VideoIdeasState>(null);
   const [activeTab, setActiveTab] = useState("generate");
 
-
   const [isSaving, startSavingTransition] = useTransition();
   const { user } = useUser();
   const firestore = useFirestore();
+  const searchParams = useSearchParams();
   
   const userProfileRef = useMemoFirebase(
     () => (firestore && user ? doc(firestore, `users/${user.uid}`) : null),
@@ -159,6 +162,21 @@ export default function VideoIdeasPage() {
     },
   });
   
+  // Effect to pre-fill form from URL params
+  useEffect(() => {
+    const topicParam = searchParams.get('topic');
+    const contextParam = searchParams.get('context');
+    if (topicParam) {
+      let fullTopic = topicParam;
+      if (contextParam) {
+        fullTopic += ` (Contexto: ${contextParam})`;
+      }
+      form.setValue('topic', fullTopic);
+      setIsFormOpen(true); // Automatically open the form
+    }
+  }, [searchParams, form]);
+
+
   const formAction = useCallback(async (formData: FormSchemaType) => {
     setIsFormOpen(false);
     startTransition(async () => {
@@ -186,14 +204,14 @@ export default function VideoIdeasPage() {
   const result = state?.data;
 
   useEffect(() => {
-    if (userProfile) {
+    if (userProfile && !searchParams.get('topic')) {
       form.reset({
         topic: form.getValues('topic') || '',
         targetAudience: userProfile.audience || 'Mulheres de 25-35 anos',
         objective: form.getValues('objective') || 'Engajamento',
       });
     }
-  }, [userProfile, form]);
+  }, [userProfile, form, searchParams]);
   
 
   useEffect(() => {
@@ -381,19 +399,21 @@ export default function VideoIdeasPage() {
               {(isGenerating || result) && (
                 <div className="space-y-8 animate-fade-in">
                   {result && (
-                      <div className="flex justify-center">
-                        <Button
-                          onClick={() => handleSave(result)}
-                          disabled={isSaving}
-                          className="w-full sm:w-auto"
-                        >
-                          {isSaving ? (
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          ) : (
-                            <Save className="mr-2 h-4 w-4" />
-                          )}
+                      <div className="flex flex-col sm:flex-row justify-center items-center gap-2">
+                        <Button onClick={() => handleSave(result)} disabled={isSaving} className="w-full sm:w-auto">
+                          {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                           Salvar Ideia
                         </Button>
+                        <Link href={`/publis-assistant?product=${encodeURIComponent(form.getValues('topic'))}&differentiators=${encodeURIComponent(result.script.gancho)}&targetAudience=${encodeURIComponent(form.getValues('targetAudience'))}`}
+                         className={cn(buttonVariants({ variant: 'outline', className: 'w-full sm:w-auto' }))}>
+                           <Newspaper className="mr-2 h-4 w-4" />
+                           Transformar em Publi
+                        </Link>
+                         <Link href={`/content-calendar?title=${encodeURIComponent(form.getValues('topic'))}&notes=${encodeURIComponent(result.script.scriptLongo)}`}
+                         className={cn(buttonVariants({ variant: 'outline', className: 'w-full sm:w-auto' }))}>
+                           <Calendar className="mr-2 h-4 w-4" />
+                           Agendar Post
+                        </Link>
                       </div>
                     )}
 

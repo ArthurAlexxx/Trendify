@@ -22,7 +22,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Bot, Loader2, Sparkles, Check, History, ClipboardList, BrainCircuit, Target, Eye, BarChart as BarChartIcon, Zap, AlertTriangle, Trophy, Save, Edit } from 'lucide-react';
+import { Bot, Loader2, Sparkles, Check, History, ClipboardList, BrainCircuit, Target, Eye, BarChart as BarChartIcon, Zap, AlertTriangle, Trophy, Save, Edit, Lightbulb } from 'lucide-react';
 import { useEffect, useTransition, useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -58,6 +58,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogTrigger, DialogContent } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import Link from 'next/link';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 
 const formSchema = z.object({
@@ -524,7 +526,7 @@ export default function GenerateWeeklyPlanPage() {
                                             <div className='h-5 w-5 mt-1 flex items-center justify-center shrink-0'>
                                                 <Check className='h-4 w-4 text-primary' />
                                             </div>
-                                            <div>
+                                            <div className='flex-1'>
                                                 <p className={'font-medium text-base text-foreground'}>
                                                 <span className="font-semibold text-primary">
                                                     {item.dia}:
@@ -535,6 +537,20 @@ export default function GenerateWeeklyPlanPage() {
                                                 {item.detalhes}
                                                 </p>
                                             </div>
+                                             <TooltipProvider>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                         <Link href={`/video-ideas?topic=${encodeURIComponent(item.tarefa)}&context=${encodeURIComponent(item.detalhes)}`}>
+                                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-primary">
+                                                                <Lightbulb className="h-4 w-4" />
+                                                            </Button>
+                                                        </Link>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                        <p>Gerar ideia de vídeo com esta tarefa</p>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </TooltipProvider>
                                             </div>
                                             {index < result.items.length - 1 && (
                                             <Separator className="my-2" />
@@ -667,7 +683,7 @@ export default function GenerateWeeklyPlanPage() {
                                                 onCheckedChange={() => handleToggleRoteiro(index)}
                                                 className="h-5 w-5 mt-1"
                                                 />
-                                                <div>
+                                                <div className='flex-1'>
                                                 <label
                                                     htmlFor={`active-roteiro-${index}`}
                                                     className={cn(
@@ -679,6 +695,20 @@ export default function GenerateWeeklyPlanPage() {
                                                 </label>
                                                 <p className="text-sm text-muted-foreground">{item.detalhes}</p>
                                                 </div>
+                                                 <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Link href={`/video-ideas?topic=${encodeURIComponent(item.tarefa)}&context=${encodeURIComponent(item.detalhes)}`}>
+                                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-primary">
+                                                                    <Lightbulb className="h-4 w-4" />
+                                                                </Button>
+                                                            </Link>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            <p>Gerar ideia de vídeo com esta tarefa</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
                                             </div>
                                             {index < activePlan.items.length - 1 && <Separator className="my-2" />}
                                             </li>
@@ -716,4 +746,5 @@ export default function GenerateWeeklyPlanPage() {
     </div>
   );
 }
+
 
