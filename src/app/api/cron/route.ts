@@ -110,7 +110,7 @@ export async function GET(req: NextRequest) {
                 date: task.date.toDate().toISOString(),
                 userEmail: userEmail,
             };
-        }))).filter((job): job is { title: string; contentType: string; date: string; userEmail: string; } => job !== null);
+        }))).filter((job: { title: string; contentType: string; date: string; userEmail: string; } | null): job is { title: string; contentType: string; date: string; userEmail: string; } => job !== null);
         
 
         if (enrichedTasks.length === 0) {
