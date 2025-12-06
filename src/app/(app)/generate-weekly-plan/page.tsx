@@ -168,14 +168,22 @@ export default function GenerateWeeklyPlanPage() {
     startSavingTransition(async () => {
       try {
         const planCollectionRef = collection(firestore, `users/${user.uid}/weeklyPlans`);
-        const planDocRef = doc(planCollectionRef);
+        
+        // 1. Delete all existing plans for the user
+        const oldPlansSnapshot = await getDocs(planCollectionRef);
+        for (const planDoc of oldPlansSnapshot.docs) {
+          await deleteDoc(planDoc.ref);
+        }
 
-        await setDoc(planDocRef, {
+        // 2. Save the new plan
+        const newPlanDocRef = doc(planCollectionRef);
+        await setDoc(newPlanDocRef, {
           userId: user.uid,
           ...result,
           createdAt: serverTimestamp(),
         });
         
+        // 3. Save a copy in "Ideias Salvas" for history
         const content = result.items.map(item => `**${item.dia}:** ${item.tarefa}\n*Detalhes:* ${item.detalhes}`).join('\n\n');
         await addDoc(collection(firestore, `users/${user.uid}/ideiasSalvas`), {
            userId: user.uid,
@@ -448,39 +456,6 @@ export default function GenerateWeeklyPlanPage() {
                           </p>
                         </div>
                         <div className="flex w-full sm:w-auto flex-col sm:flex-row gap-2">
-                             <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                <Button variant="destructive" className="w-full sm:w-auto">
-                                    <Trash2 className="mr-2 h-4 w-4" />
-                                    Limpar Plano Atual
-                                </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                    <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                        Esta ação irá deletar o plano ativo no seu dashboard. Ele não poderá ser recuperado.
-                                    </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                    <AlertDialogAction
-                                        onClick={async () => {
-                                           const querySnapshot = await getDocs(query(collection(firestore, `users/${user!.uid}/weeklyPlans`), limit(1)));
-                                            if (!querySnapshot.empty) {
-                                                await deleteDoc(querySnapshot.docs[0].ref);
-                                                toast({ title: 'Plano atual limpo com sucesso!' });
-                                            } else {
-                                                toast({ title: 'Nenhum plano ativo para limpar.' });
-                                            }
-                                        }}
-                                        className={cn(buttonVariants({ variant: 'destructive' }))}
-                                    >
-                                        Deletar Plano
-                                    </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
                              <Button onClick={handleSavePlan} disabled={isSaving} className="w-full sm:w-auto">
                                 <Save className="mr-2 h-4 w-4" />
                                 {isSaving ? 'Salvando...' : 'Salvar e Ativar Plano'}
