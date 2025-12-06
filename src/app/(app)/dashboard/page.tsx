@@ -115,8 +115,6 @@ const platformChartConfig = {
   },
 } satisfies Record<string, ChartConfig>;
 
-// --- Internal Components ---
-
 const DailyPlanCard = ({ isLoadingWeeklyPlans, tasksForToday, currentPlan, handleToggleRoteiro }: any) => (
   <Card className="rounded-2xl border-0">
     <CardHeader>
@@ -254,7 +252,7 @@ const ActionHubCard = ({
         </TabsList>
         <div className="flex-1 mt-4">
           <TabsContent value="proximos" className="h-full">
-            {isLoadingUpcoming ? <div className="flex justify-center items-center h-full"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div> : upcomingContent && upcomingContent.length > 0 ? (<div className="space-y-2">{upcomingContent.map((post: ConteudoAgendado) => (<div key={post.id} className="p-3 rounded-lg border bg-background/50 flex items-start justify-between gap-4"><div className="flex items-start gap-4 flex-1 overflow-hidden"><div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0"><Tag className="h-5 w-5 text-muted-foreground" /></div><div className="flex-1 overflow-hidden"><p className="font-semibold text-foreground truncate text-sm">{post.title}</p><p className="text-xs text-muted-foreground">{post.contentType} • {formatDistanceToNow(post.date.toDate(), { addSuffix: true, locale: ptBR })}</p></div></div><DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger><DropdownMenuContent align="end"><DropdownMenuItem onClick={() => handleMarkAsPublished(post.id)}><CheckCircle className="mr-2 h-4 w-4" /><span>Marcar como Publicado</span></DropdownMenuItem></DropdownMenuContent></DropdownMenu></div>))}</div>) : (<div className="text-center h-full flex flex-col items-center justify-center"><p className="text-muted-foreground text-sm">Nenhum post agendado.</p><Button variant="link" asChild><Link href="/content-calendar">Ir para o Calendário</Link></Button></div>)}
+            {isLoadingUpcoming ? <div className="flex justify-center items-center h-full"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div> : upcomingContent && upcomingContent.length > 0 ? (<div className="space-y-2">{upcomingContent.map((post: ConteudoAgendado) => (<div key={post.id} className="p-3 rounded-lg border bg-background/50 flex items-start justify-between gap-4"><div className="flex items-start gap-4 flex-1 overflow-hidden"><div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0"><Tag className="h-5 w-5 text-muted-foreground" /></div><div className="flex-1 overflow-hidden"><p className="font-semibold text-foreground truncate text-sm">{post.title}</p><p className="text-xs text-muted-foreground">{post.contentType} • {formatDistanceToNow(post.date.toDate(), { addSuffix: true, locale: ptBR })}</p></div></div><DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><MoreHorizontal className="h-4 w-4" /></ButtonMenuTrigger><DropdownMenuContent align="end"><DropdownMenuItem onClick={() => handleMarkAsPublished(post.id)}><CheckCircle className="mr-2 h-4 w-4" /><span>Marcar como Publicado</span></DropdownMenuItem></DropdownMenuContent></DropdownMenu></div>))}</div>) : (<div className="text-center h-full flex flex-col items-center justify-center"><p className="text-muted-foreground text-sm">Nenhum post agendado.</p><Button variant="link" asChild><Link href="/content-calendar">Ir para o Calendário</Link></Button></div>)}
           </TabsContent>
           <TabsContent value="ideias" className="h-full">
             {isLoadingIdeias ? <div className="flex justify-center items-center h-full"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div> : ideiasSalvas && ideiasSalvas.length > 0 ? <ul className="space-y-3">{ideiasSalvas.map((ideia: IdeiaSalva) => (<li key={ideia.id} className="flex items-start gap-3"><Checkbox id={`ideia-${ideia.id}`} checked={ideia.concluido} onCheckedChange={() => handleToggleIdeia(ideia)} className="h-5 w-5 mt-0.5" /><div className="grid gap-0.5"><label htmlFor={`ideia-${ideia.id}`} className={cn('font-medium transition-colors cursor-pointer', ideia.concluido ? 'line-through text-muted-foreground' : 'text-foreground')}>{ideia.titulo}</label><p className="text-xs text-muted-foreground">de "{ideia.origem}"</p></div></li>))}</ul> : (<div className="text-center h-full flex flex-col items-center justify-center"><p className="text-muted-foreground text-sm">Nenhuma ideia salva.</p><Button variant="link" asChild><Link href="/video-ideas">Gerar Novas Ideias</Link></Button></div>)}
@@ -764,26 +762,28 @@ export default function DashboardPage() {
                         <CarouselItem><GoalCard isLoading={isLoading} goalFollowers={goalFollowers} currentFollowers={currentFollowers} followerGoalProgress={followerGoalProgress} pieData={pieData} formatMetricValue={formatMetricValue} /></CarouselItem>
                         <CarouselItem><DailyPlanCard isLoadingWeeklyPlans={isLoadingWeeklyPlans} tasksForToday={tasksForToday} currentPlan={currentPlan} handleToggleRoteiro={handleToggleRoteiro} /></CarouselItem>
                         <CarouselItem><EngagementMetricsCard isLoading={isLoading} latestMetrics={latestMetrics} formatMetricValue={formatMetricValue} getMetricRating={getMetricRating} /></CarouselItem>
+                         <CarouselItem>
+                            <ActionHubCard 
+                                isLoadingUpcoming={isLoadingUpcoming}
+                                upcomingContent={upcomingContent}
+                                isLoadingIdeias={isLoadingIdeias}
+                                ideiasSalvas={ideiasSalvas}
+                                isFetchingPosts={isFetchingPosts}
+                                instaPosts={instaPosts}
+                                userProfile={userProfile}
+                                tiktokPosts={tiktokPosts}
+                                handleToggleIdeia={handleToggleIdeia}
+                                handleMarkAsPublished={handleMarkAsPublished}
+                                handleTikTokClick={handleTikTokClick}
+                                formatNumber={formatNumber}
+                            />
+                         </CarouselItem>
                          <CarouselItem><PerformanceAnalysisCard isGeneratingInsights={isGeneratingInsights} insights={insights} handleGenerateInsights={handleGenerateInsights} /></CarouselItem>
                     </CarouselContent>
                     <CarouselPrevious />
                     <CarouselNext />
                 </Carousel>
                 <EvolutionChartCard isLoading={isLoading} historicalChartData={historicalChartData} selectedPlatform={selectedPlatform} userProfile={userProfile} />
-                <ActionHubCard 
-                  isLoadingUpcoming={isLoadingUpcoming}
-                  upcomingContent={upcomingContent}
-                  isLoadingIdeias={isLoadingIdeias}
-                  ideiasSalvas={ideiasSalvas}
-                  isFetchingPosts={isFetchingPosts}
-                  instaPosts={instaPosts}
-                  userProfile={userProfile}
-                  tiktokPosts={tiktokPosts}
-                  handleToggleIdeia={handleToggleIdeia}
-                  handleMarkAsPublished={handleMarkAsPublished}
-                  handleTikTokClick={handleTikTokClick}
-                  formatNumber={formatNumber}
-                />
             </div>
 
           {/* Main Grid */}
@@ -793,27 +793,29 @@ export default function DashboardPage() {
             <div className="lg:col-span-1 space-y-8">
                 <GoalCard isLoading={isLoading} goalFollowers={goalFollowers} currentFollowers={currentFollowers} followerGoalProgress={followerGoalProgress} pieData={pieData} formatMetricValue={formatMetricValue} />
                 <DailyPlanCard isLoadingWeeklyPlans={isLoadingWeeklyPlans} tasksForToday={tasksForToday} currentPlan={currentPlan} handleToggleRoteiro={handleToggleRoteiro} />
-                <ActionHubCard 
-                  isLoadingUpcoming={isLoadingUpcoming}
-                  upcomingContent={upcomingContent}
-                  isLoadingIdeias={isLoadingIdeias}
-                  ideiasSalvas={ideiasSalvas}
-                  isFetchingPosts={isFetchingPosts}
-                  instaPosts={instaPosts}
-                  userProfile={userProfile}
-                  tiktokPosts={tiktokPosts}
-                  handleToggleIdeia={handleToggleIdeia}
-                  handleMarkAsPublished={handleMarkAsPublished}
-                  handleTikTokClick={handleTikTokClick}
-                  formatNumber={formatNumber}
-                />
             </div>
 
             {/* Right Column */}
             <div className="lg:col-span-2 space-y-8">
               <EngagementMetricsCard isLoading={isLoading} latestMetrics={latestMetrics} formatMetricValue={formatMetricValue} getMetricRating={getMetricRating} />
               <EvolutionChartCard isLoading={isLoading} historicalChartData={historicalChartData} selectedPlatform={selectedPlatform} userProfile={userProfile} />
-              <PerformanceAnalysisCard isGeneratingInsights={isGeneratingInsights} insights={insights} handleGenerateInsights={handleGenerateInsights} />
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-stretch">
+                    <ActionHubCard 
+                        isLoadingUpcoming={isLoadingUpcoming}
+                        upcomingContent={upcomingContent}
+                        isLoadingIdeias={isLoadingIdeias}
+                        ideiasSalvas={ideiasSalvas}
+                        isFetchingPosts={isFetchingPosts}
+                        instaPosts={instaPosts}
+                        userProfile={userProfile}
+                        tiktokPosts={tiktokPosts}
+                        handleToggleIdeia={handleToggleIdeia}
+                        handleMarkAsPublished={handleMarkAsPublished}
+                        handleTikTokClick={handleTikTokClick}
+                        formatNumber={formatNumber}
+                    />
+                    <PerformanceAnalysisCard isGeneratingInsights={isGeneratingInsights} insights={insights} handleGenerateInsights={handleGenerateInsights} />
+              </div>
             </div>
           </div>
         </div>
@@ -821,3 +823,5 @@ export default function DashboardPage() {
     </>
   );
 }
+
+    
