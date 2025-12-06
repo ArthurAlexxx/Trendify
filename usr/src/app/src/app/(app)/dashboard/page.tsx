@@ -256,7 +256,7 @@ export default function DashboardPage() {
     if (selectedPlatform === 'total') {
         return {
             followers: parseMetric(userProfile.instagramFollowers) + parseMetric(userProfile.tiktokFollowers),
-            views: parseMetric(userProfile.instagramAverageViews) + parseMetric(userProfile.tiktokAverageViews),
+            views: parseMetric(userProfile.instagramAverageViews) + parseMetric(userProfile.tiktokAverageComments),
             likes: parseMetric(userProfile.instagramAverageLikes) + parseMetric(userProfile.tiktokAverageComments),
             comments: parseMetric(userProfile.instagramAverageComments) + parseMetric(userProfile.tiktokAverageComments),
         }
@@ -784,3 +784,4 @@ export default function DashboardPage() {
     </>
   );
 }
+
