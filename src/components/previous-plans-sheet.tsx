@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/sheet';
 import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import { IdeiaSalva, PlanoSemanal } from '@/lib/types';
-import { collection, orderBy, query, where, getDocs, writeBatch, doc } from 'firebase/firestore';
+import { collection, orderBy, query, where, getDocs, writeBatch, doc, addDoc } from 'firebase/firestore';
 import { History, Eye, Inbox, Loader2, Zap } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -70,13 +70,13 @@ export function PreviousPlansSheet() {
         const activePlanCollectionRef = collection(firestore, `users/${user.uid}/weeklyPlans`);
         const ideasCollectionRef = collection(firestore, `users/${user.uid}/ideiasSalvas`);
 
-        // 1. Archive the current active plan
+        // 1. Archive the current active plan by copying it to ideasSalvas
         const oldPlansSnapshot = await getDocs(activePlanCollectionRef);
         if (!oldPlansSnapshot.empty) {
           const oldPlanDoc = oldPlansSnapshot.docs[0];
           const oldPlanData = oldPlanDoc.data() as PlanoSemanal;
           
-          const newArchivedRef = doc(ideasCollectionRef);
+          const newArchivedRef = doc(ideasCollectionRef); // Create a new doc ref for the archive
           batch.set(newArchivedRef, {
              userId: user.uid,
              titulo: `Plano Arquivado em ${new Date().toLocaleDateString('pt-BR')}`,
@@ -86,17 +86,19 @@ export function PreviousPlansSheet() {
              createdAt: oldPlanData.createdAt,
              fullPlanData: oldPlanData,
           });
+          
+          // 2. Delete the old active plan
           batch.delete(oldPlanDoc.ref);
         }
 
-        // 2. Set the selected plan as the new active plan
+        // 3. Add the selected plan as the new active plan
         const newActivePlanRef = doc(activePlanCollectionRef);
         batch.set(newActivePlanRef, planToActivate.fullPlanData);
 
-        // 3. Delete the plan from the history
+        // 4. Delete the plan from the history (ideiasSalvas)
         batch.delete(doc(ideasCollectionRef, planToActivate.id));
 
-        // 4. Commit all operations
+        // 5. Commit all operations
         await batch.commit();
 
         toast({
