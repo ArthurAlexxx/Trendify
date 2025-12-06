@@ -153,7 +153,7 @@ async function fetchData(url: string, options: RequestInit) {
 
     if (data.message && (data.message.includes("Couldn't find user") || data.message.includes("User not found"))) throw new Error("Usuário não encontrado. Verifique o nome de usuário e tente novamente.");
     if (data.error) throw new Error(data.error);
-    if (data.status === 'fail' || data.data?.user === null) throw new Error("Usuário não encontrado ou perfil indisponível.");
+    if (data.status === 'fail' || (data.data && data.data.user === null)) throw new Error("Usuário não encontrado ou perfil indisponível.");
 
 
     return data;
@@ -240,6 +240,7 @@ export async function getInstagramPosts(username: string): Promise<InstagramPost
 export async function getTikTokProfile(username: string): Promise<TikTokProfileData> {
   try {
       const result = await fetchFromRapidApi('tiktok-profile', username);
+      console.log('Resposta da API de Perfil TikTok:', JSON.stringify(result, null, 2));
 
       const userData = result?.data?.user || result?.data || result;
 
@@ -284,6 +285,7 @@ export async function getTikTokPosts(username: string): Promise<TikTokPostData[]
     }
     try {
         const result = await fetchFromRapidApi('tiktok-posts', username);
+        console.log('Resposta da API de Vídeos TikTok:', JSON.stringify(result, null, 2));
         const parsed = TikTokPostResponseSchema.parse(result);
         
         const videos = parsed.data?.videos ?? [];
