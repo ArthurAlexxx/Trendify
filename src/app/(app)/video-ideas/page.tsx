@@ -44,6 +44,7 @@ import {
   TrendingUp,
   AlertTriangle,
   LightbulbIcon,
+  Edit,
 } from 'lucide-react';
 import { useEffect, useTransition, useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
@@ -64,6 +65,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Progress } from '@/components/ui/progress';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { ObjectiveFormCard } from '@/components/ui/objective-form-card';
 
 
 const formSchema = z.object({
@@ -128,6 +131,7 @@ export default function VideoIdeasPage() {
 
   const [usageData, setUsageData] = useState<DailyUsage | null>(null);
   const [isLoadingUsage, setIsLoadingUsage] = useState(true);
+  const [isFormOpen, setIsFormOpen] = useState(false);
 
   useEffect(() => {
     if (!user || !firestore) return;
@@ -155,6 +159,7 @@ export default function VideoIdeasPage() {
   });
   
   const formAction = useCallback(async (formData: FormSchemaType) => {
+    setIsFormOpen(false);
     startTransition(async () => {
       const result = await generateVideoIdeasAction(null, formData);
       setState(result);
@@ -327,117 +332,41 @@ export default function VideoIdeasPage() {
         </TabsList>
         <TabsContent value="generate">
            <Card className="rounded-t-none border-t-0">
-              <CardHeader>
-                 <CardTitle className="text-center font-headline text-xl">
-                    Briefing de Conteúdo
-                </CardTitle>
-                 <CardDescription className="text-center">Forneça os detalhes para a IA criar uma ideia de vídeo otimizada.</CardDescription>
-              </CardHeader>
               <CardContent className="p-6">
-                <Form {...form}>
-                    <form
-                    onSubmit={form.handleSubmit(formAction)}
-                    className="space-y-8"
-                    >
-                    <div className="grid md:grid-cols-2 gap-x-6 gap-y-8">
-                        <FormField
-                        control={form.control}
-                        name="topic"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Tópico Principal</FormLabel>
-                            <FormControl>
-                                <Input
-                                placeholder="Ex: Rotina de skincare para pele oleosa"
-                                className="h-12 bg-muted/50"
-                                {...field}
-                                />
-                            </FormControl>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                        />
-                        <FormField
-                        control={form.control}
-                        name="targetAudience"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Público-Alvo</FormLabel>
-                            <FormControl>
-                                <Input
-                                placeholder="Ex: Mulheres de 25-35 anos"
-                                className="h-12 bg-muted/50"
-                                {...field}
-                                />
-                            </FormControl>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                        />
-                         <FormField
-                            control={form.control}
-                            name="objective"
-                            render={({ field }) => (
-                            <FormItem className='md:col-span-2'>
-                                <FormLabel>Objetivo</FormLabel>
-                                <Select
-                                onValueChange={field.onChange}
-                                defaultValue={field.value}
-                                name={field.name}
-                                >
-                                <FormControl>
-                                    <SelectTrigger className="h-12 bg-muted/50">
-                                    <SelectValue placeholder="Selecione" />
-                                    </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                    <SelectItem value="Engajamento">
-                                    Engajamento
-                                    </SelectItem>
-                                    <SelectItem value="Alcance">Alcance</SelectItem>
-                                    <SelectItem value="Vendas">Vendas</SelectItem>
-                                    <SelectItem value="Educar">Educar</SelectItem>
-                                </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
+                <div className="flex flex-col items-center justify-center text-center gap-4 py-16">
+                    <h2 className="text-2xl font-bold font-headline">Defina seu Briefing</h2>
+                    <p className="text-muted-foreground max-w-xl">
+                        Clique no botão abaixo para definir o tópico, público-alvo e objetivo. Quanto mais detalhes, mais poderosa será a ideia gerada pela IA.
+                    </p>
+                    <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+                      <DialogTrigger asChild>
+                         <Button size="lg" disabled={isButtonDisabled}>
+                           {isGenerating ? (
+                              <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Carregando...</>
+                            ) : (
+                              <><Edit className="mr-2 h-5 w-5" />Definir Briefing</>
                             )}
+                         </Button>
+                      </DialogTrigger>
+                      <DialogContent className="p-0 bg-transparent border-none shadow-none w-full max-w-2xl">
+                        <ObjectiveFormCard
+                          initialData={form.getValues()}
+                          onSubmit={form.handleSubmit(formAction)}
+                          onCancel={() => setIsFormOpen(false)}
                         />
-                    </div>
-
-
-                    <div className="pt-4 flex flex-col sm:flex-row items-center gap-4">
-                        <Button
-                        type="submit"
-                        disabled={isButtonDisabled}
-                        size="lg"
-                        className="w-full sm:w-auto"
-                        >
-                        {isGenerating ? (
-                            <>
-                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                            Gerando Ideia...
-                            </>
-                        ) : (
-                            <>
-                            <Sparkles className="mr-2 h-5 w-5" />
-                            Gerar Ideia
-                            </>
-                        )}
-                        </Button>
-                        {isFreePlan && (
-                        <p className="text-sm text-muted-foreground text-center sm:text-left">
-                            {isLoadingUsage ? <Skeleton className="h-4 w-32" /> : hasReachedFreeLimit 
-                            ? 'Você atingiu seu limite de hoje.'
-                            : `Gerações restantes hoje: ${2 - generationsToday}/2.`
-                            }
-                            {' '}
-                            <Link href="/subscribe" className='underline text-primary font-semibold'>Faça upgrade para mais.</Link>
-                        </p>
-                        )}
-                    </div>
-                    </form>
-                </Form>
+                      </DialogContent>
+                    </Dialog>
+                     {isFreePlan && (
+                      <p className="text-sm text-muted-foreground text-center sm:text-left">
+                        {isLoadingUsage ? <Skeleton className="h-4 w-32" /> : hasReachedFreeLimit 
+                          ? 'Você atingiu seu limite de hoje.'
+                          : `Gerações restantes hoje: ${2 - generationsToday}/2.`
+                        }
+                        {' '}
+                        <Link href="/subscribe" className='underline text-primary font-semibold'>Faça upgrade para mais.</Link>
+                      </p>
+                    )}
+                </div>
               </CardContent>
            </Card>
         </TabsContent>
@@ -662,4 +591,3 @@ function InfoCard({
     </div>
   );
 }
-
