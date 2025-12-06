@@ -9,6 +9,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetFooter,
+  SheetTrigger,
 } from '@/components/ui/sheet';
 import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import { IdeiaSalva, PlanoSemanal } from '@/lib/types';
@@ -69,7 +70,7 @@ export function PreviousPlansSheet() {
         const activePlanCollectionRef = collection(firestore, `users/${user.uid}/weeklyPlans`);
         const ideasCollectionRef = collection(firestore, `users/${user.uid}/ideiasSalvas`);
 
-        // 1. Archive the current active plan by copying it to ideasSalvas
+        // 1. Archive the current active plan
         const oldPlansSnapshot = await getDocs(activePlanCollectionRef);
         if (!oldPlansSnapshot.empty) {
           const oldPlanDoc = oldPlansSnapshot.docs[0];
