@@ -161,46 +161,63 @@ export default function GenerateWeeklyPlanPage() {
   
   const handleSavePlan = useCallback(async () => {
     if (!result || !user || !firestore) return;
-
+  
     startSavingTransition(async () => {
       try {
         const batch = writeBatch(firestore);
         const planCollectionRef = collection(firestore, `users/${user.uid}/weeklyPlans`);
         const ideasCollectionRef = collection(firestore, `users/${user.uid}/ideiasSalvas`);
-
+  
         // 1. Archive the current active plan
         const oldPlansSnapshot = await getDocs(planCollectionRef);
         for (const planDoc of oldPlansSnapshot.docs) {
           const oldPlanData = planDoc.data() as PlanoSemanal;
           const newArchivedRef = doc(ideasCollectionRef);
-          batch.set(newArchivedRef, {
-             userId: user.uid,
-             titulo: `Plano Arquivado em ${new Date().toLocaleDateString('pt-BR')}`,
-             conteudo: oldPlanData.items.map(item => `**${item.dia}:** ${item.tarefa}\n*Detalhes:* ${item.detalhes}`).join('\n\n'),
-             origem: "Plano Semanal",
-             concluido: false, 
-             createdAt: oldPlanData.createdAt,
-             fullPlanData: oldPlanData,
-          });
-          batch.delete(planDoc.ref); // Delete from the active collection
+          
+          interface ArchivedPlan {
+            userId: string;
+            titulo: string;
+            conteudo: string;
+            origem: string;
+            concluido: boolean;
+            createdAt: any;
+            fullPlanData: PlanoSemanal;
+          }
+          
+          const archivedPlan: ArchivedPlan = {
+            userId: user.uid,
+            titulo: `Plano Arquivado em ${new Date().toLocaleDateString('pt-BR')}`,
+            conteudo: oldPlanData.items.map(item => `**${item.dia}:** ${item.tarefa}\n*Detalhes:* ${item.detalhes}`).join('\n\n'),
+            origem: "Plano Semanal",
+            concluido: false, 
+            createdAt: oldPlanData.createdAt,
+            fullPlanData: oldPlanData,
+          };
+          
+          batch.set(newArchivedRef, archivedPlan);
+          batch.delete(planDoc.ref);
         }
-
+  
         // 2. Save the new plan as the single active plan
         const newPlanDocRef = doc(planCollectionRef);
-        const newPlanData = {
+        
+        const newPlanData: Omit<PlanoSemanal, 'id'> = {
           userId: user.uid,
           createdAt: serverTimestamp(),
-          items: result.items,
+          items: result.items.map(item => ({
+            ...item,
+            concluido: false
+          })),
           desempenhoSimulado: result.desempenhoSimulado,
           effortLevel: result.effortLevel,
           priorityIndex: result.priorityIndex,
           realignmentTips: result.realignmentTips,
         };
+        
         batch.set(newPlanDocRef, newPlanData);
         
-        // 3. Commit the batch transaction
         await batch.commit();
-
+  
         toast({
           title: 'Sucesso!',
           description: 'Seu novo plano semanal foi salvo e ativado. O plano anterior foi movido para o histórico.',
@@ -208,6 +225,7 @@ export default function GenerateWeeklyPlanPage() {
         setActiveTab('generate');
         setState(null);
       } catch (e: any) {
+        console.error('Erro ao salvar plano:', e);
         toast({
           title: 'Erro ao Salvar Plano',
           description: `Não foi possível salvar os dados: ${e.message}`,
@@ -682,3 +700,5 @@ export default function GenerateWeeklyPlanPage() {
     </div>
   );
 }
+
+    
