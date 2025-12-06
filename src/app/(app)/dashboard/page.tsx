@@ -659,7 +659,6 @@ export default function DashboardPage() {
                       <p className="text-sm text-muted-foreground">{insight}</p>
                   </li>
                   ))}
-              </ul>
               </ScrollArea>
           ) : (
             <div className="flex-1 flex flex-col justify-center items-center text-center p-4 gap-4">
@@ -784,3 +783,7 @@ export default function DashboardPage() {
     </>
   );
 }
+
+    
+
+    
