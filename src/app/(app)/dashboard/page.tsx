@@ -363,6 +363,23 @@ export default function DashboardPage() {
          setIsGeneratingInsights(false);
      }
   }
+  
+  const daysOfWeekMap: { [key: string]: number } = {
+    Domingo: 0,
+    Segunda: 1,
+    Terça: 2,
+    Quarta: 3,
+    Quinta: 4,
+    Sexta: 5,
+    Sábado: 6,
+  };
+  const todayIndex = new Date().getDay();
+  const tasksForToday = currentPlan?.items.filter(item => {
+    // Handling pt-BR day names with and without '-feira'
+    const itemDay = item.dia.replace('-feira', '');
+    return daysOfWeekMap[itemDay as keyof typeof daysOfWeekMap] === todayIndex;
+  });
+
 
   const getMetricRating = (value: number, type: 'views' | 'likes' | 'comments', followers: number): { iconName: 'Smile' | 'Meh' | 'Frown', color: string } => {
     if (followers === 0) {
@@ -456,7 +473,7 @@ export default function DashboardPage() {
                 <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="proximos">Próximos</TabsTrigger>
                     <TabsTrigger value="ideias">Ideias</TabsTrigger>
-                    <TabsTrigger value="hoje">Plano Semanal</TabsTrigger>
+                    <TabsTrigger value="hoje">Plano de Hoje</TabsTrigger>
                 </TabsList>
                 <TabsContent value="proximos" className="mt-4 flex-grow">
                     {isLoadingUpcoming ? <div className="flex justify-center items-center h-48"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div> : upcomingContent && upcomingContent.length > 0 ? (<div className="space-y-2">{upcomingContent.map(post => (<div key={post.id} className="p-3 rounded-lg border bg-background/50 flex items-start justify-between gap-4"><div className="flex items-start gap-4 flex-1 overflow-hidden"><div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0"><Tag className="h-5 w-5 text-muted-foreground" /></div><div className="flex-1 overflow-hidden"><p className="font-semibold text-foreground truncate text-sm">{post.title}</p><p className="text-xs text-muted-foreground">{post.contentType} • {formatDistanceToNow(post.date.toDate(), { addSuffix: true, locale: ptBR })}</p></div></div><DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger><DropdownMenuContent align="end"><DropdownMenuItem onClick={() => handleMarkAsPublished(post.id)}><CheckCircle className="mr-2 h-4 w-4" /><span>Marcar como Publicado</span></DropdownMenuItem></DropdownMenuContent></DropdownMenu></div>))}</div>) : (<div className="text-center py-8"><p className="text-muted-foreground text-sm">Nenhum post agendado.</p><Button variant="link" asChild><Link href="/content-calendar">Ir para o Calendário</Link></Button></div>)}
@@ -467,33 +484,37 @@ export default function DashboardPage() {
                  <TabsContent value="hoje" className="mt-4 flex-grow">
                     {isLoadingWeeklyPlans ? (
                         <div className="flex justify-center items-center h-48"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
-                    ) : currentPlan ? (
+                    ) : tasksForToday && tasksForToday.length > 0 ? (
                         <ScrollArea className="h-64 pr-3">
                         <ul className="space-y-2">
-                            {currentPlan.items.map((item, index) => (
-                            <li key={index}>
-                                <div className="flex items-start gap-3 p-2 rounded-lg hover:bg-muted/50">
-                                <Checkbox
-                                    id={`dashboard-roteiro-${index}`}
-                                    checked={item.concluido}
-                                    onCheckedChange={() => handleToggleRoteiro(index)}
-                                    className="h-5 w-5 mt-1 shrink-0"
-                                />
-                                <div className="space-y-0.5">
-                                    <label
-                                    htmlFor={`dashboard-roteiro-${index}`}
-                                    className={cn(
-                                        'font-medium transition-colors cursor-pointer',
-                                        item.concluido ? 'line-through text-muted-foreground' : 'text-foreground'
-                                    )}
-                                    >
-                                    <span className="font-semibold text-primary">{item.dia}:</span> {item.tarefa}
-                                    </label>
-                                    <p className="text-xs text-muted-foreground">{item.detalhes}</p>
-                                </div>
-                                </div>
-                            </li>
-                            ))}
+                            {tasksForToday.map((item, index) => {
+                                // Find original index to update the correct item
+                                const originalIndex = currentPlan!.items.findIndex(pItem => pItem.dia === item.dia && pItem.tarefa === item.tarefa);
+                                return (
+                                    <li key={index}>
+                                        <div className="flex items-start gap-3 p-2 rounded-lg hover:bg-muted/50">
+                                        <Checkbox
+                                            id={`dashboard-roteiro-${index}`}
+                                            checked={item.concluido}
+                                            onCheckedChange={() => handleToggleRoteiro(originalIndex)}
+                                            className="h-5 w-5 mt-1 shrink-0"
+                                        />
+                                        <div className="space-y-0.5">
+                                            <label
+                                            htmlFor={`dashboard-roteiro-${index}`}
+                                            className={cn(
+                                                'font-medium transition-colors cursor-pointer',
+                                                item.concluido ? 'line-through text-muted-foreground' : 'text-foreground'
+                                            )}
+                                            >
+                                            <span className="font-semibold text-primary">{item.dia}:</span> {item.tarefa}
+                                            </label>
+                                            <p className="text-xs text-muted-foreground">{item.detalhes}</p>
+                                        </div>
+                                        </div>
+                                    </li>
+                                );
+                            })}
                         </ul>
                         </ScrollArea>
                     ) : (
