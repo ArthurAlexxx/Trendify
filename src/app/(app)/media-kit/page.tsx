@@ -52,6 +52,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 
 
 const formSchema = z.object({
@@ -371,15 +372,15 @@ function MediaKitPageContent() {
                          </Button>
                       </DialogTrigger>
                        <DialogContent className="sm:max-w-2xl p-0">
-                          <Card className="rounded-2xl border-0 shadow-none">
-                            <CardHeader className="text-center sticky top-0 bg-background/95 backdrop-blur-sm z-10 p-6">
-                                <CardTitle className="flex items-center justify-center gap-3 font-headline text-xl">
+                          <SheetContent className="flex flex-col gap-0 p-0 sm:max-w-2xl" side="right">
+                            <SheetHeader className="p-6 pb-4 border-b">
+                                <SheetTitle className="flex items-center justify-center gap-3 font-headline text-xl">
                                     <Bot className="h-6 w-6 text-primary" />
                                     <span>Assistente de Carreira</span>
-                                </CardTitle>
-                            </CardHeader>
-                            <ScrollArea className="h-[70vh]">
-                              <CardContent className="p-6">
+                                </SheetTitle>
+                            </SheetHeader>
+                            <ScrollArea className="flex-1">
+                              <div className="p-6">
                                   <Form {...form}>
                                       <form
                                       onSubmit={form.handleSubmit(formAction)}
@@ -445,25 +446,26 @@ function MediaKitPageContent() {
                                           />
                                           </div>
                                       </div>
-                                      <div className="pt-2 flex justify-end gap-4">
-                                          <Button type="button" variant="ghost" onClick={() => setIsFormOpen(false)}>Cancelar</Button>
-                                          <Button
-                                          type="submit"
-                                          disabled={isGenerating || isLoadingProfile}
-                                          className="w-full sm:w-auto"
-                                          >
-                                          {isGenerating ? (
-                                              <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Gerando...</>
-                                          ) : (
-                                              <><Sparkles className="mr-2 h-5 w-5" />Gerar Pacote</>
-                                          )}
-                                          </Button>
-                                      </div>
                                       </form>
                                   </Form>
-                              </CardContent>
+                              </div>
                             </ScrollArea>
-                        </Card>
+                            <SheetFooter className="p-6 border-t flex-col sm:flex-row gap-2">
+                                <Button type="button" variant="outline" onClick={() => setIsFormOpen(false)} className="w-full sm:w-auto">Cancelar</Button>
+                                <Button
+                                type="button"
+                                onClick={form.handleSubmit(formAction)}
+                                disabled={isGenerating || isLoadingProfile}
+                                className="w-full sm:w-auto"
+                                >
+                                {isGenerating ? (
+                                    <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Gerando...</>
+                                ) : (
+                                    <><Sparkles className="mr-2 h-5 w-5" />Gerar Pacote</>
+                                )}
+                                </Button>
+                            </SheetFooter>
+                        </SheetContent>
                       </DialogContent>
                     </Dialog>
                 </div>
@@ -631,3 +633,4 @@ function PricingCard({
     </Card>
   );
 }
+

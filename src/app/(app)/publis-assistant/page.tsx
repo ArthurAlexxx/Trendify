@@ -63,6 +63,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 
 
 const formSchema = z.object({
@@ -373,16 +374,16 @@ function PublisAssistantPageContent() {
                             </Button>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-2xl p-0">
-                             <Card className="rounded-2xl border-0 shadow-none">
-                                <CardHeader className="text-center sticky top-0 bg-background/95 backdrop-blur-sm z-10 p-6">
-                                <CardTitle className="flex items-center justify-center font-headline text-xl gap-2">
+                             <SheetContent className="flex flex-col gap-0 p-0 sm:max-w-2xl" side="right">
+                                <SheetHeader className="p-6 pb-4 border-b">
+                                <SheetTitle className="flex items-center justify-center font-headline text-xl gap-2">
                                     <Bot className="h-6 w-6 text-primary" />
                                     Briefing da Campanha
-                                </CardTitle>
-                                <CardDescription>Quanto mais detalhes, mais alinhados à marca serão os roteiros.</CardDescription>
-                                </CardHeader>
-                                <ScrollArea className="h-[70vh]">
-                                  <CardContent className="p-6">
+                                </SheetTitle>
+                                <SheetDescription className='text-center'>Quanto mais detalhes, mais alinhados à marca serão os roteiros.</SheetDescription>
+                                </SheetHeader>
+                                <ScrollArea className="flex-1">
+                                  <div className="p-6">
                                     <Form {...form}>
                                         <form
                                         onSubmit={form.handleSubmit(formAction)}
@@ -481,25 +482,27 @@ function PublisAssistantPageContent() {
                                             )}
                                         />
                                     </div>
-                                        <div className="pt-4 flex flex-col sm:flex-row items-center justify-end gap-4">
-                                            <Button type="button" variant="ghost" onClick={() => setIsFormOpen(false)}>Cancelar</Button>
-                                            <Button
-                                            type="submit"
-                                            disabled={isButtonDisabled}
-                                            className="w-full sm:w-auto"
-                                            >
-                                            {isGenerating ? (
-                                                <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Gerando...</>
-                                            ) : (
-                                                <><Sparkles className="mr-2 h-5 w-5" />Gerar Pacote</>
-                                            )}
-                                            </Button>
-                                        </div>
+                                        
                                         </form>
                                     </Form>
-                                  </CardContent>
+                                  </div>
                                 </ScrollArea>
-                            </Card>
+                                 <SheetFooter className="p-6 border-t flex-col sm:flex-row gap-2">
+                                     <Button type="button" variant="outline" onClick={() => setIsFormOpen(false)} className="w-full sm:w-auto">Cancelar</Button>
+                                    <Button
+                                    type="button"
+                                    onClick={form.handleSubmit(formAction)}
+                                    disabled={isButtonDisabled}
+                                    className="w-full sm:w-auto"
+                                    >
+                                    {isGenerating ? (
+                                        <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Gerando...</>
+                                    ) : (
+                                        <><Sparkles className="mr-2 h-5 w-5" />Gerar Pacote</>
+                                    )}
+                                    </Button>
+                                </SheetFooter>
+                             </SheetContent>
                         </DialogContent>
                     </Dialog>
                     {isFreePlan && (

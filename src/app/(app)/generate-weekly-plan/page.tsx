@@ -56,6 +56,7 @@ import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogTrigger, DialogContent } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 
 
 const formSchema = z.object({
@@ -387,18 +388,18 @@ export default function GenerateWeeklyPlanPage() {
                          </Button>
                       </DialogTrigger>
                        <DialogContent className="sm:max-w-2xl p-0">
-                         <Card className="rounded-2xl border-0 shadow-none">
-                            <CardHeader className="text-center sticky top-0 bg-background/95 backdrop-blur-sm z-10 p-6">
-                                <CardTitle className="flex items-center justify-center gap-3 font-headline text-xl">
+                         <SheetContent className="flex flex-col gap-0 p-0 sm:max-w-2xl" side="right">
+                            <SheetHeader className="p-6 pb-4 border-b">
+                                <SheetTitle className="flex items-center justify-center gap-3 font-headline text-xl">
                                     <Bot className="h-6 w-6 text-primary" />
                                     <span>Briefing da Semana</span>
-                                </CardTitle>
-                                <CardDescription>
+                                </SheetTitle>
+                                <SheetDescription className='text-center'>
                                     Forneça os detalhes para um plano melhor. Sua meta de seguidores será usada para focar a estratégia.
-                                </CardDescription>
-                            </CardHeader>
-                            <ScrollArea className="h-[70vh]">
-                              <CardContent className="p-6">
+                                </SheetDescription>
+                            </SheetHeader>
+                            <ScrollArea className="flex-1">
+                              <div className="p-6">
                                   <Form {...form}>
                                       <form onSubmit={form.handleSubmit(formAction)} className="space-y-6">
                                       <div className="space-y-6">
@@ -467,22 +468,23 @@ export default function GenerateWeeklyPlanPage() {
                                           />
                                           </div>
                                       </div>
-                                      <div className="pt-2 flex flex-col sm:flex-row items-center justify-end gap-4">
-                                          <Button type="button" variant="ghost" onClick={() => setIsFormOpen(false)}>Cancelar</Button>
-                                          <Button
-                                              type="submit"
-                                              disabled={isGenerating || isSaving || isLoadingProfile}
-                                              className="w-full sm:w-auto"
-                                          >
-                                              {isGenerating || isSaving ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Sparkles className="mr-2 h-5 w-5" />}
-                                              Gerar Plano
-                                          </Button>
-                                      </div>
                                       </form>
                                   </Form>
-                              </CardContent>
+                              </div>
                             </ScrollArea>
-                          </Card>
+                            <SheetFooter className="p-6 border-t flex-col sm:flex-row gap-2">
+                                <Button type="button" variant="outline" onClick={() => setIsFormOpen(false)} className="w-full sm:w-auto">Cancelar</Button>
+                                <Button
+                                    type="button"
+                                    onClick={form.handleSubmit(formAction)}
+                                    disabled={isGenerating || isSaving || isLoadingProfile}
+                                    className="w-full sm:w-auto"
+                                >
+                                    {isGenerating || isSaving ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Sparkles className="mr-2 h-5 w-5" />}
+                                    Gerar Plano
+                                </Button>
+                            </SheetFooter>
+                          </SheetContent>
                       </DialogContent>
                     </Dialog>
                 </div>
@@ -492,16 +494,8 @@ export default function GenerateWeeklyPlanPage() {
         <TabsContent value="result">
              <Card className="rounded-t-none border-t-0">
                 <CardHeader className='text-center'>
-                    <div className="flex flex-col sm:flex-row justify-between items-start gap-4 sm:text-left">
-                        <div className="flex-1">
-                          <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">
-                            Plano Gerado
-                          </h2>
-                          <p className="text-muted-foreground">
-                            Seu novo plano semanal está pronto. Salve-o para ativá-lo no seu dashboard.
-                          </p>
-                        </div>
-                    </div>
+                    <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Plano Gerado</h2>
+                    <p className="text-muted-foreground">Seu novo plano semanal está pronto. Salve-o para ativá-lo no seu dashboard.</p>
                 </CardHeader>
                 <CardContent className="p-6">
                     <div className="space-y-8 animate-fade-in">
@@ -721,3 +715,4 @@ export default function GenerateWeeklyPlanPage() {
     </div>
   );
 }
+
