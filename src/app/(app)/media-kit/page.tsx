@@ -51,6 +51,7 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 
 const formSchema = z.object({
@@ -307,14 +308,14 @@ function MediaKitPageContent() {
                     <CarouselContent className="-ml-4">
                         {analysisCriteria.map((item, index) => (
                             <CarouselItem key={index} className="pl-4 basis-full">
-                                <Card className="h-full rounded-2xl border-0">
+                                <Card className="h-full rounded-2xl border-0 text-center">
                                     <CardHeader className="items-center">
-                                        <CardTitle className="text-center flex flex-col items-center gap-2">
+                                        <CardTitle className="flex flex-col items-center gap-2">
                                             <item.icon className="h-5 w-5 text-primary" />
                                             <span className="text-base font-semibold">{item.title}</span>
                                         </CardTitle>
                                     </CardHeader>
-                                    <CardContent className="text-center">
+                                    <CardContent>
                                         <p className="text-muted-foreground text-sm">{item.description}</p>
                                     </CardContent>
                                 </Card>
@@ -327,14 +328,14 @@ function MediaKitPageContent() {
             </div>
             <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {analysisCriteria.map((item, index) => (
-                    <Card key={index} className='rounded-2xl border-0'>
+                    <Card key={index} className='rounded-2xl border-0 text-center'>
                         <CardHeader className="items-center">
-                            <CardTitle className="text-center flex flex-col items-center gap-2">
+                            <CardTitle className="flex flex-col items-center gap-2">
                                 <item.icon className="h-5 w-5 text-primary" />
                                 <span className="text-base font-semibold">{item.title}</span>
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="text-center">
+                        <CardContent>
                             <p className="text-muted-foreground text-sm">{item.description}</p>
                         </CardContent>
                     </Card>
@@ -369,97 +370,99 @@ function MediaKitPageContent() {
                             )}
                          </Button>
                       </DialogTrigger>
-                       <DialogContent className="sm:max-w-2xl">
+                       <DialogContent className="sm:max-w-2xl p-0">
                           <Card className="rounded-2xl border-0 shadow-none">
-                            <CardHeader className="text-center">
+                            <CardHeader className="text-center sticky top-0 bg-background/95 backdrop-blur-sm z-10">
                                 <CardTitle className="flex items-center justify-center gap-3 font-headline text-xl">
                                     <Bot className="h-6 w-6 text-primary" />
                                     <span>Assistente de Carreira</span>
                                 </CardTitle>
                             </CardHeader>
-                            <CardContent>
-                                <Form {...form}>
-                                    <form
-                                    onSubmit={form.handleSubmit(formAction)}
-                                    className="space-y-6"
-                                    >
-                                    <div className="space-y-6">
-                                        <FormField
-                                        control={form.control}
-                                        name="niche"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                            <FormLabel>Seu Nicho</FormLabel>
-                                            <FormControl>
-                                                {isLoadingProfile ? <Skeleton className="h-12 w-full" /> : 
-                                                <Input
-                                                    placeholder="Defina em seu Perfil"
-                                                    className="h-12 bg-muted/50"
-                                                    {...field}
-                                                />
-                                                }
-                                            </FormControl>
-                                            <FormMessage />
-                                            </FormItem>
-                                        )}
-                                        />
-                                        <div className="grid md:grid-cols-2 gap-x-6 gap-y-8">
-                                        <FormField
-                                            control={form.control}
-                                            name="keyMetrics"
-                                            render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Métricas Chave</FormLabel>
-                                                <FormControl>
-                                                {isLoadingProfile ? <Skeleton className="h-12 w-full" /> :
-                                                    <Input
-                                                    placeholder="Defina em seu Perfil"
-                                                    className="h-12 bg-muted/50"
-                                                    {...field}
-                                                    readOnly
-                                                    />
-                                                }
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={form.control}
-                                            name="targetBrand"
-                                            render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Marca Alvo</FormLabel>
-                                                <FormControl>
-                                                <Input
-                                                    placeholder="Ex: Sallve, Natura, Nike"
-                                                    className="h-12 bg-muted/50"
-                                                    {...field}
-                                                />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                            )}
-                                        />
-                                        </div>
-                                    </div>
-                                    <div className="pt-2 flex justify-end gap-4">
-                                        <Button type="button" variant="ghost" onClick={() => setIsFormOpen(false)}>Cancelar</Button>
-                                        <Button
-                                        type="submit"
-                                        disabled={isGenerating || isLoadingProfile}
-                                        className="w-full sm:w-auto"
-                                        >
-                                        {isGenerating ? (
-                                            <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Gerando...</>
-                                        ) : (
-                                            <><Sparkles className="mr-2 h-5 w-5" />Gerar Pacote</>
-                                        )}
-                                        </Button>
-                                    </div>
-                                    </form>
-                                </Form>
-                            </CardContent>
+                            <ScrollArea className="h-[70vh]">
+                              <CardContent>
+                                  <Form {...form}>
+                                      <form
+                                      onSubmit={form.handleSubmit(formAction)}
+                                      className="space-y-6"
+                                      >
+                                      <div className="space-y-6">
+                                          <FormField
+                                          control={form.control}
+                                          name="niche"
+                                          render={({ field }) => (
+                                              <FormItem>
+                                              <FormLabel>Seu Nicho</FormLabel>
+                                              <FormControl>
+                                                  {isLoadingProfile ? <Skeleton className="h-12 w-full" /> : 
+                                                  <Input
+                                                      placeholder="Defina em seu Perfil"
+                                                      className="h-12 bg-muted/50"
+                                                      {...field}
+                                                  />
+                                                  }
+                                              </FormControl>
+                                              <FormMessage />
+                                              </FormItem>
+                                          )}
+                                          />
+                                          <div className="grid md:grid-cols-2 gap-x-6 gap-y-8">
+                                          <FormField
+                                              control={form.control}
+                                              name="keyMetrics"
+                                              render={({ field }) => (
+                                              <FormItem>
+                                                  <FormLabel>Métricas Chave</FormLabel>
+                                                  <FormControl>
+                                                  {isLoadingProfile ? <Skeleton className="h-12 w-full" /> :
+                                                      <Input
+                                                      placeholder="Defina em seu Perfil"
+                                                      className="h-12 bg-muted/50"
+                                                      {...field}
+                                                      readOnly
+                                                      />
+                                                  }
+                                                  </FormControl>
+                                                  <FormMessage />
+                                              </FormItem>
+                                              )}
+                                          />
+                                          <FormField
+                                              control={form.control}
+                                              name="targetBrand"
+                                              render={({ field }) => (
+                                              <FormItem>
+                                                  <FormLabel>Marca Alvo</FormLabel>
+                                                  <FormControl>
+                                                  <Input
+                                                      placeholder="Ex: Sallve, Natura, Nike"
+                                                      className="h-12 bg-muted/50"
+                                                      {...field}
+                                                  />
+                                                  </FormControl>
+                                                  <FormMessage />
+                                              </FormItem>
+                                              )}
+                                          />
+                                          </div>
+                                      </div>
+                                      <div className="pt-2 flex justify-end gap-4">
+                                          <Button type="button" variant="ghost" onClick={() => setIsFormOpen(false)}>Cancelar</Button>
+                                          <Button
+                                          type="submit"
+                                          disabled={isGenerating || isLoadingProfile}
+                                          className="w-full sm:w-auto"
+                                          >
+                                          {isGenerating ? (
+                                              <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Gerando...</>
+                                          ) : (
+                                              <><Sparkles className="mr-2 h-5 w-5" />Gerar Pacote</>
+                                          )}
+                                          </Button>
+                                      </div>
+                                      </form>
+                                  </Form>
+                              </CardContent>
+                            </ScrollArea>
                         </Card>
                       </DialogContent>
                     </Dialog>

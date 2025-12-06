@@ -55,6 +55,7 @@ import { PreviousPlansSheet } from '@/components/previous-plans-sheet';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogTrigger, DialogContent } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 
 const formSchema = z.object({
@@ -319,14 +320,14 @@ export default function GenerateWeeklyPlanPage() {
                   <CarouselContent className="-ml-4">
                       {analysisCriteria.map((item, index) => (
                           <CarouselItem key={index} className="pl-4 basis-full">
-                              <Card className="h-full rounded-2xl border-0">
+                              <Card className="h-full rounded-2xl border-0 text-center">
                                   <CardHeader className="items-center">
-                                      <CardTitle className="text-center flex flex-col items-center gap-2">
+                                      <CardTitle className="flex flex-col items-center gap-2">
                                           <item.icon className="h-5 w-5 text-primary" />
                                           <span className="text-base font-semibold">{item.title}</span>
                                       </CardTitle>
                                   </CardHeader>
-                                  <CardContent className="text-center">
+                                  <CardContent>
                                       <p className="text-muted-foreground text-sm">{item.description}</p>
                                   </CardContent>
                               </Card>
@@ -339,14 +340,14 @@ export default function GenerateWeeklyPlanPage() {
           </div>
           <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-4">
               {analysisCriteria.map((item, index) => (
-                  <Card key={index} className='rounded-2xl border-0'>
+                  <Card key={index} className='rounded-2xl border-0 text-center'>
                       <CardHeader className="items-center">
-                          <CardTitle className="text-center flex flex-col items-center gap-2">
+                          <CardTitle className="flex flex-col items-center gap-2">
                               <item.icon className="h-5 w-5 text-primary" />
                               <span className="text-base font-semibold">{item.title}</span>
                           </CardTitle>
                       </CardHeader>
-                      <CardContent className="text-center">
+                      <CardContent>
                           <p className="text-muted-foreground text-sm">{item.description}</p>
                       </CardContent>
                   </Card>
@@ -385,9 +386,9 @@ export default function GenerateWeeklyPlanPage() {
                             )}
                          </Button>
                       </DialogTrigger>
-                       <DialogContent className="sm:max-w-2xl">
+                       <DialogContent className="sm:max-w-2xl p-0">
                          <Card className="rounded-2xl border-0 shadow-none">
-                            <CardHeader className="text-center">
+                            <CardHeader className="text-center sticky top-0 bg-background/95 backdrop-blur-sm z-10">
                                 <CardTitle className="flex items-center justify-center gap-3 font-headline text-xl">
                                     <Bot className="h-6 w-6 text-primary" />
                                     <span>Briefing da Semana</span>
@@ -396,89 +397,91 @@ export default function GenerateWeeklyPlanPage() {
                                     Forneça os detalhes para um plano melhor. Sua meta de seguidores será usada para focar a estratégia.
                                 </CardDescription>
                             </CardHeader>
-                            <CardContent>
-                                <Form {...form}>
-                                    <form onSubmit={form.handleSubmit(formAction)} className="space-y-6">
-                                    <div className="space-y-6">
-                                        <FormField
-                                        control={form.control}
-                                        name="objective"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                            <FormLabel>
-                                                Qual seu principal objetivo para a semana?
-                                            </FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                placeholder="Ex: Aumentar o engajamento com Reels de humor"
-                                                className="h-12 bg-muted/50"
-                                                {...field}
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                            </FormItem>
-                                        )}
-                                        />
-                                        <div className="grid md:grid-cols-2 gap-x-6 gap-y-8">
-                                        <FormField
-                                            control={form.control}
-                                            name="niche"
-                                            render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Seu Nicho</FormLabel>
-                                                <FormControl>
-                                                {isLoadingProfile ? (
-                                                    <Skeleton className="h-12 w-full" />
-                                                ) : (
-                                                    <Input
-                                                    placeholder="Defina em seu Perfil"
-                                                    className="h-12 bg-muted/50"
-                                                    {...field}
-                                                    />
-                                                )}
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={form.control}
-                                            name="currentStats"
-                                            render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Métricas Atuais</FormLabel>
-                                                <FormControl>
-                                                {isLoadingProfile ? (
-                                                    <Skeleton className="h-12 w-full" />
-                                                ) : (
-                                                    <Input
-                                                    placeholder="Defina em seu Perfil"
-                                                    className="h-12 bg-muted/50"
-                                                    {...field}
-                                                    readOnly
-                                                    />
-                                                )}
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                            )}
-                                        />
-                                        </div>
-                                    </div>
-                                    <div className="pt-2 flex flex-col sm:flex-row items-center justify-end gap-4">
-                                        <Button type="button" variant="ghost" onClick={() => setIsFormOpen(false)}>Cancelar</Button>
-                                        <Button
-                                            type="submit"
-                                            disabled={isGenerating || isSaving || isLoadingProfile}
-                                            className="w-full sm:w-auto"
-                                        >
-                                            {isGenerating || isSaving ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Sparkles className="mr-2 h-5 w-5" />}
-                                            Gerar Plano
-                                        </Button>
-                                    </div>
-                                    </form>
-                                </Form>
-                            </CardContent>
+                            <ScrollArea className="h-[70vh]">
+                              <CardContent>
+                                  <Form {...form}>
+                                      <form onSubmit={form.handleSubmit(formAction)} className="space-y-6">
+                                      <div className="space-y-6">
+                                          <FormField
+                                          control={form.control}
+                                          name="objective"
+                                          render={({ field }) => (
+                                              <FormItem>
+                                              <FormLabel>
+                                                  Qual seu principal objetivo para a semana?
+                                              </FormLabel>
+                                              <FormControl>
+                                                  <Input
+                                                  placeholder="Ex: Aumentar o engajamento com Reels de humor"
+                                                  className="h-12 bg-muted/50"
+                                                  {...field}
+                                                  />
+                                              </FormControl>
+                                              <FormMessage />
+                                              </FormItem>
+                                          )}
+                                          />
+                                          <div className="grid md:grid-cols-2 gap-x-6 gap-y-8">
+                                          <FormField
+                                              control={form.control}
+                                              name="niche"
+                                              render={({ field }) => (
+                                              <FormItem>
+                                                  <FormLabel>Seu Nicho</FormLabel>
+                                                  <FormControl>
+                                                  {isLoadingProfile ? (
+                                                      <Skeleton className="h-12 w-full" />
+                                                  ) : (
+                                                      <Input
+                                                      placeholder="Defina em seu Perfil"
+                                                      className="h-12 bg-muted/50"
+                                                      {...field}
+                                                      />
+                                                  )}
+                                                  </FormControl>
+                                                  <FormMessage />
+                                              </FormItem>
+                                              )}
+                                          />
+                                          <FormField
+                                              control={form.control}
+                                              name="currentStats"
+                                              render={({ field }) => (
+                                              <FormItem>
+                                                  <FormLabel>Métricas Atuais</FormLabel>
+                                                  <FormControl>
+                                                  {isLoadingProfile ? (
+                                                      <Skeleton className="h-12 w-full" />
+                                                  ) : (
+                                                      <Input
+                                                      placeholder="Defina em seu Perfil"
+                                                      className="h-12 bg-muted/50"
+                                                      {...field}
+                                                      readOnly
+                                                      />
+                                                  )}
+                                                  </FormControl>
+                                                  <FormMessage />
+                                              </FormItem>
+                                              )}
+                                          />
+                                          </div>
+                                      </div>
+                                      <div className="pt-2 flex flex-col sm:flex-row items-center justify-end gap-4">
+                                          <Button type="button" variant="ghost" onClick={() => setIsFormOpen(false)}>Cancelar</Button>
+                                          <Button
+                                              type="submit"
+                                              disabled={isGenerating || isSaving || isLoadingProfile}
+                                              className="w-full sm:w-auto"
+                                          >
+                                              {isGenerating || isSaving ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Sparkles className="mr-2 h-5 w-5" />}
+                                              Gerar Plano
+                                          </Button>
+                                      </div>
+                                      </form>
+                                  </Form>
+                              </CardContent>
+                            </ScrollArea>
                           </Card>
                       </DialogContent>
                     </Dialog>
@@ -488,9 +491,9 @@ export default function GenerateWeeklyPlanPage() {
         </TabsContent>
         <TabsContent value="result">
              <Card className="rounded-t-none border-t-0">
-                <CardHeader>
-                    <div className="flex flex-col sm:flex-row justify-between items-start gap-4 text-center sm:text-left">
-                        <div className="flex-1 text-center">
+                <CardHeader className='text-center'>
+                    <div className="flex flex-col sm:flex-row justify-between items-start gap-4 sm:text-left">
+                        <div className="flex-1">
                           <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">
                             Plano Gerado
                           </h2>

@@ -62,6 +62,7 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 
 const formSchema = z.object({
@@ -309,14 +310,14 @@ function PublisAssistantPageContent() {
                     <CarouselContent className="-ml-4">
                         {analysisCriteria.map((item, index) => (
                             <CarouselItem key={index} className="pl-4 basis-full">
-                                <Card className="h-full rounded-2xl border-0">
-                                    <CardHeader className="items-center text-center">
+                                <Card className="h-full rounded-2xl border-0 text-center">
+                                    <CardHeader className="items-center">
                                         <CardTitle className="flex flex-col items-center gap-2">
                                             <item.icon className="h-5 w-5 text-primary" />
                                             <span className="text-base font-semibold">{item.title}</span>
                                         </CardTitle>
                                     </CardHeader>
-                                    <CardContent className="text-center">
+                                    <CardContent>
                                         <p className="text-muted-foreground text-sm">{item.description}</p>
                                     </CardContent>
                                 </Card>
@@ -329,14 +330,14 @@ function PublisAssistantPageContent() {
             </div>
             <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {analysisCriteria.map((item, index) => (
-                    <Card key={index} className='rounded-2xl border-0'>
-                        <CardHeader className="items-center text-center">
+                    <Card key={index} className='rounded-2xl border-0 text-center'>
+                        <CardHeader className="items-center">
                             <CardTitle className="flex flex-col items-center gap-2">
                                 <item.icon className="h-5 w-5 text-primary" />
                                 <span className="text-base font-semibold">{item.title}</span>
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="text-center">
+                        <CardContent>
                             <p className="text-muted-foreground text-sm">{item.description}</p>
                         </CardContent>
                     </Card>
@@ -371,133 +372,133 @@ function PublisAssistantPageContent() {
                                 )}
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="sm:max-w-2xl">
+                        <DialogContent className="sm:max-w-2xl p-0">
                              <Card className="rounded-2xl border-0 shadow-none">
-                                <CardHeader className="text-center">
+                                <CardHeader className="text-center sticky top-0 bg-background/95 backdrop-blur-sm z-10">
                                 <CardTitle className="flex items-center justify-center font-headline text-xl gap-2">
                                     <Bot className="h-6 w-6 text-primary" />
                                     Briefing da Campanha
                                 </CardTitle>
                                 <CardDescription>Quanto mais detalhes, mais alinhados à marca serão os roteiros.</CardDescription>
                                 </CardHeader>
-                                <CardContent>
-                                <Form {...form}>
-                                    <form
-                                    onSubmit={form.handleSubmit(formAction)}
-                                    className="space-y-6"
-                                    >
-                                    <div className="space-y-6">
-                                        <FormField
-                                        control={form.control}
-                                        name="product"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                            <FormLabel>Produto ou Marca</FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                placeholder="Ex: Tênis de corrida da Nike"
-                                                className="h-12 bg-muted/50"
-                                                {...field}
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                            </FormItem>
-                                        )}
-                                        />
-                                        <FormField
-                                        control={form.control}
-                                        name="targetAudience"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                            <FormLabel>Público-Alvo</FormLabel>
-                                            <FormControl>
-                                                <Textarea
-                                                placeholder="Ex: Mulheres de 25-35 anos, interessadas em vida saudável."
-                                                className="min-h-[100px] bg-muted/50"
-                                                {...field}
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                            </FormItem>
-                                        )}
-                                        />
-                                        <FormField
-                                        control={form.control}
-                                        name="differentiators"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                            <FormLabel>Diferenciais do Produto</FormLabel>
-                                            <FormControl>
-                                            <Textarea
-                                                placeholder="Ex: Material reciclado, leve, absorção de impacto, design moderno."
-                                                className="min-h-[100px] bg-muted/50"
-                                                {...field}
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                            </FormItem>
-                                        )}
-                                        />
-                                    </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                                    <FormField
-                                    control={form.control}
-                                    name="objective"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                        <FormLabel>Objetivo Principal</FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value} name={field.name}>
-                                            <FormControl>
-                                            <SelectTrigger className="h-12 bg-muted/50">
-                                                <SelectValue placeholder="Selecione" />
-                                            </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent>
-                                            <SelectItem value="Gerar Vendas">Gerar Vendas (Conversão)</SelectItem>
-                                            <SelectItem value="Aumentar Reconhecimento da Marca">Aumentar Reconhecimento (Alcance)</SelectItem>
-                                            <SelectItem value="Gerar Leads">Gerar Leads (Cadastros)</SelectItem>
-                                            <SelectItem value="Engajar a Comunidade">Engajar a Comunidade</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage />
-                                        </FormItem>
-                                    )}
-                                    />
-                                    <FormField
-                                        control={form.control}
-                                        name="extraInfo"
-                                        render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Informações Adicionais (Opcional)</FormLabel>
-                                            <FormControl>
-                                            <Input
-                                                placeholder="Restrições, cupons, links, etc."
-                                                className="h-12 bg-muted/50"
-                                                {...field}
-                                            />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                        )}
-                                    />
-                                </div>
-                                    <div className="pt-4 flex flex-col sm:flex-row items-center justify-end gap-4">
-                                        <Button type="button" variant="ghost" onClick={() => setIsFormOpen(false)}>Cancelar</Button>
-                                        <Button
-                                        type="submit"
-                                        disabled={isButtonDisabled}
-                                        className="w-full sm:w-auto"
+                                <ScrollArea className="h-[70vh]">
+                                  <CardContent>
+                                    <Form {...form}>
+                                        <form
+                                        onSubmit={form.handleSubmit(formAction)}
+                                        className="space-y-6"
                                         >
-                                        {isGenerating ? (
-                                            <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Gerando...</>
-                                        ) : (
-                                            <><Sparkles className="mr-2 h-5 w-5" />Gerar Pacote</>
+                                          <FormField
+                                            control={form.control}
+                                            name="product"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                <FormLabel>Produto ou Marca</FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                    placeholder="Ex: Tênis de corrida da Nike"
+                                                    className="h-12 bg-muted/50"
+                                                    {...field}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                                </FormItem>
+                                            )}
+                                          />
+                                          <FormField
+                                            control={form.control}
+                                            name="targetAudience"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                <FormLabel>Público-Alvo</FormLabel>
+                                                <FormControl>
+                                                    <Textarea
+                                                    placeholder="Ex: Mulheres de 25-35 anos, interessadas em vida saudável."
+                                                    className="min-h-[100px] bg-muted/50"
+                                                    {...field}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                                </FormItem>
+                                            )}
+                                          />
+                                          <FormField
+                                            control={form.control}
+                                            name="differentiators"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                <FormLabel>Diferenciais do Produto</FormLabel>
+                                                <FormControl>
+                                                <Textarea
+                                                    placeholder="Ex: Material reciclado, leve, absorção de impacto, design moderno."
+                                                    className="min-h-[100px] bg-muted/50"
+                                                    {...field}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                                </FormItem>
+                                            )}
+                                          />
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                                        <FormField
+                                        control={form.control}
+                                        name="objective"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                            <FormLabel>Objetivo Principal</FormLabel>
+                                            <Select onValueChange={field.onChange} defaultValue={field.value} name={field.name}>
+                                                <FormControl>
+                                                <SelectTrigger className="h-12 bg-muted/50">
+                                                    <SelectValue placeholder="Selecione" />
+                                                </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                <SelectItem value="Gerar Vendas">Gerar Vendas (Conversão)</SelectItem>
+                                                <SelectItem value="Aumentar Reconhecimento da Marca">Aumentar Reconhecimento (Alcance)</SelectItem>
+                                                <SelectItem value="Gerar Leads">Gerar Leads (Cadastros)</SelectItem>
+                                                <SelectItem value="Engajar a Comunidade">Engajar a Comunidade</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                            </FormItem>
                                         )}
-                                        </Button>
+                                        />
+                                        <FormField
+                                            control={form.control}
+                                            name="extraInfo"
+                                            render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Informações Adicionais (Opcional)</FormLabel>
+                                                <FormControl>
+                                                <Input
+                                                    placeholder="Restrições, cupons, links, etc."
+                                                    className="h-12 bg-muted/50"
+                                                    {...field}
+                                                />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                            )}
+                                        />
                                     </div>
-                                    </form>
-                                </Form>
-                                </CardContent>
+                                        <div className="pt-4 flex flex-col sm:flex-row items-center justify-end gap-4">
+                                            <Button type="button" variant="ghost" onClick={() => setIsFormOpen(false)}>Cancelar</Button>
+                                            <Button
+                                            type="submit"
+                                            disabled={isButtonDisabled}
+                                            className="w-full sm:w-auto"
+                                            >
+                                            {isGenerating ? (
+                                                <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Gerando...</>
+                                            ) : (
+                                                <><Sparkles className="mr-2 h-5 w-5" />Gerar Pacote</>
+                                            )}
+                                            </Button>
+                                        </div>
+                                        </form>
+                                    </Form>
+                                  </CardContent>
+                                </ScrollArea>
                             </Card>
                         </DialogContent>
                     </Dialog>
