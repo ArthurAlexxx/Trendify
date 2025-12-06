@@ -149,3 +149,29 @@ export type TikTokPostData = {
     likes: number;
     comments: number;
 };
+
+export interface PontoDadosGrafico {
+  data: string;
+  alcance: number;
+  engajamento: number;
+}
+
+export interface ItemRoteiro {
+  dia: string;
+  tarefa: string;
+  detalhes: string;
+  concluido: boolean;
+}
+
+export interface PlanoSemanal {
+  id: string;
+  userId: string;
+  items: ItemRoteiro[];
+  desempenhoSimulado: PontoDadosGrafico[];
+  effortLevel: 'Baixo' | 'Médio' | 'Alto';
+  priorityIndex: string[];
+  realignmentTips: string;
+  createdAt: Timestamp;
+}
+
+    

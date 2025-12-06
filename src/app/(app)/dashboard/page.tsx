@@ -48,6 +48,8 @@ import type {
   InstagramPostData,
   TikTokProfileData,
   TikTokPostData,
+  PlanoSemanal,
+  ItemRoteiro,
 } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -62,7 +64,7 @@ import {
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useTransition } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, useCollection, useDoc, useMemoFirebase } from '@/firebase';
 import { collection, doc, query, orderBy, limit, updateDoc, where, getDocs, Timestamp, setDoc, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -138,6 +140,12 @@ export default function DashboardPage() {
   ), [firestore, user]);
   const { data: userProfile, isLoading: isLoadingProfile } = useDoc<UserProfile>(userProfileRef);
 
+  const weeklyPlansQuery = useMemoFirebase(() => (
+    firestore && user ? query(collection(firestore, `users/${user.uid}/weeklyPlans`), orderBy('createdAt', 'desc'), limit(1)) : null
+  ), [firestore, user]);
+  const { data: weeklyPlansData, isLoading: isLoadingWeeklyPlans } = useCollection<PlanoSemanal>(weeklyPlansQuery);
+  const currentPlan = weeklyPlansData?.[0];
+
   const ideiasQuery = useMemoFirebase(() => (
       firestore && user ? query(collection(firestore, `users/${user.uid}/ideiasSalvas`), where('concluido', '==', false), limit(5)) : null
   ), [firestore, user]);
@@ -153,7 +161,7 @@ export default function DashboardPage() {
   ), [firestore, user]);
   const { data: metricSnapshots, isLoading: isLoadingMetrics } = useCollection<MetricSnapshot>(metricSnapshotsQuery);
 
-  const isLoading = isLoadingProfile || isLoadingUpcoming || isLoadingMetrics || isSubscriptionLoading || isLoadingIdeias;
+  const isLoading = isLoadingProfile || isLoadingUpcoming || isLoadingMetrics || isSubscriptionLoading || isLoadingIdeias || isLoadingWeeklyPlans;
   
   const handleTikTokClick = (post: TikTokPostData) => {
     if (post.shareUrl) {
@@ -635,5 +643,7 @@ export default function DashboardPage() {
     </>
   );
 }
+
+    
 
     

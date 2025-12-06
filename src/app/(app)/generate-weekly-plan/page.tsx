@@ -144,14 +144,38 @@ export default function GenerateWeeklyPlanPage() {
   });
   
   const formAction = useCallback(async (formData: FormSchemaType) => {
+    if (!user || !firestore) {
+      toast({ title: "Erro", description: "Usuário não autenticado.", variant: "destructive" });
+      return;
+    }
+    
     startTransition(async () => {
       const result = await generateWeeklyPlanAction(null, formData);
       setState(result);
       if (result?.data) {
-        setActiveTab("result");
+        startSavingTransition(async () => {
+          try {
+            await addDoc(collection(firestore, `users/${user.uid}/weeklyPlans`), {
+              userId: user.uid,
+              ...result.data,
+              createdAt: serverTimestamp(),
+            });
+            toast({
+              title: 'Sucesso!',
+              description: 'Seu novo plano semanal foi salvo.',
+            });
+            setActiveTab("result");
+          } catch (e: any) {
+            toast({
+              title: 'Erro ao Salvar Plano',
+              description: `Não foi possível salvar os dados: ${e.message}`,
+              variant: 'destructive',
+            });
+          }
+        });
       }
     });
-  }, [startTransition, setState, setActiveTab]);
+  }, [user, firestore, toast, startTransition, setState, setActiveTab, startSavingTransition]);
 
   useEffect(() => {
     if (userProfile) {
@@ -385,28 +409,6 @@ export default function GenerateWeeklyPlanPage() {
                             </>
                         )}
                         </Button>
-                        
-                        <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                            <Button variant="destructive" type='button' disabled={isGenerating || isSaving} className="w-full sm:w-auto">
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Limpar Plano Atual
-                            </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                            <AlertDialogHeader>
-                            <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                Esta ação irá deletar o plano semanal atual. Ele não poderá ser recuperado.
-                            </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction className={cn(buttonVariants({variant: 'destructive'}))}>Deletar Plano</AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                        </AlertDialog>
-
                     </div>
                     </form>
                 </Form>
@@ -423,7 +425,7 @@ export default function GenerateWeeklyPlanPage() {
                             Plano Gerado
                           </h2>
                           <p className="text-muted-foreground">
-                            Revise o plano abaixo. Ele foi salvo e já substituiu o anterior.
+                            Seu novo plano semanal foi salvo com sucesso.
                           </p>
                         </div>
                       </div>
@@ -560,3 +562,5 @@ export default function GenerateWeeklyPlanPage() {
     </div>
   );
 }
+
+    

@@ -168,3 +168,5 @@ export async function generateWeeklyPlanAction(
     return { error: `Falha ao gerar plano: ${errorMessage}` };
   }
 }
+
+    
