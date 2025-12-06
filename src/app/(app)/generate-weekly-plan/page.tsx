@@ -28,7 +28,7 @@ import { z } from 'zod';
 import { generateWeeklyPlanAction, GenerateWeeklyPlanOutput } from '@/app/(app)/generate-weekly-plan/actions';
 import { Separator } from '@/components/ui/separator';
 import { useDoc, useFirestore, useMemoFirebase, useUser, useCollection } from '@/firebase';
-import type { UserProfile, PlanoSemanal, ItemRoteiro } from '@/lib/types';
+import type { UserProfile, PlanoSemanal } from '@/lib/types';
 import {
   doc,
   collection,
@@ -66,6 +66,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { PreviousPlansSheet } from '@/components/previous-plans-sheet';
 
 
 const formSchema = z.object({
@@ -279,6 +280,7 @@ export default function GenerateWeeklyPlanPage() {
         description="Transforme seu objetivo em um roteiro de conteúdo acionável."
         icon={ClipboardList}
       >
+        <PreviousPlansSheet />
       </PageHeader>
       
       <div>
@@ -597,7 +599,3 @@ export default function GenerateWeeklyPlanPage() {
     </div>
   );
 }
-
-    
-
-    

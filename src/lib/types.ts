@@ -173,5 +173,3 @@ export interface PlanoSemanal {
   realignmentTips: string;
   createdAt: Timestamp;
 }
-
-    
