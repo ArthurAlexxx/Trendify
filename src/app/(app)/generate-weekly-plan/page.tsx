@@ -1,3 +1,4 @@
+
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -231,13 +232,13 @@ export default function GenerateWeeklyPlanPage() {
       startSavingTransition(async () => {
         try {
           await addDoc(collection(firestore, `users/${user.uid}/weeklyPlans`), {
+            userId: user.uid,
             items: result.items,
             desempenhoSimulado: result.desempenhoSimulado,
             effortLevel: result.effortLevel,
             priorityIndex: result.priorityIndex,
             realignmentTips: result.realignmentTips,
             createdAt: serverTimestamp(),
-            userId: user.uid,
           });
 
           toast({
