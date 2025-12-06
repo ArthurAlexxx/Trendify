@@ -196,7 +196,7 @@ export default function DashboardPage() {
   };
 
   const handleToggleRoteiro = async (itemIndex: number) => {
-    if (!firestore || !currentPlan) return;
+    if (!firestore || !currentPlan || !user) return;
     
     const planRef = doc(firestore, `users/${user.uid}/weeklyPlans`, currentPlan.id);
     const updatedItems = currentPlan.items.map((item, index) => 
