@@ -63,7 +63,7 @@ const TikTokApi6ProfileSchema = z.object({
 
 const TikTokPostSchema = z.object({
     video_id: z.string(),
-    share_url: z.string().url(),
+    share_url: z.string().url().optional(), // Tornando opcional para a busca inicial
     description: z.string().optional(),
     cover: z.string().url(),
     create_time: z.number().optional(),
@@ -76,7 +76,9 @@ const TikTokPostSchema = z.object({
 
 
 const TikTokPostResponseSchema = z.object({
-  videos: z.array(TikTokPostSchema).optional().default([]),
+  data: z.object({
+    videos: z.array(TikTokPostSchema).optional().default([]),
+  }).optional(),
 }).passthrough();
 
 
@@ -301,9 +303,12 @@ export async function getTikTokPosts(username: string): Promise<TikTokPostData[]
     try {
         const result = await fetchFromRapidApi('tiktok-posts', username);
         console.log('Resposta da API de Vídeos TikTok:', JSON.stringify(result, null, 2));
-        const parsed = TikTokPostResponseSchema.parse(result);
+
+        // Ajuste para lidar com a resposta que pode ou não ter o 'data'
+        const dataToParse = result.data || result;
+        const parsed = TikTokPostResponseSchema.parse({data: dataToParse});
         
-        const videos = parsed.videos ?? [];
+        const videos = parsed.data?.videos ?? [];
 
         return videos.map(post => ({
             id: post.video_id,
