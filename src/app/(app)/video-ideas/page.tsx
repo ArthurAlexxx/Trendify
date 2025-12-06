@@ -430,11 +430,6 @@ export default function VideoIdeasPage() {
                             <Trash2 className="mr-2 h-4 w-4" />
                             Descartar e Gerar Nova
                         </Button>
-                        <Link href={`/publis-assistant?product=${encodeURIComponent(form.getValues('topic'))}&differentiators=${encodeURIComponent(result.script.gancho)}&targetAudience=${encodeURIComponent(form.getValues('targetAudience'))}`}
-                         className={cn(buttonVariants({ variant: 'outline', className: 'w-full sm:w-auto' }))}>
-                           <Newspaper className="mr-2 h-4 w-4" />
-                           Transformar em Publi
-                        </Link>
                          <Link href={`/content-calendar?title=${encodeURIComponent(form.getValues('topic'))}&notes=${encodeURIComponent(result.script.scriptLongo)}`}
                          className={cn(buttonVariants({ variant: 'outline', className: 'w-full sm:w-auto' }))}>
                            <Calendar className="mr-2 h-4 w-4" />

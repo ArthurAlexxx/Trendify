@@ -2,7 +2,7 @@
 
 'use client';
 import { PageHeader } from '@/components/page-header';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
@@ -21,6 +21,7 @@ import {
   AlignLeft,
   Edit,
   Trash2,
+  Newspaper,
 } from 'lucide-react';
 import { useTransition, useEffect, useState, useCallback } from 'react';
 import {
@@ -54,6 +55,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 
 const formSchema = z.object({
@@ -502,7 +505,7 @@ function MediaKitPageContent() {
               {(isGenerating || result) && (
                 <div className="space-y-8 animate-fade-in">
                   {result && (
-                      <div className='flex justify-center gap-2'>
+                      <div className='flex justify-center gap-2 flex-wrap'>
                          <Button onClick={() => handleSave(result)} disabled={isSaving} className="w-full sm:w-auto">
                             {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                             Salvar Pacote
@@ -511,6 +514,11 @@ function MediaKitPageContent() {
                             <Trash2 className="mr-2 h-4 w-4" />
                             Descartar
                         </Button>
+                        <Link href={`/publis-assistant?product=${encodeURIComponent(form.getValues('targetBrand'))}&differentiators=${encodeURIComponent(result.valueProposition)}&targetAudience=${encodeURIComponent(userProfile?.audience || '')}`}
+                         className={cn(buttonVariants({ variant: 'outline', className: 'w-full sm:w-auto' }))}>
+                           <Newspaper className="mr-2 h-4 w-4" />
+                           Criar Publi para esta Marca
+                        </Link>
                       </div>
                     )}
 
