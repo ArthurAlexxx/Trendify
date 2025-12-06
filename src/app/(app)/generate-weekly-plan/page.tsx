@@ -38,6 +38,7 @@ import {
   limit,
   writeBatch,
   getDocs,
+  updateDoc,
 } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -167,19 +168,17 @@ export default function GenerateWeeklyPlanPage() {
         const planCollectionRef = collection(firestore, `users/${user.uid}/weeklyPlans`);
         const ideasCollectionRef = collection(firestore, `users/${user.uid}/ideiasSalvas`);
 
-        // 1. Archive the current active plan (if it exists)
+        // 1. Archive the current active plan
         const oldPlansSnapshot = await getDocs(planCollectionRef);
         for (const planDoc of oldPlansSnapshot.docs) {
           const oldPlanData = planDoc.data() as PlanoSemanal;
-          const archiveContent = oldPlanData.items.map(item => `**${item.dia}:** ${item.tarefa}\n*Detalhes:* ${item.detalhes}`).join('\n\n');
-          
           const newArchivedRef = doc(ideasCollectionRef);
           batch.set(newArchivedRef, {
              userId: user.uid,
              titulo: `Plano Arquivado em ${new Date().toLocaleDateString('pt-BR')}`,
-             conteudo: archiveContent,
+             conteudo: oldPlanData.items.map(item => `**${item.dia}:** ${item.tarefa}\n*Detalhes:* ${item.detalhes}`).join('\n\n'),
              origem: "Plano Semanal",
-             concluido: false, // Archived plans are not 'tasks' to be completed
+             concluido: false, 
              createdAt: oldPlanData.createdAt,
              fullPlanData: oldPlanData,
           });
@@ -188,11 +187,12 @@ export default function GenerateWeeklyPlanPage() {
 
         // 2. Save the new plan as the single active plan
         const newPlanDocRef = doc(planCollectionRef); // Create a new doc reference in the active collection
-        batch.set(newPlanDocRef, {
+        const newPlanData = {
           userId: user.uid,
-          ...result,
           createdAt: serverTimestamp(),
-        });
+          ...result,
+        };
+        batch.set(newPlanDocRef, newPlanData);
         
         // 3. Commit the batch transaction
         await batch.commit();
@@ -259,9 +259,9 @@ export default function GenerateWeeklyPlanPage() {
   }, [state, toast]);
   
   const handleToggleRoteiro = async (itemIndex: number) => {
-    if (!firestore || !activePlan) return;
+    if (!firestore || !activePlan || !user) return;
 
-    const planRef = doc(firestore, `users/${user!.uid}/weeklyPlans`, activePlan.id);
+    const planRef = doc(firestore, `users/${user.uid}/weeklyPlans`, activePlan.id);
     const updatedItems = activePlan.items.map((item, index) =>
       index === itemIndex ? { ...item, concluido: !item.concluido } : item
     );
@@ -678,4 +678,3 @@ export default function GenerateWeeklyPlanPage() {
     </div>
   );
 }
-

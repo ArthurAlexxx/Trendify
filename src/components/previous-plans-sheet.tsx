@@ -8,7 +8,6 @@ import {
   SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
   SheetFooter,
 } from '@/components/ui/sheet';
 import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
