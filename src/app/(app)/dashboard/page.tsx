@@ -46,11 +46,12 @@ import type {
   ConteudoAgendado,
   UserProfile,
   MetricSnapshot,
-  InstagramPostData,
-  TikTokProfileData,
-  TikTokPostData,
+  InstagramPost,
+  TikTokPost,
   PlanoSemanal,
   ItemRoteiro,
+  InstagramPostData,
+  TikTokProfileData,
 } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -70,7 +71,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, useCollection, useDoc, useMemoFirebase } from '@/firebase';
 import { collection, doc, query, orderBy, limit, updateDoc, where, getDocs, Timestamp, setDoc, addDoc, serverTimestamp } from 'firebase/firestore';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { getTikTokPosts, getInstagramPosts } from '@/app/(app)/profile/actions';
+import { getTikTokPosts, getInstagramPosts, getTikTokProfile } from '@/app/(app)/profile/actions';
 import { useSubscription } from '@/hooks/useSubscription';
 import { InstagramProfileResults, TikTokProfileResults } from '@/components/dashboard/platform-results';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from '@/components/ui/sheet';
@@ -436,11 +437,7 @@ export default function DashboardPage() {
   const { toast } = useToast();
   const [selectedPlatform, setSelectedPlatform] = useState<'total' | 'instagram' | 'tiktok'>('total');
 
-  const [instaProfile, setInstaProfile] = useState<InstagramProfileData | null>(null);
-  const [instaPosts, setInstaPosts] = useState<InstagramPostData[] | null>(null);
-  const [tiktokProfile, setTiktokProfile] = useState<TikTokProfileData | null>(null);
-  const [tiktokPosts, setTiktokPosts] = useState<TikTokPostData[] | null>(null);
-  const [isFetchingPosts, setIsFetchingPosts] = useState(false);
+  const [isFetchingPosts, setIsFetchingPosts] = useState(true);
   
   const [showTikTokModal, setShowTikTokModal] = useState(false);
   const [currentTikTokUrl, setCurrentTikTokUrl] = useState('');
@@ -477,9 +474,20 @@ export default function DashboardPage() {
   ), [firestore, user]);
   const { data: metricSnapshots, isLoading: isLoadingMetrics } = useCollection<MetricSnapshot>(metricSnapshotsQuery);
 
-  const isLoading = isLoadingProfile || isLoadingUpcoming || isLoadingMetrics || isSubscriptionLoading || isLoadingIdeias || isLoadingWeeklyPlans;
+  const instaPostsQuery = useMemoFirebase(() => (
+      firestore && user ? query(collection(firestore, `users/${user.uid}/instagramPosts`), orderBy('fetchedAt', 'desc'), limit(10)) : null
+  ), [firestore, user]);
+  const { data: instaPosts, isLoading: isLoadingInstaPosts } = useCollection<InstagramPost>(instaPostsQuery);
   
-  const handleTikTokClick = (post: TikTokPostData) => {
+  const tiktokPostsQuery = useMemoFirebase(() => (
+      firestore && user ? query(collection(firestore, `users/${user.uid}/tiktokPosts`), orderBy('fetchedAt', 'desc'), limit(10)) : null
+  ), [firestore, user]);
+  const { data: tiktokPosts, isLoading: isLoadingTiktokPosts } = useCollection<TikTokPost>(tiktokPostsQuery);
+
+
+  const isLoading = isLoadingProfile || isLoadingUpcoming || isLoadingMetrics || isSubscriptionLoading || isLoadingIdeias || isLoadingWeeklyPlans || isLoadingInstaPosts || isLoadingTiktokPosts;
+  
+  const handleTikTokClick = (post: TikTokPost) => {
     if (post.shareUrl) {
         setCurrentTikTokUrl(post.shareUrl);
         setShowTikTokModal(true);
@@ -629,42 +637,6 @@ export default function DashboardPage() {
       }));
   }, [metricSnapshots, selectedPlatform]);
 
-  useEffect(() => {
-    const fetchPosts = async () => {
-        if (!userProfile) return;
-        setIsFetchingPosts(true);
-
-        const fetchInsta = async () => {
-          if (userProfile.instagramHandle) {
-            try {
-              const res = await getInstagramPosts(userProfile.instagramHandle.replace('@', ''));
-              setInstaPosts(res);
-              // Assuming profile pic URL comes from the main profile data for simplicity
-              setInstaProfile({ profilePicUrlHd: userProfile.photoURL, username: userProfile.instagramHandle } as InstagramProfileData);
-            } catch(e) { console.error("Failed to fetch instagram posts", e); }
-          }
-        }
-
-        const fetchTiktok = async () => {
-          if (userProfile.tiktokHandle) {
-            try {
-              const [profileRes, postsRes] = await Promise.all([
-                  getTikTokProfile(userProfile.tiktokHandle.replace('@', '')),
-                  getTikTokPosts(userProfile.tiktokHandle.replace('@', ''))
-              ]);
-              setTiktokProfile(profileRes);
-              setTiktokPosts(postsRes);
-            } catch(e) { console.error("Failed to fetch tiktok posts", e); }
-          }
-        }
-        
-        await Promise.all([fetchInsta(), fetchTiktok()]);
-        
-        setIsFetchingPosts(false);
-    };
-    if (userProfile) fetchPosts();
-  }, [userProfile]);
-
   const handleGenerateInsights = async () => {
      if (!metricSnapshots || metricSnapshots.length < 1) {
         toast({
@@ -792,10 +764,10 @@ export default function DashboardPage() {
                                 upcomingContent={upcomingContent}
                                 isLoadingIdeias={isLoadingIdeias}
                                 ideiasSalvas={ideiasSalvas}
-                                isFetchingPosts={isFetchingPosts}
-                                instaProfile={instaProfile}
+                                isFetchingPosts={isLoadingInstaPosts || isLoadingTiktokPosts}
+                                instaProfile={userProfile}
                                 instaPosts={instaPosts}
-                                tiktokProfile={tiktokProfile}
+                                tiktokProfile={userProfile}
                                 tiktokPosts={tiktokPosts}
                                 handleToggleIdeia={handleToggleIdeia}
                                 handleMarkAsPublished={handleMarkAsPublished}
@@ -823,10 +795,10 @@ export default function DashboardPage() {
                     upcomingContent={upcomingContent}
                     isLoadingIdeias={isLoadingIdeias}
                     ideiasSalvas={ideiasSalvas}
-                    isFetchingPosts={isFetchingPosts}
-                    instaProfile={instaProfile}
+                    isFetchingPosts={isLoadingInstaPosts || isLoadingTiktokPosts}
+                    instaProfile={userProfile}
                     instaPosts={instaPosts}
-                    tiktokProfile={tiktokProfile}
+                    tiktokProfile={userProfile}
                     tiktokPosts={tiktokPosts}
                     handleToggleIdeia={handleToggleIdeia}
                     handleMarkAsPublished={handleMarkAsPublished}
@@ -853,3 +825,4 @@ export default function DashboardPage() {
     
 
     
+

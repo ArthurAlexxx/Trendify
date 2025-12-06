@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "UserProfile": {
@@ -135,6 +136,39 @@
         }
       },
       "required": ["displayName", "email", "createdAt"]
+    },
+    "InstagramPost": {
+      "title": "Instagram Post",
+      "description": "Represents a single Instagram post fetched from the API.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "shortcode": { "type": "string" },
+        "caption": { "type": "string" },
+        "mediaUrl": { "type": "string", "format": "uri" },
+        "likes": { "type": "number" },
+        "comments": { "type": "number" },
+        "video_view_count": { "type": "number" },
+        "is_video": { "type": "boolean" },
+        "fetchedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "shortcode", "mediaUrl", "fetchedAt"]
+    },
+    "TikTokPost": {
+      "title": "TikTok Post",
+      "description": "Represents a single TikTok video fetched from the API.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "shareUrl": { "type": "string", "format": "uri" },
+        "description": { "type": "string" },
+        "coverUrl": { "type": "string", "format": "uri" },
+        "views": { "type": "number" },
+        "likes": { "type": "number" },
+        "comments": { "type": "number" },
+        "fetchedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "coverUrl", "fetchedAt"]
     },
      "WebhookLog": {
       "title": "Webhook Log",
@@ -341,6 +375,14 @@
     "/users/{userId}": {
       "schema": { "$ref": "#/entities/UserProfile" },
       "description": "Stores user profile data."
+    },
+     "/users/{userId}/instagramPosts/{postId}": {
+      "schema": { "$ref": "#/entities/InstagramPost" },
+      "description": "Stores fetched Instagram posts for a user."
+    },
+    "/users/{userId}/tiktokPosts/{postId}": {
+      "schema": { "$ref": "#/entities/TikTokPost" },
+      "description": "Stores fetched TikTok videos for a user."
     },
     "/webhookLogs/{logId}": {
       "schema": { "$ref": "#/entities/WebhookLog" },

@@ -19,7 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { doc, updateDoc, serverTimestamp, addDoc, collection, query, where, getDocs, Timestamp } from 'firebase/firestore';
+import { doc, updateDoc, serverTimestamp, addDoc, collection, query, where, getDocs, Timestamp, writeBatch } from 'firebase/firestore';
 import type { UserProfile, InstagramProfileData, InstagramPostData, TikTokProfileData, TikTokPostData } from '@/lib/types';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -156,7 +156,9 @@ export default function IntegrationsPage() {
         form.setValue('instagramPosts', postsResult);
         form.setValue('instagramHandle', `@${profileResult.username}`);
         
-        if (user && userProfileRef) {
+        if (user && userProfileRef && firestore) {
+          const batch = writeBatch(firestore);
+
           const dataToSave = {
              instagramHandle: `@${profileResult.username}`,
              bio: userProfile?.bio || profileResult.biography,
@@ -167,8 +169,19 @@ export default function IntegrationsPage() {
              instagramAverageComments: formatNumber(Math.round(averageComments)),
              lastInstagramSync: serverTimestamp(),
           };
+          batch.update(userProfileRef, dataToSave as any);
 
-          await updateDoc(userProfileRef, dataToSave as any);
+          // Save posts
+          const postsCollectionRef = collection(firestore, `users/${user.uid}/instagramPosts`);
+          const oldPostsSnap = await getDocs(postsCollectionRef);
+          oldPostsSnap.forEach(doc => batch.delete(doc.ref));
+          
+          postsResult.forEach(post => {
+            const postRef = doc(postsCollectionRef, post.id);
+            batch.set(postRef, { ...post, fetchedAt: serverTimestamp() });
+          });
+          
+          await batch.commit();
           
           await updateOrCreateMetricSnapshot('instagram', {
             followers: dataToSave.instagramFollowers,
@@ -226,7 +239,8 @@ export default function IntegrationsPage() {
         setTiktokRawResponse(JSON.stringify({ profile: profileResult, posts: postsResult }, null, 2));
 
        
-        if (user && userProfileRef) {
+        if (user && userProfileRef && firestore) {
+          const batch = writeBatch(firestore);
           const dataToSave = {
              tiktokHandle: `@${profileResult.username}`,
              photoURL: userProfile?.photoURL || profileResult.avatarUrl,
@@ -238,7 +252,19 @@ export default function IntegrationsPage() {
              lastTikTokSync: serverTimestamp(),
           };
 
-          await updateDoc(userProfileRef, dataToSave as any);
+          batch.update(userProfileRef, dataToSave as any);
+
+           // Save posts
+          const postsCollectionRef = collection(firestore, `users/${user.uid}/tiktokPosts`);
+          const oldPostsSnap = await getDocs(postsCollectionRef);
+          oldPostsSnap.forEach(doc => batch.delete(doc.ref));
+
+          postsResult.forEach(post => {
+            const postRef = doc(postsCollectionRef, post.id);
+            batch.set(postRef, { ...post, fetchedAt: serverTimestamp() });
+          });
+
+          await batch.commit();
           
           await updateOrCreateMetricSnapshot('tiktok', {
             followers: dataToSave.tiktokFollowers,
