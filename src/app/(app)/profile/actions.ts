@@ -85,7 +85,7 @@ const TikTokPostResponseSchema = z.object({
 
 // --- API Fetching Logic ---
 
-async function fetchFromRapidApi(platform: 'instagram-profile' | 'tiktok-profile' | 'tiktok-posts', username: string) {
+async function fetchFromRapidApi(platform: 'instagram-profile' | 'tiktok-profile' | 'tiktok-posts' | 'tiktok-video-details', identifier: string) {
     const apiKey = process.env.RAPIDAPI_KEY;
     if (!apiKey) {
       throw new Error('A chave da API (RAPIDAPI_KEY) não está configurada no servidor.');
@@ -93,6 +93,7 @@ async function fetchFromRapidApi(platform: 'instagram-profile' | 'tiktok-profile
     
     let host: string;
     let path: string;
+    let paramName: string = 'username';
 
     switch (platform) {
         case 'instagram-profile':
@@ -107,12 +108,17 @@ async function fetchFromRapidApi(platform: 'instagram-profile' | 'tiktok-profile
             host = 'tiktok-api6.p.rapidapi.com';
             path = 'user/videos';
             break;
+        case 'tiktok-video-details':
+            host = 'tiktok-api6.p.rapidapi.com';
+            path = 'video/details';
+            paramName = 'video_id';
+            break;
         default:
             throw new Error(`Plataforma '${platform}' desconhecida.`);
     }
 
     const finalUrl = new URL(`https://${host}/${path}`);
-    finalUrl.searchParams.set('username', username);
+    finalUrl.searchParams.set(paramName, identifier);
 
     const options: RequestInit = {
         method: 'GET',
@@ -240,7 +246,6 @@ export async function getInstagramPosts(username: string): Promise<InstagramPost
 export async function getTikTokProfile(username: string): Promise<TikTokProfileData> {
   try {
       const result = await fetchFromRapidApi('tiktok-profile', username);
-      console.log('Resposta da API de Perfil TikTok:', JSON.stringify(result, null, 2));
 
       const userData = result?.data?.user || result?.data || result;
 
