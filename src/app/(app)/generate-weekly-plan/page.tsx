@@ -1,5 +1,4 @@
 
-
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -29,7 +28,7 @@ import { z } from 'zod';
 import { generateWeeklyPlanAction, GenerateWeeklyPlanOutput } from '@/app/(app)/generate-weekly-plan/actions';
 import { Separator } from '@/components/ui/separator';
 import { useDoc, useFirestore, useMemoFirebase, useUser, useCollection } from '@/firebase';
-import type { UserProfile, PlanoSemanal, ItemRoteiro } from '@/lib/types';
+import type { UserProfile, PlanoSemanal, ItemRoteiro, IdeiaSalva } from '@/lib/types';
 import {
   doc,
   collection,
@@ -40,6 +39,7 @@ import {
   writeBatch,
   getDocs,
   updateDoc,
+  addDoc,
 } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -190,50 +190,37 @@ export default function GenerateWeeklyPlanPage() {
         const planCollectionRef = collection(firestore, `users/${user.uid}/weeklyPlans`);
         const ideasCollectionRef = collection(firestore, `users/${user.uid}/ideiasSalvas`);
   
+        // Archive current active plans
         const oldPlansSnapshot = await getDocs(planCollectionRef);
         for (const planDoc of oldPlansSnapshot.docs) {
           const oldPlanData = planDoc.data() as PlanoSemanal;
-          const newArchivedRef = doc(ideasCollectionRef);
+          const newArchivedRef = doc(ideasCollectionRef); // Create a new doc ref for the archive
           
-          interface ArchivedPlan {
-            userId: string;
-            titulo: string;
-            conteudo: string;
-            origem: string;
-            concluido: boolean;
-            createdAt: any;
-            fullPlanData: PlanoSemanal;
-          }
-          
-          const archivedPlan: ArchivedPlan = {
+          const archivedPlan = {
             userId: user.uid,
-            titulo: `Plano Arquivado em ${new Date().toLocaleDateString('pt-BR')}`,
-            conteudo: oldPlanData.items.map(item => `**${item.dia}:** ${item.tarefa}\n*Detalhes:* ${item.detalhes}`).join('\n\n'),
+            titulo: `Plano Arquivado de ${oldPlanData.createdAt.toDate().toLocaleDateString('pt-BR')}`,
+            conteudo: oldPlanData.items.map(item => `**${item.dia}:** ${item.tarefa}`).join('\n'),
             origem: "Plano Semanal",
             concluido: false, 
             createdAt: oldPlanData.createdAt,
-            fullPlanData: oldPlanData,
+            aiResponseData: oldPlanData, // Store the full plan object
           };
           
           batch.set(newArchivedRef, archivedPlan);
           batch.delete(planDoc.ref);
         }
   
+        // Add the new plan
         const newPlanDocRef = doc(planCollectionRef);
-        
         const newPlanData: Omit<PlanoSemanal, 'id'> = {
           userId: user.uid,
           createdAt: serverTimestamp(),
-          items: result.items.map(item => ({
-            ...item,
-            concluido: false
-          })),
+          items: result.items.map(item => ({ ...item, concluido: false })),
           desempenhoSimulado: result.desempenhoSimulado,
           effortLevel: result.effortLevel,
           priorityIndex: result.priorityIndex,
           realignmentTips: result.realignmentTips,
         };
-        
         batch.set(newPlanDocRef, newPlanData);
         
         await batch.commit();
@@ -763,7 +750,3 @@ export default function GenerateWeeklyPlanPage() {
     </div>
   );
 }
-
-
-
-

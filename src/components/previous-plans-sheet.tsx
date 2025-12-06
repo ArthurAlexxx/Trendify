@@ -12,13 +12,12 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
-import { IdeiaSalva, PlanoSemanal } from '@/lib/types';
+import { IdeiaSalva, PlanoSemanal, ItemRoteiro } from '@/lib/types';
 import { collection, orderBy, query, where, getDocs, writeBatch, doc, addDoc } from 'firebase/firestore';
 import { History, Eye, Inbox, Loader2, Zap } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { ScrollArea } from './ui/scroll-area';
-import { Textarea } from './ui/textarea';
 import React, { useState, useTransition } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -32,6 +31,18 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from './ui/chart';
+import { Separator } from './ui/separator';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
+import Link from 'next/link';
+import { Lightbulb } from 'lucide-react';
+
+const chartConfig = {
+  alcance: { label: 'Alcance', color: 'hsl(var(--primary))' },
+  engajamento: { label: 'Engajamento', color: 'hsl(var(--chart-2))' },
+} satisfies ChartConfig;
 
 
 export function PreviousPlansSheet() {
@@ -62,7 +73,7 @@ export function PreviousPlansSheet() {
   };
   
   const handleActivatePlan = (planToActivate: IdeiaSalva) => {
-    if (!user || !firestore || !planToActivate.fullPlanData) return;
+    if (!user || !firestore || !planToActivate.aiResponseData) return;
 
     startActivatingTransition(async () => {
       try {
@@ -70,35 +81,30 @@ export function PreviousPlansSheet() {
         const activePlanCollectionRef = collection(firestore, `users/${user.uid}/weeklyPlans`);
         const ideasCollectionRef = collection(firestore, `users/${user.uid}/ideiasSalvas`);
 
-        // 1. Archive the current active plan
         const oldPlansSnapshot = await getDocs(activePlanCollectionRef);
         if (!oldPlansSnapshot.empty) {
           const oldPlanDoc = oldPlansSnapshot.docs[0];
           const oldPlanData = oldPlanDoc.data() as PlanoSemanal;
           
-          const newArchivedRef = doc(ideasCollectionRef); // Create a new doc ref for the archive
+          const newArchivedRef = doc(ideasCollectionRef);
           batch.set(newArchivedRef, {
              userId: user.uid,
-             titulo: `Plano Arquivado em ${new Date().toLocaleDateString('pt-BR')}`,
+             titulo: `Plano Arquivado de ${oldPlanData.createdAt.toDate().toLocaleDateString('pt-BR')}`,
              conteudo: oldPlanData.items.map(item => `**${item.dia}:** ${item.tarefa}`).join('\n'),
              origem: "Plano Semanal",
              concluido: false,
              createdAt: oldPlanData.createdAt,
-             fullPlanData: oldPlanData,
+             aiResponseData: oldPlanData,
           });
           
-          // 2. Delete the old active plan
           batch.delete(oldPlanDoc.ref);
         }
 
-        // 3. Add the selected plan as the new active plan
         const newActivePlanRef = doc(activePlanCollectionRef);
-        batch.set(newActivePlanRef, planToActivate.fullPlanData);
+        batch.set(newActivePlanRef, planToActivate.aiResponseData);
 
-        // 4. Delete the plan from the history (ideiasSalvas)
         batch.delete(doc(ideasCollectionRef, planToActivate.id));
 
-        // 5. Commit all operations
         await batch.commit();
 
         toast({
@@ -183,9 +189,9 @@ export function PreviousPlansSheet() {
         </ScrollArea>
       </SheetContent>
     </Sheet>
-    {selectedPlan && (
+    {selectedPlan && selectedPlan.aiResponseData && (
         <Sheet open={isDetailSheetOpen} onOpenChange={setIsDetailSheetOpen}>
-            <SheetContent className="w-full sm:max-w-2xl p-0 flex flex-col">
+            <SheetContent className="w-full sm:max-w-4xl p-0 flex flex-col">
                 <SheetHeader className='p-6 pb-4 border-b'>
                 <SheetTitle className="font-headline text-2xl">
                     {selectedPlan.titulo}
@@ -195,12 +201,44 @@ export function PreviousPlansSheet() {
                  </SheetDescription>
                 </SheetHeader>
                 <ScrollArea className="flex-1">
-                <div className="p-6">
-                <Textarea
-                    readOnly
-                    value={selectedPlan.conteudo}
-                    className="h-full w-full text-base leading-relaxed resize-none rounded-xl bg-muted/50 border-0 min-h-[60vh] focus-visible:ring-0"
-                />
+                <div className="p-6 grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
+                    <Card className="shadow-none border-0">
+                        <CardHeader>
+                        <CardTitle className="font-headline text-xl">Roteiro de Conteúdo</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <ul className="space-y-2">
+                                {selectedPlan.aiResponseData.items.map((item: ItemRoteiro, index: number) => (
+                                    <li key={index}>
+                                    <div className="flex items-start gap-4 p-2 rounded-lg">
+                                        <div className='flex-1'>
+                                        <p className={'font-medium text-base text-foreground'}>
+                                            <span className="font-semibold text-primary">{item.dia}:</span> {item.tarefa}
+                                        </p>
+                                        <p className="text-sm text-muted-foreground">{item.detalhes}</p>
+                                        </div>
+                                    </div>
+                                    {index < selectedPlan.aiResponseData.items.length - 1 && <Separator className="my-2" />}
+                                    </li>
+                                ))}
+                            </ul>
+                        </CardContent>
+                    </Card>
+                    <Card className="shadow-none border-0">
+                        <CardHeader><CardTitle className="font-headline text-xl">Desempenho Simulado</CardTitle></CardHeader>
+                        <CardContent className="pl-0 sm:pl-2">
+                            <ChartContainer config={chartConfig} className="h-[350px] w-full">
+                            <BarChart data={selectedPlan.aiResponseData.desempenhoSimulado} margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
+                                <CartesianGrid vertical={false} />
+                                <XAxis dataKey="data" tickLine={false} axisLine={false} />
+                                <YAxis tickLine={false} axisLine={false} tickFormatter={(value) => typeof value === 'number' && value >= 1000 ? `${value / 1000}k` : value} />
+                                <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
+                                <Bar dataKey="alcance" fill="var(--color-alcance)" radius={[4, 4, 0, 0]} />
+                                <Bar dataKey="engajamento" fill="var(--color-engajamento)" radius={[4, 4, 0, 0]} />
+                            </BarChart>
+                            </ChartContainer>
+                        </CardContent>
+                    </Card>
                 </div>
                 </ScrollArea>
                  <SheetFooter className="p-4 border-t">

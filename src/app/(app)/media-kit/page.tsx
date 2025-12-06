@@ -1,5 +1,4 @@
 
-
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -94,6 +93,24 @@ const analysisCriteria = [
   ]
 
 
+export function MediaKitResultView({ result, formValues, isSheetView = false }: { result: any, formValues: FormSchemaType, isSheetView?: boolean }) {
+    if (!result) return null;
+
+    return (
+        <div className={cn("space-y-8 animate-fade-in", !isSheetView && "p-6")}>
+            <InfoCard title="Apresentação para Marcas" icon={FileText} content={result.executiveSummary} />
+            <div className="grid lg:grid-cols-2 gap-8 items-start">
+                <PricingCard title="Tabela de Preços Sugerida" icon={DollarSign} pricing={result.pricingTiers} />
+                <InfoList title="Ideias de Colaboração" icon={Lightbulb} items={result.sampleCollaborationIdeas} />
+            </div>
+            <div className="grid lg:grid-cols-2 gap-8 items-start">
+                <InfoCard title="Sua Proposta de Valor" icon={Target} content={result.valueProposition} />
+                <InfoCard title="Alinhamento com a Marca" icon={Briefcase} content={result.brandAlignment} />
+            </div>
+            <InfoList title="Dicas de Negociação" icon={Handshake} items={result.negotiationTips} />
+        </div>
+    );
+}
 
 function PremiumFeatureGuard({ children }: { children: React.ReactNode }) {
     const { subscription, isLoading } = useSubscription();
@@ -279,6 +296,7 @@ function MediaKitPageContent() {
           origem: 'Mídia Kit & Prospecção',
           concluido: false,
           createdAt: serverTimestamp(),
+          aiResponseData: data,
         });
 
         toast({
@@ -501,7 +519,7 @@ function MediaKitPageContent() {
                 <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Resultado Gerado</h2>
                 <p className="text-muted-foreground">Um pacote completo para sua prospecção.</p>
             </CardHeader>
-            <CardContent className="p-6">
+            <CardContent>
               {(isGenerating || result) && (
                 <div className="space-y-8 animate-fade-in">
                   {result && (
@@ -528,18 +546,7 @@ function MediaKitPageContent() {
                       <p className="mt-4 text-muted-foreground">Criando seu pacote...</p>
                     </div>
                   ) : result ? (
-                     <div className="space-y-8">
-                      <InfoCard title="Apresentação para Marcas" icon={FileText} content={result.executiveSummary} />
-                      <div className="grid lg:grid-cols-2 gap-8 items-start">
-                        <PricingCard title="Tabela de Preços Sugerida" icon={DollarSign} pricing={result.pricingTiers} />
-                        <InfoList title="Ideias de Colaboração" icon={Lightbulb} items={result.sampleCollaborationIdeas} />
-                      </div>
-                       <div className="grid lg:grid-cols-2 gap-8 items-start">
-                        <InfoCard title="Sua Proposta de Valor" icon={Target} content={result.valueProposition} />
-                        <InfoCard title="Alinhamento com a Marca" icon={Briefcase} content={result.brandAlignment} />
-                       </div>
-                       <InfoList title="Dicas de Negociação" icon={Handshake} items={result.negotiationTips} />
-                    </div>
+                     <MediaKitResultView result={result} formValues={form.getValues()} />
                   ) : null}
                 </div>
               )}
@@ -665,4 +672,3 @@ function PricingCard({
     </Card>
   );
 }
-

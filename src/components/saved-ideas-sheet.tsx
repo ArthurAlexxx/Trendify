@@ -19,10 +19,12 @@ import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Badge } from './ui/badge';
 import { ScrollArea } from './ui/scroll-area';
-import { Textarea } from './ui/textarea';
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { VideoIdeasResultView } from '@/app/(app)/video-ideas/page';
+import { PublisAssistantResultView } from '@/app/(app)/publis-assistant/page';
+import { MediaKitResultView } from '@/app/(app)/media-kit/page';
 
 export function SavedIdeasSheet() {
   const { user } = useUser();
@@ -60,14 +62,25 @@ export function SavedIdeasSheet() {
       case 'Propostas & Publis':
         return `/publis-assistant?product=${topic}&differentiators=${context}`;
       case 'Mídia Kit & Prospecção':
-        // A "proposta de valor" é um bom campo para os diferenciais no fluxo de publi
-        const valueProposition = idea.fullPlanData?.realignmentTips || context;
+        const valueProposition = idea.aiResponseData?.valueProposition || context;
         return `/publis-assistant?product=${topic}&differentiators=${encodeURIComponent(valueProposition)}`;
       case 'Plano Semanal':
-        // Leva para ideias de vídeo, usando o plano como contexto
         return `/video-ideas?topic=Com base no meu plano semanal&context=${context}`;
       default:
         return '/dashboard';
+    }
+  }
+
+  const renderResultView = (idea: IdeiaSalva) => {
+    switch (idea.origem) {
+        case 'Ideias de Vídeo':
+            return <VideoIdeasResultView result={idea.aiResponseData} formValues={{ topic: idea.titulo, targetAudience: 'N/A', objective: 'N/A' }} isSheetView={true} />;
+        case 'Propostas & Publis':
+             return <PublisAssistantResultView result={idea.aiResponseData} formValues={{ product: idea.titulo, targetAudience: 'N/A', differentiators: 'N/A', objective: 'N/A' }} isSheetView={true} />;
+        case 'Mídia Kit & Prospecção':
+            return <MediaKitResultView result={idea.aiResponseData} formValues={{ targetBrand: idea.titulo, niche: 'N/A', keyMetrics: 'N/A' }} isSheetView={true} />;
+        default:
+            return <p className="text-muted-foreground p-6">{idea.conteudo}</p>;
     }
   }
 
@@ -144,7 +157,7 @@ export function SavedIdeasSheet() {
     </Sheet>
     {selectedIdea && (
         <Sheet open={isDetailSheetOpen} onOpenChange={setIsDetailSheetOpen}>
-            <SheetContent className="w-full sm:max-w-2xl p-0 flex flex-col">
+            <SheetContent className="w-full sm:max-w-3xl p-0 flex flex-col">
                 <SheetHeader className='p-6 pb-4 border-b'>
                 <SheetTitle className="font-headline text-2xl">
                     {selectedIdea.titulo}
@@ -154,13 +167,7 @@ export function SavedIdeasSheet() {
                  </SheetDescription>
                 </SheetHeader>
                 <ScrollArea className="flex-1">
-                <div className="p-6">
-                <Textarea
-                    readOnly
-                    value={selectedIdea.conteudo}
-                    className="h-full w-full text-base leading-relaxed resize-none rounded-xl bg-muted/50 border-0 min-h-[60vh] focus-visible:ring-0"
-                />
-                </div>
+                 {renderResultView(selectedIdea)}
                 </ScrollArea>
                  <SheetFooter className="p-4 border-t flex flex-col sm:flex-row gap-2 justify-end">
                     <Link href={getActionLink(selectedIdea)} className={cn(buttonVariants({ variant: 'outline', className: 'w-full sm:w-auto' }))}>
