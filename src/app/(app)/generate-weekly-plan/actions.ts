@@ -20,12 +20,12 @@ const PontoDadosGraficoSchema = z.object({
 });
 
 const GenerateWeeklyPlanOutputSchema = z.object({
-  weeklyPlan: z
+  items: z
     .array(ItemRoteiroSchema)
     .describe(
       'Um array de 7 itens, um para cada dia da semana, com tarefas de conteúdo.'
     ),
-  simulatedPerformance: z
+  desempenhoSimulado: z
     .array(PontoDadosGraficoSchema)
     .describe(
       'Um array de 7 pontos de dados para o gráfico de desempenho, simulando o potencial do roteiro.'
@@ -106,8 +106,8 @@ async function generateWeeklyPlan(
   - Meta de Seguidores: ${goalContext}
 
   Siga as diretrizes para cada campo JSON:
-  - weeklyPlan: Crie um array com exatamente 7 objetos (Segunda a Domingo). Cada objeto deve ter 'dia', 'tarefa' (específica, acionável e criativa), 'detalhes' (um passo a passo claro) e 'concluido' (sempre false). As tarefas devem ser uma mistura de produção de conteúdo, interação e análise.
-  - simulatedPerformance: Crie um array de 7 objetos (Seg a Dom) para um gráfico, com 'data', 'alcance' (int) e 'engajamento' (int). A simulação deve ser realista, variando conforme as tarefas do dia (dias de post têm picos).
+  - items: Crie um array com exatamente 7 objetos (Segunda a Domingo). Cada objeto deve ter 'dia', 'tarefa' (específica, acionável e criativa), 'detalhes' (um passo a passo claro) e 'concluido' (sempre false). As tarefas devem ser uma mistura de produção de conteúdo, interação e análise.
+  - desempenhoSimulado: Crie um array de 7 objetos (Seg a Dom) para um gráfico, com 'data', 'alcance' (int) e 'engajamento' (int). A simulação deve ser realista, variando conforme as tarefas do dia (dias de post têm picos).
   - effortLevel: Classifique o esforço da semana como 'Baixo', 'Médio' ou 'Alto', com base na complexidade e volume das tarefas.
   - priorityIndex: Identifique e liste as 3 tarefas da semana com o maior potencial de impacto para atingir o objetivo principal.
   - realignmentTips: Ofereça um conselho estratégico sobre como o usuário pode se realinhar caso perca 1 ou 2 dias do plano. Ex: "Se perder um dia de post, combine o tema com o do dia seguinte ou foque em dobrar a interação no fim de semana para compensar."
@@ -136,7 +136,7 @@ async function generateWeeklyPlan(
     // Ensure `concluido` is set to false for all items
     const finalPlan = {
       ...validatedData,
-      weeklyPlan: validatedData.weeklyPlan.map(item => ({ ...item, concluido: false })),
+      items: validatedData.items.map(item => ({ ...item, concluido: false })),
     };
 
     return finalPlan;

@@ -232,8 +232,8 @@ export default function GenerateWeeklyPlanPage() {
       startSavingTransition(async () => {
         try {
           await addDoc(collection(firestore, 'roteiro'), {
-            items: result.weeklyPlan,
-            desempenhoSimulado: result.simulatedPerformance,
+            items: result.items,
+            desempenhoSimulado: result.desempenhoSimulado,
             createdAt: serverTimestamp(),
           });
 
@@ -507,7 +507,7 @@ export default function GenerateWeeklyPlanPage() {
                             </CardHeader>
                             <CardContent>
                                 <ul className="space-y-2">
-                                    {result.weeklyPlan.map((item, index) => (
+                                    {result.items.map((item, index) => (
                                     <li key={index}>
                                         <div className="flex items-start gap-4 p-2 rounded-lg">
                                         <div className='h-5 w-5 mt-1 flex items-center justify-center shrink-0'>
@@ -525,7 +525,7 @@ export default function GenerateWeeklyPlanPage() {
                                             </p>
                                         </div>
                                         </div>
-                                        {index < result.weeklyPlan.length - 1 && (
+                                        {index < result.items.length - 1 && (
                                         <Separator className="my-2" />
                                         )}
                                     </li>
@@ -548,7 +548,7 @@ export default function GenerateWeeklyPlanPage() {
                                 >
                                   <BarChart
                                     accessibilityLayer
-                                    data={result.simulatedPerformance}
+                                    data={result.desempenhoSimulado}
                                     margin={{ top: 20, right: 20, bottom: 20, left: 0 }}
                                   >
                                     <CartesianGrid vertical={false} />
@@ -622,4 +622,3 @@ export default function GenerateWeeklyPlanPage() {
     </div>
   );
 }
-
