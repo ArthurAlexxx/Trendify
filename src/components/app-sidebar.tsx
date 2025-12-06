@@ -49,12 +49,12 @@ const userMenuItems: {
     items: [
       { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', plan: 'free' },
       { href: '/content-calendar', icon: Calendar, label: 'Calendário', plan: 'pro' },
-      { href: '/generate-weekly-plan', icon: ClipboardList, label: 'Plano Semanal', plan: 'pro' },
     ],
   },
   {
     category: 'Ferramentas',
     items: [
+      { href: '/generate-weekly-plan', icon: ClipboardList, label: 'Plano Semanal', plan: 'pro' },
       { href: '/video-ideas', icon: Lightbulb, label: 'Ideias de Vídeos', plan: 'pro' },
       { href: '/video-review', icon: Video, label: 'Análise de Vídeo', plan: 'pro' },
       { href: '/media-kit', icon: Briefcase, label: 'Mídia Kit & Propostas', plan: 'premium' },
