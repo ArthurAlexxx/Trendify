@@ -1,6 +1,7 @@
 
 import * as React from 'react';
 import { cn } from '@/lib/utils';
+import { Separator } from './ui/separator';
 
 interface PageHeaderProps {
   title: string;
@@ -30,6 +31,7 @@ export function PageHeader({ title, description, children, icon: Icon }: PageHea
             )}
         </div>
         {children && <div className="flex w-full md:w-auto items-center justify-center gap-2">{children}</div>}
+         <Separator className="w-1/2 mx-auto" />
     </div>
   );
 }
