@@ -418,7 +418,7 @@ function VideoReviewPageContent() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="generate">Analisar Vídeo</TabsTrigger>
-          <TabsTrigger value="result" disabled={analysisStatus === 'idle' || (file !== null && analysisStatus === 'idle')}>
+          <TabsTrigger value="result" disabled={!file}>
             Resultado
              {(analysisStatus === 'loading' || analysisStatus === 'uploading') && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
           </TabsTrigger>
@@ -745,3 +745,4 @@ function VideoReviewPageContent() {
   );
 }
 
+    
