@@ -569,17 +569,20 @@ export default function GenerateWeeklyPlanPage() {
                                       }
                                     />
 
-                                    <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+                                    <ChartTooltip
+                                      cursor={false}
+                                      content={<ChartTooltipContent />}
+                                    />
 
                                     <Bar
                                       dataKey="alcance"
-                                      fill="var(--color-alcance)"
+                                      fill="hsl(var(--primary))"
                                       radius={[4, 4, 0, 0]}
                                     />
 
                                     <Bar
                                       dataKey="engajamento"
-                                      fill="var(--color-engajamento)"
+                                      fill="hsl(var(--chart-2))"
                                       radius={[4, 4, 0, 0]}
                                     />
                                   </BarChart>
