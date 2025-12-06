@@ -29,6 +29,8 @@
     --chart-2: 342 91% 65%;
     --chart-3: 22 91% 65%;
     --chart-4: 160 88% 45%;
+    --color-alcance: hsl(var(--primary));
+    --color-engajamento: hsl(var(--chart-2));
   }
 
   .dark {
@@ -63,6 +65,8 @@
     --chart-2: 342 91% 65%;
     --chart-3: 22 91% 65%;
     --chart-4: 160 88% 45%;
+    --color-alcance: hsl(var(--primary));
+    --color-engajamento: hsl(var(--chart-2));
   }
 }
 

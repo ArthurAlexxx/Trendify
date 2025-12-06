@@ -542,43 +542,47 @@ export default function GenerateWeeklyPlanPage() {
                               </CardTitle>
                             </CardHeader>
                             <CardContent className="pl-0 sm:pl-2">
-                                <ChartContainer
-                                    config={chartConfig}
-                                    className="h-[350px] w-full"
+                               <ChartContainer
+                                  config={chartConfig}
+                                  className="h-[350px] w-full"
                                 >
-                                    <BarChart
+                                  <BarChart
                                     accessibilityLayer
                                     data={result.simulatedPerformance}
                                     margin={{ top: 20, right: 20, bottom: 20, left: 0 }}
-                                    >
+                                  >
                                     <CartesianGrid vertical={false} />
+
                                     <XAxis
-                                        dataKey="data"
-                                        tickLine={false}
-                                        axisLine={false}
+                                      dataKey="data"
+                                      tickLine={false}
+                                      axisLine={false}
                                     />
+
                                     <YAxis
-                                        tickLine={false}
-                                        axisLine={false}
-                                        tickFormatter={(value) =>
+                                      tickLine={false}
+                                      axisLine={false}
+                                      tickFormatter={(value) =>
                                         typeof value === 'number' && value >= 1000
-                                            ? `${value / 1000}k`
-                                            : value
-                                        }
+                                          ? `${value / 1000}k`
+                                          : value
+                                      }
                                     />
-                                    <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
+
+                                    <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+
                                     <Bar
-                                        dataKey="alcance"
-                                        fill="var(--color-alcance)"
-                                        radius={8}
-                                        className="fill-primary"
+                                      dataKey="alcance"
+                                      fill="var(--color-alcance)"
+                                      radius={[4, 4, 0, 0]}
                                     />
+
                                     <Bar
-                                        dataKey="engajamento"
-                                        fill="var(--color-engajamento)"
-                                        radius={8}
+                                      dataKey="engajamento"
+                                      fill="var(--color-engajamento)"
+                                      radius={[4, 4, 0, 0]}
                                     />
-                                    </BarChart>
+                                  </BarChart>
                                 </ChartContainer>
                             </CardContent>
                           </Card>
@@ -615,3 +619,4 @@ export default function GenerateWeeklyPlanPage() {
     </div>
   );
 }
+
