@@ -246,13 +246,9 @@ export async function getTikTokProfile(username: string): Promise<TikTokProfileD
             throw new Error("Este perfil é privado. A integração funciona apenas com perfis públicos.");
         }
         
-        if (!parsed.user_id || !parsed.username) {
-            throw new Error("A API não retornou o ID de usuário ou nome de usuário, que são obrigatórios.");
-        }
-
         return {
-            id: parsed.user_id,
-            username: parsed.username,
+            id: parsed.user_id!,
+            username: parsed.username!,
             nickname: parsed.nickname || '',
             avatarUrl: parsed.profile_image || '',
             bio: parsed.description || '',
@@ -303,3 +299,4 @@ export async function getTikTokPosts(username: string): Promise<TikTokPostData[]
         throw e;
     }
 }
+
