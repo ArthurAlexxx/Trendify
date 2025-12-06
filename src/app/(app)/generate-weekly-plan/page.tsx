@@ -21,7 +21,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Bot, Loader2, Sparkles, Check, History, ClipboardList, BrainCircuit, Target, Eye, BarChart as BarChartIcon, Zap, AlertTriangle, Trophy, Save } from 'lucide-react';
+import { Bot, Loader2, Sparkles, Check, History, ClipboardList, BrainCircuit, Target, Eye, BarChart as BarChartIcon, Zap, AlertTriangle, Trophy, Save, Edit } from 'lucide-react';
 import { useEffect, useTransition, useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -54,6 +54,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PreviousPlansSheet } from '@/components/previous-plans-sheet';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Dialog, DialogTrigger, DialogContent } from '@/components/ui/dialog';
 
 
 const formSchema = z.object({
@@ -108,6 +109,7 @@ export default function GenerateWeeklyPlanPage() {
   const [isGenerating, startTransition] = useTransition();
   const [state, setState] = useState<WeeklyPlanState>(null);
   const [activeTab, setActiveTab] = useState("generate");
+  const [isFormOpen, setIsFormOpen] = useState(false);
   
   const [isSaving, startSavingTransition] = useTransition();
 
@@ -150,6 +152,7 @@ export default function GenerateWeeklyPlanPage() {
       return;
     }
     
+    setIsFormOpen(false);
     startTransition(async () => {
       const result = await generateWeeklyPlanAction(null, formData);
       setState(result);
@@ -316,7 +319,7 @@ export default function GenerateWeeklyPlanPage() {
                   <CarouselContent className="-ml-4">
                       {analysisCriteria.map((item, index) => (
                           <CarouselItem key={index} className="pl-4 basis-full">
-                              <Card className="h-full">
+                              <Card className="h-full rounded-2xl border-0">
                                   <CardHeader>
                                       <CardTitle className="text-center flex items-center gap-3">
                                           <item.icon className="h-6 w-6 text-primary" />
@@ -336,7 +339,7 @@ export default function GenerateWeeklyPlanPage() {
           </div>
           <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-4">
               {analysisCriteria.map((item, index) => (
-                  <Card key={index}>
+                  <Card key={index} className='rounded-2xl border-0'>
                       <CardHeader>
                           <CardTitle className="text-center flex items-center gap-3">
                               <item.icon className="h-6 w-6 text-primary" />
@@ -366,107 +369,120 @@ export default function GenerateWeeklyPlanPage() {
         </TabsList>
         <TabsContent value="generate">
           <Card className="rounded-t-none border-t-0">
-            <CardHeader>
-              <CardTitle className="text-center flex items-center gap-3 font-headline text-xl">
-                <Bot className="h-6 w-6 text-primary" />
-                <span>Briefing da Semana</span>
-              </CardTitle>
-              <CardDescription className="text-center">
-                Forneça os detalhes para um plano melhor. Sua meta de seguidores será usada para focar a estratégia.
-              </CardDescription>
-            </CardHeader>
             <CardContent>
-                <Form {...form}>
-                    <form onSubmit={form.handleSubmit(formAction)} className="space-y-8">
-                    <div className="space-y-8">
-                        <FormField
-                        control={form.control}
-                        name="objective"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>
-                                Qual seu principal objetivo para a semana?
-                            </FormLabel>
-                            <FormControl>
-                                <Input
-                                placeholder="Ex: Aumentar o engajamento com Reels de humor"
-                                className="h-12 bg-muted/50"
-                                {...field}
-                                />
-                            </FormControl>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                        />
-                        <div className="grid md:grid-cols-2 gap-x-6 gap-y-8">
-                        <FormField
-                            control={form.control}
-                            name="niche"
-                            render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Seu Nicho</FormLabel>
-                                <FormControl>
-                                {isLoadingProfile ? (
-                                    <Skeleton className="h-12 w-full" />
-                                ) : (
-                                    <Input
-                                    placeholder="Defina em seu Perfil"
-                                    className="h-12 bg-muted/50"
-                                    {...field}
-                                    />
-                                )}
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
+                <div className="flex flex-col items-center justify-center text-center gap-4 py-16">
+                     <h2 className="text-2xl font-bold font-headline">Defina o Briefing da Semana</h2>
+                    <p className="text-muted-foreground max-w-xl">
+                       Clique no botão abaixo para detalhar seu objetivo, nicho e métricas atuais. Isso ajuda a IA a criar um plano semanal mais preciso e eficaz.
+                    </p>
+                    <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+                      <DialogTrigger asChild>
+                         <Button size="lg" disabled={isGenerating || isSaving || isLoadingProfile}>
+                           {isGenerating ? (
+                              <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Gerando...</>
+                            ) : (
+                              <><Edit className="mr-2 h-5 w-5" />Definir Briefing</>
                             )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="currentStats"
-                            render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Métricas Atuais</FormLabel>
-                                <FormControl>
-                                {isLoadingProfile ? (
-                                    <Skeleton className="h-12 w-full" />
-                                ) : (
-                                    <Input
-                                    placeholder="Defina em seu Perfil"
-                                    className="h-12 bg-muted/50"
-                                    {...field}
-                                    readOnly
-                                    />
-                                )}
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                            )}
-                        />
-                        </div>
-                    </div>
-
-                    <div className="pt-2 flex flex-col sm:flex-row items-center justify-start gap-4">
-                        <Button
-                        type="submit"
-                        disabled={isGenerating || isSaving || isLoadingProfile}
-                        size="lg"
-                        className="w-full sm:w-auto"
-                        >
-                        {isGenerating || isSaving ? (
-                            <>
-                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                            {isSaving ? 'Salvando...' : 'Gerando...'}
-                            </>
-                        ) : (
-                            <>
-                            <Sparkles className="mr-2 h-5 w-5" />
-                            Gerar Novo Plano
-                            </>
-                        )}
-                        </Button>
-                    </div>
-                    </form>
-                </Form>
+                         </Button>
+                      </DialogTrigger>
+                       <DialogContent className="sm:max-w-2xl">
+                         <Card className="rounded-2xl border-0 shadow-none">
+                            <CardHeader>
+                                <CardTitle className="text-center flex items-center gap-3 font-headline text-xl">
+                                    <Bot className="h-6 w-6 text-primary" />
+                                    <span>Briefing da Semana</span>
+                                </CardTitle>
+                                <CardDescription className="text-center">
+                                    Forneça os detalhes para um plano melhor. Sua meta de seguidores será usada para focar a estratégia.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <Form {...form}>
+                                    <form onSubmit={form.handleSubmit(formAction)} className="space-y-6">
+                                    <div className="space-y-6">
+                                        <FormField
+                                        control={form.control}
+                                        name="objective"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                            <FormLabel>
+                                                Qual seu principal objetivo para a semana?
+                                            </FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                placeholder="Ex: Aumentar o engajamento com Reels de humor"
+                                                className="h-12 bg-muted/50"
+                                                {...field}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                            </FormItem>
+                                        )}
+                                        />
+                                        <div className="grid md:grid-cols-2 gap-x-6 gap-y-8">
+                                        <FormField
+                                            control={form.control}
+                                            name="niche"
+                                            render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Seu Nicho</FormLabel>
+                                                <FormControl>
+                                                {isLoadingProfile ? (
+                                                    <Skeleton className="h-12 w-full" />
+                                                ) : (
+                                                    <Input
+                                                    placeholder="Defina em seu Perfil"
+                                                    className="h-12 bg-muted/50"
+                                                    {...field}
+                                                    />
+                                                )}
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={form.control}
+                                            name="currentStats"
+                                            render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Métricas Atuais</FormLabel>
+                                                <FormControl>
+                                                {isLoadingProfile ? (
+                                                    <Skeleton className="h-12 w-full" />
+                                                ) : (
+                                                    <Input
+                                                    placeholder="Defina em seu Perfil"
+                                                    className="h-12 bg-muted/50"
+                                                    {...field}
+                                                    readOnly
+                                                    />
+                                                )}
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                            )}
+                                        />
+                                        </div>
+                                    </div>
+                                    <div className="pt-2 flex flex-col sm:flex-row items-center justify-end gap-4">
+                                        <Button type="button" variant="ghost" onClick={() => setIsFormOpen(false)}>Cancelar</Button>
+                                        <Button
+                                            type="submit"
+                                            disabled={isGenerating || isSaving || isLoadingProfile}
+                                            className="w-full sm:w-auto"
+                                        >
+                                            {isGenerating || isSaving ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Sparkles className="mr-2 h-5 w-5" />}
+                                            Gerar Plano
+                                        </Button>
+                                    </div>
+                                    </form>
+                                </Form>
+                            </CardContent>
+                          </Card>
+                      </DialogContent>
+                    </Dialog>
+                </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -474,19 +490,13 @@ export default function GenerateWeeklyPlanPage() {
              <Card className="rounded-t-none border-t-0">
                 <CardHeader>
                     <div className="flex flex-col sm:flex-row justify-between items-start gap-4 text-center sm:text-left">
-                        <div className="flex-1">
+                        <div className="flex-1 text-center">
                           <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">
                             Plano Gerado
                           </h2>
                           <p className="text-muted-foreground">
                             Seu novo plano semanal está pronto. Salve-o para ativá-lo no seu dashboard.
                           </p>
-                        </div>
-                        <div className="flex w-full sm:w-auto flex-col sm:flex-row gap-2">
-                             <Button onClick={handleSavePlan} disabled={isSaving} className="w-full sm:w-auto">
-                                <Save className="mr-2 h-4 w-4" />
-                                {isSaving ? 'Salvando...' : 'Salvar e Ativar Plano'}
-                            </Button>
                         </div>
                     </div>
                 </CardHeader>
@@ -500,113 +510,121 @@ export default function GenerateWeeklyPlanPage() {
                           </p>
                         </div>
                       ) : result ? (
-                        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
-                          <Card>
-                            <CardHeader>
-                              <CardTitle className="text-center font-headline text-xl">
-                                Novo Roteiro de Conteúdo
-                              </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <ul className="space-y-2">
-                                    {result.items.map((item: ItemRoteiro, index: number) => (
-                                    <li key={index}>
-                                        <div className="flex items-start gap-4 p-2 rounded-lg">
-                                        <div className='h-5 w-5 mt-1 flex items-center justify-center shrink-0'>
-                                            <Check className='h-4 w-4 text-primary' />
-                                        </div>
-                                        <div>
-                                            <p className={'font-medium text-base text-foreground'}>
-                                            <span className="font-semibold text-primary">
-                                                {item.dia}:
-                                            </span>{' '}
-                                            {item.tarefa}
-                                            </p>
-                                            <p className="text-sm text-muted-foreground">
-                                            {item.detalhes}
-                                            </p>
-                                        </div>
-                                        </div>
-                                        {index < result.items.length - 1 && (
-                                        <Separator className="my-2" />
-                                        )}
-                                    </li>
-                                    ))}
-                                </ul>
-                            </CardContent>
-                          </Card>
+                        <div className="space-y-8">
+                            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
+                            <Card className='rounded-2xl border-0'>
+                                <CardHeader>
+                                <CardTitle className="text-center font-headline text-xl">
+                                    Novo Roteiro de Conteúdo
+                                </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <ul className="space-y-2">
+                                        {result.items.map((item: ItemRoteiro, index: number) => (
+                                        <li key={index}>
+                                            <div className="flex items-start gap-4 p-2 rounded-lg">
+                                            <div className='h-5 w-5 mt-1 flex items-center justify-center shrink-0'>
+                                                <Check className='h-4 w-4 text-primary' />
+                                            </div>
+                                            <div>
+                                                <p className={'font-medium text-base text-foreground'}>
+                                                <span className="font-semibold text-primary">
+                                                    {item.dia}:
+                                                </span>{' '}
+                                                {item.tarefa}
+                                                </p>
+                                                <p className="text-sm text-muted-foreground">
+                                                {item.detalhes}
+                                                </p>
+                                            </div>
+                                            </div>
+                                            {index < result.items.length - 1 && (
+                                            <Separator className="my-2" />
+                                            )}
+                                        </li>
+                                        ))}
+                                    </ul>
+                                </CardContent>
+                            </Card>
 
-                          <div className='space-y-8'>
-                          <Card>
-                            <CardHeader>
-                              <CardTitle className="text-center font-headline text-xl">
-                                Nova Simulação de Desempenho
-                              </CardTitle>
-                            </CardHeader>
-                            <CardContent className="pl-0 sm:pl-2">
-                               <ChartContainer
-                                  config={chartConfig}
-                                  className="h-[350px] w-full"
+                            <div className='space-y-8'>
+                            <Card className='rounded-2xl border-0'>
+                                <CardHeader>
+                                <CardTitle className="text-center font-headline text-xl">
+                                    Nova Simulação de Desempenho
+                                </CardTitle>
+                                </CardHeader>
+                                <CardContent className="pl-0 sm:pl-2">
+                                <ChartContainer
+                                    config={chartConfig}
+                                    className="h-[350px] w-full"
                                 >
-                                  <BarChart
-                                    accessibilityLayer
-                                    data={result.desempenhoSimulado}
-                                    margin={{ top: 20, right: 20, bottom: 20, left: 0 }}
-                                  >
-                                    <CartesianGrid vertical={false} />
+                                    <BarChart
+                                        accessibilityLayer
+                                        data={result.desempenhoSimulado}
+                                        margin={{ top: 20, right: 20, bottom: 20, left: 0 }}
+                                    >
+                                        <CartesianGrid vertical={false} />
 
-                                    <XAxis
-                                      dataKey="data"
-                                      tickLine={false}
-                                      axisLine={false}
-                                    />
+                                        <XAxis
+                                        dataKey="data"
+                                        tickLine={false}
+                                        axisLine={false}
+                                        />
 
-                                    <YAxis
-                                      tickLine={false}
-                                      axisLine={false}
-                                      tickFormatter={(value) =>
-                                        typeof value === 'number' && value >= 1000
-                                          ? `${value / 1000}k`
-                                          : value
-                                      }
-                                    />
+                                        <YAxis
+                                        tickLine={false}
+                                        axisLine={false}
+                                        tickFormatter={(value) =>
+                                            typeof value === 'number' && value >= 1000
+                                            ? `${value / 1000}k`
+                                            : value
+                                        }
+                                        />
 
-                                    <ChartTooltip
-                                      cursor={false}
-                                      content={<ChartTooltipContent indicator="dot" />}
-                                    />
+                                        <ChartTooltip
+                                        cursor={false}
+                                        content={<ChartTooltipContent indicator="dot" />}
+                                        />
 
-                                    <Bar
-                                      dataKey="alcance"
-                                      fill="hsl(var(--primary))"
-                                      radius={[4, 4, 0, 0]}
-                                    />
+                                        <Bar
+                                        dataKey="alcance"
+                                        fill="hsl(var(--primary))"
+                                        radius={[4, 4, 0, 0]}
+                                        />
 
-                                    <Bar
-                                      dataKey="engajamento"
-                                      fill="hsl(var(--chart-2))"
-                                      radius={[4, 4, 0, 0]}
-                                    />
-                                  </BarChart>
-                                </ChartContainer>
-                            </CardContent>
-                          </Card>
-                          
-                          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                            <Card>
-                                <CardHeader><CardTitle className="text-center flex items-center gap-2 text-sm text-muted-foreground"><Trophy className='h-4 w-4' /> Índice de Prioridade</CardTitle></CardHeader>
-                                <CardContent><ul className="space-y-2 text-sm">{result.priorityIndex.map(item => <li key={item} className='font-semibold'>{item}</li>)}</ul></CardContent>
+                                        <Bar
+                                        dataKey="engajamento"
+                                        fill="hsl(var(--chart-2))"
+                                        radius={[4, 4, 0, 0]}
+                                        />
+                                    </BarChart>
+                                    </ChartContainer>
+                                </CardContent>
                             </Card>
-                             <Card>
-                                <CardHeader><CardTitle className="text-center flex items-center gap-2 text-sm text-muted-foreground"><Zap className='h-4 w-4' /> Nível de Esforço</CardTitle></CardHeader>
-                                <CardContent><p className='text-xl font-bold'>{result.effortLevel}</p></CardContent>
-                            </Card>
-                          </div>
-                           <Card>
-                                <CardHeader><CardTitle className="text-center flex items-center gap-2 text-sm text-muted-foreground"><AlertTriangle className='h-4 w-4' /> Dicas de Realinhamento</CardTitle></CardHeader>
-                                <CardContent><p className='text-sm'>{result.realignmentTips}</p></CardContent>
-                            </Card>
-                          </div>
+                            
+                            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                                <Card className='rounded-2xl border-0'>
+                                    <CardHeader><CardTitle className="text-center flex items-center gap-2 text-sm text-muted-foreground"><Trophy className='h-4 w-4' /> Índice de Prioridade</CardTitle></CardHeader>
+                                    <CardContent><ul className="space-y-2 text-sm">{result.priorityIndex.map(item => <li key={item} className='font-semibold'>{item}</li>)}</ul></CardContent>
+                                </Card>
+                                <Card className='rounded-2xl border-0'>
+                                    <CardHeader><CardTitle className="text-center flex items-center gap-2 text-sm text-muted-foreground"><Zap className='h-4 w-4' /> Nível de Esforço</CardTitle></CardHeader>
+                                    <CardContent><p className='text-xl font-bold'>{result.effortLevel}</p></CardContent>
+                                </Card>
+                            </div>
+                            <Card className='rounded-2xl border-0'>
+                                    <CardHeader><CardTitle className="text-center flex items-center gap-2 text-sm text-muted-foreground"><AlertTriangle className='h-4 w-4' /> Dicas de Realinhamento</CardTitle></CardHeader>
+                                    <CardContent><p className='text-sm'>{result.realignmentTips}</p></CardContent>
+                                </Card>
+                            </div>
+                            </div>
+                            <div className='flex justify-center pt-4'>
+                                <Button onClick={handleSavePlan} disabled={isSaving} className="w-full sm:w-auto">
+                                    <Save className="mr-2 h-4 w-4" />
+                                    {isSaving ? 'Salvando...' : 'Salvar e Ativar Plano'}
+                                </Button>
+                            </div>
                         </div>
                       ) : (
                          <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-96">
@@ -636,7 +654,7 @@ export default function GenerateWeeklyPlanPage() {
                          <div className="flex justify-center items-center h-64"><Loader2 className="h-8 w-8 animate-spin" /></div>
                      ) : activePlan ? (
                         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
-                             <Card>
+                             <Card className='rounded-2xl border-0'>
                                 <CardHeader>
                                 <CardTitle className="font-headline text-xl">Roteiro de Conteúdo</CardTitle>
                                 </CardHeader>
@@ -670,7 +688,7 @@ export default function GenerateWeeklyPlanPage() {
                                     </ul>
                                 </CardContent>
                             </Card>
-                             <Card>
+                             <Card className='rounded-2xl border-0'>
                                 <CardHeader><CardTitle className="font-headline text-xl">Desempenho Semanal (Simulado)</CardTitle></CardHeader>
                                 <CardContent className="pl-0 sm:pl-2">
                                     <ChartContainer config={chartConfig} className="h-[350px] w-full">

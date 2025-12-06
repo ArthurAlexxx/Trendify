@@ -18,6 +18,7 @@ import {
   Crown,
   Handshake,
   AlignLeft,
+  Edit,
 } from 'lucide-react';
 import { useTransition, useEffect, useState, useCallback } from 'react';
 import {
@@ -49,6 +50,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescript
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 
 
 const formSchema = z.object({
@@ -143,6 +145,7 @@ function MediaKitPageContent() {
   const [isGenerating, startTransition] = useTransition();
   const [state, setState] = useState<CareerPackageState>(null);
   const [activeTab, setActiveTab] = useState("generate");
+  const [isFormOpen, setIsFormOpen] = useState(false);
   
   const [isSaving, startSavingTransition] = useTransition();
   const { user } = useUser();
@@ -164,6 +167,7 @@ function MediaKitPageContent() {
   });
 
   const formAction = useCallback(async (formData: FormSchemaType) => {
+    setIsFormOpen(false);
     startTransition(async () => {
       const result = await getAiCareerPackageAction(null, formData);
       setState(result);
@@ -303,7 +307,7 @@ function MediaKitPageContent() {
                     <CarouselContent className="-ml-4">
                         {analysisCriteria.map((item, index) => (
                             <CarouselItem key={index} className="pl-4 basis-full">
-                                <Card className="h-full">
+                                <Card className="h-full rounded-2xl border-0">
                                     <CardHeader>
                                         <CardTitle className="text-center flex items-center gap-3">
                                             <item.icon className="h-6 w-6 text-primary" />
@@ -323,7 +327,7 @@ function MediaKitPageContent() {
             </div>
             <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {analysisCriteria.map((item, index) => (
-                    <Card key={index}>
+                    <Card key={index} className='rounded-2xl border-0'>
                         <CardHeader>
                             <CardTitle className="text-center flex items-center gap-3">
                                 <item.icon className="h-6 w-6 text-primary" />
@@ -349,116 +353,137 @@ function MediaKitPageContent() {
         </TabsList>
         <TabsContent value="generate">
            <Card className="rounded-t-none border-t-0">
-            <CardHeader>
-              <CardTitle className="text-center flex items-center gap-3 font-headline text-xl">
-                <Bot className="h-6 w-6 text-primary" />
-                <span>Assistente de Carreira</span>
-              </CardTitle>
-            </CardHeader>
             <CardContent>
-              <div className="p-6">
-                <Form {...form}>
-                    <form
-                    onSubmit={form.handleSubmit(formAction)}
-                    className="space-y-8"
-                    >
-                    <div className="space-y-8">
-                        <FormField
-                        control={form.control}
-                        name="niche"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Seu Nicho</FormLabel>
-                            <FormControl>
-                                {isLoadingProfile ? <Skeleton className="h-12 w-full" /> : 
-                                <Input
-                                    placeholder="Defina em seu Perfil"
-                                    className="h-12 bg-muted/50"
-                                    {...field}
-                                />
-                                }
-                            </FormControl>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                        />
-                        <div className="grid md:grid-cols-2 gap-x-6 gap-y-8">
-                        <FormField
-                            control={form.control}
-                            name="keyMetrics"
-                            render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Métricas Chave</FormLabel>
-                                <FormControl>
-                                {isLoadingProfile ? <Skeleton className="h-12 w-full" /> :
-                                    <Input
-                                    placeholder="Defina em seu Perfil"
-                                    className="h-12 bg-muted/50"
-                                    {...field}
-                                    readOnly
-                                    />
-                                }
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
+               <div className="flex flex-col items-center justify-center text-center gap-4 py-16">
+                    <h2 className="text-2xl font-bold font-headline">Defina o Briefing de Prospecção</h2>
+                    <p className="text-muted-foreground max-w-xl">
+                       Clique no botão abaixo para definir o nicho, métricas e marca-alvo. Isso ajuda a IA a criar uma proposta mais alinhada e profissional.
+                    </p>
+                    <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+                      <DialogTrigger asChild>
+                         <Button size="lg" disabled={isGenerating || isLoadingProfile}>
+                           {isGenerating ? (
+                              <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Gerando...</>
+                            ) : (
+                              <><Edit className="mr-2 h-5 w-5" />Definir Briefing</>
                             )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="targetBrand"
-                            render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Marca Alvo</FormLabel>
-                                <FormControl>
-                                <Input
-                                    placeholder="Ex: Sallve, Natura, Nike"
-                                    className="h-12 bg-muted/50"
-                                    {...field}
-                                />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                            )}
-                        />
-                        </div>
-                    </div>
-                    <div className="pt-2 flex justify-start">
-                        <Button
-                        type="submit"
-                        disabled={isGenerating || isLoadingProfile}
-                        size="lg"
-                        className="w-full sm:w-auto"
-                        >
-                        {isGenerating ? (
-                            <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Gerando...</>
-                        ) : (
-                            <><Sparkles className="mr-2 h-5 w-5" />Gerar Pacote de Prospecção</>
-                        )}
-                        </Button>
-                    </div>
-                    </form>
-                </Form>
-              </div>
+                         </Button>
+                      </DialogTrigger>
+                       <DialogContent className="sm:max-w-2xl">
+                          <Card className="rounded-2xl border-0 shadow-none">
+                            <CardHeader>
+                                <CardTitle className="text-center flex items-center gap-3 font-headline text-xl">
+                                    <Bot className="h-6 w-6 text-primary" />
+                                    <span>Assistente de Carreira</span>
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <Form {...form}>
+                                    <form
+                                    onSubmit={form.handleSubmit(formAction)}
+                                    className="space-y-6"
+                                    >
+                                    <div className="space-y-6">
+                                        <FormField
+                                        control={form.control}
+                                        name="niche"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                            <FormLabel>Seu Nicho</FormLabel>
+                                            <FormControl>
+                                                {isLoadingProfile ? <Skeleton className="h-12 w-full" /> : 
+                                                <Input
+                                                    placeholder="Defina em seu Perfil"
+                                                    className="h-12 bg-muted/50"
+                                                    {...field}
+                                                />
+                                                }
+                                            </FormControl>
+                                            <FormMessage />
+                                            </FormItem>
+                                        )}
+                                        />
+                                        <div className="grid md:grid-cols-2 gap-x-6 gap-y-8">
+                                        <FormField
+                                            control={form.control}
+                                            name="keyMetrics"
+                                            render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Métricas Chave</FormLabel>
+                                                <FormControl>
+                                                {isLoadingProfile ? <Skeleton className="h-12 w-full" /> :
+                                                    <Input
+                                                    placeholder="Defina em seu Perfil"
+                                                    className="h-12 bg-muted/50"
+                                                    {...field}
+                                                    readOnly
+                                                    />
+                                                }
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={form.control}
+                                            name="targetBrand"
+                                            render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Marca Alvo</FormLabel>
+                                                <FormControl>
+                                                <Input
+                                                    placeholder="Ex: Sallve, Natura, Nike"
+                                                    className="h-12 bg-muted/50"
+                                                    {...field}
+                                                />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                            )}
+                                        />
+                                        </div>
+                                    </div>
+                                    <div className="pt-2 flex justify-end gap-4">
+                                        <Button type="button" variant="ghost" onClick={() => setIsFormOpen(false)}>Cancelar</Button>
+                                        <Button
+                                        type="submit"
+                                        disabled={isGenerating || isLoadingProfile}
+                                        className="w-full sm:w-auto"
+                                        >
+                                        {isGenerating ? (
+                                            <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Gerando...</>
+                                        ) : (
+                                            <><Sparkles className="mr-2 h-5 w-5" />Gerar Pacote</>
+                                        )}
+                                        </Button>
+                                    </div>
+                                    </form>
+                                </Form>
+                            </CardContent>
+                        </Card>
+                      </DialogContent>
+                    </Dialog>
+                </div>
             </CardContent>
           </Card>
         </TabsContent>
         <TabsContent value="result">
           <Card className="rounded-t-none border-t-0">
+            <CardHeader className="text-center">
+                <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Resultado Gerado</h2>
+                <p className="text-muted-foreground">Um pacote completo para sua prospecção.</p>
+            </CardHeader>
             <CardContent className="p-6">
               {(isGenerating || result) && (
                 <div className="space-y-8 animate-fade-in">
-                  <div className="flex flex-col sm:flex-row justify-between items-start gap-4 text-center sm:text-left">
-                    <div className='flex-1'>
-                      <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Resultado Gerado</h2>
-                      <p className="text-muted-foreground">Um pacote completo para sua prospecção.</p>
-                    </div>
-                    {result && (
-                      <Button onClick={() => handleSave(result)} disabled={isSaving} className="w-full sm:w-auto">
-                        {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                        Salvar Pacote
-                      </Button>
+                  {result && (
+                      <div className='flex justify-center'>
+                         <Button onClick={() => handleSave(result)} disabled={isSaving} className="w-full sm:w-auto">
+                            {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                            Salvar Pacote
+                        </Button>
+                      </div>
                     )}
-                  </div>
 
                   {isGenerating && !result ? (
                     <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-96">
@@ -500,7 +525,7 @@ function InfoCard({
 }) {
   return (
     <Card
-      className="h-full"
+      className="h-full rounded-2xl border-0"
     >
       <CardHeader>
         <CardTitle className="text-center flex items-center gap-3 text-lg font-semibold text-foreground">
@@ -528,7 +553,7 @@ function InfoList({
   items: string[];
 }) {
   return (
-    <Card className="h-full">
+    <Card className="h-full rounded-2xl border-0">
       <CardHeader>
         <CardTitle className="text-center flex items-center gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary" />
@@ -563,7 +588,7 @@ function PricingCard({
 }) {
   return (
     <Card
-      className="h-full"
+      className="h-full rounded-2xl border-0"
     >
       <CardHeader>
         <CardTitle className="text-center flex items-center gap-3 text-lg font-semibold text-foreground">
