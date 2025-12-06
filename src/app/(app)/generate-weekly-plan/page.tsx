@@ -388,7 +388,7 @@ export default function GenerateWeeklyPlanPage() {
                       </DialogTrigger>
                        <DialogContent className="sm:max-w-2xl p-0">
                          <Card className="rounded-2xl border-0 shadow-none">
-                            <CardHeader className="text-center sticky top-0 bg-background/95 backdrop-blur-sm z-10">
+                            <CardHeader className="text-center sticky top-0 bg-background/95 backdrop-blur-sm z-10 p-6">
                                 <CardTitle className="flex items-center justify-center gap-3 font-headline text-xl">
                                     <Bot className="h-6 w-6 text-primary" />
                                     <span>Briefing da Semana</span>
@@ -398,7 +398,7 @@ export default function GenerateWeeklyPlanPage() {
                                 </CardDescription>
                             </CardHeader>
                             <ScrollArea className="h-[70vh]">
-                              <CardContent>
+                              <CardContent className="p-6">
                                   <Form {...form}>
                                       <form onSubmit={form.handleSubmit(formAction)} className="space-y-6">
                                       <div className="space-y-6">
