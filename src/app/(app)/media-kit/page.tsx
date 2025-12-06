@@ -665,3 +665,4 @@ function PricingCard({
     </Card>
   );
 }
+

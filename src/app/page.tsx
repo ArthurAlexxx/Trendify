@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import {
@@ -68,25 +69,41 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 
 const features = [
   {
-    icon: Lightbulb,
-    title: 'Roteiros e Estratégia',
-    description:
-      'Gere ideias de vídeo, roteiros completos e planos de conteúdo semanais que capturam a atenção e engajam seu público.',
+    icon: ClipboardList,
+    title: 'Planejamento Estratégico',
+    description: 'Receba planos de conteúdo semanais e roteiros completos, alinhados aos seus objetivos para maximizar seu crescimento.',
+    plan: 'pro'
   },
   {
-    icon: Target,
-    title: 'Análise e Diagnóstico de Conteúdo',
-    description:
-      'Receba diagnósticos do que funciona (ou não) nos seus vídeos e receba um plano de ação para otimizar sua estratégia.',
-    plan: 'pro',
+    icon: Lightbulb,
+    title: 'Ideias e Roteiros Virais',
+    description: 'Transforme qualquer tema em um roteiro de vídeo otimizado para viralizar, com ganchos magnéticos e CTAs eficazes.',
+    plan: 'pro'
+  },
+  {
+    icon: Video,
+    title: 'Diagnóstico de Vídeo',
+    description: 'Faça upload de um vídeo e receba uma análise detalhada sobre seu potencial de viralização e um checklist de melhorias.',
+    plan: 'pro'
   },
   {
     icon: Briefcase,
-    title: 'Monetização e Parcerias com Marcas',
-    description:
-      'Crie propostas comerciais e um mídia kit profissional para fechar parcerias e transformar seu conteúdo em receita.',
-    plan: 'premium',
+    title: 'Prospecção de Marcas',
+    description: 'Gere um pacote de prospecção com Mídia Kit, tabela de preços e ideias de conteúdo para apresentar a marcas.',
+    plan: 'premium'
   },
+  {
+    icon: DollarSign,
+    title: 'Assistente de Publis',
+    description: 'Crie roteiros e estratégias de conteúdo patrocinado (publis) que sejam autênticos e que convertam.',
+    plan: 'premium'
+  },
+  {
+    icon: LineChart,
+    title: 'Métricas Inteligentes',
+    description: 'Conecte suas redes e acompanhe seu crescimento com um dashboard que traduz dados em insights acionáveis.',
+    plan: 'premium'
+  }
 ];
 
 const faqItems = [
@@ -323,7 +340,7 @@ export default function LandingPage() {
                   transition={{ duration: 0.5 }}
                   viewport={{ once: true, amount: 0.3 }}
                 >
-                  <Card className="text-left h-full bg-card/50 rounded-2xl border border-border/50 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/20 hover:-translate-y-1 transition-all duration-300">
+                  <Card className="text-left h-full bg-card/50 rounded-2xl border border-border/50 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/20 hover:-translate-y-1 transition-all">
                     <CardHeader className="flex flex-row items-center justify-between">
                        <div className="bg-primary/10 text-primary p-3 rounded-lg">
                         <feature.icon className="h-6 w-6" />
