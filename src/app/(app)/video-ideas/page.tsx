@@ -665,4 +665,3 @@ function InfoCard({
     </div>
   );
 }
-

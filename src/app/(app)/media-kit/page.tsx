@@ -603,4 +603,3 @@ function PricingCard({
     </Card>
   );
 }
-
