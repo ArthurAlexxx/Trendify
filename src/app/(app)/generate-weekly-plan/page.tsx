@@ -133,7 +133,7 @@ export default function GenerateWeeklyPlanPage() {
     useDoc<UserProfile>(userProfileRef);
 
   const roteiroQuery = useMemoFirebase(
-    () => (firestore ? query(collection(firestore, 'roteiro'), orderBy('createdAt', 'desc'), limit(1)) : null),
+    () => (firestore ? query(collection(firestore, 'weeklyPlans'), orderBy('createdAt', 'desc'), limit(1)) : null),
     [firestore]
   );
   const { data: roteiroData, isLoading: isLoadingRoteiro } = useCollection<PlanoSemanal>(roteiroQuery);
@@ -231,7 +231,7 @@ export default function GenerateWeeklyPlanPage() {
     if (result && firestore) {
       startSavingTransition(async () => {
         try {
-          await addDoc(collection(firestore, 'roteiro'), {
+          await addDoc(collection(firestore, 'weeklyPlans'), {
             items: result.items,
             desempenhoSimulado: result.desempenhoSimulado,
             createdAt: serverTimestamp(),
@@ -255,7 +255,7 @@ export default function GenerateWeeklyPlanPage() {
 
   const handleToggleRoteiro = async (item: ItemRoteiro) => {
     if (!firestore || !currentPlan) return;
-    const planoRef = doc(firestore, 'roteiro', currentPlan.id);
+    const planoRef = doc(firestore, 'weeklyPlans', currentPlan.id);
     const updatedItems = currentRoteiroItems?.map((i) =>
       i.tarefa === item.tarefa ? { ...i, concluido: !i.concluido } : i
     );
@@ -273,7 +273,7 @@ export default function GenerateWeeklyPlanPage() {
     }
 
     try {
-      await deleteDoc(doc(firestore, 'roteiro', currentPlan.id));
+      await deleteDoc(doc(firestore, 'weeklyPlans', currentPlan.id));
       toast({ title: 'Plano atual deletado com sucesso!'});
     } catch (error: any) {
       toast({ title: 'Erro ao deletar plano', description: error.message, variant: 'destructive'});

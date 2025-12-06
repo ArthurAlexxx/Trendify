@@ -253,12 +253,12 @@
       "description": "Armazena o plano de conteúdo semanal completo gerado pela IA.",
       "type": "object",
       "properties": {
-        "weeklyPlan": {
+        "items": {
           "type": "array",
           "items": { "$ref": "#/entities/ItemRoteiro" },
           "description": "A lista de tarefas do roteiro para a semana."
         },
-        "simulatedPerformance": {
+        "desempenhoSimulado": {
             "type": "array",
             "items": { "$ref": "#/entities/PontoDadosGrafico" },
             "description": "Uma simulação do desempenho para o plano semanal."
@@ -269,7 +269,7 @@
           "description": "O timestamp de quando o plano foi gerado."
         }
       },
-      "required": ["weeklyPlan", "createdAt", "simulatedPerformance"]
+      "required": ["items", "createdAt", "desempenhoSimulado"]
     },
     "IdeiaSalva": {
       "title": "Ideia Salva",
@@ -347,9 +347,11 @@
       "schema": { "$ref": "#/entities/AnaliseVideo" },
       "description": "Stores video analysis results for a specific user."
     },
-    "/roteiro/{planoId}": {
+    "/weeklyPlans/{planoId}": {
       "schema": { "$ref": "#/entities/PlanoSemanal" },
-      "description": "Coleção para armazenar os roteiros de conteúdo semanais gerados pela IA."
+      "description": "Stores AI-generated weekly content plans."
     }
   }
 }
+
+    

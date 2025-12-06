@@ -28,8 +28,8 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Coleção roteiro (livre)
-    match /roteiro/{itemRoteiroId} {
+    // Coleção de Planos Semanais
+    match /weeklyPlans/{planId} {
       allow read, write: if request.auth != null;
     }
 
@@ -40,3 +40,5 @@ service cloud.firestore {
     }
   }
 }
+
+    
