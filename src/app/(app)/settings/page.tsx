@@ -47,7 +47,6 @@ export default function SettingsPage() {
   const firestore = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
-  const [deleteConfirmationText, setDeleteConfirmationText] = useState('');
   const [isCancelling, startCancellingTransition] = useTransition();
 
   const userProfileRef = useMemoFirebase(
@@ -83,31 +82,6 @@ export default function SettingsPage() {
         }
     });
 };
-
-
-  const handleDeleteAccount = async () => {
-    if (user) {
-      try {
-        await user.delete();
-        toast({
-          title: 'Conta Excluída',
-          description: 'Sua conta foi excluída permanentemente.',
-        });
-        router.push('/login');
-      } catch (error: any) {
-        console.error('Error deleting account:', error);
-        toast({
-          title: 'Erro ao Excluir Conta',
-          description:
-            'Por segurança, pode ser necessário fazer login novamente antes de excluir a conta. ' +
-            error.message,
-          variant: 'destructive',
-        });
-      }
-    }
-  };
-  
-  const isDeleteButtonDisabled = deleteConfirmationText !== 'excluir minha conta';
 
   const getPlanName = (plan: 'free' | 'pro' | 'premium') => {
     switch(plan) {
@@ -212,56 +186,6 @@ export default function SettingsPage() {
             </Button>
         </CardContent>
        </Card>
-      
-       <Card className="border-destructive/50 rounded-2xl">
-        <CardHeader>
-            <CardTitle className="font-headline text-xl text-destructive flex items-center gap-2">
-                <ShieldAlert className="h-5 w-5" />
-                Zona de Perigo
-            </CardTitle>
-             <CardDescription>
-                Ações irreversíveis. Tenha certeza antes de continuar.
-            </CardDescription>
-        </CardHeader>
-        <CardContent>
-             <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="destructive">Excluir minha conta</Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Você tem certeza absoluta?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Esta ação não pode ser desfeita. Isso irá excluir
-                    permanentemente sua conta e remover seus dados de nossos
-                    servidores.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                 <div className="space-y-2">
-                    <Label htmlFor="delete-confirm">
-                      Para confirmar, digite "<b>excluir minha conta</b>" abaixo:
-                    </Label>
-                    <Input
-                      id="delete-confirm"
-                      value={deleteConfirmationText}
-                      onChange={(e) => setDeleteConfirmationText(e.target.value)}
-                    />
-                  </div>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={handleDeleteAccount}
-                    disabled={isDeleteButtonDisabled}
-                    className={cn(buttonVariants({variant: 'destructive'}))}
-                  >
-                    Eu entendo, excluir minha conta
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-        </CardContent>
-       </Card>
-
     </div>
   );
 }

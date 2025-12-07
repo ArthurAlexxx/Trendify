@@ -40,6 +40,7 @@ import {
   getDocs,
   updateDoc,
   addDoc,
+  deleteDoc,
 } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -58,6 +59,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import Link from 'next/link';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogHeader, ResponsiveDialogFooter, ResponsiveDialogTitle, ResponsiveDialogDescription, ResponsiveDialogClose, ResponsiveDialogTrigger } from '@/components/ui/responsive-dialog';
 
 
@@ -113,6 +115,7 @@ export default function GenerateWeeklyPlanPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   
   const [isSaving, startSavingTransition] = useTransition();
+  const [isDiscarding, startDiscardingTransition] = useTransition();
 
   const { user } = useUser();
   const firestore = useFirestore();
@@ -301,6 +304,46 @@ export default function GenerateWeeklyPlanPage() {
     }
   };
 
+  const handleDiscardActivePlan = async () => {
+    if (!user || !firestore || !activePlan) return;
+
+    startDiscardingTransition(async () => {
+      try {
+        const batch = writeBatch(firestore);
+        const ideasCollectionRef = collection(firestore, `users/${user.uid}/ideiasSalvas`);
+        
+        // Archive the active plan
+        const newArchivedRef = doc(ideasCollectionRef);
+        batch.set(newArchivedRef, {
+          userId: user.uid,
+          titulo: `Plano Arquivado de ${activePlan.createdAt.toDate().toLocaleDateString('pt-BR')}`,
+          conteudo: activePlan.items.map(item => `**${item.dia}:** ${item.tarefa}`).join('\n'),
+          origem: "Plano Semanal",
+          concluido: false, 
+          createdAt: activePlan.createdAt,
+          aiResponseData: activePlan,
+        });
+        
+        // Delete the active plan document
+        batch.delete(doc(firestore, `users/${user.uid}/weeklyPlans`, activePlan.id));
+        
+        await batch.commit();
+
+        toast({
+          title: 'Plano Descartado',
+          description: 'O plano ativo foi movido para o seu histórico.',
+        });
+      } catch (e: any) {
+        console.error('Erro ao descartar plano ativo:', e);
+        toast({
+          title: 'Erro ao Descartar',
+          description: `Não foi possível descartar o plano: ${e.message}`,
+          variant: 'destructive',
+        });
+      }
+    });
+  };
+
 
   return (
     <div className="space-y-8">
@@ -398,7 +441,7 @@ export default function GenerateWeeklyPlanPage() {
                                     Forneça os detalhes para um plano melhor. Sua meta de seguidores será usada para focar a estratégia.
                                 </ResponsiveDialogDescription>
                             </ResponsiveDialogHeader>
-                            <ScrollArea className="flex-1">
+                            <ScrollArea className="flex-1 max-h-[calc(100vh-12rem)]">
                               <div className="p-6">
                                   <Form {...form}>
                                       <form onSubmit={form.handleSubmit(formAction)} className="space-y-6">
@@ -472,7 +515,7 @@ export default function GenerateWeeklyPlanPage() {
                                   </Form>
                               </div>
                             </ScrollArea>
-                            <ResponsiveDialogFooter className="p-6 border-t flex-col sm:flex-row gap-2">
+                            <ResponsiveDialogFooter className="p-6 pt-4 border-t flex-col sm:flex-row gap-2">
                                 <ResponsiveDialogClose asChild><Button type="button" variant="outline" className="w-full sm:w-auto">Cancelar</Button></ResponsiveDialogClose>
                                 <Button
                                     type="button"
@@ -660,7 +703,33 @@ export default function GenerateWeeklyPlanPage() {
                             <CardTitle className="font-headline text-xl">Plano Semanal Ativo</CardTitle>
                             <CardDescription>Este é o plano visível no seu dashboard.</CardDescription>
                         </div>
-                        <PreviousPlansSheet />
+                        <div className="flex items-center gap-2">
+                            <PreviousPlansSheet />
+                             {activePlan && (
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button variant="destructive" disabled={isDiscarding}>
+                                            <Trash2 className="mr-2 h-4 w-4" />
+                                            {isDiscarding ? "Descartando..." : "Descartar Plano"}
+                                        </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Descartar Plano Ativo?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                Esta ação moverá o plano atual para o seu histórico. Você poderá reativá-lo mais tarde. Deseja continuar?
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                            <AlertDialogAction onClick={handleDiscardActivePlan}>
+                                                Sim, Descartar
+                                            </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            )}
+                        </div>
                     </div>
                 </CardHeader>
                 <CardContent>
