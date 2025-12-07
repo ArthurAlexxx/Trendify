@@ -62,7 +62,7 @@ import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatDistanceToNow, format as formatDate } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { useSubscription } from '@/hooks/use-subscription';
+import { useSubscription } from '@/hooks/useSubscription';
 import Link from 'next/link';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
