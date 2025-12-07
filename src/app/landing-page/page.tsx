@@ -331,12 +331,13 @@ export default function LandingPage() {
               Da estratégia de conteúdo à monetização, a Trendify centraliza tudo que você precisa para crescer de forma inteligente.
             </p>
             {/* Mobile Carousel */}
-            <div className="lg:hidden px-4">
-              <Carousel className="w-full" opts={{align: 'start'}}>
-                <CarouselContent className="-ml-4 p-4">
-                  {features.map((feature) => (
-                    <CarouselItem key={feature.title} className="pl-4 md:basis-1/2">
-                       <Card className="text-left h-full bg-card/50 rounded-2xl border border-border/50">
+            <div className="lg:hidden">
+              <div className="px-8">
+                <Carousel className="w-full" opts={{align: 'start'}}>
+                  <CarouselContent className="-ml-4 p-4">
+                    {features.map((feature) => (
+                      <CarouselItem key={feature.title} className="pl-4 md:basis-1/2 p-1">
+                         <Card className="text-left h-full bg-card/50 rounded-2xl border border-border/50">
                           <CardHeader className="flex flex-row items-center justify-between">
                             <div className="bg-primary/10 text-primary p-3 rounded-lg">
                               <feature.icon className="h-6 w-6" />
@@ -357,11 +358,12 @@ export default function LandingPage() {
                           </CardContent>
                         </Card>
                     </CarouselItem>
-                  ))}
-                </CarouselContent>
-                 <CarouselPrevious className="left-[-1rem]" />
-                 <CarouselNext className="right-[-1rem]" />
-              </Carousel>
+                    ))}
+                  </CarouselContent>
+                   <CarouselPrevious className="left-0 top-1/2 -translate-y-1/2" />
+                   <CarouselNext className="right-0 top-1/2 -translate-y-1/2" />
+                </Carousel>
+              </div>
             </div>
             {/* Desktop Grid */}
             <div className="hidden lg:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -373,7 +375,7 @@ export default function LandingPage() {
                   transition={{ duration: 0.5 }}
                   viewport={{ once: true, amount: 0.3 }}
                 >
-                  <Card className="text-left h-full bg-card/50 rounded-2xl border border-border/50 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/20 hover:-translate-y-1 transition-all">
+                  <Card className="text-left h-full bg-card/50 rounded-2xl border border-border/50 hover:border-primary/50 hover:-translate-y-1 transition-all">
                     <CardHeader className="flex flex-row items-center justify-between">
                        <div className="bg-primary/10 text-primary p-3 rounded-lg">
                         <feature.icon className="h-6 w-6" />
