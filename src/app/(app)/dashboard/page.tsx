@@ -1,3 +1,4 @@
+
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -113,7 +114,7 @@ const platformChartConfig = {
 } satisfies Record<string, ChartConfig>;
 
 const DailyPlanCard = ({ isLoadingWeeklyPlans, tasksForToday, currentPlan, handleToggleRoteiro }: any) => (
-  <Card className="h-full">
+  <Card className="h-full shadow-xl">
     <CardHeader>
       <CardTitle className="text-center font-headline text-xl">
         Plano para Hoje
@@ -163,7 +164,7 @@ const DailyPlanCard = ({ isLoadingWeeklyPlans, tasksForToday, currentPlan, handl
 );
 
 const GoalCard = ({ isLoading, goalFollowers, currentFollowers, followerGoalProgress, pieData, formatMetricValue }: any) => (
-  <Card className="h-full">
+  <Card className="h-full shadow-xl">
     <CardHeader>
       <CardTitle className="text-center">Meta de Seguidores</CardTitle>
     </CardHeader>
@@ -221,7 +222,7 @@ const GoalCard = ({ isLoading, goalFollowers, currentFollowers, followerGoalProg
 );
 
 const EngagementMetricsCard = ({ isLoading, latestMetrics, formatMetricValue, getMetricRating }: any) => (
-    <Card>
+    <Card className="shadow-xl">
       <CardHeader>
           <CardTitle className="text-center">Métricas de Engajamento</CardTitle>
       </CardHeader>
@@ -284,7 +285,7 @@ const EngagementMetricsCard = ({ isLoading, latestMetrics, formatMetricValue, ge
 );
 
 const PerformanceAnalysisCard = ({ isGeneratingInsights, insights, handleGenerateInsights }: any) => (
-  <Card className="h-full flex flex-col">
+  <Card className="h-full flex flex-col shadow-xl">
      <CardHeader>
          <CardTitle className="text-center">Análise de Desempenho</CardTitle>
      </CardHeader>
@@ -316,7 +317,7 @@ const PerformanceAnalysisCard = ({ isGeneratingInsights, insights, handleGenerat
 );
 
 const EvolutionChartCard = ({ isLoading, historicalChartData, selectedPlatform, userProfile }: any) => (
-  <Card>
+  <Card className="shadow-xl">
       <CardHeader><CardTitle className="text-center">Evolução das Métricas</CardTitle></CardHeader>
       <CardContent className="pl-2 pr-6">
           {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
@@ -683,19 +684,20 @@ export default function DashboardPage() {
           {userProfile && <ProfileCompletionAlert userProfile={userProfile} isPremium={isPremium} />}
 
           {/* Mobile Carousel */}
-            <div className="lg:hidden space-y-8">
+            <div className="lg:hidden">
+              <div className="px-8">
                 <Carousel
                   opts={{
                     align: "start",
-                    loop: false,
                   }}
-                  className="w-full max-w-sm mx-auto"
+                  className="w-full -mx-4"
                 >
-                    <CarouselContent>
-                        <CarouselItem className="basis-full"><GoalCard isLoading={isLoading} goalFollowers={goalFollowers} currentFollowers={currentFollowers} followerGoalProgress={followerGoalProgress} pieData={pieData} formatMetricValue={formatMetricValue} /></CarouselItem>
-                        <CarouselItem className="basis-full"><DailyPlanCard isLoadingWeeklyPlans={isLoadingWeeklyPlans} tasksForToday={tasksForToday} currentPlan={currentPlan} handleToggleRoteiro={handleToggleRoteiro} /></CarouselItem>
-                        <CarouselItem className="basis-full"><EngagementMetricsCard isLoading={isLoading} latestMetrics={latestMetrics} formatMetricValue={formatMetricValue} getMetricRating={getMetricRating} /></CarouselItem>
-                         <CarouselItem className="basis-full">
+                    <CarouselContent className="p-1 -ml-4">
+                        <CarouselItem className="pl-4 basis-11/12"><div className="p-1"><GoalCard isLoading={isLoading} goalFollowers={goalFollowers} currentFollowers={currentFollowers} followerGoalProgress={followerGoalProgress} pieData={pieData} formatMetricValue={formatMetricValue} /></div></CarouselItem>
+                        <CarouselItem className="pl-4 basis-11/12"><div className="p-1"><DailyPlanCard isLoadingWeeklyPlans={isLoadingWeeklyPlans} tasksForToday={tasksForToday} currentPlan={currentPlan} handleToggleRoteiro={handleToggleRoteiro} /></div></CarouselItem>
+                        <CarouselItem className="pl-4 basis-11/12"><div className="p-1"><EngagementMetricsCard isLoading={isLoading} latestMetrics={latestMetrics} formatMetricValue={formatMetricValue} getMetricRating={getMetricRating} /></div></CarouselItem>
+                         <CarouselItem className="pl-4 basis-11/12">
+                           <div className="p-1">
                             <ActionHubCard 
                                 isLoadingUpcoming={isLoadingUpcoming}
                                 upcomingContent={upcomingContent}
@@ -711,12 +713,12 @@ export default function DashboardPage() {
                                 handleTikTokClick={handleTikTokClick}
                                 formatNumber={formatNumber}
                             />
+                           </div>
                          </CarouselItem>
-                         <CarouselItem className="basis-full"><PerformanceAnalysisCard isGeneratingInsights={isGeneratingInsights} insights={insights} handleGenerateInsights={handleGenerateInsights} /></CarouselItem>
+                         <CarouselItem className="pl-4 basis-11/12"><div className="p-1"><PerformanceAnalysisCard isGeneratingInsights={isGeneratingInsights} insights={insights} handleGenerateInsights={handleGenerateInsights} /></div></CarouselItem>
                     </CarouselContent>
-                    <CarouselPrevious className="left-2" />
-                    <CarouselNext className="right-2" />
                 </Carousel>
+              </div>
                 <EvolutionChartCard isLoading={isLoading} historicalChartData={historicalChartData} selectedPlatform={selectedPlatform} userProfile={userProfile} />
             </div>
 
@@ -765,3 +767,4 @@ export default function DashboardPage() {
     
 
     
+

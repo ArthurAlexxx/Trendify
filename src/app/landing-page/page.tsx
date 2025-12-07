@@ -332,11 +332,11 @@ export default function LandingPage() {
             </p>
             {/* Mobile Carousel */}
             <div className="lg:hidden">
-              <div className="px-4">
-                <Carousel className="w-full" opts={{align: 'start'}}>
-                  <CarouselContent className="p-4 -ml-8">
-                    {features.map((feature) => (
-                      <CarouselItem key={feature.title} className="pl-8 basis-11/12 md:basis-1/2">
+              <div className="px-8">
+                <Carousel className="w-full -mx-4" opts={{ align: "start" }}>
+                  <CarouselContent className="-ml-8 p-4">
+                    {features.map((feature, index) => (
+                      <CarouselItem key={feature.title} className="pl-8 basis-11/12">
                          <div className="p-1">
                           <Card className="text-left h-full bg-card/50 rounded-2xl border">
                             <CardHeader className="flex flex-row items-center justify-between">
@@ -375,7 +375,7 @@ export default function LandingPage() {
                   transition={{ duration: 0.5 }}
                   viewport={{ once: true, amount: 0.3 }}
                 >
-                  <Card className="text-left h-full bg-card/50 rounded-2xl border-0 shadow-2xl shadow-primary/10">
+                  <Card className="text-left h-full bg-card/50 rounded-2xl border-0 shadow-xl shadow-primary/10">
                     <CardHeader className="flex flex-row items-center justify-between">
                        <div className="bg-primary/10 text-primary p-3 rounded-lg">
                         <feature.icon className="h-6 w-6" />
@@ -422,7 +422,7 @@ export default function LandingPage() {
                       plano de crescimento, tempo até a meta e potencial de ganhos no seu nicho.
                     </p>
                   </div>
-                  <Card className="max-w-4xl mx-auto p-4 sm:p-6 rounded-2xl bg-card shadow-2xl shadow-primary/10">
+                  <Card className="max-w-4xl mx-auto p-4 sm:p-6 rounded-2xl bg-card shadow-xl shadow-primary/10">
                     <CardContent className="p-2 sm:p-4">
                       <Form {...form}>
                         <form
@@ -573,78 +573,78 @@ export default function LandingPage() {
                       </div>
                       
                       {/* Mobile Carousel */}
-                      <div className="lg:hidden p-4">
-                        <Carousel className="w-full" opts={{ align: "start" }}>
-                          <CarouselContent className="p-4 -ml-8">
-                            {results.growthData && results.growthData.length > 0 && (
-                              <CarouselItem className="pl-8 basis-11/12 md:basis-1/2">
-                                <div className="p-1">
-                                <Card className="rounded-2xl border">
-                                  <CardHeader><CardTitle className="text-lg font-bold">Curva de Crescimento</CardTitle></CardHeader>
-                                  <CardContent className="pt-2 pl-2">
-                                      <div className="h-64 w-full">
-                                          <ResponsiveContainer>
-                                              <AreaChart data={results.growthData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-                                                  <defs><linearGradient id="colorFollowers" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.8}/><stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/></linearGradient></defs>
-                                                  <XAxis dataKey="month" tickFormatter={(v) => `Mês ${v}`} />
-                                                  <YAxis domain={[0, dataMax => Math.ceil((Math.max(form.getValues('goal'), dataMax) * 1.1) / 1000) * 1000]} tickFormatter={(v) => v >= 1000 ? `${v / 1000}k` : v.toString()} />
-                                                  <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }} />
-                                                  <Area type="monotone" dataKey="followers" stroke="hsl(var(--primary))" fillOpacity={1} fill="url(#colorFollowers)" />
-                                              </AreaChart>
-                                          </ResponsiveContainer>
-                                      </div>
-                                  </CardContent>
-                                </Card>
-                                </div>
-                              </CarouselItem>
-                            )}
-                            {(results.currentEarnings || results.goalEarnings) && (
-                              <CarouselItem className="pl-8 basis-11/12 md:basis-1/2">
-                                <div className="p-1">
-                                <Card className="h-full rounded-2xl border">
-                                  <CardHeader>
-                                    <CardTitle className="text-lg font-bold">
-                                      Potencial de Ganhos/Mês
-                                    </CardTitle>
-                                  </CardHeader>
-                                  <CardContent className="space-y-4 text-center">
-                                    {results.currentEarnings && (
-                                      <div>
-                                        <p className="text-2xl font-bold">
-                                          {formatCurrency(results.currentEarnings[0])} - {formatCurrency(results.currentEarnings[1])}
-                                        </p>
-                                        <p className="text-sm text-muted-foreground">(estimativa atual)</p>
-                                      </div>
-                                    )}
-                                    {results.goalEarnings && (
-                                       <div>
-                                        <p className="text-2xl font-bold">
-                                          {formatCurrency(results.goalEarnings[0])} - {formatCurrency(results.goalEarnings[1])}
-                                        </p>
-                                        <p className="text-sm text-muted-foreground">(estimativa na meta)</p>
-                                      </div>
-                                    )}
-                                  </CardContent>
-                                </Card>
-                                </div>
-                              </CarouselItem>
-                            )}
-                             {results.accelerationScenarios && (
-                              <CarouselItem className="pl-8 basis-11/12 md:basis-1/2">
-                                 <div className="p-1">
-                                <Card className="rounded-2xl h-full border">
-                                  <CardHeader><CardTitle className="text-lg font-bold">Cenários de Aceleração</CardTitle></CardHeader>
-                                  <CardContent className="grid grid-cols-3 gap-4 text-center">
-                                      <div><p className="font-bold text-2xl">{results.accelerationScenarios.maintain}</p><p className="text-xs text-muted-foreground">Meses (Ritmo Atual)</p></div>
-                                      <div><p className="font-bold text-2xl">{results.accelerationScenarios.plus20}</p><p className="text-xs text-muted-foreground">Meses (+20% Posts)</p></div>
-                                      <div><p className="font-bold text-2xl">{results.accelerationScenarios.plus40}</p><p className="text-xs text-muted-foreground">Meses (+40% Posts)</p></div>
-                                  </CardContent>
-                                </Card>
-                                </div>
-                              </CarouselItem>
-                            )}
-                          </CarouselContent>
-                        </Carousel>
+                      <div className="lg:hidden px-8">
+                          <Carousel className="w-full -mx-4" opts={{ align: "start" }}>
+                            <CarouselContent className="p-1 -ml-4">
+                              {results.growthData && results.growthData.length > 0 && (
+                                <CarouselItem className="pl-4 basis-11/12">
+                                  <div className="p-1">
+                                  <Card className="rounded-2xl border">
+                                    <CardHeader><CardTitle className="text-lg font-bold">Curva de Crescimento</CardTitle></CardHeader>
+                                    <CardContent className="pt-2 pl-2">
+                                        <div className="h-64 w-full">
+                                            <ResponsiveContainer>
+                                                <AreaChart data={results.growthData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+                                                    <defs><linearGradient id="colorFollowers" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.8}/><stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/></linearGradient></defs>
+                                                    <XAxis dataKey="month" tickFormatter={(v) => `Mês ${v}`} />
+                                                    <YAxis domain={[0, dataMax => Math.ceil((Math.max(form.getValues('goal'), dataMax) * 1.1) / 1000) * 1000]} tickFormatter={(v) => v >= 1000 ? `${v / 1000}k` : v.toString()} />
+                                                    <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }} />
+                                                    <Area type="monotone" dataKey="followers" stroke="hsl(var(--primary))" fillOpacity={1} fill="url(#colorFollowers)" />
+                                                </AreaChart>
+                                            </ResponsiveContainer>
+                                        </div>
+                                    </CardContent>
+                                  </Card>
+                                  </div>
+                                </CarouselItem>
+                              )}
+                              {(results.currentEarnings || results.goalEarnings) && (
+                                <CarouselItem className="pl-4 basis-11/12">
+                                  <div className="p-1">
+                                  <Card className="h-full rounded-2xl border">
+                                    <CardHeader>
+                                      <CardTitle className="text-lg font-bold">
+                                        Potencial de Ganhos/Mês
+                                      </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4 text-center">
+                                      {results.currentEarnings && (
+                                        <div>
+                                          <p className="text-2xl font-bold">
+                                            {formatCurrency(results.currentEarnings[0])} - {formatCurrency(results.currentEarnings[1])}
+                                          </p>
+                                          <p className="text-sm text-muted-foreground">(estimativa atual)</p>
+                                        </div>
+                                      )}
+                                      {results.goalEarnings && (
+                                         <div>
+                                          <p className="text-2xl font-bold">
+                                            {formatCurrency(results.goalEarnings[0])} - {formatCurrency(results.goalEarnings[1])}
+                                          </p>
+                                          <p className="text-sm text-muted-foreground">(estimativa na meta)</p>
+                                        </div>
+                                      )}
+                                    </CardContent>
+                                  </Card>
+                                  </div>
+                                </CarouselItem>
+                              )}
+                               {results.accelerationScenarios && (
+                                <CarouselItem className="pl-4 basis-11/12">
+                                   <div className="p-1">
+                                  <Card className="rounded-2xl h-full border">
+                                    <CardHeader><CardTitle className="text-lg font-bold">Cenários de Aceleração</CardTitle></CardHeader>
+                                    <CardContent className="grid grid-cols-3 gap-4 text-center">
+                                        <div><p className="font-bold text-2xl">{results.accelerationScenarios.maintain}</p><p className="text-xs text-muted-foreground">Meses (Ritmo Atual)</p></div>
+                                        <div><p className="font-bold text-2xl">{results.accelerationScenarios.plus20}</p><p className="text-xs text-muted-foreground">Meses (+20% Posts)</p></div>
+                                        <div><p className="font-bold text-2xl">{results.accelerationScenarios.plus40}</p><p className="text-xs text-muted-foreground">Meses (+40% Posts)</p></div>
+                                    </CardContent>
+                                  </Card>
+                                  </div>
+                                </CarouselItem>
+                              )}
+                            </CarouselContent>
+                          </Carousel>
                       </div>
 
                       {/* Desktop Grid */}
@@ -652,7 +652,7 @@ export default function LandingPage() {
                           {/* Left Column */}
                           <div className="space-y-8">
                               {results.growthData && results.growthData.length > 0 && (
-                              <Card className="rounded-2xl border shadow-primary/10">
+                              <Card className="rounded-2xl border shadow-xl">
                                   <CardHeader><CardTitle className="text-lg font-bold">Curva de Crescimento</CardTitle></CardHeader>
                                   <CardContent className="pt-2 pl-2">
                                       <div className="h-64 w-full">
@@ -670,7 +670,7 @@ export default function LandingPage() {
                               </Card>
                               )}
                               {results.accelerationScenarios && (
-                              <Card className="rounded-2xl border shadow-primary/10">
+                              <Card className="rounded-2xl border shadow-xl">
                                   <CardHeader><CardTitle className="text-lg font-bold">Cenários de Aceleração</CardTitle></CardHeader>
                                   <CardContent className="grid grid-cols-3 gap-4 text-center">
                                       <div><p className="font-bold text-2xl">{results.accelerationScenarios.maintain}</p><p className="text-xs text-muted-foreground">Meses (Ritmo Atual)</p></div>
@@ -685,14 +685,14 @@ export default function LandingPage() {
                           <div className="space-y-8">
                               <div className="grid grid-cols-2 gap-4">
                                   {results.months != null && (
-                                    <Card className="bg-primary/5 border-primary/20 text-center shadow-primary/10"><CardContent className="p-4"><p className="text-sm text-muted-foreground">Tempo até a Meta</p><p className="text-2xl font-bold">{results.months} meses</p></CardContent></Card>
+                                    <Card className="bg-primary/5 border-primary/20 text-center shadow-xl"><CardContent className="p-4"><p className="text-sm text-muted-foreground">Tempo até a Meta</p><p className="text-2xl font-bold">{results.months} meses</p></CardContent></Card>
                                   )}
                                   {results.difficultyScore && (
-                                    <Card className="bg-primary/5 border-primary/20 text-center shadow-primary/10"><CardContent className="p-4"><p className="text-sm text-muted-foreground">Nível da Meta</p><p className="text-2xl font-bold">{results.difficultyScore}</p></CardContent></Card>
+                                    <Card className="bg-primary/5 border-primary/20 text-center shadow-xl"><CardContent className="p-4"><p className="text-sm text-muted-foreground">Nível da Meta</p><p className="text-2xl font-bold">{results.difficultyScore}</p></CardContent></Card>
                                   )}
                               </div>
                                {(results.currentEarnings || results.goalEarnings) && (
-                                <Card className="border shadow-primary/10">
+                                <Card className="border shadow-xl">
                                   <CardHeader>
                                     <CardTitle className="text-lg font-bold">
                                       Potencial de Ganhos/Mês
@@ -721,13 +721,13 @@ export default function LandingPage() {
                                 </Card>
                               )}
                               {results.benchmarkComparison && (
-                                <Card className="border shadow-primary/10"><CardHeader><CardTitle className="text-lg font-bold">Análise do Mercado</CardTitle></CardHeader><CardContent><p className="text-sm text-muted-foreground">{results.benchmarkComparison}</p></CardContent></Card>
+                                <Card className="border shadow-xl"><CardHeader><CardTitle className="text-lg font-bold">Análise do Mercado</CardTitle></CardHeader><CardContent><p className="text-sm text-muted-foreground">{results.benchmarkComparison}</p></CardContent></Card>
                               )}
                           </div>
                       </div>
                       
                       {results.earningsAnalysis && (
-                         <Card className="bg-card border shadow-primary/10">
+                         <Card className="bg-card border shadow-xl">
                             <CardHeader>
                                <CardTitle className="font-bold text-lg flex items-center gap-2">
                                 Análise de Monetização
@@ -742,7 +742,7 @@ export default function LandingPage() {
 
                       {/* Action Plan */}
                        {(results.recommendations?.length || results.riskPanel?.length || results.trendSuggestions?.length) && (
-                      <Card className="bg-card border shadow-primary/10">
+                      <Card className="bg-card border shadow-xl">
                           <CardHeader><h4 className="font-bold text-lg text-center">Seu Plano Inicial para Acelerar</h4></CardHeader>
                           <CardContent className="grid sm:grid-cols-2 lg:grid-cols-2 gap-8">
                               {results.recommendations && results.recommendations.length > 0 && (
@@ -801,7 +801,7 @@ export default function LandingPage() {
             </div>
             <div className="grid lg:grid-cols-3 gap-8 max-w-6xl mx-auto items-start">
                {/* Plano Grátis */}
-              <Card className="rounded-2xl p-6 flex flex-col h-full bg-muted/30">
+              <Card className="rounded-2xl p-6 flex flex-col h-full bg-muted/30 shadow-xl">
                 <h3 className="text-2xl font-bold font-headline mb-2">
                   Grátis
                 </h3>
@@ -834,7 +834,7 @@ export default function LandingPage() {
               </Card>
 
               {/* Plano Pro */}
-              <Card className="rounded-2xl p-6 border-2 border-primary relative flex flex-col h-full">
+              <Card className="rounded-2xl p-6 border-2 border-primary relative flex flex-col h-full shadow-xl">
                 <Badge className="absolute -top-4 left-1/2 -translate-x-1/2">
                   Mais Popular
                 </Badge>
@@ -880,7 +880,7 @@ export default function LandingPage() {
               </Card>
 
               {/* Plano Premium */}
-               <Card className="rounded-2xl p-6 border border-yellow-400/50 bg-yellow-400/5 flex flex-col h-full">
+               <Card className="rounded-2xl p-6 border border-yellow-400/50 bg-yellow-400/5 flex flex-col h-full shadow-xl">
                  <h3 className="text-2xl font-bold font-headline mb-2 flex items-center gap-2">
                   Premium
                   <Crown className="h-5 w-5 text-yellow-500 fill-yellow-500" />
