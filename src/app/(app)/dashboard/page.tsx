@@ -114,7 +114,7 @@ const platformChartConfig = {
 } satisfies Record<string, ChartConfig>;
 
 const DailyPlanCard = ({ isLoadingWeeklyPlans, tasksForToday, currentPlan, handleToggleRoteiro }: any) => (
-  <Card className="h-full shadow-primary">
+  <Card className="h-full shadow-lg">
     <CardHeader>
       <CardTitle className="text-center font-headline text-xl">
         Plano para Hoje
@@ -164,7 +164,7 @@ const DailyPlanCard = ({ isLoadingWeeklyPlans, tasksForToday, currentPlan, handl
 );
 
 const GoalCard = ({ isLoading, goalFollowers, currentFollowers, followerGoalProgress, pieData, formatMetricValue }: any) => (
-  <Card className="h-full shadow-primary">
+  <Card className="h-full shadow-lg">
     <CardHeader>
       <CardTitle className="text-center">Meta de Seguidores</CardTitle>
     </CardHeader>
@@ -222,7 +222,7 @@ const GoalCard = ({ isLoading, goalFollowers, currentFollowers, followerGoalProg
 );
 
 const EngagementMetricsCard = ({ isLoading, latestMetrics, formatMetricValue, getMetricRating }: any) => (
-    <Card className="shadow-primary">
+    <Card className="shadow-lg">
       <CardHeader>
           <CardTitle className="text-center">Métricas de Engajamento</CardTitle>
       </CardHeader>
@@ -285,7 +285,7 @@ const EngagementMetricsCard = ({ isLoading, latestMetrics, formatMetricValue, ge
 );
 
 const PerformanceAnalysisCard = ({ isGeneratingInsights, insights, handleGenerateInsights }: any) => (
-  <Card className="h-full flex flex-col shadow-primary">
+  <Card className="h-full flex flex-col shadow-lg">
      <CardHeader>
          <CardTitle className="text-center">Análise de Desempenho</CardTitle>
      </CardHeader>
@@ -317,7 +317,7 @@ const PerformanceAnalysisCard = ({ isGeneratingInsights, insights, handleGenerat
 );
 
 const EvolutionChartCard = ({ isLoading, historicalChartData, selectedPlatform, userProfile }: any) => (
-  <Card className="shadow-primary">
+  <Card className="shadow-lg">
       <CardHeader><CardTitle className="text-center">Evolução das Métricas</CardTitle></CardHeader>
       <CardContent className="pl-2 pr-6">
           {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
@@ -760,14 +760,5 @@ export default function DashboardPage() {
     </>
   );
 }
-
-
-
-
-    
-
-    
-
-
 
     

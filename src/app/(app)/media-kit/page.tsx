@@ -406,8 +406,6 @@ function MediaKitPageContent() {
                             </CarouselItem>
                         ))}
                     </CarouselContent>
-                    <CarouselPrevious className="left-2" />
-                    <CarouselNext className="right-2" />
                 </Carousel>
             </div>
             <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -609,7 +607,7 @@ function InfoCard({
   content: string;
 }) {
   return (
-    <Card>
+    <Card className="shadow-lg">
       <CardHeader>
         <CardTitle className="flex items-center justify-center gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary" />
@@ -636,7 +634,7 @@ function InfoList({
   items: string[];
 }) {
   return (
-    <Card className="h-full">
+    <Card className="h-full shadow-lg">
       <CardHeader>
         <CardTitle className="flex items-center justify-center gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary" />
@@ -670,7 +668,7 @@ function PricingCard({
   pricing: AiCareerPackageOutput['pricingTiers'];
 }) {
   return (
-    <Card className="h-full">
+    <Card className="h-full shadow-lg">
       <CardHeader>
         <CardTitle className="flex items-center justify-center gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary" />
@@ -710,3 +708,4 @@ function PricingCard({
   );
 }
 
+    
