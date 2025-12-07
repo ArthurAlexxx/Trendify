@@ -68,17 +68,22 @@ const TikTokPostSchema = z.object({
     cover: z.string().url(),
     create_time: z.number().optional(),
     statistics: z.object({
-        number_of_plays: z.number().or(z.string()).transform(val => Number(val)).optional(),
-        number_of_hearts: z.number().or(z.string()).transform(val => Number(val)).optional(),
-        number_of_comments: z.number().or(z.string()).transform(val => Number(val)).optional(),
+        play_count: z.number().or(z.string()).transform(val => Number(val)).optional(),
+        digg_count: z.number().or(z.string()).transform(val => Number(val)).optional(),
+        comment_count: z.number().or(z.string()).transform(val => Number(val)).optional(),
+        share_count: z.number().or(z.string()).transform(val => Number(val)).optional(),
     }).passthrough().optional(),
+    video: z.object({
+        play_addr: z.object({
+            url_list: z.array(z.string().url()).optional(),
+        }).optional(),
+    }).optional(),
 }).passthrough();
 
 
 const TikTokPostResponseSchema = z.object({
-    videos: z.array(TikTokPostSchema).optional().default([]),
+    aweme_list: z.array(TikTokPostSchema).optional().default([]),
 }).passthrough();
-
 
 
 // --- API Fetching Logic ---
@@ -111,15 +116,13 @@ async function fetchFromRapidApi(platform: 'instagram-profile' | 'tiktok-profile
             break;
         case 'tiktok-posts':
             host = 'tiktok-api6.p.rapidapi.com';
-            path = 'user/videos';
-            method = 'POST';
-            headers['Content-Type'] = 'application/json';
-            body = JSON.stringify({ username: identifier });
+            path = 'user/posts';
+            paramName = 'secUid'; // This endpoint now uses secUid
             break;
         case 'tiktok-video-details':
              host = 'tiktok-api6.p.rapidapi.com';
              path = 'video/details';
-             paramName = 'video_id';
+             paramName = 'id'; // The video details endpoint uses 'id'
              break;
         default:
             throw new Error(`Plataforma '${platform}' desconhecida.`);
@@ -130,6 +133,8 @@ async function fetchFromRapidApi(platform: 'instagram-profile' | 'tiktok-profile
     const finalUrl = new URL(`https://${host}/${path}`);
     if (method === 'GET') {
         finalUrl.searchParams.set(paramName, identifier);
+    } else {
+        body = JSON.stringify({ [paramName]: identifier, count: 20 });
     }
 
     const options: RequestInit = {
@@ -169,6 +174,7 @@ async function fetchData(url: string, options: RequestInit) {
 
     if (data.message && (data.message.includes("Couldn't find user") || data.message.includes("User not found"))) throw new Error("Usuário não encontrado. Verifique o nome de usuário e tente novamente.");
     if (data.error) throw new Error(data.error);
+    if (data.status_code !== 0 && data.status_msg) throw new Error(`A API do TikTok retornou um erro: ${data.status_msg}`);
     if (data.status === 'fail' || (data.data && data.data.user === null)) throw new Error("Usuário não encontrado ou perfil indisponível.");
 
 
@@ -256,8 +262,6 @@ export async function getInstagramPosts(username: string): Promise<InstagramPost
 export async function getTikTokProfile(username: string): Promise<TikTokProfileData> {
   try {
       const result = await fetchFromRapidApi('tiktok-profile', username);
-      console.log('Resposta da API de Perfil TikTok:', JSON.stringify(result, null, 2));
-
       const userData = result?.data?.user || result;
 
       if (!userData || typeof userData !== 'object') {
@@ -300,22 +304,45 @@ export async function getTikTokPosts(username: string): Promise<TikTokPostData[]
         throw new Error('Nome de usuário é necessário para buscar os posts.');
     }
     try {
-        const result = await fetchFromRapidApi('tiktok-posts', username);
-        console.log('Resposta da API de Vídeos TikTok:', JSON.stringify(result, null, 2));
+        const profile = await getTikTokProfile(username);
+        if (!profile.secUid) {
+            throw new Error("Não foi possível obter o secUid do perfil do TikTok, necessário para buscar os vídeos.");
+        }
+
+        const result = await fetchFromRapidApi('tiktok-posts', profile.secUid);
 
         const parsed = TikTokPostResponseSchema.parse(result);
         
-        const videos = parsed.videos ?? [];
+        const videos = parsed.aweme_list ?? [];
 
-        return videos.map(post => ({
-            id: post.video_id,
-            shareUrl: post.share_url,
-            description: post.description || '',
-            coverUrl: post.cover,
-            views: post.statistics?.number_of_plays ?? 0,
-            likes: post.statistics?.number_of_hearts ?? 0,
-            comments: post.statistics?.number_of_comments ?? 0,
+        const detailedVideos = await Promise.all(videos.slice(0, 10).map(async (post) => {
+            try {
+                const details = await fetchFromRapidApi('tiktok-video-details', post.video_id);
+                return {
+                    id: post.video_id,
+                    shareUrl: details?.data?.share_url,
+                    description: post.description || '',
+                    coverUrl: post.video.cover.url_list[0],
+                    views: post.statistics?.play_count ?? 0,
+                    likes: post.statistics?.digg_count ?? 0,
+                    comments: post.statistics?.comment_count ?? 0,
+                };
+            } catch (detailError: any) {
+                console.warn(`Falha ao buscar detalhes do vídeo ${post.video_id}: ${detailError.message}`);
+                // Retorna o post com dados básicos mesmo que os detalhes falhem
+                return {
+                    id: post.video_id,
+                    shareUrl: undefined,
+                    description: post.description || '',
+                    coverUrl: post.video.cover.url_list[0],
+                    views: post.statistics?.play_count ?? 0,
+                    likes: post.statistics?.digg_count ?? 0,
+                    comments: post.statistics?.comment_count ?? 0,
+                };
+            }
         }));
+
+        return detailedVideos;
 
     } catch (e: any) {
         console.error(`[ACTION ERROR - getTikTokPosts] ${e.message}`);
@@ -326,3 +353,5 @@ export async function getTikTokPosts(username: string): Promise<TikTokPostData[]
         throw e;
     }
 }
+
+    

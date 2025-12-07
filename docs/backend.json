@@ -330,10 +330,9 @@
         "concluido": { "type": "boolean", "description": "Indica se a tarefa relacionada à ideia foi concluída." },
         "createdAt": { "type": "string", "format": "date-time", "description": "O timestamp de quando a ideia foi salva." },
         "completedAt": { "type": "string", "format": "date-time", "description": "O timestamp de quando a ideia foi marcada como concluída." },
-        "fullPlanData": {
+        "aiResponseData": {
           "type": "object",
-          "$ref": "#/entities/PlanoSemanal",
-          "description": "Campo opcional para armazenar o objeto completo de um plano semanal arquivado."
+          "description": "Campo opcional para armazenar o objeto de resposta completo da IA."
         }
       },
       "required": ["userId", "titulo", "conteudo", "origem", "concluido", "createdAt"]
@@ -393,7 +392,7 @@
     },
     "/users/{userId}/metricSnapshots/{snapshotId}": {
         "schema": { "$ref": "#/entities/MetricSnapshot" },
-        "description": "Stores daily metric snapshots for a user, per platform."
+        "description": "Stores daily metric snapshots for a user, per platform. The document ID is a composite key like 'instagram_YYYY-MM-DD'."
     },
     "/users/{userId}/ideiasSalvas/{ideiaId}": {
       "schema": { "$ref": "#/entities/IdeiaSalva" },
@@ -413,3 +412,4 @@
     }
   }
 }
+    
