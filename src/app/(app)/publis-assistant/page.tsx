@@ -67,6 +67,7 @@ import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
+import { ResponsiveDialog, ResponsiveDialogClose, ResponsiveDialogContent, ResponsiveDialogDescription, ResponsiveDialogFooter, ResponsiveDialogHeader, ResponsiveDialogTitle, ResponsiveDialogTrigger } from '@/components/ui/responsive-dialog';
 
 
 const formSchema = z.object({
@@ -483,148 +484,148 @@ function PublisAssistantPageContent() {
                     <p className="text-muted-foreground max-w-xl">
                        Clique no botão abaixo para detalhar o produto, público e objetivo. Isso ajuda a IA a criar roteiros e estratégias mais eficazes.
                     </p>
-                     <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-                        <DialogTrigger asChild>
-                            <Button size="lg" disabled={isButtonDisabled}>
-                                {isGenerating ? (
-                                    <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Gerando...</>
-                                ) : (
-                                    <><Sparkles className="mr-2 h-5 w-5" />Gerar Campanha</>
-                                )}
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-2xl p-0">
-                             <SheetContent side="right" className="p-0 sm:max-w-2xl flex flex-col gap-0">
-                                <SheetHeader className="p-6 pb-4 border-b">
-                                <SheetTitle className="flex items-center justify-center font-headline text-xl gap-2">
-                                    <Bot className="h-6 w-6 text-primary" />
-                                    Briefing da Campanha
-                                </SheetTitle>
-                                <SheetDescription className='text-center'>Quanto mais detalhes, mais alinhados à marca serão os roteiros.</SheetDescription>
-                                </SheetHeader>
-                                <ScrollArea className="flex-1">
-                                  <div className="p-6">
-                                    <Form {...form}>
-                                        <form
-                                        onSubmit={form.handleSubmit(formAction)}
-                                        className="space-y-6"
-                                        >
-                                          <FormField
-                                            control={form.control}
-                                            name="product"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                <FormLabel>Produto ou Marca</FormLabel>
-                                                <FormControl>
-                                                    <Input
-                                                    placeholder="Ex: Tênis de corrida da Nike"
-                                                    className="h-12 bg-muted/50"
-                                                    {...field}
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                                </FormItem>
-                                            )}
-                                          />
-                                          <FormField
-                                            control={form.control}
-                                            name="targetAudience"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                <FormLabel>Público-Alvo</FormLabel>
-                                                <FormControl>
-                                                    <Textarea
-                                                    placeholder="Ex: Mulheres de 25-35 anos, interessadas em vida saudável."
-                                                    className="min-h-[100px] bg-muted/50"
-                                                    {...field}
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                                </FormItem>
-                                            )}
-                                          />
-                                          <FormField
-                                            control={form.control}
-                                            name="differentiators"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                <FormLabel>Diferenciais do Produto</FormLabel>
-                                                <FormControl>
-                                                <Textarea
-                                                    placeholder="Ex: Material reciclado, leve, absorção de impacto, design moderno."
-                                                    className="min-h-[100px] bg-muted/50"
-                                                    {...field}
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                                </FormItem>
-                                            )}
-                                          />
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                                        <FormField
-                                        control={form.control}
-                                        name="objective"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                            <FormLabel>Objetivo Principal</FormLabel>
-                                            <Select onValueChange={field.onChange} defaultValue={field.value} name={field.name}>
-                                                <FormControl>
-                                                <SelectTrigger className="h-12 bg-muted/50">
-                                                    <SelectValue placeholder="Selecione" />
-                                                </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                <SelectItem value="Gerar Vendas">Gerar Vendas (Conversão)</SelectItem>
-                                                <SelectItem value="Aumentar Reconhecimento da Marca">Aumentar Reconhecimento (Alcance)</SelectItem>
-                                                <SelectItem value="Gerar Leads">Gerar Leads (Cadastros)</SelectItem>
-                                                <SelectItem value="Engajar a Comunidade">Engajar a Comunidade</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                            <FormMessage />
-                                            </FormItem>
-                                        )}
-                                        />
-                                        <FormField
-                                            control={form.control}
-                                            name="extraInfo"
-                                            render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Informações Adicionais (Opcional)</FormLabel>
-                                                <FormControl>
-                                                <Input
-                                                    placeholder="Restrições, cupons, links, etc."
-                                                    className="h-12 bg-muted/50"
-                                                    {...field}
-                                                />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                            )}
-                                        />
-                                    </div>
-                                        
-                                        </form>
-                                    </Form>
-                                  </div>
-                                </ScrollArea>
-                                 <SheetFooter className="p-6 border-t flex-col sm:flex-row gap-2">
-                                     <Button type="button" variant="outline" onClick={() => setIsFormOpen(false)} className="w-full sm:w-auto">Cancelar</Button>
-                                    <Button
-                                    type="button"
-                                    onClick={form.handleSubmit(formAction)}
-                                    disabled={isButtonDisabled}
-                                    className="w-full sm:w-auto"
-                                    >
-                                    {isGenerating ? (
-                                        <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Gerando...</>
-                                    ) : (
-                                        <><Sparkles className="mr-2 h-5 w-5" />Gerar Pacote</>
+                    <ResponsiveDialog isOpen={isFormOpen} onOpenChange={setIsFormOpen}>
+                      <ResponsiveDialogTrigger asChild>
+                         <Button size="lg" disabled={isButtonDisabled}>
+                           {isGenerating ? (
+                              <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Gerando...</>
+                            ) : (
+                              <><Sparkles className="mr-2 h-5 w-5" />Gerar Campanha</>
+                            )}
+                         </Button>
+                      </ResponsiveDialogTrigger>
+                      <ResponsiveDialogContent className="sm:max-w-2xl p-0 flex flex-col gap-0">
+                        <ResponsiveDialogHeader className="p-6 pb-4 border-b">
+                          <ResponsiveDialogTitle className="flex items-center justify-center font-headline text-xl gap-2">
+                            <Bot className="h-6 w-6 text-primary" />
+                            Briefing da Campanha
+                          </ResponsiveDialogTitle>
+                          <ResponsiveDialogDescription className='text-center'>Quanto mais detalhes, mais alinhados à marca serão os roteiros.</ResponsiveDialogDescription>
+                        </ResponsiveDialogHeader>
+                        <ScrollArea className="flex-1">
+                          <div className="p-6">
+                            <Form {...form}>
+                                <form
+                                onSubmit={form.handleSubmit(formAction)}
+                                className="space-y-6"
+                                >
+                                  <FormField
+                                    control={form.control}
+                                    name="product"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                        <FormLabel>Produto ou Marca</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                            placeholder="Ex: Tênis de corrida da Nike"
+                                            className="h-12 bg-muted/50"
+                                            {...field}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                        </FormItem>
                                     )}
-                                    </Button>
-                                </SheetFooter>
-                             </SheetContent>
-                        </DialogContent>
-                    </Dialog>
+                                  />
+                                  <FormField
+                                    control={form.control}
+                                    name="targetAudience"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                        <FormLabel>Público-Alvo</FormLabel>
+                                        <FormControl>
+                                            <Textarea
+                                            placeholder="Ex: Mulheres de 25-35 anos, interessadas em vida saudável."
+                                            className="min-h-[100px] bg-muted/50"
+                                            {...field}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                        </FormItem>
+                                    )}
+                                  />
+                                  <FormField
+                                    control={form.control}
+                                    name="differentiators"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                        <FormLabel>Diferenciais do Produto</FormLabel>
+                                        <FormControl>
+                                        <Textarea
+                                            placeholder="Ex: Material reciclado, leve, absorção de impacto, design moderno."
+                                            className="min-h-[100px] bg-muted/50"
+                                            {...field}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                        </FormItem>
+                                    )}
+                                  />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                                <FormField
+                                control={form.control}
+                                name="objective"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel>Objetivo Principal</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value} name={field.name}>
+                                        <FormControl>
+                                        <SelectTrigger className="h-12 bg-muted/50">
+                                            <SelectValue placeholder="Selecione" />
+                                        </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                        <SelectItem value="Gerar Vendas">Gerar Vendas (Conversão)</SelectItem>
+                                        <SelectItem value="Aumentar Reconhecimento da Marca">Aumentar Reconhecimento (Alcance)</SelectItem>
+                                        <SelectItem value="Gerar Leads">Gerar Leads (Cadastros)</SelectItem>
+                                        <SelectItem value="Engajar a Comunidade">Engajar a Comunidade</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="extraInfo"
+                                    render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Informações Adicionais (Opcional)</FormLabel>
+                                        <FormControl>
+                                        <Input
+                                            placeholder="Restrições, cupons, links, etc."
+                                            className="h-12 bg-muted/50"
+                                            {...field}
+                                        />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                    )}
+                                />
+                            </div>
+                                
+                                </form>
+                            </Form>
+                          </div>
+                        </ScrollArea>
+                         <ResponsiveDialogFooter className="p-6 border-t flex-col sm:flex-row gap-2">
+                             <ResponsiveDialogClose asChild>
+                                <Button type="button" variant="outline" className="w-full sm:w-auto">Cancelar</Button>
+                             </ResponsiveDialogClose>
+                            <Button
+                            type="button"
+                            onClick={form.handleSubmit(formAction)}
+                            disabled={isButtonDisabled}
+                            className="w-full sm:w-auto"
+                            >
+                            {isGenerating ? (
+                                <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Gerando...</>
+                            ) : (
+                                <><Sparkles className="mr-2 h-5 w-5" />Gerar Pacote</>
+                            )}
+                            </Button>
+                        </ResponsiveDialogFooter>
+                      </ResponsiveDialogContent>
+                    </ResponsiveDialog>
                     {isFreePlan && (
                       <p className="text-sm text-muted-foreground text-center sm:text-left">
                         Você precisa de um plano <Link href="/subscribe" className='underline text-primary font-semibold'>Premium</Link> para usar esta ferramenta.
