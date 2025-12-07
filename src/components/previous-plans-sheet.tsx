@@ -2,15 +2,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetFooter,
-  SheetTrigger,
-} from '@/components/ui/sheet';
+import { ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogTrigger, ResponsiveDialogHeader, ResponsiveDialogFooter, ResponsiveDialogTitle, ResponsiveDialogDescription, ResponsiveDialogClose } from '@/components/ui/responsive-dialog';
 import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import { IdeiaSalva, PlanoSemanal, ItemRoteiro } from '@/lib/types';
 import { collection, orderBy, query, where, getDocs, writeBatch, doc, addDoc } from 'firebase/firestore';
@@ -49,6 +41,7 @@ export function PreviousPlansSheet() {
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
+  const [isListSheetOpen, setIsListSheetOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<IdeiaSalva | null>(null);
   const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
   const [isActivating, startActivatingTransition] = useTransition();
@@ -105,8 +98,6 @@ export function PreviousPlansSheet() {
 
         batch.delete(doc(ideasCollectionRef, planToActivate.id));
 
-        await batch.commit();
-
         toast({
             title: "Plano Ativado!",
             description: "O plano selecionado é agora seu plano semanal ativo."
@@ -125,20 +116,20 @@ export function PreviousPlansSheet() {
 
   return (
     <>
-    <Sheet>
-      <SheetTrigger asChild>
+    <ResponsiveDialog isOpen={isListSheetOpen} onOpenChange={setIsListSheetOpen}>
+      <ResponsiveDialogTrigger asChild>
         <Button variant="outline">
           <History className="mr-2 h-4 w-4" />
           Histórico de Planos
         </Button>
-      </SheetTrigger>
-      <SheetContent className="w-full sm:max-w-lg p-0">
-        <SheetHeader className='p-6 pb-4 border-b'>
-          <SheetTitle className="font-headline text-xl">Histórico de Planos</SheetTitle>
-          <SheetDescription>
+      </ResponsiveDialogTrigger>
+      <ResponsiveDialogContent className="w-full sm:max-w-lg p-0">
+        <ResponsiveDialogHeader className='p-6 pb-4 border-b'>
+          <ResponsiveDialogTitle className="font-headline text-xl">Histórico de Planos</ResponsiveDialogTitle>
+          <ResponsiveDialogDescription>
             Consulte e reative planos semanais que você já salvou.
-          </SheetDescription>
-        </SheetHeader>
+          </ResponsiveDialogDescription>
+        </ResponsiveDialogHeader>
         <ScrollArea className="h-[calc(100vh-8rem)]">
           <div className="p-6 space-y-4">
             {isLoading && (
@@ -187,19 +178,19 @@ export function PreviousPlansSheet() {
             )}
           </div>
         </ScrollArea>
-      </SheetContent>
-    </Sheet>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
     {selectedPlan && selectedPlan.aiResponseData && (
-        <Sheet open={isDetailSheetOpen} onOpenChange={setIsDetailSheetOpen}>
-            <SheetContent className="w-full sm:max-w-4xl p-0 flex flex-col">
-                <SheetHeader className='p-6 pb-4 border-b'>
-                <SheetTitle className="font-headline text-2xl">
+        <ResponsiveDialog isOpen={isDetailSheetOpen} onOpenChange={setIsDetailSheetOpen}>
+            <ResponsiveDialogContent className="w-full sm:max-w-4xl p-0 flex flex-col">
+                <ResponsiveDialogHeader className='p-6 pb-4 border-b'>
+                <ResponsiveDialogTitle className="font-headline text-2xl">
                     {selectedPlan.titulo}
-                </SheetTitle>
-                 <SheetDescription>
+                </ResponsiveDialogTitle>
+                 <ResponsiveDialogDescription>
                    Salvo em {selectedPlan.createdAt ? new Date(selectedPlan.createdAt.toDate()).toLocaleDateString('pt-BR') : ''}
-                 </SheetDescription>
-                </SheetHeader>
+                 </ResponsiveDialogDescription>
+                </ResponsiveDialogHeader>
                 <ScrollArea className="flex-1">
                 <div className="p-6 grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
                     <Card className="shadow-none border-0">
@@ -241,7 +232,7 @@ export function PreviousPlansSheet() {
                     </Card>
                 </div>
                 </ScrollArea>
-                 <SheetFooter className="p-4 border-t">
+                 <ResponsiveDialogFooter className="p-4 border-t">
                     <AlertDialog>
                         <AlertDialogTrigger asChild>
                            <Button className="w-full sm:w-auto" disabled={isActivating}>
@@ -253,7 +244,7 @@ export function PreviousPlansSheet() {
                             <AlertDialogHeader>
                             <AlertDialogTitle>Ativar este plano?</AlertDialogTitle>
                             <AlertDialogDescription>
-                                O plano atualmente ativo será movido para o histórico e este plano se tornará o principal no seu dashboard e na página de planos. Deseja continuar?
+                                O plano atualmente ativo será movido para o histórico e este se tornará o principal no seu dashboard e na página de planos. Deseja continuar?
                             </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
@@ -264,9 +255,9 @@ export function PreviousPlansSheet() {
                             </AlertDialogFooter>
                         </AlertDialogContent>
                     </AlertDialog>
-                 </SheetFooter>
-            </SheetContent>
-        </Sheet>
+                 </ResponsiveDialogFooter>
+            </ResponsiveDialogContent>
+        </ResponsiveDialog>
     )}
     </>
   );

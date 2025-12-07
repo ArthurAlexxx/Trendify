@@ -2,18 +2,9 @@
 'use client';
 
 import { Button, buttonVariants } from '@/components/ui/button';
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetFooter,
-  SheetClose,
-  SheetTrigger,
-} from '@/components/ui/sheet';
+import { ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogHeader, ResponsiveDialogTitle, ResponsiveDialogDescription, ResponsiveDialogTrigger, ResponsiveDialogFooter, ResponsiveDialogClose } from '@/components/ui/responsive-dialog';
 import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
-import { IdeiaSalva, PlanoSemanal } from '@/lib/types';
+import { IdeiaSalva, PlanoSemanal, ItemRoteiro } from '@/lib/types';
 import { collection, orderBy, query, doc, deleteDoc, writeBatch, getDocs } from 'firebase/firestore';
 import { BookMarked, Eye, Inbox, Loader2, Edit, Calendar, Trash2, Zap, Newspaper, History } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
@@ -34,6 +25,7 @@ export function SavedIdeasSheet() {
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [selectedIdea, setSelectedIdea] = useState<IdeiaSalva | null>(null);
   const [ideaToDelete, setIdeaToDelete] = useState<IdeiaSalva | null>(null);
   const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
@@ -188,78 +180,78 @@ export function SavedIdeasSheet() {
 
   return (
     <>
-    <Sheet>
-      <SheetTrigger asChild>
-        <Button variant="outline">
-          <BookMarked className="mr-2 h-4 w-4" />
-          Ideias Salvas
-        </Button>
-      </SheetTrigger>
-      <SheetContent className="w-full sm:max-w-lg p-0">
-        <SheetHeader className='p-6 pb-4 border-b'>
-          <SheetTitle className="font-headline text-xl">Ideias Salvas</SheetTitle>
-          <SheetDescription>
-            Acesse aqui todas as ideias geradas pela IA que você salvou.
-          </SheetDescription>
-        </SheetHeader>
-        <ScrollArea className="h-[calc(100vh-8rem)]">
-          <div className="p-6 space-y-4">
-            {isLoading && (
-              <div className="flex justify-center items-center h-64">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
-            )}
+    <ResponsiveDialog isOpen={isSheetOpen} onOpenChange={setIsSheetOpen}>
+        <ResponsiveDialogTrigger>
+            <Button variant="outline">
+                <BookMarked className="mr-2 h-4 w-4" />
+                Ideias Salvas
+            </Button>
+        </ResponsiveDialogTrigger>
+        <ResponsiveDialogContent className="w-full sm:max-w-lg p-0">
+            <ResponsiveDialogHeader className='p-6 pb-4 border-b'>
+            <ResponsiveDialogTitle className="font-headline text-xl">Ideias Salvas</ResponsiveDialogTitle>
+            <ResponsiveDialogDescription>
+                Acesse aqui todas as ideias geradas pela IA que você salvou.
+            </ResponsiveDialogDescription>
+            </ResponsiveDialogHeader>
+            <ScrollArea className="h-[calc(100vh-8rem)]">
+            <div className="p-6 space-y-4">
+                {isLoading && (
+                <div className="flex justify-center items-center h-64">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+                )}
 
-            {!isLoading && ideiasSalvas && ideiasSalvas.length > 0 && (
-              <ul className="space-y-4">
-                {ideiasSalvas.map((ideia) => (
-                  <li key={ideia.id}>
-                    <div className="border p-4 rounded-xl hover:border-primary/50 transition-colors">
-                      <div className="flex justify-between items-start mb-2">
-                        <Badge variant="secondary">{ideia.origem}</Badge>
-                        {ideia.concluido && <Badge>Concluído</Badge>}
-                      </div>
-                      <p className="font-semibold text-foreground break-words mb-2">
-                        {ideia.titulo}
-                      </p>
-                       <div className='flex justify-between items-center'>
-                         <p className="text-xs text-muted-foreground">
-                          {ideia.createdAt &&
-                            formatDistanceToNow(ideia.createdAt.toDate(), {
-                              addSuffix: true,
-                              locale: ptBR,
-                            })}
-                        </p>
-                        <div className='flex items-center gap-1'>
-                            <Button variant="ghost" size="icon" className='h-8 w-8' onClick={() => handleViewDetails(ideia)}>
-                                <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className='h-8 w-8 text-destructive/70 hover:text-destructive' onClick={() => confirmDelete(ideia)}>
-                                <Trash2 className="h-4 w-4" />
-                            </Button>
+                {!isLoading && ideiasSalvas && ideiasSalvas.length > 0 && (
+                <ul className="space-y-4">
+                    {ideiasSalvas.map((ideia) => (
+                    <li key={ideia.id}>
+                        <div className="border p-4 rounded-xl hover:border-primary/50 transition-colors">
+                        <div className="flex justify-between items-start mb-2">
+                            <Badge variant="secondary">{ideia.origem}</Badge>
+                            {ideia.concluido && <Badge>Concluído</Badge>}
                         </div>
-                       </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
+                        <p className="font-semibold text-foreground break-words mb-2">
+                            {ideia.titulo}
+                        </p>
+                        <div className='flex justify-between items-center'>
+                            <p className="text-xs text-muted-foreground">
+                            {ideia.createdAt &&
+                                formatDistanceToNow(ideia.createdAt.toDate(), {
+                                addSuffix: true,
+                                locale: ptBR,
+                                })}
+                            </p>
+                            <div className='flex items-center gap-1'>
+                                <Button variant="ghost" size="icon" className='h-8 w-8' onClick={() => handleViewDetails(ideia)}>
+                                    <Eye className="h-4 w-4" />
+                                </Button>
+                                <Button variant="ghost" size="icon" className='h-8 w-8 text-destructive/70 hover:text-destructive' onClick={() => confirmDelete(ideia)}>
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        </div>
+                        </div>
+                    </li>
+                    ))}
+                </ul>
+                )}
 
-            {!isLoading && (!ideiasSalvas || ideiasSalvas.length === 0) && (
-              <div className="text-center py-20 px-4 rounded-xl bg-muted/50 border border-dashed">
-                <Inbox className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="font-semibold text-foreground">
-                  Nenhuma ideia salva
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  Use as ferramentas de IA e salve seus resultados.
-                </p>
-              </div>
-            )}
-          </div>
-        </ScrollArea>
-      </SheetContent>
-    </Sheet>
+                {!isLoading && (!ideiasSalvas || ideiasSalvas.length === 0) && (
+                <div className="text-center py-20 px-4 rounded-xl bg-muted/50 border border-dashed">
+                    <Inbox className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                    <h3 className="font-semibold text-foreground">
+                    Nenhuma ideia salva
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                    Use as ferramentas de IA e salve seus resultados.
+                    </p>
+                </div>
+                )}
+            </div>
+            </ScrollArea>
+        </ResponsiveDialogContent>
+    </ResponsiveDialog>
     
     <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
       <AlertDialogContent>
@@ -279,20 +271,20 @@ export function SavedIdeasSheet() {
     </AlertDialog>
 
     {selectedIdea && (
-        <Sheet open={isDetailSheetOpen} onOpenChange={setIsDetailSheetOpen}>
-            <SheetContent className="w-full sm:max-w-3xl p-0 flex flex-col">
-                <SheetHeader className='p-6 pb-4 border-b'>
-                <SheetTitle className="font-headline text-2xl">
+        <ResponsiveDialog isOpen={isDetailSheetOpen} onOpenChange={setIsDetailSheetOpen}>
+            <ResponsiveDialogContent className="w-full sm:max-w-3xl p-0 flex flex-col">
+                <ResponsiveDialogHeader className='p-6 pb-4 border-b'>
+                <ResponsiveDialogTitle className="font-headline text-2xl">
                     {selectedIdea.titulo}
-                </SheetTitle>
-                 <SheetDescription>
+                </ResponsiveDialogTitle>
+                <ResponsiveDialogDescription>
                    Gerado em {selectedIdea.origem}
-                 </SheetDescription>
-                </SheetHeader>
+                 </ResponsiveDialogDescription>
+                </ResponsiveDialogHeader>
                 <ScrollArea className="flex-1">
                  {renderResultView(selectedIdea)}
                 </ScrollArea>
-                 <SheetFooter className="p-4 border-t flex flex-col sm:flex-row gap-2 justify-end">
+                 <ResponsiveDialogFooter className="p-4 border-t flex flex-col sm:flex-row gap-2 justify-end">
                     {actionInfo.isSpecialAction ? (
                          <AlertDialog>
                             <AlertDialogTrigger asChild>
@@ -326,9 +318,9 @@ export function SavedIdeasSheet() {
                        <Calendar className="mr-2 h-4 w-4" />
                        Agendar Post
                     </Link>
-                </SheetFooter>
-            </SheetContent>
-        </Sheet>
+                </ResponsiveDialogFooter>
+            </ResponsiveDialogContent>
+        </ResponsiveDialog>
     )}
     </>
   );
