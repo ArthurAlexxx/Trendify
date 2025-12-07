@@ -61,6 +61,7 @@ import Link from 'next/link';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogHeader, ResponsiveDialogFooter, ResponsiveDialogTitle, ResponsiveDialogDescription, ResponsiveDialogClose, ResponsiveDialogTrigger } from '@/components/ui/responsive-dialog';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 
 const formSchema = z.object({
@@ -119,6 +120,9 @@ export default function GenerateWeeklyPlanPage() {
 
   const { user } = useUser();
   const firestore = useFirestore();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     try {
@@ -288,6 +292,13 @@ export default function GenerateWeeklyPlanPage() {
       });
     }
   }, [userProfile, form]);
+  
+  useEffect(() => {
+    const topicParam = searchParams.get('topic');
+    if (topicParam && !isFormOpen) {
+      router.replace(pathname, { scroll: false });
+    }
+  }, [isFormOpen, searchParams, router, pathname]);
 
   const handleToggleRoteiro = async (itemIndex: number) => {
     if (!firestore || !activePlan || !user) return;
@@ -431,8 +442,8 @@ export default function GenerateWeeklyPlanPage() {
                             )}
                          </Button>
                       </ResponsiveDialogTrigger>
-                       <ResponsiveDialogContent className="sm:max-w-2xl p-0 flex flex-col gap-0">
-                            <ResponsiveDialogHeader className="p-6 pb-4 border-b">
+                       <ResponsiveDialogContent className="sm:max-w-2xl">
+                            <ResponsiveDialogHeader>
                                 <ResponsiveDialogTitle className="flex items-center justify-center gap-3 font-headline text-xl">
                                     <Bot className="h-6 w-6 text-primary" />
                                     <span>Briefing da Semana</span>
@@ -441,7 +452,7 @@ export default function GenerateWeeklyPlanPage() {
                                     Forneça os detalhes para um plano melhor. Sua meta de seguidores será usada para focar a estratégia.
                                 </ResponsiveDialogDescription>
                             </ResponsiveDialogHeader>
-                            <ScrollArea className="flex-1 max-h-[calc(100vh-12rem)]">
+                            <ScrollArea className="max-h-[calc(100vh-12rem)]">
                               <div className="p-6">
                                   <Form {...form}>
                                       <form onSubmit={form.handleSubmit(formAction)} className="space-y-6">
@@ -515,7 +526,7 @@ export default function GenerateWeeklyPlanPage() {
                                   </Form>
                               </div>
                             </ScrollArea>
-                            <ResponsiveDialogFooter className="p-6 pt-4 border-t flex-col sm:flex-row gap-2">
+                            <ResponsiveDialogFooter>
                                 <ResponsiveDialogClose asChild><Button type="button" variant="outline" className="w-full sm:w-auto">Cancelar</Button></ResponsiveDialogClose>
                                 <Button
                                     type="button"
@@ -736,70 +747,88 @@ export default function GenerateWeeklyPlanPage() {
                      {isLoadingActivePlan ? (
                          <div className="flex justify-center items-center h-64"><Loader2 className="h-8 w-8 animate-spin" /></div>
                      ) : activePlan ? (
-                        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
-                             <Card className="shadow-none border-0">
-                                <CardHeader>
-                                <CardTitle className="font-headline text-xl">Roteiro de Conteúdo</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <ul className="space-y-2">
-                                        {activePlan.items.map((item: ItemRoteiro, index: number) => (
-                                            <li key={index}>
-                                            <div className="flex items-start gap-4 p-2 rounded-lg hover:bg-muted/50">
-                                                <Checkbox
-                                                id={`active-roteiro-${index}`}
-                                                checked={item.concluido}
-                                                onCheckedChange={() => handleToggleRoteiro(index)}
-                                                className="h-5 w-5 mt-1"
-                                                />
-                                                <div className='flex-1'>
-                                                <label
-                                                    htmlFor={`active-roteiro-${index}`}
-                                                    className={cn(
-                                                    'font-medium text-base transition-colors cursor-pointer',
-                                                    item.concluido ? 'line-through text-muted-foreground' : 'text-foreground'
-                                                    )}
-                                                >
-                                                    <span className="font-semibold text-primary">{item.dia}:</span> {item.tarefa}
-                                                </label>
-                                                <p className="text-sm text-muted-foreground">{item.detalhes}</p>
+                        <div className="space-y-8">
+                            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
+                                <Card className="shadow-none border-0">
+                                    <CardHeader>
+                                        <CardTitle className="font-headline text-xl">Roteiro de Conteúdo</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <ul className="space-y-2">
+                                            {activePlan.items.map((item: ItemRoteiro, index: number) => (
+                                                <li key={index}>
+                                                <div className="flex items-start gap-4 p-2 rounded-lg hover:bg-muted/50">
+                                                    <Checkbox
+                                                    id={`active-roteiro-${index}`}
+                                                    checked={item.concluido}
+                                                    onCheckedChange={() => handleToggleRoteiro(index)}
+                                                    className="h-5 w-5 mt-1"
+                                                    />
+                                                    <div className='flex-1'>
+                                                    <label
+                                                        htmlFor={`active-roteiro-${index}`}
+                                                        className={cn(
+                                                        'font-medium text-base transition-colors cursor-pointer',
+                                                        item.concluido ? 'line-through text-muted-foreground' : 'text-foreground'
+                                                        )}
+                                                    >
+                                                        <span className="font-semibold text-primary">{item.dia}:</span> {item.tarefa}
+                                                    </label>
+                                                    <p className="text-sm text-muted-foreground">{item.detalhes}</p>
+                                                    </div>
+                                                    <TooltipProvider>
+                                                        <Tooltip>
+                                                            <TooltipTrigger asChild>
+                                                                <Link href={`/video-ideas?topic=${encodeURIComponent(item.tarefa)}&context=${encodeURIComponent(item.detalhes)}`}>
+                                                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-primary">
+                                                                        <Lightbulb className="h-4 w-4" />
+                                                                    </Button>
+                                                                </Link>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent>
+                                                                <p>Gerar ideia de vídeo com esta tarefa</p>
+                                                            </TooltipContent>
+                                                        </Tooltip>
+                                                    </TooltipProvider>
                                                 </div>
-                                                 <TooltipProvider>
-                                                    <Tooltip>
-                                                        <TooltipTrigger asChild>
-                                                            <Link href={`/video-ideas?topic=${encodeURIComponent(item.tarefa)}&context=${encodeURIComponent(item.detalhes)}`}>
-                                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-primary">
-                                                                    <Lightbulb className="h-4 w-4" />
-                                                                </Button>
-                                                            </Link>
-                                                        </TooltipTrigger>
-                                                        <TooltipContent>
-                                                            <p>Gerar ideia de vídeo com esta tarefa</p>
-                                                        </TooltipContent>
-                                                    </Tooltip>
-                                                </TooltipProvider>
-                                            </div>
-                                            {index < activePlan.items.length - 1 && <Separator className="my-2" />}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </CardContent>
-                            </Card>
-                             <Card className="shadow-none border-0">
-                                <CardHeader><CardTitle className="font-headline text-xl">Desempenho Semanal (Simulado)</CardTitle></CardHeader>
-                                <CardContent className="pl-0 sm:pl-2">
-                                    <ChartContainer config={chartConfig} className="h-[350px] w-full">
-                                    <BarChart data={activePlan.desempenhoSimulado} margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
-                                        <CartesianGrid vertical={false} />
-                                        <XAxis dataKey="data" tickLine={false} axisLine={false} />
-                                        <YAxis tickLine={false} axisLine={false} tickFormatter={(value) => typeof value === 'number' && value >= 1000 ? `${value / 1000}k` : value} />
-                                        <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
-                                        <Bar dataKey="alcance" fill="var(--color-alcance)" radius={[4, 4, 0, 0]} />
-                                        <Bar dataKey="engajamento" fill="var(--color-engajamento)" radius={[4, 4, 0, 0]} />
-                                    </BarChart>
-                                    </ChartContainer>
-                                </CardContent>
-                            </Card>
+                                                {index < activePlan.items.length - 1 && <Separator className="my-2" />}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </CardContent>
+                                </Card>
+                                <div className="space-y-8">
+                                    <Card className="shadow-none border-0">
+                                        <CardHeader><CardTitle className="font-headline text-xl">Desempenho Simulado</CardTitle></CardHeader>
+                                        <CardContent className="pl-0 sm:pl-2">
+                                            <ChartContainer config={chartConfig} className="h-[350px] w-full">
+                                            <BarChart data={activePlan.desempenhoSimulado} margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
+                                                <CartesianGrid vertical={false} />
+                                                <XAxis dataKey="data" tickLine={false} axisLine={false} />
+                                                <YAxis tickLine={false} axisLine={false} tickFormatter={(value) => typeof value === 'number' && value >= 1000 ? `${value / 1000}k` : value} />
+                                                <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
+                                                <Bar dataKey="alcance" fill="var(--color-alcance)" radius={[4, 4, 0, 0]} />
+                                                <Bar dataKey="engajamento" fill="var(--color-engajamento)" radius={[4, 4, 0, 0]} />
+                                            </BarChart>
+                                            </ChartContainer>
+                                        </CardContent>
+                                    </Card>
+                                     <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                                        <Card className="shadow-none border-0">
+                                            <CardHeader><CardTitle className="text-center flex items-center gap-2 text-sm text-muted-foreground"><Trophy className='h-4 w-4' /> Índice de Prioridade</CardTitle></CardHeader>
+                                            <CardContent><ul className="space-y-2 text-sm">{activePlan.priorityIndex.map(item => <li key={item} className='font-semibold'>{item}</li>)}</ul></CardContent>
+                                        </Card>
+                                        <Card className="shadow-none border-0">
+                                            <CardHeader><CardTitle className="text-center flex items-center gap-2 text-sm text-muted-foreground"><Zap className='h-4 w-4' /> Nível de Esforço</CardTitle></CardHeader>
+                                            <CardContent><p className='text-xl font-bold'>{activePlan.effortLevel}</p></CardContent>
+                                        </Card>
+                                    </div>
+                                    <Card className="shadow-none border-0">
+                                            <CardHeader><CardTitle className="text-center flex items-center gap-2 text-sm text-muted-foreground"><AlertTriangle className='h-4 w-4' /> Dicas de Realinhamento</CardTitle></CardHeader>
+                                            <CardContent><p className='text-sm'>{activePlan.realignmentTips}</p></CardContent>
+                                    </Card>
+                                </div>
+                            </div>
                         </div>
                      ) : (
                         <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-64">
