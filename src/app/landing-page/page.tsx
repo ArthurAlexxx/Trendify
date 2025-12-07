@@ -538,19 +538,19 @@ export default function LandingPage() {
                       
                       {/* Mobile Carousel */}
                       <div className="lg:hidden px-4">
-                        <Carousel className="w-full max-w-sm mx-auto">
+                        <Carousel className="w-full max-w-sm mx-auto px-4">
                           <CarouselContent className="-ml-4">
                             {results.growthData && results.growthData.length > 0 && (
                               <CarouselItem className="pl-4">
                                 <Card className="rounded-2xl h-full">
                                   <CardHeader><CardTitle className="text-lg font-bold">Curva de Crescimento</CardTitle></CardHeader>
-                                  <CardContent>
+                                  <CardContent className="p-4">
                                       <div className="h-64 w-full">
                                           <ResponsiveContainer>
                                               <AreaChart data={results.growthData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                                                   <defs><linearGradient id="colorFollowers" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.8}/><stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/></linearGradient></defs>
                                                   <XAxis dataKey="month" tickFormatter={(v) => `Mês ${v}`} />
-                                                  <YAxis domain={['auto', 'auto']} tickFormatter={(v) => v > 1000 ? `${v / 1000}k` : v.toString()} />
+                                                  <YAxis domain={[0, dataMax => Math.ceil((dataMax * 1.1) / 1000) * 1000]} tickFormatter={(v) => v >= 1000 ? `${v / 1000}k` : v.toString()} />
                                                   <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }} />
                                                   <Area type="monotone" dataKey="followers" stroke="hsl(var(--primary))" fillOpacity={1} fill="url(#colorFollowers)" />
                                               </AreaChart>
@@ -562,7 +562,7 @@ export default function LandingPage() {
                             )}
                             {(results.currentEarnings || results.goalEarnings) && (
                               <CarouselItem className="pl-4">
-                                <Card className="h-full">
+                                <Card className="h-full rounded-2xl">
                                   <CardHeader>
                                     <CardTitle className="text-lg font-bold">
                                       Potencial de Ganhos/Mês
@@ -614,13 +614,13 @@ export default function LandingPage() {
                               {results.growthData && results.growthData.length > 0 && (
                               <Card className="rounded-2xl">
                                   <CardHeader><CardTitle className="text-lg font-bold">Curva de Crescimento</CardTitle></CardHeader>
-                                  <CardContent>
+                                  <CardContent className="p-4">
                                       <div className="h-64 w-full">
                                           <ResponsiveContainer>
                                               <AreaChart data={results.growthData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                                                   <defs><linearGradient id="colorFollowers" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.8}/><stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/></linearGradient></defs>
                                                   <XAxis dataKey="month" tickFormatter={(v) => `Mês ${v}`} />
-                                                  <YAxis domain={['auto', 'auto']} tickFormatter={(v) => v > 1000 ? `${v / 1000}k` : v.toString()} />
+                                                  <YAxis domain={[0, dataMax => Math.ceil((dataMax * 1.1) / 1000) * 1000]} tickFormatter={(v) => v >= 1000 ? `${v / 1000}k` : v.toString()} />
                                                   <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }} />
                                                   <Area type="monotone" dataKey="followers" stroke="hsl(var(--primary))" fillOpacity={1} fill="url(#colorFollowers)" />
                                               </AreaChart>
