@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import { IdeiaSalva, PlanoSemanal, ItemRoteiro } from '@/lib/types';
 import { collection, orderBy, query, where, getDocs, writeBatch, doc, addDoc } from 'firebase/firestore';
-import { History, Eye, Inbox, Loader2, Zap } from 'lucide-react';
+import { History, Eye, Inbox, Loader2, Zap, Trophy, AlertTriangle } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { ScrollArea } from './ui/scroll-area';
@@ -214,21 +214,37 @@ export function PreviousPlansSheet() {
                             </ul>
                         </CardContent>
                     </Card>
-                    <Card className="shadow-none border-0">
-                        <CardHeader><CardTitle className="font-headline text-xl">Desempenho Simulado</CardTitle></CardHeader>
-                        <CardContent className="pl-0 sm:pl-2">
-                            <ChartContainer config={chartConfig} className="h-[350px] w-full">
-                            <BarChart data={selectedPlan.aiResponseData.desempenhoSimulado} margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
-                                <CartesianGrid vertical={false} />
-                                <XAxis dataKey="data" tickLine={false} axisLine={false} />
-                                <YAxis tickLine={false} axisLine={false} tickFormatter={(value) => typeof value === 'number' && value >= 1000 ? `${value / 1000}k` : value} />
-                                <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
-                                <Bar dataKey="alcance" fill="var(--color-alcance)" radius={[4, 4, 0, 0]} />
-                                <Bar dataKey="engajamento" fill="var(--color-engajamento)" radius={[4, 4, 0, 0]} />
-                            </BarChart>
-                            </ChartContainer>
-                        </CardContent>
-                    </Card>
+                     <div className="space-y-8">
+                        <Card className="shadow-none border-0">
+                            <CardHeader><CardTitle className="font-headline text-xl">Desempenho Simulado</CardTitle></CardHeader>
+                            <CardContent className="pl-0 sm:pl-2">
+                                <ChartContainer config={chartConfig} className="h-[350px] w-full">
+                                <BarChart data={selectedPlan.aiResponseData.desempenhoSimulado} margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
+                                    <CartesianGrid vertical={false} />
+                                    <XAxis dataKey="data" tickLine={false} axisLine={false} />
+                                    <YAxis tickLine={false} axisLine={false} tickFormatter={(value) => typeof value === 'number' && value >= 1000 ? `${value / 1000}k` : value} />
+                                    <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
+                                    <Bar dataKey="alcance" fill="var(--color-alcance)" radius={[4, 4, 0, 0]} />
+                                    <Bar dataKey="engajamento" fill="var(--color-engajamento)" radius={[4, 4, 0, 0]} />
+                                </BarChart>
+                                </ChartContainer>
+                            </CardContent>
+                        </Card>
+                         <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                            <Card className="shadow-none border-0">
+                                <CardHeader><CardTitle className="text-center flex items-center gap-2 text-sm text-muted-foreground"><Trophy className='h-4 w-4' /> Índice de Prioridade</CardTitle></CardHeader>
+                                <CardContent><ul className="space-y-2 text-sm">{selectedPlan.aiResponseData.priorityIndex.map((item: string) => <li key={item} className='font-semibold'>{item}</li>)}</ul></CardContent>
+                            </Card>
+                            <Card className="shadow-none border-0">
+                                <CardHeader><CardTitle className="text-center flex items-center gap-2 text-sm text-muted-foreground"><Zap className='h-4 w-4' /> Nível de Esforço</CardTitle></CardHeader>
+                                <CardContent><p className='text-xl font-bold'>{selectedPlan.aiResponseData.effortLevel}</p></CardContent>
+                            </Card>
+                        </div>
+                        <Card className="shadow-none border-0">
+                                <CardHeader><CardTitle className="text-center flex items-center gap-2 text-sm text-muted-foreground"><AlertTriangle className='h-4 w-4' /> Dicas de Realinhamento</CardTitle></CardHeader>
+                                <CardContent><p className='text-sm'>{selectedPlan.aiResponseData.realignmentTips}</p></CardContent>
+                        </Card>
+                    </div>
                 </div>
                 </ScrollArea>
                  <SheetFooter className="p-4 border-t">
