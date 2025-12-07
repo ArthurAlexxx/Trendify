@@ -334,9 +334,9 @@ export default function LandingPage() {
             <div className="lg:hidden">
               <div className="px-4">
                 <Carousel className="w-full" opts={{align: 'start'}}>
-                  <CarouselContent className="-ml-4 p-4">
+                  <CarouselContent className="p-4 -ml-8">
                     {features.map((feature) => (
-                      <CarouselItem key={feature.title} className="pl-4 basis-11/12 md:basis-1/2">
+                      <CarouselItem key={feature.title} className="pl-8 basis-11/12 md:basis-1/2">
                          <div className="p-1">
                           <Card className="text-left h-full bg-card/50 rounded-2xl border">
                             <CardHeader className="flex flex-row items-center justify-between">
@@ -375,7 +375,7 @@ export default function LandingPage() {
                   transition={{ duration: 0.5 }}
                   viewport={{ once: true, amount: 0.3 }}
                 >
-                  <Card className="text-left h-full bg-card/50 rounded-2xl border-0">
+                  <Card className="text-left h-full bg-card/50 rounded-2xl border-0 shadow-2xl shadow-primary/10">
                     <CardHeader className="flex flex-row items-center justify-between">
                        <div className="bg-primary/10 text-primary p-3 rounded-lg">
                         <feature.icon className="h-6 w-6" />
@@ -575,9 +575,9 @@ export default function LandingPage() {
                       {/* Mobile Carousel */}
                       <div className="lg:hidden p-4">
                         <Carousel className="w-full" opts={{ align: "start" }}>
-                          <CarouselContent className="-ml-4">
+                          <CarouselContent className="p-4 -ml-8">
                             {results.growthData && results.growthData.length > 0 && (
-                              <CarouselItem className="pl-4 basis-11/12 md:basis-1/2">
+                              <CarouselItem className="pl-8 basis-11/12 md:basis-1/2">
                                 <div className="p-1">
                                 <Card className="rounded-2xl border">
                                   <CardHeader><CardTitle className="text-lg font-bold">Curva de Crescimento</CardTitle></CardHeader>
@@ -599,7 +599,7 @@ export default function LandingPage() {
                               </CarouselItem>
                             )}
                             {(results.currentEarnings || results.goalEarnings) && (
-                              <CarouselItem className="pl-4 basis-11/12 md:basis-1/2">
+                              <CarouselItem className="pl-8 basis-11/12 md:basis-1/2">
                                 <div className="p-1">
                                 <Card className="h-full rounded-2xl border">
                                   <CardHeader>
@@ -630,7 +630,7 @@ export default function LandingPage() {
                               </CarouselItem>
                             )}
                              {results.accelerationScenarios && (
-                              <CarouselItem className="pl-4 basis-11/12 md:basis-1/2">
+                              <CarouselItem className="pl-8 basis-11/12 md:basis-1/2">
                                  <div className="p-1">
                                 <Card className="rounded-2xl h-full border">
                                   <CardHeader><CardTitle className="text-lg font-bold">Cenários de Aceleração</CardTitle></CardHeader>
