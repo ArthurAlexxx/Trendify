@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -56,7 +57,7 @@ export function ActionHubCard({
   formatNumber,
 }: ActionHubCardProps) {
   return (
-    <Card className="h-full flex flex-col">
+    <Card className="h-full flex flex-col shadow-primary-lg">
       <CardHeader>
         <CardTitle className="text-center font-headline text-xl">
           Hub de Ação Rápida
@@ -201,5 +202,3 @@ export function ActionHubCard({
     </Card>
   );
 }
-
-    
