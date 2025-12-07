@@ -40,7 +40,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@/hookform/resolvers/zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import {
   AreaChart,
@@ -331,7 +331,7 @@ export default function LandingPage() {
               Da estratégia de conteúdo à monetização, a Trendify centraliza tudo que você precisa para crescer de forma inteligente.
             </p>
             {/* Mobile Carousel */}
-            <div className="lg:hidden px-4">
+            <div className="lg:hidden">
                 <Carousel className="w-full" opts={{ align: "start" }}>
                   <CarouselContent className="-ml-4">
                     {features.map((feature, index) => (
@@ -373,7 +373,7 @@ export default function LandingPage() {
                   transition={{ duration: 0.5 }}
                   viewport={{ once: true, amount: 0.3 }}
                 >
-                  <Card className="text-left h-full bg-card/50 rounded-2xl border-0 shadow-lg">
+                  <Card className="text-left h-full bg-card/50 rounded-2xl shadow-primary/10 shadow-lg">
                     <CardHeader className="flex flex-row items-center justify-between">
                        <div className="bg-primary/10 text-primary p-3 rounded-lg">
                         <feature.icon className="h-6 w-6" />
@@ -420,7 +420,7 @@ export default function LandingPage() {
                       plano de crescimento, tempo até a meta e potencial de ganhos no seu nicho.
                     </p>
                   </div>
-                  <Card className="max-w-4xl mx-auto p-4 sm:p-6 rounded-2xl bg-card shadow-lg">
+                  <Card className="max-w-4xl mx-auto p-4 sm:p-6 rounded-2xl bg-card shadow-lg shadow-primary/10">
                     <CardContent className="p-2 sm:p-4">
                       <Form {...form}>
                         <form
@@ -490,7 +490,7 @@ export default function LandingPage() {
                                       }}
                                       className="h-12 text-base bg-muted/50"
                                     />
-                                  FormControl>
+                                  </FormControl>
                                   <FormMessage />
                                 </FormItem>
                               )}
@@ -571,7 +571,7 @@ export default function LandingPage() {
                       </div>
                       
                       {/* Mobile Carousel */}
-                      <div className="lg:hidden px-4">
+                      <div className="lg:hidden">
                           <Carousel className="w-full" opts={{ align: "start" }}>
                             <CarouselContent className="-ml-4">
                               {results.growthData && results.growthData.length > 0 && (
@@ -650,7 +650,7 @@ export default function LandingPage() {
                           {/* Left Column */}
                           <div className="space-y-8">
                               {results.growthData && results.growthData.length > 0 && (
-                              <Card className="rounded-2xl border shadow-lg">
+                              <Card className="rounded-2xl border shadow-lg shadow-primary/10">
                                   <CardHeader><CardTitle className="text-lg font-bold">Curva de Crescimento</CardTitle></CardHeader>
                                   <CardContent className="pt-2 pl-2">
                                       <div className="h-64 w-full">
@@ -668,7 +668,7 @@ export default function LandingPage() {
                               </Card>
                               )}
                               {results.accelerationScenarios && (
-                              <Card className="rounded-2xl border shadow-lg">
+                              <Card className="rounded-2xl border shadow-lg shadow-primary/10">
                                   <CardHeader><CardTitle className="text-lg font-bold">Cenários de Aceleração</CardTitle></CardHeader>
                                   <CardContent className="grid grid-cols-3 gap-4 text-center">
                                       <div><p className="font-bold text-2xl">{results.accelerationScenarios.maintain}</p><p className="text-xs text-muted-foreground">Meses (Ritmo Atual)</p></div>
@@ -690,7 +690,7 @@ export default function LandingPage() {
                                   )}
                               </div>
                                {(results.currentEarnings || results.goalEarnings) && (
-                                <Card className="border shadow-lg">
+                                <Card className="border shadow-lg shadow-primary/10">
                                   <CardHeader>
                                     <CardTitle className="text-lg font-bold">
                                       Potencial de Ganhos/Mês
@@ -719,13 +719,13 @@ export default function LandingPage() {
                                 </Card>
                               )}
                               {results.benchmarkComparison && (
-                                <Card className="border shadow-lg"><CardHeader><CardTitle className="text-lg font-bold">Análise do Mercado</CardTitle></CardHeader><CardContent><p className="text-sm text-muted-foreground">{results.benchmarkComparison}</p></CardContent></Card>
+                                <Card className="border shadow-lg shadow-primary/10"><CardHeader><CardTitle className="text-lg font-bold">Análise do Mercado</CardTitle></CardHeader><CardContent><p className="text-sm text-muted-foreground">{results.benchmarkComparison}</p></CardContent></Card>
                               )}
                           </div>
                       </div>
                       
                       {results.earningsAnalysis && (
-                         <Card className="bg-card border shadow-lg">
+                         <Card className="bg-card border shadow-lg shadow-primary/10">
                             <CardHeader>
                                <CardTitle className="font-bold text-lg flex items-center gap-2">
                                 Análise de Monetização
@@ -740,7 +740,7 @@ export default function LandingPage() {
 
                       {/* Action Plan */}
                        {(results.recommendations?.length || results.riskPanel?.length || results.trendSuggestions?.length) && (
-                      <Card className="bg-card border shadow-lg">
+                      <Card className="bg-card border shadow-lg shadow-primary/10">
                           <CardHeader><h4 className="font-bold text-lg text-center">Seu Plano Inicial para Acelerar</h4></CardHeader>
                           <CardContent className="grid sm:grid-cols-2 lg:grid-cols-2 gap-8">
                               {results.recommendations && results.recommendations.length > 0 && (
@@ -1002,5 +1002,3 @@ export default function LandingPage() {
     </div>
   );
 }
-
-    
