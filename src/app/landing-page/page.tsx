@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -536,11 +537,11 @@ export default function LandingPage() {
                       </div>
                       
                       {/* Mobile Carousel */}
-                      <div className="lg:hidden">
+                      <div className="lg:hidden px-4">
                         <Carousel className="w-full max-w-sm mx-auto">
-                          <CarouselContent>
+                          <CarouselContent className="-ml-4">
                             {results.growthData && results.growthData.length > 0 && (
-                              <CarouselItem>
+                              <CarouselItem className="pl-4">
                                 <Card className="rounded-2xl h-full">
                                   <CardHeader><CardTitle className="text-lg font-bold">Curva de Crescimento</CardTitle></CardHeader>
                                   <CardContent>
@@ -560,7 +561,7 @@ export default function LandingPage() {
                               </CarouselItem>
                             )}
                             {(results.currentEarnings || results.goalEarnings) && (
-                              <CarouselItem>
+                              <CarouselItem className="pl-4">
                                 <Card className="h-full">
                                   <CardHeader>
                                     <CardTitle className="text-lg font-bold">
@@ -589,7 +590,7 @@ export default function LandingPage() {
                               </CarouselItem>
                             )}
                              {results.accelerationScenarios && (
-                              <CarouselItem>
+                              <CarouselItem className="pl-4">
                                 <Card className="rounded-2xl h-full">
                                   <CardHeader><CardTitle className="text-lg font-bold">Cenários de Aceleração</CardTitle></CardHeader>
                                   <CardContent className="grid grid-cols-3 gap-4 text-center">
@@ -601,8 +602,8 @@ export default function LandingPage() {
                               </CarouselItem>
                             )}
                           </CarouselContent>
-                          <CarouselPrevious className="left-2"/>
-                          <CarouselNext className="right-2" />
+                          <CarouselPrevious className="left-[-1rem]"/>
+                          <CarouselNext className="right-[-1rem]" />
                         </Carousel>
                       </div>
 
