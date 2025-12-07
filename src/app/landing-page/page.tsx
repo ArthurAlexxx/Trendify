@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import {
@@ -537,7 +535,7 @@ export default function LandingPage() {
                       </div>
                       
                       {/* Desktop Grid */}
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                      <div className="hidden lg:grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
                           {/* Left Column */}
                           <div className="space-y-8">
                               {results.growthData && results.growthData.length > 0 && (

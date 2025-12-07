@@ -48,8 +48,6 @@ import type {
   TikTokPost,
   PlanoSemanal,
   ItemRoteiro,
-  InstagramProfileData,
-  TikTokProfileData,
 } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -69,18 +67,14 @@ import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, useCollection, useDoc, useMemoFirebase } from '@/firebase';
 import { collection, doc, query, orderBy, limit, updateDoc, where, getDocs, Timestamp, setDoc, addDoc, serverTimestamp } from 'firebase/firestore';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { getTikTokPosts, getInstagramPosts, getTikTokProfile } from '@/app/(app)/profile/actions';
 import { useSubscription } from '@/hooks/useSubscription';
-import { InstagramProfileResults, TikTokProfileResults } from '@/components/dashboard/platform-results';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
 import { FollowerGoalSheet } from '@/components/dashboard/follower-goal-sheet';
 import { ProfileCompletionAlert } from '@/components/dashboard/profile-completion-alert';
 import { generateDashboardInsights, type DashboardInsightsOutput } from './actions';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import Image from 'next/image';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { RecentPostsSheet } from '@/components/dashboard/recent-posts-sheet';
@@ -508,11 +502,15 @@ export default function DashboardPage() {
     
     if (selectedPlatform === 'total') {
         const platformCount = [userProfile.instagramHandle, userProfile.tiktokHandle].filter(Boolean).length || 1;
+        const totalViews = (instaViews + tiktokViews)
+        const totalLikes = (instaLikes + tiktokLikes)
+        const totalComments = (instaComments + tiktokComments)
+
         return {
             followers: parseMetric(userProfile.instagramFollowers) + parseMetric(userProfile.tiktokFollowers),
-            views: (instaViews + tiktokViews) / platformCount,
-            likes: (instaLikes + tiktokLikes) / platformCount,
-            comments: (instaComments + tiktokComments) / platformCount,
+            views: platformCount > 1 ? totalViews / platformCount : totalViews,
+            likes: platformCount > 1 ? totalLikes / platformCount : totalLikes,
+            comments: platformCount > 1 ? totalComments / platformCount : totalComments,
         }
     }
     return selectedPlatform === 'instagram' ? {
@@ -689,9 +687,9 @@ export default function DashboardPage() {
                 <Carousel
                   opts={{
                     align: "start",
-                    loop: true,
+                    loop: false,
                   }}
-                  className="w-full"
+                  className="w-full max-w-sm mx-auto"
                 >
                     <CarouselContent>
                         <CarouselItem className="basis-full"><GoalCard isLoading={isLoading} goalFollowers={goalFollowers} currentFollowers={currentFollowers} followerGoalProgress={followerGoalProgress} pieData={pieData} formatMetricValue={formatMetricValue} /></CarouselItem>
