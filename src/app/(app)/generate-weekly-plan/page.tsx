@@ -418,8 +418,6 @@ export default function GenerateWeeklyPlanPage() {
                           </CarouselItem>
                       ))}
                   </CarouselContent>
-                  <CarouselPrevious className="left-2" />
-                  <CarouselNext className="right-2" />
               </Carousel>
           </div>
           <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -687,8 +685,6 @@ export default function GenerateWeeklyPlanPage() {
                                         </Card>
                                      </CarouselItem>
                                 </CarouselContent>
-                                <CarouselPrevious className="left-[-1rem]" />
-                                <CarouselNext className="right-[-1rem]" />
                             </Carousel>
                         </div>
 
@@ -979,3 +975,6 @@ export default function GenerateWeeklyPlanPage() {
   );
 }
 
+
+
+    

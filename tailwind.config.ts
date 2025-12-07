@@ -17,6 +17,9 @@ export default {
       },
     },
     extend: {
+      boxShadow: {
+        'primary': '0 10px 15px -3px hsl(var(--primary) / 0.07), 0 4px 6px -4px hsl(var(--primary) / 0.1)',
+      },
       fontFamily: {
         body: ['Inter', 'sans-serif'],
         headline: ['Satoshi', 'sans-serif'],
@@ -109,3 +112,5 @@ export default {
   },
   plugins: [require('tailwindcss-animate')],
 } satisfies Config;
+
+    

@@ -100,7 +100,7 @@ export default function SettingsPage() {
         icon={SettingsIcon}
       />
 
-       <Card className="border-0 rounded-2xl">
+       <Card className="border-0 rounded-2xl shadow-primary">
           <CardHeader>
             <CardTitle className="font-headline text-xl">
                 Seu Plano
@@ -170,7 +170,7 @@ export default function SettingsPage() {
           </CardContent>
        </Card>
 
-       <Card className="border-0 rounded-2xl">
+       <Card className="border-0 rounded-2xl shadow-primary">
         <CardHeader>
           <CardTitle className="font-headline text-xl">Suporte e Contato</CardTitle>
           <CardDescription>
@@ -189,3 +189,5 @@ export default function SettingsPage() {
     </div>
   );
 }
+
+    
