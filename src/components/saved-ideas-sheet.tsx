@@ -15,7 +15,7 @@ import { ScrollArea } from './ui/scroll-area';
 import React, { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { VideoIdeasResultView } from '@/app/(app)/video-ideas/page';
+import { VideoIdeasResultView } from '@/app/(app)/video-ideas/video-ideas-result-view';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from './ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { PreviousPlansSheet } from './previous-plans-sheet'; // Importação circular pode ser um problema.
