@@ -63,6 +63,7 @@ import {
   calculateGrowthAction,
 } from '@/app/landing-page/actions';
 import { useToast } from '@/hooks/use-toast';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 
 const features = [
   {
@@ -534,6 +535,77 @@ export default function LandingPage() {
                         </p>
                       </div>
                       
+                      {/* Mobile Carousel */}
+                      <div className="lg:hidden">
+                        <Carousel className="w-full max-w-sm mx-auto">
+                          <CarouselContent>
+                            {results.growthData && results.growthData.length > 0 && (
+                              <CarouselItem>
+                                <Card className="rounded-2xl h-full">
+                                  <CardHeader><CardTitle className="text-lg font-bold">Curva de Crescimento</CardTitle></CardHeader>
+                                  <CardContent>
+                                      <div className="h-64 w-full">
+                                          <ResponsiveContainer>
+                                              <AreaChart data={results.growthData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+                                                  <defs><linearGradient id="colorFollowers" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.8}/><stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/></linearGradient></defs>
+                                                  <XAxis dataKey="month" tickFormatter={(v) => `Mês ${v}`} />
+                                                  <YAxis domain={['auto', 'auto']} tickFormatter={(v) => v > 1000 ? `${v / 1000}k` : v.toString()} />
+                                                  <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }} />
+                                                  <Area type="monotone" dataKey="followers" stroke="hsl(var(--primary))" fillOpacity={1} fill="url(#colorFollowers)" />
+                                              </AreaChart>
+                                          </ResponsiveContainer>
+                                      </div>
+                                  </CardContent>
+                                </Card>
+                              </CarouselItem>
+                            )}
+                            {(results.currentEarnings || results.goalEarnings) && (
+                              <CarouselItem>
+                                <Card className="h-full">
+                                  <CardHeader>
+                                    <CardTitle className="text-lg font-bold">
+                                      Potencial de Ganhos/Mês
+                                    </CardTitle>
+                                  </CardHeader>
+                                  <CardContent className="space-y-4 text-center">
+                                    {results.currentEarnings && (
+                                      <div>
+                                        <p className="text-2xl font-bold">
+                                          {formatCurrency(results.currentEarnings[0])} - {formatCurrency(results.currentEarnings[1])}
+                                        </p>
+                                        <p className="text-sm text-muted-foreground">(estimativa atual)</p>
+                                      </div>
+                                    )}
+                                    {results.goalEarnings && (
+                                       <div>
+                                        <p className="text-2xl font-bold">
+                                          {formatCurrency(results.goalEarnings[0])} - {formatCurrency(results.goalEarnings[1])}
+                                        </p>
+                                        <p className="text-sm text-muted-foreground">(estimativa na meta)</p>
+                                      </div>
+                                    )}
+                                  </CardContent>
+                                </Card>
+                              </CarouselItem>
+                            )}
+                             {results.accelerationScenarios && (
+                              <CarouselItem>
+                                <Card className="rounded-2xl h-full">
+                                  <CardHeader><CardTitle className="text-lg font-bold">Cenários de Aceleração</CardTitle></CardHeader>
+                                  <CardContent className="grid grid-cols-3 gap-4 text-center">
+                                      <div><p className="font-bold text-2xl">{results.accelerationScenarios.maintain}</p><p className="text-xs text-muted-foreground">Meses (Ritmo Atual)</p></div>
+                                      <div><p className="font-bold text-2xl">{results.accelerationScenarios.plus20}</p><p className="text-xs text-muted-foreground">Meses (+20% Posts)</p></div>
+                                      <div><p className="font-bold text-2xl">{results.accelerationScenarios.plus40}</p><p className="text-xs text-muted-foreground">Meses (+40% Posts)</p></div>
+                                  </CardContent>
+                                </Card>
+                              </CarouselItem>
+                            )}
+                          </CarouselContent>
+                          <CarouselPrevious className="left-2"/>
+                          <CarouselNext className="right-2" />
+                        </Carousel>
+                      </div>
+
                       {/* Desktop Grid */}
                       <div className="hidden lg:grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
                           {/* Left Column */}
