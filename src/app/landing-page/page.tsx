@@ -336,7 +336,7 @@ export default function LandingPage() {
                 <Carousel className="w-full" opts={{align: 'start'}}>
                   <CarouselContent className="-ml-4 p-4">
                     {features.map((feature) => (
-                      <CarouselItem key={feature.title} className="pl-4 md:basis-1/2 p-1">
+                      <CarouselItem key={feature.title} className="pl-4 p-1">
                          <Card className="text-left h-full bg-card/50 rounded-2xl border-0 shadow-none">
                           <CardHeader className="flex flex-row items-center justify-between">
                             <div className="bg-primary/10 text-primary p-3 rounded-lg">
@@ -360,8 +360,8 @@ export default function LandingPage() {
                     </CarouselItem>
                     ))}
                   </CarouselContent>
-                   <CarouselPrevious className="left-0 top-1/2 -translate-y-1/2" />
-                   <CarouselNext className="right-0 top-1/2 -translate-y-1/2" />
+                   <CarouselPrevious className="left-[-0.5rem] top-1/2 -translate-y-1/2" />
+                   <CarouselNext className="right-[-0.5rem] top-1/2 -translate-y-1/2" />
                 </Carousel>
               </div>
             </div>
@@ -578,7 +578,7 @@ export default function LandingPage() {
                           <CarouselContent className="-ml-4 p-4">
                             {results.growthData && results.growthData.length > 0 && (
                               <CarouselItem className="pl-4 p-1">
-                                <Card className="rounded-2xl h-full shadow-2xl shadow-primary/20">
+                                <Card className="rounded-2xl">
                                   <CardHeader><CardTitle className="text-lg font-bold">Curva de Crescimento</CardTitle></CardHeader>
                                   <CardContent className="p-4">
                                       <div className="h-64 w-full">
@@ -598,7 +598,7 @@ export default function LandingPage() {
                             )}
                             {(results.currentEarnings || results.goalEarnings) && (
                               <CarouselItem className="pl-4 p-1">
-                                <Card className="h-full rounded-2xl shadow-2xl shadow-primary/20">
+                                <Card className="h-full rounded-2xl">
                                   <CardHeader>
                                     <CardTitle className="text-lg font-bold">
                                       Potencial de Ganhos/Mês
@@ -627,7 +627,7 @@ export default function LandingPage() {
                             )}
                              {results.accelerationScenarios && (
                               <CarouselItem className="pl-4 p-1">
-                                <Card className="rounded-2xl h-full shadow-2xl shadow-primary/20">
+                                <Card className="rounded-2xl h-full">
                                   <CardHeader><CardTitle className="text-lg font-bold">Cenários de Aceleração</CardTitle></CardHeader>
                                   <CardContent className="grid grid-cols-3 gap-4 text-center">
                                       <div><p className="font-bold text-2xl">{results.accelerationScenarios.maintain}</p><p className="text-xs text-muted-foreground">Meses (Ritmo Atual)</p></div>
@@ -797,7 +797,7 @@ export default function LandingPage() {
             </div>
             <div className="grid lg:grid-cols-3 gap-8 max-w-6xl mx-auto items-start">
                {/* Plano Grátis */}
-              <Card className="rounded-2xl p-6 flex flex-col h-full bg-muted/30 shadow-2xl shadow-primary/20">
+              <Card className="rounded-2xl p-6 flex flex-col h-full bg-muted/30">
                 <h3 className="text-2xl font-bold font-headline mb-2">
                   Grátis
                 </h3>
@@ -876,7 +876,7 @@ export default function LandingPage() {
               </Card>
 
               {/* Plano Premium */}
-               <Card className="rounded-2xl p-6 border border-yellow-400/50 bg-yellow-400/5 flex flex-col h-full shadow-2xl shadow-primary/20">
+               <Card className="rounded-2xl p-6 border border-yellow-400/50 bg-yellow-400/5 flex flex-col h-full">
                  <h3 className="text-2xl font-bold font-headline mb-2 flex items-center gap-2">
                   Premium
                   <Crown className="h-5 w-5 text-yellow-500 fill-yellow-500" />
