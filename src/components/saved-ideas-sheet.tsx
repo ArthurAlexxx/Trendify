@@ -187,14 +187,14 @@ export function SavedIdeasSheet() {
                 Ideias Salvas
             </Button>
         </ResponsiveDialogTrigger>
-        <ResponsiveDialogContent className="w-full sm:max-w-lg p-0">
+        <ResponsiveDialogContent className="p-0 sm:max-w-lg">
             <ResponsiveDialogHeader className='p-6 pb-4 border-b'>
             <ResponsiveDialogTitle className="font-headline text-xl">Ideias Salvas</ResponsiveDialogTitle>
             <ResponsiveDialogDescription>
                 Acesse aqui todas as ideias geradas pela IA que você salvou.
             </ResponsiveDialogDescription>
             </ResponsiveDialogHeader>
-            <ScrollArea className="h-[calc(100vh-8rem)]">
+            <ScrollArea className="flex-1 max-h-[calc(100vh-10rem)]">
             <div className="p-6 space-y-4">
                 {isLoading && (
                 <div className="flex justify-center items-center h-64">
@@ -272,7 +272,7 @@ export function SavedIdeasSheet() {
 
     {selectedIdea && (
         <ResponsiveDialog isOpen={isDetailSheetOpen} onOpenChange={setIsDetailSheetOpen}>
-            <ResponsiveDialogContent className="w-full sm:max-w-3xl p-0 flex flex-col">
+            <ResponsiveDialogContent className="p-0 sm:max-w-3xl flex flex-col">
                 <ResponsiveDialogHeader className='p-6 pb-4 border-b'>
                 <ResponsiveDialogTitle className="font-headline text-2xl">
                     {selectedIdea.titulo}

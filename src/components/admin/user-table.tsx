@@ -17,7 +17,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Crown, MoreHorizontal, Edit, Shield } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { Button, buttonVariants } from '../ui/button';
-import { ChangePlanSheet } from './change-plan-dialog';
+import { ChangePlanDialog } from './change-plan-dialog';
 import { useState, useTransition } from 'react';
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '../ui/sheet';
 import { changeUserRoleAction } from '@/app/admin/actions';
@@ -79,11 +79,13 @@ export function UserTable({ data }: UserTableProps) {
   return (
     <>
     {selectedUser && (
-      <ChangePlanSheet 
+      <ChangePlanDialog 
         isOpen={isPlanSheetOpen} 
         setIsOpen={setIsPlanSheetOpen}
         user={selectedUser}
-      />
+      >
+        {/* The trigger is now inside the dropdown menu item */}
+      </ChangePlanDialog>
     )}
      {selectedUser && (
         <Sheet open={isRoleSheetOpen} onOpenChange={setIsRoleSheetOpen}>
@@ -156,7 +158,7 @@ export function UserTable({ data }: UserTableProps) {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => handleOpenPlanSheet(user)}>
+                        <DropdownMenuItem onSelect={() => handleOpenPlanSheet(user)}>
                             <Edit className="mr-2 h-4 w-4" />
                             <span>Alterar Plano</span>
                         </DropdownMenuItem>

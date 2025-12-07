@@ -27,9 +27,6 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from './ui/chart';
 import { Separator } from './ui/separator';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
-import Link from 'next/link';
-import { Lightbulb } from 'lucide-react';
 
 const chartConfig = {
   alcance: { label: 'Alcance', color: 'hsl(var(--primary))' },
@@ -123,7 +120,7 @@ export function PreviousPlansSheet() {
           Histórico de Planos
         </Button>
       </ResponsiveDialogTrigger>
-      <ResponsiveDialogContent className="w-full sm:max-w-lg p-0">
+      <ResponsiveDialogContent className="p-0 sm:max-w-lg">
         <ResponsiveDialogHeader className='p-6 pb-4 border-b'>
           <ResponsiveDialogTitle className="font-headline text-xl">Histórico de Planos</ResponsiveDialogTitle>
           <ResponsiveDialogDescription>
@@ -182,7 +179,7 @@ export function PreviousPlansSheet() {
     </ResponsiveDialog>
     {selectedPlan && selectedPlan.aiResponseData && (
         <ResponsiveDialog isOpen={isDetailSheetOpen} onOpenChange={setIsDetailSheetOpen}>
-            <ResponsiveDialogContent className="w-full sm:max-w-4xl p-0 flex flex-col">
+            <ResponsiveDialogContent className="p-0 sm:max-w-4xl flex flex-col">
                 <ResponsiveDialogHeader className='p-6 pb-4 border-b'>
                 <ResponsiveDialogTitle className="font-headline text-2xl">
                     {selectedPlan.titulo}

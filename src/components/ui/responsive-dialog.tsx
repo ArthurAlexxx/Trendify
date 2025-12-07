@@ -71,6 +71,7 @@ export const ResponsiveDialogContent = ({ children, className }: ResponsiveDialo
     if (isDesktop) {
         return <DesktopDialogContent className={className}>{children}</DesktopDialogContent>
     }
+    // No p-0 here, padding is handled by header/content/footer
     return <MobileSheetContent side="right" className={className}>{children}</MobileSheetContent>
 }
 

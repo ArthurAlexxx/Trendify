@@ -36,6 +36,7 @@ import { Loader2 } from 'lucide-react';
 import { changeUserPlanAction } from '@/app/admin/actions';
 import { useUser } from '@/firebase';
 import { ScrollArea } from '../ui/scroll-area';
+import { ResponsiveDialog, ResponsiveDialogClose, ResponsiveDialogContent, ResponsiveDialogDescription, ResponsiveDialogFooter, ResponsiveDialogHeader, ResponsiveDialogTitle, ResponsiveDialogTrigger } from '../ui/responsive-dialog';
 
 const formSchema = z.object({
   newPlan: z.enum(['free', 'pro', 'premium']),
@@ -44,13 +45,14 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
-interface ChangePlanSheetProps {
+interface ChangePlanDialogProps {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
   user: UserProfile;
+  children: React.ReactNode;
 }
 
-export function ChangePlanSheet({ isOpen, setIsOpen, user }: ChangePlanSheetProps) {
+export function ChangePlanDialog({ isOpen, setIsOpen, user, children }: ChangePlanDialogProps) {
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
   const { user: adminUser } = useUser();
@@ -105,14 +107,17 @@ export function ChangePlanSheet({ isOpen, setIsOpen, user }: ChangePlanSheetProp
   }
 
   return (
-    <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetContent className='p-0 flex flex-col'>
-        <SheetHeader className='p-6 pb-4 border-b'>
-          <SheetTitle className='text-center font-headline text-xl'>Alterar Plano de Assinatura</SheetTitle>
-          <SheetDescription className='text-center'>
+    <ResponsiveDialog isOpen={isOpen} onOpenChange={setIsOpen}>
+        <ResponsiveDialogTrigger asChild>
+            {children}
+        </ResponsiveDialogTrigger>
+      <ResponsiveDialogContent className="p-0 flex flex-col">
+        <ResponsiveDialogHeader className='p-6 pb-4 border-b'>
+          <ResponsiveDialogTitle className='text-center font-headline text-xl'>Alterar Plano de Assinatura</ResponsiveDialogTitle>
+          <ResponsiveDialogDescription className='text-center'>
             Alterando o plano para <strong>{user.displayName}</strong> ({user.email}).
-          </SheetDescription>
-        </SheetHeader>
+          </ResponsiveDialogDescription>
+        </ResponsiveDialogHeader>
         <ScrollArea className='flex-1'>
             <div className='p-6'>
                 <Form {...form}>
@@ -167,18 +172,18 @@ export function ChangePlanSheet({ isOpen, setIsOpen, user }: ChangePlanSheetProp
             </div>
         </ScrollArea>
 
-        <SheetFooter className="p-6 border-t flex-col sm:flex-row gap-2">
-          <SheetClose asChild>
+        <ResponsiveDialogFooter className="p-6 border-t flex-col sm:flex-row gap-2">
+          <ResponsiveDialogClose asChild>
             <Button type="button" variant="outline" className='w-full sm:w-auto'>
               Cancelar
             </Button>
-          </SheetClose>
+          </ResponsiveDialogClose>
           <Button type="button" onClick={form.handleSubmit(onSubmit)} disabled={isPending} className="w-full sm:w-auto">
             {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Salvar Alterações
           </Button>
-        </SheetFooter>
-      </SheetContent>
-    </Sheet>
+        </ResponsiveDialogFooter>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
   );
 }
