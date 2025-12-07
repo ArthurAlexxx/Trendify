@@ -55,7 +55,7 @@ import {
 } from '@/components/ui/accordion';
 import { Textarea } from '@/components/ui/textarea';
 import { useSubscription } from '@/hooks/useSubscription';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { format as formatDate } from 'date-fns';
 import type { DailyUsage } from '@/lib/types';
@@ -130,7 +130,7 @@ export function PublisAssistantResultView({ result, formValues, isSheetView = fa
                                             </div>
                                             <div>
                                                 <h4 className='font-semibold text-foreground mb-1'>Call to Action (CTA):</h4>
-                                                <p className="text-muted-foreground">{script.cta}</p>
+                                                <p className="text-muted-foreground whitespace-pre-wrap">{script.cta}</p>
                                             </div>
                                         </AccordionContent>
                                     </AccordionItem>
@@ -168,7 +168,7 @@ export function PublisAssistantResultView({ result, formValues, isSheetView = fa
                         <CardHeader><CardTitle className="flex items-center gap-3 text-lg font-semibold"><Target className="h-5 w-5 text-primary" />Projeção de Conversão</CardTitle></CardHeader>
                         <CardContent className='space-y-1 text-center'>
                             <p className='font-semibold text-foreground'>{result.conversionProjection.roteiro}</p>
-                            <p className='text-sm text-muted-foreground'>{result.conversionProjection.justificativa}</p>
+                            <p className='text-sm text-muted-foreground whitespace-pre-wrap'>{result.conversionProjection.justificativa}</p>
                         </CardContent>
                     </Card>
                     <InfoListCard
@@ -282,7 +282,8 @@ function PublisAssistantPageContent() {
   }, [user, firestore, todayStr]);
 
   const generationsToday = usageData?.geracoesAI || 0;
-  const hasReachedFreeLimit = isTrialActive && generationsToday >= 2;
+  const isPremium = subscription?.plan === 'premium';
+  const hasReachedLimit = !isPremium;
 
 
   const form = useForm<FormSchemaType>({
@@ -415,8 +416,7 @@ function PublisAssistantPageContent() {
     });
   }
   
-  const isButtonDisabled = isGenerating || hasReachedFreeLimit;
-  const isFreePlan = subscription?.plan === 'free';
+  const isButtonDisabled = isGenerating || hasReachedLimit;
 
 
   return (
@@ -635,7 +635,7 @@ function PublisAssistantPageContent() {
                         </ResponsiveDialogFooter>
                       </ResponsiveDialogContent>
                     </ResponsiveDialog>
-                    {isFreePlan && (
+                    {hasReachedLimit && (
                       <p className="text-sm text-muted-foreground text-center sm:text-left">
                         Você precisa de um plano <Link href="/subscribe" className='underline text-primary font-semibold'>Premium</Link> para usar esta ferramenta.
                       </p>

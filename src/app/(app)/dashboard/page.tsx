@@ -558,10 +558,11 @@ export default function DashboardPage() {
   const latestMetrics = useMemo(() => {
     if (!userProfile) return null;
     if (selectedPlatform === 'total') {
+        // Correctly sum the parsed numeric values for total metrics
         return {
             followers: parseMetric(userProfile.instagramFollowers) + parseMetric(userProfile.tiktokFollowers),
             views: parseMetric(userProfile.instagramAverageViews) + parseMetric(userProfile.tiktokAverageViews),
-            likes: parseMetric(userProfile.instagramAverageLikes) + parseMetric(userProfile.tiktokAverageComments),
+            likes: parseMetric(userProfile.instagramAverageLikes) + parseMetric(userProfile.tiktokAverageLikes),
             comments: parseMetric(userProfile.instagramAverageComments) + parseMetric(userProfile.tiktokAverageComments),
         }
     }
