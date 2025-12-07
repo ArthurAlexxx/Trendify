@@ -16,12 +16,12 @@ import React, { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { VideoIdeasResultView } from '@/app/(app)/video-ideas/page';
-import { PublisAssistantResultView } from '@/app/(app)/publis-assistant/page';
-import { MediaKitResultView } from '@/app/(app)/media-kit/page';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from './ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { PreviousPlansSheet } from './previous-plans-sheet'; // Importação circular pode ser um problema.
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from './ui/sheet';
+import { MediaKitResultView } from './media-kit/media-kit-result-view';
+import { PublisAssistantResultView } from '@/app/(app)/publis-assistant/publis-assistant-result-view';
 
 export function SavedIdeasSheet() {
   const { user } = useUser();
