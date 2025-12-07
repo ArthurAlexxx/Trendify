@@ -15,7 +15,7 @@ import {
 import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import { IdeiaSalva } from '@/lib/types';
 import { collection, orderBy, query, doc, deleteDoc } from 'firebase/firestore';
-import { BookMarked, Eye, Inbox, Loader2, Edit, Calendar, Trash2 } from 'lucide-react';
+import { BookMarked, Eye, Inbox, Loader2, Edit, Calendar, Trash2, Zap, Newspaper } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Badge } from './ui/badge';
@@ -83,26 +83,29 @@ export function SavedIdeasSheet() {
   }
 
   
-  const getActionLink = (idea: IdeiaSalva | null): string => {
-    if (!idea) return '/';
+  const getActionInfo = (idea: IdeiaSalva | null): { href: string; label: string; icon: React.ElementType } => {
+    if (!idea) return { href: '/', label: 'Ação', icon: Edit };
   
     const topic = encodeURIComponent(idea.titulo || '');
     const context = encodeURIComponent(idea.conteudo || '');
+    const aiData = idea.aiResponseData;
   
     switch (idea.origem) {
       case 'Ideias de Vídeo':
-        return `/video-ideas?topic=${topic}&context=${context}`;
+        return { href: `/video-ideas?topic=${topic}&context=${context}`, label: 'Refinar Ideia', icon: Edit };
       case 'Propostas & Publis':
-        return `/publis-assistant?product=${topic}&differentiators=${context}`;
+         return { href: `/publis-assistant?product=${topic}&differentiators=${aiData?.differentiators || context}`, label: 'Refinar Publi', icon: Edit };
       case 'Mídia Kit & Prospecção':
-         const valueProposition = idea.aiResponseData?.valueProposition || context;
-        return `/publis-assistant?product=${topic}&differentiators=${encodeURIComponent(valueProposition)}`;
+         const valueProposition = aiData?.valueProposition || context;
+        return { href: `/publis-assistant?product=${topic}&differentiators=${encodeURIComponent(valueProposition)}`, label: 'Usar no Publis', icon: Newspaper };
       case 'Plano Semanal':
-        return `/video-ideas?topic=Com base no meu plano semanal&context=${context}`;
+        return { href: `/generate-weekly-plan`, label: 'Reativar Plano', icon: Zap };
       default:
-        return '/dashboard';
+        return { href: '/dashboard', label: 'Ir para o Dashboard', icon: Edit };
     }
   }
+  
+  const actionInfo = getActionInfo(selectedIdea);
 
   const renderResultView = (idea: IdeiaSalva) => {
     if (!idea.aiResponseData) {
@@ -231,8 +234,8 @@ export function SavedIdeasSheet() {
                  {renderResultView(selectedIdea)}
                 </ScrollArea>
                  <SheetFooter className="p-4 border-t flex flex-col sm:flex-row gap-2 justify-end">
-                    <Link href={getActionLink(selectedIdea)} className={cn(buttonVariants({ variant: 'outline', className: 'w-full sm:w-auto' }))}>
-                        <Edit className="mr-2 h-4 w-4" /> Usar esta Ideia
+                    <Link href={actionInfo.href} className={cn(buttonVariants({ variant: 'outline', className: 'w-full sm:w-auto' }))}>
+                        <actionInfo.icon className="mr-2 h-4 w-4" /> {actionInfo.label}
                     </Link>
                     <Link href={`/content-calendar?title=${encodeURIComponent(selectedIdea.titulo)}&notes=${encodeURIComponent(selectedIdea.conteudo)}`} className={cn(buttonVariants({ variant: 'default', className: 'w-full sm:w-auto' }))}>
                         <Calendar className="mr-2 h-4 w-4" /> Agendar Post

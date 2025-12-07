@@ -636,7 +636,7 @@ export default function GenerateWeeklyPlanPage() {
                             <div className='flex justify-center pt-4 gap-2'>
                                 <Button onClick={handleSavePlan} disabled={isSaving} className="w-full sm:w-auto">
                                     <Save className="mr-2 h-4 w-4" />
-                                    {isSaving ? 'Salvando...' : 'Salvar e Ativar Plano'}
+                                    {isSaving ? 'Salvando...' : 'Ativar Plano'}
                                 </Button>
                                 <Button onClick={handleDiscard} variant="outline" className="w-full sm:w-auto">
                                     <Trash2 className="mr-2 h-4 w-4" />
