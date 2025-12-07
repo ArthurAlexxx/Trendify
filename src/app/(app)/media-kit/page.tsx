@@ -244,7 +244,7 @@ function MediaKitPageContent() {
       form.reset({
         niche: userProfile.niche || '',
         keyMetrics: metrics,
-        targetBrand: form.getValues('targetBrand') || '',
+        targetBrand: '',
       });
     }
   }, [userProfile, form]);
@@ -437,7 +437,7 @@ function MediaKitPageContent() {
                                               <FormControl>
                                                   {isLoadingProfile ? <Skeleton className="h-12 w-full" /> : 
                                                   <Input
-                                                      placeholder="Defina em seu Perfil"
+                                                      placeholder="Ex: Lifestyle e moda sustentável"
                                                       className="h-12 bg-muted/50"
                                                       {...field}
                                                   />
@@ -457,7 +457,7 @@ function MediaKitPageContent() {
                                                   <FormControl>
                                                   {isLoadingProfile ? <Skeleton className="h-12 w-full" /> :
                                                       <Input
-                                                      placeholder="Defina em seu Perfil"
+                                                      placeholder="Ex: 250k seguidores, 15k views/vídeo"
                                                       className="h-12 bg-muted/50"
                                                       {...field}
                                                       readOnly
@@ -531,11 +531,6 @@ function MediaKitPageContent() {
                             <Trash2 className="mr-2 h-4 w-4" />
                             Descartar
                         </Button>
-                        <Link href={`/publis-assistant?product=${encodeURIComponent(form.getValues('targetBrand'))}&differentiators=${encodeURIComponent(result.valueProposition)}&targetAudience=${encodeURIComponent(userProfile?.audience || '')}`}
-                         className={cn(buttonVariants({ variant: 'default', className: 'w-full sm:w-auto' }))}>
-                           <Newspaper className="mr-2 h-4 w-4" />
-                           Criar Publi para esta Marca
-                        </Link>
                       </div>
                     )}
 

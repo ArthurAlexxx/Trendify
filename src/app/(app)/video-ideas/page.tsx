@@ -62,7 +62,7 @@ import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatDistanceToNow, format as formatDate } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { useSubscription } from '@/hooks/useSubscription';
+import { useSubscription } from '@/hooks/use-subscription';
 import Link from 'next/link';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
@@ -70,7 +70,7 @@ import { Progress } from '@/components/ui/progress';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { ObjectiveFormCard } from '@/components/ui/objective-form-card';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 
 const formSchema = z.object({
@@ -231,6 +231,8 @@ export default function VideoIdeasPage() {
   const { user } = useUser();
   const firestore = useFirestore();
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
   
   const userProfileRef = useMemoFirebase(
     () => (firestore && user ? doc(firestore, `users/${user.uid}`) : null),
@@ -291,10 +293,16 @@ export default function VideoIdeasPage() {
       if (contextParam) {
         fullTopic += ` (Contexto: ${contextParam})`;
       }
-      form.setValue('topic', fullTopic);
+      form.reset({
+        topic: fullTopic,
+        targetAudience: userProfile?.audience || '',
+        objective: form.getValues('objective'),
+      })
       setIsFormOpen(true); 
+      // Clean the URL to prevent re-triggering
+      router.replace(pathname, { scroll: false });
     }
-  }, [searchParams, form]);
+  }, [searchParams, form, router, pathname, userProfile]);
 
 
   const formAction = useCallback(async (formData: FormSchemaType) => {
@@ -330,11 +338,11 @@ export default function VideoIdeasPage() {
   const { data: completedIdeas, isLoading: isLoadingCompleted } = useCollection<IdeiaSalva>(completedIdeasQuery);
 
   useEffect(() => {
-    if (userProfile && !searchParams.get('topic')) {
+    if (userProfile && !searchParams.has('topic')) {
       form.reset({
-        topic: form.getValues('topic') || '',
+        topic: '',
         targetAudience: userProfile.audience || '',
-        objective: form.getValues('objective') || 'Engajamento',
+        objective: 'Engajamento',
       });
     }
   }, [userProfile, form, searchParams]);

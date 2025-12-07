@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -131,31 +132,12 @@ export function SavedIdeasSheet() {
   const getActionInfo = (idea: IdeiaSalva | null): { href: string; label: string; icon: React.ElementType, isSpecialAction?: boolean } => {
     if (!idea) return { href: '/', label: 'Ação', icon: Edit };
     
-    const aiData = idea.aiResponseData;
-
     switch (idea.origem) {
-      case 'Ideias de Vídeo':
-        const topic = encodeURIComponent(aiData?.script?.gancho || idea.titulo);
-        const audience = encodeURIComponent(aiData?.targetAudience || '');
-        return { href: `/video-ideas?topic=${topic}&targetAudience=${audience}`, label: 'Refinar Ideia', icon: Edit };
-      
-      case 'Propostas & Publis':
-         const product = encodeURIComponent(aiData?.product || idea.titulo);
-         const diff = encodeURIComponent(aiData?.differentiators || '');
-         const target = encodeURIComponent(aiData?.targetAudience || '');
-         return { href: `/publis-assistant?product=${product}&differentiators=${diff}&targetAudience=${target}`, label: 'Refinar Publi', icon: Edit };
-      
-      case 'Mídia Kit & Prospecção':
-        const targetBrand = encodeURIComponent(aiData?.targetBrand || '');
-        const valueProposition = encodeURIComponent(aiData?.valueProposition || '');
-        const audienceFromProfile = encodeURIComponent(aiData?.audience || '');
-        return { href: `/publis-assistant?product=${targetBrand}&differentiators=${valueProposition}&targetAudience=${audienceFromProfile}`, label: 'Criar Publi para Marca', icon: Newspaper };
-      
       case 'Plano Semanal':
         return { href: '#', label: 'Reativar Plano', icon: History, isSpecialAction: true };
-
       default:
-        return { href: '/dashboard', label: 'Ir para o Dashboard', icon: Edit };
+        // For other types, there's no special action for now.
+        return { href: `/content-calendar?title=${encodeURIComponent(idea.titulo)}&notes=${encodeURIComponent(idea.conteudo)}`, label: 'Agendar Post', icon: Calendar };
     }
   }
   
@@ -187,14 +169,14 @@ export function SavedIdeasSheet() {
                 Ideias Salvas
             </Button>
         </ResponsiveDialogTrigger>
-        <ResponsiveDialogContent className="p-0 sm:max-w-lg">
+        <ResponsiveDialogContent className="p-0 sm:max-w-lg flex flex-col gap-0">
             <ResponsiveDialogHeader className='p-6 pb-4 border-b'>
             <ResponsiveDialogTitle className="font-headline text-xl">Ideias Salvas</ResponsiveDialogTitle>
             <ResponsiveDialogDescription>
                 Acesse aqui todas as ideias geradas pela IA que você salvou.
             </ResponsiveDialogDescription>
             </ResponsiveDialogHeader>
-            <ScrollArea className="flex-1 max-h-[calc(100vh-10rem)]">
+            <ScrollArea className="flex-1">
             <div className="p-6 space-y-4">
                 {isLoading && (
                 <div className="flex justify-center items-center h-64">
@@ -272,7 +254,7 @@ export function SavedIdeasSheet() {
 
     {selectedIdea && (
         <ResponsiveDialog isOpen={isDetailSheetOpen} onOpenChange={setIsDetailSheetOpen}>
-            <ResponsiveDialogContent className="p-0 sm:max-w-3xl flex flex-col">
+            <ResponsiveDialogContent className="p-0 sm:max-w-3xl flex flex-col gap-0">
                 <ResponsiveDialogHeader className='p-6 pb-4 border-b'>
                 <ResponsiveDialogTitle className="font-headline text-2xl">
                     {selectedIdea.titulo}
@@ -309,15 +291,10 @@ export function SavedIdeasSheet() {
                             </AlertDialogContent>
                         </AlertDialog>
                     ) : (
-                        <Link href={actionInfo.href} className={cn(buttonVariants({ variant: 'outline', className: 'w-full sm:w-auto' }))}>
+                        <Link href={actionInfo.href} className={cn(buttonVariants({ variant: 'default', className: 'w-full sm:w-auto' }))}>
                             <actionInfo.icon className="mr-2 h-4 w-4" /> {actionInfo.label}
                         </Link>
                     )}
-                    <Link href={`/content-calendar?title=${encodeURIComponent(selectedIdea.titulo)}&notes=${encodeURIComponent(selectedIdea.conteudo)}`}
-                         className={cn(buttonVariants({ variant: 'default', className: 'w-full sm:w-auto' }))}>
-                       <Calendar className="mr-2 h-4 w-4" />
-                       Agendar Post
-                    </Link>
                 </ResponsiveDialogFooter>
             </ResponsiveDialogContent>
         </ResponsiveDialog>

@@ -62,9 +62,9 @@ import { ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogHeader, Resp
 
 
 const formSchema = z.object({
-  objective: z.string().min(10, 'O objetivo precisa ser mais detalhado.'),
-  niche: z.string().min(1, 'O nicho é obrigatório.'),
-  currentStats: z.string().min(1, 'As estatísticas são obrigatórias.'),
+  objective: z.string().min(1, 'O objetivo da semana é obrigatório.'),
+  niche: z.string().min(1, 'Seu nicho é necessário.'),
+  currentStats: z.string().min(1, 'Suas estatísticas são necessárias.'),
   totalFollowerGoal: z.number().optional(),
   instagramFollowerGoal: z.number().optional(),
   tiktokFollowerGoal: z.number().optional(),
@@ -276,7 +276,7 @@ export default function GenerateWeeklyPlanPage() {
       ].filter(Boolean).join(', ');
 
       form.reset({
-        objective: form.getValues('objective') || '',
+        objective: '',
         niche: userProfile.niche || '',
         currentStats: stats || 'Nenhuma métrica disponível',
         totalFollowerGoal: userProfile.totalFollowerGoal,
@@ -388,7 +388,7 @@ export default function GenerateWeeklyPlanPage() {
                             )}
                          </Button>
                       </ResponsiveDialogTrigger>
-                       <ResponsiveDialogContent className="sm:max-w-2xl p-0">
+                       <ResponsiveDialogContent className="sm:max-w-2xl p-0 flex flex-col gap-0">
                             <ResponsiveDialogHeader className="p-6 pb-4 border-b">
                                 <ResponsiveDialogTitle className="flex items-center justify-center gap-3 font-headline text-xl">
                                     <Bot className="h-6 w-6 text-primary" />
@@ -398,7 +398,7 @@ export default function GenerateWeeklyPlanPage() {
                                     Forneça os detalhes para um plano melhor. Sua meta de seguidores será usada para focar a estratégia.
                                 </ResponsiveDialogDescription>
                             </ResponsiveDialogHeader>
-                            <ScrollArea className="flex-1 max-h-[calc(100vh-10rem)]">
+                            <ScrollArea className="flex-1">
                               <div className="p-6">
                                   <Form {...form}>
                                       <form onSubmit={form.handleSubmit(formAction)} className="space-y-6">
@@ -494,7 +494,7 @@ export default function GenerateWeeklyPlanPage() {
              <Card className="rounded-t-none border-t-0">
                 <CardHeader className='text-center'>
                     <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Plano Gerado</h2>
-                    <p className="text-muted-foreground">Seu novo plano semanal está pronto. Salve-o para ativá-lo no seu dashboard.</p>
+                    <p className="text-muted-foreground">Seu novo plano semanal está pronto. Ative-o para começar a usar.</p>
                 </CardHeader>
                 <CardContent className="p-6">
                     <div className="space-y-8 animate-fade-in">

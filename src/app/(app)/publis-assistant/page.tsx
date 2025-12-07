@@ -246,6 +246,9 @@ function PublisAssistantPageContent() {
   const { user } = useUser();
   const firestore = useFirestore();
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
 
   const { subscription, isTrialActive } = useSubscription();
   const todayStr = formatDate(new Date(), 'yyyy-MM-dd');
@@ -293,17 +296,25 @@ function PublisAssistantPageContent() {
     },
   });
   
-  useEffect(() => {
+ useEffect(() => {
     const product = searchParams.get('product');
     const differentiators = searchParams.get('differentiators');
     const targetAudience = searchParams.get('targetAudience');
+    
     if (product || differentiators || targetAudience) {
-      form.setValue('product', product || form.getValues('product'));
-      form.setValue('differentiators', differentiators || form.getValues('differentiators'));
-      form.setValue('targetAudience', targetAudience || form.getValues('targetAudience'));
+      form.reset({
+        product: product || '',
+        differentiators: differentiators || '',
+        targetAudience: targetAudience || '',
+        objective: form.getValues('objective'),
+        extraInfo: form.getValues('extraInfo'),
+      });
       setIsFormOpen(true);
+      // Clean the URL to prevent re-triggering
+      router.replace(pathname, { scroll: false });
     }
-  }, [searchParams, form]);
+  }, [searchParams, form, router, pathname]);
+
 
 
   const formAction = useCallback(async (formData: FormSchemaType) => {
