@@ -607,7 +607,7 @@ function InfoCard({
   content: string;
 }) {
   return (
-    <Card className="shadow-lg">
+    <Card className="shadow-primary-lg">
       <CardHeader>
         <CardTitle className="flex items-center justify-center gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary" />
@@ -634,7 +634,7 @@ function InfoList({
   items: string[];
 }) {
   return (
-    <Card className="h-full shadow-lg">
+    <Card className="h-full shadow-primary-lg">
       <CardHeader>
         <CardTitle className="flex items-center justify-center gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary" />
@@ -668,7 +668,7 @@ function PricingCard({
   pricing: AiCareerPackageOutput['pricingTiers'];
 }) {
   return (
-    <Card className="h-full shadow-lg">
+    <Card className="h-full shadow-primary-lg">
       <CardHeader>
         <CardTitle className="flex items-center justify-center gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary" />
@@ -707,5 +707,7 @@ function PricingCard({
     </Card>
   );
 }
+
+    
 
     

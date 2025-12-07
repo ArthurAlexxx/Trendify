@@ -237,7 +237,7 @@ export default function ProfilePage() {
         description="Mantenha suas informações atualizadas para a IA."
         icon={UserIcon}
       />
-          <Card className="rounded-2xl border-0 shadow-lg">
+          <Card className="rounded-2xl border-0 shadow-primary-lg">
             <CardHeader>
               <CardTitle className="font-headline text-xl">
                 Perfil & Métricas Manuais
@@ -383,7 +383,7 @@ export default function ProfilePage() {
             </CardContent>
           </Card>
           
-          <Card className="rounded-2xl border-0 shadow-lg">
+          <Card className="rounded-2xl border-0 shadow-primary-lg">
             <CardHeader>
                 <CardTitle className="font-headline text-xl">
                   Integração de Plataformas
@@ -411,5 +411,7 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+    
 
     

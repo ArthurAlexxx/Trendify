@@ -551,7 +551,7 @@ function VideoReviewPageContent() {
                     {analysisStatus === 'success' && analysisResult && (
                         <div className="grid lg:grid-cols-2 gap-8 items-start">
                         <div className="space-y-8">
-                            <Card className="lg:col-span-1 shadow-lg">
+                            <Card className="lg:col-span-1 shadow-primary-lg">
                                 <CardHeader className='items-center text-center'>
                                     <CardTitle className="text-center font-headline text-lg text-primary">Nota de Viralização</CardTitle>
                                 </CardHeader>
@@ -561,7 +561,7 @@ function VideoReviewPageContent() {
                                 </CardContent>
                             </Card>
 
-                            <Card className="lg:col-span-2 shadow-lg">
+                            <Card className="lg:col-span-2 shadow-primary-lg">
                                 <CardHeader>
                                     <CardTitle className="text-center items-center flex gap-2">
                                          <Check className="h-5 w-5 text-primary" />
@@ -582,7 +582,7 @@ function VideoReviewPageContent() {
                         </div>
                         
                         <div className="space-y-8">
-                            <Card className="shadow-lg">
+                            <Card className="shadow-primary-lg">
                                 <CardHeader>
                                     <CardTitle className="text-center font-headline text-lg flex items-center gap-2">
                                         <Flame className="h-5 w-5 text-primary" />
@@ -600,7 +600,7 @@ function VideoReviewPageContent() {
                                     </div>
                                 </CardContent>
                             </Card>
-                            <Card className="shadow-lg">
+                            <Card className="shadow-primary-lg">
                                 <CardHeader className='items-center text-center'>
                                     <CardTitle className="text-center font-headline text-lg">Análise Detalhada</CardTitle>
                                 </CardHeader>
@@ -671,7 +671,7 @@ function VideoReviewPageContent() {
                                                             <video controls src={analise.videoUrl} className="w-full rounded-lg bg-black"></video>
                                                          )}
                                                         
-                                                        <Card className="shadow-lg">
+                                                        <Card className="shadow-primary-lg">
                                                             <CardHeader>
                                                                 <CardTitle className="text-lg text-primary">Nota de Viralização</CardTitle>
                                                             </CardHeader>
@@ -681,7 +681,7 @@ function VideoReviewPageContent() {
                                                             </CardContent>
                                                         </Card>
 
-                                                         <Card className="shadow-lg">
+                                                         <Card className="shadow-primary-lg">
                                                             <CardHeader>
                                                                 <CardTitle className="flex items-center gap-2 text-lg"><Lightbulb className="h-5 w-5 text-primary" /> Checklist de Melhorias</CardTitle>
                                                             </CardHeader>
@@ -697,7 +697,7 @@ function VideoReviewPageContent() {
                                                             </CardContent>
                                                         </Card>
                                                     </div>
-                                                    <Card className="shadow-lg">
+                                                    <Card className="shadow-primary-lg">
                                                          <CardHeader>
                                                             <CardTitle className="text-center text-lg">Análise Detalhada</CardTitle>
                                                         </CardHeader>
@@ -743,5 +743,7 @@ function VideoReviewPageContent() {
     </div>
   );
 }
+
+    
 
     
