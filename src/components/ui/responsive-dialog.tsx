@@ -4,8 +4,8 @@
 import * as React from "react"
 import { useMediaQuery } from "@/hooks/use-media-query"
 import {
-  Dialog,
-  DialogContent,
+  Dialog as DesktopDialog,
+  DialogContent as DesktopDialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
@@ -14,8 +14,8 @@ import {
   DialogFooter
 } from "@/components/ui/dialog"
 import {
-  Sheet,
-  SheetContent,
+  Sheet as MobileSheet,
+  SheetContent as MobileSheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
@@ -35,16 +35,16 @@ export function ResponsiveDialog({ isOpen, onOpenChange, children }: ResponsiveD
 
   if (isDesktop) {
     return (
-      <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DesktopDialog open={isOpen} onOpenChange={onOpenChange}>
         {children}
-      </Dialog>
+      </DesktopDialog>
     )
   }
 
   return (
-    <Sheet open={isOpen} onOpenChange={onOpenChange}>
+    <MobileSheet open={isOpen} onOpenChange={onOpenChange}>
       {children}
-    </Sheet>
+    </MobileSheet>
   )
 }
 
@@ -69,14 +69,14 @@ interface ResponsiveDialogContentProps {
 export const ResponsiveDialogContent = ({ children, className }: ResponsiveDialogContentProps) => {
     const isDesktop = useMediaQuery("(min-width: 768px)")
     if (isDesktop) {
-        return <DialogContent className={className}>{children}</DialogContent>
+        return <DesktopDialogContent className={className}>{children}</DesktopDialogContent>
     }
-    return <SheetContent side="right" className={className}>{children}</SheetContent>
+    return <MobileSheetContent side="right" className={className}>{children}</MobileSheetContent>
 }
 
 
-export const ResponsiveDialogHeader = SheetHeader;
-export const ResponsiveDialogFooter = SheetFooter;
-export const ResponsiveDialogTitle = SheetTitle;
-export const ResponsiveDialogDescription = SheetDescription;
-export const ResponsiveDialogClose = SheetClose;
+export const ResponsiveDialogHeader = DialogHeader;
+export const ResponsiveDialogFooter = DialogFooter;
+export const ResponsiveDialogTitle = DialogTitle;
+export const ResponsiveDialogDescription = DialogDescription;
+export const ResponsiveDialogClose = DialogClose;
