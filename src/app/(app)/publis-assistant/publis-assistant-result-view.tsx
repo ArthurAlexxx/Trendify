@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -38,7 +39,7 @@ function InfoListCard({
   items: string[];
 }) {
   return (
-    <Card>
+    <Card className="shadow-primary-lg">
       <CardHeader>
         <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary" />
@@ -69,7 +70,7 @@ export function PublisAssistantResultView({ result, formValues, isSheetView = fa
         <div className={cn("space-y-8 animate-fade-in", isSheetView ? "p-6" : "")}>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                 <div className="lg:col-span-2 space-y-6">
-                    <Card>
+                    <Card className="shadow-primary-lg">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
                                 <Clapperboard className="h-5 w-5 text-primary" />
@@ -97,7 +98,7 @@ export function PublisAssistantResultView({ result, formValues, isSheetView = fa
                         </CardContent>
                     </Card>
 
-                    <Card>
+                    <Card className="shadow-primary-lg">
                         <CardHeader><CardTitle className="flex items-center gap-3 text-lg font-semibold"><Lightbulb className="h-5 w-5 text-primary" />Ângulos Criativos e Tom de Voz</CardTitle></CardHeader>
                         <CardContent className="grid md:grid-cols-2 gap-6">
                             <div>
@@ -122,7 +123,7 @@ export function PublisAssistantResultView({ result, formValues, isSheetView = fa
                 </div>
 
                 <div className="space-y-8">
-                    <Card>
+                    <Card className="shadow-primary-lg">
                         <CardHeader><CardTitle className="flex items-center gap-3 text-lg font-semibold"><Target className="h-5 w-5 text-primary" />Projeção de Conversão</CardTitle></CardHeader>
                         <CardContent className='space-y-1 text-center'>
                             <p className='font-semibold text-foreground'>{result.conversionProjection.roteiro}</p>
@@ -144,3 +145,5 @@ export function PublisAssistantResultView({ result, formValues, isSheetView = fa
         </div>
     )
 }
+
+    
