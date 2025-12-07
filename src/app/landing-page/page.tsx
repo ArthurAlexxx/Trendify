@@ -166,7 +166,7 @@ export default function LandingPage() {
   const form = useForm<CalculatorInput>({
     resolver: zodResolver(calculatorSchema),
     defaultValues: {
-      niche: 'Tecnologia e Gadgets',
+      niche: '',
       followers: 10000,
       goal: 100000,
       postsPerMonth: 20,

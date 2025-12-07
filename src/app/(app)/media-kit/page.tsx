@@ -195,7 +195,7 @@ function MediaKitPageContent() {
     defaultValues: {
       niche: '',
       keyMetrics: '',
-      targetBrand: 'Sallve',
+      targetBrand: '',
     },
   });
 
@@ -244,7 +244,7 @@ function MediaKitPageContent() {
       form.reset({
         niche: userProfile.niche || '',
         keyMetrics: metrics,
-        targetBrand: form.getValues('targetBrand') || 'Sallve',
+        targetBrand: form.getValues('targetBrand') || '',
       });
     }
   }, [userProfile, form]);
