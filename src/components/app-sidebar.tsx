@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -112,7 +111,7 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
   const isUserActive = subscription?.status === 'active';
 
   const getPlanName = () => {
-    if (!subscription || isSubscriptionLoading) return "Carregando...";
+    if (isSubscriptionLoading || isAdminLoading) return "Carregando...";
     if (isAdmin) return "Admin";
     if (!isUserActive && userPlan === 'free') return "Fazer Upgrade";
     if (userPlan === 'premium') return 'Premium';
@@ -122,7 +121,7 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
   
   const getPlanIcon = () => {
     if (isAdmin) return <Shield className="h-5 w-5" />;
-    if (!subscription || isSubscriptionLoading) return <Skeleton className="h-5 w-5 rounded-full" />;
+    if (isSubscriptionLoading || isAdminLoading) return <Skeleton className="h-5 w-5 rounded-full" />;
     if (isUserActive && (userPlan === 'pro' || userPlan === 'premium')) return <Sparkles className="h-5 w-5" />;
     return <Crown className="h-5 w-5" />;
   }
@@ -155,7 +154,7 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
                   <div className='flex items-center gap-3'>
                       {getPlanIcon()}
                       <div className='flex flex-col'>
-                          {isSubscriptionLoading ? <Skeleton className="h-5 w-20" /> : <span className='font-semibold text-lg leading-tight'>{getPlanName()}</span>}
+                          {(isSubscriptionLoading || isAdminLoading) ? <Skeleton className="h-5 w-20" /> : <span className='font-semibold text-lg leading-tight'>{getPlanName()}</span>}
                           <span className='text-sm opacity-80'>{isAdmin ? "Painel de Controle" : "Gerenciar assinatura"}</span>
                       </div>
                   </div>
@@ -257,15 +256,18 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
                     </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                 {isAdmin && (
-                    <>
+                 {isAdmin ? (
                     <DropdownMenuItem onClick={() => router.push('/dashboard')}>
                       <LayoutDashboard className="mr-2 h-4 w-4" />
                       <span>Ir para App</span>
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    </>
+                 ) : (
+                   <DropdownMenuItem onClick={() => router.push('/admin')}>
+                      <Shield className="mr-2 h-4 w-4" />
+                      <span>Painel Admin</span>
+                    </DropdownMenuItem>
                  )}
+                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} className='text-red-500 focus:text-red-500 focus:bg-red-500/10'>
                      <LogOut className="mr-2 h-4 w-4" />
                      <span>Sair</span>

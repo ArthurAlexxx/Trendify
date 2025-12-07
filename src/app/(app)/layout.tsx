@@ -7,12 +7,10 @@ import { useEffect, useState } from 'react';
 import { Loader2, PanelLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { useAdmin } from '@/hooks/useAdmin';
 import { usePathname } from 'next/navigation';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, isUserLoading } = useUser();
-  const { isAdmin, isLoading: isAdminLoading } = useAdmin();
   const router = useRouter();
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -41,7 +39,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }, []);
 
   // While checking for user auth, show a full-screen loader.
-  if (isUserLoading || isAdminLoading) {
+  if (isUserLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -55,17 +53,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   if (!user) {
     return null;
   }
-
-  // Redirect admin users from non-admin pages to the admin dashboard
-  if (isAdmin && !pathname.startsWith('/admin')) {
-    router.replace('/admin');
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
 
   // If we reach here, user is logged in and not loading. Render the app.
   return (

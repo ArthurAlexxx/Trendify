@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import { initializeFirebaseAdmin } from '@/firebase/admin';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
@@ -14,8 +13,24 @@ async function logWebhook(firestore: ReturnType<typeof getFirestore>, event: any
       payload: event,
       isSuccess,
       amount: event.payment?.value ? event.payment.value * 100 : null, // Asaas sends value as float
-      customerEmail: event.payment?.customer, // Placeholder, might need adjustment based on actual payload
+      customerEmail: null, // Asaas customer object does not have email directly
     };
+
+    // Attempt to get customer details
+    if (event.payment?.customer) {
+        try {
+            const customerResponse = await fetch(`https://api-sandbox.asaas.com/v3/customers/${event.payment.customer}`, {
+                headers: { 'access_token': process.env.ASAAS_API_KEY! }
+            });
+            const customerData = await customerResponse.json();
+            if (customerData.email) {
+                logData.customerEmail = customerData.email;
+            }
+        } catch(e) {
+            console.warn(`[Asaas Webhook] Could not fetch customer details for ${event.payment.customer}`);
+        }
+    }
+
     await firestore.collection('webhookLogs').add(logData);
   } catch (error) {
     console.error('[Webhook Log] Failed to write log to Firestore:', error);
@@ -47,13 +62,14 @@ export async function POST(req: NextRequest) {
   if (event.event === 'PAYMENT_CONFIRMED') {
     const payment = event.payment;
     const customerId = payment?.customer;
-    const plan = payment?.description?.includes('premium') ? 'premium' : 'pro';
-    const cycle = payment?.description?.includes('annual') ? 'annual' : 'monthly';
+    // Extract plan and cycle from metadata if available
+    const plan = payment?.externalReference as Plan | undefined;
+    const cycle = payment?.description?.toLowerCase().includes('anual') ? 'annual' : 'monthly';
     const paymentId = payment?.id;
 
-    if (!customerId) {
-        console.warn('[Asaas Webhook] Received payment confirmation without a customer ID.', payment);
-        return NextResponse.json({ success: true, message: 'Event received, but no customer ID found.' });
+    if (!customerId || !plan) {
+        console.warn('[Asaas Webhook] Received payment confirmation without a customer ID or plan in externalReference.', payment);
+        return NextResponse.json({ success: true, message: 'Event received, but missing customer ID or plan metadata.' });
     }
 
     try {
@@ -85,7 +101,7 @@ export async function POST(req: NextRequest) {
         'subscription.plan': plan,
         'subscription.cycle': cycle,
         'subscription.expiresAt': Timestamp.fromDate(expiresAt),
-        'subscription.paymentId': paymentId, // Update with the most recent payment ID
+        // We don't update paymentId here because the paymentId is the Asaas customer ID
       };
 
       await userRef.update(updatePayload);
