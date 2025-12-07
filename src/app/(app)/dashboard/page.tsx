@@ -684,7 +684,7 @@ export default function DashboardPage() {
           {userProfile && <ProfileCompletionAlert userProfile={userProfile} isPremium={isPremium} />}
 
           {/* Mobile Carousel */}
-            <div className="lg:hidden">
+            <div className="lg:hidden space-y-8">
               <Carousel
                 opts={{
                   align: "start",
@@ -693,7 +693,6 @@ export default function DashboardPage() {
               >
                   <CarouselContent className="-ml-4">
                       <CarouselItem className="pl-4 basis-11/12"><div className="p-1 h-full"><GoalCard isLoading={isLoading} goalFollowers={goalFollowers} currentFollowers={currentFollowers} followerGoalProgress={followerGoalProgress} pieData={pieData} formatMetricValue={formatMetricValue} /></div></CarouselItem>
-                      <CarouselItem className="pl-4 basis-11/12"><div className="p-1 h-full"><DailyPlanCard isLoadingWeeklyPlans={isLoadingWeeklyPlans} tasksForToday={tasksForToday} currentPlan={currentPlan} handleToggleRoteiro={handleToggleRoteiro} /></div></CarouselItem>
                       <CarouselItem className="pl-4 basis-11/12"><div className="p-1 h-full"><EngagementMetricsCard isLoading={isLoading} latestMetrics={latestMetrics} formatMetricValue={formatMetricValue} getMetricRating={getMetricRating} /></div></CarouselItem>
                          <CarouselItem className="pl-4 basis-11/12">
                            <div className="p-1 h-full">
@@ -718,6 +717,7 @@ export default function DashboardPage() {
                   </CarouselContent>
               </Carousel>
                 <EvolutionChartCard isLoading={isLoading} historicalChartData={historicalChartData} selectedPlatform={selectedPlatform} userProfile={userProfile} />
+                <DailyPlanCard isLoadingWeeklyPlans={isLoadingWeeklyPlans} tasksForToday={tasksForToday} currentPlan={currentPlan} handleToggleRoteiro={handleToggleRoteiro} />
             </div>
 
           {/* Main Grid */}
@@ -758,7 +758,3 @@ export default function DashboardPage() {
     </>
   );
 }
-
-    
-
-    
