@@ -106,13 +106,9 @@ export default {
         'accordion-up': 'accordion-up 0.2s ease-out',
       },
       boxShadow: {
-        'primary-lg': '0 10px 15px -3px hsl(var(--primary) / 0.07), 0 4px 6px -4px hsl(var(--primary) / 0.07)',
+        'primary-lg': '0 10px 15px -3px hsl(var(--primary) / 0.1), 0 4px 6px -4px hsl(var(--primary) / 0.1)',
       }
     },
   },
   plugins: [require('tailwindcss-animate')],
 } satisfies Config;
-
-    
-
-    
