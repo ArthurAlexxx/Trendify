@@ -63,9 +63,7 @@ import Link from 'next/link';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import { ResponsiveDialog, ResponsiveDialogClose, ResponsiveDialogContent, ResponsiveDialogDescription, ResponsiveDialogFooter, ResponsiveDialogHeader, ResponsiveDialogTitle, ResponsiveDialogTrigger } from '@/components/ui/responsive-dialog';
 
@@ -110,18 +108,18 @@ export function PublisAssistantResultView({ result, formValues, isSheetView = fa
     if (!result) return null;
 
     return (
-        <div className={cn("space-y-8 animate-fade-in", !isSheetView && "p-6")}>
+        <div className={cn("space-y-8 animate-fade-in", isSheetView ? "p-6" : "")}>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                 <div className="lg:col-span-2 space-y-6">
-                    <Card className='rounded-2xl border-0'>
+                    <Card>
                         <CardHeader>
-                            <CardTitle className="text-center flex items-center justify-center gap-3 text-lg font-semibold text-foreground">
+                            <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
                                 <Clapperboard className="h-5 w-5 text-primary" />
                                 <span>5 Roteiros Prontos para Gravar</span>
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <Accordion type="single" collapsible defaultValue='item-1' className="w-full">
+                            <Accordion type="single" collapsible defaultValue='item-0' className="w-full">
                                 {result.scripts.map((script: any, index: number) => (
                                     <AccordionItem value={`item-${index}`} key={index}>
                                         <AccordionTrigger className="font-semibold text-base hover:no-underline text-left">Roteiro {index + 1}: {script.gancho}</AccordionTrigger>
@@ -141,8 +139,8 @@ export function PublisAssistantResultView({ result, formValues, isSheetView = fa
                         </CardContent>
                     </Card>
 
-                    <Card className='rounded-2xl border-0'>
-                        <CardHeader><CardTitle className="text-center flex items-center justify-center gap-3 text-lg font-semibold"><Lightbulb className="h-5 w-5 text-primary" />Ângulos Criativos e Tom de Voz</CardTitle></CardHeader>
+                    <Card>
+                        <CardHeader><CardTitle className="flex items-center gap-3 text-lg font-semibold"><Lightbulb className="h-5 w-5 text-primary" />Ângulos Criativos e Tom de Voz</CardTitle></CardHeader>
                         <CardContent className="grid md:grid-cols-2 gap-6">
                             <div>
                                 <h4 className="font-semibold mb-2">Ângulos para Campanha</h4>
@@ -166,8 +164,8 @@ export function PublisAssistantResultView({ result, formValues, isSheetView = fa
                 </div>
 
                 <div className="space-y-8">
-                    <Card className='rounded-2xl border-0'>
-                        <CardHeader><CardTitle className="text-center flex items-center justify-center gap-3 text-lg font-semibold"><Target className="h-5 w-5 text-primary" />Projeção de Conversão</CardTitle></CardHeader>
+                    <Card>
+                        <CardHeader><CardTitle className="flex items-center gap-3 text-lg font-semibold"><Target className="h-5 w-5 text-primary" />Projeção de Conversão</CardTitle></CardHeader>
                         <CardContent className='space-y-1 text-center'>
                             <p className='font-semibold text-foreground'>{result.conversionProjection.roteiro}</p>
                             <p className='text-sm text-muted-foreground'>{result.conversionProjection.justificativa}</p>
@@ -692,9 +690,9 @@ function InfoListCard({
   items: string[];
 }) {
   return (
-    <Card className="h-full rounded-2xl border-0">
+    <Card>
       <CardHeader>
-        <CardTitle className="text-center flex items-center justify-center gap-3 text-lg font-semibold text-foreground">
+        <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary" />
           <span>{title}</span>
         </CardTitle>

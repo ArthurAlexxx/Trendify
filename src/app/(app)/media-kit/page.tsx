@@ -97,7 +97,7 @@ export function MediaKitResultView({ result, formValues, isSheetView = false }: 
     if (!result) return null;
 
     return (
-        <div className={cn("space-y-8 animate-fade-in", !isSheetView && "p-6")}>
+        <div className={cn("space-y-8 animate-fade-in", isSheetView ? "p-6" : "")}>
             <InfoCard title="Apresentação para Marcas" icon={FileText} content={result.executiveSummary} />
             <div className="grid lg:grid-cols-2 gap-8 items-start">
                 <PricingCard title="Tabela de Preços Sugerida" icon={DollarSign} pricing={result.pricingTiers} />
@@ -412,7 +412,7 @@ function MediaKitPageContent() {
                             )}
                          </Button>
                       </ResponsiveDialogTrigger>
-                       <ResponsiveDialogContent className="sm:max-w-2xl p-0">
+                       <ResponsiveDialogContent className="sm:max-w-2xl p-0 flex flex-col gap-0">
                             <ResponsiveDialogHeader className="p-6 pb-4 border-b">
                                 <ResponsiveDialogTitle className="flex items-center justify-center gap-3 font-headline text-xl">
                                     <Bot className="h-6 w-6 text-primary" />
@@ -420,7 +420,7 @@ function MediaKitPageContent() {
                                 </ResponsiveDialogTitle>
                                 <ResponsiveDialogDescription className='text-center'>Forneça os detalhes para a IA criar um pacote de prospecção completo.</ResponsiveDialogDescription>
                             </ResponsiveDialogHeader>
-                            <ScrollArea className="flex-1 max-h-[calc(100vh-10rem)]">
+                            <ScrollArea className="flex-1">
                               <div className="p-6">
                                   <Form {...form}>
                                       <form
@@ -567,11 +567,9 @@ function InfoCard({
   content: string;
 }) {
   return (
-    <Card
-      className="h-full shadow-none border-0"
-    >
+    <Card>
       <CardHeader>
-        <CardTitle className="text-center flex items-center justify-center gap-3 text-lg font-semibold text-foreground">
+        <CardTitle className="flex items-center justify-center gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary" />
           <span>{title}</span>
         </CardTitle>
@@ -596,9 +594,9 @@ function InfoList({
   items: string[];
 }) {
   return (
-    <Card className="h-full shadow-none border-0">
+    <Card className="h-full">
       <CardHeader>
-        <CardTitle className="text-center flex items-center justify-center gap-3 text-lg font-semibold text-foreground">
+        <CardTitle className="flex items-center justify-center gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary" />
           <span>{title}</span>
         </CardTitle>
@@ -630,11 +628,9 @@ function PricingCard({
   pricing: AiCareerPackageOutput['pricingTiers'];
 }) {
   return (
-    <Card
-      className="h-full shadow-none border-0"
-    >
+    <Card className="h-full">
       <CardHeader>
-        <CardTitle className="text-center flex items-center justify-center gap-3 text-lg font-semibold text-foreground">
+        <CardTitle className="flex items-center justify-center gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary" />
           <span>{title}</span>
         </CardTitle>
