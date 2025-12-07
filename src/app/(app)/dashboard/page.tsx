@@ -659,7 +659,8 @@ export default function DashboardPage() {
 
       <div className="space-y-8">
         <PageHeader
-          icon={LayoutGrid}
+          icon={!userProfile?.photoURL ? LayoutGrid : undefined}
+          imageUrl1={userProfile?.photoURL}
           title={`Bem-vindo(a), ${userProfile?.displayName?.split(' ')[0] || 'Criador'}!`}
           description="Seu centro de comando para crescimento e monetização."
         >
@@ -695,7 +696,7 @@ export default function DashboardPage() {
                       <CarouselItem className="pl-4 basis-11/12"><div className="p-1 h-full"><GoalCard isLoading={isLoading} goalFollowers={goalFollowers} currentFollowers={currentFollowers} followerGoalProgress={followerGoalProgress} pieData={pieData} formatMetricValue={formatMetricValue} /></div></CarouselItem>
                       <CarouselItem className="pl-4 basis-11/12"><div className="p-1 h-full"><EngagementMetricsCard isLoading={isLoading} latestMetrics={latestMetrics} formatMetricValue={formatMetricValue} getMetricRating={getMetricRating} /></div></CarouselItem>
                       <CarouselItem className="pl-4 basis-11/12"><div className="p-1 h-full"><PerformanceAnalysisCard isGeneratingInsights={isGeneratingInsights} insights={insights} handleGenerateInsights={handleGenerateInsights} /></div></CarouselItem>
-                      <CarouselItem className="pl-4 basis-11/12">
+                       <CarouselItem className="pl-4 basis-11/12">
                            <div className="p-1 h-full">
                             <ActionHubCard 
                                 isLoadingUpcoming={isLoadingUpcoming}
