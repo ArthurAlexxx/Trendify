@@ -145,5 +145,3 @@ export function PublisAssistantResultView({ result, formValues, isSheetView = fa
         </div>
     )
 }
-
-    
