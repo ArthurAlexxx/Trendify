@@ -7,21 +7,21 @@ import {
   Dialog as DesktopDialog,
   DialogContent as DesktopDialogContent,
   DialogDescription,
-  DialogHeader,
+  DialogHeader as DesktopDialogHeader,
   DialogTitle,
   DialogTrigger,
   DialogClose,
-  DialogFooter
+  DialogFooter as DesktopDialogFooter,
 } from "@/components/ui/dialog"
 import {
   Sheet as MobileSheet,
   SheetContent as MobileSheetContent,
   SheetDescription,
-  SheetHeader,
+  SheetHeader as MobileSheetHeader,
   SheetTitle,
   SheetTrigger,
   SheetClose,
-  SheetFooter
+  SheetFooter as MobileSheetFooter,
 } from "@/components/ui/sheet"
 
 interface ResponsiveDialogProps {
@@ -71,13 +71,25 @@ export const ResponsiveDialogContent = ({ children, className }: ResponsiveDialo
     if (isDesktop) {
         return <DesktopDialogContent className={className}>{children}</DesktopDialogContent>
     }
-    // No p-0 here, padding is handled by header/content/footer
     return <MobileSheetContent side="right" className={className}>{children}</MobileSheetContent>
 }
 
 
-export const ResponsiveDialogHeader = DialogHeader;
-export const ResponsiveDialogFooter = DialogFooter;
+export const ResponsiveDialogHeader = ({className, ...props}: React.HTMLAttributes<HTMLDivElement>) => {
+    const isDesktop = useMediaQuery("(min-width: 768px)");
+    if(isDesktop) {
+        return <DesktopDialogHeader className={className} {...props} />
+    }
+    return <MobileSheetHeader className={className} {...props} />
+}
+
+export const ResponsiveDialogFooter = ({className, ...props}: React.HTMLAttributes<HTMLDivElement>) => {
+     const isDesktop = useMediaQuery("(min-width: 768px)");
+    if(isDesktop) {
+        return <DesktopDialogFooter className={className} {...props} />
+    }
+    return <MobileSheetFooter className={className} {...props} />
+}
 export const ResponsiveDialogTitle = DialogTitle;
 export const ResponsiveDialogDescription = DialogDescription;
 export const ResponsiveDialogClose = DialogClose;

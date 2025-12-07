@@ -111,68 +111,66 @@ export function ChangePlanDialog({ isOpen, setIsOpen, user, children }: ChangePl
         <ResponsiveDialogTrigger asChild>
             {children}
         </ResponsiveDialogTrigger>
-      <ResponsiveDialogContent className="p-0 flex flex-col">
-        <ResponsiveDialogHeader className='p-6 pb-4 border-b'>
+      <ResponsiveDialogContent className="sm:max-w-lg">
+        <ResponsiveDialogHeader>
           <ResponsiveDialogTitle className='text-center font-headline text-xl'>Alterar Plano de Assinatura</ResponsiveDialogTitle>
           <ResponsiveDialogDescription className='text-center'>
             Alterando o plano para <strong>{user.displayName}</strong> ({user.email}).
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
-        <ScrollArea className='flex-1'>
-            <div className='p-6'>
-                <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <div className='p-6 border-y'>
+            <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <FormField
+                control={form.control}
+                name="newPlan"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Novo Plano</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                        <SelectTrigger className="h-11">
+                            <SelectValue placeholder="Selecione um plano" />
+                        </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                        <SelectItem value="free">Gratuito</SelectItem>
+                        <SelectItem value="pro">Pro</SelectItem>
+                        <SelectItem value="premium">Premium</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+                {selectedPlan !== 'free' && (
                     <FormField
                     control={form.control}
-                    name="newPlan"
+                    name="newCycle"
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel>Novo Plano</FormLabel>
+                        <FormLabel>Ciclo de Pagamento</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                             <SelectTrigger className="h-11">
-                                <SelectValue placeholder="Selecione um plano" />
+                                <SelectValue placeholder="Selecione um ciclo" />
                             </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                            <SelectItem value="free">Gratuito</SelectItem>
-                            <SelectItem value="pro">Pro</SelectItem>
-                            <SelectItem value="premium">Premium</SelectItem>
+                            <SelectItem value="monthly">Mensal</SelectItem>
+                            <SelectItem value="annual">Anual</SelectItem>
                             </SelectContent>
                         </Select>
                         <FormMessage />
                         </FormItem>
                     )}
                     />
-                    {selectedPlan !== 'free' && (
-                        <FormField
-                        control={form.control}
-                        name="newCycle"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Ciclo de Pagamento</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                <SelectTrigger className="h-11">
-                                    <SelectValue placeholder="Selecione um ciclo" />
-                                </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                <SelectItem value="monthly">Mensal</SelectItem>
-                                <SelectItem value="annual">Anual</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                        />
-                    )}
-                </form>
-                </Form>
-            </div>
-        </ScrollArea>
+                )}
+            </form>
+            </Form>
+        </div>
 
-        <ResponsiveDialogFooter className="p-6 border-t flex-col sm:flex-row gap-2">
+        <ResponsiveDialogFooter>
           <ResponsiveDialogClose asChild>
             <Button type="button" variant="outline" className='w-full sm:w-auto'>
               Cancelar
