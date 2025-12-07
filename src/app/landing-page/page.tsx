@@ -331,11 +331,11 @@ export default function LandingPage() {
               Da estratégia de conteúdo à monetização, a Trendify centraliza tudo que você precisa para crescer de forma inteligente.
             </p>
             {/* Mobile Carousel */}
-            <div className="lg:hidden px-4">
+            <div className="lg:hidden">
               <Carousel className="w-full" opts={{align: 'start'}}>
-                <CarouselContent className="-ml-4">
+                <CarouselContent className="-ml-4 p-4">
                   {features.map((feature) => (
-                    <CarouselItem key={feature.title} className="pl-4 md:basis-1/2 p-2">
+                    <CarouselItem key={feature.title} className="pl-4 md:basis-1/2">
                        <Card className="text-left h-full bg-card/50 rounded-2xl border border-border/50">
                           <CardHeader className="flex flex-row items-center justify-between">
                             <div className="bg-primary/10 text-primary p-3 rounded-lg">
