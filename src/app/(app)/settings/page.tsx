@@ -1,3 +1,4 @@
+
 'use client';
 
 import { PageHeader } from '@/components/page-header';
@@ -10,7 +11,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { LogOut, ShieldAlert, Crown, Settings as SettingsIcon } from 'lucide-react';
+import { LogOut, ShieldAlert, Crown, Settings as SettingsIcon, Hammer } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -37,6 +38,7 @@ import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { Separator } from '@/components/ui/separator';
 
 export default function SettingsPage() {
   const { user } = useUser();
@@ -191,6 +193,72 @@ export default function SettingsPage() {
                 </div>
             ) : null}
           </CardContent>
+       </Card>
+
+       <Card className="border-0 rounded-2xl">
+        <CardHeader>
+          <CardTitle className="font-headline text-xl">Suporte e Contato</CardTitle>
+          <CardDescription>
+            Precisa de ajuda ou tem alguma sugestão? Fale conosco.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+            <Button asChild variant="outline">
+                <Link href="/support">
+                    <Hammer className="mr-2 h-4 w-4" />
+                    Ir para a página de suporte
+                </Link>
+            </Button>
+        </CardContent>
+       </Card>
+      
+       <Card className="border-destructive/50 rounded-2xl">
+        <CardHeader>
+            <CardTitle className="font-headline text-xl text-destructive flex items-center gap-2">
+                <ShieldAlert className="h-5 w-5" />
+                Zona de Perigo
+            </CardTitle>
+             <CardDescription>
+                Ações irreversíveis. Tenha certeza antes de continuar.
+            </CardDescription>
+        </CardHeader>
+        <CardContent>
+             <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive">Excluir minha conta</Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Você tem certeza absoluta?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Esta ação não pode ser desfeita. Isso irá excluir
+                    permanentemente sua conta e remover seus dados de nossos
+                    servidores.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                 <div className="space-y-2">
+                    <Label htmlFor="delete-confirm">
+                      Para confirmar, digite "<b>excluir minha conta</b>" abaixo:
+                    </Label>
+                    <Input
+                      id="delete-confirm"
+                      value={deleteConfirmationText}
+                      onChange={(e) => setDeleteConfirmationText(e.target.value)}
+                    />
+                  </div>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDeleteAccount}
+                    disabled={isDeleteButtonDisabled}
+                    className={cn(buttonVariants({variant: 'destructive'}))}
+                  >
+                    Eu entendo, excluir minha conta
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+        </CardContent>
        </Card>
 
     </div>
