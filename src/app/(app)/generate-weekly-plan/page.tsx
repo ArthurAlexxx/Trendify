@@ -181,7 +181,7 @@ export default function GenerateWeeklyPlanPage() {
     });
   }, [user, firestore, toast, startTransition]);
   
-  const handleSavePlan = useCallback(async () => {
+  const handleActivatePlan = useCallback(async () => {
     if (!result || !user || !firestore) return;
   
     startSavingTransition(async () => {
@@ -196,17 +196,16 @@ export default function GenerateWeeklyPlanPage() {
           const oldPlanData = planDoc.data() as PlanoSemanal;
           const newArchivedRef = doc(ideasCollectionRef); // Create a new doc ref for the archive
           
-          const archivedPlan = {
+          batch.set(newArchivedRef, {
             userId: user.uid,
             titulo: `Plano Arquivado de ${oldPlanData.createdAt.toDate().toLocaleDateString('pt-BR')}`,
             conteudo: oldPlanData.items.map(item => `**${item.dia}:** ${item.tarefa}`).join('\n'),
             origem: "Plano Semanal",
             concluido: false, 
             createdAt: oldPlanData.createdAt,
-            aiResponseData: oldPlanData, // Store the full plan object
-          };
+            aiResponseData: oldPlanData,
+          });
           
-          batch.set(newArchivedRef, archivedPlan);
           batch.delete(planDoc.ref);
         }
   
@@ -227,7 +226,7 @@ export default function GenerateWeeklyPlanPage() {
   
         toast({
           title: 'Sucesso!',
-          description: 'Seu novo plano semanal foi salvo e ativado. O plano anterior foi movido para o histórico.',
+          description: 'Seu novo plano semanal foi ativado. O plano anterior foi arquivado.',
         });
         localStorage.removeItem(LOCAL_STORAGE_KEY);
         setResult(null);
@@ -634,9 +633,9 @@ export default function GenerateWeeklyPlanPage() {
                             </div>
                             </div>
                             <div className='flex justify-center pt-4 gap-2'>
-                                <Button onClick={handleSavePlan} disabled={isSaving} className="w-full sm:w-auto">
+                                <Button onClick={handleActivatePlan} disabled={isSaving} className="w-full sm:w-auto">
                                     <Save className="mr-2 h-4 w-4" />
-                                    {isSaving ? 'Salvando...' : 'Ativar Plano'}
+                                    {isSaving ? 'Ativando...' : 'Ativar Plano'}
                                 </Button>
                                 <Button onClick={handleDiscard} variant="outline" className="w-full sm:w-auto">
                                     <Trash2 className="mr-2 h-4 w-4" />

@@ -13,14 +13,14 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
-import { IdeiaSalva } from '@/lib/types';
-import { collection, orderBy, query, doc, deleteDoc } from 'firebase/firestore';
-import { BookMarked, Eye, Inbox, Loader2, Edit, Calendar, Trash2, Zap, Newspaper } from 'lucide-react';
+import { IdeiaSalva, PlanoSemanal } from '@/lib/types';
+import { collection, orderBy, query, doc, deleteDoc, writeBatch, getDocs } from 'firebase/firestore';
+import { BookMarked, Eye, Inbox, Loader2, Edit, Calendar, Trash2, Zap, Newspaper, History } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Badge } from './ui/badge';
 import { ScrollArea } from './ui/scroll-area';
-import React, { useState } from 'react';
+import React, { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { VideoIdeasResultView } from '@/app/(app)/video-ideas/page';
@@ -28,6 +28,7 @@ import { PublisAssistantResultView } from '@/app/(app)/publis-assistant/page';
 import { MediaKitResultView } from '@/app/(app)/media-kit/page';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from './ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
+import { PreviousPlansSheet } from './previous-plans-sheet'; // Importação circular pode ser um problema.
 
 export function SavedIdeasSheet() {
   const { user } = useUser();
@@ -37,7 +38,7 @@ export function SavedIdeasSheet() {
   const [ideaToDelete, setIdeaToDelete] = useState<IdeiaSalva | null>(null);
   const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-
+  const [isActivating, startActivatingTransition] = useTransition();
 
   const ideiasSalvasQuery = useMemoFirebase(
     () =>
@@ -73,6 +74,10 @@ export function SavedIdeasSheet() {
       });
       setIsDeleteDialogOpen(false);
       setIdeaToDelete(null);
+       if (selectedIdea?.id === ideaToDelete.id) {
+        setIsDetailSheetOpen(false);
+        setSelectedIdea(null);
+      }
     } catch(e: any) {
         toast({
           title: "Erro ao Excluir",
@@ -82,8 +87,56 @@ export function SavedIdeasSheet() {
     }
   }
 
+  const handleActivatePlan = (planToActivate: IdeiaSalva) => {
+    if (!user || !firestore || !planToActivate.aiResponseData) return;
+
+    startActivatingTransition(async () => {
+      try {
+        const batch = writeBatch(firestore);
+        const activePlanCollectionRef = collection(firestore, `users/${user.uid}/weeklyPlans`);
+        const ideasCollectionRef = collection(firestore, `users/${user.uid}/ideiasSalvas`);
+
+        const oldPlansSnapshot = await getDocs(activePlanCollectionRef);
+        if (!oldPlansSnapshot.empty) {
+          const oldPlanDoc = oldPlansSnapshot.docs[0];
+          const oldPlanData = oldPlanDoc.data() as PlanoSemanal;
+          
+          const newArchivedRef = doc(ideasCollectionRef);
+          batch.set(newArchivedRef, {
+             userId: user.uid,
+             titulo: `Plano Arquivado de ${oldPlanData.createdAt.toDate().toLocaleDateString('pt-BR')}`,
+             conteudo: oldPlanData.items.map(item => `**${item.dia}:** ${item.tarefa}`).join('\n'),
+             origem: "Plano Semanal",
+             concluido: false,
+             createdAt: oldPlanData.createdAt,
+             aiResponseData: oldPlanData,
+          });
+          
+          batch.delete(oldPlanDoc.ref);
+        }
+
+        const newActivePlanRef = doc(activePlanCollectionRef);
+        batch.set(newActivePlanRef, planToActivate.aiResponseData);
+
+        batch.delete(doc(ideasCollectionRef, planToActivate.id));
+
+        toast({
+            title: "Plano Ativado!",
+            description: "O plano selecionado é agora seu plano semanal ativo."
+        });
+        setIsDetailSheetOpen(false);
+
+      } catch (e: any) {
+        toast({
+          title: 'Erro ao Ativar Plano',
+          description: e.message,
+          variant: 'destructive',
+        });
+      }
+    });
+  };
   
-  const getActionInfo = (idea: IdeiaSalva | null): { href: string; label: string; icon: React.ElementType } => {
+  const getActionInfo = (idea: IdeiaSalva | null): { href: string; label: string; icon: React.ElementType, isSpecialAction?: boolean } => {
     if (!idea) return { href: '/', label: 'Ação', icon: Edit };
     
     const aiData = idea.aiResponseData;
@@ -101,14 +154,13 @@ export function SavedIdeasSheet() {
          return { href: `/publis-assistant?product=${product}&differentiators=${diff}&targetAudience=${target}`, label: 'Refinar Publi', icon: Edit };
       
       case 'Mídia Kit & Prospecção':
-        const targetBrand = encodeURIComponent(aiData?.targetBrand || idea.titulo);
+        const targetBrand = encodeURIComponent(aiData?.targetBrand || '');
         const valueProposition = encodeURIComponent(aiData?.valueProposition || '');
-        const audienceFromProfile = encodeURIComponent(aiData?.audience || ''); // Assume we save this now
-        return { href: `/publis-assistant?product=${targetBrand}&differentiators=${valueProposition}&targetAudience=${audienceFromProfile}`, label: 'Usar no Publis', icon: Newspaper };
+        const audienceFromProfile = encodeURIComponent(aiData?.audience || '');
+        return { href: `/publis-assistant?product=${targetBrand}&differentiators=${valueProposition}&targetAudience=${audienceFromProfile}`, label: 'Criar Publi para Marca', icon: Newspaper };
       
       case 'Plano Semanal':
-        const planContext = encodeURIComponent(aiData?.items?.[0]?.tarefa || 'gerar um plano de crescimento');
-        return { href: `/video-ideas?topic=${planContext}`, label: 'Gerar Ideias do Plano', icon: Zap };
+        return { href: '#', label: 'Reativar Plano', icon: History, isSpecialAction: true };
 
       default:
         return { href: '/dashboard', label: 'Ir para o Dashboard', icon: Edit };
@@ -209,7 +261,6 @@ export function SavedIdeasSheet() {
       </SheetContent>
     </Sheet>
     
-    {/* Delete Confirmation Dialog */}
     <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
       <AlertDialogContent>
         <AlertDialogHeader>
@@ -227,8 +278,6 @@ export function SavedIdeasSheet() {
       </AlertDialogContent>
     </AlertDialog>
 
-
-    {/* Detail View Sheet */}
     {selectedIdea && (
         <Sheet open={isDetailSheetOpen} onOpenChange={setIsDetailSheetOpen}>
             <SheetContent className="w-full sm:max-w-3xl p-0 flex flex-col">
@@ -244,9 +293,34 @@ export function SavedIdeasSheet() {
                  {renderResultView(selectedIdea)}
                 </ScrollArea>
                  <SheetFooter className="p-4 border-t flex flex-col sm:flex-row gap-2 justify-end">
-                    <Link href={actionInfo.href} className={cn(buttonVariants({ variant: 'outline', className: 'w-full sm:w-auto' }))}>
-                        <actionInfo.icon className="mr-2 h-4 w-4" /> {actionInfo.label}
-                    </Link>
+                    {actionInfo.isSpecialAction ? (
+                         <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                               <Button variant="outline" className="w-full sm:w-auto" disabled={isActivating}>
+                                   {isActivating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <actionInfo.icon className="mr-2 h-4 w-4" />} 
+                                   {actionInfo.label}
+                               </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                <AlertDialogTitle>Reativar este plano?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    O plano semanal ativo será arquivado e este se tornará o principal. Deseja continuar?
+                                </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleActivatePlan(selectedIdea)}>
+                                    Sim, Reativar
+                                </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                    ) : (
+                        <Link href={actionInfo.href} className={cn(buttonVariants({ variant: 'outline', className: 'w-full sm:w-auto' }))}>
+                            <actionInfo.icon className="mr-2 h-4 w-4" /> {actionInfo.label}
+                        </Link>
+                    )}
                     <Link href={`/content-calendar?title=${encodeURIComponent(selectedIdea.titulo)}&notes=${encodeURIComponent(selectedIdea.conteudo)}`}
                          className={cn(buttonVariants({ variant: 'default', className: 'w-full sm:w-auto' }))}>
                        <Calendar className="mr-2 h-4 w-4" />
