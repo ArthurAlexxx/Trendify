@@ -279,7 +279,8 @@ function MediaKitPageContent() {
 
     startSavingTransition(async () => {
       try {
-        const title = `Pacote de Prospecção para ${form.getValues('targetBrand')}`;
+        const targetBrand = form.getValues('targetBrand');
+        const title = `Pacote de Prospecção para ${targetBrand}`;
         
         let content = `**Apresentação:**\n${data.executiveSummary}\n\n`;
         content += `**Tabela de Preços:**\n`;
@@ -296,7 +297,7 @@ function MediaKitPageContent() {
           origem: 'Mídia Kit & Prospecção',
           concluido: false,
           createdAt: serverTimestamp(),
-          aiResponseData: data,
+          aiResponseData: { ...data, targetBrand: targetBrand },
         });
 
         toast({
@@ -533,7 +534,7 @@ function MediaKitPageContent() {
                             Descartar
                         </Button>
                         <Link href={`/publis-assistant?product=${encodeURIComponent(form.getValues('targetBrand'))}&differentiators=${encodeURIComponent(result.valueProposition)}&targetAudience=${encodeURIComponent(userProfile?.audience || '')}`}
-                         className={cn(buttonVariants({ variant: 'outline', className: 'w-full sm:w-auto' }))}>
+                         className={cn(buttonVariants({ variant: 'default', className: 'w-full sm:w-auto' }))}>
                            <Newspaper className="mr-2 h-4 w-4" />
                            Criar Publi para esta Marca
                         </Link>
@@ -572,7 +573,7 @@ function InfoCard({
       className="h-full shadow-none border-0"
     >
       <CardHeader>
-        <CardTitle className="text-center flex items-center gap-3 text-lg font-semibold text-foreground">
+        <CardTitle className="text-center flex items-center justify-center gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary" />
           <span>{title}</span>
         </CardTitle>
@@ -599,7 +600,7 @@ function InfoList({
   return (
     <Card className="h-full shadow-none border-0">
       <CardHeader>
-        <CardTitle className="text-center flex items-center gap-3 text-lg font-semibold text-foreground">
+        <CardTitle className="text-center flex items-center justify-center gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary" />
           <span>{title}</span>
         </CardTitle>
@@ -635,7 +636,7 @@ function PricingCard({
       className="h-full shadow-none border-0"
     >
       <CardHeader>
-        <CardTitle className="text-center flex items-center gap-3 text-lg font-semibold text-foreground">
+        <CardTitle className="text-center flex items-center justify-center gap-3 text-lg font-semibold text-foreground">
           <Icon className="h-5 w-5 text-primary" />
           <span>{title}</span>
         </CardTitle>

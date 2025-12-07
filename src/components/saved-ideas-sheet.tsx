@@ -96,10 +96,12 @@ export function SavedIdeasSheet() {
       case 'Propostas & Publis':
          return { href: `/publis-assistant?product=${topic}&differentiators=${aiData?.differentiators || context}`, label: 'Refinar Publi', icon: Edit };
       case 'Mídia Kit & Prospecção':
-         const valueProposition = aiData?.valueProposition || context;
-        return { href: `/publis-assistant?product=${topic}&differentiators=${encodeURIComponent(valueProposition)}`, label: 'Usar no Publis', icon: Newspaper };
+        const targetBrand = aiData?.targetBrand || topic;
+        const valueProposition = aiData?.valueProposition || context;
+        return { href: `/publis-assistant?product=${encodeURIComponent(targetBrand)}&differentiators=${encodeURIComponent(valueProposition)}`, label: 'Usar no Publis', icon: Newspaper };
       case 'Plano Semanal':
-        return { href: `/generate-weekly-plan`, label: 'Reativar Plano', icon: Zap };
+        const planContext = idea.aiResponseData?.items?.[0]?.tarefa || 'gerar um plano de crescimento';
+        return { href: `/video-ideas?topic=${encodeURIComponent(planContext)}`, label: 'Gerar Ideias do Plano', icon: Zap };
       default:
         return { href: '/dashboard', label: 'Ir para o Dashboard', icon: Edit };
     }
@@ -117,7 +119,7 @@ export function SavedIdeasSheet() {
         case 'Propostas & Publis':
              return <PublisAssistantResultView result={idea.aiResponseData} formValues={{ product: idea.titulo, targetAudience: 'N/A', differentiators: 'N/A', objective: 'N/A' }} isSheetView={true} />;
         case 'Mídia Kit & Prospecção':
-            return <MediaKitResultView result={idea.aiResponseData} formValues={{ targetBrand: idea.titulo, niche: 'N/A', keyMetrics: 'N/A' }} isSheetView={true} />;
+            return <MediaKitResultView result={idea.aiResponseData} formValues={{ targetBrand: idea.aiResponseData?.targetBrand || idea.titulo, niche: 'N/A', keyMetrics: 'N/A' }} isSheetView={true} />;
         default:
             return <p className="text-muted-foreground p-6 whitespace-pre-wrap">{idea.conteudo}</p>;
     }
