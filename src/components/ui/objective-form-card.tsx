@@ -95,9 +95,7 @@ export const ObjectiveFormCard: React.FC<ObjectiveFormCardProps> = ({
             </h3>
             <p className="text-muted-foreground mt-1">Forneça os detalhes para a IA criar uma ideia de vídeo otimizada.</p>
         </motion.div>
-        <Button variant="ghost" size="icon" onClick={onCancel} aria-label="Close">
-          <X className="h-4 w-4" />
-        </Button>
+        
       </div>
 
       <Form {...form}>
