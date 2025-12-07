@@ -603,7 +603,3 @@ function PublisAssistantPageContent() {
     </div>
   );
 }
-
-    
-
-    
