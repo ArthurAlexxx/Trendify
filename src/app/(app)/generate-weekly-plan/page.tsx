@@ -295,10 +295,12 @@ export default function GenerateWeeklyPlanPage() {
   
   useEffect(() => {
     const topicParam = searchParams.get('topic');
-    if (topicParam && !isFormOpen) {
+    if (topicParam) {
+      // Logic to handle pre-filling is in video-ideas/page.tsx or publis-assistant/page.tsx
+      // This page just needs to clean the URL if it sees the param.
       router.replace(pathname, { scroll: false });
     }
-  }, [isFormOpen, searchParams, router, pathname]);
+  }, [searchParams, router, pathname]);
 
   const handleToggleRoteiro = async (itemIndex: number) => {
     if (!firestore || !activePlan || !user) return;
@@ -844,3 +846,5 @@ export default function GenerateWeeklyPlanPage() {
     </div>
   );
 }
+
+    

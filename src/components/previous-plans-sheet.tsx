@@ -123,15 +123,14 @@ export function PreviousPlansSheet() {
           Histórico de Planos
         </Button>
       </SheetTrigger>
-      <SheetContent className="sm:max-w-lg">
-        <SheetHeader>
+      <SheetContent className="p-0 flex flex-col sm:max-w-lg">
+        <SheetHeader className="p-6 pb-4 border-b">
           <SheetTitle className="font-headline text-xl">Histórico de Planos</SheetTitle>
           <SheetDescription>
             Consulte e reative planos semanais que você já salvou.
           </SheetDescription>
         </SheetHeader>
-        <div className="flex-1 border-y my-4 -mx-6">
-            <ScrollArea className="h-full">
+        <ScrollArea className="flex-1">
             <div className="p-6 space-y-4">
                 {isLoading && (
                 <div className="flex justify-center items-center h-64">
@@ -179,18 +178,17 @@ export function PreviousPlansSheet() {
                 )}
             </div>
             </ScrollArea>
-        </div>
-         <SheetFooter>
+         <SheetFooter className="p-6 border-t">
             <SheetClose asChild>
-                <Button type="button" variant="outline">Fechar</Button>
+                <Button type="button" variant="outline" className='w-full'>Fechar</Button>
             </SheetClose>
         </SheetFooter>
       </SheetContent>
     </Sheet>
     {selectedPlan && selectedPlan.aiResponseData && (
         <Sheet open={isDetailSheetOpen} onOpenChange={setIsDetailSheetOpen}>
-            <SheetContent className="sm:max-w-4xl">
-                <SheetHeader>
+            <SheetContent className="p-0 flex flex-col sm:max-w-4xl">
+                <SheetHeader className="p-6 pb-4 border-b">
                 <SheetTitle className="font-headline text-2xl">
                     {selectedPlan.titulo}
                 </SheetTitle>
@@ -198,66 +196,66 @@ export function PreviousPlansSheet() {
                    Salvo em {selectedPlan.createdAt ? new Date(selectedPlan.createdAt.toDate()).toLocaleDateString('pt-BR') : ''}
                  </SheetDescription>
                 </SheetHeader>
-                <div className="flex-1 py-4 border-y my-4 -mx-6">
-                    <ScrollArea className="h-full px-6">
-                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
-                        <Card className="shadow-none border-0">
-                            <CardHeader>
-                            <CardTitle className="font-headline text-xl">Roteiro de Conteúdo</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <ul className="space-y-2">
-                                    {selectedPlan.aiResponseData.items.map((item: ItemRoteiro, index: number) => (
-                                        <li key={index}>
-                                        <div className="flex items-start gap-4 p-2 rounded-lg">
-                                            <div className='flex-1'>
-                                            <p className={'font-medium text-base text-foreground'}>
-                                                <span className="font-semibold text-primary">{item.dia}:</span> {item.tarefa}
-                                            </p>
-                                            <p className="text-sm text-muted-foreground">{item.detalhes}</p>
-                                            </div>
-                                        </div>
-                                        {index < selectedPlan.aiResponseData.items.length - 1 && <Separator className="my-2" />}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </CardContent>
-                        </Card>
-                        <div className="space-y-8">
+                <ScrollArea className="flex-1">
+                    <div className='p-6'>
+                        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
                             <Card className="shadow-none border-0">
-                                <CardHeader><CardTitle className="font-headline text-xl">Desempenho Simulado</CardTitle></CardHeader>
-                                <CardContent className="pl-0 sm:pl-2">
-                                    <ChartContainer config={chartConfig} className="h-[350px] w-full">
-                                    <BarChart data={selectedPlan.aiResponseData.desempenhoSimulado} margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
-                                        <CartesianGrid vertical={false} />
-                                        <XAxis dataKey="data" tickLine={false} axisLine={false} />
-                                        <YAxis tickLine={false} axisLine={false} tickFormatter={(value) => typeof value === 'number' && value >= 1000 ? `${value / 1000}k` : value} />
-                                        <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
-                                        <Bar dataKey="alcance" fill="var(--color-alcance)" radius={[4, 4, 0, 0]} />
-                                        <Bar dataKey="engajamento" fill="var(--color-engajamento)" radius={[4, 4, 0, 0]} />
-                                    </BarChart>
-                                    </ChartContainer>
+                                <CardHeader>
+                                <CardTitle className="font-headline text-xl">Roteiro de Conteúdo</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <ul className="space-y-2">
+                                        {selectedPlan.aiResponseData.items.map((item: ItemRoteiro, index: number) => (
+                                            <li key={index}>
+                                            <div className="flex items-start gap-4 p-2 rounded-lg">
+                                                <div className='flex-1'>
+                                                <p className={'font-medium text-base text-foreground'}>
+                                                    <span className="font-semibold text-primary">{item.dia}:</span> {item.tarefa}
+                                                </p>
+                                                <p className="text-sm text-muted-foreground">{item.detalhes}</p>
+                                                </div>
+                                            </div>
+                                            {index < selectedPlan.aiResponseData.items.length - 1 && <Separator className="my-2" />}
+                                            </li>
+                                        ))}
+                                    </ul>
                                 </CardContent>
                             </Card>
-                            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                            <div className="space-y-8">
                                 <Card className="shadow-none border-0">
-                                    <CardHeader><CardTitle className="text-center flex items-center gap-2 text-sm text-muted-foreground"><Trophy className='h-4 w-4' /> Índice de Prioridade</CardTitle></CardHeader>
-                                    <CardContent><ul className="space-y-2 text-sm">{selectedPlan.aiResponseData.priorityIndex.map((item: string) => <li key={item} className='font-semibold'>{item}</li>)}</ul></CardContent>
+                                    <CardHeader><CardTitle className="font-headline text-xl">Desempenho Simulado</CardTitle></CardHeader>
+                                    <CardContent className="pl-0 sm:pl-2">
+                                        <ChartContainer config={chartConfig} className="h-[350px] w-full">
+                                        <BarChart data={selectedPlan.aiResponseData.desempenhoSimulado} margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
+                                            <CartesianGrid vertical={false} />
+                                            <XAxis dataKey="data" tickLine={false} axisLine={false} />
+                                            <YAxis tickLine={false} axisLine={false} tickFormatter={(value) => typeof value === 'number' && value >= 1000 ? `${value / 1000}k` : value} />
+                                            <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
+                                            <Bar dataKey="alcance" fill="var(--color-alcance)" radius={[4, 4, 0, 0]} />
+                                            <Bar dataKey="engajamento" fill="var(--color-engajamento)" radius={[4, 4, 0, 0]} />
+                                        </BarChart>
+                                        </ChartContainer>
+                                    </CardContent>
                                 </Card>
+                                <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                                    <Card className="shadow-none border-0">
+                                        <CardHeader><CardTitle className="text-center flex items-center gap-2 text-sm text-muted-foreground"><Trophy className='h-4 w-4' /> Índice de Prioridade</CardTitle></CardHeader>
+                                        <CardContent><ul className="space-y-2 text-sm">{selectedPlan.aiResponseData.priorityIndex.map((item: string) => <li key={item} className='font-semibold'>{item}</li>)}</ul></CardContent>
+                                    </Card>
+                                    <Card className="shadow-none border-0">
+                                        <CardHeader><CardTitle className="text-center flex items-center gap-2 text-sm text-muted-foreground"><Zap className='h-4 w-4' /> Nível de Esforço</CardTitle></CardHeader>
+                                        <CardContent><p className='text-xl font-bold'>{selectedPlan.aiResponseData.effortLevel}</p></CardContent>
+                                    </Card>
+                                </div>
                                 <Card className="shadow-none border-0">
-                                    <CardHeader><CardTitle className="text-center flex items-center gap-2 text-sm text-muted-foreground"><Zap className='h-4 w-4' /> Nível de Esforço</CardTitle></CardHeader>
-                                    <CardContent><p className='text-xl font-bold'>{selectedPlan.aiResponseData.effortLevel}</p></CardContent>
+                                        <CardHeader><CardTitle className="text-center flex items-center gap-2 text-sm text-muted-foreground"><AlertTriangle className='h-4 w-4' /> Dicas de Realinhamento</CardTitle></CardHeader>
+                                        <CardContent><p className='text-sm'>{selectedPlan.aiResponseData.realignmentTips}</p></CardContent>
                                 </Card>
                             </div>
-                            <Card className="shadow-none border-0">
-                                    <CardHeader><CardTitle className="text-center flex items-center gap-2 text-sm text-muted-foreground"><AlertTriangle className='h-4 w-4' /> Dicas de Realinhamento</CardTitle></CardHeader>
-                                    <CardContent><p className='text-sm'>{selectedPlan.aiResponseData.realignmentTips}</p></CardContent>
-                            </Card>
                         </div>
                     </div>
-                    </ScrollArea>
-                </div>
-                 <SheetFooter>
+                </ScrollArea>
+                 <SheetFooter className="p-6 border-t">
                     <AlertDialog>
                         <AlertDialogTrigger asChild>
                            <Button className="w-full sm:w-auto" disabled={isActivating}>
@@ -269,7 +267,7 @@ export function PreviousPlansSheet() {
                             <AlertDialogHeader>
                             <AlertDialogTitle>Ativar este plano?</AlertDialogTitle>
                             <AlertDialogDescription>
-                                O plano atualmente ativo será arquivado e este se tornará o principal no seu dashboard e na página de planos. Deseja continuar?
+                                O plano semanal ativo será arquivado e este se tornará o principal. Deseja continuar?
                             </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
@@ -287,3 +285,5 @@ export function PreviousPlansSheet() {
     </>
   );
 }
+
+    
