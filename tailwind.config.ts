@@ -106,9 +106,21 @@ export default {
         'accordion-up': 'accordion-up 0.2s ease-out',
       },
       boxShadow: {
-        'primary-lg': '0 10px 15px -3px hsl(var(--primary) / 0.1), 0 4px 6px -4px hsl(var(--primary) / 0.1)',
-      }
+        'primary-lg': '0 10px 15px -3px hsl(var(--primary) / 0.15), 0 4px 6px -4px hsl(var(--primary) / 0.15)',
+      },
+      textShadow: {
+        glow: '0 0 15px hsl(var(--primary) / 0.6)',
+      },
     },
   },
-  plugins: [require('tailwindcss-animate')],
+  plugins: [require('tailwindcss-animate'),
+    function ({ theme, addUtilities }: { theme: (path: string) => any, addUtilities: (utilities: any) => void}) {
+      const newUtilities = {
+        '.text-shadow-glow': {
+          textShadow: theme('textShadow.glow'),
+        },
+      }
+      addUtilities(newUtilities)
+    }
+  ],
 } satisfies Config;
