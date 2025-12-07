@@ -153,7 +153,7 @@ export function PublisAssistantResultView({ result, formValues, isSheetView = fa
                                 <div className="space-y-3">
                                     {result.brandToneAdaptations.map((adaptation: any, i: number) => (
                                         <p key={i} className="text-sm">
-                                            <strong className='font-semibold text-foreground'>{adaptation.titulo}: </strong>
+                                            <strong className='font-semibold text-foreground'>{adaptation.titulo}: </strong> 
                                             <span className='text-muted-foreground'>{adaptation.texto}</span>
                                         </p>
                                     ))}
@@ -311,7 +311,6 @@ function PublisAssistantPageContent() {
         extraInfo: form.getValues('extraInfo'),
       });
       setIsFormOpen(true);
-      // Clean the URL to prevent re-triggering
       router.replace(pathname, { scroll: false });
     }
   }, [searchParams, form, router, pathname]);
@@ -724,3 +723,4 @@ function InfoListCard({
     </Card>
   );
 }
+

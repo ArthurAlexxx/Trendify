@@ -62,6 +62,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogHeader, ResponsiveDialogFooter, ResponsiveDialogTitle, ResponsiveDialogDescription, ResponsiveDialogClose, ResponsiveDialogTrigger } from '@/components/ui/responsive-dialog';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useSubscription } from '@/hooks/useSubscription';
+import { DailyUsage } from '@/lib/types';
+import { onSnapshot } from 'firebase/firestore';
 
 
 const formSchema = z.object({
@@ -123,6 +126,29 @@ export default function GenerateWeeklyPlanPage() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+
+  const { subscription, isTrialActive } = useSubscription();
+  const todayStr = new Date().toISOString().split('T')[0];
+  
+  const [usageData, setUsageData] = useState<DailyUsage | null>(null);
+  const [isLoadingUsage, setIsLoadingUsage] = useState(true);
+
+  useEffect(() => {
+    if (!user || !firestore) return;
+    const usageDocRef = doc(firestore, `users/${user.uid}/dailyUsage/${todayStr}`);
+    
+    const unsubscribe = onSnapshot(usageDocRef, (doc) => {
+        setUsageData(doc.exists() ? doc.data() as DailyUsage : null);
+        setIsLoadingUsage(false);
+    });
+
+    return () => unsubscribe();
+  }, [user, firestore, todayStr]);
+
+  const generationsToday = usageData?.geracoesAI || 0;
+  const isPremium = subscription?.plan === 'premium';
+  const hasReachedLimit = !isPremium;
+
 
   useEffect(() => {
     try {
@@ -296,8 +322,6 @@ export default function GenerateWeeklyPlanPage() {
   useEffect(() => {
     const topicParam = searchParams.get('topic');
     if (topicParam) {
-      // Logic to handle pre-filling is in video-ideas/page.tsx or publis-assistant/page.tsx
-      // This page just needs to clean the URL if it sees the param.
       router.replace(pathname, { scroll: false });
     }
   }, [searchParams, router, pathname]);
@@ -356,6 +380,8 @@ export default function GenerateWeeklyPlanPage() {
       }
     });
   };
+  
+  const isButtonDisabled = isGenerating || isSaving || isLoadingProfile || hasReachedLimit;
 
 
   return (
@@ -436,8 +462,8 @@ export default function GenerateWeeklyPlanPage() {
                     </p>
                     <ResponsiveDialog isOpen={isFormOpen} onOpenChange={setIsFormOpen}>
                       <ResponsiveDialogTrigger asChild>
-                         <Button size="lg" disabled={isGenerating || isSaving || isLoadingProfile}>
-                           {isGenerating ? (
+                         <Button size="lg" disabled={isButtonDisabled}>
+                           {isGenerating || isSaving ? (
                               <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Gerando...</>
                             ) : (
                               <><Sparkles className="mr-2 h-5 w-5" />Gerar Plano</>
@@ -533,7 +559,7 @@ export default function GenerateWeeklyPlanPage() {
                                 <Button
                                     type="button"
                                     onClick={form.handleSubmit(formAction)}
-                                    disabled={isGenerating || isSaving || isLoadingProfile}
+                                    disabled={isButtonDisabled}
                                     className="w-full sm:w-auto"
                                 >
                                     {isGenerating || isSaving ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Sparkles className="mr-2 h-5 w-5" />}
@@ -542,6 +568,11 @@ export default function GenerateWeeklyPlanPage() {
                             </ResponsiveDialogFooter>
                       </ResponsiveDialogContent>
                     </ResponsiveDialog>
+                    {hasReachedLimit && (
+                      <p className="text-sm text-muted-foreground text-center sm:text-left">
+                        Você precisa de um plano <Link href="/subscribe" className='underline text-primary font-semibold'>Premium</Link> para usar esta ferramenta.
+                      </p>
+                    )}
                 </div>
             </CardContent>
           </Card>
@@ -562,7 +593,106 @@ export default function GenerateWeeklyPlanPage() {
                           </p>
                         </div>
                       ) : result ? (
-                        <div className="space-y-8">
+                        <>
+                        <div className="md:hidden">
+                            <Carousel>
+                                <CarouselContent>
+                                    <CarouselItem>
+                                         <Card className="shadow-none border-0 h-full">
+                                            <CardHeader>
+                                            <CardTitle className="text-center font-headline text-xl">
+                                                Novo Roteiro de Conteúdo
+                                            </CardTitle>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <ul className="space-y-2">
+                                                    {result.items.map((item: ItemRoteiro, index: number) => (
+                                                    <li key={index}>
+                                                        <div className="flex items-start gap-4 p-2 rounded-lg">
+                                                        <div className='h-5 w-5 mt-1 flex items-center justify-center shrink-0'>
+                                                            <Check className='h-4 w-4 text-primary' />
+                                                        </div>
+                                                        <div className='flex-1'>
+                                                            <p className={'font-medium text-base text-foreground'}>
+                                                            <span className="font-semibold text-primary">
+                                                                {item.dia}:
+                                                            </span>{' '}
+                                                            {item.tarefa}
+                                                            </p>
+                                                            <p className="text-sm text-muted-foreground">
+                                                            {item.detalhes}
+                                                            </p>
+                                                        </div>
+                                                        <TooltipProvider>
+                                                            <Tooltip>
+                                                                <TooltipTrigger asChild>
+                                                                    <Link href={`/video-ideas?topic=${encodeURIComponent(item.tarefa)}&context=${encodeURIComponent(item.detalhes)}`}>
+                                                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-primary">
+                                                                            <Lightbulb className="h-4 w-4" />
+                                                                        </Button>
+                                                                    </Link>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent>
+                                                                    <p>Gerar ideia de vídeo com esta tarefa</p>
+                                                                </TooltipContent>
+                                                            </Tooltip>
+                                                        </TooltipProvider>
+                                                        </div>
+                                                        {index < result.items.length - 1 && (
+                                                        <Separator className="my-2" />
+                                                        )}
+                                                    </li>
+                                                    ))}
+                                                </ul>
+                                            </CardContent>
+                                        </Card>
+                                    </CarouselItem>
+                                    <CarouselItem>
+                                         <Card className="shadow-none border-0 h-full">
+                                            <CardHeader>
+                                            <CardTitle className="text-center font-headline text-xl">
+                                                Nova Simulação de Desempenho
+                                            </CardTitle>
+                                            </CardHeader>
+                                            <CardContent className="pl-0 sm:pl-2">
+                                                <ChartContainer config={chartConfig} className="h-[350px] w-full">
+                                                    <BarChart accessibilityLayer data={result.desempenhoSimulado} margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
+                                                        <CartesianGrid vertical={false} />
+                                                        <XAxis dataKey="data" tickLine={false} axisLine={false} />
+                                                        <YAxis tickLine={false} axisLine={false} tickFormatter={(value) => typeof value === 'number' && value >= 1000 ? `${value / 1000}k` : value} />
+                                                        <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
+                                                        <Bar dataKey="alcance" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                                                        <Bar dataKey="engajamento" fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} />
+                                                    </BarChart>
+                                                </ChartContainer>
+                                            </CardContent>
+                                        </Card>
+                                    </CarouselItem>
+                                     <CarouselItem>
+                                        <Card className="shadow-none border-0 h-full">
+                                            <CardHeader><CardTitle className="text-center flex items-center justify-center gap-2 text-lg"><Trophy className='h-5 w-5' /> Índice de Prioridade</CardTitle></CardHeader>
+                                            <CardContent><ul className="space-y-2 text-base text-center">{result.priorityIndex.map(item => <li key={item} className='font-semibold'>{item}</li>)}</ul></CardContent>
+                                        </Card>
+                                     </CarouselItem>
+                                     <CarouselItem>
+                                        <Card className="shadow-none border-0 h-full">
+                                            <CardHeader><CardTitle className="text-center flex items-center justify-center gap-2 text-lg"><Zap className='h-5 w-5' /> Nível de Esforço</CardTitle></CardHeader>
+                                            <CardContent><p className='text-3xl font-bold text-center'>{result.effortLevel}</p></CardContent>
+                                        </Card>
+                                     </CarouselItem>
+                                      <CarouselItem>
+                                        <Card className="shadow-none border-0 h-full">
+                                            <CardHeader><CardTitle className="text-center flex items-center justify-center gap-2 text-lg"><AlertTriangle className='h-5 w-5' /> Dicas de Realinhamento</CardTitle></CardHeader>
+                                            <CardContent><p className='text-sm text-center'>{result.realignmentTips}</p></CardContent>
+                                        </Card>
+                                     </CarouselItem>
+                                </CarouselContent>
+                                <CarouselPrevious className="left-[-1rem]" />
+                                <CarouselNext className="right-[-1rem]" />
+                            </Carousel>
+                        </div>
+
+                        <div className="hidden md:block space-y-8">
                             <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
                             <Card className="shadow-none border-0">
                                 <CardHeader>
@@ -671,20 +801,22 @@ export default function GenerateWeeklyPlanPage() {
                             
                             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                                 <Card className="shadow-none border-0">
-                                    <CardHeader><CardTitle className="text-center flex items-center gap-2 text-sm text-muted-foreground"><Trophy className='h-4 w-4' /> Índice de Prioridade</CardTitle></CardHeader>
-                                    <CardContent><ul className="space-y-2 text-sm">{result.priorityIndex.map(item => <li key={item} className='font-semibold'>{item}</li>)}</ul></CardContent>
+                                    <CardHeader><CardTitle className="text-center flex items-center justify-center gap-2 text-sm text-muted-foreground"><Trophy className='h-4 w-4' /> Índice de Prioridade</CardTitle></CardHeader>
+                                    <CardContent><ul className="space-y-2 text-sm text-center">{result.priorityIndex.map(item => <li key={item} className='font-semibold'>{item}</li>)}</ul></CardContent>
                                 </Card>
                                 <Card className="shadow-none border-0">
-                                    <CardHeader><CardTitle className="text-center flex items-center gap-2 text-sm text-muted-foreground"><Zap className='h-4 w-4' /> Nível de Esforço</CardTitle></CardHeader>
-                                    <CardContent><p className='text-xl font-bold'>{result.effortLevel}</p></CardContent>
+                                    <CardHeader><CardTitle className="text-center flex items-center justify-center gap-2 text-sm text-muted-foreground"><Zap className='h-4 w-4' /> Nível de Esforço</CardTitle></CardHeader>
+                                    <CardContent><p className='text-xl font-bold text-center'>{result.effortLevel}</p></CardContent>
                                 </Card>
                             </div>
                             <Card className="shadow-none border-0">
-                                    <CardHeader><CardTitle className="text-center flex items-center gap-2 text-sm text-muted-foreground"><AlertTriangle className='h-4 w-4' /> Dicas de Realinhamento</CardTitle></CardHeader>
-                                    <CardContent><p className='text-sm'>{result.realignmentTips}</p></CardContent>
+                                    <CardHeader><CardTitle className="text-center flex items-center justify-center gap-2 text-sm text-muted-foreground"><AlertTriangle className='h-4 w-4' /> Dicas de Realinhamento</CardTitle></CardHeader>
+                                    <CardContent><p className='text-sm text-center'>{result.realignmentTips}</p></CardContent>
                                 </Card>
                             </div>
                             </div>
+                        </div>
+
                             <div className='flex justify-center pt-4 gap-2'>
                                 <Button onClick={handleActivatePlan} disabled={isSaving} className="w-full sm:w-auto">
                                     <Save className="mr-2 h-4 w-4" />
@@ -695,7 +827,7 @@ export default function GenerateWeeklyPlanPage() {
                                     Descartar
                                 </Button>
                             </div>
-                        </div>
+                        </>
                       ) : (
                          <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-96">
                           <ClipboardList className="h-10 w-10 text-muted-foreground" />
@@ -817,17 +949,17 @@ export default function GenerateWeeklyPlanPage() {
                                     </Card>
                                      <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                                         <Card className="shadow-none border-0">
-                                            <CardHeader><CardTitle className="text-center flex items-center gap-2 text-sm text-muted-foreground"><Trophy className='h-4 w-4' /> Índice de Prioridade</CardTitle></CardHeader>
-                                            <CardContent><ul className="space-y-2 text-sm">{activePlan.priorityIndex.map(item => <li key={item} className='font-semibold'>{item}</li>)}</ul></CardContent>
+                                            <CardHeader><CardTitle className="text-center flex items-center justify-center gap-2 text-sm text-muted-foreground"><Trophy className='h-4 w-4' /> Índice de Prioridade</CardTitle></CardHeader>
+                                            <CardContent><ul className="space-y-2 text-sm text-center">{activePlan.priorityIndex.map(item => <li key={item} className='font-semibold'>{item}</li>)}</ul></CardContent>
                                         </Card>
                                         <Card className="shadow-none border-0">
-                                            <CardHeader><CardTitle className="text-center flex items-center gap-2 text-sm text-muted-foreground"><Zap className='h-4 w-4' /> Nível de Esforço</CardTitle></CardHeader>
-                                            <CardContent><p className='text-xl font-bold'>{activePlan.effortLevel}</p></CardContent>
+                                            <CardHeader><CardTitle className="text-center flex items-center justify-center gap-2 text-sm text-muted-foreground"><Zap className='h-4 w-4' /> Nível de Esforço</CardTitle></CardHeader>
+                                            <CardContent><p className='text-xl font-bold text-center'>{activePlan.effortLevel}</p></CardContent>
                                         </Card>
                                     </div>
                                     <Card className="shadow-none border-0">
-                                            <CardHeader><CardTitle className="text-center flex items-center gap-2 text-sm text-muted-foreground"><AlertTriangle className='h-4 w-4' /> Dicas de Realinhamento</CardTitle></CardHeader>
-                                            <CardContent><p className='text-sm'>{activePlan.realignmentTips}</p></CardContent>
+                                            <CardHeader><CardTitle className="text-center flex items-center justify-center gap-2 text-sm text-muted-foreground"><AlertTriangle className='h-4 w-4' /> Dicas de Realinhamento</CardTitle></CardHeader>
+                                            <CardContent><p className='text-sm text-center'>{activePlan.realignmentTips}</p></CardContent>
                                     </Card>
                                 </div>
                             </div>
@@ -847,4 +979,3 @@ export default function GenerateWeeklyPlanPage() {
   );
 }
 
-    

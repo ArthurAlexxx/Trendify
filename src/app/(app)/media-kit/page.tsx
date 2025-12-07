@@ -1,5 +1,4 @@
 
-
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -41,10 +40,10 @@ import {
 } from '@/app/(app)/media-kit/actions';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { collection, addDoc, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, doc, updateDoc, onSnapshot, getDoc, setDoc, increment } from 'firebase/firestore';
 import { SavedIdeasSheet } from '@/components/saved-ideas-sheet';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import type { UserProfile } from '@/lib/types';
+import type { UserProfile, DailyUsage } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useRouter } from 'next/navigation';
@@ -171,6 +170,29 @@ function MediaKitPageContent() {
   const { user } = useUser();
   const firestore = useFirestore();
 
+  const { subscription } = useSubscription();
+  const todayStr = new Date().toISOString().split('T')[0];
+  
+  const [usageData, setUsageData] = useState<DailyUsage | null>(null);
+  const [isLoadingUsage, setIsLoadingUsage] = useState(true);
+
+   useEffect(() => {
+    if (!user || !firestore) return;
+    const usageDocRef = doc(firestore, `users/${user.uid}/dailyUsage/${todayStr}`);
+    
+    const unsubscribe = onSnapshot(usageDocRef, (doc) => {
+        setUsageData(doc.exists() ? doc.data() as DailyUsage : null);
+        setIsLoadingUsage(false);
+    });
+
+    return () => unsubscribe();
+  }, [user, firestore, todayStr]);
+
+  const generationsToday = usageData?.geracoesAI || 0;
+  const isPremium = subscription?.plan === 'premium';
+  const hasReachedLimit = !isPremium;
+
+
   useEffect(() => {
     try {
         const savedResult = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -266,6 +288,24 @@ function MediaKitPageContent() {
       clearTimeout(handler);
     };
   }, [watchedNiche, debouncedNicheUpdate]);
+  
+  useEffect(() => {
+    if (result && user && firestore) {
+      const usageDocRef = doc(firestore, `users/${user.uid}/dailyUsage/${todayStr}`);
+      getDoc(usageDocRef).then(docSnap => {
+          if (docSnap.exists()) {
+              updateDoc(usageDocRef, { geracoesAI: increment(1) });
+          } else {
+              setDoc(usageDocRef, {
+                  date: todayStr,
+                  geracoesAI: 1,
+                  videoAnalyses: 0,
+              });
+          }
+      });
+    }
+  }, [result, user, firestore, todayStr]);
+
 
   const handleSave = (data: AiCareerPackageOutput) => {
     if (!user || !firestore) {
@@ -327,6 +367,8 @@ function MediaKitPageContent() {
         description: 'Você pode gerar um novo pacote agora.',
     });
   }
+
+  const isButtonDisabled = isGenerating || hasReachedLimit;
 
   return (
     <div className="space-y-8">
@@ -404,7 +446,7 @@ function MediaKitPageContent() {
                     </p>
                     <ResponsiveDialog isOpen={isFormOpen} onOpenChange={setIsFormOpen}>
                       <ResponsiveDialogTrigger asChild>
-                         <Button size="lg" disabled={isGenerating || isLoadingProfile}>
+                         <Button size="lg" disabled={isButtonDisabled}>
                            {isGenerating ? (
                               <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Gerando...</>
                             ) : (
@@ -496,7 +538,7 @@ function MediaKitPageContent() {
                                 <Button
                                 type="button"
                                 onClick={form.handleSubmit(formAction)}
-                                disabled={isGenerating || isLoadingProfile}
+                                disabled={isButtonDisabled}
                                 className="w-full sm:w-auto"
                                 >
                                 {isGenerating ? (
@@ -508,6 +550,11 @@ function MediaKitPageContent() {
                             </ResponsiveDialogFooter>
                       </ResponsiveDialogContent>
                     </ResponsiveDialog>
+                    {hasReachedLimit && (
+                      <p className="text-sm text-muted-foreground text-center sm:text-left">
+                        Você precisa de um plano <Link href="/subscribe" className='underline text-primary font-semibold'>Premium</Link> para usar esta ferramenta.
+                      </p>
+                    )}
                 </div>
             </CardContent>
           </Card>
@@ -662,3 +709,4 @@ function PricingCard({
     </Card>
   );
 }
+

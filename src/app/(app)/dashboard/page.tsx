@@ -119,7 +119,7 @@ const platformChartConfig = {
 } satisfies Record<string, ChartConfig>;
 
 const DailyPlanCard = ({ isLoadingWeeklyPlans, tasksForToday, currentPlan, handleToggleRoteiro }: any) => (
-  <Card>
+  <Card className="h-full">
     <CardHeader>
       <CardTitle className="text-center font-headline text-xl">
         Plano para Hoje
@@ -257,7 +257,7 @@ const ActionHubCard = ({
           </TabsList>
           <div className="flex-1 mt-4">
             <TabsContent value="proximos" className="h-full">
-              {isLoadingUpcoming ? <div className="flex justify-center items-center h-full"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div> : upcomingContent && upcomingContent.length > 0 ? (<div className="space-y-2">{upcomingContent.map((post: ConteudoAgendado) => (<div key={post.id} className="p-3 rounded-lg border bg-background/50 flex items-start justify-between gap-4"><div className="flex items-start gap-4 flex-1 overflow-hidden"><div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0"><Tag className="h-5 w-5 text-muted-foreground" /></div><div className="flex-1 overflow-hidden"><p className="font-semibold text-foreground truncate text-sm">{post.title}</p><p className="text-xs text-muted-foreground">{post.contentType} • {formatDistanceToNow(post.date.toDate(), { addSuffix: true, locale: ptBR })}</p></div></div><DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger><DropdownMenuContent align="end"><DropdownMenuItem onClick={() => handleMarkAsPublished(post.id)}><CheckCircle className="mr-2 h-4 w-4" /><span>Marcar como Publicado</span></DropdownMenuItem></DropdownMenuContent></DropdownMenu></div>))}</div>) : (<div className="text-center h-full flex flex-col items-center justify-center"><p className="text-muted-foreground text-sm">Nenhum post agendado.</p><Button variant="link" asChild><Link href="/content-calendar">Ir para o Calendário</Link></Button></div>)}
+              {isLoadingUpcoming ? <div className="flex justify-center items-center h-full"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div> : upcomingContent && upcomingContent.length > 0 ? (<div className="space-y-2">{upcomingContent.map((post: ConteudoAgendado) => (<div key={post.id} className="p-3 rounded-lg border bg-background/50 flex items-start justify-between gap-4"><div className="flex items-start gap-4 flex-1 overflow-hidden"><div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0"><Tag className="h-5 w-5 text-muted-foreground" /></div><div className="flex-1 overflow-hidden"><p className="font-semibold text-foreground truncate text-sm">{post.title}</p><p className="text-xs text-muted-foreground">{post.contentType} • {formatDistanceToNow(post.date.toDate(), { addSuffix: true, locale: ptBR })}</p></div></div><DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><MoreHorizontal className="h-4 w-4" /></ButtonMenuTrigger><DropdownMenuContent align="end"><DropdownMenuItem onClick={() => handleMarkAsPublished(post.id)}><CheckCircle className="mr-2 h-4 w-4" /><span>Marcar como Publicado</span></DropdownMenuItem></DropdownMenuContent></DropdownMenu></div>))}</div>) : (<div className="text-center h-full flex flex-col items-center justify-center"><p className="text-muted-foreground text-sm">Nenhum post agendado.</p><Button variant="link" asChild><Link href="/content-calendar">Ir para o Calendário</Link></Button></div>)}
             </TabsContent>
             <TabsContent value="ideias" className="h-full">
               {isLoadingIdeias ? <div className="flex justify-center items-center h-full"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div> : ideiasSalvas && ideiasSalvas.length > 0 ? <ul className="space-y-3">{ideiasSalvas.map((ideia: IdeiaSalva) => (<li key={ideia.id} className="flex items-start gap-3"><Checkbox id={`ideia-${ideia.id}`} checked={ideia.concluido} onCheckedChange={() => handleToggleIdeia(ideia)} className="h-5 w-5 mt-0.5" /><div className="grid gap-0.5"><label htmlFor={`ideia-${ideia.id}`} className={cn('font-medium transition-colors cursor-pointer', ideia.concluido ? 'line-through text-muted-foreground' : 'text-foreground')}>{ideia.titulo}</label><p className="text-xs text-muted-foreground">de "{ideia.origem}"</p></div></li>))}</ul> : (<div className="text-center h-full flex flex-col items-center justify-center"><p className="text-muted-foreground text-sm">Nenhuma ideia salva.</p><Button variant="link" asChild><Link href="/video-ideas">Gerar Novas Ideias</Link></Button></div>)}
@@ -294,7 +294,7 @@ const EngagementMetricsCard = ({ isLoading, latestMetrics, formatMetricValue, ge
           <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
               <div className='p-4 rounded-lg bg-muted/50 border flex justify-between items-center'>
                   <div>
-                    <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><Eye className="h-4 w-4" /> Views</h3>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><Eye className="h-4 w-4" /> Média de Views</h3>
                     <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.views)}</p>
                   </div>
                   <div>
@@ -311,7 +311,7 @@ const EngagementMetricsCard = ({ isLoading, latestMetrics, formatMetricValue, ge
               </div>
               <div className='p-4 rounded-lg bg-muted/50 border flex justify-between items-center'>
                   <div>
-                    <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><Heart className="h-4 w-4" /> Likes</h3>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><Heart className="h-4 w-4" /> Média de Likes</h3>
                     <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.likes)}</p>
                   </div>
                     <div>
@@ -328,7 +328,7 @@ const EngagementMetricsCard = ({ isLoading, latestMetrics, formatMetricValue, ge
               </div>
               <div className='p-4 rounded-lg bg-muted/50 border flex justify-between items-center'>
                   <div>
-                    <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><MessageSquare className="h-4 w-4" /> Comentários</h3>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><MessageSquare className="h-4 w-4" /> Média de Comentários</h3>
                     <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.comments)}</p>
                   </div>
                     <div>
@@ -558,12 +558,11 @@ export default function DashboardPage() {
   const latestMetrics = useMemo(() => {
     if (!userProfile) return null;
     if (selectedPlatform === 'total') {
-        // Correctly sum the parsed numeric values for total metrics
         return {
             followers: parseMetric(userProfile.instagramFollowers) + parseMetric(userProfile.tiktokFollowers),
-            views: parseMetric(userProfile.instagramAverageViews) + parseMetric(userProfile.tiktokAverageViews),
-            likes: parseMetric(userProfile.instagramAverageLikes) + parseMetric(userProfile.tiktokAverageLikes),
-            comments: parseMetric(userProfile.instagramAverageComments) + parseMetric(userProfile.tiktokAverageComments),
+            views: (parseMetric(userProfile.instagramAverageViews) + parseMetric(userProfile.tiktokAverageViews)) / ((userProfile.instagramHandle && userProfile.tiktokHandle) ? 2 : 1),
+            likes: (parseMetric(userProfile.instagramAverageLikes) + parseMetric(userProfile.tiktokAverageLikes)) / ((userProfile.instagramHandle && userProfile.tiktokHandle) ? 2 : 1),
+            comments: (parseMetric(userProfile.instagramAverageComments) + parseMetric(userProfile.tiktokAverageComments)) / ((userProfile.instagramHandle && userProfile.tiktokHandle) ? 2 : 1),
         }
     }
     return selectedPlatform === 'instagram' ? {
@@ -586,21 +585,25 @@ export default function DashboardPage() {
         const groupedByDay = metricSnapshots.reduce((acc, snap) => {
             const dayStr = format(snap.date.toDate(), 'yyyy-MM-dd');
             if (!acc[dayStr]) {
-                acc[dayStr] = { date: dayStr, followers: 0, views: 0, likes: 0, comments: 0 };
+                acc[dayStr] = { date: dayStr, followers: 0, views: 0, likes: 0, comments: 0, count: 0 };
             }
             acc[dayStr].followers += parseMetric(snap.followers);
             acc[dayStr].views += parseMetric(snap.views);
             acc[dayStr].likes += parseMetric(snap.likes);
             acc[dayStr].comments += parseMetric(snap.comments);
+            acc[dayStr].count++; // Track how many platforms have data for this day
             return acc;
-        }, {} as Record<string, { date: string; followers: number; views: number; likes: number; comments: number }>);
+        }, {} as Record<string, { date: string; followers: number; views: number; likes: number; comments: number; count: number }>);
 
         return Object.values(groupedByDay)
             .sort((a, b) => a.date.localeCompare(b.date))
             .slice(-30)
             .map(dayData => ({
-                ...dayData,
                 date: format(new Date(`${dayData.date}T00:00:00`), 'dd/MM'), // Corrected timezone issue here
+                followers: dayData.followers,
+                views: dayData.count > 0 ? dayData.views / dayData.count : 0,
+                likes: dayData.count > 0 ? dayData.likes / dayData.count : 0,
+                comments: dayData.count > 0 ? dayData.comments / dayData.count : 0,
             }));
     }
 
@@ -733,12 +736,18 @@ export default function DashboardPage() {
 
           {/* Mobile Carousel */}
             <div className="lg:hidden space-y-8">
-                <Carousel>
+                <Carousel
+                  opts={{
+                    align: "start",
+                    loop: true,
+                  }}
+                  className="w-full"
+                >
                     <CarouselContent>
-                        <CarouselItem><GoalCard isLoading={isLoading} goalFollowers={goalFollowers} currentFollowers={currentFollowers} followerGoalProgress={followerGoalProgress} pieData={pieData} formatMetricValue={formatMetricValue} /></CarouselItem>
-                        <CarouselItem><DailyPlanCard isLoadingWeeklyPlans={isLoadingWeeklyPlans} tasksForToday={tasksForToday} currentPlan={currentPlan} handleToggleRoteiro={handleToggleRoteiro} /></CarouselItem>
-                        <CarouselItem><EngagementMetricsCard isLoading={isLoading} latestMetrics={latestMetrics} formatMetricValue={formatMetricValue} getMetricRating={getMetricRating} /></CarouselItem>
-                         <CarouselItem>
+                        <CarouselItem className="basis-full"><GoalCard isLoading={isLoading} goalFollowers={goalFollowers} currentFollowers={currentFollowers} followerGoalProgress={followerGoalProgress} pieData={pieData} formatMetricValue={formatMetricValue} /></CarouselItem>
+                        <CarouselItem className="basis-full"><DailyPlanCard isLoadingWeeklyPlans={isLoadingWeeklyPlans} tasksForToday={tasksForToday} currentPlan={currentPlan} handleToggleRoteiro={handleToggleRoteiro} /></CarouselItem>
+                        <CarouselItem className="basis-full"><EngagementMetricsCard isLoading={isLoading} latestMetrics={latestMetrics} formatMetricValue={formatMetricValue} getMetricRating={getMetricRating} /></CarouselItem>
+                         <CarouselItem className="basis-full">
                             <ActionHubCard 
                                 isLoadingUpcoming={isLoadingUpcoming}
                                 upcomingContent={upcomingContent}
@@ -755,10 +764,10 @@ export default function DashboardPage() {
                                 formatNumber={formatNumber}
                             />
                          </CarouselItem>
-                         <CarouselItem><PerformanceAnalysisCard isGeneratingInsights={isGeneratingInsights} insights={insights} handleGenerateInsights={handleGenerateInsights} /></CarouselItem>
+                         <CarouselItem className="basis-full"><PerformanceAnalysisCard isGeneratingInsights={isGeneratingInsights} insights={insights} handleGenerateInsights={handleGenerateInsights} /></CarouselItem>
                     </CarouselContent>
-                    <CarouselPrevious />
-                    <CarouselNext />
+                    <CarouselPrevious className="left-2" />
+                    <CarouselNext className="right-2" />
                 </Carousel>
                 <EvolutionChartCard isLoading={isLoading} historicalChartData={historicalChartData} selectedPlatform={selectedPlatform} userProfile={userProfile} />
             </div>
@@ -801,3 +810,4 @@ export default function DashboardPage() {
     </>
   );
 }
+
