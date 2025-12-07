@@ -330,7 +330,41 @@ export default function LandingPage() {
             <p className="text-lg text-muted-foreground mb-12 max-w-2xl mx-auto">
               Da estratégia de conteúdo à monetização, a Trendify centraliza tudo que você precisa para crescer de forma inteligente.
             </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Mobile Carousel */}
+            <div className="lg:hidden">
+              <Carousel className="w-full" opts={{align: 'start'}}>
+                <CarouselContent className="-ml-4">
+                  {features.map((feature) => (
+                    <CarouselItem key={feature.title} className="pl-4 md:basis-1/2">
+                       <Card className="text-left h-full bg-card/50 rounded-2xl border border-border/50">
+                          <CardHeader className="flex flex-row items-center justify-between">
+                            <div className="bg-primary/10 text-primary p-3 rounded-lg">
+                              <feature.icon className="h-6 w-6" />
+                            </div>
+                            {feature.plan && (
+                              <Badge variant={feature.plan === 'premium' ? 'default' : 'secondary'} className={cn(feature.plan === 'premium' && 'bg-yellow-400/20 text-yellow-600 border-yellow-400/30')}>
+                                {feature.plan === 'premium' ? 'Premium' : 'Pro'}
+                              </Badge>
+                            )}
+                          </CardHeader>
+                          <CardContent>
+                            <h3 className="font-bold text-lg mb-2 text-foreground">
+                              {feature.title}
+                            </h3>
+                            <p className="text-sm text-muted-foreground">
+                              {feature.description}
+                            </p>
+                          </CardContent>
+                        </Card>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                 <CarouselPrevious className="left-2" />
+                 <CarouselNext className="right-2" />
+              </Carousel>
+            </div>
+            {/* Desktop Grid */}
+            <div className="hidden lg:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {features.map((feature) => (
                 <motion.div
                   key={feature.title}
@@ -539,7 +573,7 @@ export default function LandingPage() {
                       {/* Mobile Carousel */}
                       <div className="lg:hidden px-4">
                         <Carousel className="w-full max-w-sm mx-auto px-4">
-                          <CarouselContent className="-ml-4">
+                          <CarouselContent className="-ml-4 p-1">
                             {results.growthData && results.growthData.length > 0 && (
                               <CarouselItem className="pl-4">
                                 <Card className="rounded-2xl h-full">
