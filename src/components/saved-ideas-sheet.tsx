@@ -85,23 +85,31 @@ export function SavedIdeasSheet() {
   
   const getActionInfo = (idea: IdeiaSalva | null): { href: string; label: string; icon: React.ElementType } => {
     if (!idea) return { href: '/', label: 'Ação', icon: Edit };
-  
-    const topic = encodeURIComponent(idea.titulo || '');
-    const context = encodeURIComponent(idea.conteudo || '');
+    
     const aiData = idea.aiResponseData;
-  
+
     switch (idea.origem) {
       case 'Ideias de Vídeo':
-        return { href: `/video-ideas?topic=${topic}&context=${context}`, label: 'Refinar Ideia', icon: Edit };
+        const topic = encodeURIComponent(aiData?.script?.gancho || idea.titulo);
+        const audience = encodeURIComponent(aiData?.targetAudience || '');
+        return { href: `/video-ideas?topic=${topic}&targetAudience=${audience}`, label: 'Refinar Ideia', icon: Edit };
+      
       case 'Propostas & Publis':
-         return { href: `/publis-assistant?product=${topic}&differentiators=${aiData?.differentiators || context}`, label: 'Refinar Publi', icon: Edit };
+         const product = encodeURIComponent(aiData?.product || idea.titulo);
+         const diff = encodeURIComponent(aiData?.differentiators || '');
+         const target = encodeURIComponent(aiData?.targetAudience || '');
+         return { href: `/publis-assistant?product=${product}&differentiators=${diff}&targetAudience=${target}`, label: 'Refinar Publi', icon: Edit };
+      
       case 'Mídia Kit & Prospecção':
-        const targetBrand = aiData?.targetBrand || topic;
-        const valueProposition = aiData?.valueProposition || context;
-        return { href: `/publis-assistant?product=${encodeURIComponent(targetBrand)}&differentiators=${encodeURIComponent(valueProposition)}`, label: 'Usar no Publis', icon: Newspaper };
+        const targetBrand = encodeURIComponent(aiData?.targetBrand || idea.titulo);
+        const valueProposition = encodeURIComponent(aiData?.valueProposition || '');
+        const audienceFromProfile = encodeURIComponent(aiData?.audience || ''); // Assume we save this now
+        return { href: `/publis-assistant?product=${targetBrand}&differentiators=${valueProposition}&targetAudience=${audienceFromProfile}`, label: 'Usar no Publis', icon: Newspaper };
+      
       case 'Plano Semanal':
-        const planContext = idea.aiResponseData?.items?.[0]?.tarefa || 'gerar um plano de crescimento';
-        return { href: `/video-ideas?topic=${encodeURIComponent(planContext)}`, label: 'Gerar Ideias do Plano', icon: Zap };
+        const planContext = encodeURIComponent(aiData?.items?.[0]?.tarefa || 'gerar um plano de crescimento');
+        return { href: `/video-ideas?topic=${planContext}`, label: 'Gerar Ideias do Plano', icon: Zap };
+
       default:
         return { href: '/dashboard', label: 'Ir para o Dashboard', icon: Edit };
     }
@@ -239,8 +247,10 @@ export function SavedIdeasSheet() {
                     <Link href={actionInfo.href} className={cn(buttonVariants({ variant: 'outline', className: 'w-full sm:w-auto' }))}>
                         <actionInfo.icon className="mr-2 h-4 w-4" /> {actionInfo.label}
                     </Link>
-                    <Link href={`/content-calendar?title=${encodeURIComponent(selectedIdea.titulo)}&notes=${encodeURIComponent(selectedIdea.conteudo)}`} className={cn(buttonVariants({ variant: 'default', className: 'w-full sm:w-auto' }))}>
-                        <Calendar className="mr-2 h-4 w-4" /> Agendar Post
+                    <Link href={`/content-calendar?title=${encodeURIComponent(selectedIdea.titulo)}&notes=${encodeURIComponent(selectedIdea.conteudo)}`}
+                         className={cn(buttonVariants({ variant: 'default', className: 'w-full sm:w-auto' }))}>
+                       <Calendar className="mr-2 h-4 w-4" />
+                       Agendar Post
                     </Link>
                 </SheetFooter>
             </SheetContent>
