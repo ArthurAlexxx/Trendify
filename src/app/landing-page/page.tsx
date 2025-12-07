@@ -347,7 +347,7 @@ export default function LandingPage() {
                               </Badge>
                             )}
                           </CardHeader>
-                          <CardContent>
+                          <CardContent className="pb-6">
                             <h3 className="font-bold text-lg mb-2 text-foreground">
                               {feature.title}
                             </h3>
@@ -571,7 +571,7 @@ export default function LandingPage() {
                       </div>
                       
                       {/* Mobile Carousel */}
-                      <div className="lg:hidden px-4">
+                      <div className="lg:hidden">
                         <Carousel className="w-full max-w-sm mx-auto px-4">
                           <CarouselContent className="-ml-4 p-1">
                             {results.growthData && results.growthData.length > 0 && (
