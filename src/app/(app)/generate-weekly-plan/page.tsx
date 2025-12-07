@@ -55,11 +55,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PreviousPlansSheet } from '@/components/previous-plans-sheet';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Dialog, DialogTrigger, DialogContent } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import Link from 'next/link';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogHeader, ResponsiveDialogFooter, ResponsiveDialogTitle, ResponsiveDialogDescription, ResponsiveDialogClose, ResponsiveDialogTrigger } from '@/components/ui/responsive-dialog';
 
 
 const formSchema = z.object({
@@ -379,8 +378,8 @@ export default function GenerateWeeklyPlanPage() {
                     <p className="text-muted-foreground max-w-xl">
                        Clique no botão abaixo para detalhar seu objetivo, nicho e métricas atuais. Isso ajuda a IA a criar um plano semanal mais preciso e eficaz.
                     </p>
-                    <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-                      <DialogTrigger asChild>
+                    <ResponsiveDialog isOpen={isFormOpen} onOpenChange={setIsFormOpen}>
+                      <ResponsiveDialogTrigger asChild>
                          <Button size="lg" disabled={isGenerating || isSaving || isLoadingProfile}>
                            {isGenerating ? (
                               <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Gerando...</>
@@ -388,19 +387,18 @@ export default function GenerateWeeklyPlanPage() {
                               <><Sparkles className="mr-2 h-5 w-5" />Gerar Plano</>
                             )}
                          </Button>
-                      </DialogTrigger>
-                       <DialogContent className="sm:max-w-2xl p-0">
-                         <SheetContent side="right" className="p-0 sm:max-w-2xl flex flex-col gap-0">
-                            <SheetHeader className="p-6 pb-4 border-b">
-                                <SheetTitle className="flex items-center justify-center gap-3 font-headline text-xl">
+                      </ResponsiveDialogTrigger>
+                       <ResponsiveDialogContent className="sm:max-w-2xl p-0">
+                            <ResponsiveDialogHeader className="p-6 pb-4 border-b">
+                                <ResponsiveDialogTitle className="flex items-center justify-center gap-3 font-headline text-xl">
                                     <Bot className="h-6 w-6 text-primary" />
                                     <span>Briefing da Semana</span>
-                                </SheetTitle>
-                                <SheetDescription className='text-center'>
+                                </ResponsiveDialogTitle>
+                                <ResponsiveDialogDescription className='text-center'>
                                     Forneça os detalhes para um plano melhor. Sua meta de seguidores será usada para focar a estratégia.
-                                </SheetDescription>
-                            </SheetHeader>
-                            <ScrollArea className="flex-1">
+                                </ResponsiveDialogDescription>
+                            </ResponsiveDialogHeader>
+                            <ScrollArea className="flex-1 max-h-[calc(100vh-10rem)]">
                               <div className="p-6">
                                   <Form {...form}>
                                       <form onSubmit={form.handleSubmit(formAction)} className="space-y-6">
@@ -474,8 +472,8 @@ export default function GenerateWeeklyPlanPage() {
                                   </Form>
                               </div>
                             </ScrollArea>
-                            <SheetFooter className="p-6 border-t flex-col sm:flex-row gap-2">
-                                <Button type="button" variant="outline" onClick={() => setIsFormOpen(false)} className="w-full sm:w-auto">Cancelar</Button>
+                            <ResponsiveDialogFooter className="p-6 border-t flex-col sm:flex-row gap-2">
+                                <ResponsiveDialogClose asChild><Button type="button" variant="outline" className="w-full sm:w-auto">Cancelar</Button></ResponsiveDialogClose>
                                 <Button
                                     type="button"
                                     onClick={form.handleSubmit(formAction)}
@@ -485,10 +483,9 @@ export default function GenerateWeeklyPlanPage() {
                                     {isGenerating || isSaving ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Sparkles className="mr-2 h-5 w-5" />}
                                     Gerar Plano
                                 </Button>
-                            </SheetFooter>
-                          </SheetContent>
-                      </DialogContent>
-                    </Dialog>
+                            </ResponsiveDialogFooter>
+                      </ResponsiveDialogContent>
+                    </ResponsiveDialog>
                 </div>
             </CardContent>
           </Card>

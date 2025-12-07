@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -27,13 +28,9 @@ interface ResponsiveDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   children: React.ReactNode;
-  title: string;
-  description?: string;
-  className?: string;
-  isSheet?: boolean;
 }
 
-export function ResponsiveDialog({ isOpen, onOpenChange, children, title, description, className, isSheet = true }: ResponsiveDialogProps) {
+export function ResponsiveDialog({ isOpen, onOpenChange, children }: ResponsiveDialogProps) {
   const isDesktop = useMediaQuery("(min-width: 768px)")
 
   if (isDesktop) {

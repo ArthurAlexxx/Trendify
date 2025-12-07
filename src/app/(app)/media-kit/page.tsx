@@ -1,4 +1,5 @@
 
+
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -51,11 +52,10 @@ import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescript
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogHeader, ResponsiveDialogFooter, ResponsiveDialogTitle, ResponsiveDialogDescription, ResponsiveDialogClose, ResponsiveDialogTrigger } from '@/components/ui/responsive-dialog';
 
 
 const formSchema = z.object({
@@ -402,8 +402,8 @@ function MediaKitPageContent() {
                     <p className="text-muted-foreground max-w-xl">
                        Clique no botão abaixo para definir o nicho, métricas e marca-alvo. Isso ajuda a IA a criar uma proposta mais alinhada e profissional.
                     </p>
-                    <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-                      <DialogTrigger asChild>
+                    <ResponsiveDialog isOpen={isFormOpen} onOpenChange={setIsFormOpen}>
+                      <ResponsiveDialogTrigger asChild>
                          <Button size="lg" disabled={isGenerating || isLoadingProfile}>
                            {isGenerating ? (
                               <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Gerando...</>
@@ -411,17 +411,16 @@ function MediaKitPageContent() {
                               <><Sparkles className="mr-2 h-5 w-5" />Gerar Pacote</>
                             )}
                          </Button>
-                      </DialogTrigger>
-                       <DialogContent className="sm:max-w-2xl p-0">
-                          <SheetContent side="right" className="p-0 sm:max-w-2xl flex flex-col gap-0">
-                            <SheetHeader className="p-6 pb-4 border-b">
-                                <SheetTitle className="flex items-center justify-center gap-3 font-headline text-xl">
+                      </ResponsiveDialogTrigger>
+                       <ResponsiveDialogContent className="sm:max-w-2xl p-0">
+                            <ResponsiveDialogHeader className="p-6 pb-4 border-b">
+                                <ResponsiveDialogTitle className="flex items-center justify-center gap-3 font-headline text-xl">
                                     <Bot className="h-6 w-6 text-primary" />
                                     <span>Assistente de Carreira</span>
-                                </SheetTitle>
-                                <SheetDescription className='text-center'>Forneça os detalhes para a IA criar um pacote de prospecção completo.</SheetDescription>
-                            </SheetHeader>
-                            <ScrollArea className="flex-1">
+                                </ResponsiveDialogTitle>
+                                <ResponsiveDialogDescription className='text-center'>Forneça os detalhes para a IA criar um pacote de prospecção completo.</ResponsiveDialogDescription>
+                            </ResponsiveDialogHeader>
+                            <ScrollArea className="flex-1 max-h-[calc(100vh-10rem)]">
                               <div className="p-6">
                                   <Form {...form}>
                                       <form
@@ -492,8 +491,8 @@ function MediaKitPageContent() {
                                   </Form>
                               </div>
                             </ScrollArea>
-                            <SheetFooter className="p-6 border-t flex-col sm:flex-row gap-2">
-                                <Button type="button" variant="outline" onClick={() => setIsFormOpen(false)} className="w-full sm:w-auto">Cancelar</Button>
+                            <ResponsiveDialogFooter className="p-6 border-t flex-col sm:flex-row gap-2">
+                                <ResponsiveDialogClose asChild><Button type="button" variant="outline" className="w-full sm:w-auto">Cancelar</Button></ResponsiveDialogClose>
                                 <Button
                                 type="button"
                                 onClick={form.handleSubmit(formAction)}
@@ -506,10 +505,9 @@ function MediaKitPageContent() {
                                     <><Sparkles className="mr-2 h-5 w-5" />Gerar Pacote</>
                                 )}
                                 </Button>
-                            </SheetFooter>
-                        </SheetContent>
-                      </DialogContent>
-                    </Dialog>
+                            </ResponsiveDialogFooter>
+                      </ResponsiveDialogContent>
+                    </ResponsiveDialog>
                 </div>
             </CardContent>
           </Card>

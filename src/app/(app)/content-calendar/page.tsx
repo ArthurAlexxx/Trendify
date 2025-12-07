@@ -81,6 +81,7 @@ import { FullScreenCalendar } from '@/components/ui/fullscreen-calendar';
 import { Calendar } from '@/components/ui/calendar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useSearchParams } from 'next/navigation';
+import { ResponsiveDialog, ResponsiveDialogTrigger, ResponsiveDialogContent, ResponsiveDialogHeader, ResponsiveDialogFooter, ResponsiveDialogTitle, ResponsiveDialogDescription, ResponsiveDialogClose } from '@/components/ui/responsive-dialog';
 
 const formSchema = z.object({
   title: z.string().min(3, 'O título deve ter pelo menos 3 caracteres.'),
@@ -354,14 +355,14 @@ export default function ContentCalendarPage() {
       />
 
       {/* Sheet for Creating/Editing */}
-      <Sheet open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <SheetContent className="p-0 flex flex-col sm:max-w-lg">
-          <SheetHeader className="p-6 pb-4 border-b">
-            <SheetTitle className="font-headline text-xl">
+      <ResponsiveDialog isOpen={isModalOpen} onOpenChange={setIsModalOpen}>
+        <ResponsiveDialogContent className="p-0 sm:max-w-lg">
+          <ResponsiveDialogHeader className="p-6 pb-4 border-b">
+            <ResponsiveDialogTitle className="font-headline text-xl">
               {editingPost ? "Editar Agendamento" : "Novo Agendamento"}
-            </SheetTitle>
-          </SheetHeader>
-          <ScrollArea className="flex-1">
+            </ResponsiveDialogTitle>
+          </ResponsiveDialogHeader>
+          <ScrollArea className="flex-1 max-h-[calc(100vh-10rem)]">
              <div className="p-6">
                 <Form {...form}>
                     <form
@@ -515,25 +516,25 @@ export default function ContentCalendarPage() {
                 </Form>
              </div>
           </ScrollArea>
-           <SheetFooter className="p-6 border-t flex-col sm:flex-row gap-2">
-                <SheetClose asChild>
+           <ResponsiveDialogFooter className="p-6 border-t flex-col sm:flex-row gap-2">
+                <ResponsiveDialogClose asChild>
                     <Button type="button" variant="outline" className='w-full sm:w-auto'>Cancelar</Button>
-                </SheetClose>
+                </ResponsiveDialogClose>
                 <Button type="button" onClick={form.handleSubmit(onSubmit)} className="w-full sm:w-auto">
                    {editingPost ? "Salvar Alterações" : "Agendar Post"}
                 </Button>
-            </SheetFooter>
-        </SheetContent>
-      </Sheet>
+            </ResponsiveDialogFooter>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
 
        {/* Sheet for viewing details */}
       {selectedEvent && (
-        <Sheet open={isDetailSheetOpen} onOpenChange={setIsDetailSheetOpen}>
-          <SheetContent className="p-0 flex flex-col sm:max-w-lg">
-            <SheetHeader className="p-6 pb-4 border-b space-y-3">
+        <ResponsiveDialog isOpen={isDetailSheetOpen} onOpenChange={setIsDetailSheetOpen}>
+          <ResponsiveDialogContent className="p-0 sm:max-w-lg">
+            <ResponsiveDialogHeader className="p-6 pb-4 border-b space-y-3">
               <Badge variant={getBadgeVariant(selectedEvent.status)} className='w-fit'>{selectedEvent.status}</Badge>
-              <SheetTitle className="font-headline text-2xl">{selectedEvent.title}</SheetTitle>
-              <SheetDescription className="!mt-2">
+              <ResponsiveDialogTitle className="font-headline text-2xl">{selectedEvent.title}</ResponsiveDialogTitle>
+              <ResponsiveDialogDescription className="!mt-2">
                 <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 text-xs text-muted-foreground">
                     <div className='flex items-center gap-1.5'>
                         <Tag className="h-3 w-3" />
@@ -544,9 +545,9 @@ export default function ContentCalendarPage() {
                         <span>{format(selectedEvent.date.toDate(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</span>
                     </div>
                 </div>
-              </SheetDescription>
-            </SheetHeader>
-            <ScrollArea className="flex-1">
+              </ResponsiveDialogDescription>
+            </ResponsiveDialogHeader>
+            <ScrollArea className="flex-1 max-h-[calc(100vh-10rem)]">
                  {selectedEvent.notes && (
                     <div className="p-6">
                         <h4 className="font-semibold text-foreground mb-2 flex items-center gap-2">
@@ -559,15 +560,15 @@ export default function ContentCalendarPage() {
                     </div>
                  )}
             </ScrollArea>
-             <SheetFooter className="p-6 border-t flex flex-col-reverse sm:flex-row sm:justify-between gap-2">
+             <ResponsiveDialogFooter className="p-6 border-t flex flex-col-reverse sm:flex-row sm:justify-between gap-2">
                 <div className='flex flex-col sm:flex-row gap-2'>
                     <Button variant="outline" onClick={() => handleEditEvent(selectedEvent)}><Edit className="mr-2 h-4 w-4" /> Editar</Button>
                     <Button variant="outline" disabled={selectedEvent.status === 'Publicado'} onClick={() => handleMarkAsCompleted(selectedEvent.id)}><CheckCircle className="mr-2 h-4 w-4" /> Publicado</Button>
                 </div>
                 <Button variant="destructive" onClick={() => confirmDelete(selectedEvent.id)}><Trash2 className="mr-2 h-4 w-4" /> Excluir</Button>
-            </SheetFooter>
-          </SheetContent>
-        </Sheet>
+            </ResponsiveDialogFooter>
+          </ResponsiveDialogContent>
+        </ResponsiveDialog>
       )}
 
       
