@@ -3,7 +3,7 @@
 'use client';
 
 import { Button, buttonVariants } from '@/components/ui/button';
-import { ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogHeader, ResponsiveDialogTitle, ResponsiveDialogDescription, ResponsiveDialogTrigger, ResponsiveDialogFooter, ResponsiveDialogClose } from '@/components/ui/responsive-dialog';
+import { ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogTrigger, ResponsiveDialogHeader, ResponsiveDialogTitle, ResponsiveDialogDescription, ResponsiveDialogClose } from '@/components/ui/responsive-dialog';
 import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import { IdeiaSalva, PlanoSemanal, ItemRoteiro } from '@/lib/types';
 import { collection, orderBy, query, doc, deleteDoc, writeBatch, getDocs } from 'firebase/firestore';
@@ -21,6 +21,7 @@ import { MediaKitResultView } from '@/app/(app)/media-kit/page';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from './ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { PreviousPlansSheet } from './previous-plans-sheet'; // Importação circular pode ser um problema.
+import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from './ui/sheet';
 
 export function SavedIdeasSheet() {
   const { user } = useUser();
@@ -136,7 +137,6 @@ export function SavedIdeasSheet() {
       case 'Plano Semanal':
         return { href: '#', label: 'Reativar Plano', icon: History, isSpecialAction: true };
       default:
-        // For other types, there's no special action for now.
         return { href: `/content-calendar?title=${encodeURIComponent(idea.titulo)}&notes=${encodeURIComponent(idea.conteudo)}`, label: 'Agendar Post', icon: Calendar };
     }
   }
@@ -253,20 +253,20 @@ export function SavedIdeasSheet() {
     </AlertDialog>
 
     {selectedIdea && (
-        <ResponsiveDialog isOpen={isDetailSheetOpen} onOpenChange={setIsDetailSheetOpen}>
-            <ResponsiveDialogContent className="p-0 sm:max-w-3xl flex flex-col gap-0">
-                <ResponsiveDialogHeader className='p-6 pb-4 border-b'>
-                <ResponsiveDialogTitle className="font-headline text-2xl">
+        <Sheet open={isDetailSheetOpen} onOpenChange={setIsDetailSheetOpen}>
+            <SheetContent className="p-0 sm:max-w-3xl flex flex-col gap-0">
+                <SheetHeader className='p-6 pb-4 border-b'>
+                <SheetTitle className="font-headline text-2xl">
                     {selectedIdea.titulo}
-                </ResponsiveDialogTitle>
-                <ResponsiveDialogDescription>
+                </SheetTitle>
+                 <SheetDescription>
                    Gerado em {selectedIdea.origem}
-                 </ResponsiveDialogDescription>
-                </ResponsiveDialogHeader>
+                 </SheetDescription>
+                </SheetHeader>
                 <ScrollArea className="flex-1">
                  {renderResultView(selectedIdea)}
                 </ScrollArea>
-                 <ResponsiveDialogFooter className="p-4 border-t flex flex-col sm:flex-row gap-2 justify-end">
+                 <SheetFooter className="p-4 border-t flex flex-col sm:flex-row gap-2 justify-end">
                     {actionInfo.isSpecialAction ? (
                          <AlertDialog>
                             <AlertDialogTrigger asChild>
@@ -295,9 +295,9 @@ export function SavedIdeasSheet() {
                             <actionInfo.icon className="mr-2 h-4 w-4" /> {actionInfo.label}
                         </Link>
                     )}
-                </ResponsiveDialogFooter>
-            </ResponsiveDialogContent>
-        </ResponsiveDialog>
+                </SheetFooter>
+            </SheetContent>
+        </Sheet>
     )}
     </>
   );
