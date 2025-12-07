@@ -331,7 +331,7 @@ export default function LandingPage() {
               Da estratégia de conteúdo à monetização, a Trendify centraliza tudo que você precisa para crescer de forma inteligente.
             </p>
             {/* Mobile Carousel */}
-            <div className="lg:hidden">
+            <div className="lg:hidden px-4">
               <Carousel className="w-full" opts={{align: 'start'}}>
                 <CarouselContent className="-ml-4">
                   {features.map((feature) => (
@@ -359,8 +359,8 @@ export default function LandingPage() {
                     </CarouselItem>
                   ))}
                 </CarouselContent>
-                 <CarouselPrevious className="left-2" />
-                 <CarouselNext className="right-2" />
+                 <CarouselPrevious className="left-[-1rem]" />
+                 <CarouselNext className="right-[-1rem]" />
               </Carousel>
             </div>
             {/* Desktop Grid */}
