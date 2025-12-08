@@ -12,6 +12,7 @@ import Link from 'next/link';
 import { format } from 'date-fns';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import Image from 'next/image';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '../ui/carousel';
 
 const chartConfigBase: ChartConfig = {
   views: { label: "Views", color: "hsl(var(--chart-2))"  },
@@ -42,7 +43,6 @@ interface EvolutionChartCardProps {
     tiktokPosts: TikTokPost[] | null;
     selectedPlatform: 'total' | 'instagram' | 'tiktok';
     userProfile: UserProfile | null;
-    handleTikTokClick: (post: TikTokPost) => void;
     onItemClick: (item: any) => void;
 }
 
@@ -58,7 +58,7 @@ const formatIntegerValue = (value?: string | number): string => {
     return Math.round(num).toLocaleString('pt-BR');
 };
 
-export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPosts, tiktokPosts, selectedPlatform, userProfile, handleTikTokClick, onItemClick }: EvolutionChartCardProps) {
+export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPosts, tiktokPosts, selectedPlatform, userProfile, onItemClick }: EvolutionChartCardProps) {
 
   const parseMetric = (value?: string | number): number => {
     if (typeof value === 'number') return value;
@@ -130,8 +130,8 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
 
   }, [instaPosts, tiktokPosts, userProfile, selectedPlatform]);
   
-  const videoPosts = useMemo(() => allPosts.filter(p => p.isVideo).slice(0, 5), [allPosts]);
-  const photoPosts = useMemo(() => allPosts.filter(p => !p.isVideo).slice(0, 5), [allPosts]);
+  const videoPosts = useMemo(() => allPosts.filter(p => p.isVideo), [allPosts]);
+  const photoPosts = useMemo(() => allPosts.filter(p => !p.isVideo), [allPosts]);
 
 
   const CustomTooltip = ({ active, payload, label }: any) => {
@@ -172,6 +172,35 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
 
   const renderPostGrid = (posts: PostData[], title: string, icon: React.ElementType) => {
       const Icon = icon;
+      
+      const PostItem = ({ post }: { post: PostData }) => (
+        <Link href={post.url} target="_blank" rel="noopener noreferrer" className="group block">
+            <Card className="overflow-hidden cursor-pointer relative">
+                <div className="aspect-[9/16] bg-muted">
+                    <Image src={post.coverUrl || post.mediaUrl} alt={post.name} fill style={{ objectFit: 'cover' }} className="group-hover:scale-105 transition-transform duration-300" />
+                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <PlayCircle className="h-10 w-10 text-white" />
+                     </div>
+                </div>
+            </Card>
+            <div className="mt-2 text-center text-xs text-muted-foreground grid grid-cols-3 gap-1">
+                <div className="flex items-center justify-center gap-1">
+                    <Eye className="h-3 w-3" />
+                    <span>{formatIntegerValue(post.views)}</span>
+                </div>
+                 <div className="flex items-center justify-center gap-1">
+                    <Heart className="h-3 w-3" />
+                    <span>{formatIntegerValue(post.likes)}</span>
+                </div>
+                <div className="flex items-center justify-center gap-1">
+                    <MessageSquare className="h-3 w-3" />
+                    <span>{formatIntegerValue(post.comments)}</span>
+                </div>
+            </div>
+        </Link>
+      );
+
       return (
         <div>
             <h3 className="font-semibold text-lg flex items-center gap-2 mb-4">
@@ -180,41 +209,29 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
             </h3>
             {isLoading ? <Skeleton className="h-[150px] w-full" /> : 
             posts.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-                    {posts.map(post => (
-                        <div key={post.id} className="group" onClick={() => onItemClick(post)}>
-                            <Card className="overflow-hidden cursor-pointer relative">
-                                <div className="aspect-[9/16] bg-muted">
-                                    <Image src={post.coverUrl || post.mediaUrl} alt={post.name} fill style={{ objectFit: 'cover' }} className="group-hover:scale-105 transition-transform duration-300" />
-                                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <PlayCircle className="h-10 w-10 text-white" />
-                                     </div>
-                                </div>
-                            </Card>
-                            <div className="mt-2 text-center text-xs text-muted-foreground grid grid-cols-3 gap-1">
-                                <div className="flex items-center justify-center gap-1">
-                                    <Eye className="h-3 w-3" />
-                                    <span>{formatIntegerValue(post.views)}</span>
-                                </div>
-                                 <div className="flex items-center justify-center gap-1">
-                                    <Heart className="h-3 w-3" />
-                                    <span>{formatIntegerValue(post.likes)}</span>
-                                </div>
-                                <div className="flex items-center justify-center gap-1">
-                                    <MessageSquare className="h-3 w-3" />
-                                    <span>{formatIntegerValue(post.comments)}</span>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
+                posts.length > 5 ? (
+                    <Carousel className="w-full" opts={{ align: "start" }}>
+                        <CarouselContent className="-ml-3">
+                            {posts.map(post => (
+                                <CarouselItem key={post.id} className="pl-3 basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5">
+                                    <PostItem post={post} />
+                                </CarouselItem>
+                            ))}
+                        </CarouselContent>
+                        <CarouselPrevious className="left-[-8px]"/>
+                        <CarouselNext className="right-[-8px]"/>
+                    </Carousel>
+                ) : (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                        {posts.map(post => <PostItem key={post.id} post={post} />)}
+                    </div>
+                )
             ) : (
                 <div className="h-[150px] w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
-                <div>
-                    <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
-                    <h3 className="font-semibold text-foreground">Nenhum post encontrado.</h3>
-                </div>
+                    <div>
+                        <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+                        <h3 className="font-semibold text-foreground">Nenhum post encontrado.</h3>
+                    </div>
                 </div>
             )}
         </div>

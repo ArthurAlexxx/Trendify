@@ -37,7 +37,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, useCollection, useDoc, useMemoFirebase } from '@/firebase';
 import { collection, doc, query, orderBy, limit, updateDoc, where, serverTimestamp, getDocs, setDoc, collectionGroup } from 'firebase/firestore';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useSubscription } from '@/hooks/useSubscription';
 import { FollowerGoalSheet } from '@/components/dashboard/follower-goal-sheet';
 import { ProfileCompletionAlert } from '@/components/dashboard/profile-completion-alert';
@@ -47,7 +46,6 @@ import React, { useState, useMemo, useEffect, Suspense, useCallback, useTransiti
 import dynamic from 'next/dynamic';
 import { syncInstagramAction, syncTikTokAction } from './sync-actions';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import Link from 'next/link';
@@ -106,12 +104,10 @@ export default function DashboardPage() {
   const [selectedPlatform, setSelectedPlatform] = useState<'total' | 'instagram' | 'tiktok'>('total');
   
   const [isGoalSheetOpen, setIsGoalSheetOpen] = useState(false);
-  const [currentTikTokUrl, setCurrentTikTokUrl] = useState('');
   const [insights, setInsights] = useState<DashboardInsightsOutput | null>(null);
   const [isGeneratingInsights, setIsGeneratingInsights] = useState(false);
   
   const [selectedChartItem, setSelectedChartItem] = useState<any>(null);
-  const [isChartItemSheetOpen, setIsChartItemSheetOpen] = useState(false);
 
   const { subscription, isLoading: isSubscriptionLoading } = useSubscription();
   const isPremium = subscription?.plan === 'premium' && subscription.status === 'active';
@@ -157,16 +153,8 @@ export default function DashboardPage() {
 
   const isLoading = isLoadingProfile || isLoadingUpcoming || isSubscriptionLoading || isLoadingIdeias || isLoadingWeeklyPlans || isLoadingInstaPosts || isLoadingTiktokPosts || isLoadingMetricSnapshots;
   
-
-  const handleTikTokClick = (post: TikTokPost) => {
-    if (post.shareUrl) {
-        window.open(post.shareUrl, '_blank', 'noopener,noreferrer');
-    }
-  };
-
   const handleChartItemClick = (item: any) => {
     setSelectedChartItem(item);
-    setIsChartItemSheetOpen(true);
   }
   
   const handleToggleIdeia = async (ideia: IdeiaSalva) => {
@@ -321,50 +309,6 @@ export default function DashboardPage() {
   
   return (
     <>
-      <Sheet open={isChartItemSheetOpen} onOpenChange={setIsChartItemSheetOpen}>
-        <SheetContent className="sm:max-w-md p-0 flex flex-col">
-          {selectedChartItem && (
-            <>
-            <SheetHeader className="p-6 border-b">
-              <SheetTitle className="font-headline text-xl truncate">{selectedChartItem.name}</SheetTitle>
-              <SheetDescription>Detalhes do Post</SheetDescription>
-            </SheetHeader>
-            <div className="p-6 space-y-4 flex-1 overflow-y-auto">
-              <a href={selectedChartItem.url} target="_blank" rel="noopener noreferrer" className="block relative aspect-[9/16] w-full rounded-2xl overflow-hidden bg-muted group border">
-                 <Image src={selectedChartItem.coverUrl || selectedChartItem.mediaUrl || ''} alt={selectedChartItem.name} fill style={{ objectFit: 'cover' }} />
-                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <PlayCircle className="h-12 w-12 text-white" />
-                 </div>
-              </a>
-              <Card>
-                <CardContent className="p-4 grid grid-cols-3 gap-4 text-center">
-                    <div>
-                        <p className="text-sm text-muted-foreground flex items-center justify-center gap-1"><Eye className="h-3 w-3" />Views</p>
-                        <p className="text-lg font-bold">{formatIntegerValue(selectedChartItem.views)}</p>
-                    </div>
-                    <div>
-                        <p className="text-sm text-muted-foreground flex items-center justify-center gap-1"><Heart className="h-3 w-3" />Likes</p>
-                        <p className="text-lg font-bold">{formatIntegerValue(selectedChartItem.likes)}</p>
-                    </div>
-                     <div>
-                        <p className="text-sm text-muted-foreground flex items-center justify-center gap-1"><MessageSquare className="h-3 w-3" />Comentários</p>
-                        <p className="text-lg font-bold">{formatIntegerValue(selectedChartItem.comments)}</p>
-                    </div>
-                </CardContent>
-              </Card>
-            </div>
-             <div className="p-6 border-t mt-auto">
-                 <Button asChild className="w-full">
-                    <a href={selectedChartItem.url} target="_blank" rel="noopener noreferrer">
-                        <PlayCircle className="mr-2 h-4 w-4" /> Ver Post Original
-                    </a>
-                </Button>
-            </div>
-            </>
-          )}
-        </SheetContent>
-      </Sheet>
-
       <div className="space-y-8">
         <PageHeader
           icon={!userProfile?.photoURL ? LayoutGrid : undefined}
@@ -438,7 +382,6 @@ export default function DashboardPage() {
                       tiktokPosts={tiktokPosts}
                       selectedPlatform={selectedPlatform}
                       userProfile={userProfile}
-                      handleTikTokClick={handleTikTokClick}
                       onItemClick={handleChartItemClick}
                     />
                    <PerformanceAnalysisCard 
