@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { LogOut, ShieldAlert, Crown, Settings as SettingsIcon, Hammer } from 'lucide-react';
+import { LogOut, ShieldAlert, Crown, Settings as SettingsIcon, Hammer, Trash2, RefreshCw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -41,6 +41,7 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
+import { resetLastSyncAction, resetAllMetricsAction } from './actions';
 
 export default function SettingsPage() {
   const { user } = useUser();
@@ -49,6 +50,11 @@ export default function SettingsPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isCancelling, startCancellingTransition] = useTransition();
+
+  const [confirmationInput, setConfirmationInput] = useState('');
+  const [resetType, setResetType] = useState<'lastSync' | 'all' | null>(null);
+  const [isResetting, startResettingTransition] = useTransition();
+
 
   const userProfileRef = useMemoFirebase(
     () => (firestore && user ? doc(firestore, `users/${user.uid}`) : null),
@@ -92,6 +98,32 @@ export default function SettingsPage() {
     }
   };
   
+  const handleReset = () => {
+    if (!user) return;
+    startResettingTransition(async () => {
+      let result;
+      if (resetType === 'lastSync') {
+        result = await resetLastSyncAction({ userId: user.uid });
+      } else if (resetType === 'all') {
+        result = await resetAllMetricsAction({ userId: user.uid });
+      }
+
+      if (result?.success) {
+        toast({ title: 'Sucesso!', description: 'As métricas foram resetadas.' });
+      } else {
+        toast({ title: 'Erro', description: result?.error || "Ocorreu um erro.", variant: 'destructive' });
+      }
+      setConfirmationInput('');
+      setResetType(null);
+    });
+  };
+
+  const confirmationText = resetType === 'lastSync'
+    ? 'resetar última sincronização'
+    : 'resetar todas as métricas';
+    
+  const isConfirmationButtonDisabled = isResetting || confirmationInput !== confirmationText;
+
 
   return (
     <div className="space-y-8">
@@ -171,6 +203,88 @@ export default function SettingsPage() {
           </CardContent>
        </Card>
 
+        <Card className="border-destructive/50 bg-destructive/5 rounded-2xl">
+            <CardHeader>
+                <CardTitle className="flex items-center gap-3 text-destructive font-headline text-xl">
+                    <ShieldAlert className="h-6 w-6" />
+                    Zona de Perigo
+                </CardTitle>
+                <CardDescription className="text-destructive/80">
+                    Ações nesta seção são permanentes e não podem ser desfeitas.
+                </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <div className="flex flex-col sm:flex-row justify-between items-center p-4 border border-destructive/20 rounded-lg">
+                    <div>
+                        <h4 className="font-semibold">Resetar Última Sincronização</h4>
+                        <p className="text-sm text-muted-foreground">Reverte os números da última sincronização, mantendo os perfis conectados.</p>
+                    </div>
+                    <AlertDialog open={resetType === 'lastSync'} onOpenChange={(open) => !open && setResetType(null)}>
+                        <AlertDialogTrigger asChild>
+                            <Button variant="outline" className="border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive w-full sm:w-auto mt-4 sm:mt-0" onClick={() => setResetType('lastSync')}>
+                                <RefreshCw className="mr-2 h-4 w-4" /> Resetar
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Resetar Última Sincronização?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Esta ação limpará as métricas (seguidores, views, etc.) da última sincronização. Para confirmar, digite: <br/><strong className='text-foreground'>{confirmationText}</strong>
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                             <Input
+                                value={confirmationInput}
+                                onChange={(e) => setConfirmationInput(e.target.value)}
+                                placeholder="Digite a frase para confirmar"
+                                className="my-4"
+                            />
+                            <AlertDialogFooter>
+                                <AlertDialogCancel onClick={() => setConfirmationInput('')}>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleReset} disabled={isConfirmationButtonDisabled}>
+                                    {isResetting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    Confirmar Reset
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                </div>
+                 <div className="flex flex-col sm:flex-row justify-between items-center p-4 border border-destructive/20 rounded-lg">
+                    <div>
+                        <h4 className="font-semibold">Resetar Todas as Métricas</h4>
+                        <p className="text-sm text-muted-foreground">Remove todos os dados de métricas, posts e contas de redes sociais do seu perfil.</p>
+                    </div>
+                     <AlertDialog open={resetType === 'all'} onOpenChange={(open) => !open && setResetType(null)}>
+                        <AlertDialogTrigger asChild>
+                             <Button variant="destructive" className="w-full sm:w-auto mt-4 sm:mt-0" onClick={() => setResetType('all')}>
+                                <Trash2 className="mr-2 h-4 w-4" /> Resetar Tudo
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Resetar TODAS as Métricas?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Esta ação é IRREVERSÍVEL e limpará todos os seus dados de redes sociais. Para confirmar, digite: <br/><strong className='text-foreground'>{confirmationText}</strong>
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <Input
+                                value={confirmationInput}
+                                onChange={(e) => setConfirmationInput(e.target.value)}
+                                placeholder="Digite a frase para confirmar"
+                                className="my-4"
+                            />
+                            <AlertDialogFooter>
+                                <AlertDialogCancel onClick={() => setConfirmationInput('')}>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleReset} disabled={isConfirmationButtonDisabled} className={cn(buttonVariants({ variant: 'destructive' }))}>
+                                     {isResetting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    Confirmar Reset Total
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                </div>
+            </CardContent>
+        </Card>
+
        <Card className="border-0 rounded-2xl shadow-primary-lg">
         <CardHeader>
           <CardTitle className="font-headline text-xl">Suporte e Contato</CardTitle>
@@ -190,7 +304,3 @@ export default function SettingsPage() {
     </div>
   );
 }
-
-    
-
-    
