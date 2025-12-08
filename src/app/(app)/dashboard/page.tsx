@@ -111,7 +111,7 @@ const platformChartConfig = {
     likes: { ...chartConfigBase.likes, color: "hsl(var(--chart-3))" },
     comments: { ...chartConfigBase.comments, color: "hsl(var(--chart-4))" },
   },
-} satisfies Record<string, ChartConfig>;
+};
 
 const DailyPlanCard = ({ isLoadingWeeklyPlans, tasksForToday, currentPlan, handleToggleRoteiro }: any) => (
   <Card className="h-full shadow-primary-lg">
@@ -759,3 +759,5 @@ export default function DashboardPage() {
     </>
   );
 }
+
+    
