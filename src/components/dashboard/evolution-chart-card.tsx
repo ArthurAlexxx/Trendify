@@ -115,6 +115,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
             name: d.name,
             postLabel: d.postLabel,
             engagementRate: d.engagement,
+            url: d.url,
         }
     });
   }, [allPosts]);
@@ -171,9 +172,8 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="evolution" className="w-full">
-              <TabsList className="grid w-full grid-cols-3 mx-auto max-w-md">
+              <TabsList className="grid w-full grid-cols-2 mx-auto max-w-md">
                   <TabsTrigger value="evolution">Evolução</TabsTrigger>
-                  <TabsTrigger value="topPosts">Top Posts</TabsTrigger>
                   <TabsTrigger value="engagementRate">Engajamento</TabsTrigger>
               </TabsList>
               <div className="mt-4">
@@ -190,20 +190,23 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                       </Tooltip>
                     </TooltipProvider>
                   </div>
-                   {isLoading ? <Skeleton className="h-auto aspect-[1.5/1] w-full" /> : 
+                   {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
                     evolutionChartData.length > 0 ? (
-                        <ChartContainer config={chartConfigBase} className="h-auto flex-1">
-                          <ResponsiveContainer width="100%" aspect={1.5}>
-                            <LineChart data={evolutionChartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }} onClick={handleChartClick} className="cursor-pointer">
+                        <ChartContainer config={chartConfigBase} className="h-[350px] w-full flex-1">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={evolutionChartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }} onClick={handleChartClick} className="cursor-pointer">
+                                <defs>
+                                    <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="var(--color-views)" stopOpacity={0.8}/><stop offset="95%" stopColor="var(--color-views)" stopOpacity={0.1}/></linearGradient>
+                                    <linearGradient id="colorLikes" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="var(--color-likes)" stopOpacity={0.8}/><stop offset="95%" stopColor="var(--color-likes)" stopOpacity={0.1}/></linearGradient>
+                                </defs>
                                 <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                                <XAxis dataKey="postLabel" tickLine={false} axisLine={false} tick={false} />
+                                <XAxis dataKey="postLabel" tick={false} axisLine={false} />
                                 <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
                                 <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
                                 <Legend />
-                                <Line type="monotone" dataKey="views" stroke="var(--color-views)" strokeWidth={2} name="Views" dot={false} />
-                                <Line type="monotone" dataKey="likes" stroke="var(--color-likes)" strokeWidth={2} name="Likes" dot={false} />
-                                <Line type="monotone" dataKey="comments" stroke="var(--color-comments)" strokeWidth={2} name="Comentários" dot={false}/>
-                            </LineChart>
+                                <Area type="monotone" dataKey="views" stroke="var(--color-views)" fill="url(#colorViews)" stackId="1" name="Views" />
+                                <Area type="monotone" dataKey="likes" stroke="var(--color-likes)" fill="url(#colorLikes)" stackId="1" name="Likes" />
+                            </AreaChart>
                           </ResponsiveContainer>
                         </ChartContainer>
                     ) : (
@@ -214,44 +217,6 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                             <p className="text-sm text-muted-foreground"> {userProfile && <Link href="/profile/integrations" className="text-primary font-medium hover:underline cursor-pointer">Sincronize suas métricas</Link>} para começar a ver seus dados.</p>
                           </div>
                         </div>
-                    )}
-                </TabsContent>
-                <TabsContent value="topPosts" className="flex flex-col">
-                     <div className="flex justify-end pr-4">
-                        <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                            <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                            <p className="max-w-xs">Veja seus 5 posts com maior número de visualizações para entender o que funciona melhor.</p>
-                            </TooltipContent>
-                        </Tooltip>
-                        </TooltipProvider>
-                    </div>
-                    {isLoading ? <Skeleton className="h-auto aspect-[1/1] w-full" /> : 
-                    topPostsData.length > 0 ? (
-                       <ChartContainer config={chartConfigBase} className="h-auto flex-1">
-                         <ResponsiveContainer width="100%" aspect={1}>
-                            <BarChart data={topPostsData} layout="vertical" margin={{ left: 120, top: 5, right: 30, bottom: 5 }} onClick={handleChartClick}>
-                              <CartesianGrid horizontal={false} strokeDasharray="3 3" />
-                              <XAxis type="number" tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
-                              <YAxis type="category" dataKey="shortName" width={120} tickLine={false} axisLine={false} tick={{fontSize: 12, width: 110}} />
-                              <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
-                              <Bar dataKey="views" fill="var(--color-views)" name="Views" className="cursor-pointer">
-                                 <LabelList dataKey="views" position="right" offset={8} className="fill-foreground text-xs" formatter={(v: number) => typeof v === 'number' && v >= 1000 ? `${(v/1000).toFixed(1)}k` : v} />
-                              </Bar>
-                            </BarChart>
-                         </ResponsiveContainer>
-                       </ChartContainer>
-                    ) : (
-                         <div className="h-[350px] w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
-                           <div>
-                            <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
-                            <h3 className="font-semibold text-foreground">Não há posts com visualizações para analisar.</h3>
-                            <p className="text-sm text-muted-foreground">Continue postando para ver os dados aqui.</p>
-                           </div>
-                         </div>
                     )}
                 </TabsContent>
                 <TabsContent value="engagementRate" className="flex flex-col">
@@ -267,19 +232,19 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                             </Tooltip>
                         </TooltipProvider>
                     </div>
-                   {isLoading ? <Skeleton className="h-auto aspect-[1.5/1] w-full" /> : 
+                   {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
                     engagementRateData.length > 0 ? (
-                       <ChartContainer config={chartConfigBase} className="h-auto flex-1">
-                         <ResponsiveContainer width="100%" aspect={1.5}>
+                       <ChartContainer config={chartConfigBase} className="h-[350px] w-full flex-1">
+                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={engagementRateData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }} onClick={handleChartClick} className="cursor-pointer">
                                 <defs>
                                 <linearGradient id="fillEng" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="5%" stopColor="var(--color-engagementRate)" stopOpacity={0.8}/>
-                                    <stop offset="95%" stopColor="var(--color-engagementRate)" stopOpacity={0}/>
+                                    <stop offset="95%" stopColor="var(--color-engagementRate)" stopOpacity={0.1}/>
                                 </linearGradient>
                                 </defs>
                                 <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                                <XAxis dataKey="postLabel" tickLine={false} axisLine={false} tick={false} />
+                                <XAxis dataKey="postLabel" tick={false} axisLine={false} />
                                 <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => `${value}%`} />
                                 <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
                                 <Area dataKey="engagementRate" type="monotone" fill="url(#fillEng)" stroke="var(--color-engagementRate)" name="Engajamento" />
