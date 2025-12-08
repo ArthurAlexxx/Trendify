@@ -89,7 +89,7 @@ Siga as diretrizes para cada campo JSON:
 async function generateWeeklyPlan(
   input: FormSchemaType
 ): Promise<GenerateWeeklyPlanOutput> {
-  const result = await callOpenAI<GenerateWeeklyPlanOutput>({
+  const result = await callOpenAI<typeof GenerateWeeklyPlanOutputSchema>({
     prompt: systemPrompt,
     jsonSchema: GenerateWeeklyPlanOutputSchema,
     promptData: input,
