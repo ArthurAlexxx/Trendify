@@ -77,6 +77,9 @@ const TikTokPostSchema = z.object({
         play_addr: z.object({
             url_list: z.array(z.string().url()).optional(),
         }).optional(),
+        cover: z.object({
+          url_list: z.array(z.string().url()).optional()
+        }).optional()
     }).optional(),
 }).passthrough();
 
@@ -322,7 +325,7 @@ export async function getTikTokPosts(username: string): Promise<TikTokPost[]> {
                     id: post.video_id,
                     shareUrl: details?.data?.share_url,
                     description: post.description || '',
-                    coverUrl: post.video.cover.url_list[0],
+                    coverUrl: post.video?.cover?.url_list?.[0] || post.cover,
                     views: post.statistics?.play_count ?? 0,
                     likes: post.statistics?.digg_count ?? 0,
                     comments: post.statistics?.comment_count ?? 0,
@@ -334,7 +337,7 @@ export async function getTikTokPosts(username: string): Promise<TikTokPost[]> {
                     id: post.video_id,
                     shareUrl: undefined,
                     description: post.description || '',
-                    coverUrl: post.video.cover.url_list[0],
+                    coverUrl: post.video?.cover?.url_list?.[0] || post.cover,
                     views: post.statistics?.play_count ?? 0,
                     likes: post.statistics?.digg_count ?? 0,
                     comments: post.statistics?.comment_count ?? 0,

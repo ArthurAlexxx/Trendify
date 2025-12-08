@@ -125,6 +125,21 @@ export type InstagramPostData = {
     video_view_count?: number;
 };
 
+export type TikTokProfileData = {
+    id: string;
+    username: string;
+    nickname: string;
+    avatarUrl: string;
+    bio: string;
+    isVerified: boolean;
+    isPrivate: boolean;
+    secUid?: string;
+    followersCount: number;
+    followingCount: number;
+    heartsCount: number;
+    videoCount: number;
+};
+
 export type TikTokPost = {
     id: string;
     shareUrl?: string;
