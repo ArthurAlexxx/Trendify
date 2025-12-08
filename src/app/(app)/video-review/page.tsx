@@ -583,7 +583,7 @@ function VideoReviewPageContent() {
                             {videoDescription && (
                                 <Card className="shadow-primary-lg">
                                     <CardHeader>
-                                        <CardTitle className="text-center font-headline text-lg flex items-center gap-2">
+                                        <CardTitle className="text-center font-headline text-lg flex items-center gap-2 justify-center">
                                             <Info className="h-5 w-5 text-primary" />
                                             Descrição Fornecida
                                         </CardTitle>
@@ -605,7 +605,7 @@ function VideoReviewPageContent() {
 
                             <Card className="lg:col-span-2 shadow-primary-lg">
                                 <CardHeader>
-                                    <CardTitle className="text-center items-center flex gap-2">
+                                    <CardTitle className="text-center items-center flex gap-2 justify-center">
                                          <Check className="h-5 w-5 text-primary" />
                                         Checklist de Melhorias
                                     </CardTitle>
@@ -626,7 +626,7 @@ function VideoReviewPageContent() {
                         <div className="space-y-8">
                             <Card className="shadow-primary-lg">
                                 <CardHeader>
-                                    <CardTitle className="text-center font-headline text-lg flex items-center gap-2">
+                                    <CardTitle className="text-center font-headline text-lg flex items-center gap-2 justify-center">
                                         <Flame className="h-5 w-5 text-primary" />
                                         Análise de Retenção
                                     </CardTitle>
@@ -716,7 +716,7 @@ function VideoReviewPageContent() {
                                                          {analise.analysisData.videoDescription && (
                                                             <Card className="shadow-primary-lg">
                                                                 <CardHeader>
-                                                                    <CardTitle className="text-center font-headline text-lg flex items-center gap-2">
+                                                                    <CardTitle className="text-center font-headline text-lg flex items-center gap-2 justify-center">
                                                                         <Info className="h-5 w-5 text-primary" />
                                                                         Descrição Fornecida
                                                                     </CardTitle>
@@ -729,9 +729,9 @@ function VideoReviewPageContent() {
 
                                                         <Card className="shadow-primary-lg">
                                                             <CardHeader>
-                                                                <CardTitle className="text-lg text-primary">Nota de Viralização</CardTitle>
+                                                                <CardTitle className="text-lg text-primary text-center">Nota de Viralização</CardTitle>
                                                             </CardHeader>
-                                                            <CardContent>
+                                                            <CardContent className="text-center">
                                                                 <div className="text-3xl font-bold">{getNoteParts(analise.analysisData.geral).note}/10</div>
                                                                 <p className="text-sm text-muted-foreground mt-1">{getNoteParts(analise.analysisData.geral).description}</p>
                                                             </CardContent>
@@ -739,7 +739,7 @@ function VideoReviewPageContent() {
 
                                                          <Card className="shadow-primary-lg">
                                                             <CardHeader>
-                                                                <CardTitle className="flex items-center gap-2 text-lg"><Lightbulb className="h-5 w-5 text-primary" /> Checklist de Melhorias</CardTitle>
+                                                                <CardTitle className="flex items-center gap-2 justify-center text-lg"><Check className="h-5 w-5 text-primary" /> Checklist de Melhorias</CardTitle>
                                                             </CardHeader>
                                                             <CardContent>
                                                                 <ul className="space-y-2 text-sm">
@@ -760,15 +760,15 @@ function VideoReviewPageContent() {
                                                         <CardContent>
                                                             <Accordion type="single" collapsible defaultValue="item-1">
                                                                 <AccordionItem value="item-1">
-                                                                    <AccordionTrigger>Gancho</AccordionTrigger>
+                                                                    <AccordionTrigger>Análise do Gancho</AccordionTrigger>
                                                                     <AccordionContent>{analise.analysisData.gancho}</AccordionContent>
                                                                 </AccordionItem>
                                                                 <AccordionItem value="item-2">
-                                                                    <AccordionTrigger>Conteúdo</AccordionTrigger>
+                                                                    <AccordionTrigger>Análise do Conteúdo</AccordionTrigger>
                                                                     <AccordionContent>{analise.analysisData.conteudo}</AccordionContent>
                                                                 </AccordionItem>
                                                                 <AccordionItem value="item-3">
-                                                                    <AccordionTrigger>CTA</AccordionTrigger>
+                                                                    <AccordionTrigger>Análise do CTA</AccordionTrigger>
                                                                     <AccordionContent>{analise.analysisData.cta}</AccordionContent>
                                                                 </AccordionItem>
                                                             </Accordion>
