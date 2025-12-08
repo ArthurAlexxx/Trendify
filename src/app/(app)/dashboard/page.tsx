@@ -89,7 +89,13 @@ const chartConfigBase = {
   comments: { label: "Comentários" },
 } satisfies ChartConfig;
 
-const platformChartConfig = {
+type PlatformChartConfigType = {
+  total: ChartConfig;
+  instagram: ChartConfig;
+  tiktok: ChartConfig;
+};
+
+const platformChartConfig: PlatformChartConfigType = {
   total: {
     ...chartConfigBase,
     followers: { ...chartConfigBase.followers, color: "hsl(var(--primary))" },
