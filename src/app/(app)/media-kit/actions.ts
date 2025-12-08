@@ -94,7 +94,7 @@ Sua resposta DEVE ser um objeto JSON válido, e NADA MAIS. O JSON deve se confor
 async function getAiCareerPackage(
   input: z.infer<typeof formSchema>
 ): Promise<AiCareerPackageOutput> {
-  const result = await callOpenAI<AiCareerPackageOutput>({
+  const result = await callOpenAI<typeof AiCareerPackageOutputSchema>({
     prompt: systemPrompt,
     jsonSchema: AiCareerPackageOutputSchema,
     promptData: input
