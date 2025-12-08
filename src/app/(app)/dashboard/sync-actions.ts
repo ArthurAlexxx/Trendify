@@ -1,7 +1,7 @@
 
 'use server';
 
-import { doc, writeBatch, collection, getDocs, serverTimestamp, setDoc, Timestamp, increment } from 'firebase/firestore';
+import { doc, writeBatch, collection, getDocs, serverTimestamp, setDoc, Timestamp, increment, FieldValue } from 'firebase-admin/firestore';
 import { getInstagramPosts, getInstagramProfile, getTikTokPosts, getTikTokProfile } from '../profile/actions';
 import { initializeFirebaseAdmin } from '@/firebase/admin';
 
@@ -23,7 +23,7 @@ const updateOrCreateMetricSnapshot = async (firestore: FirebaseFirestore.Firesto
     const snapshotDocRef = doc(firestore, `users/${userId}/metricSnapshots`, `${platform}_${todayDateString}`);
   
     const snapshotData = {
-      date: serverTimestamp(),
+      date: FieldValue.serverTimestamp(),
       platform,
       followers: data.followers || '0',
       views: data.views || '0',
@@ -65,8 +65,8 @@ export async function syncInstagramAction(userId: string, username: string): Pro
             instagramAverageViews: formatNumber(Math.round(averageViews)),
             instagramAverageLikes: formatNumber(Math.round(averageLikes)),
             instagramAverageComments: formatNumber(Math.round(averageComments)),
-            lastInstagramSync: serverTimestamp(),
-            tokenUsage: increment(2) // Increment by 2 tokens for the call
+            lastInstagramSync: FieldValue.serverTimestamp(),
+            tokenUsage: FieldValue.increment(2) // Increment by 2 tokens for the call
         };
         batch.update(userRef, dataToSave);
 
@@ -76,7 +76,7 @@ export async function syncInstagramAction(userId: string, username: string): Pro
         
         postsResult.forEach(post => {
             const postRef = doc(postsCollectionRef, post.id);
-            batch.set(postRef, { ...post, fetchedAt: serverTimestamp() });
+            batch.set(postRef, { ...post, fetchedAt: FieldValue.serverTimestamp() });
         });
         
         await batch.commit();
@@ -126,8 +126,8 @@ export async function syncTikTokAction(userId: string, username: string): Promis
             tiktokAverageLikes: formatNumber(Math.round(averageLikes)),
             tiktokAverageComments: formatNumber(Math.round(averageComments)),
             tiktokAverageViews: formatNumber(Math.round(averageViews)),
-            lastTikTokSync: serverTimestamp(),
-            tokenUsage: increment(4) // Increment by 4 tokens for the calls
+            lastTikTokSync: FieldValue.serverTimestamp(),
+            tokenUsage: FieldValue.increment(4) // Increment by 4 tokens for the calls
         };
         batch.update(userRef, dataToSave);
 
@@ -141,7 +141,7 @@ export async function syncTikTokAction(userId: string, username: string): Promis
             const dataWithTimestamp = {
                 ...post,
                 createdAt: post.createdAt ? Timestamp.fromDate(post.createdAt as any) : null,
-                fetchedAt: serverTimestamp()
+                fetchedAt: FieldValue.serverTimestamp()
             };
             batch.set(postRef, dataWithTimestamp);
         });
