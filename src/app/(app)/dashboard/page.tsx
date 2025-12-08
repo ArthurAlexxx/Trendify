@@ -41,8 +41,9 @@ import { FollowerGoalSheet } from '@/components/dashboard/follower-goal-sheet';
 import { ProfileCompletionAlert } from '@/components/dashboard/profile-completion-alert';
 import { generateDashboardInsights, type DashboardInsightsOutput } from './actions';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import React, { useState, useMemo, useEffect, Suspense, useCallback } from 'react';
+import React, { useState, useMemo, useEffect, Suspense, useCallback, useTransition } from 'react';
 import dynamic from 'next/dynamic';
+import { syncInstagramAction, syncTikTokAction } from './sync-actions';
 
 const GoalCard = dynamic(() => import('@/components/dashboard/goal-card').then(mod => mod.GoalCard), {
   loading: () => <Skeleton className="h-full min-h-[380px]" />,
@@ -61,7 +62,7 @@ const EngagementMetricsCard = dynamic(() => import('@/components/dashboard/engag
 });
 
 const EvolutionChartCard = dynamic(() => import('./evolution-chart-card'), {
-    loading: () => <Skeleton className="h-[530px]" />,
+    loading: () => <Skeleton className="h-[438px]" />,
 });
 
 const PerformanceAnalysisCard = dynamic(() => import('@/components/dashboard/performance-analysis-card'), {
@@ -79,6 +80,7 @@ export default function DashboardPage() {
   const [currentTikTokUrl, setCurrentTikTokUrl] = useState('');
   const [insights, setInsights] = useState<DashboardInsightsOutput | null>(null);
   const [isGeneratingInsights, setIsGeneratingInsights] = useState(false);
+  const [isSyncing, startSyncTransition] = useTransition();
 
   const { subscription, isLoading: isSubscriptionLoading } = useSubscription();
   const isPremium = subscription?.plan === 'premium' && subscription.status === 'active';
@@ -124,6 +126,41 @@ export default function DashboardPage() {
 
   const isLoading = isLoadingProfile || isLoadingUpcoming || isSubscriptionLoading || isLoadingIdeias || isLoadingWeeklyPlans || isLoadingInstaPosts || isLoadingTiktokPosts || isLoadingMetricSnapshots;
   
+  const handleSync = () => {
+    if (!user || !userProfile) return;
+
+    startSyncTransition(async () => {
+        let successCount = 0;
+        let errorCount = 0;
+        
+        if (userProfile.instagramHandle) {
+            const result = await syncInstagramAction(user.uid, userProfile.instagramHandle);
+            if (result.success) successCount++;
+            else {
+                errorCount++;
+                toast({ title: 'Erro no Instagram', description: result.error, variant: 'destructive' });
+            }
+        }
+        
+        if (userProfile.tiktokHandle) {
+            const result = await syncTikTokAction(user.uid, userProfile.tiktokHandle);
+            if (result.success) successCount++;
+            else {
+                errorCount++;
+                toast({ title: 'Erro no TikTok', description: result.error, variant: 'destructive' });
+            }
+        }
+        
+        if (successCount > 0 && errorCount === 0) {
+            toast({ title: 'Sucesso!', description: 'Todas as métricas foram sincronizadas.' });
+        } else if (successCount > 0 && errorCount > 0) {
+            toast({ title: 'Sincronização Parcial', description: 'Algumas plataformas falharam ao sincronizar. Verifique as mensagens de erro.' });
+        } else if (errorCount === 0 && successCount === 0) {
+             toast({ title: 'Nenhuma plataforma conectada', description: 'Vá para a página de integrações para conectar suas contas.', variant: 'destructive' });
+        }
+    });
+  };
+
   const handleTikTokClick = (post: TikTokPost) => {
     if (post.shareUrl) {
         window.open(post.shareUrl, '_blank', 'noopener,noreferrer');
@@ -178,6 +215,14 @@ export default function DashboardPage() {
     return isNaN(num) ? 0 : num;
   }, []);
   
+  const formatNumber = (value?: string | number): string => {
+    const num = parseMetric(value);
+    if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(1).replace('.', ',')}M`;
+    if (num >= 10000) return `${(num / 1000).toFixed(1).replace('.', ',')}K`;
+    if (num >= 1000) return num.toLocaleString('pt-BR');
+    return String(num);
+  };
+  
   const handleGenerateInsights = useCallback(async () => {
       if (!userProfile || !metricSnapshots) {
           toast({ title: "Dados insuficientes", description: "Sincronize suas métricas para gerar uma análise.", variant: 'destructive' });
@@ -206,14 +251,6 @@ export default function DashboardPage() {
           setIsGeneratingInsights(false);
       }
   }, [userProfile, metricSnapshots, toast, parseMetric]);
-
-  const formatNumber = (value?: string | number): string => {
-    const num = parseMetric(value);
-    if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(1).replace('.', ',')}M`;
-    if (num >= 10000) return `${(num / 1000).toFixed(1).replace('.', ',')}K`;
-    if (num >= 1000) return num.toLocaleString('pt-BR');
-    return String(num);
-  };
 
   const { currentFollowers, goalFollowers, isGoalReached } = useMemo(() => {
     if (!userProfile) return { currentFollowers: 0, goalFollowers: 0, isGoalReached: false };
@@ -292,6 +329,12 @@ export default function DashboardPage() {
                   <TabsTrigger value="tiktok">TikTok</TabsTrigger>
                 </TabsList>
               </Tabs>
+              {isPremium && (
+                <Button onClick={handleSync} disabled={isSyncing} variant="outline" size="sm" className="w-full">
+                    {isSyncing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+                    Sincronizar
+                </Button>
+              )}
               {userProfile && 
                 <FollowerGoalSheet 
                     userProfile={userProfile} 
@@ -299,7 +342,7 @@ export default function DashboardPage() {
                     setIsOpen={setIsGoalSheetOpen}
                     isGoalReached={isGoalReached}
                 >
-                    <Button variant="outline" size="sm" className="w-full" onClick={() => setIsGoalSheetOpen(true)}>
+                    <Button variant="outline" size="sm" className="w-full">
                         <Pencil className="mr-2 h-4 w-4" /> Editar Metas
                     </Button>
               </FollowerGoalSheet>
@@ -361,7 +404,7 @@ export default function DashboardPage() {
                     formatMetricValue={formatNumber} 
                 />
               </Suspense>
-              <Suspense fallback={<Skeleton className="h-[530px] w-full" />}>
+              <Suspense fallback={<Skeleton className="h-[438px] w-full" />}>
                 <EvolutionChartCard
                   isLoading={isLoadingInstaPosts || isLoadingTiktokPosts || isLoadingMetricSnapshots}
                   metricSnapshots={metricSnapshots}
