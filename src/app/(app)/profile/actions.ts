@@ -115,7 +115,7 @@ async function fetchFromRapidApi(platform: 'instagram-profile' | 'tiktok-profile
             break;
         case 'tiktok-profile':
             host = 'tiktok-api6.p.rapidapi.com';
-            path = 'user/details';
+            path = 'user/details/';
             break;
         case 'tiktok-posts':
             host = 'tiktok-api6.p.rapidapi.com';
