@@ -1,7 +1,7 @@
 
 'use server';
 
-// import { ai } from '@/ai/genkit';
+import { callOpenAI } from '@/lib/openai-client';
 import { z } from 'zod';
 
 const VideoAnalysisOutputSchema = z.object({
@@ -29,20 +29,28 @@ const formSchema = z.object({
   videoDescription: z.string().optional(),
 });
 
-async function urlToDataUri(url: string): Promise<string> {
-    const response = await fetch(url);
-    if (!response.ok) {
-        throw new Error(`Falha ao buscar o vídeo da URL: ${response.statusText}`);
-    }
-    const contentType = response.headers.get('content-type') || 'video/mp4';
-    const buffer = await response.arrayBuffer();
-    const base64 = Buffer.from(buffer).toString('base64');
-    return `data:${contentType};base64,${base64}`;
-}
+const systemPrompt = `Você é uma consultora de conteúdo viral e estrategista para criadores de conteúdo. Sua tarefa é fornecer uma análise profunda, profissional e acionável em português do Brasil.
+  Lembre-se, a data atual é dezembro de 2025.
+  Você DEVE responder com um objeto JSON válido, e NADA MAIS. O JSON deve se conformar estritamente ao schema Zod fornecido.
+
+Analise o vídeo fornecido e sua descrição, e retorne sua análise ESTRITAMENTE no formato JSON solicitado.
+
+- Descrição do vídeo/contexto: {{videoDescription}}
+- Vídeo para análise (URL): {{videoUrl}}
+
+Diretrizes para a Análise Profissional:
+- geral: Dê uma nota de 0 a 10 para o potencial de viralização. É OBRIGATÓRIO que você forneça uma justificativa clara e concisa para a nota.
+- gancho: Dê uma nota de 0 a 10 para os primeiros 3 segundos. Avalie se o gancho é forte, se gera curiosidade ou quebra um padrão. Justifique sua nota.
+- conteudo: Analise o desenvolvimento, ritmo e entrega de valor do vídeo. Aponte um ponto específico que pode estar causando perda de retenção.
+- cta: Avalie a chamada para ação. Ela é clara, direta e alinhada com o objetivo do vídeo?
+- melhorias: Forneça EXATAMENTE 3 dicas em formato de checklist, práticas e acionáveis, para o criador melhorar o vídeo.
+- estimatedHeatmap: Estime textualmente onde a retenção provavelmente cai, com base no ritmo e estrutura. Ex: "A retenção deve cair entre 8s-12s devido à explicação longa."
+- comparativeAnalysis: Compare o vídeo com padrões de sucesso do nicho. Ex: "Comparado a outros vídeos de receita, o seu tem ótima fotografia, mas o ritmo é 20% mais lento."`;
+
 
 
 /**
- * Server Action to analyze a video provided as a data URI.
+ * Server Action to analyze a video provided as a URL.
  */
 export async function analyzeVideo(
   input: { videoUrl: string, videoDescription?: string }
@@ -56,15 +64,16 @@ export async function analyzeVideo(
     return { error };
   }
   
-  return { error: 'A funcionalidade de IA está temporariamente desativada para manutenção.' };
-
-  /*
   const { videoUrl, videoDescription } = parsed.data;
 
   try {
-    const videoDataUri = await urlToDataUri(videoUrl);
-    const analysis = await analyzeVideoFlow({ videoDataUri, videoDescription: videoDescription || 'N/A' });
+    const analysis = await callOpenAI({
+        prompt: systemPrompt,
+        jsonSchema: VideoAnalysisOutputSchema,
+        promptData: { videoUrl: videoUrl, videoDescription: videoDescription || 'N/A' },
+    });
     return { data: analysis };
+
   } catch (e: any) {
     console.error("Falha na execução do fluxo de análise de vídeo:", e);
 
@@ -82,67 +91,4 @@ export async function analyzeVideo(
 
     return { error: friendlyErrorMessage };
   }
-  */
 }
-/*
-// 1. Define o prompt para a IA
-const prompt = ai.definePrompt({
-  name: 'videoAnalysisExpert',
-  model: 'openai/gpt-4o',
-  input: { schema: z.object({ videoDataUri: z.string(), videoDescription: z.string() }) },
-  output: { schema: VideoAnalysisOutputSchema },
-  prompt: `Você é uma consultora de conteúdo viral e estrategista para criadores de conteúdo. Sua tarefa é fornecer uma análise profunda, profissional e acionável em português do Brasil.
-  Lembre-se, a data atual é dezembro de 2025.
-
-Analise o vídeo fornecido e sua descrição, e retorne sua análise ESTRITAMENTE no formato JSON solicitado.
-
-- Descrição do vídeo/contexto: {{videoDescription}}
-- Vídeo: {{media url=videoDataUri}}
-
-Diretrizes para a Análise Profissional:
-- geral: Dê uma nota de 0 a 10 para o potencial de viralização. É OBRIGATÓRIO que você forneça uma justificativa clara e concisa para a nota.
-- gancho: Dê uma nota de 0 a 10 para os primeiros 3 segundos. Avalie se o gancho é forte, se gera curiosidade ou quebra um padrão. Justifique sua nota.
-- conteudo: Analise o desenvolvimento, ritmo e entrega de valor do vídeo. Aponte um ponto específico que pode estar causando perda de retenção.
-- cta: Avalie a chamada para ação. Ela é clara, direta e alinhada com o objetivo do vídeo?
-- melhorias: Forneça EXATAMENTE 3 dicas em formato de checklist, práticas e acionáveis, para o criador melhorar o vídeo.
-- estimatedHeatmap: Estime textualmente onde a retenção provavelmente cai, com base no ritmo e estrutura. Ex: "A retenção deve cair entre 8s-12s devido à explicação longa."
-- comparativeAnalysis: Compare o vídeo com padrões de sucesso do nicho. Ex: "Comparado a outros vídeos de receita, o seu tem ótima fotografia, mas o ritmo é 20% mais lento."`,
-  config: {
-    safetySettings: [
-        {
-            category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
-            threshold: 'BLOCK_MEDIUM_AND_ABOVE',
-        },
-        {
-            category: 'HARM_CATEGORY_HARASSMENT',
-            threshold: 'BLOCK_MEDIUM_AND_ABOVE',
-        },
-        {
-            category: 'HARM_CATEGORY_HATE_SPEECH',
-            threshold: 'BLOCK_MEDIUM_AND_ABOVE',
-        },
-        {
-            category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
-            threshold: 'BLOCK_MEDIUM_AND_ABOVE',
-        }
-    ]
-  }
-});
-
-
-// 2. Define o fluxo Genkit para a análise
-const analyzeVideoFlow = ai.defineFlow(
-  {
-    name: 'videoAnalysisFlow',
-    inputSchema: z.object({ videoDataUri: z.string(), videoDescription: z.string() }),
-    outputSchema: VideoAnalysisOutputSchema,
-  },
-  async input => {
-    const { output } = await prompt(input);
-    if (!output) {
-      throw new Error("A plataforma de IA não retornou uma análise. Tente novamente.");
-    }
-    return output;
-  }
-);
-*/
