@@ -32,6 +32,8 @@ import { InstagramProfileResults, TikTokProfileResults } from '@/components/dash
 import { useRouter } from 'next/navigation';
 import { format as formatDate, isToday } from 'date-fns';
 import { CodeBlock } from '@/components/ui/code-block';
+import { Dialog } from '@/components/ui/dialog';
+import { DialogContent } from '@radix-ui/react-dialog';
 
 
 const profileFormSchema = z.object({
@@ -60,6 +62,8 @@ export default function IntegrationsPage() {
   const [tiktokStatus, setTiktokStatus] = useState<SearchStatus>('idle');
   const [tiktokError, setTiktokError] = useState<string | null>(null);
   const [tiktokRawResponse, setTiktokRawResponse] = useState<string | null>(null);
+  const [showTikTokModal, setShowTikTokModal] = useState(false);
+  const [currentTikTokUrl, setCurrentTikTokUrl] = useState('');
 
 
   const userProfileRef = useMemoFirebase(
@@ -275,12 +279,31 @@ export default function IntegrationsPage() {
     }
   };
 
+  const handleTikTokClick = (post: TikTokPost) => {
+    if (post.shareUrl) {
+        setCurrentTikTokUrl(post.shareUrl);
+        setShowTikTokModal(true);
+    }
+  };
+
 
   const isLoading = isProfileLoading || isSubscriptionLoading;
 
 
   return (
     <div className="space-y-8">
+       <Dialog open={showTikTokModal} onOpenChange={setShowTikTokModal}>
+          <DialogContent className="sm:max-w-md p-0 border-0">
+              {currentTikTokUrl && (
+                  <iframe
+                      key={currentTikTokUrl}
+                      src={`https://www.tiktok.com/embed/v2/${currentTikTokUrl.split('/').pop()}`}
+                      className="w-full aspect-[9/16]"
+                      allow="autoplay; encrypted-media;"
+                  ></iframe>
+              )}
+          </DialogContent>
+      </Dialog>
       <PageHeader
         title="Integrações"
         description="Sincronize seus dados para obter métricas automáticas."
@@ -411,7 +434,7 @@ export default function IntegrationsPage() {
                          {tiktokStatus === 'error' && tiktokError && <Alert variant="destructive" className="mt-4"><AlertTriangle className="h-4 w-4" /><AlertTitle>Erro ao Buscar Perfil</AlertTitle><AlertDescription>{tiktokError}</AlertDescription></Alert>}
                          {tiktokStatus === 'success' && (
                           <>
-                           <TikTokProfileResults profile={form.watch('tiktokProfile')!} posts={form.watch('tiktokPosts') ?? null} formatNumber={formatNumber} />
+                           <TikTokProfileResults profile={form.watch('tiktokProfile')!} posts={form.watch('tiktokPosts') ?? null} formatNumber={formatNumber} onVideoClick={handleTikTokClick} error={tiktokError} />
                            {tiktokRawResponse && (
                               <div className="mt-4">
                                 <h3 className="text-lg font-semibold mb-2">Resposta da API TikTok (JSON)</h3>
