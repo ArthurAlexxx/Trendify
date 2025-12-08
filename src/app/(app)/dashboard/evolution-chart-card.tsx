@@ -67,7 +67,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
             return {
                 id: p.id,
                 name: name,
-                postLabel: `Post ${index + 1}`,
+                postLabel: `Seus Vídeos`,
                 views: p.video_view_count ?? 0,
                 likes: p.likes,
                 comments: p.comments,
@@ -81,7 +81,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
              return {
                 id: p.id,
                 name: name,
-                postLabel: `Post ${index + 1}`,
+                postLabel: `Seus Vídeos`,
                 views: p.views,
                 likes: p.likes,
                 comments: p.comments,
@@ -209,18 +209,10 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                          <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={allPosts} margin={{ top: 20, right: 20, left: -10, bottom: 5 }} onClick={handleChartClick} className="cursor-pointer">
                                 <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                                <XAxis dataKey="postLabel" tick={false} axisLine={false} />
+                                <XAxis dataKey="postLabel" />
                                 <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => `${value}%`} />
                                 <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
-                                <Bar dataKey="engagement" fill="var(--color-engagement)" name="Engajamento" radius={[4, 4, 0, 0]}>
-                                  <LabelList
-                                    dataKey="name"
-                                    position="insideTop"
-                                    angle={-90}
-                                    offset={10}
-                                    style={{ fill: 'hsl(var(--primary-foreground))', fontSize: '12px' }}
-                                  />
-                                </Bar>
+                                <Bar dataKey="engagement" fill="var(--color-engagement)" name="Engajamento" radius={[4, 4, 0, 0]} />
                             </BarChart>
                          </ResponsiveContainer>
                        </ChartContainer>
