@@ -1,7 +1,7 @@
 
 'use server';
 
-import { callOpenAI } from '@/lib/openai-client';
+import { callGoogleAI } from '@/lib/google-ai-client';
 import { z } from 'zod';
 
 const VideoAnalysisOutputSchema = z.object({
@@ -27,6 +27,7 @@ type ActionState = {
 const formSchema = z.object({
   videoUrl: z.string().url(),
   videoDescription: z.string().optional(),
+  videoMimeType: z.string().optional().default('video/mp4'),
 });
 
 const systemPrompt = `Você é uma consultora sênior especializada em crescimento orgânico, viralização, retenção e performance visual em short-form content (Reels, TikTok, Shorts). 
@@ -34,7 +35,7 @@ Sua função é analisar profundamente o vídeo enviado e fornecer uma avaliaç�
 A data atual é dezembro de 2025.
 
 ⚠️ SUA RESPOSTA DEVE SER:
-- EXCLUSIVAMENTE um objeto JSON válido
+- EXCLUSIVAMENTE um objeto JSON válido que será usado como argumentos para a função 'output_formatter'.
 - estritamente compatível com o schema Zod fornecido
 - sem comentários, explicações ou texto fora do JSON
 - sem quebras de estrutura ou campos extras
@@ -109,9 +110,9 @@ Inclua **uma vantagem** e **uma desvantagem**.
 -----------------------------------------------------
 🎬 Dados do Vídeo
 - Descrição: {{videoDescription}}
-- URL: {{videoUrl}}
+- O conteúdo do vídeo está sendo fornecido diretamente. Analise-o.
 
-Agora gere o JSON final obedecendo rigorosamente o schema informado.
+Agora gere o JSON final para a função 'output_formatter' obedecendo rigorosamente o schema informado.
 Nada fora do JSON é permitido.`;
 
 
@@ -120,7 +121,7 @@ Nada fora do JSON é permitido.`;
  * Server Action to analyze a video provided as a URL.
  */
 export async function analyzeVideo(
-  input: { videoUrl: string, videoDescription?: string }
+  input: { videoUrl: string, videoDescription?: string, videoMimeType?: string }
 ): Promise<ActionState> {
   
   const parsed = formSchema.safeParse(input);
@@ -131,13 +132,15 @@ export async function analyzeVideo(
     return { error };
   }
   
-  const { videoUrl, videoDescription } = parsed.data;
+  const { videoUrl, videoDescription, videoMimeType } = parsed.data;
 
   try {
-    const analysis = await callOpenAI({
+    const analysis = await callGoogleAI({
         prompt: systemPrompt,
         jsonSchema: VideoAnalysisOutputSchema,
-        promptData: { videoUrl: videoUrl, videoDescription: videoDescription || 'N/A' },
+        promptData: { videoDescription: videoDescription || 'N/A' },
+        videoUrl: videoUrl,
+        videoMimeType: videoMimeType,
     });
     return { data: analysis };
 

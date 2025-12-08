@@ -101,7 +101,7 @@ export async function POST(req: NextRequest) {
         'subscription.plan': plan,
         'subscription.cycle': cycle,
         'subscription.expiresAt': Timestamp.fromDate(expiresAt),
-        // We don't update paymentId here because the paymentId is the Asaas customer ID
+        // We are already using Asaas customer id as the paymentId
       };
 
       await userRef.update(updatePayload);

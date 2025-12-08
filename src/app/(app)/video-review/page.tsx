@@ -282,7 +282,11 @@ function VideoReviewPageContent() {
           const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
           setAnalysisStatus("loading");
 
-          const result = await analyzeVideo({ videoUrl: downloadURL, videoDescription });
+          const result = await analyzeVideo({ 
+            videoUrl: downloadURL, 
+            videoDescription,
+            videoMimeType: file.type
+          });
 
           if (result?.isOverloaded) {
               setAnalysisError(result.error || "Servidor sobrecarregado.");
@@ -337,27 +341,18 @@ function VideoReviewPageContent() {
       return { note: '-', description: 'Análise indisponível.' };
     }
   
-    // Tenta encontrar "X/10" ou "X / 10" ou "Nota: X"
-    const scoreRegex = /(\d{1,2}(?:[.,]\d{1,2})?)\s*\/\s*10|Nota:\s*(\d{1,2}(?:[.,]\d{1,2})?)/i;
+    // Tenta encontrar "X/10" ou "X / 10" ou "Nota: X" ou um número solto no início
+    const scoreRegex = /(\d{1,2}(?:[.,]\d{1,2})?)\s*\/\s*10|Nota:\s*(\d{1,2}(?:[.,]\d{1,2})?)|^(\d{1,2}(?:[.,]\d{1,2})?)\s*[-–—:]?/i;
     const scoreMatch = geralText.match(scoreRegex);
 
     if (scoreMatch) {
-      const note = scoreMatch[1] || scoreMatch[2];
+      const note = scoreMatch[1] || scoreMatch[2] || scoreMatch[3];
+      // Remove a nota e qualquer separador inicial da descrição
+      const description = geralText.replace(scoreMatch[0], '').replace(/^[:\s-]+/, '').trim();
       return {
-        note: note,
-        description: geralText.replace(scoreMatch[0], '').replace(/^[:\s-]+/, '').trim(),
+        note: note.replace(',', '.'), // Garante que a nota use ponto decimal
+        description: description,
       };
-    }
-    
-    // Fallback: Tenta encontrar um número no início, possivelmente seguido por um separador
-    const initialNumRegex = /^(\d{1,2}(?:[.,]\d{1,2})?)\s*[-–—:]?(.+)/s;
-    const initialNumMatch = geralText.match(initialNumRegex);
-
-    if (initialNumMatch) {
-        return {
-            note: initialNumMatch[1],
-            description: initialNumMatch[2].trim(),
-        };
     }
   
     // Se nada funcionar, retorna a string inteira como descrição
