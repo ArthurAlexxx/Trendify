@@ -44,6 +44,13 @@ export function MetricCard({ icon: Icon, title, value, handle, isLoading }: { ic
 export function InstagramProfileResults({ profile, posts, error, formatNumber }: { profile: Partial<InstagramProfileData>, posts: InstagramPostData[] | null, error: string | null, formatNumber: (n: number) => string }) {
     if (!profile) return null;
 
+    const getPostName = (post: InstagramPostData) => {
+        if (!post.caption || /^(Post|Video) \d+/.test(post.caption)) {
+            return <span className="text-red-400 font-normal italic">Sem título</span>;
+        }
+        return post.caption;
+    }
+
     return (
         <div className="mt-4 space-y-4">
             {error && !posts && <Alert variant="destructive"><AlertTriangle className="h-4 w-4" /><AlertTitle>Erro ao buscar posts</AlertTitle><AlertDescription>{error}</AlertDescription></Alert>}
@@ -57,7 +64,7 @@ export function InstagramProfileResults({ profile, posts, error, formatNumber }:
                                         <Image src={post.mediaUrl} alt={post.caption || 'Instagram Post'} fill style={{ objectFit: 'cover' }} />
                                         <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-transparent"></div>
                                         <p className="absolute top-2 left-2 right-2 text-white text-[10px] font-semibold line-clamp-2">
-                                            {post.caption || <span className="text-red-400 font-normal italic">Sem título</span>}
+                                            {getPostName(post)}
                                         </p>
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
                                         <div className="absolute bottom-0 left-0 p-2 text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity">
@@ -85,6 +92,13 @@ export function InstagramProfileResults({ profile, posts, error, formatNumber }:
 export function TikTokProfileResults({ profile, posts, error, formatNumber, onVideoClick }: { profile: Partial<TikTokProfileData>, posts: TikTokPost[] | null, error: string | null, formatNumber: (n: number) => string, onVideoClick?: (post: TikTokPost) => void }) {
     if (!profile) return null;
     
+    const getPostName = (post: TikTokPost) => {
+        if (!post.description || /^(Post|Video) \d+/.test(post.description)) {
+            return <span className="text-red-400 font-normal italic">Sem título</span>;
+        }
+        return post.description;
+    }
+
     return (
         <div className="mt-4 space-y-4">
             {error && !posts && <Alert variant="destructive" className="mt-4"><AlertTriangle className="h-4 w-4" /><AlertTitle>Erro ao Buscar Vídeos</AlertTitle><AlertDescription>{error}</AlertDescription></Alert>}
@@ -98,7 +112,7 @@ export function TikTokProfileResults({ profile, posts, error, formatNumber, onVi
                                     <Image src={post.coverUrl} alt={post.description || 'TikTok Video'} fill style={{ objectFit: 'cover' }} />
                                     <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-transparent"></div>
                                      <p className="absolute top-2 left-2 right-2 text-white text-[10px] font-semibold line-clamp-2">
-                                        {post.description || <span className="text-red-400 font-normal italic">Sem título</span>}
+                                        {getPostName(post)}
                                     </p>
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-center justify-center">
                                         <PlayCircle className="h-10 w-10 text-white opacity-0 group-hover:opacity-80 transition-opacity" />
@@ -123,3 +137,5 @@ export function TikTokProfileResults({ profile, posts, error, formatNumber, onVi
         </div>
     );
 }
+
+    

@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BarChart, Bar, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartsTooltip, PieChart, Pie, Cell, Legend, LineChart, Line, LabelList, Area, AreaChart } from 'recharts';
+import { BarChart, Bar, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartsTooltip, Legend, LineChart, Line, LabelList, Area, AreaChart } from 'recharts';
 import { ChartConfig, ChartContainer } from '@/components/ui/chart';
 import { TrendingUp, Percent, BarChartHorizontal, ClipboardList, Info } from 'lucide-react';
 import type { MetricSnapshot, InstagramPostData, TikTokPost, UserProfile } from '@/lib/types';
@@ -51,12 +51,17 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
      }
      
      const posts = combined.map(p => {
+        const captionOrDesc = 'caption' in p ? p.caption : p.description;
+        const name = (!captionOrDesc || /^(Post|Video) \d+/.test(captionOrDesc))
+            ? 'Sem título' 
+            : captionOrDesc.substring(0, 25);
+
         if ('shortcode' in p) { // InstagramPostData
             const followerCount = parseMetric(userProfile?.instagramFollowers);
             const engagement = followerCount > 0 ? (p.likes + p.comments) / followerCount * 100 : 0;
             return {
                 id: p.id,
-                name: p.caption?.substring(0, 25) || `Post ${p.id.substring(0, 4)}`,
+                name: name,
                 views: p.video_view_count ?? 0,
                 likes: p.likes,
                 comments: p.comments,
@@ -71,7 +76,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
              const engagement = followerCount > 0 ? (p.likes + p.comments) / followerCount * 100 : 0;
              return {
                 id: p.id,
-                name: p.description?.substring(0, 25) || `Video ${p.id.substring(0, 4)}`,
+                name: name,
                 views: p.views,
                 likes: p.likes,
                 comments: p.comments,
@@ -84,7 +89,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
         }
      });
 
-    // Sort posts chronologically
+    // Sort posts chronologically and take the last 15
     return posts.sort((a, b) => a.date.getTime() - b.date.getTime()).slice(-15);
 
   }, [instaPosts, tiktokPosts, userProfile, selectedPlatform]);
@@ -93,13 +98,60 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
      return [...allPosts].filter(p => p.views > 0).sort((a,b) => b.views - a.views).slice(0, 5);
   }, [allPosts]);
 
+  const historicalChartData = useMemo(() => {
+    if (!metricSnapshots || metricSnapshots.length === 0) return [];
+
+    if (selectedPlatform === 'total') {
+        const groupedByDay = metricSnapshots.reduce((acc, snap) => {
+            const dayStr = format(snap.date.toDate(), 'yyyy-MM-dd');
+            if (!acc[dayStr]) {
+                acc[dayStr] = { date: dayStr, followers: 0, views: 0, likes: 0, comments: 0, count: 0 };
+            }
+            acc[dayStr].followers += parseMetric(snap.followers);
+            acc[dayStr].views += parseMetric(snap.views);
+            acc[dayStr].likes += parseMetric(snap.likes);
+            acc[dayStr].comments += parseMetric(snap.comments);
+            acc[dayStr].count++;
+            return acc;
+        }, {} as Record<string, { date: string; followers: number; views: number; likes: number; comments: number; count: number }>);
+
+        return Object.values(groupedByDay)
+            .sort((a, b) => a.date.localeCompare(b.date))
+            .slice(-30)
+            .map(dayData => ({
+                date: format(new Date(`${dayData.date}T00:00:00`), 'dd/MM'),
+                followers: dayData.followers,
+                views: dayData.count > 1 ? dayData.views / dayData.count : dayData.views,
+                likes: dayData.count > 1 ? dayData.likes / dayData.count : dayData.likes,
+                comments: dayData.count > 1 ? dayData.comments / dayData.count : dayData.comments,
+            }));
+    }
+
+    return metricSnapshots
+        .filter(snap => snap.platform === selectedPlatform)
+        .sort((a, b) => a.date.toMillis() - b.date.toMillis())
+        .slice(-30)
+        .map(snap => ({
+            date: format(snap.date.toDate(), 'dd/MM'),
+            followers: parseMetric(snap.followers),
+            views: parseMetric(snap.views),
+            likes: parseMetric(snap.likes),
+            comments: parseMetric(snap.comments),
+        }));
+  }, [metricSnapshots, selectedPlatform]);
+
   const engagementRateData = useMemo(() => {
-    return allPosts.map((d, index) => ({
-      name: `Post ${index + 1}`,
-      engagementRate: d.engagement,
-    })).filter(d => d.engagementRate > 0);
-  }, [allPosts]);
+    if (!historicalChartData || historicalChartData.length === 0) return [];
+    return historicalChartData.map(d => {
+        const rate = d.followers > 0 ? ((d.likes + d.comments) / d.followers) * 100 : 0;
+        return {
+            date: d.date,
+            engagementRate: parseFloat(rate.toFixed(2)),
+        }
+    });
+  }, [historicalChartData]);
   
+
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
@@ -147,7 +199,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                           <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
                       </TooltipTrigger>
                       <TooltipContent>
-                          <p className="max-w-xs">Use as abas para analisar a evolução dos seus posts, seus top posts e sua taxa de engajamento.</p>
+                          <p className="max-w-xs">Use as abas para analisar a evolução das suas métricas, seus top posts e sua taxa de engajamento.</p>
                       </TooltipContent>
                   </Tooltip>
               </TooltipProvider>
@@ -163,19 +215,26 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
               <div className="flex-1 mt-4">
                 <TabsContent value="evolution" className="h-full">
                    {isLoading ? <Skeleton className="h-full w-full" /> : 
-                    allPosts.length > 0 ? (
+                    historicalChartData.length > 0 ? (
                         <ChartContainer config={chartConfigBase} className="h-full w-full">
                           <ResponsiveContainer>
-                            <LineChart data={allPosts}>
+                            <AreaChart data={historicalChartData} >
+                                <defs>
+                                    <linearGradient id="fillFollowers" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="var(--color-followers)" stopOpacity={0.8}/>
+                                    <stop offset="95%" stopColor="var(--color-followers)" stopOpacity={0}/>
+                                    </linearGradient>
+                                </defs>
                                 <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                                <XAxis dataKey="name" tick={{ fontSize: 10 }} angle={-20} textAnchor="end" height={50} interval="preserveStartEnd" />
+                                <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} />
                                 <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
-                                <RechartsTooltip content={<CustomTooltip />} cursor={{ strokeDasharray: '3 3' }} />
+                                <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
                                 <Legend />
-                                <Line type="monotone" dataKey="views" stroke="var(--color-views)" strokeWidth={2} name="Views" dot={false} />
-                                <Line type="monotone" dataKey="likes" stroke="var(--color-likes)" strokeWidth={2} name="Likes" dot={false} />
-                                <Line type="monotone" dataKey="comments" stroke="var(--color-comments)" strokeWidth={2} name="Comentários" dot={false}/>
-                            </LineChart>
+                                <Area type="monotone" dataKey="followers" stroke="var(--color-followers)" strokeWidth={2} fillOpacity={0.4} fill="url(#fillFollowers)" name="Seguidores" dot={false} />
+                                <Area type="monotone" dataKey="views" stroke="var(--color-views)" fill="transparent" strokeWidth={2} name="Views" dot={false} />
+                                <Area type="monotone" dataKey="likes" stroke="var(--color-likes)" fill="transparent" strokeWidth={2} name="Likes" dot={false} />
+                                <Area type="monotone" dataKey="comments" stroke="var(--color-comments)" fill="transparent" strokeWidth={2} name="Comentários" dot={false}/>
+                            </AreaChart>
                           </ResponsiveContainer>
                         </ChartContainer>
                     ) : (
@@ -196,7 +255,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                             <BarChart data={topPostsData} layout="vertical" margin={{ left: 120, top: 5, right: 30, bottom: 5 }} onClick={handleChartClick}>
                               <CartesianGrid horizontal={false} strokeDasharray="3 3" />
                               <XAxis type="number" tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
-                              <YAxis type="category" dataKey="name" width={120} tickLine={false} axisLine={false} />
+                              <YAxis type="category" dataKey="name" width={120} tickLine={false} axisLine={false} tick={{fontSize: 12}} />
                               <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
                               <Bar dataKey="views" fill="var(--color-views)" name="Views" className="cursor-pointer">
                                  <LabelList dataKey="views" position="right" offset={8} className="fill-foreground text-xs" formatter={(v: number) => typeof v === 'number' && v >= 1000 ? `${(v/1000).toFixed(1)}k` : v} />
@@ -219,7 +278,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                     engagementRateData.length > 0 ? (
                        <ChartContainer config={chartConfigBase} className="h-full w-full">
                          <ResponsiveContainer>
-                            <AreaChart data={engagementRateData} margin={{ top: 5, right: 20, left: 0, bottom: 20 }}>
+                            <AreaChart data={engagementRateData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
                                 <defs>
                                 <linearGradient id="fillEng" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="5%" stopColor="var(--color-engagementRate)" stopOpacity={0.8}/>
@@ -227,7 +286,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                                 </linearGradient>
                                 </defs>
                                 <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                                <XAxis dataKey="name" tick={{ fontSize: 10 }} angle={-20} textAnchor="end" height={50} />
+                                <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} />
                                 <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => `${value}%`} />
                                 <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
                                 <Area dataKey="engagementRate" type="monotone" fill="url(#fillEng)" stroke="var(--color-engagementRate)" name="Engajamento" />
