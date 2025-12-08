@@ -116,7 +116,7 @@ async function fetchFromRapidApi(platform: 'instagram-profile' | 'tiktok-profile
             break;
         case 'tiktok-profile':
             host = 'tiktok-api6.p.rapidapi.com';
-            path = `user/details/${identifier}`; // Correct: username is part of the path
+            path = `user/details/${identifier}`;
             finalUrl = new URL(`https://${host}/${path}`);
             break;
         case 'tiktok-posts':
@@ -299,17 +299,12 @@ export async function getTikTokProfile(username: string): Promise<TikTokProfileD
 }
 
 
-export async function getTikTokPosts(username: string): Promise<TikTokPost[]> {
-    if (!username) {
-        throw new Error('Nome de usuário é necessário para buscar os posts.');
+export async function getTikTokPosts(secUid: string): Promise<TikTokPost[]> {
+    if (!secUid) {
+        throw new Error('secUid é necessário para buscar os posts.');
     }
     try {
-        const profile = await getTikTokProfile(username);
-        if (!profile.secUid) {
-            throw new Error("Não foi possível obter o secUid do perfil do TikTok, necessário para buscar os vídeos.");
-        }
-
-        const result = await fetchFromRapidApi('tiktok-posts', profile.secUid);
+        const result = await fetchFromRapidApi('tiktok-posts', secUid);
 
         const parsed = TikTokPostResponseSchema.parse(result);
         
