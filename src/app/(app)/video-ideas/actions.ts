@@ -79,7 +79,7 @@ Para cada campo do JSON, siga estas diretrizes:
 async function generateVideoIdeas(
   input: z.infer<typeof formSchema>
 ): Promise<GenerateVideoIdeasOutput> {
-  const result = await callOpenAI<GenerateVideoIdeasOutput>({
+  const result = await callOpenAI<typeof GenerateVideoIdeasOutputSchema>({
     prompt: systemPrompt,
     jsonSchema: GenerateVideoIdeasOutputSchema,
     promptData: input
