@@ -64,10 +64,6 @@ const EvolutionChartCard = dynamic(() => import('@/components/dashboard/evolutio
     loading: () => <Skeleton className="h-[430px]" />,
 });
 
-const CorrelationChartCard = dynamic(() => import('@/components/dashboard/correlation-chart-card'), {
-    loading: () => <Skeleton className="h-[430px]" />,
-});
-
 const PerformanceAnalysisCard = dynamic(() => import('@/components/dashboard/performance-analysis-card'), {
     loading: () => <Skeleton className="h-full min-h-[250px]" />,
 });
@@ -78,11 +74,9 @@ export default function DashboardPage() {
   const firestore = useFirestore();
   const { toast } = useToast();
   const [selectedPlatform, setSelectedPlatform] = useState<'total' | 'instagram' | 'tiktok'>('total');
+  
   const [isGoalSheetOpen, setIsGoalSheetOpen] = useState(false);
-
-  const [showTikTokModal, setShowTikTokModal] = useState(false);
   const [currentTikTokUrl, setCurrentTikTokUrl] = useState('');
-
   const [insights, setInsights] = useState<DashboardInsightsOutput | null>(null);
   const [isGeneratingInsights, setIsGeneratingInsights] = useState(false);
 
@@ -283,19 +277,6 @@ export default function DashboardPage() {
   
   return (
     <>
-      <Dialog open={showTikTokModal} onOpenChange={setShowTikTokModal}>
-          <DialogContent className="sm:max-w-md p-0 border-0">
-              {currentTikTokUrl && (
-                  <iframe
-                      key={currentTikTokUrl}
-                      src={`https://www.tiktok.com/embed/v2/${currentTikTokUrl.split('/').pop()}`}
-                      className="w-full aspect-[9/16]"
-                      allow="autoplay; encrypted-media;"
-                  ></iframe>
-              )}
-          </DialogContent>
-      </Dialog>
-
       <div className="space-y-8">
         <PageHeader
           icon={!userProfile?.photoURL ? LayoutGrid : undefined}
@@ -385,15 +366,6 @@ export default function DashboardPage() {
                   selectedPlatform={selectedPlatform}
                   userProfile={userProfile}
                   handleTikTokClick={handleTikTokClick}
-                />
-              </Suspense>
-              <Suspense fallback={<Skeleton className="h-[430px] w-full" />}>
-                <CorrelationChartCard
-                  isLoading={isLoadingInstaPosts || isLoadingTiktokPosts}
-                  instaPosts={instaPosts}
-                  tiktokPosts={tiktokPosts}
-                  selectedPlatform={selectedPlatform}
-                  userProfile={userProfile}
                 />
               </Suspense>
               <Suspense fallback={<Skeleton className="h-[250px] w-full" />}>

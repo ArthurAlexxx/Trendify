@@ -6,7 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarChart, Bar, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartsTooltip, PieChart, Pie, Cell, Legend, LineChart, Line, LabelList, Area, AreaChart } from 'recharts';
 import { ChartConfig, ChartContainer } from '@/components/ui/chart';
-import { TrendingUp, Percent, BarChartHorizontal, ClipboardList } from 'lucide-react';
+import { TrendingUp, Percent, BarChartHorizontal, ClipboardList, Activity } from 'lucide-react';
 import type { MetricSnapshot, InstagramPostData, TikTokPost, UserProfile } from '@/lib/types';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -26,10 +26,11 @@ interface EvolutionChartCardProps {
     tiktokPosts: TikTokPost[] | null;
     selectedPlatform: 'total' | 'instagram' | 'tiktok';
     userProfile: UserProfile | null;
+    handleTikTokClick: (post: TikTokPost) => void;
 }
 
-export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPosts, tiktokPosts, selectedPlatform, userProfile }: EvolutionChartCardProps) {
-  const [chartView, setChartView] = useState<'evolution' | 'engagementRate' | 'topPosts'>('evolution');
+export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPosts, tiktokPosts, selectedPlatform, userProfile, handleTikTokClick }: EvolutionChartCardProps) {
+  const [chartView, setChartView] = useState<'evolution' | 'engagementRate' | 'topPosts' | 'postAnalysis'>('evolution');
 
   const parseMetric = (value?: string | number): number => {
     if (typeof value === 'number') return value;
@@ -38,6 +39,60 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
     const num = parseFloat(cleanedValue.replace(/K/gi, 'e3').replace(/M/gi, 'e6'));
     return isNaN(num) ? 0 : num;
   };
+  
+  const allPosts = useMemo(() => {
+     const combined: (InstagramPostData | TikTokPost)[] = [
+        ...(instaPosts || []),
+        ...(tiktokPosts || [])
+     ];
+     
+     return combined.map(p => {
+        if ('shortcode' in p) { // InstagramPostData
+            const engagement = (p.likes + p.comments) / (parseMetric(userProfile?.instagramFollowers) || 1) * 100;
+            return {
+                id: p.id,
+                name: p.caption?.substring(0, 25) || `Post ${p.id.substring(0, 4)}`,
+                views: p.video_view_count ?? 0,
+                likes: p.likes,
+                comments: p.comments,
+                engagement: parseFloat(engagement.toFixed(2)),
+                url: `https://www.instagram.com/p/${p.shortcode}`,
+                type: 'instagram' as const,
+                post: p,
+            }
+        } else { // TikTokPost
+             const engagement = (p.likes + p.comments) / (parseMetric(userProfile?.tiktokFollowers) || 1) * 100;
+             return {
+                id: p.id,
+                name: p.description?.substring(0, 25) || `Video ${p.id.substring(0, 4)}`,
+                views: p.views,
+                likes: p.likes,
+                comments: p.comments,
+                engagement: parseFloat(engagement.toFixed(2)),
+                url: p.shareUrl,
+                type: 'tiktok' as const,
+                post: p,
+            }
+        }
+     });
+  }, [instaPosts, tiktokPosts, userProfile]);
+
+  const topPostsData = useMemo(() => {
+     return allPosts.filter(p => p.views > 0).sort((a,b) => b.views - a.views).slice(0, 5);
+  }, [allPosts]);
+  
+  const topLikedData = useMemo(() => {
+    return allPosts.sort((a,b) => b.likes - a.likes).slice(0, 5).map(p => ({...p, metric: p.likes}));
+  }, [allPosts]);
+
+  const topCommentedData = useMemo(() => {
+    return allPosts.sort((a,b) => b.comments - a.comments).slice(0, 5).map(p => ({...p, metric: p.comments}));
+  }, [allPosts]);
+
+  const topEngagementData = useMemo(() => {
+    return allPosts.sort((a,b) => b.engagement - a.engagement).slice(0, 5).map(p => ({...p, metric: p.engagement}));
+  }, [allPosts]);
+
 
   const historicalChartData = useMemo(() => {
     if (!metricSnapshots || metricSnapshots.length === 0) return [];
@@ -91,20 +146,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
         }
     });
   }, [historicalChartData]);
-
-  const topPostsData = useMemo(() => {
-     const allPosts = [
-        ...(instaPosts || []).map(p => ({
-            name: p.caption?.substring(0, 20) || `Post ${p.id.substring(0, 4)}`,
-            views: p.video_view_count ?? 0,
-        })),
-        ...(tiktokPosts || []).map(p => ({
-            name: p.description?.substring(0, 20) || `Video ${p.id.substring(0, 4)}`,
-            views: p.views,
-        }))
-     ];
-     return allPosts.filter(p => p.views > 0).sort((a,b) => b.views - a.views).slice(0, 5);
-  }, [instaPosts, tiktokPosts]);
+  
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -113,7 +155,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
           <div className="grid grid-cols-2 gap-2">
             <div className="flex flex-col">
               <span className="text-[0.70rem] uppercase text-muted-foreground">
-                {chartView === 'topPosts' ? 'Post' : 'Data'}
+                {chartView === 'topPosts' || chartView === 'postAnalysis' ? 'Post' : 'Data'}
               </span>
               <span className="font-bold text-muted-foreground">
                 {label}
@@ -125,7 +167,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                   {p.name}
                 </span>
                 <span className="font-bold" style={{color: p.color}}>
-                  {p.value.toLocaleString('pt-BR')} {chartView === 'engagementRate' ? '%' : ''}
+                  {p.value.toLocaleString('pt-BR')} {chartView === 'engagementRate' || (chartView === 'postAnalysis' && p.dataKey === 'engagement') ? '%' : ''}
                 </span>
               </div>
             ))}
@@ -135,9 +177,47 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
     }
     return null;
   };
+
+   const handleBarClick = (data: any) => {
+    if (data && data.activePayload && data.activePayload[0]) {
+      const payload = data.activePayload[0].payload;
+      if (payload.type === 'tiktok') {
+        handleTikTokClick(payload.post as TikTokPost);
+      } else if (payload.url) {
+        window.open(payload.url, '_blank', 'noopener,noreferrer');
+      }
+    }
+  };
+
+  const AnalysisBarChart = ({ data, dataKey, name, color, unit = '' }: {data: any[], dataKey: string, name: string, color: string, unit?: string}) => (
+    <div className="h-48 w-full">
+        <h4 className="text-sm font-semibold text-center mb-2">{name}</h4>
+        <ResponsiveContainer>
+            <BarChart data={data} layout="vertical" margin={{ left: 100, right: 30 }}>
+                <CartesianGrid horizontal={false} strokeDasharray="3 3" />
+                <XAxis type="number" tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
+                <YAxis type="category" dataKey="name" width={100} tickLine={false} axisLine={false} tick={{ fontSize: 12 }} />
+                <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
+                <Bar dataKey={dataKey} fill={color} name={name} className="cursor-pointer" onClick={handleBarClick}>
+                    <LabelList dataKey={dataKey} position="right" offset={8} className="fill-foreground text-xs" 
+                        formatter={(v: number) => `${typeof v === 'number' && v >= 1000 ? `${(v/1000).toFixed(1)}k` : v.toFixed(unit === '%' ? 1 : 0)}${unit}`} 
+                    />
+                </Bar>
+            </BarChart>
+        </ResponsiveContainer>
+    </div>
+  );
   
   const renderChart = () => {
     switch (chartView) {
+      case 'postAnalysis':
+        return (
+            <div className="space-y-8 h-full">
+                <AnalysisBarChart data={topLikedData} dataKey="likes" name="Top 5 Posts por Likes" color="var(--color-likes)" />
+                <AnalysisBarChart data={topCommentedData} dataKey="comments" name="Top 5 Posts por Comentários" color="var(--color-comments)" />
+                <AnalysisBarChart data={topEngagementData} dataKey="engagement" name="Top 5 Posts por Taxa de Engajamento" color="var(--color-engagementRate)" unit="%" />
+            </div>
+        );
       case 'engagementRate':
         return (
           <AreaChart data={engagementRateData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
@@ -161,7 +241,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
               <XAxis type="number" tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
               <YAxis type="category" dataKey="name" width={100} tickLine={false} axisLine={false} />
               <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
-              <Bar dataKey="views" fill="var(--color-views)" radius={[0, 4, 4, 0]} name="Views">
+              <Bar dataKey="views" fill="var(--color-views)" name="Views" className="cursor-pointer" onClick={handleBarClick}>
                  <LabelList dataKey="views" position="right" offset={8} className="fill-foreground text-xs" formatter={(v: number) => typeof v === 'number' && v >= 1000 ? `${(v/1000).toFixed(1)}k` : v} />
               </Bar>
             </BarChart>
@@ -183,6 +263,10 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
         );
     }
   };
+  
+  const chartHeight = chartView === 'postAnalysis' ? 'auto' : '350px';
+  const chartContainerHeight = chartView === 'postAnalysis' ? 'auto' : '350px';
+
 
   return (
     <Card className="shadow-primary-lg">
@@ -193,18 +277,21 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                     <TabsList>
                         <TabsTrigger value="evolution"><TrendingUp className="mr-2 h-4 w-4" /> Evolução</TabsTrigger>
                         <TabsTrigger value="engagementRate"><Percent className="mr-2 h-4 w-4" /> Taxa de Engajamento</TabsTrigger>
-                        <TabsTrigger value="topPosts"><BarChartHorizontal className="mr-2 h-4 w-4" /> Top Posts</TabsTrigger>
+                        <TabsTrigger value="topPosts"><BarChartHorizontal className="mr-2 h-4 w-4" /> Top Posts (Views)</TabsTrigger>
+                        <TabsTrigger value="postAnalysis"><Activity className="mr-2 h-4 w-4" /> Análise de Posts</TabsTrigger>
                     </TabsList>
                 </Tabs>
             </div>
         </CardHeader>
-        <CardContent className="pl-2 pr-6">
+        <CardContent className="pl-2 pr-6" style={{ height: chartHeight }}>
             {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
-            historicalChartData.length > 0 ? (
-                <ChartContainer config={chartConfigBase} className="h-[350px] w-full">
-                  <ResponsiveContainer>
-                    {renderChart()}
-                  </ResponsiveContainer>
+            (historicalChartData.length > 0 || (chartView === 'topPosts' && topPostsData.length > 0) || chartView === 'postAnalysis') ? (
+                <ChartContainer config={chartConfigBase} className="w-full" style={{ height: chartContainerHeight }}>
+                  {chartView === 'postAnalysis' ? renderChart() : 
+                    <ResponsiveContainer>
+                        {renderChart()}
+                    </ResponsiveContainer>
+                  }
                 </ChartContainer>
             ) : (
                 <div className="h-[350px] w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
