@@ -199,7 +199,7 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
 
   return (
      <aside className={sidebarClass}>
-      <div className="flex items-center justify-center h-20 border-b px-4">
+      <div className="flex items-center justify-start h-20 border-b px-6">
          <Link
             href="/"
             onClick={handleLinkClick}
