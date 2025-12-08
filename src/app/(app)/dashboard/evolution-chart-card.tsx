@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BarChart, Bar, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartsTooltip, Legend, Area, AreaChart } from 'recharts';
+import { BarChart, Bar, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartsTooltip, Legend, Area, AreaChart, LabelList } from 'recharts';
 import { ChartConfig, ChartContainer, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
 import { TrendingUp, Percent, BarChartHorizontal, ClipboardList, Info } from 'lucide-react';
 import type { MetricSnapshot, InstagramPostData, TikTokPost, UserProfile } from '@/lib/types';
@@ -132,19 +132,6 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
     }
   };
   
-  const CustomizedAxisTick = ({ x, y, stroke, payload }: any) => {
-    if (payload && payload.value) {
-      return (
-        <g transform={`translate(${x},${y})`}>
-          <text x={0} y={0} dy={16} textAnchor="end" fill="#666" transform="rotate(-35)" fontSize={10}>
-            {payload.value}
-          </text>
-        </g>
-      );
-    }
-    return null;
-  };
-
   return (
     <Card className="shadow-primary-lg">
         <CardHeader>
@@ -220,12 +207,20 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                     allPosts.length > 0 ? (
                        <ChartContainer config={chartConfigBase} className="h-[350px] w-full flex-1">
                          <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={allPosts} margin={{ top: 5, right: 20, left: -10, bottom: 20 }} onClick={handleChartClick} className="cursor-pointer">
+                            <BarChart data={allPosts} margin={{ top: 20, right: 20, left: -10, bottom: 5 }} onClick={handleChartClick} className="cursor-pointer">
                                 <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                                <XAxis dataKey="name" tick={<CustomizedAxisTick />} height={60} interval={0} axisLine={false} />
+                                <XAxis dataKey="postLabel" tick={false} axisLine={false} />
                                 <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => `${value}%`} />
                                 <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
-                                <Bar dataKey="engagement" fill="var(--color-engagement)" name="Engajamento" radius={[4, 4, 0, 0]} />
+                                <Bar dataKey="engagement" fill="var(--color-engagement)" name="Engajamento" radius={[4, 4, 0, 0]}>
+                                  <LabelList
+                                    dataKey="name"
+                                    position="insideTop"
+                                    angle={-90}
+                                    offset={10}
+                                    style={{ fill: 'hsl(var(--primary-foreground))', fontSize: '12px' }}
+                                  />
+                                </Bar>
                             </BarChart>
                          </ResponsiveContainer>
                        </ChartContainer>
