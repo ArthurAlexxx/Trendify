@@ -33,16 +33,6 @@ export function GoalCard({ isLoading, goalFollowers, currentFollowers, isGoalRea
             <CardHeader>
                 <CardTitle className="text-center font-headline text-xl flex items-center justify-center gap-2">
                     Meta de Seguidores
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>Acompanhe o progresso em direção à sua meta de seguidores.</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
                 </CardTitle>
             </CardHeader>
             <CardContent className="pt-6">

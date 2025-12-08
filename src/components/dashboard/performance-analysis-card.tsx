@@ -36,16 +36,6 @@ export default function PerformanceAnalysisCard({ isGeneratingInsights, insights
             <CardHeader>
                 <CardTitle className="text-center flex items-center justify-center gap-2">
                     Análise de Desempenho (IA)
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>Receba insights gerados por IA com base em suas métricas recentes.</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
                 </CardTitle>
             </CardHeader>
             <CardContent className="flex-1 flex flex-col">
