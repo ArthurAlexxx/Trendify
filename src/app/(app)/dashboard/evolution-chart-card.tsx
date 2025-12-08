@@ -236,12 +236,12 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
         );
       case 'topPosts':
          return (
-            <BarChart data={topPostsData} layout="vertical" margin={{ left: 100, top: 5, right: 30, bottom: 5 }}>
+            <BarChart data={topPostsData} layout="vertical" margin={{ left: 100, top: 5, right: 30, bottom: 5 }} onClick={handleChartClick}>
               <CartesianGrid horizontal={false} strokeDasharray="3 3" />
               <XAxis type="number" tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
               <YAxis type="category" dataKey="name" width={100} tickLine={false} axisLine={false} />
               <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
-              <Bar dataKey="views" fill="var(--color-views)" name="Views" className="cursor-pointer" onClick={handleChartClick}>
+              <Bar dataKey="views" fill="var(--color-views)" name="Views" className="cursor-pointer">
                  <LabelList dataKey="views" position="right" offset={8} className="fill-foreground text-xs" formatter={(v: number) => typeof v === 'number' && v >= 1000 ? `${(v/1000).toFixed(1)}k` : v} />
               </Bar>
             </BarChart>
