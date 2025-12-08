@@ -2,7 +2,7 @@
 'use server';
 
 import { z } from 'zod';
-// import { ai } from '@/ai/genkit';
+import { callOpenAI } from '@/lib/openai-client';
 
 const TrendSuggestionSchema = z.object({
   hook: z.string().describe("Um gancho ou título para a ideia de vídeo."),
@@ -50,15 +50,11 @@ type ActionState = {
   data?: GrowthCalculatorOutput;
   error?: string;
 };
-/*
-const prompt = ai.definePrompt({
-    name: 'growthCalculatorPrompt',
-    model: 'gpt-4o',
-    output: { schema: GrowthCalculatorOutputSchema },
-    prompt: `Você é o GrowthAI Engine v3.0, um sistema avançado de análise e projeção para criadores de conteúdo. Sua identidade é a de um consultor profissional, matemático e estrategista digital.
+
+const systemPrompt = `Você é o GrowthAI Engine v3.0, um sistema avançado de análise e projeção para criadores de conteúdo. Sua identidade é a de um consultor profissional, matemático e estrategista digital.
    Sua única função é analisar os dados de um usuário e retornar uma projeção de crescimento completa.
    Lembre-se: A data de referência para projeções é Dezembro de 2025.
-   LEMBRE-SE: Sua única saída DEVE ser um objeto JSON VÁLIDO que se conforma estritamente com o schema e contém TODOS os campos definidos. Não omita nenhum campo.
+   LEMBRE-SE: Sua única saída DEVE ser um objeto JSON VÁLIDO que se conforma estritamente com o schema Zod e contém TODOS os campos definidos. Não omita nenhum campo.
 
     Analise os seguintes dados do usuário e gere a projeção de crescimento completa, seguindo as diretrizes de cálculo e formato.
 
@@ -81,21 +77,18 @@ const prompt = ai.definePrompt({
     - recommendations: Dê 2-3 recomendações acionáveis para acelerar.
     - benchmarkComparison: Faça uma breve análise comparando a projeção com a média do nicho.
     - accelerationScenarios: Calcule os meses para atingir a meta em cenários de aceleração: {maintain: months, plus20: ceil(months / 1.20), plus40: ceil(months / 1.40)}.
-  `,
-    config: {
-        temperature: 0.6,
-    },
-});
+  `;
 
 
 async function calculateGrowthAI(input: FormSchemaType): Promise<GrowthCalculatorOutput> {
-  const { output } = await prompt(input);
-  if (!output) {
-    throw new Error('A IA não retornou nenhum conteúdo.');
-  }
-  return output;
+  const result = await callOpenAI<GrowthCalculatorOutput>({
+    prompt: systemPrompt,
+    jsonSchema: GrowthCalculatorOutputSchema,
+    promptData: input,
+  });
+  return result;
 }
-*/
+
 export async function calculateGrowthAction(
   prevState: ActionState | null,
   data: FormSchemaType
@@ -109,10 +102,7 @@ export async function calculateGrowthAction(
   if (parsed.data.goal <= parsed.data.followers) {
     return { error: 'A meta de seguidores deve ser maior que o número atual de seguidores.' };
   }
-
-  return { error: 'A funcionalidade de IA está temporariamente desativada para manutenção.' };
-
-/*
+  
   try {
     const result = await calculateGrowthAI(parsed.data);
     return { data: result };
@@ -121,5 +111,4 @@ export async function calculateGrowthAction(
       e instanceof Error ? e.message : 'Ocorreu um erro desconhecido.';
     return { error: `Falha ao calcular crescimento: ${errorMessage}` };
   }
-  */
 }

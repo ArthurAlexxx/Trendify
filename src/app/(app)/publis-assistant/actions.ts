@@ -1,7 +1,7 @@
 
 'use server';
 
-// import { ai } from '@/ai/genkit';
+import { callOpenAI } from '@/lib/openai-client';
 import { z } from 'zod';
 
 const ScriptSchema = z.object({
@@ -57,15 +57,10 @@ type PubliProposalsState = {
   error?: string;
 } | null;
 
-/*
-const prompt = ai.definePrompt({
-    name: 'generatePubliProposalsPrompt',
-    model: 'openai/gpt-4o',
-    output: { schema: GeneratePubliProposalsOutputSchema },
-    prompt: `Você é uma "AI Creative Director", especialista em criar campanhas de conteúdo para redes sociais que convertem.
+const systemPrompt = `Você é uma "AI Creative Director", especialista em criar campanhas de conteúdo para redes sociais que convertem.
 Sua tarefa é gerar um pacote de conteúdo completo para um criador de conteúdo promover um produto ou marca.
 Lembre-se, a data atual é dezembro de 2025.
-Você DEVE responder com um objeto JSON válido, e NADA MAIS. O JSON deve se conformar estritamente ao schema fornecido.
+Você DEVE responder com um objeto JSON válido, e NADA MAIS. O JSON deve se conformar estritamente ao schema Zod fornecido.
 
 Gere um pacote de conteúdo para uma publicidade ("publi") com base nos seguintes requisitos:
 
@@ -82,22 +77,20 @@ Gere um pacote de conteúdo para uma publicidade ("publi") com base nos seguinte
   - creativeAngles: Liste alguns ângulos criativos profissionais (ex: "Focar na sustentabilidade do produto", "Criar uma narrativa de superação com a marca").
   - brandToneAdaptations: Crie 3 adaptações do CTA principal em um array. Cada item deve ser um objeto com "titulo" (ex: "Tom Corporativo") e "texto" (o CTA adaptado).
   - conversionProjection: Crie um objeto com "roteiro" (o nome do roteiro, ex: "Roteiro 3: Unboxing") e "justificativa" (a explicação do porquê ele tem maior potencial de conversão).
-  `,
-    config: {
-        temperature: 0.8,
-    },
-});
+  `;
+
 
 async function generatePubliProposals(
   input: z.infer<typeof formSchema>
 ): Promise<GeneratePubliProposalsOutput> {
-  const { output } = await prompt(input);
-  if (!output) {
-    throw new Error('A IA não retornou nenhum conteúdo.');
-  }
-  return output;
+  const result = await callOpenAI<GeneratePubliProposalsOutput>({
+    prompt: systemPrompt,
+    jsonSchema: GeneratePubliProposalsOutputSchema,
+    promptData: input,
+  });
+  return result;
 }
-*/
+
 export async function generatePubliProposalsAction(
   prevState: PubliProposalsState,
   formData: FormSchemaType
@@ -108,10 +101,7 @@ export async function generatePubliProposalsAction(
     const issues = parsed.error.issues.map((i) => i.message).join(', ');
     return { error: issues || 'Input inválido.' };
   }
-
-  return { error: 'A funcionalidade de IA está temporariamente desativada para manutenção.' };
-
-  /*
+  
   try {
     const result = await generatePubliProposals(parsed.data);
     return { data: result };
@@ -120,5 +110,4 @@ export async function generatePubliProposalsAction(
       e instanceof Error ? e.message : 'Ocorreu um erro desconhecido.';
     return { error: `Falha ao gerar propostas: ${errorMessage}` };
   }
-  */
 }

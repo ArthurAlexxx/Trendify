@@ -1,7 +1,7 @@
 
 'use server';
 
-// import { ai } from '@/ai/genkit';
+import { callOpenAI } from '@/lib/openai-client';
 import { z } from 'zod';
 
 const AiCareerPackageOutputSchema = z.object({
@@ -63,15 +63,11 @@ type CareerPackageState = {
   data?: AiCareerPackageOutput;
   error?: string;
 } | null;
-/*
-const prompt = ai.definePrompt({
-    name: 'aiCareerPackagePrompt',
-    model: 'openai/gpt-4o',
-    output: { schema: AiCareerPackageOutputSchema },
-    prompt: `Você é um "AI Talent Manager", um estrategista de negócios especialista em monetização para criadores de conteúdo.
+
+const systemPrompt = `Você é um "AI Talent Manager", um estrategista de negócios especialista em monetização para criadores de conteúdo.
 Sua única função é gerar um pacote de prospecção profissional para um criador usar ao abordar marcas.
 Lembre-se, a data atual é dezembro de 2025.
-Sua resposta DEVE ser um objeto JSON válido, e NADA MAIS. O JSON deve se conformar estritamente ao schema fornecido.
+Sua resposta DEVE ser um objeto JSON válido, e NADA MAIS. O JSON deve se conformar estritamente ao schema Zod fornecido.
 
   Gere um pacote de prospecção profissional com base NOS SEGUINTES DADOS. Seja criativo, estratégico e siga as regras com MÁXIMA PRECISÃO.
 
@@ -92,23 +88,20 @@ Sua resposta DEVE ser um objeto JSON válido, e NADA MAIS. O JSON deve se confor
   - negotiationTips: Dê 3 dicas práticas para negociação. Ex: "Comece pedindo 20% acima da sua meta de preço", "Nunca aceite a primeira oferta", "Tenha um pacote de entregas extra para oferecer em troca de um valor maior".
 
   - brandAlignment: Analise brevemente a sinergia entre o criador e a marca. Ex: "A estética minimalista do seu feed e o foco em qualidade se conectam diretamente com o posicionamento premium da {{targetBrand}}."
-  `,
-    config: {
-        temperature: 0.7,
-    },
-});
+  `;
 
 
 async function getAiCareerPackage(
   input: z.infer<typeof formSchema>
 ): Promise<AiCareerPackageOutput> {
-  const { output } = await prompt(input);
-  if (!output) {
-    throw new Error('A IA não retornou nenhum conteúdo.');
-  }
-  return output;
+  const result = await callOpenAI<AiCareerPackageOutput>({
+    prompt: systemPrompt,
+    jsonSchema: AiCareerPackageOutputSchema,
+    promptData: input
+  });
+  return result;
 }
-*/
+
 export async function getAiCareerPackageAction(
   prevState: CareerPackageState,
   formData: FormSchemaType
@@ -120,8 +113,6 @@ export async function getAiCareerPackageAction(
     return { error: issues || 'Input inválido.' };
   }
   
-  return { error: 'A funcionalidade de IA está temporariamente desativada para manutenção.' };
-  /*
   try {
     const result = await getAiCareerPackage(parsed.data);
     return { data: result };
@@ -130,5 +121,4 @@ export async function getAiCareerPackageAction(
       e instanceof Error ? e.message : 'Ocorreu um erro desconhecido.';
     return { error: `Falha ao gerar pacote: ${errorMessage}` };
   }
-  */
 }

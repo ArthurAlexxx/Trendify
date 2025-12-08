@@ -1,7 +1,7 @@
 
 'use server';
 
-// import { ai } from '@/ai/genkit';
+import { callOpenAI } from '@/lib/openai-client';
 import { z } from 'zod';
 
 const NicheCompetitorSchema = z.object({
@@ -51,49 +51,42 @@ type VideoIdeasState = {
   error?: string;
 } | null;
 
-/*
-const prompt = ai.definePrompt({
-    name: 'generateVideoIdeasPrompt',
-    model: 'openai/gpt-4o',
-    output: { schema: GenerateVideoIdeasOutputSchema },
-    prompt: `Você é um "Especialista em Conteúdo Viral", um estrategista de roteiros para criadores no Instagram e TikTok. Sua função é atuar como um profissional de alto nível.
-  Sua tarefa é gerar uma ideia de vídeo completa, criativa, estratégica e pronta para ser executada.
-  Lembre-se, a data atual é dezembro de 2025.
-  Você DEVE responder com um objeto JSON válido, e NADA MAIS. O JSON deve se conformar estritamente ao schema fornecido.
 
-  Gere uma ideia de vídeo completa e profissional com base nos seguintes requisitos:
+const systemPrompt = `Você é um "Especialista em Conteúdo Viral", um estrategista de roteiros para criadores no Instagram e TikTok. Sua função é atuar como um profissional de alto nível.
+Sua tarefa é gerar uma ideia de vídeo completa, criativa, estratégica e pronta para ser executada.
+Lembre-se, a data atual é dezembro de 2025.
+Você DEVE responder com um objeto JSON válido, e NADA MAIS. O JSON deve se conformar estritamente ao schema Zod fornecido.
 
-  - Tópico: {{topic}}
-  - Público-alvo: {{targetAudience}}
-  - Objetivo Principal: {{objective}}
+Gere uma ideia de vídeo completa e profissional com base nos seguintes requisitos:
+
+- Tópico: {{topic}}
+- Público-alvo: {{targetAudience}}
+- Objetivo Principal: {{objective}}
   
-  Para cada campo do JSON, siga estas diretrizes:
-  - script.gancho: Crie uma frase ou cena de 2-3 segundos que gere curiosidade ou quebre uma crença. Seja contraintuitivo.
-  - script.scriptLongo: Escreva um roteiro detalhado para um vídeo de 45-60 segundos. Estruture em: Introdução (gancho), Desenvolvimento (entrega de valor) e Conclusão (CTA). Inclua sugestões de cenas entre colchetes. Ex: "[CENA: Close-up no produto] Você erra a ordem. A regra é: do mais leve ao mais denso...".
-  - script.scriptCurto: Crie uma versão de 15-25 segundos do roteiro principal, focada no gancho e no ponto principal.
-  - script.cta: A chamada para ação deve ser direta e alinhada ao objetivo. Se o objetivo for 'Vendas', use "Comente 'EU QUERO' para receber o link". Se for 'Engajamento', "Qual sua opinião? Comente aqui!".
-  - takesChecklist: Liste 3 a 4 tomadas práticas que o criador precisa gravar. Ex: ["Take do seu rosto falando.", "Take de unboxing.", "Take mostrando resultado."].
-  - suggestedPostTime: Sugira um dia e horário de pico para postagem (ex: "Sexta-feira, 18:30h").
-  - trendingSong: Sugira uma música em alta no Instagram/TikTok que combine com a vibe do vídeo, incluindo o nome do artista.
-  - viralScore: Dê uma nota de 0 a 100 para o potencial de viralização, baseada na força do gancho, relevância do tema e adaptabilidade.
-  - platformAdaptations: Dê uma dica para adaptar o conteúdo para TikTok, uma para Reels e uma para Shorts, focando nas particularidades de cada plataforma.
-  - nicheCompetitors: Liste 3 vídeos virais reais de concorrentes no mesmo nicho. Para cada um, informe o 'videoTitle' (título do vídeo) e um 'learning' (aprendizado chave - o que o tornou viral).
-  `,
-    config: {
-        temperature: 0.8,
-    },
-});
+Para cada campo do JSON, siga estas diretrizes:
+- script.gancho: Crie uma frase ou cena de 2-3 segundos que gere curiosidade ou quebre uma crença. Seja contraintuitivo.
+- script.scriptLongo: Escreva um roteiro detalhado para um vídeo de 45-60 segundos. Estruture em: Introdução (gancho), Desenvolvimento (entrega de valor) e Conclusão (CTA). Inclua sugestões de cenas entre colchetes. Ex: "[CENA: Close-up no produto] Você erra a ordem. A regra é: do mais leve ao mais denso...".
+- script.scriptCurto: Crie uma versão de 15-25 segundos do roteiro principal, focada no gancho e no ponto principal.
+- script.cta: A chamada para ação deve ser direta e alinhada ao objetivo. Se o objetivo for 'Vendas', use "Comente 'EU QUERO' para receber o link". Se for 'Engajamento', "Qual sua opinião? Comente aqui!".
+- takesChecklist: Liste 3 a 4 tomadas práticas que o criador precisa gravar. Ex: ["Take do seu rosto falando.", "Take de unboxing.", "Take mostrando resultado."].
+- suggestedPostTime: Sugira um dia e horário de pico para postagem (ex: "Sexta-feira, 18:30h").
+- trendingSong: Sugira uma música em alta no Instagram/TikTok que combine com a vibe do vídeo, incluindo o nome do artista.
+- viralScore: Dê uma nota de 0 a 100 para o potencial de viralização, baseada na força do gancho, relevância do tema e adaptabilidade.
+- platformAdaptations: Dê uma dica para adaptar o conteúdo para TikTok, uma para Reels e uma para Shorts, focando nas particularidades de cada plataforma.
+- nicheCompetitors: Liste 3 vídeos virais reais de concorrentes no mesmo nicho. Para cada um, informe o 'videoTitle' (título do vídeo) e um 'learning' (aprendizado chave - o que o tornou viral).
+`;
 
 async function generateVideoIdeas(
   input: z.infer<typeof formSchema>
 ): Promise<GenerateVideoIdeasOutput> {
-  const { output } = await prompt(input);
-  if (!output) {
-    throw new Error('A IA não retornou nenhum conteúdo.');
-  }
-  return output;
+  const result = await callOpenAI<GenerateVideoIdeasOutput>({
+    prompt: systemPrompt,
+    jsonSchema: GenerateVideoIdeasOutputSchema,
+    promptData: input
+  });
+  return result;
 }
-*/
+
 export async function generateVideoIdeasAction(
   prevState: VideoIdeasState,
   formData: FormSchemaType,
@@ -105,9 +98,6 @@ export async function generateVideoIdeasAction(
     return { error: issues || 'Input inválido.' };
   }
   
-  return { error: 'A funcionalidade de IA está temporariamente desativada para manutenção.' };
-
-  /*
   try {
     const result = await generateVideoIdeas(parsed.data);
     return { data: result };
@@ -116,5 +106,4 @@ export async function generateVideoIdeasAction(
       e instanceof Error ? e.message : 'Ocorreu um erro desconhecido.';
     return { error: `Falha ao gerar ideias: ${errorMessage}` };
   }
-  */
 }

@@ -2,7 +2,7 @@
 'use server';
 
 import { z } from 'zod';
-// import { ai } from '@/ai/genkit';
+import { callOpenAI } from '@/lib/openai-client';
 
 const ItemRoteiroSchema = z.object({
   dia: z.string().describe('O dia da semana para a tarefa (ex: "Segunda").'),
@@ -56,60 +56,52 @@ type WeeklyPlanState = {
   error?: string;
 } | null;
 
-/*
-const prompt = ai.definePrompt({
-    name: 'generateWeeklyPlanPrompt',
-    model: 'openai/gpt-4o',
-    output: { schema: GenerateWeeklyPlanOutputSchema },
-    prompt: `Você é uma IA especialista em crescimento de influenciadores, estratégias de conteúdo, análise de dados, criação de roteiros e otimização de campanhas com marcas. Sua função é atuar como um Estrategista Chefe.
-  Sempre entregue respostas profundas, claras, práticas e extremamente profissionais.
-  Ao responder, utilize a mentalidade de: consultor de marketing, estrategista digital, analista de dados.
-  Lembre-se, a data atual é dezembro de 2025.
-  Você DEVE responder com um objeto JSON válido, e NADA MAIS, estritamente conforme o schema.
+const systemPrompt = `Você é uma IA especialista em crescimento de influenciadores, estratégias de conteúdo, análise de dados, criação de roteiros e otimização de campanhas com marcas. Sua função é atuar como um Estrategista Chefe.
+Sempre entregue respostas profundas, claras, práticas e extremamente profissionais.
+Ao responder, utilize a mentalidade de: consultor de marketing, estrategista digital, analista de dados.
+Lembre-se, a data atual é dezembro de 2025.
+Você DEVE responder com um objeto JSON válido, e NADA MAIS, estritamente conforme o schema Zod fornecido.
   
-  {{#if totalFollowerGoal}}
-  A meta principal é atingir {{totalFollowerGoal}} seguidores no total (Instagram + TikTok).
-  {{else if instagramFollowerGoal}}
-  A meta principal é atingir {{instagramFollowerGoal}} seguidores no Instagram. Priorize estratégias para essa plataforma.
-  {{else if tiktokFollowerGoal}}
-  A meta principal é atingir {{tiktokFollowerGoal}} seguidores no TikTok. Priorize estratégias para essa plataforma.
-  {{else}}
-  Nenhuma meta de seguidores específica foi definida.
-  {{/if}}
+{{#if totalFollowerGoal}}
+A meta principal é atingir {{totalFollowerGoal}} seguidores no total (Instagram + TikTok).
+{{else if instagramFollowerGoal}}
+A meta principal é atingir {{instagramFollowerGoal}} seguidores no Instagram. Priorize estratégias para essa plataforma.
+{{else if tiktokFollowerGoal}}
+A meta principal é atingir {{tiktokFollowerGoal}} seguidores no TikTok. Priorize estratégias para essa plataforma.
+{{else}}
+Nenhuma meta de seguidores específica foi definida.
+{{/if}}
 
-  Analise os seguintes dados e gere um plano de conteúdo semanal completo, atuando como um Estrategista Chefe.
+Analise os seguintes dados e gere um plano de conteúdo semanal completo, atuando como um Estrategista Chefe.
 
-  - Objetivo da Semana: "{{objective}}"
-  - Nicho do Criador: {{niche}}
-  - Estatísticas Atuais: {{currentStats}}
+- Objetivo da Semana: "{{objective}}"
+- Nicho do Criador: {{niche}}
+- Estatísticas Atuais: {{currentStats}}
 
-  Siga as diretrizes para cada campo JSON:
-  - items: Crie um array com exatamente 7 objetos (Segunda a Domingo). Cada objeto deve ter 'dia', 'tarefa' (específica, acionável e criativa), 'detalhes' (um passo a passo claro) e 'concluido' (sempre false). As tarefas devem ser uma mistura de produção de conteúdo, interação e análise.
-  - desempenhoSimulado: Crie um array de 7 objetos (Seg a Dom) para um gráfico, com 'data', 'alcance' (int) e 'engajamento' (int). A simulação deve ser realista, variando conforme as tarefas do dia (dias de post têm picos).
-  - effortLevel: Classifique o esforço da semana como 'Baixo', 'Médio' ou 'Alto', com base na complexidade e volume das tarefas.
-  - priorityIndex: Identifique e liste as 3 tarefas da semana com o maior potencial de impacto para atingir o objetivo principal.
-  - realignmentTips: Ofereça um conselho estratégico sobre como o usuário pode se realinhar caso perca 1 ou 2 dias do plano. Ex: "Se perder um dia de post, combine o tema com o do dia seguinte ou foque em dobrar a interação no fim de semana para compensar."
-  `,
-    config: {
-        temperature: 0.7,
-    },
-});
+Siga as diretrizes para cada campo JSON:
+- items: Crie um array com exatamente 7 objetos (Segunda a Domingo). Cada objeto deve ter 'dia', 'tarefa' (específica, acionável e criativa), 'detalhes' (um passo a passo claro) e 'concluido' (sempre false). As tarefas devem ser uma mistura de produção de conteúdo, interação e análise.
+- desempenhoSimulado: Crie um array de 7 objetos (Seg a Dom) para um gráfico, com 'data', 'alcance' (int) e 'engajamento' (int). A simulação deve ser realista, variando conforme as tarefas do dia (dias de post têm picos).
+- effortLevel: Classifique o esforço da semana como 'Baixo', 'Médio' ou 'Alto', com base na complexidade e volume das tarefas.
+- priorityIndex: Identifique e liste as 3 tarefas da semana com o maior potencial de impacto para atingir o objetivo principal.
+- realignmentTips: Ofereça um conselho estratégico sobre como o usuário pode se realinhar caso perca 1 ou 2 dias do plano. Ex: "Se perder um dia de post, combine o tema com o do dia seguinte ou foque em dobrar a interação no fim de semana para compensar."
+`;
 
 async function generateWeeklyPlan(
   input: FormSchemaType
 ): Promise<GenerateWeeklyPlanOutput> {
-  const { output } = await prompt(input);
-  if (!output) {
-    throw new Error('A IA não retornou nenhum conteúdo.');
-  }
+  const result = await callOpenAI<GenerateWeeklyPlanOutput>({
+    prompt: systemPrompt,
+    jsonSchema: GenerateWeeklyPlanOutputSchema,
+    promptData: input,
+  });
 
   // Ensure `concluido` is set to false for all items
   return {
-    ...output,
-    items: output.items.map(item => ({ ...item, concluido: false })),
+    ...result,
+    items: result.items.map(item => ({ ...item, concluido: false })),
   };
 }
-*/
+
 
 export async function generateWeeklyPlanAction(
   prevState: WeeklyPlanState,
@@ -121,9 +113,6 @@ export async function generateWeeklyPlanAction(
     return { error: 'Por favor, preencha todos os campos obrigatórios.' };
   }
   
-  return { error: 'A funcionalidade de IA está temporariamente desativada para manutenção.' };
-
-  /*
   try {
     const result = await generateWeeklyPlan(parsed.data);
     return { data: result };
@@ -132,5 +121,4 @@ export async function generateWeeklyPlanAction(
       e instanceof Error ? e.message : 'Ocorreu um erro desconhecido.';
     return { error: `Falha ao gerar plano: ${errorMessage}` };
   }
-  */
 }
