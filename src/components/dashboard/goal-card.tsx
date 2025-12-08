@@ -42,27 +42,21 @@ const ConfettiParticle = () => {
 
 export function GoalCard({ isLoading, goalFollowers, currentFollowers, formatMetricValue, userProfile }: GoalCardProps) {
     const [showCongrats, setShowCongrats] = useState(false);
-    const [isGoalSheetOpen, setIsGoalSheetOpen] = useState(false);
-
+    
     const followerGoalProgress = goalFollowers > 0 ? Math.min((currentFollowers / goalFollowers) * 100, 100) : 0;
     const pieData = [{ value: followerGoalProgress, fill: 'hsl(var(--primary))' }, { value: 100 - followerGoalProgress, fill: 'hsl(var(--muted))' }];
 
     useEffect(() => {
+        // Show congrats modal if the goal is met or exceeded.
+        // It will automatically hide when a new, higher goal is set.
         if (!isLoading && goalFollowers > 0 && currentFollowers >= goalFollowers) {
-            // Use a flag in localStorage to show only once per session or until goal changes
-            const goalMetFlag = `goalMet_${goalFollowers}`;
-            if (!sessionStorage.getItem(goalMetFlag)) {
-                setShowCongrats(true);
-                sessionStorage.setItem(goalMetFlag, 'true');
-            }
+            setShowCongrats(true);
+        } else {
+            // Ensure it's hidden if the goal changes and is no longer met.
+            setShowCongrats(false);
         }
     }, [currentFollowers, goalFollowers, isLoading]);
     
-    const handleOpenGoalSheet = () => {
-        setShowCongrats(false);
-        setIsGoalSheetOpen(true);
-    };
-
     return (
         <>
          <AlertDialog open={showCongrats} onOpenChange={setShowCongrats}>
@@ -81,7 +75,7 @@ export function GoalCard({ isLoading, goalFollowers, currentFollowers, formatMet
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                     <FollowerGoalSheet userProfile={userProfile}>
-                       <Button onClick={handleOpenGoalSheet} className="w-full">
+                       <Button className="w-full">
                          <PartyPopper className="mr-2 h-4 w-4" />
                          Definir Nova Meta
                        </Button>
