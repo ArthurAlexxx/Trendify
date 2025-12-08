@@ -194,7 +194,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                     evolutionChartData.length > 0 ? (
                         <ChartContainer config={chartConfigBase} className="h-auto flex-1">
                           <ResponsiveContainer width="100%" aspect={1.5}>
-                            <LineChart data={evolutionChartData} margin={{ top: 5, right: 20, left: -10, bottom: 20 }} onClick={handleChartClick} className="cursor-pointer">
+                            <LineChart data={evolutionChartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }} onClick={handleChartClick} className="cursor-pointer">
                                 <CartesianGrid vertical={false} strokeDasharray="3 3" />
                                 <XAxis dataKey="postLabel" tickLine={false} axisLine={false} tick={false} />
                                 <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
@@ -271,7 +271,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                     engagementRateData.length > 0 ? (
                        <ChartContainer config={chartConfigBase} className="h-auto flex-1">
                          <ResponsiveContainer width="100%" aspect={1.5}>
-                            <AreaChart data={engagementRateData} margin={{ top: 5, right: 20, left: -10, bottom: 20 }} onClick={handleChartClick} className="cursor-pointer">
+                            <AreaChart data={engagementRateData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }} onClick={handleChartClick} className="cursor-pointer">
                                 <defs>
                                 <linearGradient id="fillEng" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="5%" stopColor="var(--color-engagementRate)" stopOpacity={0.8}/>
