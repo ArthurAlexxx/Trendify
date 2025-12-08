@@ -154,22 +154,15 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
     return null;
   };
 
-   const CustomBar = (props: any) => {
-    const { fill, x, y, width, height, payload } = props;
-    const url = payload.url;
-    
-    const content = (
-        <g>
-            <rect x={x} y={y} width={width} height={height} fill={fill} radius={[0, 4, 4, 0]} className="cursor-pointer transition-opacity hover:opacity-80" />
-        </g>
-    );
-    
-    return (
-        <Link href={url || '#'} target="_blank" rel="noopener noreferrer">
-            {content}
-        </Link>
-    );
-};
+   const handleBarClick = (data: any) => {
+    if (data && data.url) {
+      if (data.type === 'tiktok') {
+        handleTikTokClick(data.post as TikTokPost);
+      } else {
+        window.open(data.url, '_blank', 'noopener,noreferrer');
+      }
+    }
+  };
   
   const renderChart = () => {
     switch (chartView) {
@@ -196,7 +189,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
               <XAxis type="number" tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
               <YAxis type="category" dataKey="name" width={100} tickLine={false} axisLine={false} />
               <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
-              <Bar dataKey="views" fill="var(--color-views)" name="Views" shape={<CustomBar />}>
+              <Bar dataKey="views" fill="var(--color-views)" name="Views" className="cursor-pointer" onClick={handleBarClick}>
                  <LabelList dataKey="views" position="right" offset={8} className="fill-foreground text-xs" formatter={(v: number) => typeof v === 'number' && v >= 1000 ? `${(v/1000).toFixed(1)}k` : v} />
               </Bar>
             </BarChart>
