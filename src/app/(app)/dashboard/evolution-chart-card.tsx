@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BarChart, Bar, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartsTooltip, PieChart, Pie, Cell, Legend, LineChart, Line, LabelList, Area, AreaChart } from 'recharts';
+import { BarChart, Bar, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartsTooltip, PieChart, Pie, Cell, Legend, LineChart, Line, LabelList, Area, AreaChart, ScatterChart, Scatter, ZAxis } from 'recharts';
 import { ChartConfig, ChartContainer } from '@/components/ui/chart';
 import { TrendingUp, Percent, BarChartHorizontal, ClipboardList, Activity } from 'lucide-react';
 import type { MetricSnapshot, InstagramPostData, TikTokPost, UserProfile } from '@/lib/types';
@@ -86,10 +86,9 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
      return allPosts.filter(p => p.views > 0).sort((a,b) => b.views - a.views).slice(0, 5);
   }, [allPosts]);
 
-  const topEngagementData = useMemo(() => {
-    return allPosts.filter(p => p.engagement > 0).sort((a,b) => b.engagement - a.engagement).slice(0, 5);
+  const bubbleChartData = useMemo(() => {
+    return allPosts.filter(p => p.views > 0 && p.likes > 0);
   }, [allPosts]);
-
 
   const historicalChartData = useMemo(() => {
     if (!metricSnapshots || metricSnapshots.length === 0) return [];
@@ -147,27 +146,33 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
+      const data = payload[0].payload;
       return (
-        <div className="rounded-lg border bg-background p-2 shadow-sm">
-          <div className="grid grid-cols-2 gap-2">
-            <div className="flex flex-col">
-              <span className="text-[0.70rem] uppercase text-muted-foreground">
-                {chartView === 'topPosts' || chartView === 'postAnalysis' ? 'Post' : 'Data'}
-              </span>
-              <span className="font-bold text-muted-foreground max-w-[150px] truncate">
-                {label}
-              </span>
-            </div>
-            {payload.map((p: any) => (
-               <div key={p.dataKey} className="flex flex-col">
+        <div className="rounded-lg border bg-background p-2 shadow-sm min-w-[200px]">
+          <div className="flex flex-col">
+            <span className="text-[0.70rem] uppercase text-muted-foreground">
+              {data.name || 'Post'}
+            </span>
+             {payload.map((p: any) => (
+               <div key={p.dataKey} className="flex flex-col mt-1">
                 <span className="text-[0.70rem] uppercase text-muted-foreground">
                   {p.name}
                 </span>
                 <span className="font-bold" style={{color: p.color}}>
-                  {p.value.toLocaleString('pt-BR')} {chartView === 'engagementRate' || (chartView === 'postAnalysis' && p.dataKey === 'engagement') ? '%' : ''}
+                  {p.value.toLocaleString('pt-BR')} {chartView === 'engagementRate' ? '%' : ''}
                 </span>
               </div>
             ))}
+            {chartView === 'postAnalysis' && data.comments && (
+                 <div className="flex flex-col mt-1">
+                    <span className="text-[0.70rem] uppercase text-muted-foreground">
+                      Comentários
+                    </span>
+                    <span className="font-bold" style={{color: 'var(--color-comments)'}}>
+                        {data.comments.toLocaleString('pt-BR')}
+                    </span>
+                </div>
+            )}
           </div>
         </div>
       );
@@ -175,39 +180,43 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
     return null;
   };
 
-   const handleBarClick = (data: any) => {
-    if (data && data.activePayload && data.activePayload[0]) {
-      const payload = data.activePayload[0].payload;
-      if (payload.url) {
-        window.open(payload.url, '_blank', 'noopener,noreferrer');
-      }
+   const handleChartClick = (data: any) => {
+    if (data && data.url) {
+        window.open(data.url, '_blank', 'noopener,noreferrer');
     }
   };
-
-  const AnalysisBarChart = ({ data, dataKey, name, color, unit = '' }: {data: any[], dataKey: string, name: string, color: string, unit?: string}) => (
-    <div className="h-full w-full">
-        <h4 className="text-sm font-semibold text-center mb-2">{name}</h4>
-        <ResponsiveContainer>
-            <BarChart data={data} layout="vertical" margin={{ left: 80, right: 30 }}>
-                <CartesianGrid horizontal={false} strokeDasharray="3 3" />
-                <XAxis type="number" tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
-                <YAxis type="category" dataKey="name" width={80} tickLine={false} axisLine={false} tick={{ fontSize: 10 }} />
-                <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
-                <Bar dataKey={dataKey} fill={color} name={name} className="cursor-pointer" onClick={handleBarClick}>
-                    <LabelList dataKey={dataKey} position="right" offset={8} className="fill-foreground text-xs" 
-                        formatter={(v: number) => `${typeof v === 'number' && v >= 1000 ? `${(v/1000).toFixed(1)}k` : v.toFixed(unit === '%' ? 1 : 0)}${unit}`} 
-                    />
-                </Bar>
-            </BarChart>
-        </ResponsiveContainer>
-    </div>
-  );
   
   const renderChart = () => {
     switch (chartView) {
       case 'postAnalysis':
         return (
-            <AnalysisBarChart data={topEngagementData} dataKey="engagement" name="Top 5 Posts por Engajamento" color="var(--color-engagementRate)" unit="%" />
+          <ScatterChart
+            margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis 
+              type="number" 
+              dataKey="views" 
+              name="Views" 
+              tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} 
+              domain={['dataMin', 'dataMax']}
+            />
+            <YAxis 
+              type="number" 
+              dataKey="likes" 
+              name="Likes" 
+              tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v}
+              domain={['dataMin', 'dataMax']}
+            />
+            <ZAxis type="number" dataKey="comments" range={[100, 1000]} name="Comentários" />
+            <RechartsTooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomTooltip />} />
+            <Scatter 
+              data={bubbleChartData} 
+              fill="hsl(var(--primary))" 
+              className="cursor-pointer"
+              onClick={handleChartClick}
+            />
+          </ScatterChart>
         );
       case 'engagementRate':
         return (
@@ -232,7 +241,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
               <XAxis type="number" tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
               <YAxis type="category" dataKey="name" width={100} tickLine={false} axisLine={false} />
               <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
-              <Bar dataKey="views" fill="var(--color-views)" name="Views" className="cursor-pointer" onClick={handleBarClick}>
+              <Bar dataKey="views" fill="var(--color-views)" name="Views" className="cursor-pointer" onClick={handleChartClick}>
                  <LabelList dataKey="views" position="right" offset={8} className="fill-foreground text-xs" formatter={(v: number) => typeof v === 'number' && v >= 1000 ? `${(v/1000).toFixed(1)}k` : v} />
               </Bar>
             </BarChart>
@@ -256,10 +265,10 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
   };
   
   const hasData = useMemo(() => {
-    if (chartView === 'postAnalysis') return topEngagementData.length > 0;
+    if (chartView === 'postAnalysis') return bubbleChartData.length > 0;
     if (chartView === 'topPosts') return topPostsData.length > 0;
     return historicalChartData.length > 0;
-  }, [chartView, historicalChartData, topPostsData, topEngagementData]);
+  }, [chartView, historicalChartData, topPostsData, bubbleChartData]);
 
   return (
     <Card className="shadow-primary-lg">
@@ -297,5 +306,3 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
     </Card>
   );
 }
-
-    
