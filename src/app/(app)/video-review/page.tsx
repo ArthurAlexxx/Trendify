@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useCallback, useRef, type ChangeEvent, type DragEvent, useEffect, useId } from "react";
@@ -335,7 +334,8 @@ function VideoReviewPageContent() {
 
   const noteMatch = analysisResult?.geral.match(/(\d{1,2}(?:[.,]\d{1,2})?)\s*\/\s*10/);
   const numericNote = noteMatch ? noteMatch[1] : analysisResult?.geral;
-  const noteDescription = noteMatch ? noteMatch[0] : '';
+  const noteDescription = noteMatch ? analysisResult.geral.replace(noteMatch[0], '').replace(/[:\s-]/, '').trim() : '';
+
 
   const analysisCriteria = [
     {
@@ -557,7 +557,7 @@ function VideoReviewPageContent() {
                                 </CardHeader>
                                 <CardContent className="text-center">
                                     <div className="text-4xl font-bold text-foreground">{numericNote}/10</div>
-                                    <p className="text-sm text-muted-foreground mt-2">{analysisResult.geral.replace(noteDescription, '').replace(':', '').trim()}</p>
+                                    <p className="text-sm text-muted-foreground mt-2">{noteDescription}</p>
                                 </CardContent>
                             </Card>
 
@@ -661,11 +661,11 @@ function VideoReviewPageContent() {
                                             <SheetTrigger asChild>
                                                 <Button variant="outline" size="sm"><Eye className="mr-2 h-4 w-4" /> Ver Análise</Button>
                                             </SheetTrigger>
-                                            <SheetContent className="sm:max-w-4xl">
-                                                <SheetHeader>
+                                            <SheetContent className="sm:max-w-4xl p-0">
+                                                <SheetHeader className="p-6 border-b">
                                                     <SheetTitle className="text-center font-headline text-2xl">Análise de {analise.videoFileName}</SheetTitle>
                                                 </SheetHeader>
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4 max-h-[calc(100vh-8rem)] overflow-y-auto">
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 max-h-[calc(100vh-8rem)] overflow-y-auto">
                                                     <div className="space-y-4">
                                                          {analise.videoUrl && (
                                                             <video controls src={analise.videoUrl} className="w-full rounded-lg bg-black"></video>
@@ -743,7 +743,3 @@ function VideoReviewPageContent() {
     </div>
   );
 }
-
-    
-
-    
