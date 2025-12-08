@@ -212,7 +212,7 @@ export async function getInstagramProfile(username: string): Promise<InstagramPr
 }
 
 
-export async function getInstagramPosts(username: string): Promise<InstagramPostData[]> {
+export async function getInstagramPosts(username: string): Promise<Omit<InstagramPostData, 'fetchedAt'>[]> {
     if (!username) {
         throw new Error('Nome de usuário é necessário para buscar os posts.');
     }
@@ -289,7 +289,7 @@ export async function getTikTokProfile(username: string): Promise<TikTokProfileD
 }
 
 
-export async function getTikTokPosts(username: string): Promise<TikTokPost[]> {
+export async function getTikTokPosts(username: string): Promise<Omit<TikTokPost, 'fetchedAt'>[]> {
     if (!username) {
         throw new Error('Username é necessário para buscar os posts.');
     }
@@ -300,13 +300,13 @@ export async function getTikTokPosts(username: string): Promise<TikTokPost[]> {
 
         return videos.slice(0, 10).map((post) => ({
             id: post.video_id,
-            // The shareUrl is not provided in this API response, so we construct a probable one
             shareUrl: `https://www.tiktok.com/@${post.author}/video/${post.video_id}`,
             description: post.description || '',
             coverUrl: post.cover,
             views: post.statistics?.number_of_plays ?? 0,
             likes: post.statistics?.number_of_hearts ?? 0,
             comments: post.statistics?.number_of_comments ?? 0,
+            createdAt: post.create_time ? new Date(post.create_time * 1000) as any : undefined,
         }));
 
     } catch (e: any) {

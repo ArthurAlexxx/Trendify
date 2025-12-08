@@ -1,7 +1,7 @@
 
 'use server';
 
-import { doc, writeBatch, collection, getDocs, serverTimestamp, setDoc } from 'firebase/firestore';
+import { doc, writeBatch, collection, getDocs, serverTimestamp, setDoc, Timestamp } from 'firebase/firestore';
 import { getInstagramPosts, getInstagramProfile, getTikTokPosts, getTikTokProfile } from '../profile/actions';
 import { initializeFirebaseAdmin } from '@/firebase/admin';
 
@@ -133,7 +133,12 @@ export async function syncTikTokAction(userId: string, username: string): Promis
 
         postsResult.forEach(post => {
             const postRef = doc(postsCollectionRef, post.id);
-            batch.set(postRef, { ...post, fetchedAt: serverTimestamp() });
+            const dataWithTimestamp = {
+                ...post,
+                createdAt: post.createdAt ? Timestamp.fromDate(post.createdAt as any) : null,
+                fetchedAt: serverTimestamp()
+            };
+            batch.set(postRef, dataWithTimestamp);
         });
 
         await batch.commit();

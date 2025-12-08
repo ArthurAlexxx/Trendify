@@ -123,6 +123,7 @@ export type InstagramPostData = {
     comments: number;
     is_video: boolean;
     video_view_count?: number;
+    fetchedAt: Timestamp;
 };
 
 export type TikTokProfileData = {
@@ -148,6 +149,8 @@ export type TikTokPost = {
     views: number;
     likes: number;
     comments: number;
+    createdAt?: Timestamp; // Adicionado para data de criação
+    fetchedAt: Timestamp;
 };
 
 export interface PontoDadosGrafico {
