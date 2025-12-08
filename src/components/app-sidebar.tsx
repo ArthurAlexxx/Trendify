@@ -45,8 +45,8 @@ import { useRef, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/storage';
 import { initializeFirebase } from '@/firebase';
-import { updateProfile } from 'firebase/auth';
 import { doc, updateDoc } from 'firebase/firestore';
+import { ScrollArea } from './ui/scroll-area';
 
 const userMenuItems: {
   category: string;
@@ -212,63 +212,65 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
         </Link>
       </div>
 
-      <nav className="flex-1 px-4 py-4">
-        {!isMobile && (
-          <div className='relative'>
-              <Link href={isAdmin ? "/admin" : "/subscribe"} onClick={handleLinkClick} className="block w-full text-left p-4 rounded-xl bg-gradient-to-br from-primary via-purple-500 to-violet-600 text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-shadow">
-                  <div className='flex items-center gap-3'>
-                      {getPlanIcon()}
-                      <div className='flex flex-col'>
-                          {(isSubscriptionLoading || isAdminLoading) ? <Skeleton className="h-5 w-20" /> : <span className='font-semibold text-lg leading-tight'>{getPlanName()}</span>}
-                          <span className='text-sm opacity-80'>{isAdmin ? "Painel de Controle" : "Gerenciar assinatura"}</span>
-                      </div>
-                  </div>
-              </Link>
-          </div>
-        )}
-        
-        <div className={cn("flex flex-col gap-4", !isMobile && "mt-6")}>
-          {currentMenuItems.map(group => (
-            <div key={group.category} className='px-2'>
-              <h3 className="text-xs font-semibold text-muted-foreground tracking-wider uppercase mb-2">
-                {group.category}
-              </h3>
-               <ul className="space-y-1">
-                 {(group.items as any).map((item: any) => {
-                   const isActive = pathname === item.href;
-                   const canAccess = isAdmin || hasAccess(userPlan, item.plan || 'free');
-
-                   const content = (
-                      <div className={cn(
-                        "flex items-center gap-3 p-3 rounded-lg transition-colors text-sm",
-                        isActive 
-                            ? "bg-primary/10 text-primary font-semibold" 
-                            : canAccess 
-                                ? "text-foreground/70 hover:bg-muted hover:text-foreground"
-                                : "text-muted-foreground cursor-not-allowed",
-                        !canAccess && "relative"
-                      )}>
-                        <item.icon className={cn("h-5 w-5", isActive || !canAccess ? "text-primary" : "text-foreground/60")} />
-                        <span>{item.label}</span>
-                         {!isAdmin && !canAccess && item.plan !== 'free' && (
-                           <Crown className="h-4 w-4 ml-auto text-yellow-400 fill-yellow-400" />
-                        )}
-                      </div>
-                   );
-
-                   return (
-                     <li key={item.label}>
-                       <Link href={isAdmin || canAccess ? item.href : '/subscribe'} onClick={handleLinkClick}>
-                         {content}
-                       </Link>
-                     </li>
-                   );
-                 })}
-               </ul>
+      <ScrollArea className="flex-1">
+        <nav className="px-4 py-4">
+            {!isMobile && (
+            <div className='relative'>
+                <Link href={isAdmin ? "/admin" : "/subscribe"} onClick={handleLinkClick} className="block w-full text-left p-4 rounded-xl bg-gradient-to-br from-primary via-purple-500 to-violet-600 text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-shadow">
+                    <div className='flex items-center gap-3'>
+                        {getPlanIcon()}
+                        <div className='flex flex-col'>
+                            {(isSubscriptionLoading || isAdminLoading) ? <Skeleton className="h-5 w-20" /> : <span className='font-semibold text-lg leading-tight'>{getPlanName()}</span>}
+                            <span className='text-sm opacity-80'>{isAdmin ? "Painel de Controle" : "Gerenciar assinatura"}</span>
+                        </div>
+                    </div>
+                </Link>
             </div>
-          ))}
-        </div>
-      </nav>
+            )}
+            
+            <div className={cn("flex flex-col gap-4", !isMobile && "mt-6")}>
+            {currentMenuItems.map(group => (
+                <div key={group.category} className='px-2'>
+                <h3 className="text-xs font-semibold text-muted-foreground tracking-wider uppercase mb-2">
+                    {group.category}
+                </h3>
+                <ul className="space-y-1">
+                    {(group.items as any).map((item: any) => {
+                    const isActive = pathname === item.href;
+                    const canAccess = isAdmin || hasAccess(userPlan, item.plan || 'free');
+
+                    const content = (
+                        <div className={cn(
+                            "flex items-center gap-3 p-3 rounded-lg transition-colors text-sm",
+                            isActive 
+                                ? "bg-primary/10 text-primary font-semibold" 
+                                : canAccess 
+                                    ? "text-foreground/70 hover:bg-muted hover:text-foreground"
+                                    : "text-muted-foreground cursor-not-allowed",
+                            !canAccess && "relative"
+                        )}>
+                            <item.icon className={cn("h-5 w-5", isActive || !canAccess ? "text-primary" : "text-foreground/60")} />
+                            <span>{item.label}</span>
+                            {!isAdmin && !canAccess && item.plan !== 'free' && (
+                            <Crown className="h-4 w-4 ml-auto text-yellow-400 fill-yellow-400" />
+                            )}
+                        </div>
+                    );
+
+                    return (
+                        <li key={item.label}>
+                        <Link href={isAdmin || canAccess ? item.href : '/subscribe'} onClick={handleLinkClick}>
+                            {content}
+                        </Link>
+                        </li>
+                    );
+                    })}
+                </ul>
+                </div>
+            ))}
+            </div>
+        </nav>
+      </ScrollArea>
       
        <div className="mt-auto p-4 border-t">
          <DropdownMenu>
