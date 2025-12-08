@@ -52,9 +52,15 @@ export async function callGoogleAI<T extends z.ZodType<any, any, any>>(
   const processedPrompt = template(promptData);
 
   const schemaAsJson = zodToJsonSchema(jsonSchema, {
-    name: 'google_ai_schema',
-    target: 'jsonSchema7'
+    // Definir uma estratégia que evite $ref e definitions
+    strategy: 'openApi3',
+    // Remover a referência ao schema para maior compatibilidade
+    $refStrategy: 'none'
   });
+  
+  // A API do Gemini não espera as propriedades $schema ou definitions
+  const { $schema, definitions, ...cleanedSchema } = schemaAsJson as any;
+
 
   const contents = [
     {
@@ -85,7 +91,7 @@ export async function callGoogleAI<T extends z.ZodType<any, any, any>>(
                 {
                     "name": "output_formatter",
                     "description": "Formata a saída de acordo com o schema JSON fornecido.",
-                    "parameters": schemaAsJson
+                    "parameters": cleanedSchema
                 }
             ]
         }
