@@ -107,20 +107,28 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
             name: d.name,
             shortName: d.shortName,
             engagementRate: d.engagement,
+            date: format(d.date, 'dd/MM')
         }
     });
   }, [allPosts]);
   
+  const evolutionChartData = useMemo(() => {
+    return allPosts.map(p => ({
+        ...p,
+        dateFormatted: format(p.date, 'dd/MM'),
+    }));
+  }, [allPosts]);
+
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div className="rounded-lg border bg-background p-2 shadow-sm min-w-[200px]">
+        <div className="rounded-lg border bg-background p-2 shadow-sm min-w-[200px] max-w-xs">
           <div className="flex flex-col">
-            <span className="text-[0.70rem] uppercase text-muted-foreground">
+            <p className="text-sm font-semibold text-foreground truncate">
               {data.name}
-            </span>
+            </p>
              {payload.map((p: any) => (
                <div key={p.dataKey} className="flex items-center justify-between mt-1">
                 <span className="text-[0.70rem] uppercase text-muted-foreground flex items-center">
@@ -175,12 +183,12 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
               <div className="flex-1 mt-4">
                 <TabsContent value="evolution" className="h-full">
                    {isLoading ? <Skeleton className="h-full w-full" /> : 
-                    allPosts.length > 0 ? (
+                    evolutionChartData.length > 0 ? (
                         <ChartContainer config={chartConfigBase} className="h-full w-full">
                           <ResponsiveContainer>
-                            <LineChart data={allPosts} margin={{ top: 5, right: 20, left: -10, bottom: 80 }}>
+                            <LineChart data={evolutionChartData} margin={{ top: 5, right: 20, left: -10, bottom: 20 }}>
                                 <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                                <XAxis dataKey="shortName" interval={0} angle={-20} textAnchor="end" height={100} tick={{ fontSize: 10 }} />
+                                <XAxis dataKey="dateFormatted" interval="preserveStartEnd" tick={{ fontSize: 12 }} />
                                 <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
                                 <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
                                 <Legend />
@@ -231,7 +239,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                     engagementRateData.length > 0 ? (
                        <ChartContainer config={chartConfigBase} className="h-full w-full">
                          <ResponsiveContainer>
-                            <AreaChart data={engagementRateData} margin={{ top: 5, right: 20, left: -10, bottom: 80 }}>
+                            <AreaChart data={engagementRateData} margin={{ top: 5, right: 20, left: -10, bottom: 20 }}>
                                 <defs>
                                 <linearGradient id="fillEng" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="5%" stopColor="var(--color-engagementRate)" stopOpacity={0.8}/>
@@ -239,7 +247,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                                 </linearGradient>
                                 </defs>
                                 <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                                <XAxis dataKey="shortName" interval={0} angle={-20} textAnchor="end" height={100} tick={{ fontSize: 10 }} />
+                                <XAxis dataKey="date" interval="preserveStartEnd" tick={{ fontSize: 12 }} />
                                 <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => `${value}%`} />
                                 <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
                                 <Area dataKey="engagementRate" type="monotone" fill="url(#fillEng)" stroke="var(--color-engagementRate)" name="Engajamento" />
@@ -262,3 +270,4 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
     </Card>
   );
 }
+
