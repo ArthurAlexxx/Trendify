@@ -1,23 +1,23 @@
 
-
 'use client';
 
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { DailyUsage, UserProfile } from '@/lib/types';
-import { collectionGroup, getDocs, query, where, doc, getDoc } from 'firebase/firestore';
+import { DailyUsage, UserProfile, AnaliseVideo } from '@/lib/types';
+import { collectionGroup, getDocs, query, where, doc, getDoc, DocumentData } from 'firebase/firestore';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Video, Lightbulb, User, Loader2, Inbox, Activity } from 'lucide-react';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useAdmin } from '@/hooks/useAdmin';
 
 interface EnrichedUsage extends DailyUsage {
   user?: UserProfile;
+  videoAnalysis?: AnaliseVideo;
 }
 
 export default function UsageAdminPage() {
@@ -26,39 +26,50 @@ export default function UsageAdminPage() {
   const [enrichedUsage, setEnrichedUsage] = useState<EnrichedUsage[]>([]);
   const [isEnriching, setIsEnriching] = useState(true);
 
-  // Query for all documents in the 'dailyUsage' collection group
+  const [usageData, setUsageData] = useState<DailyUsage[] | null>(null);
+  const [isLoadingUsage, setIsLoadingUsage] = useState(true);
+
   const usageQuery = useMemoFirebase(
     () => (firestore && isAdmin ? query(collectionGroup(firestore, 'dailyUsage')) : null),
     [firestore, isAdmin]
   );
   
-  const [usageData, setUsageData] = useState<DailyUsage[] | null>(null);
-  const [isLoadingUsage, setIsLoadingUsage] = useState(true);
-
   useEffect(() => {
     if (!usageQuery) {
-        setIsLoadingUsage(false);
-        return;
-    };
+      setIsLoadingUsage(false);
+      return;
+    }
     getDocs(usageQuery).then(snapshot => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as DailyUsage));
+      const data = snapshot.docs.map(doc => ({ ...doc.data() } as DailyUsage));
       setUsageData(data);
     }).finally(() => setIsLoadingUsage(false));
   }, [usageQuery]);
 
+  const fetchVideoAnalysis = useCallback(async (userId: string, date: string): Promise<AnaliseVideo | undefined> => {
+    if (!firestore) return undefined;
+    
+    // Find the analysis doc for that user and day
+    const analysisCollectionRef = collectionGroup(firestore, 'analisesVideo');
+    const q = query(
+      analysisCollectionRef,
+      where('__name__', '>=', `users/${userId}/`),
+      where('__name__', '<', `users/${userId}0/`)
+    );
+  
+    const querySnapshot = await getDocs(q);
+    const analyses = querySnapshot.docs
+      .map(doc => ({ id: doc.id, ...doc.data() } as AnaliseVideo))
+      .filter(a => a.createdAt && format(a.createdAt.toDate(), 'yyyy-MM-dd') === date);
+      
+    return analyses[0]; // Assuming one analysis per day for this log
+  
+  }, [firestore]);
+
 
   useEffect(() => {
-    if (!isAdmin || isLoadingUsage || !firestore) {
-      if (!isAdmin && !isAdminLoading) {
-        setIsEnriching(false);
-      }
+    if (!isAdmin || isLoadingUsage || !firestore || !usageData) {
+      if (!isAdmin && !isAdminLoading) setIsEnriching(false);
       return;
-    }
-    
-    if (!usageData) {
-        setIsEnriching(false);
-        setEnrichedUsage([]);
-        return;
     }
 
     const enrichData = async () => {
@@ -67,11 +78,10 @@ export default function UsageAdminPage() {
       const userCache = new Map<string, UserProfile>();
 
       for (const usage of usageData) {
-        const userId = usage.id.split('_')[0]; // Assuming ID is still composite for uniqueness
+        const userId = (usage as any).id?.split('_')[0]; // Adjust this if usage ID format changes
         if (!userId) continue;
 
         let userProfile: UserProfile | undefined = userCache.get(userId);
-
         if (!userProfile) {
           try {
             const userDoc = await getDoc(doc(firestore, 'users', userId));
@@ -79,14 +89,18 @@ export default function UsageAdminPage() {
               userProfile = { id: userDoc.id, ...userDoc.data() } as UserProfile;
               userCache.set(userId, userProfile);
             }
-          } catch (e) {
-            console.error(`Failed to fetch user profile ${userId}`, e);
-          }
+          } catch (e) { console.error(`Failed to fetch user profile ${userId}`, e); }
         }
         
+        let videoAnalysis: AnaliseVideo | undefined;
+        if(usage.videoAnalyses > 0) {
+            videoAnalysis = await fetchVideoAnalysis(userId, usage.date);
+        }
+
         enriched.push({
             ...usage,
             user: userProfile,
+            videoAnalysis,
         });
       }
       setEnrichedUsage(enriched.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
@@ -94,7 +108,7 @@ export default function UsageAdminPage() {
     };
 
     enrichData();
-  }, [usageData, isLoadingUsage, firestore, isAdmin, isAdminLoading]);
+  }, [usageData, isLoadingUsage, firestore, isAdmin, isAdminLoading, fetchVideoAnalysis]);
 
   const totalVideoAnalyses = useMemo(() => {
     return usageData?.reduce((acc, usage) => acc + (usage.videoAnalyses || 0), 0) || 0;
@@ -160,11 +174,12 @@ export default function UsageAdminPage() {
                     <TableHead>Data</TableHead>
                     <TableHead>Análises de Vídeo</TableHead>
                     <TableHead>Gerações de IA</TableHead>
+                    <TableHead>Vídeo Analisado</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {enrichedUsage.length > 0 ? enrichedUsage.map((usage) => (
-                    <TableRow key={usage.id}>
+                    {enrichedUsage.length > 0 ? enrichedUsage.map((usage, index) => (
+                    <TableRow key={`${usage.user?.id}-${usage.date}-${index}`}>
                        <TableCell>
                           {usage.user ? (
                              <div className="flex items-center gap-3">
@@ -190,10 +205,13 @@ export default function UsageAdminPage() {
                          <TableCell>
                           {usage.geracoesAI || 0}
                         </TableCell>
+                        <TableCell className="text-xs text-muted-foreground truncate max-w-[150px]">
+                          {usage.videoAnalysis?.videoFileName || 'N/A'}
+                        </TableCell>
                     </TableRow>
                     )) : (
                         <TableRow>
-                            <TableCell colSpan={4} className="h-24 text-center">
+                            <TableCell colSpan={5} className="h-24 text-center">
                                 <div className="flex flex-col items-center justify-center gap-2">
                                     <Inbox className="h-8 w-8 text-muted-foreground" />
                                     <p className="text-muted-foreground">Nenhuma atividade encontrada.</p>
@@ -209,3 +227,5 @@ export default function UsageAdminPage() {
     </div>
   );
 }
+
+    

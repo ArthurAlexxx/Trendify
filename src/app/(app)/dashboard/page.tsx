@@ -339,6 +339,23 @@ export default function DashboardPage() {
                     handleToggleRoteiro={handleToggleRoteiro} 
                   />
                 </Suspense>
+                <Suspense fallback={<Skeleton className="h-[300px] w-full" />}>
+                    <ActionHubCard 
+                        isLoadingUpcoming={isLoadingUpcoming}
+                        upcomingContent={upcomingContent}
+                        isLoadingIdeias={isLoadingIdeias}
+                        ideiasSalvas={ideiasSalvas}
+                        isFetchingPosts={isLoadingInstaPosts || isLoadingTiktokPosts}
+                        instaProfile={userProfile || null}
+                        instaPosts={instaPosts || null}
+                        tiktokProfile={userProfile || null}
+                        tiktokPosts={tiktokPosts || null}
+                        handleToggleIdeia={handleToggleIdeia}
+                        handleMarkAsPublished={handleMarkAsPublished}
+                        handleTikTokClick={handleTikTokClick}
+                        formatNumber={formatNumber}
+                    />
+                </Suspense>
             </div>
 
             {/* Right Column */}
@@ -368,3 +385,5 @@ export default function DashboardPage() {
     </>
   );
 }
+
+    
