@@ -29,7 +29,7 @@ const InstagramLooterProfileSchema = z.object({
   is_professional_account: z.boolean(),
   profile_pic_url_hd: z.string().url(),
   biography: z.string(),
-  full_name: z.string(),
+  full_name: zstring(),
   edge_owner_to_timeline_media: z.object({
     count: z.number(),
     edges: z.array(z.object({ node: InstagramLooterPostSchema })),
@@ -116,8 +116,9 @@ async function fetchFromRapidApi(platform: 'instagram-profile' | 'tiktok-profile
             break;
         case 'tiktok-profile':
             host = 'tiktok-api6.p.rapidapi.com';
-            path = `user/details/${identifier}`;
+            path = 'user/details';
             finalUrl = new URL(`https://${host}/${path}`);
+            finalUrl.searchParams.set('username', identifier);
             break;
         case 'tiktok-posts':
             host = 'tiktok-api6.p.rapidapi.com';
@@ -256,7 +257,7 @@ export async function getInstagramPosts(username: string): Promise<InstagramPost
 export async function getTikTokProfile(username: string): Promise<TikTokProfileData> {
   try {
       const result = await fetchFromRapidApi('tiktok-profile', username);
-      const userData = result?.data?.user || result;
+      const userData = result; // Data is at the root
 
       if (!userData || typeof userData !== 'object') {
         console.error("Resposta real do TikTok:", result);
@@ -321,3 +322,5 @@ export async function getTikTokPosts(secUid: string): Promise<TikTokPost[]> {
         throw e;
     }
 }
+
+    
