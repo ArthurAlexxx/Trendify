@@ -61,7 +61,7 @@ const EngagementMetricsCard = dynamic(() => import('@/components/dashboard/engag
 });
 
 const EvolutionChartCard = dynamic(() => import('@/components/dashboard/evolution-chart-card'), {
-    loading: () => <Skeleton className="h-[430px]" />,
+    loading: () => <Skeleton className="h-[530px]" />,
 });
 
 const PerformanceAnalysisCard = dynamic(() => import('@/components/dashboard/performance-analysis-card'), {
@@ -357,7 +357,7 @@ export default function DashboardPage() {
                     formatMetricValue={formatMetricValue} 
                 />
               </Suspense>
-              <Suspense fallback={<Skeleton className="h-[430px] w-full" />}>
+              <Suspense fallback={<Skeleton className="h-[530px] w-full" />}>
                 <EvolutionChartCard
                   isLoading={isLoadingMetrics || isLoadingInstaPosts || isLoadingTiktokPosts}
                   metricSnapshots={metricSnapshots}
