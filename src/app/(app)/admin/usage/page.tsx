@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { DailyUsage, UserProfile, AnaliseVideo } from '@/lib/types';
-import { collectionGroup, getDocs, query, where, doc, getDoc, DocumentData } from 'firebase/firestore';
+import { collectionGroup, getDocs, query, where, doc, getDoc, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -20,13 +20,19 @@ interface EnrichedUsage extends DailyUsage {
   videoAnalysis?: AnaliseVideo;
 }
 
+interface RawUsageData {
+    id: string; // doc id (YYYY-MM-DD)
+    path: string; // Full doc path
+    data: DailyUsage;
+}
+
 export default function UsageAdminPage() {
   const firestore = useFirestore();
   const { isAdmin, isLoading: isAdminLoading } = useAdmin();
   const [enrichedUsage, setEnrichedUsage] = useState<EnrichedUsage[]>([]);
   const [isEnriching, setIsEnriching] = useState(true);
 
-  const [usageData, setUsageData] = useState<DailyUsage[] | null>(null);
+  const [usageData, setUsageData] = useState<RawUsageData[] | null>(null);
   const [isLoadingUsage, setIsLoadingUsage] = useState(true);
 
   const usageQuery = useMemoFirebase(
@@ -40,7 +46,11 @@ export default function UsageAdminPage() {
       return;
     }
     getDocs(usageQuery).then(snapshot => {
-      const data = snapshot.docs.map(doc => ({ ...doc.data() } as DailyUsage));
+      const data = snapshot.docs.map((doc: QueryDocumentSnapshot<DocumentData>) => ({ 
+          id: doc.id,
+          path: doc.ref.path,
+          data: doc.data() as DailyUsage
+      }));
       setUsageData(data);
     }).finally(() => setIsLoadingUsage(false));
   }, [usageQuery]);
@@ -78,7 +88,11 @@ export default function UsageAdminPage() {
       const userCache = new Map<string, UserProfile>();
 
       for (const usage of usageData) {
-        const userId = (usage as any).id?.split('_')[0]; // Adjust this if usage ID format changes
+        // Correctly extract userId from the document path
+        const pathParts = usage.path.split('/');
+        const userIdIndex = pathParts.indexOf('users') + 1;
+        const userId = pathParts[userIdIndex];
+
         if (!userId) continue;
 
         let userProfile: UserProfile | undefined = userCache.get(userId);
@@ -93,12 +107,12 @@ export default function UsageAdminPage() {
         }
         
         let videoAnalysis: AnaliseVideo | undefined;
-        if(usage.videoAnalyses > 0) {
-            videoAnalysis = await fetchVideoAnalysis(userId, usage.date);
+        if(usage.data.videoAnalyses > 0) {
+            videoAnalysis = await fetchVideoAnalysis(userId, usage.data.date);
         }
 
         enriched.push({
-            ...usage,
+            ...usage.data,
             user: userProfile,
             videoAnalysis,
         });
@@ -111,11 +125,11 @@ export default function UsageAdminPage() {
   }, [usageData, isLoadingUsage, firestore, isAdmin, isAdminLoading, fetchVideoAnalysis]);
 
   const totalVideoAnalyses = useMemo(() => {
-    return usageData?.reduce((acc, usage) => acc + (usage.videoAnalyses || 0), 0) || 0;
+    return usageData?.reduce((acc, usage) => acc + (usage.data.videoAnalyses || 0), 0) || 0;
   }, [usageData]);
 
   const totalGeracoesAI = useMemo(() => {
-    return usageData?.reduce((acc, usage) => acc + (usage.geracoesAI || 0), 0) || 0;
+    return usageData?.reduce((acc, usage) => acc + (usage.data.geracoesAI || 0), 0) || 0;
   }, [usageData]);
   
   const isLoading = isAdminLoading || isLoadingUsage || isEnriching;
@@ -227,5 +241,3 @@ export default function UsageAdminPage() {
     </div>
   );
 }
-
-    
