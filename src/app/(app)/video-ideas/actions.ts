@@ -54,7 +54,7 @@ type VideoIdeasState = {
 
 const prompt = ai.definePrompt({
     name: 'generateVideoIdeasPrompt',
-    model: 'gpt-4o',
+    model: 'openai/gpt-4o',
     output: { schema: GenerateVideoIdeasOutputSchema },
     prompt: `Você é um "Especialista em Conteúdo Viral", um estrategista de roteiros para criadores no Instagram e TikTok. Sua função é atuar como um profissional de alto nível.
   Sua tarefa é gerar uma ideia de vídeo completa, criativa, estratégica e pronta para ser executada.

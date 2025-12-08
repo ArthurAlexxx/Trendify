@@ -59,7 +59,7 @@ type PubliProposalsState = {
 
 const prompt = ai.definePrompt({
     name: 'generatePubliProposalsPrompt',
-    model: 'gpt-4o',
+    model: 'openai/gpt-4o',
     output: { schema: GeneratePubliProposalsOutputSchema },
     prompt: `Você é uma "AI Creative Director", especialista em criar campanhas de conteúdo para redes sociais que convertem.
 Sua tarefa é gerar um pacote de conteúdo completo para um criador de conteúdo promover um produto ou marca.

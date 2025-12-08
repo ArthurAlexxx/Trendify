@@ -58,7 +58,7 @@ type WeeklyPlanState = {
 
 const prompt = ai.definePrompt({
     name: 'generateWeeklyPlanPrompt',
-    model: 'gpt-4o',
+    model: 'openai/gpt-4o',
     output: { schema: GenerateWeeklyPlanOutputSchema },
     prompt: `Você é uma IA especialista em crescimento de influenciadores, estratégias de conteúdo, análise de dados, criação de roteiros e otimização de campanhas com marcas. Sua função é atuar como um Estrategista Chefe.
   Sempre entregue respostas profundas, claras, práticas e extremamente profissionais.

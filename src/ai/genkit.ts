@@ -1,18 +1,26 @@
-
 import { genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/google-genai';
+import { openAI } from 'genkitx-openai';
 
-// Este arquivo configura os serviços Genkit AI para a aplicação.
-const apiKey = process.env.GOOGLE_AI_API_KEY;
+const googleApiKey = process.env.GOOGLE_AI_API_KEY;
+const openAiApiKey = process.env.OPENAI_API_KEY;
 
-if (!apiKey && process.env.NODE_ENV === 'production') {
+if (!googleApiKey && process.env.NODE_ENV === 'production') {
   console.warn(
     `[Genkit] A GOOGLE_AI_API_KEY não foi encontrada nas variáveis de ambiente. A análise de vídeo pode falhar.`
   );
 }
 
+if (!openAiApiKey && process.env.NODE_ENV === 'production') {
+  console.warn(
+    `[Genkit] A OPENAI_API_KEY não foi encontrada nas variáveis de ambiente. As gerações de conteúdo podem falhar.`
+  );
+}
+
+
 export const ai = genkit({
   plugins: [
-    googleAI(apiKey ? { apiKey } : {}),
+    googleAI(googleApiKey ? { apiKey: googleApiKey } : {}),
+    openAI(openAiApiKey ? { apiKey: openAiApiKey } : undefined),
   ],
 });

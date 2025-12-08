@@ -51,7 +51,7 @@ export type AiCareerPackageOutput = z.infer<typeof AiCareerPackageOutputSchema>;
 
 const formSchema = z.object({
   niche: z.string().min(1, 'O nicho não pode estar vazio.'),
-  keyMetrics: z.string().min(1, 'As métricas не podem estar vazias.'),
+  keyMetrics: z.string().min(1, 'As métricas não podem estar vazias.'),
   targetBrand: z
     .string()
     .min(3, 'A marca alvo deve ter pelo menos 3 caracteres.'),
@@ -66,7 +66,7 @@ type CareerPackageState = {
 
 const prompt = ai.definePrompt({
     name: 'aiCareerPackagePrompt',
-    model: 'gpt-4o',
+    model: 'openai/gpt-4o',
     output: { schema: AiCareerPackageOutputSchema },
     prompt: `Você é um "AI Talent Manager", um estrategista de negócios especialista em monetização para criadores de conteúdo.
 Sua única função é gerar um pacote de prospecção profissional para um criador usar ao abordar marcas.
