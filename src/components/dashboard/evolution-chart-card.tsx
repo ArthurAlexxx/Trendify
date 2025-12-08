@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarChart, Bar, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartsTooltip, Legend, Area, AreaChart } from 'recharts';
-import { ChartConfig, ChartContainer } from '@/components/ui/chart';
+import { ChartConfig, ChartContainer, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
 import { TrendingUp, Percent, BarChartHorizontal, ClipboardList, Info } from 'lucide-react';
 import type { MetricSnapshot, InstagramPostData, TikTokPost, UserProfile } from '@/lib/types';
 import Link from 'next/link';
@@ -173,10 +173,10 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                                 <XAxis dataKey="postLabel" tick={false} axisLine={false} />
                                 <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
                                 <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
-                                <Legend />
-                                <Area type="monotone" dataKey="views" stroke="var(--color-views)" fill="url(#colorViews)" stackId="a" name="Views" />
-                                <Area type="monotone" dataKey="likes" stroke="var(--color-likes)" fill="url(#colorLikes)" stackId="b" name="Likes" />
-                                <Area type="monotone" dataKey="comments" stroke="var(--color-comments)" fill="url(#colorComments)" stackId="c" name="Comentários" />
+                                <ChartLegend content={<ChartLegendContent />} />
+                                <Area type="monotone" dataKey="likes" stroke="var(--color-likes)" fill="url(#colorLikes)" stackId="a" name="Likes" />
+                                <Area type="monotone" dataKey="comments" stroke="var(--color-comments)" fill="url(#colorComments)" stackId="a" name="Comentários" />
+                                <Area type="monotone" dataKey="views" stroke="var(--color-views)" fill="url(#colorViews)" stackId="b" name="Views" />
                             </AreaChart>
                           </ResponsiveContainer>
                         </ChartContainer>
@@ -233,4 +233,3 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
   );
 }
 
-    
