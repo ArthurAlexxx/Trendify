@@ -6,11 +6,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarChart, Bar, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartsTooltip, Legend, LineChart, Line, LabelList, Area, AreaChart, ScatterChart, Scatter, ZAxis } from 'recharts';
 import { ChartConfig, ChartContainer } from '@/components/ui/chart';
-import { TrendingUp, Percent, BarChartHorizontal, ClipboardList, Activity } from 'lucide-react';
+import { TrendingUp, Percent, BarChartHorizontal, ClipboardList, Activity, Info } from 'lucide-react';
 import type { MetricSnapshot, InstagramPostData, TikTokPost, UserProfile } from '@/lib/types';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { ScrollArea } from '../ui/scroll-area';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 
 const chartConfigBase: ChartConfig = {
   views: { label: "Views", color: "hsl(var(--chart-2))"  },
@@ -272,10 +273,29 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
     return postEvolutionData.length > 0;
   }, [chartView, postEvolutionData, topPostsData, scatterData]);
 
+  const chartInfo: Record<string, string> = {
+    evolution: "Acompanhe a evolução das métricas (views, likes, comentários) de seus últimos posts em ordem cronológica.",
+    engagementRate: "Visualize a taxa de engajamento (likes + comentários / seguidores) de cada um dos seus últimos posts.",
+    topPosts: "Veja seus 5 posts com a maior taxa de engajamento, indicando os conteúdos de maior impacto.",
+    postAnalysis: "Analise a correlação entre visualizações e curtidas. Pontos acima da linha de tendência tiveram performance superior à média.",
+  }
+
   return (
     <Card className="shadow-primary-lg">
         <CardHeader>
-            <CardTitle className="text-center">Análise de Performance</CardTitle>
+            <CardTitle className="text-center flex items-center justify-center gap-2">
+                Análise de Performance
+                 <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p className="max-w-xs">{chartInfo[chartView]}</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+            </CardTitle>
             <div className="flex justify-center pt-4">
                  <Tabs value={chartView} onValueChange={(value) => setChartView(value as any)} className="w-auto">
                     <TabsList>

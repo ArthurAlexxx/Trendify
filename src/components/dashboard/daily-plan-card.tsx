@@ -1,12 +1,13 @@
 
 'use client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import type { PlanoSemanal, ItemRoteiro } from '@/lib/types';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 
 
 interface DailyPlanCardProps {
@@ -34,8 +35,18 @@ export function DailyPlanCard({ isLoadingWeeklyPlans, currentPlan, handleToggleR
   return (
     <Card className="h-full shadow-primary-lg">
       <CardHeader>
-        <CardTitle className="text-center font-headline text-xl">
+        <CardTitle className="text-center font-headline text-xl flex items-center justify-center gap-2">
           Plano para Hoje
+           <TooltipProvider>
+              <Tooltip>
+                  <TooltipTrigger asChild>
+                      <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                      <p>Suas tarefas de hoje, baseadas no seu plano semanal ativo.</p>
+                  </TooltipContent>
+              </Tooltip>
+          </TooltipProvider>
         </CardTitle>
       </CardHeader>
       <CardContent>

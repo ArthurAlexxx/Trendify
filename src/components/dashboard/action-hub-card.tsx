@@ -3,7 +3,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, MoreHorizontal, CheckCircle, Tag } from 'lucide-react';
+import { Loader2, MoreHorizontal, CheckCircle, Tag, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import {
@@ -24,6 +24,7 @@ import type {
   TikTokPost,
   UserProfile,
 } from '@/lib/types';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 
 interface ActionHubCardProps {
   isLoadingUpcoming: boolean;
@@ -59,8 +60,18 @@ export function ActionHubCard({
   return (
     <Card className="h-full flex flex-col shadow-primary-lg">
       <CardHeader>
-        <CardTitle className="text-center font-headline text-xl">
+        <CardTitle className="text-center font-headline text-xl flex items-center justify-center gap-2">
           Hub de Ação Rápida
+           <TooltipProvider>
+              <Tooltip>
+                  <TooltipTrigger asChild>
+                      <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                      <p>Acesse rapidamente seus próximos posts, ideias e posts recentes.</p>
+                  </TooltipContent>
+              </Tooltip>
+          </TooltipProvider>
         </CardTitle>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col">
@@ -202,5 +213,3 @@ export function ActionHubCard({
     </Card>
   );
 }
-
-    

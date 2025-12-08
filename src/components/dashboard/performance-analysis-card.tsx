@@ -2,9 +2,10 @@
 'use client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, RefreshCw, Lightbulb } from 'lucide-react';
+import { Loader2, RefreshCw, Lightbulb, Info } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import type { DashboardInsightsOutput } from '@/app/(app)/dashboard/actions';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 
 interface PerformanceAnalysisCardProps {
     isGeneratingInsights: boolean;
@@ -16,7 +17,19 @@ export default function PerformanceAnalysisCard({ isGeneratingInsights, insights
     return (
         <Card className="h-full flex flex-col shadow-primary-lg">
             <CardHeader>
-                <CardTitle className="text-center">Análise de Desempenho</CardTitle>
+                <CardTitle className="text-center flex items-center justify-center gap-2">
+                    Análise de Desempenho (IA)
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>Receba insights gerados por IA com base em suas métricas recentes.</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                </CardTitle>
             </CardHeader>
             <CardContent className="flex-1 flex flex-col">
                 {isGeneratingInsights ? (

@@ -3,11 +3,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
-import { Target, PartyPopper, Trophy } from 'lucide-react';
+import { Target, PartyPopper, Trophy, Info } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { FollowerGoalSheet } from './follower-goal-sheet';
 import { Button } from '../ui/button';
 import { motion } from 'framer-motion';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 
 interface GoalCardProps {
     isLoading: boolean;
@@ -26,7 +27,6 @@ export function GoalCard({ isLoading, goalFollowers, currentFollowers, formatMet
     
     const pieData = [{ value: followerGoalProgress, fill: 'hsl(var(--primary))' }, { value: 100 - followerGoalProgress, fill: 'hsl(var(--muted))' }];
 
-    // Effect to automatically open the goal sheet when a goal is reached
     useEffect(() => {
         if (isGoalReached) {
             setIsGoalSheetOpen(true);
@@ -39,16 +39,32 @@ export function GoalCard({ isLoading, goalFollowers, currentFollowers, formatMet
             userProfile={userProfile} 
             isOpen={isGoalSheetOpen} 
             setIsOpen={setIsGoalSheetOpen}
-            isGoalReached={isGoalReached}
         >
-            {/* The trigger is outside, so we pass a dummy span here */}
-            <span /> 
+             {isGoalReached ? (
+                 <div className="mx-auto h-16 w-16 rounded-full bg-yellow-400/10 flex items-center justify-center mb-2 border-2 border-yellow-400/20">
+                    <Trophy className="h-8 w-8 text-yellow-500 animate-pulse" />
+                 </div>
+             ) : (
+                <div className="font-headline text-xl">Definir Metas de Seguidores</div>
+             )}
         </FollowerGoalSheet>
 
 
         <Card className="h-full shadow-primary-lg">
             <CardHeader>
-                <CardTitle className="text-center font-headline text-xl">Meta de Seguidores</CardTitle>
+                <CardTitle className="text-center font-headline text-xl flex items-center justify-center gap-2">
+                    Meta de Seguidores
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>Acompanhe o progresso em direção à sua meta de seguidores.</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                </CardTitle>
             </CardHeader>
             <CardContent className="pt-6">
                 <div className="flex flex-col items-center justify-center text-center">
