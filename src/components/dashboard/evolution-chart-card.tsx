@@ -137,7 +137,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
   };
   
   return (
-    <Card className="shadow-primary-lg">
+    <Card className="shadow-primary-lg flex flex-col h-[530px]">
         <CardHeader>
             <CardTitle className="text-center flex items-center justify-center gap-2">
               Análise de Performance
@@ -153,8 +153,8 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
               </TooltipProvider>
             </CardTitle>
         </CardHeader>
-        <CardContent className="h-[450px] pl-2 pr-4">
-          <Tabs defaultValue="evolution" className="w-full h-full flex flex-col">
+        <CardContent className="flex-1 flex flex-col pt-0 pl-2 pr-4">
+          <Tabs defaultValue="evolution" className="w-full flex-1 flex flex-col">
               <TabsList className="grid w-full grid-cols-3 mx-auto max-w-md">
                   <TabsTrigger value="evolution"><TrendingUp className="mr-2 h-4 w-4" /> Evolução</TabsTrigger>
                   <TabsTrigger value="topPosts"><BarChartHorizontal className="mr-2 h-4 w-4" /> Top Posts</TabsTrigger>
