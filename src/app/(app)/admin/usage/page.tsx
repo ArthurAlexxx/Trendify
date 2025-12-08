@@ -88,6 +88,8 @@ export default function UsageAdminPage() {
       const userCache = new Map<string, UserProfile>();
 
       for (const usage of usageData) {
+        if (!usage.data || !usage.path) continue;
+        
         // Correctly extract userId from the document path
         const pathParts = usage.path.split('/');
         const userIdIndex = pathParts.indexOf('users') + 1;
@@ -107,7 +109,7 @@ export default function UsageAdminPage() {
         }
         
         let videoAnalysis: AnaliseVideo | undefined;
-        if(usage.data.videoAnalyses > 0) {
+        if(usage.data.videoAnalyses > 0 && usage.data.date) {
             videoAnalysis = await fetchVideoAnalysis(userId, usage.data.date);
         }
 
@@ -117,6 +119,7 @@ export default function UsageAdminPage() {
             videoAnalysis,
         });
       }
+      // @ts-ignore
       setEnrichedUsage(enriched.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
       setIsEnriching(false);
     };
@@ -211,7 +214,7 @@ export default function UsageAdminPage() {
                           )}
                         </TableCell>
                         <TableCell>
-                         {format(parseISO(usage.date), "dd/MM/yyyy", { locale: ptBR })}
+                         {usage.date ? format(parseISO(usage.date), "dd/MM/yyyy", { locale: ptBR }) : 'Data inválida'}
                         </TableCell>
                         <TableCell>
                           {usage.videoAnalyses || 0}

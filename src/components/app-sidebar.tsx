@@ -78,7 +78,7 @@ const adminMenuItems: {
     {
         category: 'Admin',
         items: [
-            { href: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
+            { href: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
             { href: '/admin/users', icon: User, label: 'Usuários' },
             { href: '/admin/financial', icon: DollarSign, label: 'Financeiro' },
             { href: '/admin/usage', icon: Activity, label: 'Uso da IA' },
@@ -199,7 +199,7 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
 
   return (
      <aside className={sidebarClass}>
-      <div className="flex items-center gap-2 px-6 h-20 border-b">
+      <div className="flex items-center justify-center h-20 border-b px-4">
          <Link
             href="/"
             onClick={handleLinkClick}
@@ -330,7 +330,7 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
                     </DropdownMenuItem>
                  ) : null}
                  {isAdmin && (
-                    <DropdownMenuItem onClick={() => router.push('/admin')}>
+                    <DropdownMenuItem onClick={() => router.push('/admin/dashboard')}>
                       <Shield className="mr-2 h-4 w-4" />
                       <span>Painel Admin</span>
                     </DropdownMenuItem>
