@@ -159,7 +159,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
         <div className="rounded-lg border bg-background p-2 shadow-sm min-w-[200px]">
           <div className="flex flex-col">
             <span className="text-[0.70rem] uppercase text-muted-foreground">
-              {data.name || label}
+              {data.name && data.name !== 'Sem título' ? data.name : label}
             </span>
              {payload.map((p: any) => (
                <div key={p.dataKey} className="flex items-center justify-between mt-1">
