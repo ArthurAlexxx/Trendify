@@ -3,6 +3,9 @@
 
 import { z } from 'zod';
 import { callOpenAI } from '@/lib/openai-client';
+import { initializeFirebaseAdmin } from '@/firebase/admin';
+import { PlanoSemanal } from '@/lib/types';
+import { Timestamp } from 'firebase-admin/firestore';
 
 const ItemRoteiroSchema = z.object({
   dia: z.string().describe('O dia da semana para a tarefa (ex: "Segunda").'),
@@ -121,4 +124,45 @@ export async function generateWeeklyPlanAction(
       e instanceof Error ? e.message : 'Ocorreu um erro desconhecido.';
     return { error: `Falha ao gerar plano: ${errorMessage}` };
   }
+}
+
+export async function archiveAndClearWeeklyPlanAction(userId: string, planId: string, activePlan: PlanoSemanal): Promise<{success: boolean, error?: string}> {
+    if (!userId || !planId || !activePlan) {
+        return { success: false, error: "Dados do plano inválidos." };
+    }
+    
+    try {
+        const { firestore } = initializeFirebaseAdmin();
+        const batch = firestore.batch();
+
+        // 1. Reference to the new archived document in `ideiasSalvas`
+        const ideasCollectionRef = firestore.collection(`users/${userId}/ideiasSalvas`);
+        const newArchivedRef = ideasCollectionRef.doc();
+
+        // 2. Set the data for the new archived plan
+         if (activePlan.createdAt instanceof Timestamp) {
+            batch.set(newArchivedRef, {
+                userId: userId,
+                titulo: `Plano Concluído de ${activePlan.createdAt.toDate().toLocaleDateString('pt-BR')}`,
+                conteudo: activePlan.items.map(item => `**${item.dia}:** ${item.tarefa}`).join('\n'),
+                origem: "Plano Semanal",
+                concluido: true, // Mark as completed
+                createdAt: activePlan.createdAt,
+                completedAt: Timestamp.now(), // Set completion date
+                aiResponseData: activePlan,
+            });
+        }
+
+        // 3. Reference to the active plan to be deleted
+        const activePlanRef = firestore.doc(`users/${userId}/weeklyPlans/${planId}`);
+        batch.delete(activePlanRef);
+
+        // 4. Commit all operations
+        await batch.commit();
+
+        return { success: true };
+    } catch(e: any) {
+        console.error("Error archiving and clearing plan:", e);
+        return { success: false, error: e.message || "Erro desconhecido ao arquivar plano." };
+    }
 }

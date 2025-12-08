@@ -21,11 +21,11 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Bot, Loader2, Sparkles, Check, History, ClipboardList, BrainCircuit, Target, Eye, BarChart as BarChartIcon, Zap, AlertTriangle, Trophy, Save, Edit, Lightbulb, Trash2 } from 'lucide-react';
+import { Bot, Loader2, Sparkles, Check, History, ClipboardList, BrainCircuit, Target, Eye, BarChart as BarChartIcon, Zap, AlertTriangle, Trophy, Save, Edit, Lightbulb, Trash2, PartyPopper } from 'lucide-react';
 import { useEffect, useTransition, useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { generateWeeklyPlanAction, GenerateWeeklyPlanOutput } from '@/app/(app)/generate-weekly-plan/actions';
+import { generateWeeklyPlanAction, GenerateWeeklyPlanOutput, archiveAndClearWeeklyPlanAction } from '@/app/(app)/generate-weekly-plan/actions';
 import { Separator } from '@/components/ui/separator';
 import { useDoc, useFirestore, useMemoFirebase, useUser, useCollection } from '@/firebase';
 import type { UserProfile, PlanoSemanal, ItemRoteiro, IdeiaSalva } from '@/lib/types';
@@ -121,6 +121,7 @@ export default function GenerateWeeklyPlanPage() {
   
   const [isSaving, startSavingTransition] = useTransition();
   const [isDiscarding, startDiscardingTransition] = useTransition();
+  const [isPlanCompleted, setIsPlanCompleted] = useState(false);
 
   const { user } = useUser();
   const firestore = useFirestore();
@@ -178,6 +179,11 @@ export default function GenerateWeeklyPlanPage() {
   const { data: activePlanData, isLoading: isLoadingActivePlan } = useCollection<PlanoSemanal>(activePlanQuery);
   const activePlan = activePlanData?.[0];
 
+  useEffect(() => {
+    if (activePlan && activePlan.items.every(item => item.concluido)) {
+      setIsPlanCompleted(true);
+    }
+  }, [activePlan]);
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),
@@ -348,43 +354,26 @@ export default function GenerateWeeklyPlanPage() {
     if (!user || !firestore || !activePlan) return;
 
     startDiscardingTransition(async () => {
-      try {
-        const batch = writeBatch(firestore);
-        const ideasCollectionRef = collection(firestore, `users/${user.uid}/ideiasSalvas`);
-        
-        // Archive the active plan
-        if (activePlan.createdAt instanceof Timestamp) {
-            const newArchivedRef = doc(ideasCollectionRef);
-            batch.set(newArchivedRef, {
-            userId: user.uid,
-            titulo: `Plano Arquivado de ${activePlan.createdAt.toDate().toLocaleDateString('pt-BR')}`,
-            conteudo: activePlan.items.map(item => `**${item.dia}:** ${item.tarefa}`).join('\n'),
-            origem: "Plano Semanal",
-            concluido: false, 
-            createdAt: activePlan.createdAt,
-            aiResponseData: activePlan,
+        const result = await archiveAndClearWeeklyPlanAction(user.uid, activePlan.id, activePlan);
+        if (result.success) {
+            toast({
+                title: 'Plano Arquivado',
+                description: 'O plano ativo foi movido para o seu histórico.',
+            });
+        } else {
+             toast({
+                title: 'Erro ao Arquivar',
+                description: result.error || 'Não foi possível arquivar o plano.',
+                variant: 'destructive',
             });
         }
-        
-        // Delete the active plan document
-        batch.delete(doc(firestore, `users/${user.uid}/weeklyPlans`, activePlan.id));
-        
-        await batch.commit();
-
-        toast({
-          title: 'Plano Descartado',
-          description: 'O plano ativo foi movido para o seu histórico.',
-        });
-      } catch (e: any) {
-        console.error('Erro ao descartar plano ativo:', e);
-        toast({
-          title: 'Erro ao Descartar',
-          description: `Não foi possível descartar o plano: ${e.message}`,
-          variant: 'destructive',
-        });
-      }
     });
   };
+
+  const handleArchiveCompletedPlan = () => {
+    setIsPlanCompleted(false);
+    handleDiscardActivePlan();
+  }
   
   const isButtonDisabled = isGenerating || isSaving || isLoadingProfile || hasReachedLimit;
 
@@ -397,6 +386,26 @@ export default function GenerateWeeklyPlanPage() {
         icon={ClipboardList}
       />
       
+      <AlertDialog open={isPlanCompleted} onOpenChange={setIsPlanCompleted}>
+        <AlertDialogContent>
+            <AlertDialogHeader className="text-center items-center">
+                 <div className="h-16 w-16 rounded-full bg-yellow-400/10 flex items-center justify-center mb-2 border-2 border-yellow-400/20">
+                    <PartyPopper className="h-8 w-8 text-yellow-500 animate-pulse" />
+                  </div>
+                <AlertDialogTitle className="font-headline text-2xl">Parabéns!</AlertDialogTitle>
+                <AlertDialogDescription>
+                Você concluiu todas as tarefas do seu plano semanal. Deseja arquivar este plano e liberar espaço para o próximo?
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel>Continuar com o plano</AlertDialogCancel>
+                <AlertDialogAction onClick={handleArchiveCompletedPlan}>
+                    Arquivar e Criar Novo
+                </AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <div>
         <div className="text-center">
             <h2 className="text-xl font-bold font-headline">Como Montamos seu Plano?</h2>
@@ -979,7 +988,3 @@ export default function GenerateWeeklyPlanPage() {
     </div>
   );
 }
-
-    
-
-    

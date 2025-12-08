@@ -82,7 +82,20 @@ const adminMenuItems: {
             { href: '/admin/users', icon: User, label: 'Usuários' },
             { href: '/admin/financial', icon: DollarSign, label: 'Financeiro' },
             { href: '/admin/usage', icon: Activity, label: 'Uso da IA' },
-            { href: '/admin/tokens', icon: Coins, label: 'Uso de Tokens' },
+        ]
+    },
+    {
+        category: "App (Testes)",
+        items: [
+            { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard (App)'},
+            { href: '/content-calendar', icon: Calendar, label: 'Calendário'},
+            { href: '/generate-weekly-plan', icon: ClipboardList, label: 'Plano Semanal'},
+            { href: '/video-ideas', icon: Lightbulb, label: 'Ideias de Vídeos'},
+            { href: '/video-review', icon: Video, label: 'Análise de Vídeo'},
+            { href: '/media-kit', icon: Briefcase, label: 'Mídia Kit'},
+            { href: '/publis-assistant', icon: Newspaper, label: 'Assistente de Publis'},
+            { href: '/profile', icon: User, label: 'Perfil'},
+            { href: '/settings', icon: Settings, label: 'Configurações'},
         ]
     }
 ];

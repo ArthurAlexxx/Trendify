@@ -1,3 +1,4 @@
+
 'use client';
 
 import { AppSidebar } from '@/components/app-sidebar';
@@ -18,13 +19,11 @@ export default function AdminLayout({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    // Only redirect when loading is complete and the user is explicitly NOT an admin.
     if (!isLoading && !isAdmin) {
       router.replace('/dashboard');
     }
   }, [isAdmin, isLoading, router]);
 
-  // Global error handler for ChunkLoadError
   useEffect(() => {
     const handleChunkLoadError = (event: PromiseRejectionEvent) => {
       if (event.reason && event.reason.name === 'ChunkLoadError') {
@@ -40,7 +39,6 @@ export default function AdminLayout({
     };
   }, []);
 
-  // While checking for admin status, show a full-screen loader.
   if (isLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
@@ -49,9 +47,6 @@ export default function AdminLayout({
     );
   }
 
-  // If loading is done and the user is an admin, render the layout.
-  // Otherwise (not an admin), render null while the useEffect handles the redirect.
-  // This prevents flashing the admin UI to non-admin users.
   return isAdmin ? (
     <div className="flex min-h-screen w-full bg-background">
         <AppSidebar isMobile={false} setIsMobileMenuOpen={setIsMobileMenuOpen} />
