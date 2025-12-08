@@ -10,7 +10,7 @@ import { TrendingUp, Percent, BarChartHorizontal, ClipboardList, Info } from 'lu
 import type { MetricSnapshot, InstagramPostData, TikTokPost, UserProfile } from '@/lib/types';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const chartConfigBase: ChartConfig = {
   followers: { label: "Seguidores", color: "hsl(var(--chart-1))" },
@@ -56,8 +56,12 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
             ? 'Sem título'
             : captionOrDesc; // Full name for tooltip
 
-        const date = 'createdAt' in p && p.createdAt ? (p.createdAt as any).toDate() 
-                   : ('fetchedAt' in p && p.fetchedAt ? p.fetchedAt.toDate() : new Date(0));
+        const date =
+          'createdAt' in p && p.createdAt && typeof (p.createdAt as any).toDate === 'function'
+            ? (p.createdAt as any).toDate()
+            : 'fetchedAt' in p && p.fetchedAt && typeof (p.fetchedAt as any).toDate === 'function'
+            ? (p.fetchedAt as any).toDate()
+            : new Date(0);
 
         if ('shortcode' in p) { // InstagramPostData
             const followerCount = parseMetric(userProfile?.instagramFollowers);
@@ -189,8 +193,8 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                   </div>
                    {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
                     evolutionChartData.length > 0 ? (
-                        <ChartContainer config={chartConfigBase} className="h-[350px] w-full flex-1">
-                          <ResponsiveContainer>
+                        <ChartContainer config={chartConfigBase} className="h-auto flex-1">
+                          <ResponsiveContainer width="100%" height={350}>
                             <LineChart data={evolutionChartData} margin={{ top: 5, right: 20, left: -10, bottom: 20 }}>
                                 <CartesianGrid vertical={false} strokeDasharray="3 3" />
                                 <XAxis dataKey="date" interval="preserveStartEnd" tick={{ fontSize: 12 }} />
@@ -228,8 +232,8 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                     </div>
                     {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
                     topPostsData.length > 0 ? (
-                       <ChartContainer config={chartConfigBase} className="h-[350px] w-full flex-1">
-                         <ResponsiveContainer>
+                       <ChartContainer config={chartConfigBase} className="h-auto flex-1">
+                         <ResponsiveContainer width="100%" height={350}>
                             <BarChart data={topPostsData} layout="vertical" margin={{ left: 120, top: 5, right: 30, bottom: 5 }} onClick={handleChartClick}>
                               <CartesianGrid horizontal={false} strokeDasharray="3 3" />
                               <XAxis type="number" tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
@@ -266,8 +270,8 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                     </div>
                    {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
                     engagementRateData.length > 0 ? (
-                       <ChartContainer config={chartConfigBase} className="h-[350px] w-full flex-1">
-                         <ResponsiveContainer>
+                       <ChartContainer config={chartConfigBase} className="h-auto flex-1">
+                         <ResponsiveContainer width="100%" height={350}>
                             <AreaChart data={engagementRateData} margin={{ top: 5, right: 20, left: -10, bottom: 20 }}>
                                 <defs>
                                 <linearGradient id="fillEng" x1="0" y1="0" x2="0" y2="1">
