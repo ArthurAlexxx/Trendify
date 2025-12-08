@@ -20,7 +20,7 @@ import { RecentPostsSheet } from '@/components/dashboard/recent-posts-sheet';
 import type {
   ConteudoAgendado,
   IdeiaSalva,
-  InstagramPost,
+  InstagramPostData,
   TikTokPost,
   UserProfile,
 } from '@/lib/types';
@@ -32,7 +32,7 @@ interface ActionHubCardProps {
   ideiasSalvas: IdeiaSalva[] | null;
   isFetchingPosts: boolean;
   instaProfile: UserProfile | null;
-  instaPosts: InstagramPost[] | null;
+  instaPosts: InstagramPostData[] | null;
   tiktokProfile: UserProfile | null;
   tiktokPosts: TikTokPost[] | null;
   handleToggleIdeia: (ideia: IdeiaSalva) => void;

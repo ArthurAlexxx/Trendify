@@ -12,14 +12,14 @@ import {
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { InstagramProfileResults, TikTokProfileResults } from './platform-results';
-import type { InstagramProfileData, TikTokProfileData, InstagramPost, TikTokPost } from '@/lib/types';
+import type { InstagramProfileData, TikTokProfileData, InstagramPostData, TikTokPost } from '@/lib/types';
 import { Instagram, Film, Inbox, Loader2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { ScrollArea } from '../ui/scroll-area';
 
 interface RecentPostsSheetProps {
   instaProfile: Partial<InstagramProfileData> | null;
-  instaPosts: InstagramPost[] | null;
+  instaPosts: InstagramPostData[] | null;
   tiktokProfile: Partial<TikTokProfileData> | null;
   tiktokPosts: TikTokPost[] | null;
   isLoading: boolean;

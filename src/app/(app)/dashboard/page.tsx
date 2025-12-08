@@ -45,7 +45,7 @@ import type {
   ConteudoAgendado,
   UserProfile,
   MetricSnapshot,
-  InstagramPost,
+  InstagramPostData,
   TikTokPost,
   PlanoSemanal,
   ItemRoteiro,
@@ -393,7 +393,7 @@ export default function DashboardPage() {
   const instaPostsQuery = useMemoFirebase(() => (
       firestore && user ? query(collection(firestore, `users/${user.uid}/instagramPosts`), orderBy('fetchedAt', 'desc'), limit(10)) : null
   ), [firestore, user]);
-  const { data: instaPosts, isLoading: isLoadingInstaPosts } = useCollection<InstagramPost>(instaPostsQuery);
+  const { data: instaPosts, isLoading: isLoadingInstaPosts } = useCollection<InstagramPostData>(instaPostsQuery);
   
   const tiktokPostsQuery = useMemoFirebase(() => (
       firestore && user ? query(collection(firestore, `users/${user.uid}/tiktokPosts`), orderBy('fetchedAt', 'desc'), limit(10)) : null
