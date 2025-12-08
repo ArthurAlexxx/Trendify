@@ -50,16 +50,15 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
         combined = [...(instaPosts || []), ...(tiktokPosts || [])];
      }
      
-     const posts = combined.map(p => {
+     const posts = combined.map((p, index) => {
         const captionOrDesc = 'caption' in p ? p.caption : p.description;
         const name = (!captionOrDesc || /^(Post|Video) \d+/.test(captionOrDesc))
-            ? 'Sem título'
+            ? `Post sem título ${index + 1}`
             : captionOrDesc; // Full name for tooltip
 
-        const date =
-          'createdAt' in p && p.createdAt && typeof (p.createdAt as any).toDate === 'function'
+        const date = ('createdAt' in p && p.createdAt && typeof (p.createdAt as any).toDate === 'function')
             ? (p.createdAt as any).toDate()
-            : 'fetchedAt' in p && p.fetchedAt && typeof (p.fetchedAt as any).toDate === 'function'
+            : ('fetchedAt' in p && p.fetchedAt && typeof (p.fetchedAt as any).toDate === 'function')
             ? (p.fetchedAt as any).toDate()
             : new Date(0);
 
@@ -70,6 +69,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                 id: p.id,
                 name: name,
                 shortName: name === 'Sem título' ? name : name.substring(0, 25) + (name.length > 25 ? '...' : ''),
+                postLabel: `Post ${index + 1}`,
                 views: p.video_view_count ?? 0,
                 likes: p.likes,
                 comments: p.comments,
@@ -86,6 +86,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                 id: p.id,
                 name: name,
                 shortName: name === 'Sem título' ? name : name.substring(0, 25) + (name.length > 25 ? '...' : ''),
+                postLabel: `Post ${index + 1}`,
                 views: p.views,
                 likes: p.likes,
                 comments: p.comments,
@@ -112,9 +113,8 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
     return allPosts.map(d => {
         return {
             name: d.name,
-            shortName: d.shortName,
+            postLabel: d.postLabel,
             engagementRate: d.engagement,
-            date: format(d.date, 'dd/MM')
         }
     });
   }, [allPosts]);
@@ -122,7 +122,6 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
   const evolutionChartData = useMemo(() => {
     return allPosts.map(p => ({
         ...p,
-        date: format(p.date, 'dd/MM'),
     }));
   }, [allPosts]);
 
@@ -191,13 +190,13 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                       </Tooltip>
                     </TooltipProvider>
                   </div>
-                   {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
+                   {isLoading ? <Skeleton className="h-auto aspect-[1.5/1] w-full" /> : 
                     evolutionChartData.length > 0 ? (
                         <ChartContainer config={chartConfigBase} className="h-auto flex-1">
                           <ResponsiveContainer width="100%" aspect={1.5}>
-                            <LineChart data={evolutionChartData} margin={{ top: 5, right: 20, left: -10, bottom: 20 }}>
+                            <LineChart data={evolutionChartData} margin={{ top: 5, right: 20, left: -10, bottom: 20 }} onClick={handleChartClick} className="cursor-pointer">
                                 <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                                <XAxis dataKey="date" interval="preserveStartEnd" tick={{ fontSize: 12 }} />
+                                <XAxis dataKey="postLabel" interval="preserveStartEnd" tick={{ fontSize: 12 }} />
                                 <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
                                 <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
                                 <Legend />
@@ -230,7 +229,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                         </Tooltip>
                         </TooltipProvider>
                     </div>
-                    {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
+                    {isLoading ? <Skeleton className="h-auto aspect-[1/1] w-full" /> : 
                     topPostsData.length > 0 ? (
                        <ChartContainer config={chartConfigBase} className="h-auto flex-1">
                          <ResponsiveContainer width="100%" aspect={1}>
@@ -268,11 +267,11 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                             </Tooltip>
                         </TooltipProvider>
                     </div>
-                   {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
+                   {isLoading ? <Skeleton className="h-auto aspect-[1.5/1] w-full" /> : 
                     engagementRateData.length > 0 ? (
                        <ChartContainer config={chartConfigBase} className="h-auto flex-1">
                          <ResponsiveContainer width="100%" aspect={1.5}>
-                            <AreaChart data={engagementRateData} margin={{ top: 5, right: 20, left: -10, bottom: 20 }}>
+                            <AreaChart data={engagementRateData} margin={{ top: 5, right: 20, left: -10, bottom: 20 }} onClick={handleChartClick} className="cursor-pointer">
                                 <defs>
                                 <linearGradient id="fillEng" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="5%" stopColor="var(--color-engagementRate)" stopOpacity={0.8}/>
@@ -280,7 +279,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                                 </linearGradient>
                                 </defs>
                                 <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                                <XAxis dataKey="date" interval="preserveStartEnd" tick={{ fontSize: 12 }} />
+                                <XAxis dataKey="postLabel" interval="preserveStartEnd" tick={{ fontSize: 12 }} />
                                 <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => `${value}%`} />
                                 <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
                                 <Area dataKey="engagementRate" type="monotone" fill="url(#fillEng)" stroke="var(--color-engagementRate)" name="Engajamento" />
