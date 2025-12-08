@@ -119,7 +119,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                 likes: p.likes,
                 comments: p.comments,
                 engagement: parseFloat(engagement.toFixed(2)),
-                url: p.shareUrl,
+                url: p.shareUrl || '',
                 mediaUrl: p.coverUrl, // Use coverUrl for TikTok
                 coverUrl: p.coverUrl,
                 date: date,
