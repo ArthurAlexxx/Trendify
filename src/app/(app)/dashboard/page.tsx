@@ -2,27 +2,13 @@
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import {
   Users,
   Eye,
   Heart,
   MessageSquare,
-  AlertTriangle,
   LayoutGrid,
   ClipboardList,
-  CalendarPlus,
-  MoreHorizontal,
-  CheckCircle,
-  Tag,
-  Rocket,
-  RefreshCw,
-  Loader2,
-  Instagram,
-  Film,
-  Crown,
-  PlayCircle,
-  Check,
   Target,
   Pencil,
   Activity,
@@ -33,16 +19,9 @@ import {
   TrendingUp,
   BarChartHorizontal,
   Percent,
+  RefreshCw,
+  Loader2,
 } from 'lucide-react';
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from '@/components/ui/chart';
-import { BarChart, Bar, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartsTooltip, PieChart, Pie, Cell, Legend, LineChart, Line, LabelList } from 'recharts';
-import { ChartConfig } from '@/components/ui/chart';
-import { cn } from '@/lib/utils';
-import { Separator } from '@/components/ui/separator';
 import type {
   IdeiaSalva,
   ConteudoAgendado,
@@ -51,363 +30,43 @@ import type {
   InstagramPostData,
   TikTokPost,
   PlanoSemanal,
-  ItemRoteiro,
 } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Checkbox } from '@/components/ui/checkbox';
-import { format, formatDistanceToNow, isToday, isSameDay } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import Link from 'next/link';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { useState, useMemo, useEffect, useTransition } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, useCollection, useDoc, useMemoFirebase } from '@/firebase';
-import { collection, doc, query, orderBy, limit, updateDoc, where, getDocs, Timestamp, setDoc, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, doc, query, orderBy, limit, updateDoc, where, serverTimestamp, getDocs, setDoc } from 'firebase/firestore';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useSubscription } from '@/hooks/useSubscription';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from '@/components/ui/sheet';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Progress } from '@/components/ui/progress';
 import { FollowerGoalSheet } from '@/components/dashboard/follower-goal-sheet';
 import { ProfileCompletionAlert } from '@/components/dashboard/profile-completion-alert';
 import { generateDashboardInsights, type DashboardInsightsOutput } from './actions';
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { RecentPostsSheet } from '@/components/dashboard/recent-posts-sheet';
-import { ActionHubCard } from '@/components/dashboard/action-hub-card';
+import React, { useState, useMemo, useEffect, Suspense } from 'react';
+import dynamic from 'next/dynamic';
 
+const GoalCard = dynamic(() => import('@/components/dashboard/goal-card').then(mod => mod.GoalCard), {
+  loading: () => <Skeleton className="h-full min-h-[380px]" />,
+});
 
-const chartConfigBase: ChartConfig = {
-  followers: { label: "Seguidores", color: "hsl(var(--chart-1))" },
-  views: { label: "Views", color: "hsl(var(--chart-2))"  },
-  likes: { label: "Likes", color: "hsl(var(--chart-3))"  },
-  comments: { label: "Comentários", color: "hsl(var(--chart-4))"  },
-  engagementRate: { label: "Engajamento (%)", color: "hsl(var(--chart-5))" },
-};
+const DailyPlanCard = dynamic(() => import('@/components/dashboard/daily-plan-card').then(mod => mod.DailyPlanCard), {
+  loading: () => <Skeleton className="h-full min-h-[250px]" />,
+});
 
+const ActionHubCard = dynamic(() => import('@/components/dashboard/action-hub-card').then(mod => mod.ActionHubCard), {
+  loading: () => <Skeleton className="h-full min-h-[300px]" />,
+});
 
-const DailyPlanCard = ({ isLoadingWeeklyPlans, tasksForToday, currentPlan, handleToggleRoteiro }: any) => (
-  <Card className="h-full shadow-primary-lg">
-    <CardHeader>
-      <CardTitle className="text-center font-headline text-xl">
-        Plano para Hoje
-      </CardTitle>
-    </CardHeader>
-    <CardContent>
-      {isLoadingWeeklyPlans ? (
-        <div className="flex justify-center items-center h-24"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
-      ) : tasksForToday && tasksForToday.length > 0 ? (
-        <ul className="space-y-3">
-          {tasksForToday.map((item: any, index: number) => {
-            const originalIndex = currentPlan!.items.findIndex((pItem: any) => pItem.dia === item.dia && pItem.tarefa === item.tarefa);
-            return (
-              <li key={index} className="flex items-start gap-3">
-                <Checkbox
-                  id={`daily-plan-task-${index}`}
-                  checked={item.concluido}
-                  onCheckedChange={() => handleToggleRoteiro(originalIndex)}
-                  className="h-5 w-5 mt-0.5 shrink-0"
-                />
-                <div className="grid gap-0.5">
-                  <label
-                    htmlFor={`daily-plan-task-${index}`}
-                    className={cn(
-                      'font-medium transition-colors cursor-pointer',
-                      item.concluido ? 'line-through text-muted-foreground' : 'text-foreground'
-                    )}
-                  >
-                    {item.tarefa}
-                  </label>
-                  <p className="text-xs text-muted-foreground">{item.detalhes}</p>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      ) : (
-        <div className="text-center py-4">
-          <p className="text-muted-foreground text-sm">Nenhuma tarefa para hoje.</p>
-          <Button variant="link" asChild size="sm">
-            <Link href="/generate-weekly-plan">Ver plano completo</Link>
-          </Button>
-        </div>
-      )}
-    </CardContent>
-  </Card>
-);
+const EngagementMetricsCard = dynamic(() => import('@/components/dashboard/engagement-metrics-card').then(mod => mod.EngagementMetricsCard), {
+  loading: () => <Skeleton className="h-[140px]" />,
+});
 
-const GoalCard = ({ isLoading, goalFollowers, currentFollowers, followerGoalProgress, pieData, formatMetricValue }: any) => (
-  <Card className="h-full shadow-primary-lg">
-    <CardHeader>
-      <CardTitle className="text-center">Meta de Seguidores</CardTitle>
-    </CardHeader>
-    <CardContent className="pt-6">
-      <div className="flex flex-col items-center justify-center text-center">
-        {isLoading ? (
-          <Skeleton className="h-48 w-48 rounded-full" />
-        ) : goalFollowers > 0 ? (
-          <div className="relative h-48 w-48">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  dataKey="value"
-                  startAngle={90}
-                  endAngle={-270}
-                  innerRadius="80%"
-                  outerRadius="100%"
-                  cornerRadius={50}
-                  paddingAngle={0}
-                  stroke="none"
-                >
-                  {pieData.map((entry: any, index: number) => (
-                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                  ))}
-                </Pie>
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-4xl font-bold font-headline text-primary">
-                {followerGoalProgress.toFixed(0)}%
-              </span>
-            </div>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center h-48 w-48 rounded-full border-4 border-dashed bg-muted">
-            <Target className="h-12 w-12 text-muted-foreground" />
-          </div>
-        )}
-        <p className="text-3xl font-bold font-headline mt-4">
-          {formatMetricValue(currentFollowers)}
-        </p>
-        {goalFollowers > 0 ? (
-          <p className="text-sm text-muted-foreground">
-            de {formatMetricValue(goalFollowers)} seguidores
-          </p>
-        ) : (
-          <p className="text-sm text-muted-foreground">
-            Defina uma meta para começar
-          </p>
-        )}
-      </div>
-    </CardContent>
-  </Card>
-);
+const EvolutionChartCard = dynamic(() => import('@/components/dashboard/evolution-chart-card').then(mod => mod.EvolutionChartCard), {
+    loading: () => <Skeleton className="h-[430px]" />,
+});
 
-const EngagementMetricsCard = ({ isLoading, latestMetrics, formatMetricValue, getMetricRating }: any) => (
-    <Card className="shadow-primary-lg">
-      <CardHeader>
-          <CardTitle className="text-center">Métricas de Engajamento</CardTitle>
-      </CardHeader>
-      <CardContent>
-          <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
-              <div className='p-4 rounded-lg bg-muted/50 border flex justify-between items-center'>
-                  <div>
-                    <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><Eye className="h-4 w-4" /> Média de Views</h3>
-                    <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.views)}</p>
-                  </div>
-                  <div>
-                      {latestMetrics?.views !== undefined && latestMetrics.followers > 0 && (() => {
-                            const rating = getMetricRating(latestMetrics.views, 'views', latestMetrics.followers);
-                            const Icon = rating.iconName === 'Smile' ? Smile : rating.iconName === 'Meh' ? Meh : Frown;
-                            return (
-                              <div className={cn('h-7 w-7', rating.color)}>
-                                <Icon className="h-full w-full" />
-                              </div>
-                            )
-                        })()}
-                  </div>
-              </div>
-              <div className='p-4 rounded-lg bg-muted/50 border flex justify-between items-center'>
-                  <div>
-                    <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><Heart className="h-4 w-4" /> Média de Likes</h3>
-                    <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.likes)}</p>
-                  </div>
-                    <div>
-                      {latestMetrics?.likes !== undefined && latestMetrics.followers > 0 && (() => {
-                        const rating = getMetricRating(latestMetrics.likes, 'likes', latestMetrics.followers);
-                        const Icon = rating.iconName === 'Smile' ? Smile : rating.iconName === 'Meh' ? Meh : Frown;
-                        return (
-                          <div className={cn('h-7 w-7', rating.color)}>
-                            <Icon className="h-full w-full" />
-                          </div>
-                        )
-                      })()}
-                  </div>
-              </div>
-              <div className='p-4 rounded-lg bg-muted/50 border flex justify-between items-center'>
-                  <div>
-                    <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><MessageSquare className="h-4 w-4" /> Média de Comentários</h3>
-                    <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.comments)}</p>
-                  </div>
-                    <div>
-                      {latestMetrics?.comments !== undefined && latestMetrics.followers > 0 && (() => {
-                        const rating = getMetricRating(latestMetrics.comments, 'comments', latestMetrics.followers);
-                        const Icon = rating.iconName === 'Smile' ? Smile : rating.iconName === 'Meh' ? Meh : Frown;
-                        return (
-                          <div className={cn('h-7 w-7', rating.color)}>
-                            <Icon className="h-full w-full" />
-                          </div>
-                        )
-                      })()}
-                  </div>
-              </div>
-          </div>
-      </CardContent>
-    </Card>
-);
-
-const PerformanceAnalysisCard = ({ isGeneratingInsights, insights, handleGenerateInsights }: any) => (
-  <Card className="h-full flex flex-col shadow-primary-lg">
-     <CardHeader>
-         <CardTitle className="text-center">Análise de Desempenho</CardTitle>
-     </CardHeader>
-    <CardContent className="flex-1 flex flex-col">
-        {isGeneratingInsights ? (
-            <div className="flex-1 flex justify-center items-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
-        ) : insights && insights.insights ? (
-            <ScrollArea className="h-64 pr-4">
-            <ul className="space-y-4">
-                {insights.insights.map((insight: string, i: number) => (
-                <li key={i} className="flex items-start gap-3">
-                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary flex-shrink-0 mt-0.5"><Lightbulb className="h-3.5 w-3.5" /></div>
-                    <p className="text-sm text-muted-foreground">{insight}</p>
-                </li>
-                ))}
-            </ul >
-            </ScrollArea>
-        ) : (
-          <div className="flex-1 flex flex-col justify-center items-center text-center p-4 gap-4">
-            <p className="text-sm text-muted-foreground">Clique em 'Analisar' para receber uma análise com base nas suas últimas métricas.</p>
-            <Button variant="ghost" size="sm" onClick={handleGenerateInsights} disabled={isGeneratingInsights}>
-                {isGeneratingInsights ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
-                Analisar
-            </Button>
-        </div>
-        )}
-    </CardContent>
-  </Card>
-);
-
-const EvolutionChartCard = ({ isLoading, historicalChartData, engagementRateData, topPostsData, userProfile }: any) => {
-  const [chartView, setChartView] = useState<'evolution' | 'engagementRate' | 'topPosts'>('evolution');
-
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="rounded-lg border bg-background p-2 shadow-sm">
-          <div className="grid grid-cols-2 gap-2">
-            <div className="flex flex-col">
-              <span className="text-[0.70rem] uppercase text-muted-foreground">
-                {chartView === 'topPosts' ? 'Post' : 'Data'}
-              </span>
-              <span className="font-bold text-muted-foreground">
-                {label}
-              </span>
-            </div>
-            {payload.map((p: any) => (
-               <div key={p.dataKey} className="flex flex-col">
-                <span className="text-[0.70rem] uppercase text-muted-foreground">
-                  {p.name}
-                </span>
-                <span className="font-bold" style={{color: p.color}}>
-                  {p.value.toLocaleString('pt-BR')} {chartView === 'engagementRate' ? '%' : ''}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      );
-    }
-    return null;
-  };
-  
-  const renderChart = () => {
-    switch (chartView) {
-      case 'engagementRate':
-        return (
-          <BarChart data={engagementRateData}>
-            <CartesianGrid vertical={false} strokeDasharray="3 3" />
-            <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} />
-            <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => `${value}%`} />
-            <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
-            <Bar dataKey="engagementRate" fill="var(--color-engagementRate)" radius={4} name="Engajamento" />
-          </BarChart>
-        );
-      case 'topPosts':
-         return (
-            <BarChart data={topPostsData} layout="vertical" margin={{ left: 100 }}>
-              <CartesianGrid horizontal={false} strokeDasharray="3 3" />
-              <XAxis type="number" tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
-              <YAxis type="category" dataKey="name" width={100} tickLine={false} axisLine={false} />
-              <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
-              <Bar dataKey="views" fill="var(--color-views)" radius={[0, 4, 4, 0]} name="Views">
-                 <LabelList dataKey="views" position="right" offset={8} className="fill-foreground text-xs" formatter={(v: number) => typeof v === 'number' && v >= 1000 ? `${(v/1000).toFixed(1)}k` : v} />
-              </Bar>
-            </BarChart>
-          );
-      case 'evolution':
-      default:
-        return (
-          <LineChart data={historicalChartData} >
-            <CartesianGrid vertical={false} strokeDasharray="3 3" />
-            <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} />
-            <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
-            <RechartsTooltip content={<CustomTooltip />} cursor={{ strokeDasharray: '3 3' }} />
-            <Legend />
-            <Line type="monotone" dataKey="followers" stroke="var(--color-followers)" strokeWidth={2} name="Seguidores" dot={false} />
-            <Line type="monotone" dataKey="views" stroke="var(--color-views)" strokeWidth={2} name="Views" dot={false} />
-            <Line type="monotone" dataKey="likes" stroke="var(--color-likes)" strokeWidth={2} name="Likes" dot={false} />
-            <Line type="monotone" dataKey="comments" stroke="var(--color-comments)" strokeWidth={2} name="Comentários" dot={false}/>
-          </LineChart>
-        );
-    }
-  };
-
-
-  return (
-    <Card className="shadow-primary-lg">
-        <CardHeader>
-            <CardTitle className="text-center">Análise de Performance</CardTitle>
-            <div className="flex justify-center pt-4">
-                 <Tabs value={chartView} onValueChange={(value) => setChartView(value as any)} className="w-auto">
-                    <TabsList>
-                        <TabsTrigger value="evolution"><TrendingUp className="mr-2 h-4 w-4" /> Evolução</TabsTrigger>
-                        <TabsTrigger value="engagementRate"><Percent className="mr-2 h-4 w-4" /> Taxa de Engajamento</TabsTrigger>
-                        <TabsTrigger value="topPosts"><BarChartHorizontal className="mr-2 h-4 w-4" /> Top Posts</TabsTrigger>
-                    </TabsList>
-                </Tabs>
-            </div>
-        </CardHeader>
-        <CardContent className="pl-2 pr-6">
-            {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
-            historicalChartData.length > 0 ? (
-                <ChartContainer config={chartConfigBase} className="h-[350px] w-full">
-                  <ResponsiveContainer>
-                    {renderChart()}
-                  </ResponsiveContainer>
-                </ChartContainer>
-            ) : (
-                <div className="h-[350px] w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
-                    <div>
-                    <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
-                    <h3 className="font-semibold text-foreground">{(userProfile?.instagramHandle || userProfile?.tiktokHandle) ? "Dados insuficientes." : "Nenhuma plataforma conectada."}</h3>
-                    <p className="text-sm text-muted-foreground"> {userProfile && <Link href="/profile/integrations" className="text-primary font-medium hover:underline cursor-pointer">Sincronize suas métricas</Link>} para começar a ver seus dados.</p>
-                    </div>
-                </div>
-            )}
-        </CardContent>
-    </Card>
-  );
-};
+const PerformanceAnalysisCard = dynamic(() => import('@/components/dashboard/performance-analysis-card').then(mod => mod.PerformanceAnalysisCard), {
+    loading: () => <Skeleton className="h-full min-h-[250px]" />,
+});
 
 
 export default function DashboardPage() {
@@ -416,8 +75,6 @@ export default function DashboardPage() {
   const { toast } = useToast();
   const [selectedPlatform, setSelectedPlatform] = useState<'total' | 'instagram' | 'tiktok'>('total');
 
-  const [isFetchingPosts, setIsFetchingPosts] = useState(true);
-  
   const [showTikTokModal, setShowTikTokModal] = useState(false);
   const [currentTikTokUrl, setCurrentTikTokUrl] = useState('');
 
@@ -513,7 +170,6 @@ export default function DashboardPage() {
     }
   };
 
-
   const parseMetric = (value?: string | number): number => {
     if (typeof value === 'number') return value;
     if (!value || typeof value !== 'string') return 0;
@@ -521,7 +177,7 @@ export default function DashboardPage() {
     const num = parseFloat(cleanedValue.replace(/K/gi, 'e3').replace(/M/gi, 'e6'));
     return isNaN(num) ? 0 : num;
   };
-
+  
   const formatMetricValue = (value?: string | number): string => {
     if (value === undefined || value === null) return '—';
     const num = typeof value === 'string' ? parseMetric(value) : value;
@@ -530,13 +186,13 @@ export default function DashboardPage() {
     if (num >= 1000) return num.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 1 }).replace(/,0$/, '') + 'K';
     return String(num);
   };
-  
-    const formatNumber = (num: number): string => {
-        if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(1).replace('.', ',')}M`;
-        if (num >= 10000) return `${(num / 1000).toFixed(1).replace('.', ',')}K`;
-        if (num >= 1000) return num.toLocaleString('pt-BR');
-        return String(num);
-    };
+
+  const formatNumber = (num: number): string => {
+    if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(1).replace('.', ',')}M`;
+    if (num >= 10000) return `${(num / 1000).toFixed(1).replace('.', ',')}K`;
+    if (num >= 1000) return num.toLocaleString('pt-BR');
+    return String(num);
+  };
 
   const { currentFollowers, goalFollowers } = useMemo(() => {
     if (!userProfile) return { currentFollowers: 0, goalFollowers: 0 };
@@ -550,9 +206,6 @@ export default function DashboardPage() {
         return { currentFollowers: parseMetric(userProfile.instagramFollowers) + parseMetric(userProfile.tiktokFollowers), goalFollowers: userProfile.totalFollowerGoal || 0 };
     }
   }, [userProfile, selectedPlatform]);
-  
-  const followerGoalProgress = goalFollowers > 0 ? Math.min((currentFollowers / goalFollowers) * 100, 100) : 0;
-  const pieData = [{ value: followerGoalProgress, fill: 'hsl(var(--primary))' }, { value: 100 - followerGoalProgress, fill: 'hsl(var(--muted))' }];
   
   const latestMetrics = useMemo(() => {
     if (!userProfile) return null;
@@ -590,74 +243,6 @@ export default function DashboardPage() {
     }
   }, [userProfile, selectedPlatform]);
 
-  const historicalChartData = useMemo(() => {
-    if (!metricSnapshots || metricSnapshots.length === 0) return [];
-
-    if (selectedPlatform === 'total') {
-        const groupedByDay = metricSnapshots.reduce((acc, snap) => {
-            const dayStr = format(snap.date.toDate(), 'yyyy-MM-dd');
-            if (!acc[dayStr]) {
-                acc[dayStr] = { date: dayStr, followers: 0, views: 0, likes: 0, comments: 0, count: 0 };
-            }
-            acc[dayStr].followers += parseMetric(snap.followers);
-            acc[dayStr].views += parseMetric(snap.views);
-            acc[dayStr].likes += parseMetric(snap.likes);
-            acc[dayStr].comments += parseMetric(snap.comments);
-            acc[dayStr].count++; // Track how many platforms have data for this day
-            return acc;
-        }, {} as Record<string, { date: string; followers: number; views: number; likes: number; comments: number; count: number }>);
-
-        return Object.values(groupedByDay)
-            .sort((a, b) => a.date.localeCompare(b.date))
-            .slice(-30)
-            .map(dayData => ({
-                date: format(new Date(`${dayData.date}T00:00:00`), 'dd/MM'), // Corrected timezone issue here
-                followers: dayData.followers,
-                views: dayData.count > 0 ? dayData.views / dayData.count : 0,
-                likes: dayData.count > 0 ? dayData.likes / dayData.count : 0,
-                comments: dayData.count > 0 ? dayData.comments / dayData.count : 0,
-            }));
-    }
-
-    return metricSnapshots
-        .filter(snap => snap.platform === selectedPlatform)
-        .sort((a, b) => a.date.toMillis() - b.date.toMillis())
-        .slice(-30)
-        .map(snap => ({
-            date: format(snap.date.toDate(), 'dd/MM'),
-            followers: parseMetric(snap.followers),
-            views: parseMetric(snap.views),
-            likes: parseMetric(snap.likes),
-            comments: parseMetric(snap.comments),
-        }));
-  }, [metricSnapshots, selectedPlatform]);
-  
-  const engagementRateData = useMemo(() => {
-    if (!historicalChartData || historicalChartData.length === 0) return [];
-    return historicalChartData.map(d => {
-        const rate = d.followers > 0 ? ((d.likes + d.comments) / d.followers) * 100 : 0;
-        return {
-            date: d.date,
-            engagementRate: parseFloat(rate.toFixed(2)),
-        }
-    });
-  }, [historicalChartData]);
-
-  const topPostsData = useMemo(() => {
-     const allPosts = [
-        ...(instaPosts || []).map(p => ({
-            name: p.caption?.substring(0, 20) || `Post ${p.id.substring(0, 4)}`,
-            views: p.video_view_count ?? 0,
-        })),
-        ...(tiktokPosts || []).map(p => ({
-            name: p.description?.substring(0, 20) || `Video ${p.id.substring(0, 4)}`,
-            views: p.views,
-        }))
-     ];
-     return allPosts.filter(p => p.views > 0).sort((a,b) => b.views - a.views).slice(0, 5);
-  }, [instaPosts, tiktokPosts]);
-
-
   const handleGenerateInsights = async () => {
      if (!metricSnapshots || metricSnapshots.length < 1) {
         toast({
@@ -692,45 +277,6 @@ export default function DashboardPage() {
      }
   }
   
-  const daysOfWeekMap: { [key: string]: number } = {
-    Domingo: 0,
-    Segunda: 1,
-    Terça: 2,
-    Quarta: 3,
-    Quinta: 4,
-    Sexta: 5,
-    Sábado: 6,
-  };
-  const todayIndex = new Date().getDay();
-  const tasksForToday = currentPlan?.items.filter(item => {
-    // Handling pt-BR day names with and without '-feira'
-    const itemDay = item.dia.replace('-feira', '');
-    return daysOfWeekMap[itemDay as keyof typeof daysOfWeekMap] === todayIndex;
-  });
-
-
-  const getMetricRating = (value: number, type: 'views' | 'likes' | 'comments', followers: number): { iconName: 'Smile' | 'Meh' | 'Frown', color: string } => {
-    if (followers === 0) {
-        return { iconName: 'Meh', color: 'text-yellow-500' };
-    }
-
-    const ratio = value / followers;
-    
-    const thresholds = {
-        views: { good: 0.25, medium: 0.05 },    // 25% = bom, 5% = médio
-        likes: { good: 0.03, medium: 0.01 },    // 3% = bom, 1% = médio
-        comments: { good: 0.005, medium: 0.001 } // 0.5% = bom, 0.1% = médio
-    };
-
-    if (ratio >= thresholds[type].good) {
-      return { iconName: 'Smile', color: 'text-green-500' };
-    }
-    if (ratio >= thresholds[type].medium) {
-      return { iconName: 'Meh', color: 'text-yellow-500' };
-    }
-    return { iconName: 'Frown', color: 'text-red-500' };
-  };
-
   return (
     <>
       <Dialog open={showTikTokModal} onOpenChange={setShowTikTokModal}>
@@ -773,56 +319,27 @@ export default function DashboardPage() {
           
           {userProfile && <ProfileCompletionAlert userProfile={userProfile} isPremium={isPremium} />}
 
-          {/* Mobile Carousel */}
-            <div className="lg:hidden space-y-8">
-              <Carousel
-                opts={{
-                  align: "start",
-                }}
-                className="w-full"
-              >
-                  <CarouselContent className="-ml-4">
-                      <CarouselItem className="pl-4 basis-11/12"><div className="p-1 h-full"><GoalCard isLoading={isLoading} goalFollowers={goalFollowers} currentFollowers={currentFollowers} followerGoalProgress={followerGoalProgress} pieData={pieData} formatMetricValue={formatMetricValue} /></div></CarouselItem>
-                      <CarouselItem className="pl-4 basis-11/12"><div className="p-1 h-full"><EngagementMetricsCard isLoading={isLoading} latestMetrics={latestMetrics} formatMetricValue={formatMetricValue} getMetricRating={getMetricRating} /></div></CarouselItem>
-                      <CarouselItem className="pl-4 basis-11/12"><div className="p-1 h-full"><PerformanceAnalysisCard isGeneratingInsights={isGeneratingInsights} insights={insights} handleGenerateInsights={handleGenerateInsights} /></div></CarouselItem>
-                       <CarouselItem className="pl-4 basis-11/12">
-                           <div className="p-1 h-full">
-                            <ActionHubCard 
-                                isLoadingUpcoming={isLoadingUpcoming}
-                                upcomingContent={upcomingContent}
-                                isLoadingIdeias={isLoadingIdeias}
-                                ideiasSalvas={ideiasSalvas}
-                                isFetchingPosts={isLoadingInstaPosts || isLoadingTiktokPosts}
-                                instaProfile={userProfile}
-                                instaPosts={instaPosts}
-                                tiktokProfile={userProfile}
-                                tiktokPosts={tiktokPosts}
-                                handleToggleIdeia={handleToggleIdeia}
-                                handleMarkAsPublished={handleMarkAsPublished}
-                                handleTikTokClick={handleTikTokClick}
-                                formatNumber={formatNumber}
-                            />
-                           </div>
-                         </CarouselItem>
-                  </CarouselContent>
-              </Carousel>
-                <EvolutionChartCard 
-                  isLoading={isLoading} 
-                  historicalChartData={historicalChartData}
-                  engagementRateData={engagementRateData}
-                  topPostsData={topPostsData}
-                  userProfile={userProfile} 
-                />
-                <DailyPlanCard isLoadingWeeklyPlans={isLoadingWeeklyPlans} tasksForToday={tasksForToday} currentPlan={currentPlan} handleToggleRoteiro={handleToggleRoteiro} />
-            </div>
-
           {/* Main Grid */}
-          <div className="hidden lg:grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             
             {/* Left Column */}
             <div className="lg:col-span-1 space-y-8">
-                <GoalCard isLoading={isLoading} goalFollowers={goalFollowers} currentFollowers={currentFollowers} followerGoalProgress={followerGoalProgress} pieData={pieData} formatMetricValue={formatMetricValue} />
-                <DailyPlanCard isLoadingWeeklyPlans={isLoadingWeeklyPlans} tasksForToday={tasksForToday} currentPlan={currentPlan} handleToggleRoteiro={handleToggleRoteiro} />
+                <Suspense fallback={<Skeleton className="h-[380px] w-full" />}>
+                   <GoalCard 
+                        isLoading={isLoading} 
+                        goalFollowers={goalFollowers}
+                        currentFollowers={currentFollowers}
+                        formatMetricValue={formatMetricValue}
+                   />
+                </Suspense>
+                <Suspense fallback={<Skeleton className="h-[250px] w-full" />}>
+                  <DailyPlanCard 
+                    isLoadingWeeklyPlans={isLoadingWeeklyPlans}
+                    currentPlan={currentPlan} 
+                    handleToggleRoteiro={handleToggleRoteiro} 
+                  />
+                </Suspense>
+                <Suspense fallback={<Skeleton className="h-[300px] w-full" />}>
                  <ActionHubCard 
                     isLoadingUpcoming={isLoadingUpcoming}
                     upcomingContent={upcomingContent}
@@ -837,22 +354,36 @@ export default function DashboardPage() {
                     handleMarkAsPublished={handleMarkAsPublished}
                     handleTikTokClick={handleTikTokClick}
                     formatNumber={formatNumber}
-                />
+                  />
+                </Suspense>
             </div>
 
             {/* Right Column */}
             <div className="lg:col-span-2 space-y-8">
-              <EngagementMetricsCard isLoading={isLoading} latestMetrics={latestMetrics} formatMetricValue={formatMetricValue} getMetricRating={getMetricRating} />
-               <EvolutionChartCard 
-                  isLoading={isLoading} 
-                  historicalChartData={historicalChartData}
-                  engagementRateData={engagementRateData}
-                  topPostsData={topPostsData}
-                  userProfile={userProfile} 
+              <Suspense fallback={<Skeleton className="h-[140px] w-full" />}>
+                <EngagementMetricsCard 
+                    isLoading={isLoading} 
+                    latestMetrics={latestMetrics}
+                    formatMetricValue={formatMetricValue} 
                 />
-                <div className="grid grid-cols-1 items-stretch">
-                    <PerformanceAnalysisCard isGeneratingInsights={isGeneratingInsights} insights={insights} handleGenerateInsights={handleGenerateInsights} />
-              </div>
+              </Suspense>
+              <Suspense fallback={<Skeleton className="h-[430px] w-full" />}>
+                <EvolutionChartCard
+                  isLoading={isLoadingMetrics || isLoadingInstaPosts || isLoadingTiktokPosts}
+                  metricSnapshots={metricSnapshots}
+                  instaPosts={instaPosts}
+                  tiktokPosts={tiktokPosts}
+                  selectedPlatform={selectedPlatform}
+                  userProfile={userProfile}
+                />
+              </Suspense>
+              <Suspense fallback={<Skeleton className="h-[250px] w-full" />}>
+                <PerformanceAnalysisCard 
+                    isGeneratingInsights={isGeneratingInsights}
+                    insights={insights}
+                    handleGenerateInsights={handleGenerateInsights}
+                />
+              </Suspense>
             </div>
           </div>
         </div>
