@@ -9,7 +9,6 @@ const nextConfig = {
     serverActions: {
       bodySizeLimit: '80mb',
     },
-    serverComponentsExternalPackages: ['genkitx-openai'],
   },
   images: {
     remotePatterns: [

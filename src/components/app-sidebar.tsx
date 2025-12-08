@@ -6,7 +6,6 @@ import {
   LineChart,
   Newspaper,
   PanelLeft,
-  Video,
   Settings,
   LogOut,
   Calendar,
