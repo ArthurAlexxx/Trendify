@@ -194,6 +194,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                                 <defs>
                                     <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="var(--color-views)" stopOpacity={0.8}/><stop offset="95%" stopColor="var(--color-views)" stopOpacity={0.1}/></linearGradient>
                                     <linearGradient id="colorLikes" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="var(--color-likes)" stopOpacity={0.8}/><stop offset="95%" stopColor="var(--color-likes)" stopOpacity={0.1}/></linearGradient>
+                                    <linearGradient id="colorComments" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="var(--color-comments)" stopOpacity={0.8}/><stop offset="95%" stopColor="var(--color-comments)" stopOpacity={0.1}/></linearGradient>
                                 </defs>
                                 <CartesianGrid vertical={false} strokeDasharray="3 3" />
                                 <XAxis dataKey="postLabel" tick={false} axisLine={false} />
@@ -202,6 +203,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                                 <Legend />
                                 <Area type="monotone" dataKey="views" stroke="var(--color-views)" fill="url(#colorViews)" stackId="1" name="Views" />
                                 <Area type="monotone" dataKey="likes" stroke="var(--color-likes)" fill="url(#colorLikes)" stackId="1" name="Likes" />
+                                <Area type="monotone" dataKey="comments" stroke="var(--color-comments)" fill="url(#colorComments)" stackId="1" name="Comentários" />
                             </AreaChart>
                           </ResponsiveContainer>
                         </ChartContainer>
@@ -264,4 +266,3 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
   );
 }
 
-    
