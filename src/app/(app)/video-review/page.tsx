@@ -331,11 +331,49 @@ function VideoReviewPageContent() {
     );
   };
 
+  const getNoteParts = (geralText: string | undefined): { note: string, description: string } => {
+    if (!geralText) {
+      return { note: '-', description: 'Análise indisponível.' };
+    }
+  
+    // Tenta encontrar "X/10" ou "X / 10"
+    const scoreRegex = /(\d{1,2}(?:[.,]\d{1,2})?)\s*\/\s*10/;
+    const scoreMatch = geralText.match(scoreRegex);
+  
+    if (scoreMatch) {
+      return {
+        note: scoreMatch[1],
+        description: geralText.replace(scoreMatch[0], '').replace(/^[:\s-]+/, '').trim(),
+      };
+    }
+  
+    // Tenta encontrar "Nota: X"
+    const noteRegex = /Nota:\s*(\d{1,2}(?:[.,]\d{1,2})?)/i;
+    const noteMatch = geralText.match(noteRegex);
+  
+    if (noteMatch) {
+      return {
+        note: noteMatch[1],
+        description: geralText.replace(noteMatch[0], '').replace(/^[:\s-]+/, '').trim(),
+      };
+    }
 
-  const noteMatch = analysisResult?.geral.match(/(\d{1,2}(?:[.,]\d{1,2})?)\s*\/\s*10/);
-  const numericNote = noteMatch ? noteMatch[1] : analysisResult?.geral;
-  const noteDescription = noteMatch ? analysisResult.geral.replace(noteMatch[0], '').replace(/[:\s-]/, '').trim() : '';
+    // Tenta encontrar um número no início da string seguido por um separador
+     const initialNumRegex = /^(\d{1,2}(?:[.,]\d{1,2})?)\s*[-–—:]?(.+)/;
+     const initialNumMatch = geralText.match(initialNumRegex);
 
+    if (initialNumMatch) {
+        return {
+            note: initialNumMatch[1],
+            description: initialNumMatch[2].trim(),
+        };
+    }
+  
+    // Se nada funcionar, retorna a string inteira como descrição
+    return { note: '-', description: geralText };
+  };
+
+  const { note: numericNote, description: noteDescription } = getNoteParts(analysisResult?.geral);
 
   const analysisCriteria = [
     {
