@@ -178,9 +178,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
    const handleBarClick = (data: any) => {
     if (data && data.activePayload && data.activePayload[0]) {
       const payload = data.activePayload[0].payload;
-      if (payload.type === 'tiktok') {
-        window.open(payload.url, '_blank', 'noopener,noreferrer');
-      } else if (payload.url) {
+      if (payload.url) {
         window.open(payload.url, '_blank', 'noopener,noreferrer');
       }
     }
@@ -299,3 +297,5 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
     </Card>
   );
 }
+
+    
