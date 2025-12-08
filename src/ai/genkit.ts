@@ -1,3 +1,4 @@
+
 import { genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/google-genai';
 import { openAI } from 'genkitx-openai';
@@ -20,7 +21,7 @@ if (!openAiApiKey && process.env.NODE_ENV === 'production') {
 
 export const ai = genkit({
   plugins: [
-    googleAI(googleApiKey ? { apiKey: googleApiKey } : {}),
-    openAI(openAiApiKey ? { apiKey: openAiApiKey } : undefined),
+    googleAI({ apiKey: googleApiKey || undefined }),
+    openAI({ apiKey: openAiApiKey || undefined }),
   ],
 });
