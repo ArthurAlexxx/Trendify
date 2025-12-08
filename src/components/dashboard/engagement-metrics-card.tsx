@@ -13,10 +13,10 @@ interface EngagementMetricsCardProps {
         likes: number;
         comments: number;
     } | null;
-    formatMetricValue: (value?: string | number) => string;
+    formatIntegerValue: (value?: string | number) => string;
 }
 
-export function EngagementMetricsCard({ isLoading, latestMetrics, formatMetricValue }: EngagementMetricsCardProps) {
+export function EngagementMetricsCard({ isLoading, latestMetrics, formatIntegerValue }: EngagementMetricsCardProps) {
     
     const getMetricRating = (value: number, type: 'views' | 'likes' | 'comments', followers: number): { iconName: 'Smile' | 'Meh' | 'Frown', color: string } => {
         if (followers === 0) {
@@ -38,15 +38,6 @@ export function EngagementMetricsCard({ isLoading, latestMetrics, formatMetricVa
         return { iconName: 'Meh', color: 'text-yellow-500' };
         }
         return { iconName: 'Frown', color: 'text-red-500' };
-    };
-
-    const formatIntegerValue = (value?: string | number) => {
-        if (typeof value === 'number') return value.toLocaleString('pt-BR');
-        if (!value) return '0';
-        const num = parseFloat(String(value).replace(/\./g, '').replace(',', '.').replace(/[KM]/gi, ''));
-        if (String(value).toUpperCase().includes('K')) return (num * 1000).toLocaleString('pt-BR');
-        if (String(value).toUpperCase().includes('M')) return (num * 1000000).toLocaleString('pt-BR');
-        return isNaN(num) ? '0' : num.toLocaleString('pt-BR');
     };
     
     return (
@@ -112,5 +103,3 @@ export function EngagementMetricsCard({ isLoading, latestMetrics, formatMetricVa
         </Card>
     );
 }
-
-    

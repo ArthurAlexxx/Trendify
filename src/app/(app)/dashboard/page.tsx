@@ -215,7 +215,7 @@ export default function DashboardPage() {
     return isNaN(num) ? 0 : num;
   }, []);
   
-  const formatNumber = (value?: string | number): string => {
+  const formatMetricValue = (value?: string | number): string => {
     const num = parseMetric(value);
     if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(1).replace('.', ',')}M`;
     if (num >= 10000) return `${(num / 1000).toFixed(1).replace('.', ',')}K`;
@@ -223,6 +223,11 @@ export default function DashboardPage() {
     return String(num);
   };
   
+  const formatIntegerValue = (value?: string | number): string => {
+    const num = parseMetric(value);
+    return Math.round(num).toLocaleString('pt-BR');
+  };
+
   const handleGenerateInsights = useCallback(async () => {
       if (!userProfile || !metricSnapshots) {
           toast({ title: "Dados insuficientes", description: "Sincronize suas métricas para gerar uma análise.", variant: 'destructive' });
@@ -366,7 +371,7 @@ export default function DashboardPage() {
                         currentFollowers={currentFollowers}
                         isGoalReached={isGoalReached}
                         onEditGoal={() => setIsGoalSheetOpen(true)}
-                        formatMetricValue={formatNumber}
+                        formatMetricValue={formatMetricValue}
                    />
                 </Suspense>
                 <Suspense fallback={<Skeleton className="h-[250px] w-full" />}>
@@ -390,7 +395,7 @@ export default function DashboardPage() {
                         handleToggleIdeia={handleToggleIdeia}
                         handleMarkAsPublished={handleMarkAsPublished}
                         handleTikTokClick={handleTikTokClick}
-                        formatNumber={formatNumber}
+                        formatNumber={formatMetricValue}
                     />
                 </Suspense>
             </div>
@@ -401,7 +406,7 @@ export default function DashboardPage() {
                 <EngagementMetricsCard 
                     isLoading={isLoading} 
                     latestMetrics={latestMetrics}
-                    formatMetricValue={formatNumber} 
+                    formatIntegerValue={formatIntegerValue} 
                 />
               </Suspense>
               <Suspense fallback={<Skeleton className="h-[438px] w-full" />}>
