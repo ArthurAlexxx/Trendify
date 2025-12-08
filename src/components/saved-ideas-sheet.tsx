@@ -166,14 +166,14 @@ export function SavedIdeasSheet() {
         <ResponsiveDialogTrigger>
             <Button variant="outline">
                 <BookMarked className="mr-2 h-4 w-4" />
-                Ideias Salvas
+                Salvos
             </Button>
         </ResponsiveDialogTrigger>
         <ResponsiveDialogContent className="sm:max-w-lg">
             <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle className="font-headline text-xl">Ideias Salvas</ResponsiveDialogTitle>
+            <ResponsiveDialogTitle className="font-headline text-xl">Itens Salvos</ResponsiveDialogTitle>
             <ResponsiveDialogDescription>
-                Acesse aqui todas as ideias geradas pela IA que você salvou.
+                Acesse aqui todas as ideias e planos gerados pela IA que você salvou.
             </ResponsiveDialogDescription>
             </ResponsiveDialogHeader>
             <div className="flex-1 py-4 border-y">
@@ -224,7 +224,7 @@ export function SavedIdeasSheet() {
                     <div className="text-center py-20 px-4 rounded-xl bg-muted/50 border border-dashed">
                         <Inbox className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
                         <h3 className="font-semibold text-foreground">
-                        Nenhuma ideia salva
+                        Nenhum item salvo
                         </h3>
                         <p className="text-sm text-muted-foreground">
                         Use as ferramentas de IA e salve seus resultados.
@@ -247,7 +247,7 @@ export function SavedIdeasSheet() {
         <AlertDialogHeader>
           <AlertDialogTitle>Tem certeza que deseja excluir?</AlertDialogTitle>
           <AlertDialogDescription>
-            A ideia "{ideaToDelete?.titulo}" será removida permanentemente. Esta ação não pode ser desfeita.
+            O item "{ideaToDelete?.titulo}" será removido permanentemente. Esta ação não pode ser desfeita.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

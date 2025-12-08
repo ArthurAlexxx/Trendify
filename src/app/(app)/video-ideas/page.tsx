@@ -179,14 +179,11 @@ export default function VideoIdeasPage() {
   
   useEffect(() => {
     const topicParam = searchParams.get('topic');
-    const contextParam = searchParams.get('context');
+    // We remove the context param to simplify the AI prompt and avoid errors.
+    // The main topic is usually enough for a good idea.
     if (topicParam) {
-      let fullTopic = topicParam;
-      if (contextParam) {
-        fullTopic += ` (Contexto: ${contextParam})`;
-      }
       form.reset({
-        topic: fullTopic,
+        topic: topicParam,
         targetAudience: userProfile?.audience || '',
         objective: form.getValues('objective'),
       })

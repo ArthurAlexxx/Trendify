@@ -629,7 +629,7 @@ export default function GenerateWeeklyPlanPage() {
                                                         <TooltipProvider>
                                                             <Tooltip>
                                                                 <TooltipTrigger asChild>
-                                                                    <Link href={`/video-ideas?topic=${encodeURIComponent(item.tarefa)}&context=${encodeURIComponent(item.detalhes)}`}>
+                                                                    <Link href={`/video-ideas?topic=${encodeURIComponent(item.tarefa)}`}>
                                                                         <Button variant="ghost" size="icon" className="h-8 w-8 text-primary">
                                                                             <Lightbulb className="h-4 w-4" />
                                                                         </Button>
@@ -723,7 +723,7 @@ export default function GenerateWeeklyPlanPage() {
                                              <TooltipProvider>
                                                 <Tooltip>
                                                     <TooltipTrigger asChild>
-                                                         <Link href={`/video-ideas?topic=${encodeURIComponent(item.tarefa)}&context=${encodeURIComponent(item.detalhes)}`}>
+                                                         <Link href={`/video-ideas?topic=${encodeURIComponent(item.tarefa)}`}>
                                                             <Button variant="ghost" size="icon" className="h-8 w-8 text-primary">
                                                                 <Lightbulb className="h-4 w-4" />
                                                             </Button>
@@ -914,7 +914,7 @@ export default function GenerateWeeklyPlanPage() {
                                                     <TooltipProvider>
                                                         <Tooltip>
                                                             <TooltipTrigger asChild>
-                                                                <Link href={`/video-ideas?topic=${encodeURIComponent(item.tarefa)}&context=${encodeURIComponent(item.detalhes)}`}>
+                                                                <Link href={`/video-ideas?topic=${encodeURIComponent(item.tarefa)}`}>
                                                                     <Button variant="ghost" size="icon" className="h-8 w-8 text-primary">
                                                                         <Lightbulb className="h-4 w-4" />
                                                                     </Button>
