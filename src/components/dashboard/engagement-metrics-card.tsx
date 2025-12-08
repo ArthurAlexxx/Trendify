@@ -39,6 +39,15 @@ export function EngagementMetricsCard({ isLoading, latestMetrics, formatMetricVa
         }
         return { iconName: 'Frown', color: 'text-red-500' };
     };
+
+    const formatIntegerValue = (value?: string | number) => {
+        if (typeof value === 'number') return value.toLocaleString('pt-BR');
+        if (!value) return '0';
+        const num = parseFloat(String(value).replace(/\./g, '').replace(',', '.').replace(/[KM]/gi, ''));
+        if (String(value).toUpperCase().includes('K')) return (num * 1000).toLocaleString('pt-BR');
+        if (String(value).toUpperCase().includes('M')) return (num * 1000000).toLocaleString('pt-BR');
+        return isNaN(num) ? '0' : num.toLocaleString('pt-BR');
+    };
     
     return (
         <Card className="shadow-primary-lg">
@@ -50,7 +59,7 @@ export function EngagementMetricsCard({ isLoading, latestMetrics, formatMetricVa
                 <div className='p-4 rounded-lg bg-muted/50 border flex justify-between items-center'>
                     <div>
                         <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><Eye className="h-4 w-4" /> Média de Views</h3>
-                        <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.views)}</p>
+                        <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatIntegerValue(latestMetrics?.views)}</p>
                     </div>
                     <div>
                         {latestMetrics?.views !== undefined && latestMetrics.followers > 0 && (() => {
@@ -67,7 +76,7 @@ export function EngagementMetricsCard({ isLoading, latestMetrics, formatMetricVa
                 <div className='p-4 rounded-lg bg-muted/50 border flex justify-between items-center'>
                     <div>
                         <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><Heart className="h-4 w-4" /> Média de Likes</h3>
-                        <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.likes)}</p>
+                        <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatIntegerValue(latestMetrics?.likes)}</p>
                     </div>
                         <div>
                         {latestMetrics?.likes !== undefined && latestMetrics.followers > 0 && (() => {
@@ -84,7 +93,7 @@ export function EngagementMetricsCard({ isLoading, latestMetrics, formatMetricVa
                 <div className='p-4 rounded-lg bg-muted/50 border flex justify-between items-center'>
                     <div>
                         <h3 className="text-sm font-medium text-muted-foreground mb-1 flex items-center justify-start gap-2"><MessageSquare className="h-4 w-4" /> Média de Comentários</h3>
-                        <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatMetricValue(latestMetrics?.comments)}</p>
+                        <p className="text-2xl font-bold font-headline">{isLoading ? <Skeleton className="h-7 w-16" /> : formatIntegerValue(latestMetrics?.comments)}</p>
                     </div>
                         <div>
                         {latestMetrics?.comments !== undefined && latestMetrics.followers > 0 && (() => {
@@ -103,3 +112,5 @@ export function EngagementMetricsCard({ isLoading, latestMetrics, formatMetricVa
         </Card>
     );
 }
+
+    
