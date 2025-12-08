@@ -64,6 +64,10 @@ const EvolutionChartCard = dynamic(() => import('@/components/dashboard/evolutio
     loading: () => <Skeleton className="h-[430px]" />,
 });
 
+const CorrelationChartCard = dynamic(() => import('@/components/dashboard/correlation-chart-card'), {
+    loading: () => <Skeleton className="h-[430px]" />,
+});
+
 const PerformanceAnalysisCard = dynamic(() => import('@/components/dashboard/performance-analysis-card'), {
     loading: () => <Skeleton className="h-full min-h-[250px]" />,
 });
@@ -125,8 +129,7 @@ export default function DashboardPage() {
   
   const handleTikTokClick = (post: TikTokPost) => {
     if (post.shareUrl) {
-        setCurrentTikTokUrl(post.shareUrl);
-        setShowTikTokModal(true);
+        window.open(post.shareUrl, '_blank', 'noopener,noreferrer');
     }
   };
   
@@ -376,6 +379,15 @@ export default function DashboardPage() {
                   selectedPlatform={selectedPlatform}
                   userProfile={userProfile}
                   handleTikTokClick={handleTikTokClick}
+                />
+              </Suspense>
+              <Suspense fallback={<Skeleton className="h-[430px] w-full" />}>
+                <CorrelationChartCard
+                  isLoading={isLoadingInstaPosts || isLoadingTiktokPosts}
+                  instaPosts={instaPosts}
+                  tiktokPosts={tiktokPosts}
+                  selectedPlatform={selectedPlatform}
+                  userProfile={userProfile}
                 />
               </Suspense>
               <Suspense fallback={<Skeleton className="h-[250px] w-full" />}>
