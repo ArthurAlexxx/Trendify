@@ -54,7 +54,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
         const captionOrDesc = 'caption' in p ? p.caption : p.description;
         const name = (!captionOrDesc || /^(Post|Video) \d+/.test(captionOrDesc))
             ? 'Sem título' 
-            : captionOrDesc.substring(0, 25);
+            : captionOrDesc; // Full name for tooltip
 
         if ('shortcode' in p) { // InstagramPostData
             const followerCount = parseMetric(userProfile?.instagramFollowers);
@@ -62,6 +62,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
             return {
                 id: p.id,
                 name: name,
+                shortName: name === 'Sem título' ? name : name.substring(0, 25) + (name.length > 25 ? '...' : ''),
                 views: p.video_view_count ?? 0,
                 likes: p.likes,
                 comments: p.comments,
@@ -77,6 +78,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
              return {
                 id: p.id,
                 name: name,
+                shortName: name === 'Sem título' ? name : name.substring(0, 25) + (name.length > 25 ? '...' : ''),
                 views: p.views,
                 likes: p.likes,
                 comments: p.comments,
@@ -103,6 +105,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
     return allPosts.map(d => {
         return {
             name: d.name,
+            shortName: d.shortName,
             engagementRate: d.engagement,
         }
     });
@@ -116,7 +119,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
         <div className="rounded-lg border bg-background p-2 shadow-sm min-w-[200px]">
           <div className="flex flex-col">
             <span className="text-[0.70rem] uppercase text-muted-foreground">
-              {data.name && data.name !== 'Sem título' ? data.name : label}
+              {data.name}
             </span>
              {payload.map((p: any) => (
                <div key={p.dataKey} className="flex items-center justify-between mt-1">
@@ -162,22 +165,22 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
               </TooltipProvider>
             </CardTitle>
         </CardHeader>
-        <CardContent className="pl-2 pr-4">
-          <Tabs defaultValue="evolution" className="w-full">
+        <CardContent className="pl-2 pr-4 h-[530px]">
+          <Tabs defaultValue="evolution" className="w-full h-full flex flex-col">
               <TabsList className="grid w-full grid-cols-3 mx-auto max-w-md">
                   <TabsTrigger value="evolution"><TrendingUp className="mr-2 h-4 w-4" /> Evolução</TabsTrigger>
                   <TabsTrigger value="topPosts"><BarChartHorizontal className="mr-2 h-4 w-4" /> Top Posts</TabsTrigger>
                   <TabsTrigger value="engagementRate"><Percent className="mr-2 h-4 w-4" /> Engajamento</TabsTrigger>
               </TabsList>
-              <div className="mt-4">
+              <div className="flex-1 mt-4">
                 <TabsContent value="evolution" className="h-full">
-                   {isLoading ? <Skeleton className="h-96 w-full" /> : 
+                   {isLoading ? <Skeleton className="h-full w-full" /> : 
                     allPosts.length > 0 ? (
-                        <ChartContainer config={chartConfigBase} className="h-[400px] w-full">
+                        <ChartContainer config={chartConfigBase} className="h-full w-full">
                           <ResponsiveContainer>
-                            <LineChart data={allPosts} margin={{ top: 5, right: 20, left: -10, bottom: 60 }}>
+                            <LineChart data={allPosts} margin={{ top: 5, right: 20, left: -10, bottom: 80 }}>
                                 <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                                <XAxis dataKey="name" interval={0} angle={-35} textAnchor="end" height={80} tick={{ fontSize: 10 }} />
+                                <XAxis dataKey="shortName" interval={0} angle={-20} textAnchor="end" height={100} tick={{ fontSize: 10 }} />
                                 <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
                                 <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
                                 <Legend />
@@ -188,7 +191,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                           </ResponsiveContainer>
                         </ChartContainer>
                     ) : (
-                        <div className="h-96 w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
+                        <div className="h-full w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
                           <div>
                             <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
                             <h3 className="font-semibold text-foreground">{(userProfile?.instagramHandle || userProfile?.tiktokHandle) ? "Dados insuficientes." : "Nenhuma plataforma conectada."}</h3>
@@ -198,14 +201,14 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                     )}
                 </TabsContent>
                 <TabsContent value="topPosts" className="h-full">
-                    {isLoading ? <Skeleton className="h-96 w-full" /> : 
+                    {isLoading ? <Skeleton className="h-full w-full" /> : 
                     topPostsData.length > 0 ? (
-                       <ChartContainer config={chartConfigBase} className="h-[400px] w-full">
+                       <ChartContainer config={chartConfigBase} className="h-full w-full">
                          <ResponsiveContainer>
                             <BarChart data={topPostsData} layout="vertical" margin={{ left: 120, top: 5, right: 30, bottom: 5 }} onClick={handleChartClick}>
                               <CartesianGrid horizontal={false} strokeDasharray="3 3" />
                               <XAxis type="number" tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
-                              <YAxis type="category" dataKey="name" width={120} tickLine={false} axisLine={false} tick={{fontSize: 12, width: 110}} />
+                              <YAxis type="category" dataKey="shortName" width={120} tickLine={false} axisLine={false} tick={{fontSize: 12, width: 110}} />
                               <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
                               <Bar dataKey="views" fill="var(--color-views)" name="Views" className="cursor-pointer">
                                  <LabelList dataKey="views" position="right" offset={8} className="fill-foreground text-xs" formatter={(v: number) => typeof v === 'number' && v >= 1000 ? `${(v/1000).toFixed(1)}k` : v} />
@@ -214,7 +217,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                          </ResponsiveContainer>
                        </ChartContainer>
                     ) : (
-                         <div className="h-96 w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
+                         <div className="h-full w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
                            <div>
                             <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
                             <h3 className="font-semibold text-foreground">Não há posts com visualizações para analisar.</h3>
@@ -224,11 +227,11 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                     )}
                 </TabsContent>
                 <TabsContent value="engagementRate" className="h-full">
-                   {isLoading ? <Skeleton className="h-96 w-full" /> : 
+                   {isLoading ? <Skeleton className="h-full w-full" /> : 
                     engagementRateData.length > 0 ? (
-                       <ChartContainer config={chartConfigBase} className="h-[400px] w-full">
+                       <ChartContainer config={chartConfigBase} className="h-full w-full">
                          <ResponsiveContainer>
-                            <AreaChart data={engagementRateData} margin={{ top: 5, right: 20, left: -10, bottom: 60 }}>
+                            <AreaChart data={engagementRateData} margin={{ top: 5, right: 20, left: -10, bottom: 80 }}>
                                 <defs>
                                 <linearGradient id="fillEng" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="5%" stopColor="var(--color-engagementRate)" stopOpacity={0.8}/>
@@ -236,7 +239,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                                 </linearGradient>
                                 </defs>
                                 <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                                <XAxis dataKey="name" interval={0} angle={-35} textAnchor="end" height={80} tick={{ fontSize: 10 }} />
+                                <XAxis dataKey="shortName" interval={0} angle={-20} textAnchor="end" height={100} tick={{ fontSize: 10 }} />
                                 <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => `${value}%`} />
                                 <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
                                 <Area dataKey="engagementRate" type="monotone" fill="url(#fillEng)" stroke="var(--color-engagementRate)" name="Engajamento" />
@@ -244,7 +247,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                          </ResponsiveContainer>
                        </ChartContainer>
                     ) : (
-                         <div className="h-96 w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
+                         <div className="h-full w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
                            <div>
                             <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
                             <h3 className="font-semibold text-foreground">{(userProfile?.instagramHandle || userProfile?.tiktokHandle) ? "Dados insuficientes." : "Nenhuma plataforma conectada."}</h3>

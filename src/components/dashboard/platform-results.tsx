@@ -137,5 +137,3 @@ export function TikTokProfileResults({ profile, posts, error, formatNumber, onVi
         </div>
     );
 }
-
-    
