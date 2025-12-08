@@ -157,18 +157,12 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
    const CustomBar = (props: any) => {
     const { fill, x, y, width, height, payload } = props;
     const url = payload.url;
-    const type = payload.type;
-    const post = payload.post;
     
     const content = (
         <g>
             <rect x={x} y={y} width={width} height={height} fill={fill} radius={[0, 4, 4, 0]} className="cursor-pointer transition-opacity hover:opacity-80" />
         </g>
     );
-
-    if (type === 'tiktok' && onTikTokClick) {
-        return <g onClick={() => handleTikTokClick(post)}>{content}</g>;
-    }
     
     return (
         <Link href={url || '#'} target="_blank" rel="noopener noreferrer">
