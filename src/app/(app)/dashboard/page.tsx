@@ -89,7 +89,7 @@ export default function DashboardPage() {
   const { data: userProfile, isLoading: isLoadingProfile } = useDoc<UserProfile>(userProfileRef);
   
   const metricSnapshotsQuery = useMemoFirebase(
-    () => (firestore && user ? query(collectionGroup(firestore, 'metricSnapshots'), where('__name__', '>=', `users/${user.uid}/`), where('__name__', '<', `users/${user.uid0}/`)) : null),
+    () => (firestore && user ? query(collectionGroup(firestore, 'metricSnapshots'), where('__name__', '>=', `users/${user.uid}/`), where('__name__', '<', `users/${user.uid}0/`)) : null),
     [firestore, user]
   );
   const { data: metricSnapshots, isLoading: isLoadingMetricSnapshots } = useCollection<MetricSnapshot>(metricSnapshotsQuery);
