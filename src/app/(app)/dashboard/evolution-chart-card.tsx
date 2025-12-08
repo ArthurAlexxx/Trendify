@@ -4,9 +4,9 @@ import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BarChart, Bar, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartsTooltip, Legend, Area, AreaChart, Label } from 'recharts';
+import { BarChart, Bar, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartsTooltip, Legend, Area, AreaChart, Line, LineChart, Label } from 'recharts';
 import { ChartConfig, ChartContainer, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
-import { TrendingUp, Percent, BarChartHorizontal, ClipboardList, Info, Camera, Video, PlayCircle, Eye, Heart, MessageSquare } from 'lucide-react';
+import { TrendingUp, Percent, BarChartHorizontal, ClipboardList, Info, Camera, Video, PlayCircle, Eye, Heart, MessageSquare, Users } from 'lucide-react';
 import type { MetricSnapshot, InstagramPostData, TikTokPost, UserProfile } from '@/lib/types';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -19,6 +19,8 @@ const chartConfigBase: ChartConfig = {
   likes: { label: "Likes", color: "hsl(var(--chart-1))"  },
   comments: { label: "Comentários", color: "hsl(var(--chart-4))"  },
   engagement: { label: "Engajamento (%)", color: "hsl(var(--primary))" },
+  instagram: { label: "Instagram", color: "hsl(var(--chart-1))" },
+  tiktok: { label: "TikTok", color: "hsl(var(--chart-2))" },
 };
 
 interface PostData {
@@ -133,6 +135,24 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
   const videoPosts = useMemo(() => allPosts.filter(p => p.isVideo), [allPosts]);
   const photoPosts = useMemo(() => allPosts.filter(p => !p.isVideo), [allPosts]);
 
+  const followerHistoryData = useMemo(() => {
+    if (!metricSnapshots) return [];
+
+    const dataByDate: Record<string, { date: string, instagram?: number, tiktok?: number }> = {};
+    
+    metricSnapshots
+        .sort((a,b) => a.date.toMillis() - b.date.toMillis())
+        .forEach(snapshot => {
+        const dateStr = format(snapshot.date.toDate(), 'dd/MM');
+        if (!dataByDate[dateStr]) {
+            dataByDate[dateStr] = { date: dateStr };
+        }
+        dataByDate[dateStr][snapshot.platform] = parseMetric(snapshot.followers);
+    });
+
+    return Object.values(dataByDate);
+  }, [metricSnapshots]);
+
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -141,7 +161,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
         <div className="rounded-lg border bg-background p-2 shadow-sm min-w-[200px] max-w-xs">
           <div className="flex flex-col">
             <p className="text-sm font-semibold text-foreground truncate mb-2">
-              {data.name}
+              {data.name || `Data: ${label}`}
             </p>
              {payload.map((p: any) => (
                <div key={p.dataKey} className="flex items-center justify-between mt-1">
@@ -260,20 +280,36 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                           <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p className="max-w-xs">Acompanhe a evolução de views, likes e comentários dos seus últimos posts.</p>
+                          <p className="max-w-xs">Acompanhe a evolução de métricas ao longo do tempo.</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
                   </div>
                    {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
-                    (selectedPlatform === 'total') ? (
-                       <div className="h-[350px] w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
-                          <div>
-                            <BarChartHorizontal className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
-                            <h3 className="font-semibold text-foreground">Análise por Plataforma</h3>
-                            <p className="text-sm text-muted-foreground">Selecione Instagram ou TikTok para ver o gráfico de evolução.</p>
-                          </div>
-                        </div>
+                    selectedPlatform === 'total' ? (
+                         followerHistoryData.length > 1 ? (
+                            <ChartContainer config={chartConfigBase} className="h-[350px] w-full flex-1">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <LineChart data={followerHistoryData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                                        <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                                        <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} />
+                                        <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
+                                        <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
+                                        <ChartLegend content={<ChartLegendContent />} />
+                                        <Line type="monotone" dataKey="instagram" stroke="var(--color-instagram)" strokeWidth={2} dot={false} name="Instagram" />
+                                        <Line type="monotone" dataKey="tiktok" stroke="var(--color-tiktok)" strokeWidth={2} dot={false} name="TikTok" />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                            </ChartContainer>
+                         ) : (
+                            <div className="h-[350px] w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
+                              <div>
+                                <Users className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+                                <h3 className="font-semibold text-foreground">Sincronize suas contas</h3>
+                                <p className="text-sm text-muted-foreground">Sincronize por alguns dias para ver o histórico de crescimento.</p>
+                              </div>
+                            </div>
+                         )
                     ) :
                     allPosts.length > 0 ? (
                         <ChartContainer config={chartConfigBase} className="h-[350px] w-full flex-1">
@@ -315,5 +351,3 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
     </Card>
   );
 }
-
-    
