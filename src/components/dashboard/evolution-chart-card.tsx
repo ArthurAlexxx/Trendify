@@ -196,7 +196,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                           <ResponsiveContainer width="100%" aspect={1.5}>
                             <LineChart data={evolutionChartData} margin={{ top: 5, right: 20, left: -10, bottom: 20 }} onClick={handleChartClick} className="cursor-pointer">
                                 <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                                <XAxis dataKey="postLabel" interval="preserveStartEnd" tick={{ fontSize: 12 }} />
+                                <XAxis dataKey="postLabel" tickLine={false} axisLine={false} tick={false} />
                                 <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
                                 <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
                                 <Legend />
@@ -279,7 +279,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                                 </linearGradient>
                                 </defs>
                                 <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                                <XAxis dataKey="postLabel" interval="preserveStartEnd" tick={{ fontSize: 12 }} />
+                                <XAxis dataKey="postLabel" tickLine={false} axisLine={false} tick={false} />
                                 <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => `${value}%`} />
                                 <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
                                 <Area dataKey="engagementRate" type="monotone" fill="url(#fillEng)" stroke="var(--color-engagementRate)" name="Engajamento" />
