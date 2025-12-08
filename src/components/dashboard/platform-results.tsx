@@ -55,6 +55,10 @@ export function InstagramProfileResults({ profile, posts, error, formatNumber }:
                                 <Card className="overflow-hidden group cursor-pointer">
                                     <div className="relative aspect-[9/16]">
                                         <Image src={post.mediaUrl} alt={post.caption || 'Instagram Post'} fill style={{ objectFit: 'cover' }} />
+                                        <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-transparent"></div>
+                                        <p className="absolute top-2 left-2 right-2 text-white text-[10px] font-semibold line-clamp-2">
+                                            {post.caption}
+                                        </p>
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
                                         <div className="absolute bottom-0 left-0 p-2 text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity">
                                             <div className="flex items-center gap-2">
@@ -92,6 +96,10 @@ export function TikTokProfileResults({ profile, posts, error, formatNumber, onVi
                             <Card className="overflow-hidden group">
                                 <div className="relative aspect-[9/16]">
                                     <Image src={post.coverUrl} alt={post.description || 'TikTok Video'} fill style={{ objectFit: 'cover' }} />
+                                    <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-transparent"></div>
+                                     <p className="absolute top-2 left-2 right-2 text-white text-[10px] font-semibold line-clamp-2">
+                                        {post.description}
+                                    </p>
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-center justify-center">
                                         <PlayCircle className="h-10 w-10 text-white opacity-0 group-hover:opacity-80 transition-opacity" />
                                     </div>
