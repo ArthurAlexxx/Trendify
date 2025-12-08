@@ -2,7 +2,7 @@
 'use server';
 
 import { z } from 'zod';
-import type { InstagramProfileData, InstagramPostData, TikTokProfileData, TikTokPostData } from '@/lib/types';
+import type { InstagramProfileData, InstagramPostData, TikTokProfileData, TikTokPost } from '@/lib/types';
 
 
 // --- Instagram Schemas (New: instagram-looter2) ---
@@ -299,7 +299,7 @@ export async function getTikTokProfile(username: string): Promise<TikTokProfileD
 }
 
 
-export async function getTikTokPosts(username: string): Promise<TikTokPostData[]> {
+export async function getTikTokPosts(username: string): Promise<TikTokPost[]> {
     if (!username) {
         throw new Error('Nome de usuário é necessário para buscar os posts.');
     }
@@ -353,5 +353,3 @@ export async function getTikTokPosts(username: string): Promise<TikTokPostData[]
         throw e;
     }
 }
-
-    

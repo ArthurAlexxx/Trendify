@@ -20,7 +20,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { doc, updateDoc, serverTimestamp, addDoc, collection, query, where, getDocs, Timestamp, writeBatch, setDoc } from 'firebase/firestore';
-import type { UserProfile, InstagramProfileData, InstagramPostData, TikTokProfileData, TikTokPostData } from '@/lib/types';
+import type { UserProfile, InstagramProfileData, InstagramPostData, TikTokProfileData, TikTokPost } from '@/lib/types';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
@@ -40,7 +40,7 @@ const profileFormSchema = z.object({
   instagramProfile: z.custom<InstagramProfileData>().optional(),
   instagramPosts: z.custom<InstagramPostData[]>().optional(),
   tiktokProfile: z.custom<TikTokProfileData>().optional(),
-  tiktokPosts: z.custom<TikTokPostData[]>().optional(),
+  tiktokPosts: z.custom<TikTokPost[]>().optional(),
 });
 
 type ProfileFormData = z.infer<typeof profileFormSchema>;

@@ -141,7 +141,7 @@ export type TikTokProfileData = {
     videoCount: number;
 };
 
-export type TikTokPostData = {
+export type TikTokPost = {
     id: string;
     shareUrl?: string;
     description: string;

@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import type { InstagramProfileData, TikTokProfileData, InstagramPostData, TikTokPostData } from '@/lib/types';
+import type { InstagramProfileData, TikTokProfileData, InstagramPostData, TikTokPost } from '@/lib/types';
 import { Heart, MessageSquare, PlayCircle, AlertTriangle } from 'lucide-react';
 import { Skeleton } from '../ui/skeleton';
 
@@ -78,7 +78,7 @@ export function InstagramProfileResults({ profile, posts, error, formatNumber }:
     );
 }
 
-export function TikTokProfileResults({ profile, posts, error, formatNumber, onVideoClick }: { profile: Partial<TikTokProfileData>, posts: TikTokPostData[] | null, error: string | null, formatNumber: (n: number) => string, onVideoClick?: (post: TikTokPostData) => void }) {
+export function TikTokProfileResults({ profile, posts, error, formatNumber, onVideoClick }: { profile: Partial<TikTokProfileData>, posts: TikTokPost[] | null, error: string | null, formatNumber: (n: number) => string, onVideoClick?: (post: TikTokPost) => void }) {
     if (!profile) return null;
     
     return (

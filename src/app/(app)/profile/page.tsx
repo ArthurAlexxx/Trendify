@@ -23,7 +23,7 @@ import { z } from 'zod';
 import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { Textarea } from '@/components/ui/textarea';
 import { updateProfile } from 'firebase/auth';
-import type { UserProfile, InstagramProfileData, InstagramPostData, TikTokProfileData, TikTokPostData } from '@/lib/types';
+import type { UserProfile, InstagramProfileData, InstagramPostData, TikTokProfileData, TikTokPost } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -57,7 +57,7 @@ const profileFormSchema = z.object({
   instagramProfile: z.custom<InstagramProfileData>().optional(),
   instagramPosts: z.custom<InstagramPostData[]>().optional(),
   tiktokProfile: z.custom<TikTokProfileData>().optional(),
-  tiktokPosts: z.custom<TikTokPostData[]>().optional(),
+  tiktokPosts: z.custom<TikTokPost[]>().optional(),
 });
 
 type ProfileFormData = z.infer<typeof profileFormSchema>;
@@ -411,7 +411,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
-    
-
-    
