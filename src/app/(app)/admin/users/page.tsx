@@ -44,7 +44,7 @@ export default function AdminUsersPage() {
         icon={Users}
       />
 
-      <Card>
+      <Card className="shadow-primary-lg">
         <CardHeader>
           <CardTitle className="text-center">Lista de Usuários</CardTitle>
            <CardDescription className="text-center">

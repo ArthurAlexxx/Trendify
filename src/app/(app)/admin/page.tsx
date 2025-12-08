@@ -78,7 +78,7 @@ export default function AdminPage() {
       />
 
        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+        <Card className="shadow-primary-lg">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total de Usuários</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
@@ -88,7 +88,7 @@ export default function AdminPage() {
             <p className="text-xs text-muted-foreground">{freeUsers} gratuitos</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="shadow-primary-lg">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Assinantes Pro</CardTitle>
             <Sparkles className="h-4 w-4 text-muted-foreground" />
@@ -98,7 +98,7 @@ export default function AdminPage() {
             <p className="text-xs text-muted-foreground">Plano Pro ativo</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="shadow-primary-lg">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Assinantes Premium</CardTitle>
             <Crown className="h-4 w-4 text-muted-foreground" />
@@ -108,7 +108,7 @@ export default function AdminPage() {
             <p className="text-xs text-muted-foreground">Plano Premium ativo</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="shadow-primary-lg">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Receita Mensal (MRR)</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
@@ -121,7 +121,7 @@ export default function AdminPage() {
       </div>
 
       <div className="grid gap-4">
-        <Card>
+        <Card className="shadow-primary-lg">
           <CardHeader>
             <CardTitle className="text-center">
               Crescimento de Usuários

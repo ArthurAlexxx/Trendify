@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useSearchParams } from 'next/navigation';
@@ -85,7 +86,7 @@ function CheckoutPageContent() {
         description="Estamos quase lá! Preencha seus dados para continuar."
         icon={CreditCard}
       />
-      <Card className="max-w-2xl mx-auto border-0 rounded-2xl">
+      <Card className="max-w-2xl mx-auto border-0 rounded-2xl shadow-primary-lg">
         <CardHeader>
           <CardTitle>Plano Escolhido: {plan} ({cycle})</CardTitle>
           <CardDescription>

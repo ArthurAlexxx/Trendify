@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import {
@@ -577,7 +578,7 @@ export default function LandingPage() {
                               {results.growthData && results.growthData.length > 0 && (
                                 <CarouselItem className="pl-4 basis-[85%]">
                                   <div className="p-1 h-full">
-                                  <Card className="rounded-2xl border">
+                                  <Card className="rounded-2xl border shadow-primary-lg">
                                     <CardHeader><CardTitle className="text-lg font-bold">Curva de Crescimento</CardTitle></CardHeader>
                                     <CardContent className="pt-2 pl-2">
                                         <div className="h-64 w-full">
@@ -599,7 +600,7 @@ export default function LandingPage() {
                               {(results.currentEarnings || results.goalEarnings) && (
                                 <CarouselItem className="pl-4 basis-[85%]">
                                   <div className="p-1 h-full">
-                                  <Card className="h-full rounded-2xl border">
+                                  <Card className="h-full rounded-2xl border shadow-primary-lg">
                                     <CardHeader>
                                       <CardTitle className="text-lg font-bold">
                                         Potencial de Ganhos/Mês
@@ -630,7 +631,7 @@ export default function LandingPage() {
                                {results.accelerationScenarios && (
                                 <CarouselItem className="pl-4 basis-[85%]">
                                    <div className="p-1 h-full">
-                                  <Card className="rounded-2xl h-full border">
+                                  <Card className="rounded-2xl h-full border shadow-primary-lg">
                                     <CardHeader><CardTitle className="text-lg font-bold">Cenários de Aceleração</CardTitle></CardHeader>
                                     <CardContent className="grid grid-cols-3 gap-4 text-center">
                                         <div><p className="font-bold text-2xl">{results.accelerationScenarios.maintain}</p><p className="text-xs text-muted-foreground">Meses (Ritmo Atual)</p></div>

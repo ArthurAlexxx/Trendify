@@ -115,7 +115,7 @@ export default function UsageAdminPage() {
       />
       
        <div className="grid gap-4 md:grid-cols-2">
-        <Card>
+        <Card className="shadow-primary-lg">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Análises de Vídeo</CardTitle>
             <Video className="h-4 w-4 text-muted-foreground" />
@@ -125,7 +125,7 @@ export default function UsageAdminPage() {
             <p className="text-xs text-muted-foreground">Total de análises realizadas.</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="shadow-primary-lg">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Gerações de IA</CardTitle>
             <Lightbulb className="h-4 w-4 text-muted-foreground" />
@@ -138,7 +138,7 @@ export default function UsageAdminPage() {
       </div>
 
 
-      <Card>
+      <Card className="shadow-primary-lg">
         <CardHeader>
           <CardTitle className="text-center">Atividade Recente</CardTitle>
           <CardDescription className="text-center">

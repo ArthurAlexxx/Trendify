@@ -60,7 +60,7 @@ export default function FinancialAdminPage() {
         icon={DollarSign}
       />
 
-      <Card>
+      <Card className="shadow-primary-lg">
         <CardHeader>
           <CardTitle className="text-center">Histórico de Transações</CardTitle>
           <CardDescription className="text-center">

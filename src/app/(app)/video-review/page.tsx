@@ -398,7 +398,7 @@ function VideoReviewPageContent() {
             </div>
             <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {analysisCriteria.map((item, index) => (
-                    <Card key={index} className='rounded-2xl border-0 text-center'>
+                    <Card key={index} className='rounded-2xl border-0 text-center shadow-primary-lg'>
                         <CardHeader className="items-center">
                             <CardTitle className="flex flex-col items-center gap-2">
                                 <item.icon className="h-5 w-5 text-primary" />
@@ -423,7 +423,7 @@ function VideoReviewPageContent() {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="generate">
-            <Card className="rounded-t-none border-t-0">
+            <Card className="rounded-t-none border-t-0 shadow-primary-lg">
                  <CardHeader>
                     <CardTitle className="text-center">Upload do Vídeo</CardTitle>
                     <CardDescription className="text-center">Arraste seu vídeo ou clique para selecionar.</CardDescription>
@@ -507,7 +507,7 @@ function VideoReviewPageContent() {
             </Card>
         </TabsContent>
         <TabsContent value="result">
-          <Card className="rounded-t-none border-t-0">
+          <Card className="rounded-t-none border-t-0 shadow-primary-lg">
             <CardContent className="p-6">
               {(analysisStatus !== 'idle') && (
                 <div className="space-y-8 animate-fade-in">
@@ -640,7 +640,7 @@ function VideoReviewPageContent() {
                     Aqui estão os últimos vídeos que você analisou.
                 </p>
             </div>
-             <Card>
+             <Card className="shadow-primary-lg">
                 <CardContent className="pt-6">
                     {isLoadingAnalyses && (
                          <div className="flex justify-center items-center h-40">
