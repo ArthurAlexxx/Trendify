@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BarChart, Bar, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartsTooltip, Legend, Area, AreaChart, LabelList } from 'recharts';
+import { BarChart, Bar, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartsTooltip, Legend, Area, AreaChart, LabelList, Label } from 'recharts';
 import { ChartConfig, ChartContainer, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
 import { TrendingUp, Percent, BarChartHorizontal, ClipboardList, Info } from 'lucide-react';
 import type { MetricSnapshot, InstagramPostData, TikTokPost, UserProfile } from '@/lib/types';
@@ -67,7 +67,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
             return {
                 id: p.id,
                 name: name,
-                postLabel: `Seus Vídeos`,
+                postLabel: `Post ${index + 1}`,
                 views: p.video_view_count ?? 0,
                 likes: p.likes,
                 comments: p.comments,
@@ -81,7 +81,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
              return {
                 id: p.id,
                 name: name,
-                postLabel: `Seus Vídeos`,
+                postLabel: `Post ${index + 1}`,
                 views: p.views,
                 likes: p.likes,
                 comments: p.comments,
@@ -112,7 +112,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                     {p.name}
                 </span>
                 <span className="font-bold ml-4">
-                  {p.value.toLocaleString('pt-BR')}{p.dataKey === 'engagementRate' ? '%' : ''}
+                  {p.value.toLocaleString('pt-BR')}{p.dataKey === 'engagement' ? '%' : ''}
                 </span>
               </div>
             ))}
@@ -207,9 +207,11 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                     allPosts.length > 0 ? (
                        <ChartContainer config={chartConfigBase} className="h-[350px] w-full flex-1">
                          <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={allPosts} margin={{ top: 20, right: 20, left: -10, bottom: 5 }} onClick={handleChartClick} className="cursor-pointer">
+                            <BarChart data={allPosts} margin={{ top: 20, right: 20, left: -10, bottom: 20 }} onClick={handleChartClick} className="cursor-pointer">
                                 <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                                <XAxis dataKey="postLabel" />
+                                <XAxis dataKey="postLabel" tickLine={false} axisLine={false} tick={false}>
+                                  <Label value="Seus Vídeos" offset={10} position="insideBottom" />
+                                </XAxis>
                                 <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => `${value}%`} />
                                 <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
                                 <Bar dataKey="engagement" fill="var(--color-engagement)" name="Engajamento" radius={[4, 4, 0, 0]} />
