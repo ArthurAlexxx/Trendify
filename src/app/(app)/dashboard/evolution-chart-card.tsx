@@ -267,6 +267,10 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="evolution" className="w-full">
+               <TabsList className="grid w-full grid-cols-2 mx-auto max-w-md mb-4">
+                  <TabsTrigger value="evolution">Evolução</TabsTrigger>
+                  <TabsTrigger value="posts">Seus Posts</TabsTrigger>
+              </TabsList>
               <div className="mt-4">
                 <TabsContent value="evolution" className="flex flex-col">
                    <div className="flex justify-end pr-4">
@@ -338,10 +342,6 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                     )}
                 </TabsContent>
               </div>
-              <TabsList className="grid w-full grid-cols-2 mx-auto max-w-md mt-4">
-                  <TabsTrigger value="evolution">Evolução</TabsTrigger>
-                  <TabsTrigger value="posts">Seus Posts</TabsTrigger>
-              </TabsList>
                <div className="mt-4">
                 <TabsContent value="posts" className="space-y-8">
                      {renderPostGrid(videoPosts, "Últimos Vídeos", Video)}
@@ -353,3 +353,5 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
     </Card>
   );
 }
+
+    
