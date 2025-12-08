@@ -60,7 +60,7 @@ const EngagementMetricsCard = dynamic(() => import('@/components/dashboard/engag
   loading: () => <Skeleton className="h-[140px]" />,
 });
 
-const EvolutionChartCard = dynamic(() => import('@/components/dashboard/evolution-chart-card'), {
+const EvolutionChartCard = dynamic(() => import('./evolution-chart-card'), {
     loading: () => <Skeleton className="h-[530px]" />,
 });
 
@@ -207,7 +207,8 @@ export default function DashboardPage() {
       }
   }, [userProfile, metricSnapshots, toast, parseMetric]);
 
-  const formatNumber = (num: number): string => {
+  const formatNumber = (value?: string | number): string => {
+    const num = parseMetric(value);
     if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(1).replace('.', ',')}M`;
     if (num >= 10000) return `${(num / 1000).toFixed(1).replace('.', ',')}K`;
     if (num >= 1000) return num.toLocaleString('pt-BR');
