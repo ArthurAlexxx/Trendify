@@ -30,6 +30,10 @@
           "enum": ["admin", "user"],
           "description": "The user's role in the system. Defaults to 'user'."
         },
+        "tokenUsage": {
+            "type": "number",
+            "description": "Total number of API tokens used by the user."
+        },
         "totalFollowerGoal": {
           "type": "number",
           "description": "The user's target number of total followers (Instagram + TikTok)."
@@ -413,3 +417,4 @@
     }
   }
 }
+    

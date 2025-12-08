@@ -1,7 +1,7 @@
 
 'use server';
 
-import { doc, writeBatch, collection, getDocs, serverTimestamp, setDoc, Timestamp } from 'firebase/firestore';
+import { doc, writeBatch, collection, getDocs, serverTimestamp, setDoc, Timestamp, increment } from 'firebase/firestore';
 import { getInstagramPosts, getInstagramProfile, getTikTokPosts, getTikTokProfile } from '../profile/actions';
 import { initializeFirebaseAdmin } from '@/firebase/admin';
 
@@ -44,8 +44,9 @@ export async function syncInstagramAction(userId: string, username: string): Pro
 
     try {
         const { firestore } = initializeFirebaseAdmin();
-        const userProfileRef = doc(firestore, `users/${userId}`);
+        const userRef = doc(firestore, `users/${userId}`);
 
+        // This counts as 1 API call -> 2 tokens
         const [profileResult, postsResult] = await Promise.all([
             getInstagramProfile(cleanedUsername),
             getInstagramPosts(cleanedUsername)
@@ -65,8 +66,9 @@ export async function syncInstagramAction(userId: string, username: string): Pro
             instagramAverageLikes: formatNumber(Math.round(averageLikes)),
             instagramAverageComments: formatNumber(Math.round(averageComments)),
             lastInstagramSync: serverTimestamp(),
+            tokenUsage: increment(2) // Increment by 2 tokens for the call
         };
-        batch.update(userProfileRef, dataToSave);
+        batch.update(userRef, dataToSave);
 
         const postsCollectionRef = collection(firestore, `users/${userId}/instagramPosts`);
         const oldPostsSnap = await getDocs(postsCollectionRef);
@@ -104,8 +106,9 @@ export async function syncTikTokAction(userId: string, username: string): Promis
 
     try {
         const { firestore } = initializeFirebaseAdmin();
-        const userProfileRef = doc(firestore, `users/${userId}`);
+        const userRef = doc(firestore, `users/${userId}`);
 
+        // These count as 2 API calls -> 4 tokens
         const [profileResult, postsResult] = await Promise.all([
             getTikTokProfile(cleanedUsername),
             getTikTokPosts(cleanedUsername),
@@ -124,8 +127,9 @@ export async function syncTikTokAction(userId: string, username: string): Promis
             tiktokAverageComments: formatNumber(Math.round(averageComments)),
             tiktokAverageViews: formatNumber(Math.round(averageViews)),
             lastTikTokSync: serverTimestamp(),
+            tokenUsage: increment(4) // Increment by 4 tokens for the calls
         };
-        batch.update(userProfileRef, dataToSave);
+        batch.update(userRef, dataToSave);
 
         const postsCollectionRef = collection(firestore, `users/${userId}/tiktokPosts`);
         const oldPostsSnap = await getDocs(postsCollectionRef);

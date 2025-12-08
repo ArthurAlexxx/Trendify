@@ -11,6 +11,7 @@ export interface UserProfile {
   photoURL?: string | null;
   createdAt: Timestamp;
   role?: UserRole;
+  tokenUsage?: number;
   
   // Metas de seguidores
   totalFollowerGoal?: number;

@@ -23,6 +23,7 @@ import {
   LayoutDashboard,
   Activity,
   Video,
+  Coins,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -74,6 +75,7 @@ const adminMenuItems: {
             { href: '/admin/users', icon: User, label: 'Usuários' },
             { href: '/admin/financial', icon: DollarSign, label: 'Financeiro' },
             { href: '/admin/usage', icon: Activity, label: 'Uso da IA' },
+            { href: '/admin/tokens', icon: Coins, label: 'Uso de Tokens' },
         ]
     }
 ];
