@@ -30,13 +30,16 @@ import {
   Smile,
   Meh,
   Frown,
+  TrendingUp,
+  BarChartHorizontal,
+  Percent,
 } from 'lucide-react';
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-import { BarChart, Bar, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartsTooltip, PieChart, Pie, Cell } from 'recharts';
+import { BarChart, Bar, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartsTooltip, PieChart, Pie, Cell, Legend, LineChart, Line, LabelList } from 'recharts';
 import { ChartConfig } from '@/components/ui/chart';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
@@ -83,35 +86,13 @@ import { ActionHubCard } from '@/components/dashboard/action-hub-card';
 
 
 const chartConfigBase: ChartConfig = {
-  followers: { label: "Seguidores" },
-  views: { label: "Views" },
-  likes: { label: "Likes" },
-  comments: { label: "Comentários" },
+  followers: { label: "Seguidores", color: "hsl(var(--chart-1))" },
+  views: { label: "Views", color: "hsl(var(--chart-2))"  },
+  likes: { label: "Likes", color: "hsl(var(--chart-3))"  },
+  comments: { label: "Comentários", color: "hsl(var(--chart-4))"  },
+  engagementRate: { label: "Engajamento (%)", color: "hsl(var(--chart-5))" },
 };
 
-const platformChartConfig = {
-  total: {
-    ...chartConfigBase,
-    followers: { ...chartConfigBase.followers, color: "hsl(var(--primary))" },
-    views: { ...chartConfigBase.views, color: "hsl(var(--chart-2))" },
-    likes: { ...chartConfigBase.likes, color: "hsl(var(--chart-3))" },
-    comments: { ...chartConfigBase.comments, color: "hsl(var(--chart-4))" },
-  },
-  instagram: {
-    ...chartConfigBase,
-    followers: { ...chartConfigBase.followers, color: "hsl(var(--primary))" },
-    views: { ...chartConfigBase.views, color: "hsl(var(--chart-2))" },
-    likes: { ...chartConfigBase.likes, color: "hsl(var(--chart-3))" },
-    comments: { ...chartConfigBase.comments, color: "hsl(var(--chart-4))" },
-  },
-  tiktok: {
-    ...chartConfigBase,
-    followers: { ...chartConfigBase.followers, color: "hsl(var(--primary))" },
-    views: { ...chartConfigBase.views, color: "hsl(var(--chart-2))" },
-    likes: { ...chartConfigBase.likes, color: "hsl(var(--chart-3))" },
-    comments: { ...chartConfigBase.comments, color: "hsl(var(--chart-4))" },
-  },
-};
 
 const DailyPlanCard = ({ isLoadingWeeklyPlans, tasksForToday, currentPlan, handleToggleRoteiro }: any) => (
   <Card className="h-full shadow-primary-lg">
@@ -316,36 +297,118 @@ const PerformanceAnalysisCard = ({ isGeneratingInsights, insights, handleGenerat
   </Card>
 );
 
-const EvolutionChartCard = ({ isLoading, historicalChartData, chartConfig, userProfile }: any) => (
-  <Card className="shadow-primary-lg">
-      <CardHeader><CardTitle className="text-center">Evolução das Métricas</CardTitle></CardHeader>
-      <CardContent className="pl-2 pr-6">
-          {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
-          historicalChartData.length > 0 ? (
-              <ChartContainer config={chartConfig} className="h-[350px] w-full">
-              <BarChart accessibilityLayer data={historicalChartData} margin={{ left: 0, right: 12, top: 5, bottom: 5 }}>
-                  <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                  <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} />
-                  <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
-                  <RechartsTooltip content={<ChartTooltipContent indicator="dot" />} />
-                  <Bar dataKey="followers" fill="var(--color-followers)" radius={4} name="Seguidores" />
-                  <Bar dataKey="views" fill="var(--color-views)" radius={4} name="Views"/>
-                  <Bar dataKey="likes" fill="var(--color-likes)" radius={4} name="Likes"/>
-                  <Bar dataKey="comments" fill="var(--color-comments)" radius={4} name="Comentários"/>
-              </BarChart>
-              </ChartContainer>
-          ) : (
-              <div className="h-[350px] w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
-                  <div>
-                  <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
-                  <h3 className="font-semibold text-foreground">{(userProfile?.instagramHandle || userProfile?.tiktokHandle) ? "Dados insuficientes." : "Nenhuma plataforma conectada."}</h3>
-                  <p className="text-sm text-muted-foreground"> {userProfile && <Link href="/profile/integrations" className="text-primary font-medium hover:underline cursor-pointer">Sincronize suas métricas</Link>} para começar a ver seus dados.</p>
-                  </div>
+const EvolutionChartCard = ({ isLoading, historicalChartData, engagementRateData, topPostsData, userProfile }: any) => {
+  const [chartView, setChartView] = useState<'evolution' | 'engagementRate' | 'topPosts'>('evolution');
+
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="rounded-lg border bg-background p-2 shadow-sm">
+          <div className="grid grid-cols-2 gap-2">
+            <div className="flex flex-col">
+              <span className="text-[0.70rem] uppercase text-muted-foreground">
+                {chartView === 'topPosts' ? 'Post' : 'Data'}
+              </span>
+              <span className="font-bold text-muted-foreground">
+                {label}
+              </span>
+            </div>
+            {payload.map((p: any) => (
+               <div key={p.dataKey} className="flex flex-col">
+                <span className="text-[0.70rem] uppercase text-muted-foreground">
+                  {p.name}
+                </span>
+                <span className="font-bold" style={{color: p.color}}>
+                  {p.value.toLocaleString('pt-BR')} {chartView === 'engagementRate' ? '%' : ''}
+                </span>
               </div>
-          )}
-      </CardContent>
-  </Card>
-);
+            ))}
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
+  
+  const renderChart = () => {
+    switch (chartView) {
+      case 'engagementRate':
+        return (
+          <BarChart data={engagementRateData}>
+            <CartesianGrid vertical={false} strokeDasharray="3 3" />
+            <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} />
+            <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => `${value}%`} />
+            <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
+            <Bar dataKey="engagementRate" fill="var(--color-engagementRate)" radius={4} name="Engajamento" />
+          </BarChart>
+        );
+      case 'topPosts':
+         return (
+            <BarChart data={topPostsData} layout="vertical" margin={{ left: 100 }}>
+              <CartesianGrid horizontal={false} strokeDasharray="3 3" />
+              <XAxis type="number" tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
+              <YAxis type="category" dataKey="name" width={100} tickLine={false} axisLine={false} />
+              <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
+              <Bar dataKey="views" fill="var(--color-views)" radius={[0, 4, 4, 0]} name="Views">
+                 <LabelList dataKey="views" position="right" offset={8} className="fill-foreground text-xs" formatter={(v: number) => typeof v === 'number' && v >= 1000 ? `${(v/1000).toFixed(1)}k` : v} />
+              </Bar>
+            </BarChart>
+          );
+      case 'evolution':
+      default:
+        return (
+          <LineChart data={historicalChartData} >
+            <CartesianGrid vertical={false} strokeDasharray="3 3" />
+            <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} />
+            <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
+            <RechartsTooltip content={<CustomTooltip />} cursor={{ strokeDasharray: '3 3' }} />
+            <Legend />
+            <Line type="monotone" dataKey="followers" stroke="var(--color-followers)" strokeWidth={2} name="Seguidores" dot={false} />
+            <Line type="monotone" dataKey="views" stroke="var(--color-views)" strokeWidth={2} name="Views" dot={false} />
+            <Line type="monotone" dataKey="likes" stroke="var(--color-likes)" strokeWidth={2} name="Likes" dot={false} />
+            <Line type="monotone" dataKey="comments" stroke="var(--color-comments)" strokeWidth={2} name="Comentários" dot={false}/>
+          </LineChart>
+        );
+    }
+  };
+
+
+  return (
+    <Card className="shadow-primary-lg">
+        <CardHeader>
+            <CardTitle className="text-center">Análise de Performance</CardTitle>
+            <div className="flex justify-center pt-4">
+                 <Tabs value={chartView} onValueChange={(value) => setChartView(value as any)} className="w-auto">
+                    <TabsList>
+                        <TabsTrigger value="evolution"><TrendingUp className="mr-2 h-4 w-4" /> Evolução</TabsTrigger>
+                        <TabsTrigger value="engagementRate"><Percent className="mr-2 h-4 w-4" /> Taxa de Engajamento</TabsTrigger>
+                        <TabsTrigger value="topPosts"><BarChartHorizontal className="mr-2 h-4 w-4" /> Top Posts</TabsTrigger>
+                    </TabsList>
+                </Tabs>
+            </div>
+        </CardHeader>
+        <CardContent className="pl-2 pr-6">
+            {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
+            historicalChartData.length > 0 ? (
+                <ChartContainer config={chartConfigBase} className="h-[350px] w-full">
+                  <ResponsiveContainer>
+                    {renderChart()}
+                  </ResponsiveContainer>
+                </ChartContainer>
+            ) : (
+                <div className="h-[350px] w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
+                    <div>
+                    <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+                    <h3 className="font-semibold text-foreground">{(userProfile?.instagramHandle || userProfile?.tiktokHandle) ? "Dados insuficientes." : "Nenhuma plataforma conectada."}</h3>
+                    <p className="text-sm text-muted-foreground"> {userProfile && <Link href="/profile/integrations" className="text-primary font-medium hover:underline cursor-pointer">Sincronize suas métricas</Link>} para começar a ver seus dados.</p>
+                    </div>
+                </div>
+            )}
+        </CardContent>
+    </Card>
+  );
+};
+
 
 export default function DashboardPage() {
   const { user } = useUser();
@@ -567,7 +630,33 @@ export default function DashboardPage() {
             likes: parseMetric(snap.likes),
             comments: parseMetric(snap.comments),
         }));
-}, [metricSnapshots, selectedPlatform]);
+  }, [metricSnapshots, selectedPlatform]);
+  
+  const engagementRateData = useMemo(() => {
+    if (!historicalChartData || historicalChartData.length === 0) return [];
+    return historicalChartData.map(d => {
+        const rate = d.followers > 0 ? ((d.likes + d.comments) / d.followers) * 100 : 0;
+        return {
+            date: d.date,
+            engagementRate: parseFloat(rate.toFixed(2)),
+        }
+    });
+  }, [historicalChartData]);
+
+  const topPostsData = useMemo(() => {
+     const allPosts = [
+        ...(instaPosts || []).map(p => ({
+            name: p.caption?.substring(0, 20) || `Post ${p.id.substring(0, 4)}`,
+            views: p.video_view_count ?? 0,
+        })),
+        ...(tiktokPosts || []).map(p => ({
+            name: p.description?.substring(0, 20) || `Video ${p.id.substring(0, 4)}`,
+            views: p.views,
+        }))
+     ];
+     return allPosts.filter(p => p.views > 0).sort((a,b) => b.views - a.views).slice(0, 5);
+  }, [instaPosts, tiktokPosts]);
+
 
   const handleGenerateInsights = async () => {
      if (!metricSnapshots || metricSnapshots.length < 1) {
@@ -717,7 +806,13 @@ export default function DashboardPage() {
                          </CarouselItem>
                   </CarouselContent>
               </Carousel>
-                <EvolutionChartCard isLoading={isLoading} historicalChartData={historicalChartData} chartConfig={platformChartConfig[selectedPlatform]} userProfile={userProfile} />
+                <EvolutionChartCard 
+                  isLoading={isLoading} 
+                  historicalChartData={historicalChartData}
+                  engagementRateData={engagementRateData}
+                  topPostsData={topPostsData}
+                  userProfile={userProfile} 
+                />
                 <DailyPlanCard isLoadingWeeklyPlans={isLoadingWeeklyPlans} tasksForToday={tasksForToday} currentPlan={currentPlan} handleToggleRoteiro={handleToggleRoteiro} />
             </div>
 
@@ -748,7 +843,13 @@ export default function DashboardPage() {
             {/* Right Column */}
             <div className="lg:col-span-2 space-y-8">
               <EngagementMetricsCard isLoading={isLoading} latestMetrics={latestMetrics} formatMetricValue={formatMetricValue} getMetricRating={getMetricRating} />
-              <EvolutionChartCard isLoading={isLoading} historicalChartData={historicalChartData} chartConfig={platformChartConfig[selectedPlatform]} userProfile={userProfile} />
+               <EvolutionChartCard 
+                  isLoading={isLoading} 
+                  historicalChartData={historicalChartData}
+                  engagementRateData={engagementRateData}
+                  topPostsData={topPostsData}
+                  userProfile={userProfile} 
+                />
                 <div className="grid grid-cols-1 items-stretch">
                     <PerformanceAnalysisCard isGeneratingInsights={isGeneratingInsights} insights={insights} handleGenerateInsights={handleGenerateInsights} />
               </div>
@@ -759,6 +860,8 @@ export default function DashboardPage() {
     </>
   );
 }
+
+    
 
     
 
