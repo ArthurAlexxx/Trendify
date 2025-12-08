@@ -375,6 +375,7 @@ export default function DashboardPage() {
                   tiktokPosts={tiktokPosts}
                   selectedPlatform={selectedPlatform}
                   userProfile={userProfile}
+                  handleTikTokClick={handleTikTokClick}
                 />
               </Suspense>
               <Suspense fallback={<Skeleton className="h-[250px] w-full" />}>
@@ -391,10 +392,3 @@ export default function DashboardPage() {
     </>
   );
 }
-
-    
-
-    
-
-    
-
