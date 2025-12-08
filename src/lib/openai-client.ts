@@ -42,7 +42,7 @@ export async function callOpenAI<T extends z.ZodType<any, any, any>>(
     messages: [
       {
         role: 'system',
-        content: `Sua única função é gerar um objeto JSON que se conforma estritamente com o schema JSON fornecido. Não adicione nenhum texto, explicação ou qualquer caractere fora do objeto JSON. O schema é: ${JSON.stringify(schemaAsJson)}`,
+        content: `Você DEVE responder APENAS com um objeto JSON válido que corresponda ao schema fornecido. Não inclua texto explicativo, comentários ou markdown. O schema é: ${JSON.stringify(schemaAsJson)}`,
       },
       {
         role: 'user',

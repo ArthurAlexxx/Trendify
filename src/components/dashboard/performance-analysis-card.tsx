@@ -48,7 +48,7 @@ export default function PerformanceAnalysisCard({ isGeneratingInsights, insights
                 ) : (
                 <div className="flex-1 flex flex-col justify-center items-center text-center p-4 gap-4">
                     <p className="text-sm text-muted-foreground">Clique em 'Analisar' para receber uma análise com base nas suas últimas métricas.</p>
-                    <Button variant="ghost" size="sm" onClick={handleGenerateInsights} disabled={true}>
+                    <Button variant="ghost" size="sm" onClick={handleGenerateInsights} disabled={isGeneratingInsights}>
                         {isGeneratingInsights ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
                         Analisar
                     </Button>
