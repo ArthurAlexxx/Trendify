@@ -41,7 +41,7 @@ import { FollowerGoalSheet } from '@/components/dashboard/follower-goal-sheet';
 import { ProfileCompletionAlert } from '@/components/dashboard/profile-completion-alert';
 import { generateDashboardInsights, type DashboardInsightsOutput } from './actions';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import React, { useState, useMemo, useEffect, Suspense } from 'react';
+import React, { useState, useMemo, useEffect, Suspense, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 
 const GoalCard = dynamic(() => import('@/components/dashboard/goal-card').then(mod => mod.GoalCard), {
@@ -170,22 +170,42 @@ export default function DashboardPage() {
     }
   };
 
-  const parseMetric = (value?: string | number): number => {
+  const parseMetric = useCallback((value?: string | number): number => {
     if (typeof value === 'number') return value;
     if (!value || typeof value !== 'string') return 0;
     const cleanedValue = value.replace(/\./g, '').replace(',', '.');
     const num = parseFloat(cleanedValue.replace(/K/gi, 'e3').replace(/M/gi, 'e6'));
     return isNaN(num) ? 0 : num;
-  };
+  }, []);
   
-  const formatMetricValue = (value?: string | number): string => {
-    if (value === undefined || value === null) return '—';
-    const num = typeof value === 'string' ? parseMetric(value) : value;
-     if (num === 0) return 'N/A';
-    if (num >= 1000000) return `${(num / 1000000).toFixed(1).replace('.', ',')}M`;
-    if (num >= 1000) return num.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 1 }).replace(/,0$/, '') + 'K';
-    return String(num);
-  };
+  const handleGenerateInsights = useCallback(async () => {
+      if (!userProfile || !metricSnapshots) {
+          toast({ title: "Dados insuficientes", description: "Sincronize suas métricas para gerar uma análise.", variant: 'destructive' });
+          return;
+      }
+      setIsGeneratingInsights(true);
+      try {
+          const formattedSnapshots = metricSnapshots.map(snap => ({
+              date: snap.date.toDate().toISOString(),
+              platform: snap.platform,
+              followers: parseMetric(snap.followers),
+              views: parseMetric(snap.views),
+              likes: parseMetric(snap.likes),
+              comments: parseMetric(snap.comments),
+          }));
+
+          const result = await generateDashboardInsights({
+              metricSnapshots: formattedSnapshots,
+              niche: userProfile.niche || 'Não definido',
+              objective: 'Aumentar engajamento e crescimento',
+          });
+          setInsights(result);
+      } catch (e: any) {
+          toast({ title: "Erro ao gerar análise", description: e.message, variant: 'destructive' });
+      } finally {
+          setIsGeneratingInsights(false);
+      }
+  }, [userProfile, metricSnapshots, toast, parseMetric]);
 
   const formatNumber = (num: number): string => {
     if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(1).replace('.', ',')}M`;
@@ -216,7 +236,7 @@ export default function DashboardPage() {
         break;
     }
     return { currentFollowers: current, goalFollowers: goal, isGoalReached: goal > 0 && current >= goal };
-  }, [userProfile, selectedPlatform]);
+  }, [userProfile, selectedPlatform, parseMetric]);
   
   const latestMetrics = useMemo(() => {
     if (!userProfile) return null;
@@ -252,7 +272,7 @@ export default function DashboardPage() {
         likes: tiktokLikes,
         comments: tiktokComments,
     }
-  }, [userProfile, selectedPlatform]);
+  }, [userProfile, selectedPlatform, parseMetric]);
   
   return (
     <>
@@ -302,31 +322,21 @@ export default function DashboardPage() {
                         currentFollowers={currentFollowers}
                         isGoalReached={isGoalReached}
                         onEditGoal={() => setIsGoalSheetOpen(true)}
-                        formatMetricValue={formatMetricValue}
+                        formatMetricValue={formatNumber}
                    />
+                </Suspense>
+                 <Suspense fallback={<Skeleton className="h-full min-h-[250px]" />}>
+                   <PerformanceAnalysisCard 
+                        isGeneratingInsights={isGeneratingInsights}
+                        insights={insights}
+                        handleGenerateInsights={handleGenerateInsights}
+                    />
                 </Suspense>
                 <Suspense fallback={<Skeleton className="h-[250px] w-full" />}>
                   <DailyPlanCard 
                     isLoadingWeeklyPlans={isLoadingWeeklyPlans}
                     currentPlan={currentPlan} 
                     handleToggleRoteiro={handleToggleRoteiro} 
-                  />
-                </Suspense>
-                <Suspense fallback={<Skeleton className="h-[300px] w-full" />}>
-                 <ActionHubCard 
-                    isLoadingUpcoming={isLoadingUpcoming}
-                    upcomingContent={upcomingContent}
-                    isLoadingIdeias={isLoadingIdeias}
-                    ideiasSalvas={ideiasSalvas}
-                    isFetchingPosts={isLoadingInstaPosts || isLoadingTiktokPosts}
-                    instaProfile={userProfile}
-                    instaPosts={instaPosts}
-                    tiktokProfile={userProfile}
-                    tiktokPosts={tiktokPosts}
-                    handleToggleIdeia={handleToggleIdeia}
-                    handleMarkAsPublished={handleMarkAsPublished}
-                    handleTikTokClick={handleTikTokClick}
-                    formatNumber={formatNumber}
                   />
                 </Suspense>
             </div>
@@ -337,7 +347,7 @@ export default function DashboardPage() {
                 <EngagementMetricsCard 
                     isLoading={isLoading} 
                     latestMetrics={latestMetrics}
-                    formatMetricValue={formatMetricValue} 
+                    formatMetricValue={formatNumber} 
                 />
               </Suspense>
               <Suspense fallback={<Skeleton className="h-[530px] w-full" />}>
@@ -358,5 +368,3 @@ export default function DashboardPage() {
     </>
   );
 }
-
-    

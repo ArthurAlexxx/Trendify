@@ -1,10 +1,9 @@
-
 'use client';
 import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BarChart, Bar, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartsTooltip, PieChart, Pie, Cell, Legend, LineChart, Line, LabelList, Area, AreaChart } from 'recharts';
+import { BarChart, Bar, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartsTooltip, LabelList, Area, AreaChart } from 'recharts';
 import { ChartConfig, ChartContainer } from '@/components/ui/chart';
 import { TrendingUp, Percent, BarChartHorizontal, ClipboardList, Info } from 'lucide-react';
 import type { MetricSnapshot, InstagramPostData, TikTokPost, UserProfile } from '@/lib/types';
@@ -87,43 +86,34 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
 
   const historicalChartData = useMemo(() => {
     if (!metricSnapshots || metricSnapshots.length === 0) return [];
-
-    if (selectedPlatform === 'total') {
-        const groupedByDay = metricSnapshots.reduce((acc, snap) => {
-            const dayStr = format(snap.date.toDate(), 'yyyy-MM-dd');
-            if (!acc[dayStr]) {
-                acc[dayStr] = { date: dayStr, followers: 0, views: 0, likes: 0, comments: 0, count: 0 };
-            }
-            acc[dayStr].followers += parseMetric(snap.followers);
-            acc[dayStr].views += parseMetric(snap.views);
-            acc[dayStr].likes += parseMetric(snap.likes);
-            acc[dayStr].comments += parseMetric(snap.comments);
-            acc[dayStr].count++;
-            return acc;
-        }, {} as Record<string, { date: string; followers: number; views: number; likes: number; comments: number; count: number }>);
-
-        return Object.values(groupedByDay)
-            .sort((a, b) => a.date.localeCompare(b.date))
-            .slice(-30)
-            .map(dayData => ({
-                date: format(new Date(`${dayData.date}T00:00:00`), 'dd/MM'),
-                followers: dayData.followers,
-                views: dayData.count > 0 ? dayData.views / dayData.count : 0,
-                likes: dayData.count > 0 ? dayData.likes / dayData.count : 0,
-                comments: dayData.count > 0 ? dayData.comments / dayData.count : 0,
-            }));
+    
+    let filteredSnaps = metricSnapshots;
+    if (selectedPlatform !== 'total') {
+        filteredSnaps = metricSnapshots.filter(snap => snap.platform === selectedPlatform);
     }
-
-    return metricSnapshots
-        .filter(snap => snap.platform === selectedPlatform)
-        .sort((a, b) => a.date.toMillis() - b.date.toMillis())
-        .slice(-30)
-        .map(snap => ({
-            date: format(snap.date.toDate(), 'dd/MM'),
-            followers: parseMetric(snap.followers),
-            views: parseMetric(snap.views),
-            likes: parseMetric(snap.likes),
-            comments: parseMetric(snap.comments),
+    
+    // Group by day, summing metrics for 'total'
+    const groupedByDay = filteredSnaps.reduce((acc, snap) => {
+        const dayStr = format(snap.date.toDate(), 'yyyy-MM-dd');
+        if (!acc[dayStr]) {
+            acc[dayStr] = { date: dayStr, followers: 0, views: 0, likes: 0, comments: 0 };
+        }
+        acc[dayStr].followers += parseMetric(snap.followers);
+        acc[dayStr].views += parseMetric(snap.views);
+        acc[dayStr].likes += parseMetric(snap.likes);
+        acc[dayStr].comments += parseMetric(snap.comments);
+        return acc;
+    }, {} as Record<string, { date: string; followers: number; views: number; likes: number; comments: number; }>);
+    
+    return Object.values(groupedByDay)
+        .sort((a, b) => a.date.localeCompare(b.date))
+        .slice(-30) // Last 30 days
+        .map(dayData => ({
+            date: format(new Date(`${dayData.date}T00:00:00`), 'dd/MM'),
+            followers: dayData.followers,
+            views: dayData.views,
+            likes: dayData.likes,
+            comments: dayData.comments,
         }));
   }, [metricSnapshots, selectedPlatform]);
 
@@ -208,18 +198,16 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                             <AreaChart data={historicalChartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
                                 <defs>
                                     <linearGradient id="fillFollowers" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="var(--color-followers)" stopOpacity={0.8}/><stop offset="95%" stopColor="var(--color-followers)" stopOpacity={0}/></linearGradient>
-                                    <linearGradient id="fillViews" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="var(--color-views)" stopOpacity={0.8}/><stop offset="95%" stopColor="var(--color-views)" stopOpacity={0}/></linearGradient>
                                 </defs>
                                 <CartesianGrid vertical={false} strokeDasharray="3 3" />
                                 <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} />
-                                <YAxis yAxisId="left" tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
-                                <YAxis yAxisId="right" orientation="right" tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
+                                <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
                                 <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
                                 <Legend />
-                                <Area yAxisId="left" type="monotone" dataKey="followers" stroke="var(--color-followers)" strokeWidth={2} fillOpacity={0.4} fill="url(#fillFollowers)" name="Seguidores" dot={false} />
-                                <Line yAxisId="right" type="monotone" dataKey="views" stroke="var(--color-views)" strokeWidth={2} name="Views" dot={false} />
-                                <Line yAxisId="right" type="monotone" dataKey="likes" stroke="var(--color-likes)" strokeWidth={2} name="Likes" dot={false} />
-                                <Line yAxisId="right" type="monotone" dataKey="comments" stroke="var(--color-comments)" strokeWidth={2} name="Comentários" dot={false}/>
+                                <Area type="monotone" dataKey="followers" stroke="var(--color-followers)" strokeWidth={2} fillOpacity={0.4} fill="url(#fillFollowers)" name="Seguidores" dot={false} />
+                                <Area type="monotone" dataKey="views" stroke="var(--color-views)" fill="transparent" strokeWidth={2} name="Views" dot={false} />
+                                <Area type="monotone" dataKey="likes" stroke="var(--color-likes)" fill="transparent" strokeWidth={2} name="Likes" dot={false} />
+                                <Area type="monotone" dataKey="comments" stroke="var(--color-comments)" fill="transparent" strokeWidth={2} name="Comentários" dot={false}/>
                             </AreaChart>
                           </ResponsiveContainer>
                         </ChartContainer>
