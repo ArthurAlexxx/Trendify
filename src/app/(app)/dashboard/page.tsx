@@ -450,15 +450,8 @@ export default function DashboardPage() {
                         upcomingContent={upcomingContent}
                         isLoadingIdeias={isLoadingIdeias}
                         ideiasSalvas={ideiasSalvas}
-                        isFetchingPosts={isLoadingInstaPosts || isLoadingTiktokPosts}
-                        instaProfile={userProfile || null}
-                        instaPosts={instaPosts || null}
-                        tiktokProfile={userProfile || null}
-                        tiktokPosts={tiktokPosts || null}
                         handleToggleIdeia={handleToggleIdeia}
                         handleMarkAsPublished={handleMarkAsPublished}
-                        handleTikTokClick={handleTikTokClick}
-                        formatNumber={formatMetricValue as any}
                   />
                 </div>
 

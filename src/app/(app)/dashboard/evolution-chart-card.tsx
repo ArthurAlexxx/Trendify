@@ -6,7 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarChart, Bar, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartsTooltip, Legend, Area, AreaChart, Label } from 'recharts';
 import { ChartConfig, ChartContainer, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
-import { TrendingUp, Percent, BarChartHorizontal, ClipboardList, Info, Camera, Video } from 'lucide-react';
+import { TrendingUp, Percent, BarChartHorizontal, ClipboardList, Info, Camera, Video, PlayCircle, Eye, Heart, MessageSquare } from 'lucide-react';
 import type { MetricSnapshot, InstagramPostData, TikTokPost, UserProfile } from '@/lib/types';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -45,6 +45,18 @@ interface EvolutionChartCardProps {
     handleTikTokClick: (post: TikTokPost) => void;
     onItemClick: (item: any) => void;
 }
+
+const formatIntegerValue = (value?: string | number): string => {
+    const parseMetric = (val?: string | number): number => {
+        if (typeof val === 'number') return val;
+        if (!val || typeof val !== 'string') return 0;
+        const cleanedValue = val.replace(/\./g, '').replace(',', '.');
+        const num = parseFloat(cleanedValue.replace(/K/gi, 'e3').replace(/M/gi, 'e6'));
+        return isNaN(num) ? 0 : num;
+    }
+    const num = parseMetric(value);
+    return Math.round(num).toLocaleString('pt-BR');
+};
 
 export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPosts, tiktokPosts, selectedPlatform, userProfile, handleTikTokClick, onItemClick }: EvolutionChartCardProps) {
 
@@ -114,12 +126,12 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
         }
      });
 
-    return posts.sort((a, b) => a.date.getTime() - b.date.getTime()).slice(-30);
+    return posts.sort((a, b) => b.date.getTime() - a.date.getTime());
 
   }, [instaPosts, tiktokPosts, userProfile, selectedPlatform]);
   
-  const videoPosts = useMemo(() => allPosts.filter(p => p.isVideo), [allPosts]);
-  const photoPosts = useMemo(() => allPosts.filter(p => !p.isVideo), [allPosts]);
+  const videoPosts = useMemo(() => allPosts.filter(p => p.isVideo).slice(0, 5), [allPosts]);
+  const photoPosts = useMemo(() => allPosts.filter(p => !p.isVideo).slice(0, 5), [allPosts]);
 
 
   const CustomTooltip = ({ active, payload, label }: any) => {
@@ -158,41 +170,54 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
     }
   };
 
-  const renderPostGrid = (posts: PostData[], type: 'Vídeos' | 'Fotos') => {
+  const renderPostGrid = (posts: PostData[], title: string, icon: React.ElementType) => {
+      const Icon = icon;
       return (
-        <>
-            <div className="flex justify-end pr-4">
-                <TooltipProvider>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                        <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
-                        </TooltipTrigger>
-                        <TooltipContent>
-                        <p className="max-w-xs">Miniaturas das suas últimas publicações. Clique para ver detalhes.</p>
-                        </TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
-            </div>
-            {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
+        <div>
+            <h3 className="font-semibold text-lg flex items-center gap-2 mb-4">
+                <Icon className="h-5 w-5 text-primary" />
+                {title}
+            </h3>
+            {isLoading ? <Skeleton className="h-[150px] w-full" /> : 
             posts.length > 0 ? (
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 p-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
                     {posts.map(post => (
-                        <div key={post.id} className="aspect-[9/16] relative rounded-lg overflow-hidden cursor-pointer group" onClick={() => onItemClick(post)}>
-                            <Image src={post.coverUrl || post.mediaUrl} alt={post.name} fill style={{ objectFit: 'cover' }} className="group-hover:scale-105 transition-transform duration-300" />
-                            <div className="absolute inset-0 bg-black/30"></div>
+                        <div key={post.id} className="group" onClick={() => onItemClick(post)}>
+                            <Card className="overflow-hidden cursor-pointer relative">
+                                <div className="aspect-[9/16] bg-muted">
+                                    <Image src={post.coverUrl || post.mediaUrl} alt={post.name} fill style={{ objectFit: 'cover' }} className="group-hover:scale-105 transition-transform duration-300" />
+                                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <PlayCircle className="h-10 w-10 text-white" />
+                                     </div>
+                                </div>
+                            </Card>
+                            <div className="mt-2 text-center text-xs text-muted-foreground grid grid-cols-3 gap-1">
+                                <div className="flex items-center justify-center gap-1">
+                                    <Eye className="h-3 w-3" />
+                                    <span>{formatIntegerValue(post.views)}</span>
+                                </div>
+                                 <div className="flex items-center justify-center gap-1">
+                                    <Heart className="h-3 w-3" />
+                                    <span>{formatIntegerValue(post.likes)}</span>
+                                </div>
+                                <div className="flex items-center justify-center gap-1">
+                                    <MessageSquare className="h-3 w-3" />
+                                    <span>{formatIntegerValue(post.comments)}</span>
+                                </div>
+                            </div>
                         </div>
                     ))}
                 </div>
             ) : (
-                <div className="h-[200px] w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
+                <div className="h-[150px] w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
                 <div>
                     <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
-                    <h3 className="font-semibold text-foreground">Nenhum(a) {type.toLowerCase()} encontrado(a).</h3>
-                     <p className="text-sm text-muted-foreground">Sincronize suas métricas para ver os dados aqui.</p>
+                    <h3 className="font-semibold text-foreground">Nenhum post encontrado.</h3>
                 </div>
                 </div>
             )}
-        </>
+        </div>
       )
   }
   
@@ -227,7 +252,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                     allPosts.length > 0 ? (
                         <ChartContainer config={chartConfigBase} className="h-[350px] w-full flex-1">
                           <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={allPosts} margin={{ top: 5, right: 20, left: -10, bottom: 5 }} onClick={handleChartClick} className="cursor-pointer">
+                            <AreaChart data={allPosts.slice(0, 15).reverse()} margin={{ top: 5, right: 20, left: -10, bottom: 5 }} onClick={handleChartClick} className="cursor-pointer">
                                 <defs>
                                     <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="var(--color-views)" stopOpacity={0.8}/><stop offset="95%" stopColor="var(--color-views)" stopOpacity={0.1}/></linearGradient>
                                     <linearGradient id="colorLikes" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="var(--color-likes)" stopOpacity={0.8}/><stop offset="95%" stopColor="var(--color-likes)" stopOpacity={0.1}/></linearGradient>
@@ -254,21 +279,9 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                         </div>
                     )}
                 </TabsContent>
-                <TabsContent value="engagementRate">
-                     <Tabs defaultValue="videos">
-                        <div className="mt-4">
-                           <TabsContent value="videos" className="flex flex-col">
-                                {renderPostGrid(videoPosts, "Vídeos")}
-                           </TabsContent>
-                           <TabsContent value="photos" className="flex flex-col">
-                                {renderPostGrid(photoPosts, "Fotos")}
-                           </TabsContent>
-                        </div>
-                        <TabsList className="grid w-full grid-cols-2 mx-auto max-w-sm mt-4">
-                            <TabsTrigger value="videos"><Video className="mr-2 h-4 w-4" />Vídeos</TabsTrigger>
-                            <TabsTrigger value="photos"><Camera className="mr-2 h-4 w-4" />Fotos</TabsTrigger>
-                        </TabsList>
-                     </Tabs>
+                <TabsContent value="engagementRate" className="space-y-8">
+                     {renderPostGrid(videoPosts, "Últimos Vídeos", Video)}
+                     {renderPostGrid(photoPosts, "Últimas Fotos", Camera)}
                 </TabsContent>
               </div>
           </Tabs>

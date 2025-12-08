@@ -19,10 +19,7 @@ import { ptBR } from 'date-fns/locale';
 import { RecentPostsSheet } from '@/components/dashboard/recent-posts-sheet';
 import type {
   ConteudoAgendado,
-  IdeiaSalva,
-  InstagramPostData,
-  TikTokPost,
-  UserProfile,
+  IdeiaSalva
 } from '@/lib/types';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 
@@ -31,15 +28,8 @@ interface ActionHubCardProps {
   upcomingContent: ConteudoAgendado[] | null;
   isLoadingIdeias: boolean;
   ideiasSalvas: IdeiaSalva[] | null;
-  isFetchingPosts: boolean;
-  instaProfile: UserProfile | null;
-  instaPosts: InstagramPostData[] | null;
-  tiktokProfile: UserProfile | null;
-  tiktokPosts: TikTokPost[] | null;
   handleToggleIdeia: (ideia: IdeiaSalva) => void;
   handleMarkAsPublished: (postId: string) => void;
-  handleTikTokClick: (post: TikTokPost) => void;
-  formatNumber: (num: number) => string;
 }
 
 export default function ActionHubCard({
@@ -47,15 +37,8 @@ export default function ActionHubCard({
   upcomingContent,
   isLoadingIdeias,
   ideiasSalvas,
-  isFetchingPosts,
-  instaProfile,
-  instaPosts,
-  tiktokProfile,
-  tiktokPosts,
   handleToggleIdeia,
   handleMarkAsPublished,
-  handleTikTokClick,
-  formatNumber,
 }: ActionHubCardProps) {
   return (
     <Card className="h-full flex flex-col shadow-primary-lg">
@@ -66,10 +49,9 @@ export default function ActionHubCard({
       </CardHeader>
       <CardContent className="flex-1 flex flex-col">
         <Tabs defaultValue="proximos" className="w-full flex-1 flex flex-col">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="proximos">Próximos</TabsTrigger>
             <TabsTrigger value="ideias">Ideias</TabsTrigger>
-            <TabsTrigger value="posts">Seus Vídeos</TabsTrigger>
           </TabsList>
           <div className="flex-1 mt-4">
             <TabsContent value="proximos" className="h-full">
@@ -178,24 +160,6 @@ export default function ActionHubCard({
                   </Button>
                 </div>
               )}
-            </TabsContent>
-            <TabsContent value="posts" className="h-full">
-              <div className="flex flex-col items-center justify-center h-full text-center">
-                <p className="text-muted-foreground text-sm mb-2">
-                  Veja os vídeos sincronizados de suas plataformas.
-                </p>
-                <RecentPostsSheet
-                  instaProfile={instaProfile}
-                  instaPosts={instaPosts}
-                  tiktokProfile={tiktokProfile}
-                  tiktokPosts={tiktokPosts}
-                  isLoading={isFetchingPosts}
-                  formatNumber={formatNumber}
-                  onTikTokClick={handleTikTokClick}
-                >
-                  <Button variant="outline">Ver Vídeos Sincronizados</Button>
-                </RecentPostsSheet>
-              </div>
             </TabsContent>
           </div>
         </Tabs>
