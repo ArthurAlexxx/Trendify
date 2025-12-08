@@ -32,7 +32,6 @@ export function PageHeader({ title, description, children, icon: Icon, imageUrl1
                         <AvatarImage src={imageUrl1 ?? undefined} />
                         <AvatarFallback>{title?.[0]}</AvatarFallback>
                     </Avatar>
-                    {children}
                 </div>
             )}
             {hasTwoImages && (
@@ -58,8 +57,8 @@ export function PageHeader({ title, description, children, icon: Icon, imageUrl1
                 <p className="text-lg text-muted-foreground max-w-2xl">{description}</p>
             )}
         </div>
-        {hasIcon && children && <div className="flex w-full md:w-auto items-center justify-center gap-2">{children}</div>}
-        {!hasOneImage && <Separator className="w-1/2 mx-auto" />}
+        {children && <div className="flex w-full md:w-auto items-center justify-center gap-2">{children}</div>}
+        <Separator className="w-1/2 mx-auto" />
     </div>
   );
 }

@@ -113,9 +113,6 @@ export default function DashboardPage() {
   const [selectedChartItem, setSelectedChartItem] = useState<any>(null);
   const [isChartItemSheetOpen, setIsChartItemSheetOpen] = useState(false);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
-
   const { subscription, isLoading: isSubscriptionLoading } = useSubscription();
   const isPremium = subscription?.plan === 'premium' && subscription.status === 'active';
 
@@ -321,53 +318,6 @@ export default function DashboardPage() {
         comments: tiktokComments,
     }
   }, [userProfile, selectedPlatform, parseMetric]);
-
-  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file || !user || !auth.currentUser) return;
-
-    if (!file.type.startsWith('image/')) {
-        toast({ title: 'Arquivo inválido', description: 'Por favor, selecione um arquivo de imagem.', variant: 'destructive'});
-        return;
-    }
-
-    const { firebaseApp } = initializeFirebase();
-    const storage = getStorage(firebaseApp);
-    const storagePath = `profile-pictures/${user.uid}/${file.name}`;
-    const storageRef = ref(storage, storagePath);
-    const uploadTask = uploadBytesResumable(storageRef, file);
-
-    setUploadProgress(0);
-
-    uploadTask.on(
-        'state_changed',
-        (snapshot) => {
-            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            setUploadProgress(progress);
-        },
-        (error) => {
-            console.error('Upload error:', error);
-            toast({ title: 'Erro no Upload', description: 'Não foi possível enviar sua foto.', variant: 'destructive'});
-            setUploadProgress(null);
-        },
-        async () => {
-            try {
-                const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                if (auth.currentUser) {
-                  await updateProfile(auth.currentUser, { photoURL: downloadURL });
-                }
-                if (userProfileRef) {
-                    await updateDoc(userProfileRef, { photoURL: downloadURL });
-                }
-                toast({ title: 'Sucesso!', description: 'Sua foto de perfil foi atualizada.' });
-            } catch (e: any) {
-                toast({ title: 'Erro ao Atualizar', description: `Não foi possível salvar a nova foto. ${e.message}`, variant: 'destructive' });
-            } finally {
-                setUploadProgress(null);
-            }
-        }
-    );
-};
   
   return (
     <>
@@ -422,11 +372,6 @@ export default function DashboardPage() {
           title={`Bem-vindo(a), ${userProfile?.displayName?.split(' ')[0] || 'Criador'}!`}
           description="Seu centro de comando para crescimento e monetização."
         >
-           <div className="absolute top-0 left-0 w-full h-full opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center bg-black/40 cursor-pointer rounded-2xl" onClick={() => fileInputRef.current?.click()}>
-              <Upload className="h-6 w-6 text-white" />
-              <input type="file" ref={fileInputRef} onChange={handlePhotoUpload} accept="image/*" className="hidden" />
-            </div>
-            {uploadProgress !== null && <Progress value={uploadProgress} className="absolute bottom-0 left-0 w-full h-1 rounded-none" />}
           <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
               <Tabs value={selectedPlatform} onValueChange={(value) => setSelectedPlatform(value as any)}>
                 <TabsList>

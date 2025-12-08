@@ -272,20 +272,10 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
                     ) : (
                         <div className="flex items-center gap-3 w-full">
                              <div className="relative group">
-                                <Avatar className="h-10 w-10" onClick={(e) => e.stopPropagation()}>
+                                <Avatar className="h-10 w-10">
                                     <AvatarImage src={user?.photoURL ?? undefined} alt="User avatar" />
                                     <AvatarFallback>{user?.displayName?.[0] || user?.email?.[0]}</AvatarFallback>
                                 </Avatar>
-                                <div
-                                    className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        fileInputRef.current?.click();
-                                    }}
-                                >
-                                    <Upload className="h-5 w-5 text-white" />
-                                </div>
-                                <input type="file" ref={fileInputRef} onChange={handlePhotoUpload} accept="image/*" className="hidden" />
                             </div>
                             <div className="w-[120px] overflow-hidden text-left">
                                 <p className="text-sm font-semibold truncate text-foreground">{user?.displayName}</p>
