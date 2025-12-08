@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -248,7 +249,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
           <Tabs defaultValue="evolution" className="w-full">
               <TabsList className="grid w-full grid-cols-2 mx-auto max-w-md">
                   <TabsTrigger value="evolution">Evolução</TabsTrigger>
-                  <TabsTrigger value="engagementRate">Seus Posts</TabsTrigger>
+                  <TabsTrigger value="posts">Seus Posts</TabsTrigger>
               </TabsList>
               <div className="mt-4">
                 <TabsContent value="evolution" className="flex flex-col">
@@ -265,6 +266,15 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                     </TooltipProvider>
                   </div>
                    {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
+                    (selectedPlatform === 'total') ? (
+                       <div className="h-[350px] w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
+                          <div>
+                            <BarChartHorizontal className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+                            <h3 className="font-semibold text-foreground">Análise por Plataforma</h3>
+                            <p className="text-sm text-muted-foreground">Selecione Instagram ou TikTok para ver o gráfico de evolução.</p>
+                          </div>
+                        </div>
+                    ) :
                     allPosts.length > 0 ? (
                         <ChartContainer config={chartConfigBase} className="h-[350px] w-full flex-1">
                           <ResponsiveContainer width="100%" height="100%">
@@ -295,7 +305,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                         </div>
                     )}
                 </TabsContent>
-                <TabsContent value="engagementRate" className="space-y-8">
+                <TabsContent value="posts" className="space-y-8">
                      {renderPostGrid(videoPosts, "Últimos Vídeos", Video)}
                      {renderPostGrid(photoPosts, "Últimas Fotos", Camera)}
                 </TabsContent>
@@ -305,3 +315,5 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
     </Card>
   );
 }
+
+    
