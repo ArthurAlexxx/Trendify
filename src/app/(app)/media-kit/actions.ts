@@ -1,7 +1,7 @@
 
 'use server';
 
-import { ai } from '@/ai/genkit';
+// import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
 const AiCareerPackageOutputSchema = z.object({
@@ -63,7 +63,7 @@ type CareerPackageState = {
   data?: AiCareerPackageOutput;
   error?: string;
 } | null;
-
+/*
 const prompt = ai.definePrompt({
     name: 'aiCareerPackagePrompt',
     model: 'openai/gpt-4o',
@@ -108,7 +108,7 @@ async function getAiCareerPackage(
   }
   return output;
 }
-
+*/
 export async function getAiCareerPackageAction(
   prevState: CareerPackageState,
   formData: FormSchemaType
@@ -119,7 +119,9 @@ export async function getAiCareerPackageAction(
     const issues = parsed.error.issues.map((i) => i.message).join(', ');
     return { error: issues || 'Input inválido.' };
   }
-
+  
+  return { error: 'A funcionalidade de IA está temporariamente desativada para manutenção.' };
+  /*
   try {
     const result = await getAiCareerPackage(parsed.data);
     return { data: result };
@@ -128,4 +130,5 @@ export async function getAiCareerPackageAction(
       e instanceof Error ? e.message : 'Ocorreu um erro desconhecido.';
     return { error: `Falha ao gerar pacote: ${errorMessage}` };
   }
+  */
 }

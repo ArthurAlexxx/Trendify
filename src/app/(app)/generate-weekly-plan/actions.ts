@@ -2,7 +2,7 @@
 'use server';
 
 import { z } from 'zod';
-import { ai } from '@/ai/genkit';
+// import { ai } from '@/ai/genkit';
 
 const ItemRoteiroSchema = z.object({
   dia: z.string().describe('O dia da semana para a tarefa (ex: "Segunda").'),
@@ -56,6 +56,7 @@ type WeeklyPlanState = {
   error?: string;
 } | null;
 
+/*
 const prompt = ai.definePrompt({
     name: 'generateWeeklyPlanPrompt',
     model: 'openai/gpt-4o',
@@ -108,6 +109,7 @@ async function generateWeeklyPlan(
     items: output.items.map(item => ({ ...item, concluido: false })),
   };
 }
+*/
 
 export async function generateWeeklyPlanAction(
   prevState: WeeklyPlanState,
@@ -118,7 +120,10 @@ export async function generateWeeklyPlanAction(
   if (!parsed.success) {
     return { error: 'Por favor, preencha todos os campos obrigatórios.' };
   }
+  
+  return { error: 'A funcionalidade de IA está temporariamente desativada para manutenção.' };
 
+  /*
   try {
     const result = await generateWeeklyPlan(parsed.data);
     return { data: result };
@@ -127,4 +132,5 @@ export async function generateWeeklyPlanAction(
       e instanceof Error ? e.message : 'Ocorreu um erro desconhecido.';
     return { error: `Falha ao gerar plano: ${errorMessage}` };
   }
+  */
 }

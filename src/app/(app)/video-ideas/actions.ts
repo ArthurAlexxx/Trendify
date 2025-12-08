@@ -1,7 +1,7 @@
 
 'use server';
 
-import { ai } from '@/ai/genkit';
+// import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
 const NicheCompetitorSchema = z.object({
@@ -51,7 +51,7 @@ type VideoIdeasState = {
   error?: string;
 } | null;
 
-
+/*
 const prompt = ai.definePrompt({
     name: 'generateVideoIdeasPrompt',
     model: 'openai/gpt-4o',
@@ -93,7 +93,7 @@ async function generateVideoIdeas(
   }
   return output;
 }
-
+*/
 export async function generateVideoIdeasAction(
   prevState: VideoIdeasState,
   formData: FormSchemaType,
@@ -104,7 +104,10 @@ export async function generateVideoIdeasAction(
     const issues = parsed.error.issues.map((i) => i.message).join(', ');
     return { error: issues || 'Input inválido.' };
   }
+  
+  return { error: 'A funcionalidade de IA está temporariamente desativada para manutenção.' };
 
+  /*
   try {
     const result = await generateVideoIdeas(parsed.data);
     return { data: result };
@@ -113,4 +116,5 @@ export async function generateVideoIdeasAction(
       e instanceof Error ? e.message : 'Ocorreu um erro desconhecido.';
     return { error: `Falha ao gerar ideias: ${errorMessage}` };
   }
+  */
 }

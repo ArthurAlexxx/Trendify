@@ -2,7 +2,7 @@
 'use server';
 
 import { z } from 'zod';
-import { ai } from '@/ai/genkit';
+// import { ai } from '@/ai/genkit';
 import { UserProfile } from '@/lib/types';
 
 
@@ -45,6 +45,7 @@ const GenerateDashboardInsightsInputSchema = z.object({
   objective: z.string(),
 });
 
+/*
 const prompt = ai.definePrompt({
     name: 'dashboardInsightsPrompt',
     model: 'openai/gpt-4o',
@@ -82,7 +83,7 @@ const generateInsightsFlow = ai.defineFlow({
     }
     return output;
 });
-
+*/
 
 /**
  * Genera insights analisando a tendência de uma lista de métricas, usando IA.
@@ -92,6 +93,9 @@ const generateInsightsFlow = ai.defineFlow({
 export async function generateDashboardInsights(
   input: z.infer<typeof GenerateDashboardInsightsInputSchema>
 ): Promise<DashboardInsightsOutput> {
+  throw new Error("A funcionalidade de IA está temporariamente desativada para manutenção.");
+
+  /*
   const { metricSnapshots } = input;
 
   if (metricSnapshots.length < 2) {
@@ -107,4 +111,5 @@ export async function generateDashboardInsights(
       error instanceof Error ? error.message : 'Erro desconhecido.';
     throw new Error(`Falha ao gerar insights com a IA: ${errorMessage}`);
   }
+  */
 }

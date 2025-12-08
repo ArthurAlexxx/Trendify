@@ -1,7 +1,7 @@
 
 'use server';
 
-import { ai } from '@/ai/genkit';
+// import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
 const ScriptSchema = z.object({
@@ -57,6 +57,7 @@ type PubliProposalsState = {
   error?: string;
 } | null;
 
+/*
 const prompt = ai.definePrompt({
     name: 'generatePubliProposalsPrompt',
     model: 'openai/gpt-4o',
@@ -96,7 +97,7 @@ async function generatePubliProposals(
   }
   return output;
 }
-
+*/
 export async function generatePubliProposalsAction(
   prevState: PubliProposalsState,
   formData: FormSchemaType
@@ -108,6 +109,9 @@ export async function generatePubliProposalsAction(
     return { error: issues || 'Input inválido.' };
   }
 
+  return { error: 'A funcionalidade de IA está temporariamente desativada para manutenção.' };
+
+  /*
   try {
     const result = await generatePubliProposals(parsed.data);
     return { data: result };
@@ -116,4 +120,5 @@ export async function generatePubliProposalsAction(
       e instanceof Error ? e.message : 'Ocorreu um erro desconhecido.';
     return { error: `Falha ao gerar propostas: ${errorMessage}` };
   }
+  */
 }

@@ -1,7 +1,7 @@
 
 'use server';
 
-import { ai } from '@/ai/genkit';
+// import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
 const VideoAnalysisOutputSchema = z.object({
@@ -56,6 +56,9 @@ export async function analyzeVideo(
     return { error };
   }
   
+  return { error: 'A funcionalidade de IA está temporariamente desativada para manutenção.' };
+
+  /*
   const { videoUrl, videoDescription } = parsed.data;
 
   try {
@@ -79,8 +82,9 @@ export async function analyzeVideo(
 
     return { error: friendlyErrorMessage };
   }
+  */
 }
-
+/*
 // 1. Define o prompt para a IA
 const prompt = ai.definePrompt({
   name: 'videoAnalysisExpert',
@@ -141,3 +145,4 @@ const analyzeVideoFlow = ai.defineFlow(
     return output;
   }
 );
+*/
