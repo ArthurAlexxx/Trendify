@@ -29,7 +29,7 @@ const InstagramLooterProfileSchema = z.object({
   is_professional_account: z.boolean(),
   profile_pic_url_hd: z.string().url(),
   biography: z.string(),
-  full_name: zstring(),
+  full_name: z.string(),
   edge_owner_to_timeline_media: z.object({
     count: z.number(),
     edges: z.array(z.object({ node: InstagramLooterPostSchema })),
