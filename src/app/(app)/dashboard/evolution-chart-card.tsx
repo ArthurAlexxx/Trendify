@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarChart, Bar, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartsTooltip, Legend, Area, AreaChart } from 'recharts';
-import { ChartConfig, ChartContainer } from '@/components/ui/chart';
+import { ChartConfig, ChartContainer, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
 import { TrendingUp, Percent, BarChartHorizontal, ClipboardList, Info } from 'lucide-react';
 import type { MetricSnapshot, InstagramPostData, TikTokPost, UserProfile } from '@/lib/types';
 import Link from 'next/link';
@@ -16,7 +16,7 @@ const chartConfigBase: ChartConfig = {
   views: { label: "Views", color: "hsl(var(--chart-2))"  },
   likes: { label: "Likes", color: "hsl(var(--chart-1))"  },
   comments: { label: "Comentários", color: "hsl(var(--chart-4))"  },
-  engagementRate: { label: "Engajamento (%)", color: "hsl(var(--primary))" },
+  engagement: { label: "Engajamento (%)", color: "hsl(var(--primary))" },
 };
 
 interface EvolutionChartCardProps {
@@ -173,10 +173,10 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                                 <XAxis dataKey="postLabel" tick={false} axisLine={false} />
                                 <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
                                 <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
-                                <Legend />
+                                <ChartLegend content={<ChartLegendContent />} />
                                 <Area type="monotone" dataKey="views" stroke="var(--color-views)" fill="url(#colorViews)" stackId="a" name="Views" />
                                 <Area type="monotone" dataKey="likes" stroke="var(--color-likes)" fill="url(#colorLikes)" stackId="b" name="Likes" />
-                                <Area type="monotone" dataKey="comments" stroke="var(--color-comments)" fill="url(#colorComments)" stackId="c" name="Comentários" />
+                                <Area type="monotone" dataKey="comments" stroke="var(--color-comments)" fill="url(#colorComments)" stackId="b" name="Comentários" />
                             </AreaChart>
                           </ResponsiveContainer>
                         </ChartContainer>
@@ -212,7 +212,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                                 <XAxis dataKey="postLabel" tick={false} axisLine={false} label={{ value: 'Seus Vídeos', position: 'insideBottom', dy: 10, fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
                                 <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => `${value}%`} />
                                 <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
-                                <Bar dataKey="engagement" fill="var(--color-engagementRate)" name="Engajamento" radius={[4, 4, 0, 0]} />
+                                <Bar dataKey="engagement" fill="var(--color-engagement)" name="Engajamento" radius={[4, 4, 0, 0]} />
                             </BarChart>
                          </ResponsiveContainer>
                        </ChartContainer>
