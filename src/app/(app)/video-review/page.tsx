@@ -21,6 +21,7 @@ import {
   Inbox,
   AlertTriangle,
   Flame,
+  Info,
 } from "lucide-react";
 import {
   Card,
@@ -311,7 +312,7 @@ function VideoReviewPageContent() {
                 userId: user.uid,
                 videoUrl: downloadURL,
                 videoFileName: file.name,
-                analysisData: result.data,
+                analysisData: { ...result.data, videoDescription },
                 createdAt: serverTimestamp(),
             });
 
@@ -336,31 +337,21 @@ function VideoReviewPageContent() {
       return { note: '-', description: 'Análise indisponível.' };
     }
   
-    // Tenta encontrar "X/10" ou "X / 10"
-    const scoreRegex = /(\d{1,2}(?:[.,]\d{1,2})?)\s*\/\s*10/;
+    // Tenta encontrar "X/10" ou "X / 10" ou "Nota: X"
+    const scoreRegex = /(\d{1,2}(?:[.,]\d{1,2})?)\s*\/\s*10|Nota:\s*(\d{1,2}(?:[.,]\d{1,2})?)/i;
     const scoreMatch = geralText.match(scoreRegex);
-  
+
     if (scoreMatch) {
+      const note = scoreMatch[1] || scoreMatch[2];
       return {
-        note: scoreMatch[1],
+        note: note,
         description: geralText.replace(scoreMatch[0], '').replace(/^[:\s-]+/, '').trim(),
       };
     }
-  
-    // Tenta encontrar "Nota: X"
-    const noteRegex = /Nota:\s*(\d{1,2}(?:[.,]\d{1,2})?)/i;
-    const noteMatch = geralText.match(noteRegex);
-  
-    if (noteMatch) {
-      return {
-        note: noteMatch[1],
-        description: geralText.replace(noteMatch[0], '').replace(/^[:\s-]+/, '').trim(),
-      };
-    }
-
-    // Tenta encontrar um número no início da string seguido por um separador
-     const initialNumRegex = /^(\d{1,2}(?:[.,]\d{1,2})?)\s*[-–—:]?(.+)/;
-     const initialNumMatch = geralText.match(initialNumRegex);
+    
+    // Fallback: Tenta encontrar um número no início, possivelmente seguido por um separador
+    const initialNumRegex = /^(\d{1,2}(?:[.,]\d{1,2})?)\s*[-–—:]?(.+)/s;
+    const initialNumMatch = geralText.match(initialNumRegex);
 
     if (initialNumMatch) {
         return {
@@ -589,6 +580,19 @@ function VideoReviewPageContent() {
                     {analysisStatus === 'success' && analysisResult && (
                         <div className="grid lg:grid-cols-2 gap-8 items-start">
                         <div className="space-y-8">
+                            {videoDescription && (
+                                <Card className="shadow-primary-lg">
+                                    <CardHeader>
+                                        <CardTitle className="text-center font-headline text-lg flex items-center gap-2">
+                                            <Info className="h-5 w-5 text-primary" />
+                                            Descrição Fornecida
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="text-center">
+                                        <p className="text-sm text-muted-foreground">{videoDescription}</p>
+                                    </CardContent>
+                                </Card>
+                            )}
                             <Card className="lg:col-span-1 shadow-primary-lg">
                                 <CardHeader className='items-center text-center'>
                                     <CardTitle className="text-center font-headline text-lg text-primary">Nota de Viralização</CardTitle>
@@ -611,7 +615,7 @@ function VideoReviewPageContent() {
                                         {analysisResult.melhorias.map((item, index) => (
                                             <li key={index} className="flex items-start gap-3">
                                             <Check className="h-5 w-5 text-primary mt-0.5 shrink-0" />
-                                            <span className="text-muted-foreground">{item}</span>
+                                            <span className="text-muted-foreground">{item.replace(/^✓\s*/, '')}</span>
                                             </li>
                                         ))}
                                     </ul>
@@ -708,14 +712,28 @@ function VideoReviewPageContent() {
                                                          {analise.videoUrl && (
                                                             <video controls src={analise.videoUrl} className="w-full rounded-lg bg-black"></video>
                                                          )}
-                                                        
+                                                         
+                                                         {analise.analysisData.videoDescription && (
+                                                            <Card className="shadow-primary-lg">
+                                                                <CardHeader>
+                                                                    <CardTitle className="text-center font-headline text-lg flex items-center gap-2">
+                                                                        <Info className="h-5 w-5 text-primary" />
+                                                                        Descrição Fornecida
+                                                                    </CardTitle>
+                                                                </CardHeader>
+                                                                <CardContent className="text-center">
+                                                                    <p className="text-sm text-muted-foreground">{analise.analysisData.videoDescription}</p>
+                                                                </CardContent>
+                                                            </Card>
+                                                          )}
+
                                                         <Card className="shadow-primary-lg">
                                                             <CardHeader>
                                                                 <CardTitle className="text-lg text-primary">Nota de Viralização</CardTitle>
                                                             </CardHeader>
                                                             <CardContent>
-                                                                <div className="text-3xl font-bold">{analise.analysisData.geral.match(/(\d{1,2}(?:[.,]\d{1,2})?)\s*\/\s*10/)?.[0] || '-/10'}</div>
-                                                                <p className="text-sm text-muted-foreground mt-1">{analise.analysisData.geral.replace(/(\d{1,2}(?:[.,]\d{1,2})?)\s*\/\s*10[:\s]*/, '')}</p>
+                                                                <div className="text-3xl font-bold">{getNoteParts(analise.analysisData.geral).note}/10</div>
+                                                                <p className="text-sm text-muted-foreground mt-1">{getNoteParts(analise.analysisData.geral).description}</p>
                                                             </CardContent>
                                                         </Card>
 
@@ -728,7 +746,7 @@ function VideoReviewPageContent() {
                                                                     {analise.analysisData.melhorias.map((item: string, index: number) => (
                                                                         <li key={index} className="flex items-start gap-2">
                                                                             <Check className="h-4 w-4 text-primary mt-1 shrink-0" />
-                                                                            <span className="text-muted-foreground">{item}</span>
+                                                                            <span className="text-muted-foreground">{item.replace(/^✓\s*/, '')}</span>
                                                                         </li>
                                                                     ))}
                                                                 </ul>
