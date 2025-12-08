@@ -70,7 +70,6 @@ export async function callGoogleAI<T extends z.ZodType<any, any, any>>(
   const processedPrompt = template(promptData);
 
   const schemaAsJson = zodToJsonSchema(jsonSchema, {
-    strategy: 'openApi3',
     $refStrategy: 'none'
   });
   
@@ -122,7 +121,7 @@ export async function callGoogleAI<T extends z.ZodType<any, any, any>>(
   };
 
   try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=${apiKey}`, {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
