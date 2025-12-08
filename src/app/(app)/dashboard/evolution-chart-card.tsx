@@ -11,6 +11,7 @@ import type { MetricSnapshot, InstagramPostData, TikTokPost, UserProfile } from 
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import Image from 'next/image';
 
 const chartConfigBase: ChartConfig = {
   views: { label: "Views", color: "hsl(var(--chart-2))"  },
@@ -157,7 +158,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
     }
   };
 
-  const renderEngagementChart = (posts: PostData[], type: 'Vídeos' | 'Fotos') => {
+  const renderPostGrid = (posts: PostData[], type: 'Vídeos' | 'Fotos') => {
       return (
         <>
             <div className="flex justify-end pr-4">
@@ -167,28 +168,23 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                         <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
                         </TooltipTrigger>
                         <TooltipContent>
-                        <p className="max-w-xs">Analise a taxa de engajamento ({type}) de cada post.</p>
+                        <p className="max-w-xs">Miniaturas das suas últimas publicações. Clique para ver detalhes.</p>
                         </TooltipContent>
                     </Tooltip>
                 </TooltipProvider>
             </div>
             {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
             posts.length > 0 ? (
-                <ChartContainer config={chartConfigBase} className="h-[350px] w-full flex-1">
-                    <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={posts} margin={{ top: 20, right: 20, left: -10, bottom: 20 }} onClick={handleChartClick} className="cursor-pointer">
-                        <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                        <XAxis dataKey="postLabel" tickLine={false} axisLine={false} tick={false}>
-                            <Label value={`Seus ${type}`} offset={10} position="insideBottom" />
-                        </XAxis>
-                        <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => `${value}%`} />
-                        <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
-                        <Bar dataKey="engagement" fill="var(--color-engagement)" name="Engajamento" radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                    </ResponsiveContainer>
-                </ChartContainer>
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 p-2">
+                    {posts.map(post => (
+                        <div key={post.id} className="aspect-[9/16] relative rounded-lg overflow-hidden cursor-pointer group" onClick={() => onItemClick(post)}>
+                            <Image src={post.coverUrl || post.mediaUrl} alt={post.name} fill style={{ objectFit: 'cover' }} className="group-hover:scale-105 transition-transform duration-300" />
+                            <div className="absolute inset-0 bg-black/30"></div>
+                        </div>
+                    ))}
+                </div>
             ) : (
-                <div className="h-[350px] w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
+                <div className="h-[200px] w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
                 <div>
                     <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
                     <h3 className="font-semibold text-foreground">Nenhum(a) {type.toLowerCase()} encontrado(a).</h3>
@@ -211,7 +207,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
           <Tabs defaultValue="evolution" className="w-full">
               <TabsList className="grid w-full grid-cols-2 mx-auto max-w-md">
                   <TabsTrigger value="evolution">Evolução</TabsTrigger>
-                  <TabsTrigger value="engagementRate">Engajamento</TabsTrigger>
+                  <TabsTrigger value="engagementRate">Seus Posts</TabsTrigger>
               </TabsList>
               <div className="mt-4">
                 <TabsContent value="evolution" className="flex flex-col">
@@ -262,10 +258,10 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                      <Tabs defaultValue="videos">
                         <div className="mt-4">
                            <TabsContent value="videos" className="flex flex-col">
-                                {renderEngagementChart(videoPosts, "Vídeos")}
+                                {renderPostGrid(videoPosts, "Vídeos")}
                            </TabsContent>
                            <TabsContent value="photos" className="flex flex-col">
-                                {renderEngagementChart(photoPosts, "Fotos")}
+                                {renderPostGrid(photoPosts, "Fotos")}
                            </TabsContent>
                         </div>
                         <TabsList className="grid w-full grid-cols-2 mx-auto max-w-sm mt-4">

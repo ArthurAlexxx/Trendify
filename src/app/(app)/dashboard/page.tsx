@@ -430,8 +430,7 @@ export default function DashboardPage() {
           {userProfile && <ProfileCompletionAlert userProfile={userProfile} isPremium={isPremium} />}
 
           <Suspense fallback={<DashboardSkeleton />}>
-            {/* Desktop Layout */}
-            <div className="hidden lg:grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                 <div className="lg:col-span-1 space-y-8">
                    <GoalCard 
                         isLoading={isLoading} 
@@ -486,81 +485,6 @@ export default function DashboardPage() {
                     />
                 </div>
               </div>
-              
-              {/* Mobile Layout */}
-               <div className="lg:hidden space-y-8">
-                 <Carousel className="w-full" opts={{ align: "start" }}>
-                    <CarouselContent className="-ml-4">
-                        <CarouselItem className="pl-4 basis-[90%] md:basis-1/2">
-                            <div className="p-1 h-full">
-                                <GoalCard 
-                                    isLoading={isLoading} 
-                                    goalFollowers={goalFollowers}
-                                    currentFollowers={currentFollowers}
-                                    isGoalReached={isGoalReached}
-                                    onEditGoal={() => setIsGoalSheetOpen(true)}
-                                    formatMetricValue={formatMetricValue}
-                                />
-                            </div>
-                        </CarouselItem>
-                        <CarouselItem className="pl-4 basis-full">
-                             <div className="p-1 h-full">
-                                <EngagementMetricsCard 
-                                    isLoading={isLoading} 
-                                    latestMetrics={latestMetrics}
-                                    formatIntegerValue={formatIntegerValue} 
-                                />
-                            </div>
-                        </CarouselItem>
-                        <CarouselItem className="pl-4 basis-[90%] md:basis-1/2">
-                            <div className="p-1 h-full">
-                               <DailyPlanCard 
-                                    isLoadingWeeklyPlans={isLoadingWeeklyPlans}
-                                    currentPlan={currentPlan} 
-                                    handleToggleRoteiro={handleToggleRoteiro} 
-                                />
-                            </div>
-                        </CarouselItem>
-                    </CarouselContent>
-                    <CarouselPrevious className="left-2" />
-                    <CarouselNext className="right-2" />
-                 </Carousel>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <ActionHubCard 
-                        isLoadingUpcoming={isLoadingUpcoming}
-                        upcomingContent={upcomingContent}
-                        isLoadingIdeias={isLoadingIdeias}
-                        ideiasSalvas={ideiasSalvas}
-                        isFetchingPosts={isLoadingInstaPosts || isLoadingTiktokPosts}
-                        instaProfile={userProfile || null}
-                        instaPosts={instaPosts || null}
-                        tiktokProfile={userProfile || null}
-                        tiktokPosts={tiktokPosts || null}
-                        handleToggleIdeia={handleToggleIdeia}
-                        handleMarkAsPublished={handleMarkAsPublished}
-                        handleTikTokClick={handleTikTokClick}
-                        formatNumber={formatMetricValue as any}
-                    />
-                    <PerformanceAnalysisCard 
-                        isGeneratingInsights={isGeneratingInsights}
-                        insights={insights}
-                        handleGenerateInsights={handleGenerateInsights}
-                    />
-                </div>
-
-                <EvolutionChartCard
-                    isLoading={isLoadingInstaPosts || isLoadingTiktokPosts || isLoadingMetricSnapshots}
-                    metricSnapshots={metricSnapshots}
-                    instaPosts={instaPosts}
-                    tiktokPosts={tiktokPosts}
-                    selectedPlatform={selectedPlatform}
-                    userProfile={userProfile}
-                    handleTikTokClick={handleTikTokClick}
-                    onItemClick={handleChartItemClick}
-                />
-              </div>
-
             </Suspense>
         </div>
       </div>
