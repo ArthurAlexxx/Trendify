@@ -117,8 +117,10 @@ async function fetchFromRapidApi(platform: 'instagram-profile' | 'tiktok-profile
         case 'tiktok-profile':
             host = 'tiktok-api6.p.rapidapi.com';
             path = 'user/details';
+            method = 'POST';
+            headers['content-type'] = 'application/json';
+            body = JSON.stringify({ username: identifier });
             finalUrl = new URL(`https://${host}/${path}`);
-            finalUrl.searchParams.set('username', identifier);
             break;
         case 'tiktok-posts':
             host = 'tiktok-api6.p.rapidapi.com';
