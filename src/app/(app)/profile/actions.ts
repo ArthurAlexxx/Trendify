@@ -63,29 +63,20 @@ const TikTokApi6ProfileSchema = z.object({
 
 const TikTokPostSchema = z.object({
     video_id: z.string(),
-    share_url: z.string().url().optional(),
     description: z.string().optional(),
     cover: z.string().url(),
     create_time: z.number().optional(),
+    author: z.string().optional(),
+    author_id: z.string().optional(),
     statistics: z.object({
-        play_count: z.number().or(z.string()).transform(val => Number(val)).optional(),
-        digg_count: z.number().or(z.string()).transform(val => Number(val)).optional(),
-        comment_count: z.number().or(z.string()).transform(val => Number(val)).optional(),
-        share_count: z.number().or(z.string()).transform(val => Number(val)).optional(),
-    }).passthrough().optional(),
-    video: z.object({
-        play_addr: z.object({
-            url_list: z.array(z.string().url()).optional(),
-        }).optional(),
-        cover: z.object({
-          url_list: z.array(z.string().url()).optional()
-        }).optional()
-    }).passthrough().optional(),
+        number_of_plays: z.number().optional().default(0),
+        number_of_hearts: z.number().optional().default(0),
+        number_of_comments: z.number().optional().default(0),
+    }).optional(),
 }).passthrough();
 
-
 const TikTokPostResponseSchema = z.object({
-    aweme_list: z.array(TikTokPostSchema).optional().default([]),
+    videos: z.array(TikTokPostSchema).optional().default([]),
 }).passthrough();
 
 
@@ -124,9 +115,11 @@ async function fetchFromRapidApi(platform: 'instagram-profile' | 'tiktok-profile
             break;
         case 'tiktok-posts':
             host = 'tiktok-api6.p.rapidapi.com';
-            path = 'user/posts';
+            path = 'user/videos';
+            method = 'POST';
+            headers['content-type'] = 'application/json';
+            body = JSON.stringify({ username: identifier });
             finalUrl = new URL(`https://${host}/${path}`);
-            finalUrl.searchParams.set('secUid', identifier); // This endpoint now uses secUid
             break;
         default:
             throw new Error(`Plataforma '${platform}' desconhecida.`);
@@ -296,23 +289,24 @@ export async function getTikTokProfile(username: string): Promise<TikTokProfileD
 }
 
 
-export async function getTikTokPosts(secUid: string): Promise<TikTokPost[]> {
-    if (!secUid) {
-        throw new Error('secUid é necessário para buscar os posts.');
+export async function getTikTokPosts(username: string): Promise<TikTokPost[]> {
+    if (!username) {
+        throw new Error('Username é necessário para buscar os posts.');
     }
     try {
-        const result = await fetchFromRapidApi('tiktok-posts', secUid);
+        const result = await fetchFromRapidApi('tiktok-posts', username);
         const parsed = TikTokPostResponseSchema.parse(result);
-        const videos = parsed.aweme_list ?? [];
+        const videos = parsed.videos ?? [];
 
         return videos.slice(0, 10).map((post) => ({
             id: post.video_id,
-            shareUrl: post.share_url,
+            // The shareUrl is not provided in this API response, so we construct a probable one
+            shareUrl: `https://www.tiktok.com/@${post.author}/video/${post.video_id}`,
             description: post.description || '',
-            coverUrl: post.video?.cover?.url_list?.[0] || post.cover,
-            views: post.statistics?.play_count ?? 0,
-            likes: post.statistics?.digg_count ?? 0,
-            comments: post.statistics?.comment_count ?? 0,
+            coverUrl: post.cover,
+            views: post.statistics?.number_of_plays ?? 0,
+            likes: post.statistics?.number_of_hearts ?? 0,
+            comments: post.statistics?.number_of_comments ?? 0,
         }));
 
     } catch (e: any) {
@@ -324,5 +318,3 @@ export async function getTikTokPosts(secUid: string): Promise<TikTokPost[]> {
         throw e;
     }
 }
-
-    

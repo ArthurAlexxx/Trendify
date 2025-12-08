@@ -24,7 +24,7 @@ import type { UserProfile, InstagramProfileData, InstagramPostData, TikTokProfil
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { getInstagramProfile, getTikTokProfile, getInstagramPosts } from '@/app/(app)/profile/actions';
+import { getInstagramProfile, getTikTokProfile, getInstagramPosts, getTikTokPosts } from '@/app/(app)/profile/actions';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useSubscription } from '@/hooks/useSubscription';
 import Link from 'next/link';
@@ -213,25 +213,12 @@ export default function IntegrationsPage() {
     const cleanedUsername = tiktokUsername.replace('@', '');
 
     try {
-      // 1. Fetch Profile to get secUid
+      // 1. Fetch Profile
       const profileResult = await getTikTokProfile(cleanedUsername);
-      if (!profileResult.secUid) {
-        throw new Error("Não foi possível obter o ID de segurança (secUid) do perfil do TikTok. A sincronização de vídeos não pode continuar.");
-      }
 
-      // 2. Fetch Posts using secUid
-      const postsResponse = await fetch('/api/tiktok/posts', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ secUid: profileResult.secUid })
-      });
-      if (!postsResponse.ok) {
-          const errorData = await postsResponse.json();
-          throw new Error(errorData.error || 'Falha ao buscar vídeos do TikTok.');
-      }
-      const postsResult: TikTokPost[] = (await postsResponse.json()).data;
+      // 2. Fetch Posts using username
+      const postsResult = await getTikTokPosts(cleanedUsername);
       
-
         const averageLikes = postsResult.length > 0 ? postsResult.reduce((acc, p) => acc + p.likes, 0) / postsResult.length : 0;
         const averageComments = postsResult.length > 0 ? postsResult.reduce((acc, p) => acc + p.comments, 0) / postsResult.length : 0;
         const averageViews = postsResult.length > 0 ? postsResult.reduce((acc, p) => acc + p.views, 0) / postsResult.length : 0;

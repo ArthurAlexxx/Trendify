@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { getTikTokPosts } from '@/app/(app)/profile/actions';
 
 const RequestBodySchema = z.object({
-  secUid: z.string().min(1, 'O secUid é obrigatório.'),
+  username: z.string().min(1, 'O nome de usuário é obrigatório.'),
 });
 
 export async function POST(req: NextRequest) {
@@ -16,8 +16,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Payload da requisição inválido', details: parsedBody.error.format() }, { status: 400 });
     }
 
-    const { secUid } = parsedBody.data;
-    const postsData = await getTikTokPosts(secUid);
+    const { username } = parsedBody.data;
+    const postsData = await getTikTokPosts(username);
     
     return NextResponse.json({ data: postsData });
 
