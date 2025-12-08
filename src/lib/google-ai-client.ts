@@ -1,17 +1,16 @@
-
 'use server';
 
 import { z } from 'zod';
 import Handlebars from 'handlebars';
 
-// Registrar o helper 'json' se ainda não estiver registrado
+// Registrar helper JSON
 if (!Handlebars.helpers.json) {
     Handlebars.registerHelper('json', function (context) {
         return JSON.stringify(context);
     });
 }
 
-// Helper para buscar a URL e converter em base64
+// Converter vídeo para base64
 async function urlToGenerativePart(url: string, mimeType: string) {
     const response = await fetch(url);
     if (!response.ok) {
@@ -30,7 +29,7 @@ async function urlToGenerativePart(url: string, mimeType: string) {
 
 interface CallGoogleAIParams<T extends z.ZodType<any, any, any>> {
     prompt: string;
-    jsonSchema: T; // O schema ainda é usado para validação da resposta
+    jsonSchema: T;
     promptData: Record<string, any>;
     videoUrl?: string;
     videoMimeType?: string;
@@ -46,12 +45,15 @@ export async function callGoogleAI<T extends z.ZodType<any, any, any>>(
         throw new Error('A chave de API do Gemini não está configurada.');
     }
 
-    // Prepara prompt, agora instruindo diretamente a IA a gerar um JSON
+    // Prompt instruindo saída JSON exato
     const template = Handlebars.compile(prompt);
-    const processedPrompt = template(promptData) + "\n\nIMPORTANTE: Sua resposta DEVE ser um objeto JSON válido, sem nenhum texto adicional ou markdown.";
+    const processedPrompt =
+        template(promptData) +
+        "\n\nIMPORTANT: Return ONLY a valid JSON object. No markdown, no explanations.";
 
     const parts: any[] = [];
 
+    // Se tiver vídeo, adiciona primeiro
     if (videoUrl && videoMimeType) {
         parts.push(await urlToGenerativePart(videoUrl, videoMimeType));
     }
@@ -67,13 +69,13 @@ export async function callGoogleAI<T extends z.ZodType<any, any, any>>(
         ],
         generation_config: {
             response_mime_type: 'application/json',
-            temperature: 0.7,
+            temperature: 0.5,
         },
     };
 
     try {
         const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${apiKey}`,
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -85,13 +87,14 @@ export async function callGoogleAI<T extends z.ZodType<any, any, any>>(
             const errText = await response.text();
             let err;
             try {
-              err = JSON.parse(errText);
+                err = JSON.parse(errText);
             } catch (e) {
-              err = { error: { message: errText } };
+                err = { error: { message: errText } };
             }
+
             console.error('Erro da API:', err);
             throw new Error(
-                `A API do Google retornou o erro ${response.status}: ${err.error?.message || 'Erro desconhecido'}`
+                `Erro ${response.status}: ${err.error?.message || 'Erro desconhecido'}`
             );
         }
 
@@ -99,16 +102,16 @@ export async function callGoogleAI<T extends z.ZodType<any, any, any>>(
         const responseText = jsonResponse.candidates?.[0]?.content?.parts?.[0]?.text;
 
         if (!responseText) {
-            console.error('Resposta inválida da API:', JSON.stringify(jsonResponse, null, 2));
-            throw new Error('A resposta da IA não contém o texto esperado.');
+            console.error('Resposta inválida:', jsonResponse);
+            throw new Error('A resposta da IA não contém JSON.');
         }
 
         const parsedJson = JSON.parse(responseText);
 
         const validation = jsonSchema.safeParse(parsedJson);
         if (!validation.success) {
-            console.error('Erro de validação Zod:', validation.error.format());
-            throw new Error('A resposta da IA não corresponde ao schema esperado.');
+            console.error('Erro Zod:', validation.error.format());
+            throw new Error('A resposta não corresponde ao schema.');
         }
 
         return validation.data;
