@@ -338,7 +338,7 @@ export default function VideoIdeasPage() {
                     <CarouselContent className="-ml-4">
                         {analysisCriteria.map((item, index) => (
                             <CarouselItem key={index} className="pl-4 basis-full">
-                                <Card className="rounded-2xl border-0 h-full text-center">
+                                <Card className="rounded-2xl border-0 h-full text-center shadow-primary-lg">
                                     <CardHeader className="items-center">
                                         <CardTitle className="flex flex-col items-center gap-2">
                                             <item.icon className="h-5 w-5 text-primary" />
@@ -358,7 +358,7 @@ export default function VideoIdeasPage() {
             </div>
             <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {analysisCriteria.map((item, index) => (
-                    <Card key={index} className="rounded-2xl border-0 text-center">
+                    <Card key={index} className="rounded-2xl border-0 text-center shadow-primary-lg">
                         <CardHeader className="items-center">
                             <CardTitle className="flex flex-col items-center gap-2">
                                 <item.icon className="h-5 w-5 text-primary" />
@@ -383,7 +383,7 @@ export default function VideoIdeasPage() {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="generate">
-           <Card className="rounded-t-none border-t-0">
+           <Card className="rounded-t-none border-t-0 shadow-primary-lg">
               <CardContent className="p-6">
                 <div className="flex flex-col items-center justify-center text-center gap-4 py-16">
                     <h2 className="text-2xl font-bold font-headline">Defina seu Briefing</h2>
@@ -423,7 +423,7 @@ export default function VideoIdeasPage() {
            </Card>
         </TabsContent>
         <TabsContent value="result">
-          <Card className="rounded-t-none border-t-0">
+          <Card className="rounded-t-none border-t-0 shadow-primary-lg">
              <CardHeader className="text-center">
                 <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Resultado Gerado</h2>
                 <p className="text-muted-foreground">Um plano de conteúdo completo para seu próximo vídeo.</p>
@@ -478,7 +478,7 @@ export default function VideoIdeasPage() {
             Aqui estão as ideias que você já marcou como concluídas.
           </p>
         </div>
-        <Card className="rounded-2xl border-0">
+        <Card className="rounded-2xl border-0 shadow-primary-lg">
           <CardContent className='pt-6'>
             {isLoadingCompleted ? (
               <div className="space-y-4">

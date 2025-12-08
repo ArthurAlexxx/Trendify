@@ -1,3 +1,4 @@
+
 'use client';
 import {
   Camera,
@@ -66,7 +67,7 @@ export function VideoIdeasResultView({ result, formValues, isSheetView = false }
         <div className={cn("space-y-8 animate-fade-in", isSheetView ? "p-6" : "")}>
             <div className="grid lg:grid-cols-3 gap-8 items-start">
                 <div className="lg:col-span-2 space-y-6">
-                    <Card className="shadow-none border-0">
+                    <Card className="shadow-primary-lg">
                         <CardHeader>
                             <CardTitle className="text-center flex items-center gap-3 text-lg font-semibold text-foreground">
                                 <Pen className="h-5 w-5 text-primary" />
@@ -87,7 +88,7 @@ export function VideoIdeasResultView({ result, formValues, isSheetView = false }
                         </CardContent>
                     </Card>
 
-                    <Card className="shadow-none border-0">
+                    <Card className="shadow-primary-lg">
                         <CardHeader><CardTitle className="text-center flex items-center gap-3 text-lg font-semibold"><AlertTriangle className="h-5 w-5 text-primary" />Análise de Concorrência</CardTitle></CardHeader>
                         <CardContent>
                             <Accordion type="single" collapsible className="w-full">
@@ -105,7 +106,7 @@ export function VideoIdeasResultView({ result, formValues, isSheetView = false }
                     </Card>
                 </div>
                 <div className="space-y-8">
-                    <Card className="shadow-none border-0">
+                    <Card className="shadow-primary-lg">
                         <CardHeader><CardTitle className="text-center flex items-center gap-3 text-lg font-semibold"><TrendingUp className="h-5 w-5 text-primary" />Potencial de Viralização</CardTitle></CardHeader>
                         <CardContent className="space-y-4">
                             <div className="text-center">
@@ -124,7 +125,7 @@ export function VideoIdeasResultView({ result, formValues, isSheetView = false }
                     </div>
 
                     {result.platformAdaptations && (result.platformAdaptations.tiktok || result.platformAdaptations.reels || result.platformAdaptations.shorts) && (
-                        <Card className="shadow-none border-0">
+                        <Card className="shadow-primary-lg">
                             <CardHeader><CardTitle className="text-center flex items-center gap-3 text-lg font-semibold"><LightbulbIcon className="h-5 w-5 text-primary" />Adaptação para Plataformas</CardTitle></CardHeader>
                             <CardContent className="space-y-4">
                                 {result.platformAdaptations.tiktok && (
@@ -149,7 +150,7 @@ export function VideoIdeasResultView({ result, formValues, isSheetView = false }
                         </Card>
                     )}
 
-                    <Card className="shadow-none border-0">
+                    <Card className="shadow-primary-lg">
                         <CardHeader><CardTitle className="text-center flex items-center gap-3 text-lg font-semibold"><Camera className="h-5 w-5 text-primary" />Checklist de Gravação</CardTitle></CardHeader>
                         <CardContent>
                             <ul className="space-y-2">

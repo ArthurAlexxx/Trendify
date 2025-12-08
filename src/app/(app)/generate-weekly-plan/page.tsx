@@ -409,7 +409,7 @@ export default function GenerateWeeklyPlanPage() {
                   <CarouselContent className="-ml-4">
                       {analysisCriteria.map((item, index) => (
                           <CarouselItem key={index} className="pl-4 basis-full">
-                              <Card className="h-full rounded-2xl border-0 text-center">
+                              <Card className="h-full rounded-2xl border-0 text-center shadow-primary-lg">
                                   <CardHeader className="items-center">
                                       <CardTitle className="flex flex-col items-center gap-2">
                                           <item.icon className="h-5 w-5 text-primary" />
@@ -427,7 +427,7 @@ export default function GenerateWeeklyPlanPage() {
           </div>
           <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-4">
               {analysisCriteria.map((item, index) => (
-                  <Card key={index} className='rounded-2xl border-0 text-center'>
+                  <Card key={index} className='rounded-2xl border-0 text-center shadow-primary-lg'>
                       <CardHeader className="items-center">
                           <CardTitle className="flex flex-col items-center gap-2">
                               <item.icon className="h-5 w-5 text-primary" />
@@ -456,7 +456,7 @@ export default function GenerateWeeklyPlanPage() {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="generate">
-          <Card className="rounded-t-none border-t-0">
+          <Card className="rounded-t-none border-t-0 shadow-primary-lg">
             <CardContent>
                 <div className="flex flex-col items-center justify-center text-center gap-4 py-16">
                      <h2 className="text-2xl font-bold font-headline">Defina o Briefing da Semana</h2>
@@ -581,7 +581,7 @@ export default function GenerateWeeklyPlanPage() {
           </Card>
         </TabsContent>
         <TabsContent value="result">
-             <Card className="rounded-t-none border-t-0">
+             <Card className="rounded-t-none border-t-0 shadow-primary-lg">
                 <CardHeader className='text-center'>
                     <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Plano Gerado</h2>
                     <p className="text-muted-foreground">Seu novo plano semanal está pronto. Ative-o para começar a usar.</p>
@@ -842,7 +842,7 @@ export default function GenerateWeeklyPlanPage() {
             </Card>
         </TabsContent>
          <TabsContent value="activePlan">
-            <Card className="rounded-t-none border-t-0">
+            <Card className="rounded-t-none border-t-0 shadow-primary-lg">
                 <CardHeader>
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 text-center sm:text-left">
                         <div>
