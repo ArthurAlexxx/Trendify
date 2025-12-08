@@ -133,6 +133,7 @@ export async function syncTikTokAction(userId: string, username: string): Promis
 
         postsResult.forEach(post => {
             const postRef = doc(postsCollectionRef, post.id);
+            // Convert Date to Firestore Timestamp before saving
             const dataWithTimestamp = {
                 ...post,
                 createdAt: post.createdAt ? Timestamp.fromDate(post.createdAt as any) : null,
