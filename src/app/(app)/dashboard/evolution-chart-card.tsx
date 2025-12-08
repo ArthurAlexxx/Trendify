@@ -27,9 +27,10 @@ interface EvolutionChartCardProps {
     selectedPlatform: 'total' | 'instagram' | 'tiktok';
     userProfile: UserProfile | null;
     handleTikTokClick: (post: TikTokPost) => void;
+    onItemClick: (item: any) => void;
 }
 
-export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPosts, tiktokPosts, selectedPlatform, userProfile, handleTikTokClick }: EvolutionChartCardProps) {
+export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPosts, tiktokPosts, selectedPlatform, userProfile, handleTikTokClick, onItemClick }: EvolutionChartCardProps) {
 
   const parseMetric = (value?: string | number): number => {
     if (typeof value === 'number') return value;
@@ -73,6 +74,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                 comments: p.comments,
                 engagement: parseFloat(engagement.toFixed(2)),
                 url: `https://www.instagram.com/p/${p.shortcode}`,
+                mediaUrl: p.mediaUrl,
                 date: date
             }
         } else { // TikTokPost
@@ -87,6 +89,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                 comments: p.comments,
                 engagement: parseFloat(engagement.toFixed(2)),
                 url: p.shareUrl,
+                coverUrl: p.coverUrl,
                 date: date
             }
         }
@@ -125,9 +128,9 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
 
    const handleChartClick = (data: any) => {
     if (data && data.activePayload && data.activePayload.length > 0) {
-        const url = data.activePayload[0].payload?.url;
-        if (url) {
-            window.open(url, '_blank', 'noopener,noreferrer');
+        const payload = data.activePayload[0].payload;
+        if (payload) {
+            onItemClick(payload);
         }
     }
   };

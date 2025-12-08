@@ -21,6 +21,7 @@ import {
   Percent,
   RefreshCw,
   Loader2,
+  PlayCircle,
 } from 'lucide-react';
 import type {
   IdeiaSalva,
@@ -45,6 +46,9 @@ import React, { useState, useMemo, useEffect, Suspense, useCallback, useTransiti
 import dynamic from 'next/dynamic';
 import { syncInstagramAction, syncTikTokAction } from './sync-actions';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import Image from 'next/image';
+import { Card, CardContent } from '@/components/ui/card';
 
 const GoalCard = dynamic(() => import('@/components/dashboard/goal-card').then(mod => mod.GoalCard), {
   loading: () => <Skeleton className="h-full min-h-[380px]" />,
@@ -100,6 +104,9 @@ export default function DashboardPage() {
   const [insights, setInsights] = useState<DashboardInsightsOutput | null>(null);
   const [isGeneratingInsights, setIsGeneratingInsights] = useState(false);
   const [isSyncing, startSyncTransition] = useTransition();
+
+  const [selectedChartItem, setSelectedChartItem] = useState<any>(null);
+  const [isChartItemSheetOpen, setIsChartItemSheetOpen] = useState(false);
 
   const { subscription, isLoading: isSubscriptionLoading } = useSubscription();
   const isPremium = subscription?.plan === 'premium' && subscription.status === 'active';
@@ -185,6 +192,11 @@ export default function DashboardPage() {
         window.open(post.shareUrl, '_blank', 'noopener,noreferrer');
     }
   };
+
+  const handleChartItemClick = (item: any) => {
+    setSelectedChartItem(item);
+    setIsChartItemSheetOpen(true);
+  }
   
   const handleToggleIdeia = async (ideia: IdeiaSalva) => {
     if (!firestore || !user) return;
@@ -338,6 +350,45 @@ export default function DashboardPage() {
   
   return (
     <>
+      <Sheet open={isChartItemSheetOpen} onOpenChange={setIsChartItemSheetOpen}>
+        <SheetContent className="sm:max-w-md p-0">
+          {selectedChartItem && (
+            <>
+            <SheetHeader className="p-6 border-b">
+              <SheetTitle className="font-headline text-xl truncate">{selectedChartItem.name}</SheetTitle>
+              <SheetDescription>Detalhes do Post</SheetDescription>
+            </SheetHeader>
+            <div className="p-6 space-y-4">
+              <div className="relative aspect-[9/16] w-full rounded-lg overflow-hidden bg-muted">
+                <Image src={selectedChartItem.coverUrl || selectedChartItem.mediaUrl || ''} alt={selectedChartItem.name} fill style={{ objectFit: 'cover' }} />
+              </div>
+              <Card>
+                <CardContent className="p-4 grid grid-cols-3 gap-4 text-center">
+                    <div>
+                        <p className="text-sm text-muted-foreground">Views</p>
+                        <p className="text-lg font-bold">{formatIntegerValue(selectedChartItem.views)}</p>
+                    </div>
+                    <div>
+                        <p className="text-sm text-muted-foreground">Likes</p>
+                        <p className="text-lg font-bold">{formatIntegerValue(selectedChartItem.likes)}</p>
+                    </div>
+                     <div>
+                        <p className="text-sm text-muted-foreground">Comentários</p>
+                        <p className="text-lg font-bold">{formatIntegerValue(selectedChartItem.comments)}</p>
+                    </div>
+                </CardContent>
+              </Card>
+              <Button asChild className="w-full">
+                <a href={selectedChartItem.url} target="_blank" rel="noopener noreferrer">
+                  <PlayCircle className="mr-2 h-4 w-4" /> Ver Post Original
+                </a>
+              </Button>
+            </div>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
+
       <div className="space-y-8">
         <PageHeader
           icon={!userProfile?.photoURL ? LayoutGrid : undefined}
@@ -426,6 +477,7 @@ export default function DashboardPage() {
                       selectedPlatform={selectedPlatform}
                       userProfile={userProfile}
                       handleTikTokClick={handleTikTokClick}
+                      onItemClick={handleChartItemClick}
                     />
                    <PerformanceAnalysisCard 
                         isGeneratingInsights={isGeneratingInsights}
@@ -505,6 +557,7 @@ export default function DashboardPage() {
                     selectedPlatform={selectedPlatform}
                     userProfile={userProfile}
                     handleTikTokClick={handleTikTokClick}
+                    onItemClick={handleChartItemClick}
                 />
               </div>
 
