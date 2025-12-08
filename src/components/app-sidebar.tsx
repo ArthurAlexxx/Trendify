@@ -24,6 +24,7 @@ import {
   Activity,
   Video,
   Coins,
+  Upload,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -40,6 +41,12 @@ import { cn } from '@/lib/utils';
 import { Separator } from './ui/separator';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useAdmin } from '@/hooks/useAdmin';
+import { useRef, useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import { getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/storage';
+import { initializeFirebase } from '@/firebase';
+import { updateProfile } from 'firebase/auth';
+import { doc, updateDoc } from 'firebase/firestore';
 
 const userMenuItems: {
   category: string;
@@ -93,11 +100,14 @@ const hasAccess = (userPlan: Plan, itemPlan: Plan): boolean => {
 
 export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile?: boolean, setIsMobileMenuOpen?: (isOpen: boolean) => void }) {
   const pathname = usePathname();
-  const { user, isUserLoading } = useUser();
+  const { user, firestore, isUserLoading } = useUser();
   const auth = useAuth();
   const router = useRouter();
   const { subscription, isLoading: isSubscriptionLoading } = useSubscription();
   const { isAdmin, isLoading: isAdminLoading } = useAdmin();
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
 
   const handleSignOut = () => {
     auth.signOut();
@@ -128,6 +138,45 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
     if (isUserActive && (userPlan === 'pro' || userPlan === 'premium')) return <Sparkles className="h-5 w-5" />;
     return <Crown className="h-5 w-5" />;
   }
+
+  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user || !auth.currentUser) return;
+
+    if (!file.type.startsWith('image/')) {
+        toast({ title: 'Arquivo inválido', description: 'Por favor, selecione um arquivo de imagem.', variant: 'destructive'});
+        return;
+    }
+
+    const { firebaseApp } = initializeFirebase();
+    const storage = getStorage(firebaseApp);
+    const storagePath = `profile-pictures/${user.uid}/${file.name}`;
+    const storageRef = ref(storage, storagePath);
+    const uploadTask = uploadBytesResumable(storageRef, file);
+
+    uploadTask.on(
+        'state_changed',
+        (snapshot) => { /* Progress can be handled here if needed */ },
+        (error) => {
+            console.error('Upload error:', error);
+            toast({ title: 'Erro no Upload', description: 'Não foi possível enviar sua foto.', variant: 'destructive'});
+        },
+        async () => {
+            try {
+                const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                if (auth.currentUser) {
+                  await updateProfile(auth.currentUser, { photoURL: downloadURL });
+                }
+                if (firestore) {
+                    await updateDoc(doc(firestore, "users", user.uid), { photoURL: downloadURL });
+                }
+                toast({ title: 'Sucesso!', description: 'Sua foto de perfil foi atualizada.' });
+            } catch (e: any) {
+                toast({ title: 'Erro ao Atualizar', description: `Não foi possível salvar a nova foto. ${e.message}`, variant: 'destructive' });
+            }
+        }
+    );
+};
   
   const sidebarClass = isMobile 
     ? "h-full w-full flex flex-col" 
@@ -222,10 +271,22 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
                         </div>
                     ) : (
                         <div className="flex items-center gap-3 w-full">
-                            <Avatar className="h-10 w-10">
-                            <AvatarImage src={user?.photoURL ?? undefined} alt="User avatar" />
-                            <AvatarFallback>{user?.displayName?.[0] || user?.email?.[0]}</AvatarFallback>
-                            </Avatar>
+                             <div className="relative group">
+                                <Avatar className="h-10 w-10" onClick={(e) => e.stopPropagation()}>
+                                    <AvatarImage src={user?.photoURL ?? undefined} alt="User avatar" />
+                                    <AvatarFallback>{user?.displayName?.[0] || user?.email?.[0]}</AvatarFallback>
+                                </Avatar>
+                                <div
+                                    className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        fileInputRef.current?.click();
+                                    }}
+                                >
+                                    <Upload className="h-5 w-5 text-white" />
+                                </div>
+                                <input type="file" ref={fileInputRef} onChange={handlePhotoUpload} accept="image/*" className="hidden" />
+                            </div>
                             <div className="w-[120px] overflow-hidden text-left">
                                 <p className="text-sm font-semibold truncate text-foreground">{user?.displayName}</p>
                                 <p className="text-xs text-muted-foreground truncate">

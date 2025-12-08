@@ -3,7 +3,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, MoreHorizontal, CheckCircle, Tag, Info } from 'lucide-react';
+import { Loader2, MoreHorizontal, CheckCircle, Tag, Info, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import {
@@ -48,13 +48,13 @@ export default function ActionHubCard({
         </CardTitle>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col">
-        <Tabs defaultValue="proximos" className="w-full flex-1 flex flex-col">
+        <Tabs defaultValue="calendario" className="w-full flex-1 flex flex-col">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="proximos">Próximos</TabsTrigger>
+            <TabsTrigger value="calendario">Calendário</TabsTrigger>
             <TabsTrigger value="ideias">Ideias</TabsTrigger>
           </TabsList>
           <div className="flex-1 mt-4">
-            <TabsContent value="proximos" className="h-full">
+            <TabsContent value="calendario" className="h-full">
               {isLoadingUpcoming ? (
                 <div className="flex justify-center items-center h-full">
                   <Loader2 className="h-8 w-8 animate-spin text-primary" />

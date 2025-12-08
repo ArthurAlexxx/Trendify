@@ -27,10 +27,13 @@ export function PageHeader({ title, description, children, icon: Icon, imageUrl1
                 </div>
             )}
             {hasOneImage && (
-                 <Avatar className="h-16 w-16 rounded-2xl border-2 border-primary/20 mb-2">
-                    <AvatarImage src={imageUrl1 ?? undefined} />
-                    <AvatarFallback>{title?.[0]}</AvatarFallback>
-                </Avatar>
+                <div className='relative group'>
+                    <Avatar className="h-16 w-16 rounded-2xl border-2 border-primary/20 mb-2">
+                        <AvatarImage src={imageUrl1 ?? undefined} />
+                        <AvatarFallback>{title?.[0]}</AvatarFallback>
+                    </Avatar>
+                    {children}
+                </div>
             )}
             {hasTwoImages && (
                  <div className="relative h-16 w-16 rounded-2xl border-2 border-primary/20 mb-2 overflow-hidden bg-muted">
@@ -55,8 +58,8 @@ export function PageHeader({ title, description, children, icon: Icon, imageUrl1
                 <p className="text-lg text-muted-foreground max-w-2xl">{description}</p>
             )}
         </div>
-        {children && <div className="flex w-full md:w-auto items-center justify-center gap-2">{children}</div>}
-         <Separator className="w-1/2 mx-auto" />
+        {hasIcon && children && <div className="flex w-full md:w-auto items-center justify-center gap-2">{children}</div>}
+        {!hasOneImage && <Separator className="w-1/2 mx-auto" />}
     </div>
   );
 }

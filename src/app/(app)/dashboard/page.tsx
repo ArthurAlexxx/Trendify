@@ -22,6 +22,7 @@ import {
   RefreshCw,
   Loader2,
   PlayCircle,
+  Upload,
 } from 'lucide-react';
 import type {
   IdeiaSalva,
@@ -42,7 +43,7 @@ import { FollowerGoalSheet } from '@/components/dashboard/follower-goal-sheet';
 import { ProfileCompletionAlert } from '@/components/dashboard/profile-completion-alert';
 import { generateDashboardInsights, type DashboardInsightsOutput } from './actions';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import React, { useState, useMemo, useEffect, Suspense, useCallback, useTransition } from 'react';
+import React, { useState, useMemo, useEffect, Suspense, useCallback, useTransition, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { syncInstagramAction, syncTikTokAction } from './sync-actions';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
@@ -50,6 +51,10 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '
 import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import Link from 'next/link';
+import { Progress } from '@/components/ui/progress';
+import { getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/storage';
+import { initializeFirebase } from '@/firebase';
+import { updateProfile } from 'firebase/auth';
 
 const GoalCard = dynamic(() => import('@/components/dashboard/goal-card'), {
   loading: () => <Skeleton className="h-full min-h-[380px]" />,
@@ -95,7 +100,7 @@ function DashboardSkeleton() {
 
 
 export default function DashboardPage() {
-  const { user } = useUser();
+  const { user, auth } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
   const [selectedPlatform, setSelectedPlatform] = useState<'total' | 'instagram' | 'tiktok'>('total');
@@ -104,10 +109,12 @@ export default function DashboardPage() {
   const [currentTikTokUrl, setCurrentTikTokUrl] = useState('');
   const [insights, setInsights] = useState<DashboardInsightsOutput | null>(null);
   const [isGeneratingInsights, setIsGeneratingInsights] = useState(false);
-  const [isSyncing, startSyncTransition] = useTransition();
-
+  
   const [selectedChartItem, setSelectedChartItem] = useState<any>(null);
   const [isChartItemSheetOpen, setIsChartItemSheetOpen] = useState(false);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
 
   const { subscription, isLoading: isSubscriptionLoading } = useSubscription();
   const isPremium = subscription?.plan === 'premium' && subscription.status === 'active';
@@ -153,40 +160,6 @@ export default function DashboardPage() {
 
   const isLoading = isLoadingProfile || isLoadingUpcoming || isSubscriptionLoading || isLoadingIdeias || isLoadingWeeklyPlans || isLoadingInstaPosts || isLoadingTiktokPosts || isLoadingMetricSnapshots;
   
-  const handleSync = () => {
-    if (!user || !userProfile) return;
-
-    startSyncTransition(async () => {
-        let successCount = 0;
-        let errorCount = 0;
-        
-        if (userProfile.instagramHandle) {
-            const result = await syncInstagramAction(user.uid, userProfile.instagramHandle);
-            if (result.success) successCount++;
-            else {
-                errorCount++;
-                toast({ title: 'Erro no Instagram', description: result.error, variant: 'destructive' });
-            }
-        }
-        
-        if (userProfile.tiktokHandle) {
-            const result = await syncTikTokAction(user.uid, userProfile.tiktokHandle);
-            if (result.success) successCount++;
-            else {
-                errorCount++;
-                toast({ title: 'Erro no TikTok', description: result.error, variant: 'destructive' });
-            }
-        }
-        
-        if (successCount > 0 && errorCount === 0) {
-            toast({ title: 'Sucesso!', description: 'Todas as métricas foram sincronizadas.' });
-        } else if (successCount > 0 && errorCount > 0) {
-            toast({ title: 'Sincronização Parcial', description: 'Algumas plataformas falharam ao sincronizar. Verifique as mensagens de erro.' });
-        } else if (errorCount === 0 && successCount === 0) {
-             toast({ title: 'Nenhuma plataforma conectada', description: 'Vá para a página de integrações para conectar suas contas.', variant: 'destructive' });
-        }
-    });
-  };
 
   const handleTikTokClick = (post: TikTokPost) => {
     if (post.shareUrl) {
@@ -348,6 +321,53 @@ export default function DashboardPage() {
         comments: tiktokComments,
     }
   }, [userProfile, selectedPlatform, parseMetric]);
+
+  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user || !auth.currentUser) return;
+
+    if (!file.type.startsWith('image/')) {
+        toast({ title: 'Arquivo inválido', description: 'Por favor, selecione um arquivo de imagem.', variant: 'destructive'});
+        return;
+    }
+
+    const { firebaseApp } = initializeFirebase();
+    const storage = getStorage(firebaseApp);
+    const storagePath = `profile-pictures/${user.uid}/${file.name}`;
+    const storageRef = ref(storage, storagePath);
+    const uploadTask = uploadBytesResumable(storageRef, file);
+
+    setUploadProgress(0);
+
+    uploadTask.on(
+        'state_changed',
+        (snapshot) => {
+            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            setUploadProgress(progress);
+        },
+        (error) => {
+            console.error('Upload error:', error);
+            toast({ title: 'Erro no Upload', description: 'Não foi possível enviar sua foto.', variant: 'destructive'});
+            setUploadProgress(null);
+        },
+        async () => {
+            try {
+                const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                if (auth.currentUser) {
+                  await updateProfile(auth.currentUser, { photoURL: downloadURL });
+                }
+                if (userProfileRef) {
+                    await updateDoc(userProfileRef, { photoURL: downloadURL });
+                }
+                toast({ title: 'Sucesso!', description: 'Sua foto de perfil foi atualizada.' });
+            } catch (e: any) {
+                toast({ title: 'Erro ao Atualizar', description: `Não foi possível salvar a nova foto. ${e.message}`, variant: 'destructive' });
+            } finally {
+                setUploadProgress(null);
+            }
+        }
+    );
+};
   
   return (
     <>
@@ -402,6 +422,11 @@ export default function DashboardPage() {
           title={`Bem-vindo(a), ${userProfile?.displayName?.split(' ')[0] || 'Criador'}!`}
           description="Seu centro de comando para crescimento e monetização."
         >
+           <div className="absolute top-0 left-0 w-full h-full opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center bg-black/40 cursor-pointer rounded-2xl" onClick={() => fileInputRef.current?.click()}>
+              <Upload className="h-6 w-6 text-white" />
+              <input type="file" ref={fileInputRef} onChange={handlePhotoUpload} accept="image/*" className="hidden" />
+            </div>
+            {uploadProgress !== null && <Progress value={uploadProgress} className="absolute bottom-0 left-0 w-full h-1 rounded-none" />}
           <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
               <Tabs value={selectedPlatform} onValueChange={(value) => setSelectedPlatform(value as any)}>
                 <TabsList>
