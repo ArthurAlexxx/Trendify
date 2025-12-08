@@ -71,7 +71,7 @@ const EvolutionChartCard = dynamic(() => import('./evolution-chart-card'), {
     loading: () => <Skeleton className="h-[438px]" />,
 });
 
-const PerformanceAnalysisCard = dynamic(() => import('@/components/dashboard/performance-analysis-card'), {
+const PerformanceAnalysisCard = dynamic(() => import('@/components/dashboard/performance-analysis-card').then(mod => mod.PerformanceAnalysisCard), {
     loading: () => <Skeleton className="h-full min-h-[250px]" />,
 });
 
@@ -141,12 +141,12 @@ export default function DashboardPage() {
   const { data: upcomingContent, isLoading: isLoadingUpcoming } = useCollection<ConteudoAgendado>(upcomingContentQuery);
 
   const instaPostsQuery = useMemoFirebase(() => (
-      firestore && user ? query(collection(firestore, `users/${user.uid}/instagramPosts`), orderBy('fetchedAt', 'desc'), limit(15)) : null
+      firestore && user ? query(collection(firestore, `users/${user.uid}/instagramPosts`), orderBy('fetchedAt', 'desc'), limit(30)) : null
   ), [firestore, user]);
   const { data: instaPosts, isLoading: isLoadingInstaPosts } = useCollection<InstagramPostData>(instaPostsQuery);
   
   const tiktokPostsQuery = useMemoFirebase(() => (
-      firestore && user ? query(collection(firestore, `users/${user.uid}/tiktokPosts`), orderBy('fetchedAt', 'desc'), limit(15)) : null
+      firestore && user ? query(collection(firestore, `users/${user.uid}/tiktokPosts`), orderBy('fetchedAt', 'desc'), limit(30)) : null
   ), [firestore, user]);
   const { data: tiktokPosts, isLoading: isLoadingTiktokPosts } = useCollection<TikTokPost>(tiktokPostsQuery);
 
@@ -352,41 +352,43 @@ export default function DashboardPage() {
   return (
     <>
       <Sheet open={isChartItemSheetOpen} onOpenChange={setIsChartItemSheetOpen}>
-        <SheetContent className="sm:max-w-md p-0">
+        <SheetContent className="sm:max-w-md p-0 flex flex-col">
           {selectedChartItem && (
             <>
             <SheetHeader className="p-6 border-b">
               <SheetTitle className="font-headline text-xl truncate">{selectedChartItem.name}</SheetTitle>
               <SheetDescription>Detalhes do Post</SheetDescription>
             </SheetHeader>
-            <div className="p-6 space-y-4">
-              <a href={selectedChartItem.url} target="_blank" rel="noopener noreferrer" className="block relative aspect-[9/16] w-full rounded-lg overflow-hidden bg-muted group">
+            <div className="p-6 space-y-4 flex-1 overflow-y-auto">
+              <a href={selectedChartItem.url} target="_blank" rel="noopener noreferrer" className="block relative aspect-[9/16] w-full rounded-2xl overflow-hidden bg-muted group border">
                  <Image src={selectedChartItem.coverUrl || selectedChartItem.mediaUrl || ''} alt={selectedChartItem.name} fill style={{ objectFit: 'cover' }} />
-                 <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                     <PlayCircle className="h-12 w-12 text-white" />
                  </div>
               </a>
               <Card>
                 <CardContent className="p-4 grid grid-cols-3 gap-4 text-center">
                     <div>
-                        <p className="text-sm text-muted-foreground">Views</p>
+                        <p className="text-sm text-muted-foreground flex items-center justify-center gap-1"><Eye className="h-3 w-3" />Views</p>
                         <p className="text-lg font-bold">{formatIntegerValue(selectedChartItem.views)}</p>
                     </div>
                     <div>
-                        <p className="text-sm text-muted-foreground">Likes</p>
+                        <p className="text-sm text-muted-foreground flex items-center justify-center gap-1"><Heart className="h-3 w-3" />Likes</p>
                         <p className="text-lg font-bold">{formatIntegerValue(selectedChartItem.likes)}</p>
                     </div>
                      <div>
-                        <p className="text-sm text-muted-foreground">Comentários</p>
+                        <p className="text-sm text-muted-foreground flex items-center justify-center gap-1"><MessageSquare className="h-3 w-3" />Comentários</p>
                         <p className="text-lg font-bold">{formatIntegerValue(selectedChartItem.comments)}</p>
                     </div>
                 </CardContent>
               </Card>
-              <Button asChild className="w-full">
-                <a href={selectedChartItem.url} target="_blank" rel="noopener noreferrer">
-                  <PlayCircle className="mr-2 h-4 w-4" /> Ver Post Original
-                </a>
-              </Button>
+            </div>
+             <div className="p-6 border-t mt-auto">
+                 <Button asChild className="w-full">
+                    <a href={selectedChartItem.url} target="_blank" rel="noopener noreferrer">
+                        <PlayCircle className="mr-2 h-4 w-4" /> Ver Post Original
+                    </a>
+                </Button>
             </div>
             </>
           )}
