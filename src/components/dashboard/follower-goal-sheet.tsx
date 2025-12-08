@@ -3,14 +3,15 @@
 
 import { useState, useTransition, useEffect } from 'react';
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-  SheetFooter,
-  SheetTrigger,
-} from '@/components/ui/sheet';
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+  ResponsiveDialogDescription,
+  ResponsiveDialogFooter,
+  ResponsiveDialogTrigger,
+  ResponsiveDialogClose
+} from '@/components/ui/responsive-dialog';
 import {
   Form,
   FormControl,
@@ -95,10 +96,13 @@ export function FollowerGoalSheet({ userProfile, children }: FollowerGoalSheetPr
                     <FormLabel>{label}</FormLabel>
                     <FormControl>
                         <Input
-                            type="number"
+                            type="text"
                             placeholder="0"
-                            {...field}
-                            onChange={(e) => field.onChange(parseInt(e.target.value, 10) || 0)}
+                            value={field.value ? field.value.toLocaleString('pt-BR') : ''}
+                            onChange={(e) => {
+                                const value = e.target.value.replace(/\D/g, '');
+                                field.onChange(parseInt(value, 10) || 0);
+                            }}
                             className="h-11"
                         />
                     </FormControl>
@@ -109,31 +113,34 @@ export function FollowerGoalSheet({ userProfile, children }: FollowerGoalSheetPr
     )
 
     return (
-        <Sheet open={isOpen} onOpenChange={setIsOpen}>
-            <SheetTrigger asChild>{children}</SheetTrigger>
-            <SheetContent>
-                <SheetHeader className="p-6">
-                    <SheetTitle className="font-headline text-xl">Definir Metas de Seguidores</SheetTitle>
-                    <SheetDescription>
+        <ResponsiveDialog isOpen={isOpen} onOpenChange={setIsOpen}>
+            <ResponsiveDialogTrigger asChild>{children}</ResponsiveDialogTrigger>
+            <ResponsiveDialogContent>
+                <ResponsiveDialogHeader className="p-6">
+                    <ResponsiveDialogTitle className="font-headline text-xl">Definir Metas de Seguidores</ResponsiveDialogTitle>
+                    <ResponsiveDialogDescription>
                         Defina suas metas para cada plataforma ou uma meta geral. Isso ajudará a IA a criar estratégias melhores.
-                    </SheetDescription>
-                </SheetHeader>
-                <div className="p-6">
+                    </ResponsiveDialogDescription>
+                </ResponsiveDialogHeader>
+                <div className="p-6 border-y">
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                             {renderNumericInput('totalFollowerGoal', 'Meta Total (Insta + TikTok)')}
                             {renderNumericInput('instagramFollowerGoal', 'Meta do Instagram')}
                             {renderNumericInput('tiktokFollowerGoal', 'Meta do TikTok')}
-                            <div className='pt-4'>
-                                <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
-                                    {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    Salvar Metas
-                                </Button>
-                            </div>
                         </form>
                     </Form>
                 </div>
-            </SheetContent>
-        </Sheet>
+                 <ResponsiveDialogFooter className="p-6">
+                    <ResponsiveDialogClose asChild>
+                       <Button type="button" variant="outline" className="w-full sm:w-auto">Cancelar</Button>
+                    </ResponsiveDialogClose>
+                     <Button type="button" onClick={form.handleSubmit(onSubmit)} disabled={isPending} className="w-full sm:w-auto">
+                        {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Salvar Metas
+                    </Button>
+                </ResponsiveDialogFooter>
+            </ResponsiveDialogContent>
+        </ResponsiveDialog>
     )
 }

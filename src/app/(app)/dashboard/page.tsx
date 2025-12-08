@@ -128,7 +128,7 @@ export default function DashboardPage() {
   const isLoading = isLoadingProfile || isLoadingUpcoming || isLoadingMetrics || isSubscriptionLoading || isLoadingIdeias || isLoadingWeeklyPlans || isLoadingInstaPosts || isLoadingTiktokPosts;
   
   const handleTikTokClick = (post: TikTokPost) => {
-    if (post.shareUrl) {
+      if (post.shareUrl) {
         window.open(post.shareUrl, '_blank', 'noopener,noreferrer');
     }
   };
@@ -333,6 +333,7 @@ export default function DashboardPage() {
                         goalFollowers={goalFollowers}
                         currentFollowers={currentFollowers}
                         formatMetricValue={formatMetricValue}
+                        userProfile={userProfile}
                    />
                 </Suspense>
                 <Suspense fallback={<Skeleton className="h-[250px] w-full" />}>
