@@ -15,7 +15,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 const chartConfigBase: ChartConfig = {
   views: { label: "Views", color: "hsl(var(--chart-2))"  },
   likes: { label: "Likes", color: "hsl(var(--chart-1))"  },
-  comments: { label: "Comentários", color: "hsl(var(--chart-3))"  },
+  comments: { label: "Comentários", color: "hsl(var(--chart-4))"  },
   engagementRate: { label: "Engajamento (%)", color: "hsl(var(--chart-5))" },
 };
 
