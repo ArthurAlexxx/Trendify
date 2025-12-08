@@ -3,53 +3,32 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
-import { Target, PartyPopper, Trophy, Info } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import { FollowerGoalSheet } from './follower-goal-sheet';
+import { Target, Trophy, Info } from 'lucide-react';
+import { useEffect } from 'react';
 import { Button } from '../ui/button';
-import { motion } from 'framer-motion';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 
 interface GoalCardProps {
     isLoading: boolean;
     goalFollowers: number;
     currentFollowers: number;
+    isGoalReached: boolean;
+    onEditGoal: () => void;
     formatMetricValue: (value?: string | number) => string;
-    userProfile: any;
 }
 
-
-export function GoalCard({ isLoading, goalFollowers, currentFollowers, formatMetricValue, userProfile }: GoalCardProps) {
-    const [isGoalSheetOpen, setIsGoalSheetOpen] = useState(false);
+export function GoalCard({ isLoading, goalFollowers, currentFollowers, isGoalReached, onEditGoal, formatMetricValue }: GoalCardProps) {
     
-    const followerGoalProgress = goalFollowers > 0 ? Math.min((currentFollowers / goalFollowers) * 100, 100) : 0;
-    const isGoalReached = !isLoading && goalFollowers > 0 && currentFollowers >= goalFollowers;
-    
-    const pieData = [{ value: followerGoalProgress, fill: 'hsl(var(--primary))' }, { value: 100 - followerGoalProgress, fill: 'hsl(var(--muted))' }];
-
     useEffect(() => {
         if (isGoalReached) {
-            setIsGoalSheetOpen(true);
+            onEditGoal();
         }
-    }, [isGoalReached]);
+    }, [isGoalReached, onEditGoal]);
     
+    const followerGoalProgress = goalFollowers > 0 ? Math.min((currentFollowers / goalFollowers) * 100, 100) : 0;
+    const pieData = [{ value: followerGoalProgress, fill: 'hsl(var(--primary))' }, { value: 100 - followerGoalProgress, fill: 'hsl(var(--muted))' }];
+
     return (
-        <>
-        <FollowerGoalSheet 
-            userProfile={userProfile} 
-            isOpen={isGoalSheetOpen} 
-            setIsOpen={setIsGoalSheetOpen}
-        >
-             {isGoalReached ? (
-                 <div className="mx-auto h-16 w-16 rounded-full bg-yellow-400/10 flex items-center justify-center mb-2 border-2 border-yellow-400/20">
-                    <Trophy className="h-8 w-8 text-yellow-500 animate-pulse" />
-                 </div>
-             ) : (
-                <div className="font-headline text-xl">Definir Metas de Seguidores</div>
-             )}
-        </FollowerGoalSheet>
-
-
         <Card className="h-full shadow-primary-lg">
             <CardHeader>
                 <CardTitle className="text-center font-headline text-xl flex items-center justify-center gap-2">
@@ -110,13 +89,12 @@ export function GoalCard({ isLoading, goalFollowers, currentFollowers, formatMet
                             de {formatMetricValue(goalFollowers)} seguidores
                         </p>
                     ) : (
-                        <Button variant="link" size="sm" onClick={() => setIsGoalSheetOpen(true)}>
+                        <Button variant="link" size="sm" onClick={onEditGoal}>
                             Definir meta para começar
                         </Button>
                     )}
                 </div>
             </CardContent>
         </Card>
-      </>
     );
 }

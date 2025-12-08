@@ -104,23 +104,18 @@ export default function DashboardPage() {
   ), [firestore, user]);
   const { data: upcomingContent, isLoading: isLoadingUpcoming } = useCollection<ConteudoAgendado>(upcomingContentQuery);
 
-  const metricSnapshotsQuery = useMemoFirebase(() => (
-    firestore && user ? query(collection(firestore, `users/${user.uid}/metricSnapshots`), orderBy('date', 'desc'), limit(60)) : null
-  ), [firestore, user]);
-  const { data: metricSnapshots, isLoading: isLoadingMetrics } = useCollection<MetricSnapshot>(metricSnapshotsQuery);
-
   const instaPostsQuery = useMemoFirebase(() => (
-      firestore && user ? query(collection(firestore, `users/${user.uid}/instagramPosts`), orderBy('fetchedAt', 'desc'), limit(10)) : null
+      firestore && user ? query(collection(firestore, `users/${user.uid}/instagramPosts`), orderBy('fetchedAt', 'desc'), limit(15)) : null
   ), [firestore, user]);
   const { data: instaPosts, isLoading: isLoadingInstaPosts } = useCollection<InstagramPostData>(instaPostsQuery);
   
   const tiktokPostsQuery = useMemoFirebase(() => (
-      firestore && user ? query(collection(firestore, `users/${user.uid}/tiktokPosts`), orderBy('fetchedAt', 'desc'), limit(10)) : null
+      firestore && user ? query(collection(firestore, `users/${user.uid}/tiktokPosts`), orderBy('fetchedAt', 'desc'), limit(15)) : null
   ), [firestore, user]);
   const { data: tiktokPosts, isLoading: isLoadingTiktokPosts } = useCollection<TikTokPost>(tiktokPostsQuery);
 
 
-  const isLoading = isLoadingProfile || isLoadingUpcoming || isLoadingMetrics || isSubscriptionLoading || isLoadingIdeias || isLoadingWeeklyPlans || isLoadingInstaPosts || isLoadingTiktokPosts;
+  const isLoading = isLoadingProfile || isLoadingUpcoming || isSubscriptionLoading || isLoadingIdeias || isLoadingWeeklyPlans || isLoadingInstaPosts || isLoadingTiktokPosts;
   
   const handleTikTokClick = (post: TikTokPost) => {
     if (post.shareUrl) {
@@ -192,17 +187,28 @@ export default function DashboardPage() {
     return String(num);
   };
 
-  const { currentFollowers, goalFollowers } = useMemo(() => {
-    if (!userProfile) return { currentFollowers: 0, goalFollowers: 0 };
+  const { currentFollowers, goalFollowers, isGoalReached } = useMemo(() => {
+    if (!userProfile) return { currentFollowers: 0, goalFollowers: 0, isGoalReached: false };
+    
+    let current = 0;
+    let goal = 0;
+
     switch (selectedPlatform) {
       case 'instagram':
-        return { currentFollowers: parseMetric(userProfile.instagramFollowers), goalFollowers: userProfile.instagramFollowerGoal || 0 };
+        current = parseMetric(userProfile.instagramFollowers);
+        goal = userProfile.instagramFollowerGoal || 0;
+        break;
       case 'tiktok':
-        return { currentFollowers: parseMetric(userProfile.tiktokFollowers), goalFollowers: userProfile.tiktokFollowerGoal || 0 };
+        current = parseMetric(userProfile.tiktokFollowers);
+        goal = userProfile.tiktokFollowerGoal || 0;
+        break;
       case 'total':
       default:
-        return { currentFollowers: parseMetric(userProfile.instagramFollowers) + parseMetric(userProfile.tiktokFollowers), goalFollowers: userProfile.totalFollowerGoal || 0 };
+        current = parseMetric(userProfile.instagramFollowers) + parseMetric(userProfile.tiktokFollowers);
+        goal = userProfile.totalFollowerGoal || 0;
+        break;
     }
+    return { currentFollowers: current, goalFollowers: goal, isGoalReached: goal > 0 && current >= goal };
   }, [userProfile, selectedPlatform]);
   
   const latestMetrics = useMemo(() => {
@@ -240,40 +246,6 @@ export default function DashboardPage() {
         comments: tiktokComments,
     }
   }, [userProfile, selectedPlatform]);
-
-  const handleGenerateInsights = async () => {
-     if (!metricSnapshots || metricSnapshots.length < 1) {
-        toast({
-            title: "Dados Insuficientes",
-            description: "Sincronize ou insira suas métricas por pelo menos um dia para gerar uma análise.",
-            variant: "destructive"
-        });
-        return;
-    }
-     if (!userProfile) return;
-     setIsGeneratingInsights(true);
-     setInsights(null);
-     try {
-         const result = await generateDashboardInsights({
-             niche: userProfile.niche || 'Não definido',
-             objective: `Atingir ${formatMetricValue(goalFollowers)} seguidores.`,
-             metricSnapshots: metricSnapshots.map(s => ({
-                 date: s.date.toDate().toISOString(),
-                 platform: s.platform,
-                 followers: parseMetric(s.followers),
-                 views: parseMetric(s.views),
-                 likes: parseMetric(s.likes),
-                 comments: parseMetric(s.comments),
-             })).slice(0, 14),
-         });
-         setInsights(result);
-     } catch (e: any) {
-         console.error("Error generating insights:", e.message);
-         toast({ title: "Erro ao Gerar Análise", description: e.message, variant: "destructive" });
-     } finally {
-         setIsGeneratingInsights(false);
-     }
-  }
   
   return (
     <>
@@ -293,12 +265,15 @@ export default function DashboardPage() {
                 </TabsList>
               </Tabs>
               {userProfile && 
-              <FollowerGoalSheet 
-                userProfile={userProfile} 
-                isOpen={isGoalSheetOpen} 
-                setIsOpen={setIsGoalSheetOpen}
-              >
-                  <Button variant="outline" size="sm" className="w-full"><Pencil className="mr-2 h-4 w-4" /> Editar Metas</Button>
+                <FollowerGoalSheet 
+                    userProfile={userProfile} 
+                    isOpen={isGoalSheetOpen} 
+                    setIsOpen={setIsGoalSheetOpen}
+                    isGoalReached={isGoalReached}
+                >
+                    <Button variant="outline" size="sm" className="w-full" onClick={() => setIsGoalSheetOpen(true)}>
+                        <Pencil className="mr-2 h-4 w-4" /> Editar Metas
+                    </Button>
               </FollowerGoalSheet>
               }
           </div>
@@ -318,8 +293,9 @@ export default function DashboardPage() {
                         isLoading={isLoading} 
                         goalFollowers={goalFollowers}
                         currentFollowers={currentFollowers}
+                        isGoalReached={isGoalReached}
+                        onEditGoal={() => setIsGoalSheetOpen(true)}
                         formatMetricValue={formatMetricValue}
-                        userProfile={userProfile}
                    />
                 </Suspense>
                 <Suspense fallback={<Skeleton className="h-[250px] w-full" />}>
@@ -359,20 +335,11 @@ export default function DashboardPage() {
               </Suspense>
               <Suspense fallback={<Skeleton className="h-[530px] w-full" />}>
                 <EvolutionChartCard
-                  isLoading={isLoadingMetrics || isLoadingInstaPosts || isLoadingTiktokPosts}
-                  metricSnapshots={metricSnapshots}
+                  isLoading={isLoadingInstaPosts || isLoadingTiktokPosts}
                   instaPosts={instaPosts}
                   tiktokPosts={tiktokPosts}
                   selectedPlatform={selectedPlatform}
                   userProfile={userProfile}
-                  handleTikTokClick={handleTikTokClick}
-                />
-              </Suspense>
-              <Suspense fallback={<Skeleton className="h-[250px] w-full" />}>
-                <PerformanceAnalysisCard 
-                    isGeneratingInsights={isGeneratingInsights}
-                    insights={insights}
-                    handleGenerateInsights={handleGenerateInsights}
                 />
               </Suspense>
             </div>
