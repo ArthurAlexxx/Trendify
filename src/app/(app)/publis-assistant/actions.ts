@@ -83,7 +83,7 @@ Gere um pacote de conteúdo para uma publicidade ("publi") com base nos seguinte
 async function generatePubliProposals(
   input: z.infer<typeof formSchema>
 ): Promise<GeneratePubliProposalsOutput> {
-  const result = await callOpenAI<GeneratePubliProposalsOutput>({
+  const result = await callOpenAI<typeof GeneratePubliProposalsOutputSchema>({
     prompt: systemPrompt,
     jsonSchema: GeneratePubliProposalsOutputSchema,
     promptData: input,
