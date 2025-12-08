@@ -49,6 +49,7 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
+import Link from 'next/link';
 
 const GoalCard = dynamic(() => import('@/components/dashboard/goal-card').then(mod => mod.GoalCard), {
   loading: () => <Skeleton className="h-full min-h-[380px]" />,
@@ -359,9 +360,12 @@ export default function DashboardPage() {
               <SheetDescription>Detalhes do Post</SheetDescription>
             </SheetHeader>
             <div className="p-6 space-y-4">
-              <div className="relative aspect-[9/16] w-full rounded-lg overflow-hidden bg-muted">
-                <Image src={selectedChartItem.coverUrl || selectedChartItem.mediaUrl || ''} alt={selectedChartItem.name} fill style={{ objectFit: 'cover' }} />
-              </div>
+              <a href={selectedChartItem.url} target="_blank" rel="noopener noreferrer" className="block relative aspect-[9/16] w-full rounded-lg overflow-hidden bg-muted group">
+                 <Image src={selectedChartItem.coverUrl || selectedChartItem.mediaUrl || ''} alt={selectedChartItem.name} fill style={{ objectFit: 'cover' }} />
+                 <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <PlayCircle className="h-12 w-12 text-white" />
+                 </div>
+              </a>
               <Card>
                 <CardContent className="p-4 grid grid-cols-3 gap-4 text-center">
                     <div>

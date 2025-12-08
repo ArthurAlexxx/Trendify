@@ -4,9 +4,9 @@ import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BarChart, Bar, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartsTooltip, Legend, Area, AreaChart, LabelList, Label } from 'recharts';
+import { BarChart, Bar, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartsTooltip, Legend, Area, AreaChart, Label } from 'recharts';
 import { ChartConfig, ChartContainer, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
-import { TrendingUp, Percent, BarChartHorizontal, ClipboardList, Info } from 'lucide-react';
+import { TrendingUp, Percent, BarChartHorizontal, ClipboardList, Info, Camera, Video } from 'lucide-react';
 import type { MetricSnapshot, InstagramPostData, TikTokPost, UserProfile } from '@/lib/types';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -18,6 +18,21 @@ const chartConfigBase: ChartConfig = {
   comments: { label: "Comentários", color: "hsl(var(--chart-4))"  },
   engagement: { label: "Engajamento (%)", color: "hsl(var(--primary))" },
 };
+
+interface PostData {
+    id: string;
+    name: string;
+    postLabel: string;
+    views: number;
+    likes: number;
+    comments: number;
+    engagement: number;
+    url: string;
+    mediaUrl: string;
+    coverUrl?: string;
+    date: Date;
+    isVideo: boolean;
+}
 
 interface EvolutionChartCardProps {
     isLoading: boolean;
@@ -50,7 +65,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
         combined = [...(instaPosts || []), ...(tiktokPosts || [])];
      }
      
-     const posts = combined.map((p, index) => {
+     const posts: PostData[] = combined.map((p, index) => {
         const captionOrDesc = 'caption' in p ? p.caption : p.description;
         const name = (!captionOrDesc || /^(Post|Video) \d+/.test(captionOrDesc))
             ? `Post sem título ${index + 1}`
@@ -75,7 +90,8 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                 engagement: parseFloat(engagement.toFixed(2)),
                 url: `https://www.instagram.com/p/${p.shortcode}`,
                 mediaUrl: p.mediaUrl,
-                date: date
+                date: date,
+                isVideo: p.is_video,
             }
         } else { // TikTokPost
              const followerCount = parseMetric(userProfile?.tiktokFollowers);
@@ -89,15 +105,21 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                 comments: p.comments,
                 engagement: parseFloat(engagement.toFixed(2)),
                 url: p.shareUrl,
+                mediaUrl: p.coverUrl, // Use coverUrl for TikTok
                 coverUrl: p.coverUrl,
-                date: date
+                date: date,
+                isVideo: true,
             }
         }
      });
 
-    return posts.sort((a, b) => a.date.getTime() - b.date.getTime()).slice(-15);
+    return posts.sort((a, b) => a.date.getTime() - b.date.getTime()).slice(-30);
 
   }, [instaPosts, tiktokPosts, userProfile, selectedPlatform]);
+  
+  const videoPosts = useMemo(() => allPosts.filter(p => p.isVideo), [allPosts]);
+  const photoPosts = useMemo(() => allPosts.filter(p => !p.isVideo), [allPosts]);
+
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -134,6 +156,49 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
         }
     }
   };
+
+  const renderEngagementChart = (posts: PostData[], type: 'Vídeos' | 'Fotos') => {
+      return (
+        <>
+            <div className="flex justify-end pr-4">
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                        <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                        <p className="max-w-xs">Analise a taxa de engajamento ({type}) de cada post.</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+            </div>
+            {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
+            posts.length > 0 ? (
+                <ChartContainer config={chartConfigBase} className="h-[350px] w-full flex-1">
+                    <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={posts} margin={{ top: 20, right: 20, left: -10, bottom: 20 }} onClick={handleChartClick} className="cursor-pointer">
+                        <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                        <XAxis dataKey="postLabel" tickLine={false} axisLine={false} tick={false}>
+                            <Label value={`Seus ${type}`} offset={10} position="insideBottom" />
+                        </XAxis>
+                        <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => `${value}%`} />
+                        <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
+                        <Bar dataKey="engagement" fill="var(--color-engagement)" name="Engajamento" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                    </ResponsiveContainer>
+                </ChartContainer>
+            ) : (
+                <div className="h-[350px] w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
+                <div>
+                    <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+                    <h3 className="font-semibold text-foreground">Nenhum(a) {type.toLowerCase()} encontrado(a).</h3>
+                     <p className="text-sm text-muted-foreground">Sincronize suas métricas para ver os dados aqui.</p>
+                </div>
+                </div>
+            )}
+        </>
+      )
+  }
   
   return (
     <Card className="shadow-primary-lg">
@@ -193,43 +258,21 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                         </div>
                     )}
                 </TabsContent>
-                <TabsContent value="engagementRate" className="flex flex-col">
-                    <div className="flex justify-end pr-4">
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                <p className="max-w-xs">Analise a taxa de engajamento (curtidas + comentários / seguidores) de cada post.</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                    </div>
-                   {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
-                    allPosts.length > 0 ? (
-                       <ChartContainer config={chartConfigBase} className="h-[350px] w-full flex-1">
-                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={allPosts} margin={{ top: 20, right: 20, left: -10, bottom: 20 }} onClick={handleChartClick} className="cursor-pointer">
-                                <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                                <XAxis dataKey="postLabel" tickLine={false} axisLine={false} tick={false}>
-                                  <Label value="Seus Vídeos" offset={10} position="insideBottom" />
-                                </XAxis>
-                                <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => `${value}%`} />
-                                <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
-                                <Bar dataKey="engagement" fill="var(--color-engagement)" name="Engajamento" radius={[4, 4, 0, 0]} />
-                            </BarChart>
-                         </ResponsiveContainer>
-                       </ChartContainer>
-                    ) : (
-                         <div className="h-[350px] w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
-                           <div>
-                            <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
-                            <h3 className="font-semibold text-foreground">{(userProfile?.instagramHandle || userProfile?.tiktokHandle) ? "Dados insuficientes." : "Nenhuma plataforma conectada."}</h3>
-                            <p className="text-sm text-muted-foreground"> {userProfile && <Link href="/profile/integrations" className="text-primary font-medium hover:underline cursor-pointer">Sincronize suas métricas</Link>} para começar a ver seus dados.</p>
-                           </div>
-                         </div>
-                    )}
+                <TabsContent value="engagementRate">
+                     <Tabs defaultValue="videos">
+                        <TabsList className="grid w-full grid-cols-2 mx-auto max-w-sm">
+                            <TabsTrigger value="videos"><Video className="mr-2 h-4 w-4" />Vídeos</TabsTrigger>
+                            <TabsTrigger value="photos"><Camera className="mr-2 h-4 w-4" />Fotos</TabsTrigger>
+                        </TabsList>
+                        <div className="mt-4">
+                           <TabsContent value="videos" className="flex flex-col">
+                                {renderEngagementChart(videoPosts, "Vídeos")}
+                           </TabsContent>
+                           <TabsContent value="photos" className="flex flex-col">
+                                {renderEngagementChart(photoPosts, "Fotos")}
+                           </TabsContent>
+                        </div>
+                     </Tabs>
                 </TabsContent>
               </div>
           </Tabs>
