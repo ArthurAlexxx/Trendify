@@ -80,7 +80,7 @@ const TikTokPostSchema = z.object({
         cover: z.object({
           url_list: z.array(z.string().url()).optional()
         }).optional()
-    }).optional(),
+    }).passthrough().optional(),
 }).passthrough();
 
 
@@ -91,7 +91,7 @@ const TikTokPostResponseSchema = z.object({
 
 // --- API Fetching Logic ---
 
-async function fetchFromRapidApi(platform: 'instagram-profile' | 'tiktok-profile' | 'tiktok-posts' | 'tiktok-video-details', identifier: string) {
+async function fetchFromRapidApi(platform: 'instagram-profile' | 'tiktok-profile' | 'tiktok-posts', identifier: string) {
     const apiKey = process.env.RAPIDAPI_KEY;
     if (!apiKey) {
       throw new Error('A chave da API (RAPIDAPI_KEY) não está configurada no servidor.');
@@ -125,12 +125,6 @@ async function fetchFromRapidApi(platform: 'instagram-profile' | 'tiktok-profile
             finalUrl = new URL(`https://${host}/${path}`);
             finalUrl.searchParams.set('secUid', identifier); // This endpoint now uses secUid
             break;
-        case 'tiktok-video-details':
-             host = 'tiktok-api6.p.rapidapi.com';
-             path = 'video/details';
-             finalUrl = new URL(`https://${host}/${path}`);
-             finalUrl.searchParams.set('id', identifier);
-             break;
         default:
             throw new Error(`Plataforma '${platform}' desconhecida.`);
     }
@@ -305,39 +299,18 @@ export async function getTikTokPosts(secUid: string): Promise<TikTokPost[]> {
     }
     try {
         const result = await fetchFromRapidApi('tiktok-posts', secUid);
-
         const parsed = TikTokPostResponseSchema.parse(result);
-        
         const videos = parsed.aweme_list ?? [];
 
-        const detailedVideos = await Promise.all(videos.slice(0, 10).map(async (post) => {
-            try {
-                const details = await fetchFromRapidApi('tiktok-video-details', post.video_id);
-                return {
-                    id: post.video_id,
-                    shareUrl: details?.data?.share_url,
-                    description: post.description || '',
-                    coverUrl: post.video?.cover?.url_list?.[0] || post.cover,
-                    views: post.statistics?.play_count ?? 0,
-                    likes: post.statistics?.digg_count ?? 0,
-                    comments: post.statistics?.comment_count ?? 0,
-                };
-            } catch (detailError: any) {
-                console.warn(`Falha ao buscar detalhes do vídeo ${post.video_id}: ${detailError.message}`);
-                // Retorna o post com dados básicos mesmo que os detalhes falhem
-                return {
-                    id: post.video_id,
-                    shareUrl: undefined,
-                    description: post.description || '',
-                    coverUrl: post.video?.cover?.url_list?.[0] || post.cover,
-                    views: post.statistics?.play_count ?? 0,
-                    likes: post.statistics?.digg_count ?? 0,
-                    comments: post.statistics?.comment_count ?? 0,
-                };
-            }
+        return videos.slice(0, 10).map((post) => ({
+            id: post.video_id,
+            shareUrl: post.share_url,
+            description: post.description || '',
+            coverUrl: post.video?.cover?.url_list?.[0] || post.cover,
+            views: post.statistics?.play_count ?? 0,
+            likes: post.statistics?.digg_count ?? 0,
+            comments: post.statistics?.comment_count ?? 0,
         }));
-
-        return detailedVideos;
 
     } catch (e: any) {
         console.error(`[ACTION ERROR - getTikTokPosts] ${e.message}`);
