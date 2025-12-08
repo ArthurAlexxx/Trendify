@@ -142,8 +142,13 @@ export default function IntegrationsPage() {
        const averageLikes = postsResult.length > 0 ? postsResult.reduce((acc, p) => acc + p.likes, 0) / postsResult.length : 0;
        const averageComments = postsResult.length > 0 ? postsResult.reduce((acc, p) => acc + p.comments, 0) / postsResult.length : 0;
 
+       const fullPostsData: InstagramPostData[] = postsResult.map(p => ({
+            ...p,
+            fetchedAt: Timestamp.now(),
+        }));
+
         form.setValue('instagramProfile', profileResult);
-        form.setValue('instagramPosts', postsResult);
+        form.setValue('instagramPosts', fullPostsData);
         form.setValue('instagramHandle', `@${profileResult.username}`);
         
         if (user && userProfileRef && firestore) {
@@ -166,9 +171,9 @@ export default function IntegrationsPage() {
           const oldPostsSnap = await getDocs(postsCollectionRef);
           oldPostsSnap.forEach(doc => batch.delete(doc.ref));
           
-          postsResult.forEach(post => {
+          fullPostsData.forEach(post => {
             const postRef = doc(postsCollectionRef, post.id);
-            batch.set(postRef, { ...post, fetchedAt: serverTimestamp() });
+            batch.set(postRef, post);
           });
           
           await batch.commit();
@@ -222,12 +227,18 @@ export default function IntegrationsPage() {
         const averageLikes = postsResult.length > 0 ? postsResult.reduce((acc, p) => acc + p.likes, 0) / postsResult.length : 0;
         const averageComments = postsResult.length > 0 ? postsResult.reduce((acc, p) => acc + p.comments, 0) / postsResult.length : 0;
         const averageViews = postsResult.length > 0 ? postsResult.reduce((acc, p) => acc + p.views, 0) / postsResult.length : 0;
+        
+        const fullPostsData: TikTokPost[] = postsResult.map(p => ({
+            ...p,
+            fetchedAt: Timestamp.now(),
+        }));
+
 
         form.setValue('tiktokProfile', profileResult);
-        form.setValue('tiktokPosts', postsResult);
+        form.setValue('tiktokPosts', fullPostsData);
         form.setValue('tiktokHandle', `@${profileResult.username}`);
         
-        setTiktokRawResponse(JSON.stringify({ profile: profileResult, posts: postsResult }, null, 2));
+        setTiktokRawResponse(JSON.stringify({ profile: profileResult, posts: fullPostsData }, null, 2));
 
        
         if (user && userProfileRef && firestore) {
@@ -250,9 +261,9 @@ export default function IntegrationsPage() {
           const oldPostsSnap = await getDocs(postsCollectionRef);
           oldPostsSnap.forEach(doc => batch.delete(doc.ref));
 
-          postsResult.forEach(post => {
+          fullPostsData.forEach(post => {
             const postRef = doc(postsCollectionRef, post.id);
-            batch.set(postRef, { ...post, fetchedAt: serverTimestamp() });
+            batch.set(postRef, post);
           });
 
           await batch.commit();
