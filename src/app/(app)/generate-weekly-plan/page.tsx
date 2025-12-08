@@ -41,6 +41,7 @@ import {
   updateDoc,
   addDoc,
   deleteDoc,
+  Timestamp,
 } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -228,22 +229,24 @@ export default function GenerateWeeklyPlanPage() {
           const oldPlanData = planDoc.data() as PlanoSemanal;
           const newArchivedRef = doc(ideasCollectionRef); // Create a new doc ref for the archive
           
-          batch.set(newArchivedRef, {
-            userId: user.uid,
-            titulo: `Plano Arquivado de ${oldPlanData.createdAt.toDate().toLocaleDateString('pt-BR')}`,
-            conteudo: oldPlanData.items.map(item => `**${item.dia}:** ${item.tarefa}`).join('\n'),
-            origem: "Plano Semanal",
-            concluido: false, 
-            createdAt: oldPlanData.createdAt,
-            aiResponseData: oldPlanData,
-          });
+          if (oldPlanData.createdAt instanceof Timestamp) {
+            batch.set(newArchivedRef, {
+              userId: user.uid,
+              titulo: `Plano Arquivado de ${oldPlanData.createdAt.toDate().toLocaleDateString('pt-BR')}`,
+              conteudo: oldPlanData.items.map(item => `**${item.dia}:** ${item.tarefa}`).join('\n'),
+              origem: "Plano Semanal",
+              concluido: false, 
+              createdAt: oldPlanData.createdAt,
+              aiResponseData: oldPlanData,
+            });
+          }
           
           batch.delete(planDoc.ref);
         }
   
         // Add the new plan
         const newPlanDocRef = doc(planCollectionRef);
-        const newPlanData: Omit<PlanoSemanal, 'id'> = {
+        const newPlanData: Omit<PlanoSemanal, 'id' | 'createdAt'> & { createdAt: any } = {
           userId: user.uid,
           createdAt: serverTimestamp(),
           items: result.items.map(item => ({ ...item, concluido: false })),
@@ -350,16 +353,18 @@ export default function GenerateWeeklyPlanPage() {
         const ideasCollectionRef = collection(firestore, `users/${user.uid}/ideiasSalvas`);
         
         // Archive the active plan
-        const newArchivedRef = doc(ideasCollectionRef);
-        batch.set(newArchivedRef, {
-          userId: user.uid,
-          titulo: `Plano Arquivado de ${activePlan.createdAt.toDate().toLocaleDateString('pt-BR')}`,
-          conteudo: activePlan.items.map(item => `**${item.dia}:** ${item.tarefa}`).join('\n'),
-          origem: "Plano Semanal",
-          concluido: false, 
-          createdAt: activePlan.createdAt,
-          aiResponseData: activePlan,
-        });
+        if (activePlan.createdAt instanceof Timestamp) {
+            const newArchivedRef = doc(ideasCollectionRef);
+            batch.set(newArchivedRef, {
+            userId: user.uid,
+            titulo: `Plano Arquivado de ${activePlan.createdAt.toDate().toLocaleDateString('pt-BR')}`,
+            conteudo: activePlan.items.map(item => `**${item.dia}:** ${item.tarefa}`).join('\n'),
+            origem: "Plano Semanal",
+            concluido: false, 
+            createdAt: activePlan.createdAt,
+            aiResponseData: activePlan,
+            });
+        }
         
         // Delete the active plan document
         batch.delete(doc(firestore, `users/${user.uid}/weeklyPlans`, activePlan.id));
