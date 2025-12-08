@@ -26,7 +26,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import type { UserProfile } from '@/lib/types';
-import { Loader2 } from 'lucide-react';
+import { Loader2, PartyPopper, Trophy } from 'lucide-react';
 import { useUser, useFirestore } from '@/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 import { Input } from '../ui/input';
@@ -44,9 +44,10 @@ interface FollowerGoalSheetProps {
   children: React.ReactNode;
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
+  isGoalReached: boolean;
 }
 
-export function FollowerGoalSheet({ userProfile, children, isOpen, setIsOpen }: FollowerGoalSheetProps) {
+export function FollowerGoalSheet({ userProfile, children, isOpen, setIsOpen, isGoalReached }: FollowerGoalSheetProps) {
     const { user } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
@@ -117,11 +118,25 @@ export function FollowerGoalSheet({ userProfile, children, isOpen, setIsOpen }: 
         <ResponsiveDialog isOpen={isOpen} onOpenChange={setIsOpen}>
             <ResponsiveDialogTrigger asChild>{children}</ResponsiveDialogTrigger>
             <ResponsiveDialogContent>
-                <ResponsiveDialogHeader className="p-6">
-                    <ResponsiveDialogTitle className="font-headline text-xl">Definir Metas de Seguidores</ResponsiveDialogTitle>
-                    <ResponsiveDialogDescription>
-                        Defina suas metas para cada plataforma ou uma meta geral. Isso ajudará a IA a criar estratégias melhores.
-                    </ResponsiveDialogDescription>
+                <ResponsiveDialogHeader className="p-6 text-center">
+                    {isGoalReached ? (
+                        <>
+                           <div className="mx-auto h-16 w-16 rounded-full bg-yellow-400/10 flex items-center justify-center mb-2 border-2 border-yellow-400/20">
+                                <Trophy className="h-8 w-8 text-yellow-500 animate-pulse" />
+                           </div>
+                           <ResponsiveDialogTitle className="font-headline text-2xl">Parabéns!</ResponsiveDialogTitle>
+                           <ResponsiveDialogDescription>
+                                Você atingiu sua meta! Defina o próximo objetivo para continuar crescendo.
+                           </ResponsiveDialogDescription>
+                        </>
+                    ) : (
+                        <>
+                           <ResponsiveDialogTitle className="font-headline text-xl">Definir Metas de Seguidores</ResponsiveDialogTitle>
+                           <ResponsiveDialogDescription>
+                                Defina suas metas para cada plataforma ou uma meta geral. Isso ajudará a IA a criar estratégias melhores.
+                           </ResponsiveDialogDescription>
+                        </>
+                    )}
                 </ResponsiveDialogHeader>
                 <div className="p-6 border-y">
                     <Form {...form}>

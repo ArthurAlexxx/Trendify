@@ -5,7 +5,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { Target, PartyPopper, Trophy } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction } from '@/components/ui/alert-dialog';
 import { FollowerGoalSheet } from './follower-goal-sheet';
 import { Button } from '../ui/button';
 import { motion } from 'framer-motion';
@@ -18,82 +17,31 @@ interface GoalCardProps {
     userProfile: any;
 }
 
-const ConfettiParticle = () => {
-    const colors = ["#8B5CF6", "#EC4899", "#F59E0B", "#10B981"];
-    const randomColor = colors[Math.floor(Math.random() * colors.length)];
-    const randomX = Math.random() * 100;
-    const randomDuration = 2 + Math.random() * 2; // 2 to 4 seconds
-    const randomDelay = Math.random() * 2;
-
-    return (
-        <motion.div
-            className="absolute top-0 w-2 h-2 rounded-full"
-            style={{
-                left: `${randomX}%`,
-                backgroundColor: randomColor,
-            }}
-            initial={{ y: '-10vh', opacity: 1 }}
-            animate={{ y: '110vh', rotate: Math.random() * 360 }}
-            transition={{ duration: randomDuration, repeat: Infinity, ease: "linear", delay: randomDelay }}
-        />
-    );
-};
-
 
 export function GoalCard({ isLoading, goalFollowers, currentFollowers, formatMetricValue, userProfile }: GoalCardProps) {
-    const [showCongrats, setShowCongrats] = useState(false);
     const [isGoalSheetOpen, setIsGoalSheetOpen] = useState(false);
     
     const followerGoalProgress = goalFollowers > 0 ? Math.min((currentFollowers / goalFollowers) * 100, 100) : 0;
+    const isGoalReached = !isLoading && goalFollowers > 0 && currentFollowers >= goalFollowers;
+    
     const pieData = [{ value: followerGoalProgress, fill: 'hsl(var(--primary))' }, { value: 100 - followerGoalProgress, fill: 'hsl(var(--muted))' }];
 
+    // Effect to automatically open the goal sheet when a goal is reached
     useEffect(() => {
-        if (!isLoading && goalFollowers > 0 && currentFollowers >= goalFollowers) {
-            setShowCongrats(true);
-        } else {
-            setShowCongrats(false);
-        }
-    }, [currentFollowers, goalFollowers, isLoading]);
-
-    const handleDefineNewGoalClick = () => {
-        setShowCongrats(false);
-        // We use a small timeout to allow the first dialog to close before the next one opens
-        setTimeout(() => {
+        if (isGoalReached) {
             setIsGoalSheetOpen(true);
-        }, 150);
-    };
+        }
+    }, [isGoalReached]);
     
     return (
         <>
-         <AlertDialog open={showCongrats} onOpenChange={setShowCongrats}>
-            <AlertDialogContent>
-                <div className="absolute inset-0 overflow-hidden rounded-lg -z-10">
-                    {Array.from({ length: 50 }).map((_, i) => <ConfettiParticle key={i} />)}
-                </div>
-                <AlertDialogHeader className="text-center items-center">
-                    <div className="h-16 w-16 rounded-full bg-yellow-400/10 flex items-center justify-center mb-2 border-2 border-yellow-400/20">
-                         <Trophy className="h-8 w-8 text-yellow-500 animate-pulse" />
-                    </div>
-                    <AlertDialogTitle className="font-headline text-2xl">Parabéns!</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        Você atingiu sua meta de {formatMetricValue(goalFollowers)} seguidores. É hora de definir o próximo objetivo!
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <Button className="w-full" onClick={handleDefineNewGoalClick}>
-                        <PartyPopper className="mr-2 h-4 w-4" />
-                        Definir Nova Meta
-                    </Button>
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
-        
         <FollowerGoalSheet 
             userProfile={userProfile} 
             isOpen={isGoalSheetOpen} 
-            setIsOpen={setIsGoalSheetOpen} 
+            setIsOpen={setIsGoalSheetOpen}
+            isGoalReached={isGoalReached}
         >
-            {/* The trigger is now handled programmatically, so we can pass a dummy button or nothing */}
+            {/* The trigger is outside, so we pass a dummy span here */}
             <span /> 
         </FollowerGoalSheet>
 
@@ -146,13 +94,9 @@ export function GoalCard({ isLoading, goalFollowers, currentFollowers, formatMet
                             de {formatMetricValue(goalFollowers)} seguidores
                         </p>
                     ) : (
-                         <FollowerGoalSheet 
-                             userProfile={userProfile} 
-                             isOpen={isGoalSheetOpen} 
-                             setIsOpen={setIsGoalSheetOpen}
-                         >
-                            <Button variant="link" size="sm">Definir meta para começar</Button>
-                        </FollowerGoalSheet>
+                        <Button variant="link" size="sm" onClick={() => setIsGoalSheetOpen(true)}>
+                            Definir meta para começar
+                        </Button>
                     )}
                 </div>
             </CardContent>
