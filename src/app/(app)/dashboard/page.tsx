@@ -60,11 +60,11 @@ const EngagementMetricsCard = dynamic(() => import('@/components/dashboard/engag
   loading: () => <Skeleton className="h-[140px]" />,
 });
 
-const EvolutionChartCard = dynamic(() => import('@/components/dashboard/evolution-chart-card').then(mod => mod.EvolutionChartCard), {
+const EvolutionChartCard = dynamic(() => import('@/components/dashboard/evolution-chart-card'), {
     loading: () => <Skeleton className="h-[430px]" />,
 });
 
-const PerformanceAnalysisCard = dynamic(() => import('@/components/dashboard/performance-analysis-card').then(mod => mod.PerformanceAnalysisCard), {
+const PerformanceAnalysisCard = dynamic(() => import('@/components/dashboard/performance-analysis-card'), {
     loading: () => <Skeleton className="h-full min-h-[250px]" />,
 });
 
@@ -397,3 +397,4 @@ export default function DashboardPage() {
     
 
     
+
