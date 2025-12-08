@@ -83,12 +83,38 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
   }, [instaPosts, tiktokPosts, userProfile, selectedPlatform]);
 
   const topPostsData = useMemo(() => {
-     return allPosts.filter(p => p.views > 0).sort((a,b) => b.views - a.views).slice(0, 5);
+     return allPosts.sort((a,b) => b.engagement - a.engagement).slice(0, 5);
   }, [allPosts]);
 
-  const bubbleChartData = useMemo(() => {
+  const scatterData = useMemo(() => {
     return allPosts.filter(p => p.views > 0 && p.likes > 0);
   }, [allPosts]);
+
+  const trendlineData = useMemo(() => {
+    if (scatterData.length < 2) return [];
+    
+    let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+    const n = scatterData.length;
+
+    scatterData.forEach(p => {
+        sumX += p.views;
+        sumY += p.likes;
+        sumXY += p.views * p.likes;
+        sumXX += p.views * p.views;
+    });
+
+    const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+    const intercept = (sumY - slope * sumX) / n;
+
+    const minX = Math.min(...scatterData.map(p => p.views));
+    const maxX = Math.max(...scatterData.map(p => p.views));
+    
+    return [
+        { views: minX, likes: slope * minX + intercept },
+        { views: maxX, likes: slope * maxX + intercept },
+    ];
+
+  }, [scatterData]);
 
   const historicalChartData = useMemo(() => {
     if (!metricSnapshots || metricSnapshots.length === 0) return [];
@@ -181,8 +207,11 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
   };
 
    const handleChartClick = (data: any) => {
-    if (data && data.url) {
-        window.open(data.url, '_blank', 'noopener,noreferrer');
+    if (data && data.activePayload && data.activePayload.length > 0) {
+        const payload = data.activePayload[0].payload;
+        if(payload.url) {
+          window.open(payload.url, '_blank', 'noopener,noreferrer');
+        }
     }
   };
   
@@ -192,6 +221,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
         return (
           <ScatterChart
             margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+            onClick={handleChartClick}
           >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis 
@@ -208,14 +238,22 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
               tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v}
               domain={['dataMin', 'dataMax']}
             />
-            <ZAxis type="number" dataKey="comments" range={[100, 1000]} name="Comentários" />
             <RechartsTooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomTooltip />} />
             <Scatter 
-              data={bubbleChartData} 
+              data={scatterData} 
               fill="hsl(var(--primary))" 
               className="cursor-pointer"
-              onClick={handleChartClick}
             />
+             <Line
+                dataKey="likes"
+                data={trendlineData}
+                stroke="hsl(var(--primary) / 0.5)"
+                strokeWidth={2}
+                strokeDasharray="5 5"
+                dot={false}
+                activeDot={false}
+                legendType="none"
+              />
           </ScatterChart>
         );
       case 'engagementRate':
@@ -241,8 +279,8 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
               <XAxis type="number" tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
               <YAxis type="category" dataKey="name" width={100} tickLine={false} axisLine={false} />
               <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
-              <Bar dataKey="views" fill="var(--color-views)" name="Views" className="cursor-pointer">
-                 <LabelList dataKey="views" position="right" offset={8} className="fill-foreground text-xs" formatter={(v: number) => typeof v === 'number' && v >= 1000 ? `${(v/1000).toFixed(1)}k` : v} />
+              <Bar dataKey="engagement" fill="var(--color-engagementRate)" name="Taxa de Engajamento" className="cursor-pointer">
+                 <LabelList dataKey="engagement" position="right" offset={8} className="fill-foreground text-xs" formatter={(v: number) => `${v.toFixed(1)}%`} />
               </Bar>
             </BarChart>
           );
@@ -265,10 +303,10 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
   };
   
   const hasData = useMemo(() => {
-    if (chartView === 'postAnalysis') return bubbleChartData.length > 0;
+    if (chartView === 'postAnalysis') return scatterData.length > 0;
     if (chartView === 'topPosts') return topPostsData.length > 0;
     return historicalChartData.length > 0;
-  }, [chartView, historicalChartData, topPostsData, bubbleChartData]);
+  }, [chartView, historicalChartData, topPostsData, scatterData]);
 
   return (
     <Card className="shadow-primary-lg">
