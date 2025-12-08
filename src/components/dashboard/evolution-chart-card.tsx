@@ -189,7 +189,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
   };
   
   return (
-    <Card className="shadow-primary-lg flex flex-col h-[530px]">
+    <Card className="shadow-primary-lg">
         <CardHeader>
             <CardTitle className="text-center flex items-center justify-center gap-2">
               Análise de Performance
@@ -205,8 +205,8 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
               </TooltipProvider>
             </CardTitle>
         </CardHeader>
-        <CardContent className="flex-1 flex flex-col pt-0 pl-2 pr-4">
-          <Tabs defaultValue="evolution" className="w-full flex-1 flex flex-col">
+        <CardContent className="h-[450px] pl-2 pr-4">
+          <Tabs defaultValue="evolution" className="w-full h-full flex flex-col">
               <TabsList className="grid w-full grid-cols-3 mx-auto max-w-md">
                   <TabsTrigger value="evolution"><TrendingUp className="mr-2 h-4 w-4" /> Evolução</TabsTrigger>
                   <TabsTrigger value="topPosts"><BarChartHorizontal className="mr-2 h-4 w-4" /> Top Posts</TabsTrigger>
@@ -215,26 +215,19 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
               <div className="flex-1 mt-4">
                 <TabsContent value="evolution" className="h-full">
                    {isLoading ? <Skeleton className="h-full w-full" /> : 
-                    historicalChartData.length > 0 ? (
+                    allPosts.length > 0 ? (
                         <ChartContainer config={chartConfigBase} className="h-full w-full">
                           <ResponsiveContainer>
-                            <AreaChart data={historicalChartData} >
-                                <defs>
-                                    <linearGradient id="fillFollowers" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="var(--color-followers)" stopOpacity={0.8}/>
-                                    <stop offset="95%" stopColor="var(--color-followers)" stopOpacity={0}/>
-                                    </linearGradient>
-                                </defs>
+                            <LineChart data={allPosts} margin={{ top: 5, right: 20, left: 0, bottom: 40 }}>
                                 <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                                <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} />
+                                <XAxis dataKey="name" tick={{fontSize: 10, angle: -20, textAnchor: 'end'}} height={50} interval={0} />
                                 <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
                                 <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
                                 <Legend />
-                                <Area type="monotone" dataKey="followers" stroke="var(--color-followers)" strokeWidth={2} fillOpacity={0.4} fill="url(#fillFollowers)" name="Seguidores" dot={false} />
-                                <Area type="monotone" dataKey="views" stroke="var(--color-views)" fill="transparent" strokeWidth={2} name="Views" dot={false} />
-                                <Area type="monotone" dataKey="likes" stroke="var(--color-likes)" fill="transparent" strokeWidth={2} name="Likes" dot={false} />
-                                <Area type="monotone" dataKey="comments" stroke="var(--color-comments)" fill="transparent" strokeWidth={2} name="Comentários" dot={false}/>
-                            </AreaChart>
+                                <Line type="monotone" dataKey="views" stroke="var(--color-views)" strokeWidth={2} name="Views" dot={false} />
+                                <Line type="monotone" dataKey="likes" stroke="var(--color-likes)" strokeWidth={2} name="Likes" dot={false} />
+                                <Line type="monotone" dataKey="comments" stroke="var(--color-comments)" strokeWidth={2} name="Comentários" dot={false}/>
+                            </LineChart>
                           </ResponsiveContainer>
                         </ChartContainer>
                     ) : (
@@ -309,5 +302,3 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
     </Card>
   );
 }
-
-    
