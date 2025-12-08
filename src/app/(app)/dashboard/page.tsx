@@ -70,6 +70,24 @@ const PerformanceAnalysisCard = dynamic(() => import('@/components/dashboard/per
 });
 
 
+function DashboardSkeleton() {
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+      <div className="lg:col-span-1 space-y-8">
+        <Skeleton className="h-[380px] w-full" />
+        <Skeleton className="h-[250px] w-full" />
+        <Skeleton className="h-[300px] w-full" />
+      </div>
+      <div className="lg:col-span-2 space-y-8">
+        <Skeleton className="h-[140px] w-full" />
+        <Skeleton className="h-[438px] w-full" />
+        <Skeleton className="h-[250px] w-full" />
+      </div>
+    </div>
+  );
+}
+
+
 export default function DashboardPage() {
   const { user } = useUser();
   const firestore = useFirestore();
@@ -359,12 +377,9 @@ export default function DashboardPage() {
           
           {userProfile && <ProfileCompletionAlert userProfile={userProfile} isPremium={isPremium} />}
 
-          {/* Main Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-            
-            {/* Left Column */}
-            <div className="lg:col-span-1 space-y-8">
-                <Suspense fallback={<Skeleton className="h-[380px] w-full" />}>
+          <Suspense fallback={<DashboardSkeleton />}>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                <div className="lg:col-span-1 space-y-8">
                    <GoalCard 
                         isLoading={isLoading} 
                         goalFollowers={goalFollowers}
@@ -373,16 +388,12 @@ export default function DashboardPage() {
                         onEditGoal={() => setIsGoalSheetOpen(true)}
                         formatMetricValue={formatMetricValue}
                    />
-                </Suspense>
-                <Suspense fallback={<Skeleton className="h-[250px] w-full" />}>
                   <DailyPlanCard 
                     isLoadingWeeklyPlans={isLoadingWeeklyPlans}
                     currentPlan={currentPlan} 
                     handleToggleRoteiro={handleToggleRoteiro} 
                   />
-                </Suspense>
-                <Suspense fallback={<Skeleton className="h-[300px] w-full" />}>
-                    <ActionHubCard 
+                  <ActionHubCard 
                         isLoadingUpcoming={isLoadingUpcoming}
                         upcomingContent={upcomingContent}
                         isLoadingIdeias={isLoadingIdeias}
@@ -396,39 +407,32 @@ export default function DashboardPage() {
                         handleMarkAsPublished={handleMarkAsPublished}
                         handleTikTokClick={handleTikTokClick}
                         formatNumber={formatMetricValue}
-                    />
-                </Suspense>
-            </div>
+                  />
+                </div>
 
-            {/* Right Column */}
-            <div className="lg:col-span-2 space-y-8">
-              <Suspense fallback={<Skeleton className="h-[140px] w-full" />}>
-                <EngagementMetricsCard 
-                    isLoading={isLoading} 
-                    latestMetrics={latestMetrics}
-                    formatIntegerValue={formatIntegerValue} 
-                />
-              </Suspense>
-              <Suspense fallback={<Skeleton className="h-[438px] w-full" />}>
-                <EvolutionChartCard
-                  isLoading={isLoadingInstaPosts || isLoadingTiktokPosts || isLoadingMetricSnapshots}
-                  metricSnapshots={metricSnapshots}
-                  instaPosts={instaPosts}
-                  tiktokPosts={tiktokPosts}
-                  selectedPlatform={selectedPlatform}
-                  userProfile={userProfile}
-                  handleTikTokClick={handleTikTokClick}
-                />
-              </Suspense>
-               <Suspense fallback={<Skeleton className="h-full min-h-[250px]" />}>
+                <div className="lg:col-span-2 space-y-8">
+                    <EngagementMetricsCard 
+                        isLoading={isLoading} 
+                        latestMetrics={latestMetrics}
+                        formatIntegerValue={formatIntegerValue} 
+                    />
+                    <EvolutionChartCard
+                      isLoading={isLoadingInstaPosts || isLoadingTiktokPosts || isLoadingMetricSnapshots}
+                      metricSnapshots={metricSnapshots}
+                      instaPosts={instaPosts}
+                      tiktokPosts={tiktokPosts}
+                      selectedPlatform={selectedPlatform}
+                      userProfile={userProfile}
+                      handleTikTokClick={handleTikTokClick}
+                    />
                    <PerformanceAnalysisCard 
                         isGeneratingInsights={isGeneratingInsights}
                         insights={insights}
                         handleGenerateInsights={handleGenerateInsights}
                     />
-                </Suspense>
-            </div>
-          </div>
+                </div>
+              </div>
+            </Suspense>
         </div>
       </div>
     </>
