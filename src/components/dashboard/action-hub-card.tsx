@@ -62,16 +62,6 @@ export function ActionHubCard({
       <CardHeader>
         <CardTitle className="text-center font-headline text-xl flex items-center justify-center gap-2">
           Hub de Ação Rápida
-           <TooltipProvider>
-              <Tooltip>
-                  <TooltipTrigger asChild>
-                      <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                      <p>Acesse rapidamente seus próximos posts, ideias e posts recentes.</p>
-                  </TooltipContent>
-              </Tooltip>
-          </TooltipProvider>
         </CardTitle>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col">

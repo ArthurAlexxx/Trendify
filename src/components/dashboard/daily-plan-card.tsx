@@ -37,16 +37,6 @@ export function DailyPlanCard({ isLoadingWeeklyPlans, currentPlan, handleToggleR
       <CardHeader>
         <CardTitle className="text-center font-headline text-xl flex items-center justify-center gap-2">
           Plano para Hoje
-           <TooltipProvider>
-              <Tooltip>
-                  <TooltipTrigger asChild>
-                      <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                      <p>Suas tarefas de hoje, baseadas no seu plano semanal ativo.</p>
-                  </TooltipContent>
-              </Tooltip>
-          </TooltipProvider>
         </CardTitle>
       </CardHeader>
       <CardContent>

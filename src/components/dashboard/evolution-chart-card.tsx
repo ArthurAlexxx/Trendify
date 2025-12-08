@@ -86,7 +86,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                 url: p.shareUrl,
                 type: 'tiktok' as const,
                 post: p,
-                date: 'fetchedAt' in p && p.fetchedAt ? p.fetchedAt.toDate() : new Date(0)
+                date: 'createdAt' in p && p.createdAt ? (p.createdAt as any).toDate() : ('fetchedAt' in p && p.fetchedAt ? p.fetchedAt.toDate() : new Date(0))
             }
         }
      });
@@ -161,27 +161,29 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
         <CardHeader>
             <CardTitle className="text-center flex items-center justify-center gap-2">
               Análise de Performance
-              <TooltipProvider>
-                  <Tooltip>
-                      <TooltipTrigger asChild>
-                          <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                          <p className="max-w-xs">Use as abas para analisar a evolução das suas métricas, seus top posts e sua taxa de engajamento.</p>
-                      </TooltipContent>
-                  </Tooltip>
-              </TooltipProvider>
             </CardTitle>
         </CardHeader>
-        <CardContent className="pl-2 pr-4 h-[530px]">
-          <Tabs defaultValue="evolution" className="w-full h-full flex flex-col">
+        <CardContent className="h-[450px] flex flex-col">
+          <Tabs defaultValue="evolution" className="w-full flex-1 flex flex-col">
               <TabsList className="grid w-full grid-cols-3 mx-auto max-w-md">
-                  <TabsTrigger value="evolution"><TrendingUp className="mr-2 h-4 w-4" /> Evolução</TabsTrigger>
-                  <TabsTrigger value="topPosts"><BarChartHorizontal className="mr-2 h-4 w-4" /> Top Posts</TabsTrigger>
-                  <TabsTrigger value="engagementRate"><Percent className="mr-2 h-4 w-4" /> Engajamento</TabsTrigger>
+                  <TabsTrigger value="evolution">Evolução</TabsTrigger>
+                  <TabsTrigger value="topPosts">Top Posts</TabsTrigger>
+                  <TabsTrigger value="engagementRate">Engajamento</TabsTrigger>
               </TabsList>
-              <div className="flex-1 mt-4">
+              <div className="flex-1 mt-4 h-full">
                 <TabsContent value="evolution" className="h-full">
+                   <div className="flex justify-end pr-4">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="max-w-xs">Acompanhe a evolução da performance (views, likes, comentários) de cada um dos seus últimos posts.</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                    {isLoading ? <Skeleton className="h-full w-full" /> : 
                     evolutionChartData.length > 0 ? (
                         <ChartContainer config={chartConfigBase} className="h-full w-full">
@@ -209,6 +211,18 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                     )}
                 </TabsContent>
                 <TabsContent value="topPosts" className="h-full">
+                     <div className="flex justify-end pr-4">
+                        <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                            <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                            <p className="max-w-xs">Veja seus 5 posts com maior número de visualizações para entender o que funciona melhor.</p>
+                            </TooltipContent>
+                        </Tooltip>
+                        </TooltipProvider>
+                    </div>
                     {isLoading ? <Skeleton className="h-full w-full" /> : 
                     topPostsData.length > 0 ? (
                        <ChartContainer config={chartConfigBase} className="h-full w-full">
@@ -235,6 +249,18 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                     )}
                 </TabsContent>
                 <TabsContent value="engagementRate" className="h-full">
+                    <div className="flex justify-end pr-4">
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                <p className="max-w-xs">Analise a taxa de engajamento (curtidas + comentários / seguidores) de cada post.</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    </div>
                    {isLoading ? <Skeleton className="h-full w-full" /> : 
                     engagementRateData.length > 0 ? (
                        <ChartContainer config={chartConfigBase} className="h-full w-full">
@@ -270,4 +296,3 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
     </Card>
   );
 }
-
