@@ -42,20 +42,26 @@ const ConfettiParticle = () => {
 
 export function GoalCard({ isLoading, goalFollowers, currentFollowers, formatMetricValue, userProfile }: GoalCardProps) {
     const [showCongrats, setShowCongrats] = useState(false);
+    const [isGoalSheetOpen, setIsGoalSheetOpen] = useState(false);
     
     const followerGoalProgress = goalFollowers > 0 ? Math.min((currentFollowers / goalFollowers) * 100, 100) : 0;
     const pieData = [{ value: followerGoalProgress, fill: 'hsl(var(--primary))' }, { value: 100 - followerGoalProgress, fill: 'hsl(var(--muted))' }];
 
     useEffect(() => {
-        // Show congrats modal if the goal is met or exceeded.
-        // It will automatically hide when a new, higher goal is set.
         if (!isLoading && goalFollowers > 0 && currentFollowers >= goalFollowers) {
             setShowCongrats(true);
         } else {
-            // Ensure it's hidden if the goal changes and is no longer met.
             setShowCongrats(false);
         }
     }, [currentFollowers, goalFollowers, isLoading]);
+
+    const handleDefineNewGoalClick = () => {
+        setShowCongrats(false);
+        // We use a small timeout to allow the first dialog to close before the next one opens
+        setTimeout(() => {
+            setIsGoalSheetOpen(true);
+        }, 150);
+    };
     
     return (
         <>
@@ -74,15 +80,23 @@ export function GoalCard({ isLoading, goalFollowers, currentFollowers, formatMet
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                    <FollowerGoalSheet userProfile={userProfile}>
-                       <Button className="w-full">
-                         <PartyPopper className="mr-2 h-4 w-4" />
-                         Definir Nova Meta
-                       </Button>
-                    </FollowerGoalSheet>
+                    <Button className="w-full" onClick={handleDefineNewGoalClick}>
+                        <PartyPopper className="mr-2 h-4 w-4" />
+                        Definir Nova Meta
+                    </Button>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
+        
+        <FollowerGoalSheet 
+            userProfile={userProfile} 
+            isOpen={isGoalSheetOpen} 
+            setIsOpen={setIsGoalSheetOpen} 
+        >
+            {/* The trigger is now handled programmatically, so we can pass a dummy button or nothing */}
+            <span /> 
+        </FollowerGoalSheet>
+
 
         <Card className="h-full shadow-primary-lg">
             <CardHeader>
@@ -132,7 +146,11 @@ export function GoalCard({ isLoading, goalFollowers, currentFollowers, formatMet
                             de {formatMetricValue(goalFollowers)} seguidores
                         </p>
                     ) : (
-                         <FollowerGoalSheet userProfile={userProfile}>
+                         <FollowerGoalSheet 
+                             userProfile={userProfile} 
+                             isOpen={isGoalSheetOpen} 
+                             setIsOpen={setIsGoalSheetOpen}
+                         >
                             <Button variant="link" size="sm">Definir meta para começar</Button>
                         </FollowerGoalSheet>
                     )}

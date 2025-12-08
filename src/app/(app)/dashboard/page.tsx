@@ -78,6 +78,7 @@ export default function DashboardPage() {
   const firestore = useFirestore();
   const { toast } = useToast();
   const [selectedPlatform, setSelectedPlatform] = useState<'total' | 'instagram' | 'tiktok'>('total');
+  const [isGoalSheetOpen, setIsGoalSheetOpen] = useState(false);
 
   const [showTikTokModal, setShowTikTokModal] = useState(false);
   const [currentTikTokUrl, setCurrentTikTokUrl] = useState('');
@@ -128,7 +129,7 @@ export default function DashboardPage() {
   const isLoading = isLoadingProfile || isLoadingUpcoming || isLoadingMetrics || isSubscriptionLoading || isLoadingIdeias || isLoadingWeeklyPlans || isLoadingInstaPosts || isLoadingTiktokPosts;
   
   const handleTikTokClick = (post: TikTokPost) => {
-      if (post.shareUrl) {
+    if (post.shareUrl) {
         window.open(post.shareUrl, '_blank', 'noopener,noreferrer');
     }
   };
@@ -311,7 +312,11 @@ export default function DashboardPage() {
                 </TabsList>
               </Tabs>
               {userProfile && 
-              <FollowerGoalSheet userProfile={userProfile}>
+              <FollowerGoalSheet 
+                userProfile={userProfile} 
+                isOpen={isGoalSheetOpen} 
+                setIsOpen={setIsGoalSheetOpen}
+              >
                   <Button variant="outline" size="sm" className="w-full"><Pencil className="mr-2 h-4 w-4" /> Editar Metas</Button>
               </FollowerGoalSheet>
               }

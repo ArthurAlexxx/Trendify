@@ -42,13 +42,14 @@ type FormData = z.infer<typeof followerGoalSchema>;
 interface FollowerGoalSheetProps {
   userProfile: UserProfile;
   children: React.ReactNode;
+  isOpen: boolean;
+  setIsOpen: (open: boolean) => void;
 }
 
-export function FollowerGoalSheet({ userProfile, children }: FollowerGoalSheetProps) {
+export function FollowerGoalSheet({ userProfile, children, isOpen, setIsOpen }: FollowerGoalSheetProps) {
     const { user } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
-    const [isOpen, setIsOpen] = useState(false);
     const [isPending, startTransition] = useTransition();
     
     const form = useForm<FormData>({
