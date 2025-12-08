@@ -2,7 +2,7 @@
 'use server';
 
 import { z } from 'zod';
-import { ai } from '@/ai/genkit';
+// import { ai } from '@/ai/genkit';
 
 const TrendSuggestionSchema = z.object({
   hook: z.string().describe("Um gancho ou título para a ideia de vídeo."),
@@ -50,7 +50,7 @@ type ActionState = {
   data?: GrowthCalculatorOutput;
   error?: string;
 };
-
+/*
 const prompt = ai.definePrompt({
     name: 'growthCalculatorPrompt',
     model: 'gpt-4o',
@@ -95,7 +95,7 @@ async function calculateGrowthAI(input: FormSchemaType): Promise<GrowthCalculato
   }
   return output;
 }
-
+*/
 export async function calculateGrowthAction(
   prevState: ActionState | null,
   data: FormSchemaType
@@ -110,7 +110,9 @@ export async function calculateGrowthAction(
     return { error: 'A meta de seguidores deve ser maior que o número atual de seguidores.' };
   }
 
+  return { error: 'A funcionalidade de IA está temporariamente desativada para manutenção.' };
 
+/*
   try {
     const result = await calculateGrowthAI(parsed.data);
     return { data: result };
@@ -119,4 +121,5 @@ export async function calculateGrowthAction(
       e instanceof Error ? e.message : 'Ocorreu um erro desconhecido.';
     return { error: `Falha ao calcular crescimento: ${errorMessage}` };
   }
+  */
 }

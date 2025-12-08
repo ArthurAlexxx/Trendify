@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -69,7 +68,7 @@ export function ActionHubCard({
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="proximos">Próximos</TabsTrigger>
             <TabsTrigger value="ideias">Ideias</TabsTrigger>
-            <TabsTrigger value="posts">Recentes</TabsTrigger>
+            <TabsTrigger value="posts">Seus Vídeos</TabsTrigger>
           </TabsList>
           <div className="flex-1 mt-4">
             <TabsContent value="proximos" className="h-full">
@@ -182,7 +181,7 @@ export function ActionHubCard({
             <TabsContent value="posts" className="h-full">
               <div className="flex flex-col items-center justify-center h-full text-center">
                 <p className="text-muted-foreground text-sm mb-2">
-                  Veja os posts sincronizados de suas plataformas.
+                  Veja os vídeos sincronizados de suas plataformas.
                 </p>
                 <RecentPostsSheet
                   instaProfile={instaProfile}
@@ -193,7 +192,7 @@ export function ActionHubCard({
                   formatNumber={formatNumber}
                   onTikTokClick={handleTikTokClick}
                 >
-                  <Button variant="outline">Ver Posts Sincronizados</Button>
+                  <Button variant="outline">Ver Vídeos Sincronizados</Button>
                 </RecentPostsSheet>
               </div>
             </TabsContent>

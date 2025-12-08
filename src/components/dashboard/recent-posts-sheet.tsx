@@ -44,9 +44,9 @@ export function RecentPostsSheet({
       <SheetTrigger asChild>{children}</SheetTrigger>
       <SheetContent className="sm:max-w-4xl p-0 flex flex-col">
         <SheetHeader className="p-6 border-b">
-          <SheetTitle className="font-headline text-xl text-center sm:text-left">Posts Sincronizados</SheetTitle>
+          <SheetTitle className="font-headline text-xl text-center sm:text-left">Vídeos Sincronizados</SheetTitle>
            <SheetDescription className="text-center sm:text-left">
-            Os últimos 10 posts de cada plataforma que você integrou.
+            Os últimos 10 vídeos de cada plataforma que você integrou.
           </SheetDescription>
         </SheetHeader>
         <ScrollArea className='flex-1'>
@@ -70,14 +70,14 @@ export function RecentPostsSheet({
                             <>
                             <h3 className="text-base font-semibold flex items-center gap-2 mb-2">
                                 <Avatar className="h-5 w-5"><AvatarImage src={instaProfile.profilePicUrlHd} /></Avatar>
-                                Posts Recentes do Instagram
+                                Vídeos Recentes do Instagram
                             </h3>
                             <InstagramProfileResults profile={instaProfile} posts={instaPosts} formatNumber={formatNumber} error={null} />
                             </>
                         ) : (
                             <div className="text-center py-20">
                                 <Inbox className="h-10 w-10 text-muted-foreground mx-auto mb-4" />
-                                <p className="text-muted-foreground">Nenhum post do Instagram sincronizado.</p>
+                                <p className="text-muted-foreground">Nenhum vídeo do Instagram sincronizado.</p>
                             </div>
                         )}
                     </TabsContent>

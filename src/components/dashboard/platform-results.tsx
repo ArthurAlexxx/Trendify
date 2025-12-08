@@ -53,7 +53,7 @@ export function InstagramProfileResults({ profile, posts, error, formatNumber }:
 
     return (
         <div className="mt-4 space-y-4">
-            {error && !posts && <Alert variant="destructive"><AlertTriangle className="h-4 w-4" /><AlertTitle>Erro ao buscar posts</AlertTitle><AlertDescription>{error}</AlertDescription></Alert>}
+            {error && !posts && <Alert variant="destructive"><AlertTriangle className="h-4 w-4" /><AlertTitle>Erro ao buscar vídeos</AlertTitle><AlertDescription>{error}</AlertDescription></Alert>}
             {posts && posts.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
                     {posts.slice(0, 10).map((post) => (
@@ -82,7 +82,7 @@ export function InstagramProfileResults({ profile, posts, error, formatNumber }:
                 </div>
             ) : posts ? (
                  <div className="text-center py-6">
-                    <p className="text-muted-foreground text-sm">Nenhuma publicação recente encontrada para este perfil.</p>
+                    <p className="text-muted-foreground text-sm">Nenhum vídeo recente encontrado para este perfil.</p>
                 </div>
             ) : null}
         </div>
