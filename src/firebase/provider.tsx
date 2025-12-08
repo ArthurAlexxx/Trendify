@@ -49,6 +49,8 @@ export interface UserHookResult {
   user: User | null;
   isUserLoading: boolean;
   userError: Error | null;
+  auth: Auth;
+  firestore: Firestore;
 }
 
 // React Context
@@ -233,6 +235,6 @@ export function useMemoFirebase<T>(factory: () => T, deps: React.DependencyList)
  * @returns {UserHookResult} Object with user, isUserLoading, userError.
  */
 export const useUser = (): UserHookResult => {
-  const { user, isUserLoading, userError } = useFirebase();
-  return { user, isUserLoading, userError };
+  const { user, isUserLoading, userError, auth, firestore } = useFirebase();
+  return { user, isUserLoading, userError, auth, firestore };
 };
