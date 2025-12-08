@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BarChart, Bar, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartsTooltip, LabelList, Area, AreaChart, Legend, LineChart, Line } from 'recharts';
+import { BarChart, Bar, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartsTooltip, PieChart, Pie, Cell, Legend, LineChart, Line, LabelList, Area, AreaChart } from 'recharts';
 import { ChartConfig, ChartContainer } from '@/components/ui/chart';
 import { TrendingUp, Percent, BarChartHorizontal, ClipboardList, Info } from 'lucide-react';
 import type { MetricSnapshot, InstagramPostData, TikTokPost, UserProfile } from '@/lib/types';

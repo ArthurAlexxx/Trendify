@@ -57,7 +57,7 @@ export function InstagramProfileResults({ profile, posts, error, formatNumber }:
                                         <Image src={post.mediaUrl} alt={post.caption || 'Instagram Post'} fill style={{ objectFit: 'cover' }} />
                                         <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-transparent"></div>
                                         <p className="absolute top-2 left-2 right-2 text-white text-[10px] font-semibold line-clamp-2">
-                                            {post.caption}
+                                            {post.caption || <span className="text-red-400 font-normal italic">Sem título</span>}
                                         </p>
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
                                         <div className="absolute bottom-0 left-0 p-2 text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity">
@@ -98,7 +98,7 @@ export function TikTokProfileResults({ profile, posts, error, formatNumber, onVi
                                     <Image src={post.coverUrl} alt={post.description || 'TikTok Video'} fill style={{ objectFit: 'cover' }} />
                                     <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-transparent"></div>
                                      <p className="absolute top-2 left-2 right-2 text-white text-[10px] font-semibold line-clamp-2">
-                                        {post.description}
+                                        {post.description || <span className="text-red-400 font-normal italic">Sem título</span>}
                                     </p>
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-center justify-center">
                                         <PlayCircle className="h-10 w-10 text-white opacity-0 group-hover:opacity-80 transition-opacity" />
