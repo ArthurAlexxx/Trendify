@@ -4,13 +4,13 @@ import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BarChart, Bar, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartsTooltip, PieChart, Pie, Cell, Legend, LineChart, Line, LabelList, Area, AreaChart, ScatterChart, Scatter, ZAxis } from 'recharts';
+import { BarChart, Bar, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartsTooltip, PieChart, Pie, Cell, Legend, LineChart, Line, LabelList, Area, AreaChart } from 'recharts';
 import { ChartConfig, ChartContainer } from '@/components/ui/chart';
-import { TrendingUp, Percent, BarChartHorizontal, ClipboardList, Activity } from 'lucide-react';
+import { TrendingUp, Percent, BarChartHorizontal, ClipboardList, Info } from 'lucide-react';
 import type { MetricSnapshot, InstagramPostData, TikTokPost, UserProfile } from '@/lib/types';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 
 const chartConfigBase: ChartConfig = {
   followers: { label: "Seguidores", color: "hsl(var(--chart-1))" },
@@ -31,7 +31,6 @@ interface EvolutionChartCardProps {
 }
 
 export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPosts, tiktokPosts, selectedPlatform, userProfile, handleTikTokClick }: EvolutionChartCardProps) {
-  const [chartView, setChartView] = useState<'evolution' | 'engagementRate' | 'topPosts' | 'postAnalysis'>('evolution');
 
   const parseMetric = (value?: string | number): number => {
     if (typeof value === 'number') return value;
@@ -84,10 +83,6 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
 
   const topPostsData = useMemo(() => {
      return allPosts.filter(p => p.views > 0).sort((a,b) => b.views - a.views).slice(0, 5);
-  }, [allPosts]);
-
-  const bubbleChartData = useMemo(() => {
-    return allPosts.filter(p => p.views > 0 && p.likes > 0);
   }, [allPosts]);
 
   const historicalChartData = useMemo(() => {
@@ -151,28 +146,19 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
         <div className="rounded-lg border bg-background p-2 shadow-sm min-w-[200px]">
           <div className="flex flex-col">
             <span className="text-[0.70rem] uppercase text-muted-foreground">
-              {data.name || 'Post'}
+              {data.name || label}
             </span>
              {payload.map((p: any) => (
-               <div key={p.dataKey} className="flex flex-col mt-1">
-                <span className="text-[0.70rem] uppercase text-muted-foreground">
-                  {p.name}
+               <div key={p.dataKey} className="flex items-center justify-between mt-1">
+                <span className="text-[0.70rem] uppercase text-muted-foreground flex items-center">
+                    <div className="w-2 h-2 rounded-full mr-2" style={{backgroundColor: p.color}}></div>
+                    {p.name}
                 </span>
-                <span className="font-bold" style={{color: p.color}}>
-                  {p.value.toLocaleString('pt-BR')} {chartView === 'engagementRate' ? '%' : ''}
+                <span className="font-bold ml-4">
+                  {p.value.toLocaleString('pt-BR')}{p.dataKey === 'engagementRate' ? '%' : ''}
                 </span>
               </div>
             ))}
-            {chartView === 'postAnalysis' && data.comments && (
-                 <div className="flex flex-col mt-1">
-                    <span className="text-[0.70rem] uppercase text-muted-foreground">
-                      Comentários
-                    </span>
-                    <span className="font-bold" style={{color: 'var(--color-comments)'}}>
-                        {data.comments.toLocaleString('pt-BR')}
-                    </span>
-                </div>
-            )}
           </div>
         </div>
       );
@@ -181,128 +167,128 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
   };
 
    const handleChartClick = (data: any) => {
-    if (data && data.url) {
-        window.open(data.url, '_blank', 'noopener,noreferrer');
+    if (data && data.activePayload && data.activePayload.length > 0) {
+        const url = data.activePayload[0].payload?.url;
+        if (url) {
+            window.open(url, '_blank', 'noopener,noreferrer');
+        }
     }
   };
   
-  const renderChart = () => {
-    switch (chartView) {
-      case 'postAnalysis':
-        return (
-          <ScatterChart
-            margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis 
-              type="number" 
-              dataKey="views" 
-              name="Views" 
-              tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} 
-              domain={['dataMin', 'dataMax']}
-            />
-            <YAxis 
-              type="number" 
-              dataKey="likes" 
-              name="Likes" 
-              tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v}
-              domain={['dataMin', 'dataMax']}
-            />
-            <ZAxis type="number" dataKey="comments" range={[100, 1000]} name="Comentários" />
-            <RechartsTooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomTooltip />} />
-            <Scatter 
-              data={bubbleChartData} 
-              fill="hsl(var(--primary))" 
-              className="cursor-pointer"
-              onClick={handleChartClick}
-            />
-          </ScatterChart>
-        );
-      case 'engagementRate':
-        return (
-          <AreaChart data={engagementRateData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-            <defs>
-              <linearGradient id="fillEng" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="var(--color-engagementRate)" stopOpacity={0.8}/>
-                <stop offset="95%" stopColor="var(--color-engagementRate)" stopOpacity={0}/>
-              </linearGradient>
-            </defs>
-            <CartesianGrid vertical={false} strokeDasharray="3 3" />
-            <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} />
-            <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => `${value}%`} />
-            <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
-            <Area dataKey="engagementRate" type="monotone" fill="url(#fillEng)" stroke="var(--color-engagementRate)" name="Engajamento" />
-          </AreaChart>
-        );
-      case 'topPosts':
-         return (
-            <BarChart data={topPostsData} layout="vertical" margin={{ left: 100, top: 5, right: 30, bottom: 5 }} onClick={handleChartClick}>
-              <CartesianGrid horizontal={false} strokeDasharray="3 3" />
-              <XAxis type="number" tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
-              <YAxis type="category" dataKey="name" width={100} tickLine={false} axisLine={false} />
-              <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
-              <Bar dataKey="views" fill="var(--color-views)" name="Views" className="cursor-pointer">
-                 <LabelList dataKey="views" position="right" offset={8} className="fill-foreground text-xs" formatter={(v: number) => typeof v === 'number' && v >= 1000 ? `${(v/1000).toFixed(1)}k` : v} />
-              </Bar>
-            </BarChart>
-          );
-      case 'evolution':
-      default:
-        return (
-          <LineChart data={historicalChartData} >
-            <CartesianGrid vertical={false} strokeDasharray="3 3" />
-            <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} />
-            <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
-            <RechartsTooltip content={<CustomTooltip />} cursor={{ strokeDasharray: '3 3' }} />
-            <Legend />
-            <Line type="monotone" dataKey="followers" stroke="var(--color-followers)" strokeWidth={2} name="Seguidores" dot={false} />
-            <Line type="monotone" dataKey="views" stroke="var(--color-views)" strokeWidth={2} name="Views" dot={false} />
-            <Line type="monotone" dataKey="likes" stroke="var(--color-likes)" strokeWidth={2} name="Likes" dot={false} />
-            <Line type="monotone" dataKey="comments" stroke="var(--color-comments)" strokeWidth={2} name="Comentários" dot={false}/>
-          </LineChart>
-        );
-    }
-  };
-  
-  const hasData = useMemo(() => {
-    if (chartView === 'postAnalysis') return bubbleChartData.length > 0;
-    if (chartView === 'topPosts') return topPostsData.length > 0;
-    return historicalChartData.length > 0;
-  }, [chartView, historicalChartData, topPostsData, bubbleChartData]);
-
   return (
     <Card className="shadow-primary-lg">
         <CardHeader>
-            <CardTitle className="text-center">Análise de Performance</CardTitle>
-            <div className="flex justify-center pt-4">
-                 <Tabs value={chartView} onValueChange={(value) => setChartView(value as any)} className="w-auto">
-                    <TabsList>
-                        <TabsTrigger value="evolution"><TrendingUp className="mr-2 h-4 w-4" /> Evolução</TabsTrigger>
-                        <TabsTrigger value="engagementRate"><Percent className="mr-2 h-4 w-4" /> Engajamento</TabsTrigger>
-                        <TabsTrigger value="topPosts"><BarChartHorizontal className="mr-2 h-4 w-4" /> Top Posts</TabsTrigger>
-                        <TabsTrigger value="postAnalysis"><Activity className="mr-2 h-4 w-4" /> Análise de Posts</TabsTrigger>
-                    </TabsList>
-                </Tabs>
-            </div>
+            <CardTitle className="text-center flex items-center justify-center gap-2">
+              Análise de Performance
+              <TooltipProvider>
+                  <Tooltip>
+                      <TooltipTrigger asChild>
+                          <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                          <p className="max-w-xs">Use as abas para analisar a evolução das suas métricas, seus top posts e sua taxa de engajamento.</p>
+                      </TooltipContent>
+                  </Tooltip>
+              </TooltipProvider>
+            </CardTitle>
         </CardHeader>
         <CardContent className="h-[450px] pl-2 pr-4">
-            {isLoading ? <Skeleton className="h-full w-full" /> : 
-            hasData ? (
-                <ChartContainer config={chartConfigBase} className="h-full w-full">
-                    <ResponsiveContainer>
-                        {renderChart()}
-                    </ResponsiveContainer>
-                </ChartContainer>
-            ) : (
-                <div className="h-full w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
-                    <div>
-                    <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
-                    <h3 className="font-semibold text-foreground">{(userProfile?.instagramHandle || userProfile?.tiktokHandle) ? "Dados insuficientes." : "Nenhuma plataforma conectada."}</h3>
-                    <p className="text-sm text-muted-foreground"> {userProfile && <Link href="/profile/integrations" className="text-primary font-medium hover:underline cursor-pointer">Sincronize suas métricas</Link>} para começar a ver seus dados.</p>
-                    </div>
-                </div>
-            )}
+          <Tabs defaultValue="evolution" className="w-full h-full flex flex-col">
+              <TabsList className="grid w-full grid-cols-3 mx-auto max-w-md">
+                  <TabsTrigger value="evolution"><TrendingUp className="mr-2 h-4 w-4" /> Evolução</TabsTrigger>
+                  <TabsTrigger value="topPosts"><BarChartHorizontal className="mr-2 h-4 w-4" /> Top Posts</TabsTrigger>
+                  <TabsTrigger value="engagementRate"><Percent className="mr-2 h-4 w-4" /> Engajamento</TabsTrigger>
+              </TabsList>
+              <div className="flex-1 mt-4">
+                <TabsContent value="evolution" className="h-full">
+                   {isLoading ? <Skeleton className="h-full w-full" /> : 
+                    historicalChartData.length > 0 ? (
+                        <ChartContainer config={chartConfigBase} className="h-full w-full">
+                          <ResponsiveContainer>
+                            <LineChart data={historicalChartData} >
+                                <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                                <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} />
+                                <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
+                                <RechartsTooltip content={<CustomTooltip />} cursor={{ strokeDasharray: '3 3' }} />
+                                <Legend />
+                                <Line type="monotone" dataKey="followers" stroke="var(--color-followers)" strokeWidth={2} name="Seguidores" dot={false} />
+                                <Line type="monotone" dataKey="views" stroke="var(--color-views)" strokeWidth={2} name="Views" dot={false} />
+                                <Line type="monotone" dataKey="likes" stroke="var(--color-likes)" strokeWidth={2} name="Likes" dot={false} />
+                                <Line type="monotone" dataKey="comments" stroke="var(--color-comments)" strokeWidth={2} name="Comentários" dot={false}/>
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </ChartContainer>
+                    ) : (
+                        <div className="h-full w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
+                          <div>
+                            <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+                            <h3 className="font-semibold text-foreground">{(userProfile?.instagramHandle || userProfile?.tiktokHandle) ? "Dados insuficientes." : "Nenhuma plataforma conectada."}</h3>
+                            <p className="text-sm text-muted-foreground"> {userProfile && <Link href="/profile/integrations" className="text-primary font-medium hover:underline cursor-pointer">Sincronize suas métricas</Link>} para começar a ver seus dados.</p>
+                          </div>
+                        </div>
+                    )}
+                </TabsContent>
+                <TabsContent value="topPosts" className="h-full">
+                    {isLoading ? <Skeleton className="h-full w-full" /> : 
+                    topPostsData.length > 0 ? (
+                       <ChartContainer config={chartConfigBase} className="h-full w-full">
+                         <ResponsiveContainer>
+                            <BarChart data={topPostsData} layout="vertical" margin={{ left: 100, top: 5, right: 30, bottom: 5 }} onClick={handleChartClick}>
+                              <CartesianGrid horizontal={false} strokeDasharray="3 3" />
+                              <XAxis type="number" tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
+                              <YAxis type="category" dataKey="name" width={100} tickLine={false} axisLine={false} />
+                              <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
+                              <Bar dataKey="views" fill="var(--color-views)" name="Views" className="cursor-pointer">
+                                 <LabelList dataKey="views" position="right" offset={8} className="fill-foreground text-xs" formatter={(v: number) => typeof v === 'number' && v >= 1000 ? `${(v/1000).toFixed(1)}k` : v} />
+                              </Bar>
+                            </BarChart>
+                         </ResponsiveContainer>
+                       </ChartContainer>
+                    ) : (
+                         <div className="h-full w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
+                           <div>
+                            <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+                            <h3 className="font-semibold text-foreground">Não há posts com visualizações para analisar.</h3>
+                            <p className="text-sm text-muted-foreground">Continue postando para ver os dados aqui.</p>
+                           </div>
+                         </div>
+                    )}
+                </TabsContent>
+                <TabsContent value="engagementRate" className="h-full">
+                   {isLoading ? <Skeleton className="h-full w-full" /> : 
+                    engagementRateData.length > 0 ? (
+                       <ChartContainer config={chartConfigBase} className="h-full w-full">
+                         <ResponsiveContainer>
+                            <AreaChart data={engagementRateData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                                <defs>
+                                <linearGradient id="fillEng" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="var(--color-engagementRate)" stopOpacity={0.8}/>
+                                    <stop offset="95%" stopColor="var(--color-engagementRate)" stopOpacity={0}/>
+                                </linearGradient>
+                                </defs>
+                                <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                                <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} />
+                                <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => `${value}%`} />
+                                <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
+                                <Area dataKey="engagementRate" type="monotone" fill="url(#fillEng)" stroke="var(--color-engagementRate)" name="Engajamento" />
+                            </AreaChart>
+                         </ResponsiveContainer>
+                       </ChartContainer>
+                    ) : (
+                         <div className="h-full w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
+                           <div>
+                            <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+                            <h3 className="font-semibold text-foreground">{(userProfile?.instagramHandle || userProfile?.tiktokHandle) ? "Dados insuficientes." : "Nenhuma plataforma conectada."}</h3>
+                            <p className="text-sm text-muted-foreground"> {userProfile && <Link href="/profile/integrations" className="text-primary font-medium hover:underline cursor-pointer">Sincronize suas métricas</Link>} para começar a ver seus dados.</p>
+                           </div>
+                         </div>
+                    )}
+                </TabsContent>
+              </div>
+          </Tabs>
         </CardContent>
     </Card>
   );
 }
+
+    

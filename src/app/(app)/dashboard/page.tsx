@@ -34,13 +34,13 @@ import type {
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, useCollection, useDoc, useMemoFirebase } from '@/firebase';
-import { collection, doc, query, orderBy, limit, updateDoc, where, serverTimestamp, getDocs, setDoc } from 'firebase/firestore';
+import { collection, doc, query, orderBy, limit, updateDoc, where, serverTimestamp, getDocs, setDoc, collectionGroup } from 'firebase/firestore';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useSubscription } from '@/hooks/useSubscription';
 import { FollowerGoalSheet } from '@/components/dashboard/follower-goal-sheet';
 import { ProfileCompletionAlert } from '@/components/dashboard/profile-completion-alert';
 import { generateDashboardInsights, type DashboardInsightsOutput } from './actions';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import React, { useState, useMemo, useEffect, Suspense } from 'react';
 import dynamic from 'next/dynamic';
 
@@ -87,6 +87,13 @@ export default function DashboardPage() {
       firestore && user ? doc(firestore, `users/${user.uid}`) : null
   ), [firestore, user]);
   const { data: userProfile, isLoading: isLoadingProfile } = useDoc<UserProfile>(userProfileRef);
+  
+  const metricSnapshotsQuery = useMemoFirebase(
+    () => (firestore && user ? query(collectionGroup(firestore, 'metricSnapshots'), where('__name__', '>=', `users/${user.uid}/`), where('__name__', '<', `users/${user.uid0}/`)) : null),
+    [firestore, user]
+  );
+  const { data: metricSnapshots, isLoading: isLoadingMetricSnapshots } = useCollection<MetricSnapshot>(metricSnapshotsQuery);
+  
 
   const weeklyPlansQuery = useMemoFirebase(() => (
     firestore && user ? query(collection(firestore, `users/${user.uid}/weeklyPlans`), orderBy('createdAt', 'desc'), limit(1)) : null
@@ -115,7 +122,7 @@ export default function DashboardPage() {
   const { data: tiktokPosts, isLoading: isLoadingTiktokPosts } = useCollection<TikTokPost>(tiktokPostsQuery);
 
 
-  const isLoading = isLoadingProfile || isLoadingUpcoming || isSubscriptionLoading || isLoadingIdeias || isLoadingWeeklyPlans || isLoadingInstaPosts || isLoadingTiktokPosts;
+  const isLoading = isLoadingProfile || isLoadingUpcoming || isSubscriptionLoading || isLoadingIdeias || isLoadingWeeklyPlans || isLoadingInstaPosts || isLoadingTiktokPosts || isLoadingMetricSnapshots;
   
   const handleTikTokClick = (post: TikTokPost) => {
     if (post.shareUrl) {
@@ -335,11 +342,13 @@ export default function DashboardPage() {
               </Suspense>
               <Suspense fallback={<Skeleton className="h-[530px] w-full" />}>
                 <EvolutionChartCard
-                  isLoading={isLoadingInstaPosts || isLoadingTiktokPosts}
+                  isLoading={isLoadingInstaPosts || isLoadingTiktokPosts || isLoadingMetricSnapshots}
+                  metricSnapshots={metricSnapshots}
                   instaPosts={instaPosts}
                   tiktokPosts={tiktokPosts}
                   selectedPlatform={selectedPlatform}
                   userProfile={userProfile}
+                  handleTikTokClick={handleTikTokClick}
                 />
               </Suspense>
             </div>
@@ -349,3 +358,5 @@ export default function DashboardPage() {
     </>
   );
 }
+
+    
