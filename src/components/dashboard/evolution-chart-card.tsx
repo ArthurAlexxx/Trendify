@@ -115,7 +115,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
   const evolutionChartData = useMemo(() => {
     return allPosts.map(p => ({
         ...p,
-        dateFormatted: format(p.date, 'dd/MM'),
+        date: format(p.date, 'dd/MM'),
     }));
   }, [allPosts]);
 
@@ -171,7 +171,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                   <TabsTrigger value="engagementRate">Engajamento</TabsTrigger>
               </TabsList>
               <div className="flex-1 mt-4 h-full">
-                <TabsContent value="evolution" className="h-full">
+                <TabsContent value="evolution" className="h-full flex flex-col">
                    <div className="flex justify-end pr-4">
                     <TooltipProvider>
                       <Tooltip>
@@ -186,11 +186,11 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                   </div>
                    {isLoading ? <Skeleton className="h-full w-full" /> : 
                     evolutionChartData.length > 0 ? (
-                        <ChartContainer config={chartConfigBase} className="h-full w-full">
+                        <ChartContainer config={chartConfigBase} className="h-full w-full flex-1">
                           <ResponsiveContainer>
                             <LineChart data={evolutionChartData} margin={{ top: 5, right: 20, left: -10, bottom: 20 }}>
                                 <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                                <XAxis dataKey="dateFormatted" interval="preserveStartEnd" tick={{ fontSize: 12 }} />
+                                <XAxis dataKey="date" interval="preserveStartEnd" tick={{ fontSize: 12 }} />
                                 <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
                                 <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
                                 <Legend />
@@ -210,7 +210,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                         </div>
                     )}
                 </TabsContent>
-                <TabsContent value="topPosts" className="h-full">
+                <TabsContent value="topPosts" className="h-full flex flex-col">
                      <div className="flex justify-end pr-4">
                         <TooltipProvider>
                         <Tooltip>
@@ -225,7 +225,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                     </div>
                     {isLoading ? <Skeleton className="h-full w-full" /> : 
                     topPostsData.length > 0 ? (
-                       <ChartContainer config={chartConfigBase} className="h-full w-full">
+                       <ChartContainer config={chartConfigBase} className="h-full w-full flex-1">
                          <ResponsiveContainer>
                             <BarChart data={topPostsData} layout="vertical" margin={{ left: 120, top: 5, right: 30, bottom: 5 }} onClick={handleChartClick}>
                               <CartesianGrid horizontal={false} strokeDasharray="3 3" />
@@ -248,7 +248,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                          </div>
                     )}
                 </TabsContent>
-                <TabsContent value="engagementRate" className="h-full">
+                <TabsContent value="engagementRate" className="h-full flex flex-col">
                     <div className="flex justify-end pr-4">
                         <TooltipProvider>
                             <Tooltip>
@@ -263,7 +263,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                     </div>
                    {isLoading ? <Skeleton className="h-full w-full" /> : 
                     engagementRateData.length > 0 ? (
-                       <ChartContainer config={chartConfigBase} className="h-full w-full">
+                       <ChartContainer config={chartConfigBase} className="h-full w-full flex-1">
                          <ResponsiveContainer>
                             <AreaChart data={engagementRateData} margin={{ top: 5, right: 20, left: -10, bottom: 20 }}>
                                 <defs>
