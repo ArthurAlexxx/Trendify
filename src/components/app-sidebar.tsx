@@ -315,8 +315,9 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
                       <LayoutDashboard className="mr-2 h-4 w-4" />
                       <span>Ir para App</span>
                     </DropdownMenuItem>
-                 ) : (
-                   <DropdownMenuItem onClick={() => router.push('/admin')}>
+                 ) : null}
+                 {isAdmin && (
+                    <DropdownMenuItem onClick={() => router.push('/admin')}>
                       <Shield className="mr-2 h-4 w-4" />
                       <span>Painel Admin</span>
                     </DropdownMenuItem>
