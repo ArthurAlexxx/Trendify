@@ -78,7 +78,7 @@ export async function generateDashboardInsights(
   }
   
   try {
-     const result = await callOpenAI<DashboardInsightsOutput>({
+     const result = await callOpenAI<typeof GenerateDashboardInsightsOutputSchema>({
         prompt: systemPrompt,
         jsonSchema: GenerateDashboardInsightsOutputSchema,
         promptData: input,
