@@ -325,13 +325,6 @@ export default function DashboardPage() {
                         formatMetricValue={formatNumber}
                    />
                 </Suspense>
-                 <Suspense fallback={<Skeleton className="h-full min-h-[250px]" />}>
-                   <PerformanceAnalysisCard 
-                        isGeneratingInsights={isGeneratingInsights}
-                        insights={insights}
-                        handleGenerateInsights={handleGenerateInsights}
-                    />
-                </Suspense>
                 <Suspense fallback={<Skeleton className="h-[250px] w-full" />}>
                   <DailyPlanCard 
                     isLoadingWeeklyPlans={isLoadingWeeklyPlans}
@@ -378,6 +371,13 @@ export default function DashboardPage() {
                   handleTikTokClick={handleTikTokClick}
                 />
               </Suspense>
+               <Suspense fallback={<Skeleton className="h-full min-h-[250px]" />}>
+                   <PerformanceAnalysisCard 
+                        isGeneratingInsights={isGeneratingInsights}
+                        insights={insights}
+                        handleGenerateInsights={handleGenerateInsights}
+                    />
+                </Suspense>
             </div>
           </div>
         </div>
@@ -385,5 +385,3 @@ export default function DashboardPage() {
     </>
   );
 }
-
-    
