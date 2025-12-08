@@ -37,6 +37,24 @@ interface CallGoogleAIParams<T extends z.ZodType<any, any, any>> {
   videoMimeType?: string; // Mime type do vídeo
 }
 
+// Função recursiva para remover uma chave específica de um objeto
+function removeKeyRecursively(obj: any, keyToRemove: string): any {
+  if (Array.isArray(obj)) {
+    return obj.map(item => removeKeyRecursively(item, keyToRemove));
+  }
+  if (typeof obj === 'object' && obj !== null) {
+    const newObj: { [key: string]: any } = {};
+    for (const key in obj) {
+      if (key !== keyToRemove) {
+        newObj[key] = removeKeyRecursively(obj[key], keyToRemove);
+      }
+    }
+    return newObj;
+  }
+  return obj;
+}
+
+
 export async function callGoogleAI<T extends z.ZodType<any, any, any>>(
   params: CallGoogleAIParams<T>
 ): Promise<z.infer<T>> {
@@ -52,14 +70,13 @@ export async function callGoogleAI<T extends z.ZodType<any, any, any>>(
   const processedPrompt = template(promptData);
 
   const schemaAsJson = zodToJsonSchema(jsonSchema, {
-    // Definir uma estratégia que evite $ref e definitions
     strategy: 'openApi3',
-    // Remover a referência ao schema para maior compatibilidade
     $refStrategy: 'none'
   });
   
-  // A API do Gemini não espera as propriedades $schema ou definitions
-  const { $schema, definitions, ...cleanedSchema } = schemaAsJson as any;
+  // A API do Gemini não espera as propriedades $schema, definitions ou additionalProperties.
+  const { $schema, definitions, ...almostCleanedSchema } = schemaAsJson as any;
+  const cleanedSchema = removeKeyRecursively(almostCleanedSchema, 'additionalProperties');
 
 
   const contents = [
