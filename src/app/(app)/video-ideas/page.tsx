@@ -403,7 +403,7 @@ export default function VideoIdeasPage() {
                       <DialogContent className="p-0 bg-transparent border-none shadow-none w-full max-w-lg">
                         <ObjectiveFormCard
                           initialData={form.getValues()}
-                          onSubmit={form.handleSubmit(formAction)}
+                          onSubmit={formAction}
                           onCancel={() => setIsFormOpen(false)}
                         />
                       </DialogContent>
