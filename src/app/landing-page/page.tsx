@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import {
@@ -338,7 +337,7 @@ export default function LandingPage() {
                     {features.map((feature, index) => (
                       <CarouselItem key={feature.title} className="pl-4 basis-[85%] md:basis-1/2">
                          <div className="p-1 h-full">
-                          <Card className="text-left h-full bg-card/50 rounded-2xl border">
+                          <Card className="text-left h-full bg-card/50 rounded-2xl border shadow-primary-lg">
                             <CardHeader className="flex flex-row items-center justify-between">
                               <div className="bg-primary/10 text-primary p-3 rounded-lg">
                                 <feature.icon className="h-6 w-6" />

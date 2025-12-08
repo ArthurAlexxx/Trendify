@@ -374,7 +374,7 @@ function MediaKitPageContent() {
                     <CarouselContent className="-ml-4">
                         {analysisCriteria.map((item, index) => (
                             <CarouselItem key={index} className="pl-4 basis-full">
-                                <Card className="h-full rounded-2xl border-0 text-center">
+                                <Card className="h-full rounded-2xl border-0 text-center shadow-primary-lg">
                                     <CardHeader className="items-center">
                                         <CardTitle className="flex flex-col items-center gap-2">
                                             <item.icon className="h-5 w-5 text-primary" />
@@ -417,7 +417,7 @@ function MediaKitPageContent() {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="generate">
-           <Card className="rounded-t-none border-t-0">
+           <Card className="rounded-t-none border-t-0 shadow-primary-lg">
             <CardContent>
                <div className="flex flex-col items-center justify-center text-center gap-4 py-16">
                     <h2 className="text-2xl font-bold font-headline">Defina o Briefing de Prospecção</h2>
@@ -540,7 +540,7 @@ function MediaKitPageContent() {
           </Card>
         </TabsContent>
         <TabsContent value="result">
-          <Card className="rounded-t-none border-t-0">
+          <Card className="rounded-t-none border-t-0 shadow-primary-lg">
             <CardHeader className="text-center">
                 <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Resultado Gerado</h2>
                 <p className="text-muted-foreground">Um pacote completo para sua prospecção.</p>
@@ -549,7 +549,7 @@ function MediaKitPageContent() {
               {(isGenerating || result) && (
                 <div className="space-y-8 animate-fade-in">
                   {result && (
-                      <div className='flex justify-center gap-2 flex-wrap'>
+                      <div className='flex justify-center pt-4 gap-2'>
                          <Button onClick={() => handleSave(result)} disabled={isSaving} className="w-full sm:w-auto">
                             {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                             Salvar Pacote

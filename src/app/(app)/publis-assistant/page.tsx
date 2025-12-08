@@ -254,7 +254,7 @@ function PublisAssistantPageContent() {
       const usageDocRef = doc(firestore, `users/${user.uid}/dailyUsage/${todayStr}`);
       getDoc(usageDocRef).then(docSnap => {
           if (docSnap.exists()) {
-              updateDoc(usageDocRef, { geracoesAI: increment(1) });
+              updateDoc(docSnap.ref, { geracoesAI: increment(1) });
           } else {
               setDoc(usageDocRef, {
                   date: todayStr,
@@ -354,7 +354,7 @@ function PublisAssistantPageContent() {
                     <CarouselContent className="-ml-4">
                         {analysisCriteria.map((item, index) => (
                             <CarouselItem key={index} className="pl-4 basis-full">
-                                <Card className="h-full rounded-2xl border-0 text-center">
+                                <Card className="h-full rounded-2xl border-0 text-center shadow-primary-lg">
                                     <CardHeader className="items-center">
                                         <CardTitle className="flex flex-col items-center gap-2">
                                             <item.icon className="h-5 w-5 text-primary" />
@@ -399,7 +399,7 @@ function PublisAssistantPageContent() {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="generate">
-           <Card className="rounded-t-none border-t-0">
+           <Card className="rounded-t-none border-t-0 shadow-primary-lg">
             <CardContent>
               <div className="flex flex-col items-center justify-center text-center gap-4 py-16">
                     <h2 className="text-2xl font-bold font-headline">Defina o Briefing da Campanha</h2>
@@ -558,7 +558,7 @@ function PublisAssistantPageContent() {
           </Card>
         </TabsContent>
          <TabsContent value="result">
-          <Card className="rounded-t-none border-t-0">
+          <Card className="rounded-t-none border-t-0 shadow-primary-lg">
             <CardHeader className='text-center'>
                 <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Pacote de Conteúdo Gerado</h2>
                 <p className="text-muted-foreground">Ideias, roteiros e estratégias para a campanha.</p>

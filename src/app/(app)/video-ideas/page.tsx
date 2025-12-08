@@ -242,7 +242,7 @@ export default function VideoIdeasPage() {
       const usageDocRef = doc(firestore, `users/${user.uid}/dailyUsage/${todayStr}`);
       getDoc(usageDocRef).then(docSnap => {
         if (docSnap.exists()) {
-          updateDoc(usageDocRef, { geracoesAI: increment(1) });
+          updateDoc(docSnap.ref, { geracoesAI: increment(1) });
         } else {
           setDoc(usageDocRef, {
             date: todayStr,

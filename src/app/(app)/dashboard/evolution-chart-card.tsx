@@ -264,15 +264,16 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
             <CardTitle className="text-center flex items-center justify-center gap-2">
               Performance de Posts
             </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="evolution" className="w-full">
-               <TabsList className="grid w-full grid-cols-2 mx-auto max-w-md mb-4">
+            <Tabs defaultValue="evolution" className="w-full pt-4">
+               <TabsList className="grid w-full grid-cols-2 mx-auto max-w-md">
                   <TabsTrigger value="evolution">Evolução</TabsTrigger>
                   <TabsTrigger value="posts">Seus Posts</TabsTrigger>
               </TabsList>
-              <div className="mt-4">
-                <TabsContent value="evolution" className="flex flex-col">
+            </Tabs>
+        </CardHeader>
+        <CardContent>
+          <Tabs defaultValue="evolution" className="w-full">
+              <TabsContent value="evolution" className="flex flex-col mt-0">
                    <div className="flex justify-end pr-4">
                     <TooltipProvider>
                       <Tooltip>
@@ -341,17 +342,12 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                         </div>
                     )}
                 </TabsContent>
-              </div>
-               <div className="mt-4">
-                <TabsContent value="posts" className="space-y-8">
+               <TabsContent value="posts" className="space-y-8 mt-0">
                      {renderPostGrid(videoPosts, "Últimos Vídeos", Video)}
                      {renderPostGrid(photoPosts, "Últimas Fotos", Camera)}
                 </TabsContent>
-               </div>
           </Tabs>
         </CardContent>
     </Card>
   );
 }
-
-    
