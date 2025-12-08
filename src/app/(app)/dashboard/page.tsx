@@ -51,19 +51,19 @@ import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import Link from 'next/link';
 
-const GoalCard = dynamic(() => import('@/components/dashboard/goal-card').then(mod => mod.GoalCard), {
+const GoalCard = dynamic(() => import('@/components/dashboard/goal-card'), {
   loading: () => <Skeleton className="h-full min-h-[380px]" />,
 });
 
-const DailyPlanCard = dynamic(() => import('@/components/dashboard/daily-plan-card').then(mod => mod.DailyPlanCard), {
+const DailyPlanCard = dynamic(() => import('@/components/dashboard/daily-plan-card'), {
   loading: () => <Skeleton className="h-full min-h-[250px]" />,
 });
 
-const ActionHubCard = dynamic(() => import('@/components/dashboard/action-hub-card').then(mod => mod.ActionHubCard), {
+const ActionHubCard = dynamic(() => import('@/components/dashboard/action-hub-card'), {
   loading: () => <Skeleton className="h-full min-h-[300px]" />,
 });
 
-const EngagementMetricsCard = dynamic(() => import('@/components/dashboard/engagement-metrics-card').then(mod => mod.EngagementMetricsCard), {
+const EngagementMetricsCard = dynamic(() => import('@/components/dashboard/engagement-metrics-card'), {
   loading: () => <Skeleton className="h-[140px]" />,
 });
 
@@ -71,7 +71,7 @@ const EvolutionChartCard = dynamic(() => import('./evolution-chart-card'), {
     loading: () => <Skeleton className="h-[438px]" />,
 });
 
-const PerformanceAnalysisCard = dynamic(() => import('@/components/dashboard/performance-analysis-card').then(mod => mod.PerformanceAnalysisCard), {
+const PerformanceAnalysisCard = dynamic(() => import('@/components/dashboard/performance-analysis-card'), {
     loading: () => <Skeleton className="h-full min-h-[250px]" />,
 });
 
@@ -465,7 +465,7 @@ export default function DashboardPage() {
                         handleToggleIdeia={handleToggleIdeia}
                         handleMarkAsPublished={handleMarkAsPublished}
                         handleTikTokClick={handleTikTokClick}
-                        formatNumber={formatMetricValue}
+                        formatNumber={formatMetricValue as any}
                   />
                 </div>
 
@@ -546,7 +546,7 @@ export default function DashboardPage() {
                         handleToggleIdeia={handleToggleIdeia}
                         handleMarkAsPublished={handleMarkAsPublished}
                         handleTikTokClick={handleTikTokClick}
-                        formatNumber={formatMetricValue}
+                        formatNumber={formatMetricValue as any}
                     />
                     <PerformanceAnalysisCard 
                         isGeneratingInsights={isGeneratingInsights}

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -41,7 +42,7 @@ interface ActionHubCardProps {
   formatNumber: (num: number) => string;
 }
 
-export function ActionHubCard({
+export default function ActionHubCard({
   isLoadingUpcoming,
   upcomingContent,
   isLoadingIdeias,

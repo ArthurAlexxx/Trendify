@@ -16,7 +16,7 @@ interface EngagementMetricsCardProps {
     formatIntegerValue: (value?: string | number) => string;
 }
 
-export function EngagementMetricsCard({ isLoading, latestMetrics, formatIntegerValue }: EngagementMetricsCardProps) {
+export default function EngagementMetricsCard({ isLoading, latestMetrics, formatIntegerValue }: EngagementMetricsCardProps) {
     
     const getMetricRating = (value: number, type: 'views' | 'likes' | 'comments', followers: number): { iconName: 'Smile' | 'Meh' | 'Frown', color: string } => {
         if (followers === 0) {

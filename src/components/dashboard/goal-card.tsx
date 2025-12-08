@@ -17,7 +17,7 @@ interface GoalCardProps {
     formatMetricValue: (value?: string | number) => string;
 }
 
-export function GoalCard({ isLoading, goalFollowers, currentFollowers, isGoalReached, onEditGoal, formatMetricValue }: GoalCardProps) {
+export default function GoalCard({ isLoading, goalFollowers, currentFollowers, isGoalReached, onEditGoal, formatMetricValue }: GoalCardProps) {
     
     useEffect(() => {
         if (isGoalReached) {

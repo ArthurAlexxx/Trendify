@@ -16,7 +16,7 @@ interface DailyPlanCardProps {
   handleToggleRoteiro: (itemIndex: number) => void;
 }
 
-export function DailyPlanCard({ isLoadingWeeklyPlans, currentPlan, handleToggleRoteiro }: DailyPlanCardProps) {
+export default function DailyPlanCard({ isLoadingWeeklyPlans, currentPlan, handleToggleRoteiro }: DailyPlanCardProps) {
   const daysOfWeekMap: { [key: string]: number } = {
     Domingo: 0,
     Segunda: 1,
