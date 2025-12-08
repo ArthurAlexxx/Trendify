@@ -99,7 +99,7 @@ async function fetchFromRapidApi(platform: 'instagram-profile' | 'tiktok-profile
     
     let host: string;
     let path: string;
-    let paramName: string = 'username';
+    let finalUrl: URL;
     let method: 'GET' | 'POST' = 'GET';
     let body: string | undefined = undefined;
 
@@ -111,21 +111,25 @@ async function fetchFromRapidApi(platform: 'instagram-profile' | 'tiktok-profile
         case 'instagram-profile':
             host = 'instagram-looter2.p.rapidapi.com';
             path = 'profile';
-            paramName = 'username';
+            finalUrl = new URL(`https://${host}/${path}`);
+            finalUrl.searchParams.set('username', identifier);
             break;
         case 'tiktok-profile':
             host = 'tiktok-api6.p.rapidapi.com';
-            path = 'user/details/';
+            path = `user/details/${identifier}`; // Correct: username is part of the path
+            finalUrl = new URL(`https://${host}/${path}`);
             break;
         case 'tiktok-posts':
             host = 'tiktok-api6.p.rapidapi.com';
             path = 'user/posts';
-            paramName = 'secUid'; // This endpoint now uses secUid
+            finalUrl = new URL(`https://${host}/${path}`);
+            finalUrl.searchParams.set('secUid', identifier); // This endpoint now uses secUid
             break;
         case 'tiktok-video-details':
              host = 'tiktok-api6.p.rapidapi.com';
              path = 'video/details';
-             paramName = 'id'; // The video details endpoint uses 'id'
+             finalUrl = new URL(`https://${host}/${path}`);
+             finalUrl.searchParams.set('id', identifier);
              break;
         default:
             throw new Error(`Plataforma '${platform}' desconhecida.`);
@@ -133,13 +137,6 @@ async function fetchFromRapidApi(platform: 'instagram-profile' | 'tiktok-profile
 
     headers['x-rapidapi-host'] = host;
     
-    const finalUrl = new URL(`https://${host}/${path}`);
-    if (method === 'GET') {
-        finalUrl.searchParams.set(paramName, identifier);
-    } else {
-        body = JSON.stringify({ [paramName]: identifier, count: 20 });
-    }
-
     const options: RequestInit = {
         method,
         headers,
