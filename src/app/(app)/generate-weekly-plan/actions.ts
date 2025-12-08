@@ -2,7 +2,7 @@
 'use server';
 
 import { z } from 'zod';
-import OpenAI from 'openai';
+import { ai } from '@/ai/genkit';
 
 const ItemRoteiroSchema = z.object({
   dia: z.string().describe('O dia da semana para a tarefa (ex: "Segunda").'),
@@ -56,54 +56,31 @@ type WeeklyPlanState = {
   error?: string;
 } | null;
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-function extractJson(text: string) {
-  const match = text.match(/```json\n([\s\S]*?)\n```/);
-  if (match && match[1]) {
-    return match[1];
-  }
-  try {
-    JSON.parse(text);
-    return text;
-  } catch (e) {
-    const startIndex = text.indexOf('{');
-    const endIndex = text.lastIndexOf('}');
-    if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
-      return text.substring(startIndex, endIndex + 1);
-    }
-  }
-  return null;
-}
-
-async function generateWeeklyPlan(
-  input: FormSchemaType
-): Promise<GenerateWeeklyPlanOutput> {
-  const systemPrompt = `Você é uma IA especialista em crescimento de influenciadores, estratégias de conteúdo, análise de dados, criação de roteiros e otimização de campanhas com marcas. Sua função é atuar como um Estrategista Chefe.
+const prompt = ai.definePrompt({
+    name: 'generateWeeklyPlanPrompt',
+    model: 'gpt-4o',
+    output: { schema: GenerateWeeklyPlanOutputSchema },
+    prompt: `Você é uma IA especialista em crescimento de influenciadores, estratégias de conteúdo, análise de dados, criação de roteiros e otimização de campanhas com marcas. Sua função é atuar como um Estrategista Chefe.
   Sempre entregue respostas profundas, claras, práticas e extremamente profissionais.
   Ao responder, utilize a mentalidade de: consultor de marketing, estrategista digital, analista de dados.
   Lembre-se, a data atual é dezembro de 2025.
-  Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON deve se conformar estritamente ao schema fornecido.`;
+  Você DEVE responder com um objeto JSON válido, e NADA MAIS, estritamente conforme o schema.
   
-  let goalContext = 'Nenhuma meta de seguidores específica foi definida.';
-  if (input.totalFollowerGoal) {
-    goalContext = `A meta principal é atingir ${input.totalFollowerGoal} seguidores no total (Instagram + TikTok).`;
-  } else if (input.instagramFollowerGoal) {
-    goalContext = `A meta principal é atingir ${input.instagramFollowerGoal} seguidores no Instagram. Priorize estratégias para essa plataforma.`;
-  } else if (input.tiktokFollowerGoal) {
-     goalContext = `A meta principal é atingir ${input.tiktokFollowerGoal} seguidores no TikTok. Priorize estratégias para essa plataforma.`;
-  }
+  {{#if totalFollowerGoal}}
+  A meta principal é atingir {{totalFollowerGoal}} seguidores no total (Instagram + TikTok).
+  {{else if instagramFollowerGoal}}
+  A meta principal é atingir {{instagramFollowerGoal}} seguidores no Instagram. Priorize estratégias para essa plataforma.
+  {{else if tiktokFollowerGoal}}
+  A meta principal é atingir {{tiktokFollowerGoal}} seguidores no TikTok. Priorize estratégias para essa plataforma.
+  {{else}}
+  Nenhuma meta de seguidores específica foi definida.
+  {{/if}}
 
-
-  const userPrompt = `
   Analise os seguintes dados e gere um plano de conteúdo semanal completo, atuando como um Estrategista Chefe.
 
-  - Objetivo da Semana: "${input.objective}"
-  - Nicho do Criador: ${input.niche}
-  - Estatísticas Atuais: ${input.currentStats}
-  - Meta de Seguidores: ${goalContext}
+  - Objetivo da Semana: "{{objective}}"
+  - Nicho do Criador: {{niche}}
+  - Estatísticas Atuais: {{currentStats}}
 
   Siga as diretrizes para cada campo JSON:
   - items: Crie um array com exatamente 7 objetos (Segunda a Domingo). Cada objeto deve ter 'dia', 'tarefa' (específica, acionável e criativa), 'detalhes' (um passo a passo claro) e 'concluido' (sempre false). As tarefas devem ser uma mistura de produção de conteúdo, interação e análise.
@@ -111,42 +88,25 @@ async function generateWeeklyPlan(
   - effortLevel: Classifique o esforço da semana como 'Baixo', 'Médio' ou 'Alto', com base na complexidade e volume das tarefas.
   - priorityIndex: Identifique e liste as 3 tarefas da semana com o maior potencial de impacto para atingir o objetivo principal.
   - realignmentTips: Ofereça um conselho estratégico sobre como o usuário pode se realinhar caso perca 1 ou 2 dias do plano. Ex: "Se perder um dia de post, combine o tema com o do dia seguinte ou foque em dobrar a interação no fim de semana para compensar."
-  `;
+  `,
+    config: {
+        temperature: 0.7,
+    },
+});
 
-  try {
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-      temperature: 0.7,
-      response_format: { type: "json_object" },
-    });
-
-    const content = response.choices[0].message.content;
-    if (!content) throw new Error('A IA não retornou nenhum conteúdo.');
-
-    const jsonString = extractJson(content);
-    if (!jsonString) throw new Error('Não foi possível encontrar um bloco JSON válido na resposta da IA.');
-
-    const parsedJson = JSON.parse(jsonString);
-    const validatedData = GenerateWeeklyPlanOutputSchema.parse(parsedJson);
-    
-    // Ensure `concluido` is set to false for all items
-    const finalPlan = {
-      ...validatedData,
-      items: validatedData.items.map(item => ({ ...item, concluido: false })),
-    };
-
-    return finalPlan;
-
-  } catch (error) {
-    console.error('Error in generateWeeklyPlan:', error);
-    const errorMessage =
-      error instanceof Error ? error.message : 'Erro desconhecido.';
-    throw new Error(`Falha ao gerar plano com a IA: ${errorMessage}`);
+async function generateWeeklyPlan(
+  input: FormSchemaType
+): Promise<GenerateWeeklyPlanOutput> {
+  const { output } = await prompt(input);
+  if (!output) {
+    throw new Error('A IA não retornou nenhum conteúdo.');
   }
+
+  // Ensure `concluido` is set to false for all items
+  return {
+    ...output,
+    items: output.items.map(item => ({ ...item, concluido: false })),
+  };
 }
 
 export async function generateWeeklyPlanAction(
@@ -168,5 +128,3 @@ export async function generateWeeklyPlanAction(
     return { error: `Falha ao gerar plano: ${errorMessage}` };
   }
 }
-
-    

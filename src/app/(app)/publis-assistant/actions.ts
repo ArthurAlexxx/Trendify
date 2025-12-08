@@ -1,7 +1,7 @@
 
 'use server';
 
-import OpenAI from 'openai';
+import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
 const ScriptSchema = z.object({
@@ -57,79 +57,22 @@ type PubliProposalsState = {
   error?: string;
 } | null;
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-function extractJson(text: string) {
-  const match = text.match(/```json\n([\s\S]*?)\n```/);
-  if (match && match[1]) {
-    return match[1];
-  }
-  try {
-    JSON.parse(text);
-    return text;
-  } catch (e) {
-    const startIndex = text.indexOf('{');
-    const endIndex = text.lastIndexOf('}');
-    if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
-      return text.substring(startIndex, endIndex + 1);
-    }
-  }
-  return null;
-}
-
-async function generatePubliProposals(
-  input: z.infer<typeof formSchema>
-): Promise<GeneratePubliProposalsOutput> {
-  const systemPrompt = `Você é uma "AI Creative Director", especialista em criar campanhas de conteúdo para redes sociais que convertem.
+const prompt = ai.definePrompt({
+    name: 'generatePubliProposalsPrompt',
+    model: 'gpt-4o',
+    output: { schema: GeneratePubliProposalsOutputSchema },
+    prompt: `Você é uma "AI Creative Director", especialista em criar campanhas de conteúdo para redes sociais que convertem.
 Sua tarefa é gerar um pacote de conteúdo completo para um criador de conteúdo promover um produto ou marca.
 Lembre-se, a data atual é dezembro de 2025.
-Você DEVE seguir exatamente o schema a seguir. 
-NÃO renomeie, NÃO omita e NÃO adicione nenhum campo. 
+Você DEVE responder com um objeto JSON válido, e NADA MAIS. O JSON deve se conformar estritamente ao schema fornecido.
 
-Schema obrigatório:
-{
-  "scripts": [
-    {
-      "gancho": string,
-      "script": string,
-      "cta": string
-    }
-  ],
-  "trendVariations": [
-    {
-      "variacao": string
-    }
-  ],
-  "conversionChecklist": [string],
-  "creativeAngles": [string],
-  "brandToneAdaptations": [
-    {
-      "titulo": string,
-      "texto": string
-    }
-  ],
-  "conversionProjection": {
-    "roteiro": string,
-    "justificativa": string
-  }
-}
+Gere um pacote de conteúdo para uma publicidade ("publi") com base nos seguintes requisitos:
 
-IMPORTANTE:
-- "conversionProjection.roteiro" DEVE ser SEMPRE uma string simples.
-- Nunca use objeto, array ou renomeie essa chave.
-- Se não tiver certeza, invente um nome plausível, mas NÃO altere a estrutura.
-Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON deve se conformar estritamente ao schema fornecido.`;
-
-  const userPrompt = `
-  Gere um pacote de conteúdo para uma publicidade ("publi") com base nos seguintes requisitos:
-
-  - Produto/Marca: ${input.product}
-  - Público-alvo: ${input.targetAudience}
-  - Diferenciais: ${input.differentiators}
-  - Objetivo: ${input.objective}
-  - Infos Adicionais: ${input.extraInfo || 'Nenhuma'}
+  - Produto/Marca: {{product}}
+  - Público-alvo: {{targetAudience}}
+  - Diferenciais: {{differentiators}}
+  - Objetivo: {{objective}}
+  - Infos Adicionais: {{#if extraInfo}}{{extraInfo}}{{else}}Nenhuma{{/if}}
 
   Para cada campo do JSON, siga estas diretrizes:
   - scripts: Crie 5 roteiros de vídeo distintos (com gancho, script, cta), cada um com um ângulo diferente (tutorial, POV, unboxing, etc.).
@@ -138,37 +81,20 @@ Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON d
   - creativeAngles: Liste alguns ângulos criativos profissionais (ex: "Focar na sustentabilidade do produto", "Criar uma narrativa de superação com a marca").
   - brandToneAdaptations: Crie 3 adaptações do CTA principal em um array. Cada item deve ser um objeto com "titulo" (ex: "Tom Corporativo") e "texto" (o CTA adaptado).
   - conversionProjection: Crie um objeto com "roteiro" (o nome do roteiro, ex: "Roteiro 3: Unboxing") e "justificativa" (a explicação do porquê ele tem maior potencial de conversão).
-  `;
+  `,
+    config: {
+        temperature: 0.8,
+    },
+});
 
-  try {
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-      temperature: 0.8,
-      response_format: { type: "json_object" },
-    });
-
-    const content = response.choices[0].message.content;
-    if (!content) {
-      throw new Error('A IA não retornou nenhum conteúdo.');
-    }
-
-    const jsonString = extractJson(content);
-    if (!jsonString) {
-      throw new Error('Não foi possível encontrar um bloco JSON válido na resposta da IA.');
-    }
-    
-    console.log("RAW JSON IA:", jsonString);
-    const parsedJson = JSON.parse(jsonString);
-    return GeneratePubliProposalsOutputSchema.parse(parsedJson);
-  } catch (error) {
-    console.error('Error calling OpenAI or parsing response:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido.';
-    throw new Error(`Falha ao gerar propostas com a IA: ${errorMessage}`);
+async function generatePubliProposals(
+  input: z.infer<typeof formSchema>
+): Promise<GeneratePubliProposalsOutput> {
+  const { output } = await prompt(input);
+  if (!output) {
+    throw new Error('A IA não retornou nenhum conteúdo.');
   }
+  return output;
 }
 
 export async function generatePubliProposalsAction(

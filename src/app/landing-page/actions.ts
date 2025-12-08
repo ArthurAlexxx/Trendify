@@ -2,7 +2,7 @@
 'use server';
 
 import { z } from 'zod';
-import OpenAI from 'openai';
+import { ai } from '@/ai/genkit';
 
 const TrendSuggestionSchema = z.object({
   hook: z.string().describe("Um gancho ou título para a ideia de vídeo."),
@@ -51,24 +51,22 @@ type ActionState = {
   error?: string;
 };
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-async function calculateGrowthAI(input: FormSchemaType): Promise<GrowthCalculatorOutput> {
-   const systemPrompt = `Você é o GrowthAI Engine v3.0, um sistema avançado de análise e projeção para criadores de conteúdo. Sua identidade é a de um consultor profissional, matemático e estrategista digital.
+const prompt = ai.definePrompt({
+    name: 'growthCalculatorPrompt',
+    model: 'gpt-4o',
+    output: { schema: GrowthCalculatorOutputSchema },
+    prompt: `Você é o GrowthAI Engine v3.0, um sistema avançado de análise e projeção para criadores de conteúdo. Sua identidade é a de um consultor profissional, matemático e estrategista digital.
    Sua única função é analisar os dados de um usuário e retornar uma projeção de crescimento completa.
    Lembre-se: A data de referência para projeções é Dezembro de 2025.
-   LEMBRE-SE: Sua única saída DEVE ser um objeto JSON VÁLIDO que se conforma estritamente com o schema e contém TODOS os campos definidos. Não omita nenhum campo.`;
+   LEMBRE-SE: Sua única saída DEVE ser um objeto JSON VÁLIDO que se conforma estritamente com o schema e contém TODOS os campos definidos. Não omita nenhum campo.
 
-  const userPrompt = `
     Analise os seguintes dados do usuário e gere a projeção de crescimento completa, seguindo as diretrizes de cálculo e formato.
 
     **Dados do Usuário:**
-    - Nicho: ${input.niche}
-    - Seguidores Atuais: ${input.followers}
-    - Meta de Seguidores: ${input.goal}
-    - Média de Publicações por Mês: ${input.postsPerMonth}
+    - Nicho: {{niche}}
+    - Seguidores Atuais: {{followers}}
+    - Meta de Seguidores: {{goal}}
+    - Média de Publicações por Mês: {{postsPerMonth}}
 
     **Diretrizes para o JSON de Saída:**
     - months: Calcule o número de meses para atingir a meta. Para contas com menos de 10k seguidores, aplique uma taxa de crescimento mais agressiva (20-50%/mês) que diminui à medida que a conta cresce. Para contas maiores, use uma taxa mais moderada (5-15%/mês) baseada no nicho. A projeção deve ser realista e atingir a meta.
@@ -83,30 +81,19 @@ async function calculateGrowthAI(input: FormSchemaType): Promise<GrowthCalculato
     - recommendations: Dê 2-3 recomendações acionáveis para acelerar.
     - benchmarkComparison: Faça uma breve análise comparando a projeção com a média do nicho.
     - accelerationScenarios: Calcule os meses para atingir a meta em cenários de aceleração: {maintain: months, plus20: ceil(months / 1.20), plus40: ceil(months / 1.40)}.
-  `;
+  `,
+    config: {
+        temperature: 0.6,
+    },
+});
 
-  try {
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-      temperature: 0.6,
-      response_format: { type: "json_object" },
-    });
 
-    const content = response.choices[0].message.content;
-    if (!content) throw new Error('A IA não retornou nenhum conteúdo.');
-
-    const parsedJson = JSON.parse(content);
-    return GrowthCalculatorOutputSchema.parse(parsedJson);
-
-  } catch (error) {
-    console.error('Error in calculateGrowthAI:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido.';
-    throw new Error(`Falha ao gerar projeção com a IA: ${errorMessage}`);
+async function calculateGrowthAI(input: FormSchemaType): Promise<GrowthCalculatorOutput> {
+  const { output } = await prompt(input);
+  if (!output) {
+    throw new Error('A IA não retornou nenhum conteúdo.');
   }
+  return output;
 }
 
 export async function calculateGrowthAction(

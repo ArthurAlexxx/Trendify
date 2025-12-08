@@ -1,7 +1,7 @@
 
 'use server';
 
-import OpenAI from 'openai';
+import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
 const NicheCompetitorSchema = z.object({
@@ -51,42 +51,21 @@ type VideoIdeasState = {
   error?: string;
 } | null;
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
-function extractJson(text: string) {
-  const match = text.match(/```json\n([\s\S]*?)\n```/);
-  if (match && match[1]) {
-    return match[1];
-  }
-  try {
-    JSON.parse(text);
-    return text;
-  } catch (e) {
-    const startIndex = text.indexOf('{');
-    const endIndex = text.lastIndexOf('}');
-    if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
-      return text.substring(startIndex, endIndex + 1);
-    }
-  }
-  return null;
-}
-
-async function generateVideoIdeas(
-  input: z.infer<typeof formSchema>
-): Promise<GenerateVideoIdeasOutput> {
-  const systemPrompt = `Você é um "Especialista em Conteúdo Viral", um estrategista de roteiros para criadores no Instagram e TikTok. Sua função é atuar como um profissional de alto nível.
+const prompt = ai.definePrompt({
+    name: 'generateVideoIdeasPrompt',
+    model: 'gpt-4o',
+    output: { schema: GenerateVideoIdeasOutputSchema },
+    prompt: `Você é um "Especialista em Conteúdo Viral", um estrategista de roteiros para criadores no Instagram e TikTok. Sua função é atuar como um profissional de alto nível.
   Sua tarefa é gerar uma ideia de vídeo completa, criativa, estratégica e pronta para ser executada.
   Lembre-se, a data atual é dezembro de 2025.
-  Você DEVE responder com um bloco de código JSON válido, e NADA MAIS. O JSON deve se conformar estritamente ao schema fornecido.`;
+  Você DEVE responder com um objeto JSON válido, e NADA MAIS. O JSON deve se conformar estritamente ao schema fornecido.
 
-  const userPrompt = `
   Gere uma ideia de vídeo completa e profissional com base nos seguintes requisitos:
 
-  - Tópico: ${input.topic}
-  - Público-alvo: ${input.targetAudience}
-  - Objetivo Principal: ${input.objective}
+  - Tópico: {{topic}}
+  - Público-alvo: {{targetAudience}}
+  - Objetivo Principal: {{objective}}
   
   Para cada campo do JSON, siga estas diretrizes:
   - script.gancho: Crie uma frase ou cena de 2-3 segundos que gere curiosidade ou quebre uma crença. Seja contraintuitivo.
@@ -99,37 +78,20 @@ async function generateVideoIdeas(
   - viralScore: Dê uma nota de 0 a 100 para o potencial de viralização, baseada na força do gancho, relevância do tema e adaptabilidade.
   - platformAdaptations: Dê uma dica para adaptar o conteúdo para TikTok, uma para Reels e uma para Shorts, focando nas particularidades de cada plataforma.
   - nicheCompetitors: Liste 3 vídeos virais reais de concorrentes no mesmo nicho. Para cada um, informe o 'videoTitle' (título do vídeo) e um 'learning' (aprendizado chave - o que o tornou viral).
-  `;
+  `,
+    config: {
+        temperature: 0.8,
+    },
+});
 
-  try {
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-      response_format: { type: "json_object" },
-      temperature: 0.8,
-    });
-
-    const content = response.choices[0].message.content;
-    if (!content) {
-      throw new Error('A IA não retornou nenhum conteúdo.');
-    }
-
-    const jsonString = extractJson(content);
-    if (!jsonString) {
-      throw new Error('Não foi possível encontrar um bloco JSON válido na resposta da IA.');
-    }
-
-    const parsedJson = JSON.parse(jsonString);
-    return GenerateVideoIdeasOutputSchema.parse(parsedJson);
-  } catch (error) {
-    console.error('Error calling OpenAI or parsing response:', error);
-    const errorMessage =
-      error instanceof Error ? error.message : 'Erro desconhecido.';
-    throw new Error(`Falha ao gerar ideias com a IA: ${errorMessage}`);
+async function generateVideoIdeas(
+  input: z.infer<typeof formSchema>
+): Promise<GenerateVideoIdeasOutput> {
+  const { output } = await prompt(input);
+  if (!output) {
+    throw new Error('A IA não retornou nenhum conteúdo.');
   }
+  return output;
 }
 
 export async function generateVideoIdeasAction(

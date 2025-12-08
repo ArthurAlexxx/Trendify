@@ -47,6 +47,7 @@ const GenerateDashboardInsightsInputSchema = z.object({
 
 const prompt = ai.definePrompt({
     name: 'dashboardInsightsPrompt',
+    model: 'googleai/gemini-1.5-flash',
     input: { schema: GenerateDashboardInsightsInputSchema },
     output: { schema: GenerateDashboardInsightsOutputSchema },
     prompt: `Você é um "AI Growth Strategist" e Analista de Dados, especialista em transformar métricas de redes sociais em conselhos práticos e previsões para criadores.
