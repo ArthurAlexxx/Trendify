@@ -42,10 +42,14 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
   };
   
   const allPosts = useMemo(() => {
-     const combined: (InstagramPostData | TikTokPost)[] = [
-        ...(instaPosts || []),
-        ...(tiktokPosts || [])
-     ];
+     let combined: (InstagramPostData | TikTokPost)[] = [];
+     if(selectedPlatform === 'instagram') {
+        combined = [...(instaPosts || [])];
+     } else if (selectedPlatform === 'tiktok') {
+        combined = [...(tiktokPosts || [])];
+     } else {
+        combined = [...(instaPosts || []), ...(tiktokPosts || [])];
+     }
      
      return combined.map(p => {
         if ('shortcode' in p) { // InstagramPostData
@@ -76,18 +80,10 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
             }
         }
      });
-  }, [instaPosts, tiktokPosts, userProfile]);
+  }, [instaPosts, tiktokPosts, userProfile, selectedPlatform]);
 
   const topPostsData = useMemo(() => {
      return allPosts.filter(p => p.views > 0).sort((a,b) => b.views - a.views).slice(0, 5);
-  }, [allPosts]);
-  
-  const topLikedData = useMemo(() => {
-    return allPosts.filter(p => p.likes > 0).sort((a,b) => b.likes - a.likes).slice(0, 5);
-  }, [allPosts]);
-
-  const topCommentedData = useMemo(() => {
-    return allPosts.filter(p => p.comments > 0).sort((a,b) => b.comments - a.comments).slice(0, 5);
   }, [allPosts]);
 
   const topEngagementData = useMemo(() => {
@@ -191,7 +187,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
   };
 
   const AnalysisBarChart = ({ data, dataKey, name, color, unit = '' }: {data: any[], dataKey: string, name: string, color: string, unit?: string}) => (
-    <div className="h-64 w-full">
+    <div className="h-full w-full">
         <h4 className="text-sm font-semibold text-center mb-2">{name}</h4>
         <ResponsiveContainer>
             <BarChart data={data} layout="vertical" margin={{ left: 80, right: 30 }}>
@@ -213,13 +209,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
     switch (chartView) {
       case 'postAnalysis':
         return (
-            <ScrollArea className="h-[calc(100%-1rem)]">
-              <div className="space-y-12 pr-4">
-                <AnalysisBarChart data={topLikedData} dataKey="likes" name="Top 5 Posts por Likes" color="var(--color-likes)" />
-                <AnalysisBarChart data={topCommentedData} dataKey="comments" name="Top 5 Posts por Comentários" color="var(--color-comments)" />
-                <AnalysisBarChart data={topEngagementData} dataKey="engagement" name="Top 5 Posts por Engajamento" color="var(--color-engagementRate)" unit="%" />
-              </div>
-            </ScrollArea>
+            <AnalysisBarChart data={topEngagementData} dataKey="engagement" name="Top 5 Posts por Engajamento" color="var(--color-engagementRate)" unit="%" />
         );
       case 'engagementRate':
         return (
@@ -268,10 +258,10 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
   };
   
   const hasData = useMemo(() => {
-    if (chartView === 'postAnalysis') return topLikedData.length > 0 || topCommentedData.length > 0 || topEngagementData.length > 0;
+    if (chartView === 'postAnalysis') return topEngagementData.length > 0;
     if (chartView === 'topPosts') return topPostsData.length > 0;
     return historicalChartData.length > 0;
-  }, [chartView, historicalChartData, topPostsData, topLikedData, topCommentedData, topEngagementData]);
+  }, [chartView, historicalChartData, topPostsData, topEngagementData]);
 
   return (
     <Card className="shadow-primary-lg">
@@ -292,11 +282,9 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
             {isLoading ? <Skeleton className="h-full w-full" /> : 
             hasData ? (
                 <ChartContainer config={chartConfigBase} className="h-full w-full">
-                  {chartView === 'postAnalysis' ? renderChart() : 
                     <ResponsiveContainer>
                         {renderChart()}
                     </ResponsiveContainer>
-                  }
                 </ChartContainer>
             ) : (
                 <div className="h-full w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
