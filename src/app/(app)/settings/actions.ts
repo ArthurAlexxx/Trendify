@@ -1,7 +1,7 @@
+
 'use server';
 
 import { initializeFirebaseAdmin } from '@/firebase/admin';
-import { doc, getDocs, collection, writeBatch } from 'firebase-admin/firestore';
 import { z } from 'zod';
 
 interface ActionState {
@@ -74,7 +74,7 @@ export async function resetAllMetricsAction(
   try {
     const { firestore } = initializeFirebaseAdmin();
     const userRef = firestore.collection('users').doc(userId);
-    const batch = writeBatch(firestore);
+    const batch = firestore.batch();
 
     // 1. Reset user profile fields
     const resetPayload = {
@@ -94,13 +94,13 @@ export async function resetAllMetricsAction(
     batch.update(userRef, resetPayload);
     
     // 2. Delete all documents in instagramPosts subcollection
-    const instaPostsRef = collection(userRef, 'instagramPosts');
-    const instaPostsSnap = await getDocs(instaPostsRef);
+    const instaPostsRef = userRef.collection('instagramPosts');
+    const instaPostsSnap = await instaPostsRef.get();
     instaPostsSnap.forEach(doc => batch.delete(doc.ref));
 
     // 3. Delete all documents in tiktokPosts subcollection
-    const tiktokPostsRef = collection(userRef, 'tiktokPosts');
-    const tiktokPostsSnap = await getDocs(tiktokPostsRef);
+    const tiktokPostsRef = userRef.collection('tiktokPosts');
+    const tiktokPostsSnap = await tiktokPostsRef.get();
     tiktokPostsSnap.forEach(doc => batch.delete(doc.ref));
 
     // Commit the batch
