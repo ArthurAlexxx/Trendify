@@ -1,7 +1,7 @@
 
 'use server';
 
-import { doc, writeBatch, collection, getDocs, serverTimestamp, setDoc, Timestamp, increment, FieldValue } from 'firebase-admin/firestore';
+import { Timestamp, FieldValue } from 'firebase-admin/firestore';
 import { getInstagramPosts, getInstagramProfile, getTikTokPosts, getTikTokProfile } from '../profile/actions';
 import { initializeFirebaseAdmin } from '@/firebase/admin';
 
@@ -20,7 +20,7 @@ const formatNumber = (num: number): string => {
 
 const updateOrCreateMetricSnapshot = async (firestore: FirebaseFirestore.Firestore, userId: string, platform: 'instagram' | 'tiktok', data: any) => {
     const todayDateString = new Date().toISOString().split('T')[0];
-    const snapshotDocRef = doc(firestore, `users/${userId}/metricSnapshots`, `${platform}_${todayDateString}`);
+    const snapshotDocRef = firestore.doc(`users/${userId}/metricSnapshots/${platform}_${todayDateString}`);
   
     const snapshotData = {
       date: FieldValue.serverTimestamp(),
@@ -31,7 +31,7 @@ const updateOrCreateMetricSnapshot = async (firestore: FirebaseFirestore.Firesto
       comments: data.comments || '0',
     };
   
-    await setDoc(snapshotDocRef, snapshotData, { merge: true });
+    await snapshotDocRef.set(snapshotData, { merge: true });
 };
 
 
@@ -44,7 +44,7 @@ export async function syncInstagramAction(userId: string, username: string): Pro
 
     try {
         const { firestore } = initializeFirebaseAdmin();
-        const userRef = doc(firestore, `users/${userId}`);
+        const userRef = firestore.doc(`users/${userId}`);
 
         // This counts as 1 API call -> 2 tokens
         const [profileResult, postsResult] = await Promise.all([
@@ -57,7 +57,7 @@ export async function syncInstagramAction(userId: string, username: string): Pro
         const averageLikes = postsResult.length > 0 ? postsResult.reduce((acc, p) => acc + p.likes, 0) / postsResult.length : 0;
         const averageComments = postsResult.length > 0 ? postsResult.reduce((acc, p) => acc + p.comments, 0) / postsResult.length : 0;
 
-        const batch = writeBatch(firestore);
+        const batch = firestore.batch();
 
         const dataToSave = {
             instagramHandle: `@${profileResult.username}`,
@@ -70,12 +70,12 @@ export async function syncInstagramAction(userId: string, username: string): Pro
         };
         batch.update(userRef, dataToSave);
 
-        const postsCollectionRef = collection(firestore, `users/${userId}/instagramPosts`);
-        const oldPostsSnap = await getDocs(postsCollectionRef);
+        const postsCollectionRef = firestore.collection(`users/${userId}/instagramPosts`);
+        const oldPostsSnap = await postsCollectionRef.get();
         oldPostsSnap.forEach(doc => batch.delete(doc.ref));
         
         postsResult.forEach(post => {
-            const postRef = doc(postsCollectionRef, post.id);
+            const postRef = postsCollectionRef.doc(post.id);
             batch.set(postRef, { ...post, fetchedAt: FieldValue.serverTimestamp() });
         });
         
@@ -106,7 +106,7 @@ export async function syncTikTokAction(userId: string, username: string): Promis
 
     try {
         const { firestore } = initializeFirebaseAdmin();
-        const userRef = doc(firestore, `users/${userId}`);
+        const userRef = firestore.doc(`users/${userId}`);
 
         // These count as 2 API calls -> 4 tokens
         const [profileResult, postsResult] = await Promise.all([
@@ -118,7 +118,7 @@ export async function syncTikTokAction(userId: string, username: string): Promis
         const averageComments = postsResult.length > 0 ? postsResult.reduce((acc, p) => acc + p.comments, 0) / postsResult.length : 0;
         const averageViews = postsResult.length > 0 ? postsResult.reduce((acc, p) => acc + p.views, 0) / postsResult.length : 0;
 
-        const batch = writeBatch(firestore);
+        const batch = firestore.batch();
 
         const dataToSave = {
             tiktokHandle: `@${profileResult.username}`,
@@ -131,12 +131,12 @@ export async function syncTikTokAction(userId: string, username: string): Promis
         };
         batch.update(userRef, dataToSave);
 
-        const postsCollectionRef = collection(firestore, `users/${userId}/tiktokPosts`);
-        const oldPostsSnap = await getDocs(postsCollectionRef);
+        const postsCollectionRef = firestore.collection(`users/${userId}/tiktokPosts`);
+        const oldPostsSnap = await postsCollectionRef.get();
         oldPostsSnap.forEach(doc => batch.delete(doc.ref));
 
         postsResult.forEach(post => {
-            const postRef = doc(postsCollectionRef, post.id);
+            const postRef = postsCollectionRef.doc(post.id);
             // Convert Date to Firestore Timestamp before saving
             const dataWithTimestamp = {
                 ...post,
