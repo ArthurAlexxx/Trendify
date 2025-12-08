@@ -194,7 +194,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                    {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
                     evolutionChartData.length > 0 ? (
                         <ChartContainer config={chartConfigBase} className="h-auto flex-1">
-                          <ResponsiveContainer width="100%" height={350}>
+                          <ResponsiveContainer width="100%">
                             <LineChart data={evolutionChartData} margin={{ top: 5, right: 20, left: -10, bottom: 20 }}>
                                 <CartesianGrid vertical={false} strokeDasharray="3 3" />
                                 <XAxis dataKey="date" interval="preserveStartEnd" tick={{ fontSize: 12 }} />
@@ -233,7 +233,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                     {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
                     topPostsData.length > 0 ? (
                        <ChartContainer config={chartConfigBase} className="h-auto flex-1">
-                         <ResponsiveContainer width="100%" height={350}>
+                         <ResponsiveContainer width="100%">
                             <BarChart data={topPostsData} layout="vertical" margin={{ left: 120, top: 5, right: 30, bottom: 5 }} onClick={handleChartClick}>
                               <CartesianGrid horizontal={false} strokeDasharray="3 3" />
                               <XAxis type="number" tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
@@ -271,7 +271,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                    {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
                     engagementRateData.length > 0 ? (
                        <ChartContainer config={chartConfigBase} className="h-auto flex-1">
-                         <ResponsiveContainer width="100%" height={350}>
+                         <ResponsiveContainer width="100%">
                             <AreaChart data={engagementRateData} margin={{ top: 5, right: 20, left: -10, bottom: 20 }}>
                                 <defs>
                                 <linearGradient id="fillEng" x1="0" y1="0" x2="0" y2="1">
