@@ -78,15 +78,6 @@ export function UserTable({ data }: UserTableProps) {
 
   return (
     <>
-    {selectedUser && (
-      <ChangePlanDialog 
-        isOpen={isPlanSheetOpen} 
-        setIsOpen={setIsPlanSheetOpen}
-        user={selectedUser}
-      >
-        {/* The trigger is now inside the dropdown menu item */}
-      </ChangePlanDialog>
-    )}
      {selectedUser && (
         <Sheet open={isRoleSheetOpen} onOpenChange={setIsRoleSheetOpen}>
             <SheetContent side="bottom" className='p-0 rounded-t-2xl'>
@@ -158,10 +149,18 @@ export function UserTable({ data }: UserTableProps) {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                        <DropdownMenuItem onSelect={() => handleOpenPlanSheet(user)}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            <span>Alterar Plano</span>
-                        </DropdownMenuItem>
+                        
+                        <ChangePlanDialog 
+                            isOpen={isPlanSheetOpen && selectedUser?.id === user.id} 
+                            setIsOpen={setIsPlanSheetOpen}
+                            user={user}
+                        >
+                            <DropdownMenuItem onSelect={(e) => { e.preventDefault(); handleOpenPlanSheet(user); }}>
+                                <Edit className="mr-2 h-4 w-4" />
+                                <span>Alterar Plano</span>
+                            </DropdownMenuItem>
+                        </ChangePlanDialog>
+
                          {user.role !== 'admin' && (
                             <DropdownMenuItem onSelect={(e) => {e.preventDefault(); handleOpenRoleSheet(user)}}
                                 className="text-amber-600 focus:text-amber-700 focus:bg-amber-100">
