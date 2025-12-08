@@ -104,10 +104,6 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
 
   }, [instaPosts, tiktokPosts, userProfile, selectedPlatform]);
 
-  const topPostsData = useMemo(() => {
-     return [...allPosts].filter(p => p.views > 0).sort((a,b) => b.views - a.views).slice(0, 5);
-  }, [allPosts]);
-
   const engagementRateData = useMemo(() => {
     if (!allPosts || allPosts.length === 0) return [];
     return allPosts.map(d => {
@@ -267,3 +263,5 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
     </Card>
   );
 }
+
+    
