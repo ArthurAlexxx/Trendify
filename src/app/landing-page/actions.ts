@@ -81,7 +81,7 @@ const systemPrompt = `Você é o GrowthAI Engine v3.0, um sistema avançado de a
 
 
 async function calculateGrowthAI(input: FormSchemaType): Promise<GrowthCalculatorOutput> {
-  const result = await callOpenAI<GrowthCalculatorOutput>({
+  const result = await callOpenAI<typeof GrowthCalculatorOutputSchema>({
     prompt: systemPrompt,
     jsonSchema: GrowthCalculatorOutputSchema,
     promptData: input,
