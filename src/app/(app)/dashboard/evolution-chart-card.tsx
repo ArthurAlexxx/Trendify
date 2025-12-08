@@ -260,10 +260,6 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                 </TabsContent>
                 <TabsContent value="engagementRate">
                      <Tabs defaultValue="videos">
-                        <TabsList className="grid w-full grid-cols-2 mx-auto max-w-sm">
-                            <TabsTrigger value="videos"><Video className="mr-2 h-4 w-4" />Vídeos</TabsTrigger>
-                            <TabsTrigger value="photos"><Camera className="mr-2 h-4 w-4" />Fotos</TabsTrigger>
-                        </TabsList>
                         <div className="mt-4">
                            <TabsContent value="videos" className="flex flex-col">
                                 {renderEngagementChart(videoPosts, "Vídeos")}
@@ -272,6 +268,10 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                                 {renderEngagementChart(photoPosts, "Fotos")}
                            </TabsContent>
                         </div>
+                        <TabsList className="grid w-full grid-cols-2 mx-auto max-w-sm mt-4">
+                            <TabsTrigger value="videos"><Video className="mr-2 h-4 w-4" />Vídeos</TabsTrigger>
+                            <TabsTrigger value="photos"><Camera className="mr-2 h-4 w-4" />Fotos</TabsTrigger>
+                        </TabsList>
                      </Tabs>
                 </TabsContent>
               </div>
