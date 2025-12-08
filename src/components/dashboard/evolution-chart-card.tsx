@@ -1,9 +1,10 @@
+
 'use client';
 import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BarChart, Bar, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartsTooltip, LabelList, Area, AreaChart } from 'recharts';
+import { BarChart, Bar, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartsTooltip, LabelList, Area, AreaChart, Legend } from 'recharts';
 import { ChartConfig, ChartContainer } from '@/components/ui/chart';
 import { TrendingUp, Percent, BarChartHorizontal, ClipboardList, Info } from 'lucide-react';
 import type { MetricSnapshot, InstagramPostData, TikTokPost, UserProfile } from '@/lib/types';
@@ -86,34 +87,43 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
 
   const historicalChartData = useMemo(() => {
     if (!metricSnapshots || metricSnapshots.length === 0) return [];
-    
-    let filteredSnaps = metricSnapshots;
-    if (selectedPlatform !== 'total') {
-        filteredSnaps = metricSnapshots.filter(snap => snap.platform === selectedPlatform);
+
+    if (selectedPlatform === 'total') {
+        const groupedByDay = metricSnapshots.reduce((acc, snap) => {
+            const dayStr = format(snap.date.toDate(), 'yyyy-MM-dd');
+            if (!acc[dayStr]) {
+                acc[dayStr] = { date: dayStr, followers: 0, views: 0, likes: 0, comments: 0, count: 0 };
+            }
+            acc[dayStr].followers += parseMetric(snap.followers);
+            acc[dayStr].views += parseMetric(snap.views);
+            acc[dayStr].likes += parseMetric(snap.likes);
+            acc[dayStr].comments += parseMetric(snap.comments);
+            acc[dayStr].count++;
+            return acc;
+        }, {} as Record<string, { date: string; followers: number; views: number; likes: number; comments: number; count: number }>);
+
+        return Object.values(groupedByDay)
+            .sort((a, b) => a.date.localeCompare(b.date))
+            .slice(-30)
+            .map(dayData => ({
+                date: format(new Date(`${dayData.date}T00:00:00`), 'dd/MM'),
+                followers: dayData.followers,
+                views: dayData.count > 0 ? dayData.views / dayData.count : 0,
+                likes: dayData.count > 0 ? dayData.likes / dayData.count : 0,
+                comments: dayData.count > 0 ? dayData.comments / dayData.count : 0,
+            }));
     }
-    
-    // Group by day, summing metrics for 'total'
-    const groupedByDay = filteredSnaps.reduce((acc, snap) => {
-        const dayStr = format(snap.date.toDate(), 'yyyy-MM-dd');
-        if (!acc[dayStr]) {
-            acc[dayStr] = { date: dayStr, followers: 0, views: 0, likes: 0, comments: 0 };
-        }
-        acc[dayStr].followers += parseMetric(snap.followers);
-        acc[dayStr].views += parseMetric(snap.views);
-        acc[dayStr].likes += parseMetric(snap.likes);
-        acc[dayStr].comments += parseMetric(snap.comments);
-        return acc;
-    }, {} as Record<string, { date: string; followers: number; views: number; likes: number; comments: number; }>);
-    
-    return Object.values(groupedByDay)
-        .sort((a, b) => a.date.localeCompare(b.date))
-        .slice(-30) // Last 30 days
-        .map(dayData => ({
-            date: format(new Date(`${dayData.date}T00:00:00`), 'dd/MM'),
-            followers: dayData.followers,
-            views: dayData.views,
-            likes: dayData.likes,
-            comments: dayData.comments,
+
+    return metricSnapshots
+        .filter(snap => snap.platform === selectedPlatform)
+        .sort((a, b) => a.date.toMillis() - b.date.toMillis())
+        .slice(-30)
+        .map(snap => ({
+            date: format(snap.date.toDate(), 'dd/MM'),
+            followers: parseMetric(snap.followers),
+            views: parseMetric(snap.views),
+            likes: parseMetric(snap.likes),
+            comments: parseMetric(snap.comments),
         }));
   }, [metricSnapshots, selectedPlatform]);
 
