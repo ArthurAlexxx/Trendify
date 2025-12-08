@@ -451,21 +451,21 @@ export default function DashboardPage() {
                                 />
                             </div>
                         </CarouselItem>
-                         <CarouselItem className="pl-4 basis-[90%] md:basis-1/2">
-                            <div className="p-1 h-full">
-                               <DailyPlanCard 
-                                    isLoadingWeeklyPlans={isLoadingWeeklyPlans}
-                                    currentPlan={currentPlan} 
-                                    handleToggleRoteiro={handleToggleRoteiro} 
-                                />
-                            </div>
-                        </CarouselItem>
                         <CarouselItem className="pl-4 basis-full">
                              <div className="p-1 h-full">
                                 <EngagementMetricsCard 
                                     isLoading={isLoading} 
                                     latestMetrics={latestMetrics}
                                     formatIntegerValue={formatIntegerValue} 
+                                />
+                            </div>
+                        </CarouselItem>
+                        <CarouselItem className="pl-4 basis-[90%] md:basis-1/2">
+                            <div className="p-1 h-full">
+                               <DailyPlanCard 
+                                    isLoadingWeeklyPlans={isLoadingWeeklyPlans}
+                                    currentPlan={currentPlan} 
+                                    handleToggleRoteiro={handleToggleRoteiro} 
                                 />
                             </div>
                         </CarouselItem>
