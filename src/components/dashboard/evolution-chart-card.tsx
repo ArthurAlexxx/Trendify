@@ -168,7 +168,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                           <ResponsiveContainer>
                             <LineChart data={allPosts}>
                                 <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                                <XAxis dataKey="name" tick={{ fontSize: 10 }} angle={-20} textAnchor="end" height={50} />
+                                <XAxis dataKey="name" tick={{ fontSize: 10 }} angle={-20} textAnchor="end" height={50} interval="preserveStartEnd" />
                                 <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
                                 <RechartsTooltip content={<CustomTooltip />} cursor={{ strokeDasharray: '3 3' }} />
                                 <Legend />
@@ -193,10 +193,10 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                     topPostsData.length > 0 ? (
                        <ChartContainer config={chartConfigBase} className="h-full w-full">
                          <ResponsiveContainer>
-                            <BarChart data={topPostsData} layout="vertical" margin={{ left: 100, top: 5, right: 30, bottom: 5 }} onClick={handleChartClick}>
+                            <BarChart data={topPostsData} layout="vertical" margin={{ left: 120, top: 5, right: 30, bottom: 5 }} onClick={handleChartClick}>
                               <CartesianGrid horizontal={false} strokeDasharray="3 3" />
                               <XAxis type="number" tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
-                              <YAxis type="category" dataKey="name" width={100} tickLine={false} axisLine={false} />
+                              <YAxis type="category" dataKey="name" width={120} tickLine={false} axisLine={false} />
                               <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
                               <Bar dataKey="views" fill="var(--color-views)" name="Views" className="cursor-pointer">
                                  <LabelList dataKey="views" position="right" offset={8} className="fill-foreground text-xs" formatter={(v: number) => typeof v === 'number' && v >= 1000 ? `${(v/1000).toFixed(1)}k` : v} />
@@ -219,7 +219,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                     engagementRateData.length > 0 ? (
                        <ChartContainer config={chartConfigBase} className="h-full w-full">
                          <ResponsiveContainer>
-                            <AreaChart data={engagementRateData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                            <AreaChart data={engagementRateData} margin={{ top: 5, right: 20, left: 0, bottom: 20 }}>
                                 <defs>
                                 <linearGradient id="fillEng" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="5%" stopColor="var(--color-engagementRate)" stopOpacity={0.8}/>
@@ -227,7 +227,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                                 </linearGradient>
                                 </defs>
                                 <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                                <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                                <XAxis dataKey="name" tick={{ fontSize: 10 }} angle={-20} textAnchor="end" height={50} />
                                 <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => `${value}%`} />
                                 <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
                                 <Area dataKey="engagementRate" type="monotone" fill="url(#fillEng)" stroke="var(--color-engagementRate)" name="Engajamento" />
