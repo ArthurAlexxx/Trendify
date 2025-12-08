@@ -82,20 +82,14 @@ import { RecentPostsSheet } from '@/components/dashboard/recent-posts-sheet';
 import { ActionHubCard } from '@/components/dashboard/action-hub-card';
 
 
-const chartConfigBase = {
+const chartConfigBase: ChartConfig = {
   followers: { label: "Seguidores" },
   views: { label: "Views" },
   likes: { label: "Likes" },
   comments: { label: "Comentários" },
-} satisfies ChartConfig;
-
-type PlatformChartConfigType = {
-  total: ChartConfig;
-  instagram: ChartConfig;
-  tiktok: ChartConfig;
 };
 
-const platformChartConfig: PlatformChartConfigType = {
+const platformChartConfig = {
   total: {
     ...chartConfigBase,
     followers: { ...chartConfigBase.followers, color: "hsl(var(--primary))" },
@@ -322,13 +316,13 @@ const PerformanceAnalysisCard = ({ isGeneratingInsights, insights, handleGenerat
   </Card>
 );
 
-const EvolutionChartCard = ({ isLoading, historicalChartData, selectedPlatform, userProfile }: any) => (
+const EvolutionChartCard = ({ isLoading, historicalChartData, chartConfig, userProfile }: any) => (
   <Card className="shadow-primary-lg">
       <CardHeader><CardTitle className="text-center">Evolução das Métricas</CardTitle></CardHeader>
       <CardContent className="pl-2 pr-6">
           {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
           historicalChartData.length > 0 ? (
-              <ChartContainer config={platformChartConfig[selectedPlatform]} className="h-[350px] w-full">
+              <ChartContainer config={chartConfig} className="h-[350px] w-full">
               <BarChart accessibilityLayer data={historicalChartData} margin={{ left: 0, right: 12, top: 5, bottom: 5 }}>
                   <CartesianGrid vertical={false} strokeDasharray="3 3" />
                   <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} />
@@ -723,7 +717,7 @@ export default function DashboardPage() {
                          </CarouselItem>
                   </CarouselContent>
               </Carousel>
-                <EvolutionChartCard isLoading={isLoading} historicalChartData={historicalChartData} selectedPlatform={selectedPlatform} userProfile={userProfile} />
+                <EvolutionChartCard isLoading={isLoading} historicalChartData={historicalChartData} chartConfig={platformChartConfig[selectedPlatform]} userProfile={userProfile} />
                 <DailyPlanCard isLoadingWeeklyPlans={isLoadingWeeklyPlans} tasksForToday={tasksForToday} currentPlan={currentPlan} handleToggleRoteiro={handleToggleRoteiro} />
             </div>
 
@@ -754,7 +748,7 @@ export default function DashboardPage() {
             {/* Right Column */}
             <div className="lg:col-span-2 space-y-8">
               <EngagementMetricsCard isLoading={isLoading} latestMetrics={latestMetrics} formatMetricValue={formatMetricValue} getMetricRating={getMetricRating} />
-              <EvolutionChartCard isLoading={isLoading} historicalChartData={historicalChartData} selectedPlatform={selectedPlatform} userProfile={userProfile} />
+              <EvolutionChartCard isLoading={isLoading} historicalChartData={historicalChartData} chartConfig={platformChartConfig[selectedPlatform]} userProfile={userProfile} />
                 <div className="grid grid-cols-1 items-stretch">
                     <PerformanceAnalysisCard isGeneratingInsights={isGeneratingInsights} insights={insights} handleGenerateInsights={handleGenerateInsights} />
               </div>
@@ -765,5 +759,7 @@ export default function DashboardPage() {
     </>
   );
 }
+
+    
 
     
