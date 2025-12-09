@@ -6,17 +6,22 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { CreditCard, Loader2, AlertTriangle, ExternalLink, XCircle, CheckCircle } from 'lucide-react';
+import { CreditCard, Loader2, AlertTriangle, ExternalLink, XCircle, CheckCircle, RefreshCw, Crown } from 'lucide-react';
 import { useState, useTransition, useEffect } from 'react';
-import { useUser, useFirestore } from '@/firebase';
+import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { createAsaasPaymentAction, cancelAsaasCheckoutAction } from '@/app/(app)/admin/actions';
+import { createAsaasPaymentAction, cancelAsaasCheckoutAction, changeUserPlanAction } from '@/app/(app)/admin/actions';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Link from 'next/link';
+import type { UserProfile } from '@/lib/types';
+import { doc } from 'firebase/firestore';
+import { Badge } from '@/components/ui/badge';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 const formSchema = z.object({
   name: z.string().min(3, 'O nome completo é obrigatório.'),
@@ -26,6 +31,8 @@ const formSchema = z.object({
   postalCode: z.string().min(8, 'O CEP é obrigatório.'),
   addressNumber: z.string().min(1, 'O número é obrigatório.'),
   billingType: z.enum(['PIX', 'BOLETO', 'CREDIT_CARD']),
+  plan: z.enum(['pro', 'premium']),
+  cycle: z.enum(['monthly', 'annual']),
 });
 
 type FormSchemaType = z.infer<typeof formSchema>;
@@ -40,6 +47,10 @@ export default function AdminCheckoutTestPage() {
   const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
   const [checkoutId, setCheckoutId] = useState<string | null>(null);
   const [isCancelling, startCancellingTransition] = useTransition();
+  const [isReverting, startRevertingTransition] = useTransition();
+
+  const userProfileRef = useMemoFirebase(() => (firestore && user ? doc(firestore, `users/${user.uid}`) : null), [firestore, user]);
+  const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userProfileRef);
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),
@@ -51,6 +62,8 @@ export default function AdminCheckoutTestPage() {
       postalCode: '',
       addressNumber: '',
       billingType: 'PIX',
+      plan: 'pro',
+      cycle: 'monthly',
     },
   });
 
@@ -77,12 +90,9 @@ export default function AdminCheckoutTestPage() {
     startTransition(async () => {
       const result = await createAsaasPaymentAction({
         ...values,
-        cpfCnpj: values.cpfCnpj.replace(/\D/g, ''), // Remove non-digits
+        cpfCnpj: values.cpfCnpj.replace(/\D/g, ''),
         phone: values.phone.replace(/\D/g, ''),
         postalCode: values.postalCode.replace(/\D/g, ''),
-        // Hardcoding para teste
-        plan: 'premium',
-        cycle: 'monthly',
         userId: user.uid,
       });
 
@@ -121,12 +131,37 @@ export default function AdminCheckoutTestPage() {
       }
     });
   }
+
+  const handleRevertToFree = () => {
+     if (!user) return;
+     startRevertingTransition(async () => {
+        const result = await changeUserPlanAction({
+            targetUserId: user.uid,
+            newPlan: 'free',
+            adminUserId: user.uid,
+        });
+
+         if (result.success) {
+            toast({ title: 'Plano Revertido', description: 'O usuário foi revertido para o plano gratuito.' });
+        } else {
+            toast({ title: 'Erro ao Reverter', description: result.error, variant: 'destructive' });
+        }
+     })
+  }
   
   const handleOpenLink = () => {
       if (checkoutUrl) {
           window.open(checkoutUrl, '_blank', 'noopener,noreferrer');
       }
   }
+
+  const getPlanName = (plan: 'free' | 'pro' | 'premium' | undefined) => {
+    switch(plan) {
+      case 'pro': return 'PRO';
+      case 'premium': return 'Premium';
+      default: return 'Gratuito';
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -135,6 +170,31 @@ export default function AdminCheckoutTestPage() {
         description="Use esta página para simular o fluxo de pagamento completo com a Asaas."
         icon={CreditCard}
       />
+      
+      {isProfileLoading ? <Loader2 className="mx-auto h-8 w-8 animate-spin" /> : userProfile && (
+        <Card className="max-w-2xl mx-auto shadow-primary-inner">
+            <CardHeader>
+                <CardTitle className="text-lg">Status da Assinatura Atual</CardTitle>
+                <CardDescription>Plano do usuário de teste ({userProfile.email})</CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                 <div>
+                    <Badge variant={userProfile.subscription?.status === 'active' ? 'default' : 'secondary'}>
+                        {getPlanName(userProfile.subscription?.plan)} ({userProfile.subscription?.status === 'active' ? 'Ativo' : 'Inativo'})
+                    </Badge>
+                     {userProfile.subscription?.status === 'active' && userProfile.subscription.expiresAt && (
+                        <p className="text-xs text-muted-foreground mt-2">
+                            Expira em: {format(userProfile.subscription.expiresAt.toDate(), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                        </p>
+                    )}
+                </div>
+                <Button variant="outline" size="sm" onClick={handleRevertToFree} disabled={isReverting}>
+                   {isReverting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+                   Reverter para Gratuito
+                </Button>
+            </CardContent>
+        </Card>
+      )}
 
       <Card className="max-w-2xl mx-auto shadow-primary-lg">
         <CardHeader>
@@ -260,6 +320,51 @@ export default function AdminCheckoutTestPage() {
                         )}
                     />
                 </div>
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-4">
+                <FormField
+                    control={form.control}
+                    name="plan"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Plano</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                            <SelectTrigger className="h-11">
+                                <SelectValue placeholder="Selecione o plano" />
+                            </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                            <SelectItem value="pro">Pro</SelectItem>
+                            <SelectItem value="premium">Premium</SelectItem>
+                        </SelectContent>
+                        </Select>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="cycle"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Ciclo</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                            <SelectTrigger className="h-11">
+                            <SelectValue placeholder="Selecione o ciclo" />
+                            </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                            <SelectItem value="monthly">Mensal</SelectItem>
+                            <SelectItem value="annual">Anual</SelectItem>
+                        </SelectContent>
+                        </Select>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
               </div>
               
               <FormField

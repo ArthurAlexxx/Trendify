@@ -89,7 +89,7 @@ export async function changeUserPlanAction(
     
     const updatePayload = {
       'subscription.plan': newPlan,
-      'subscription.status': newStatus,
+      'subscription.status': newPlan === 'free' ? 'inactive' : 'active',
       'subscription.cycle': newPlan === 'free' ? null : newCycle,
       'subscription.expiresAt': expiresAt,
     };
