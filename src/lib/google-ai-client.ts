@@ -3,6 +3,9 @@
 
 import { z } from 'zod';
 import Handlebars from 'handlebars';
+import { ai } from '@/ai/genkit';
+import { AnalyzeVideoInputSchema, AnalyzeVideoOutputSchema } from '@/lib/types';
+
 
 // Registrar helper JSON
 if (!Handlebars.helpers.json) {
@@ -11,8 +14,26 @@ if (!Handlebars.helpers.json) {
     });
 }
 
-// Esta função não é mais usada para análise de vídeo, mas pode ser usada em outros lugares.
-// Portanto, a lógica de vídeo foi removida dela.
+// Definição do prompt de análise de vídeo movida para cá
+export const videoAnalysisPrompt = ai.definePrompt({
+  name: 'videoAnalysisPrompt',
+  model: 'googleai/gemini-2.5-flash',
+  input: { schema: AnalyzeVideoInputSchema },
+  output: { schema: AnalyzeVideoOutputSchema },
+  config: {
+    temperature: 0.5,
+  },
+  prompt: `Você é uma consultora sênior especializada em crescimento orgânico, viralização, retenção e performance visual em short-form content (Reels, TikTok, Shorts).
+Sua função é analisar profundamente o vídeo enviado e fornecer uma avaliação técnica, objetiva e prática.
+
+Instrução do Usuário: {{{prompt}}}
+
+Vídeo para análise: {{media url=videoDataUri}}
+
+Analise o vídeo e retorne um objeto JSON com a sua avaliação, seguindo estritamente o schema de output definido.`,
+});
+
+
 interface CallGoogleAIParams<T extends z.ZodType<any, any, any>> {
     prompt: string;
     jsonSchema: T;
@@ -24,7 +45,7 @@ export async function callGoogleAI<T extends z.ZodType<any, any, any>>(
 ): Promise<z.infer<T>> {
     const { prompt, jsonSchema, promptData } = params;
 
-    const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
         throw new Error('A chave de API do Gemini não está configurada.');
     }

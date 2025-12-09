@@ -1,33 +1,12 @@
+
 'use server';
 /**
  * @fileOverview Um fluxo de IA para analisar conteúdo de vídeo.
  *
  * - analyzeVideo - Uma função que lida com o processo de análise de vídeo.
  */
-
-import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
 import type { AnalyzeVideoInput, AnalyzeVideoOutput } from '@/lib/types';
-import { AnalyzeVideoInputSchema, AnalyzeVideoOutputSchema } from '@/lib/types';
-
-
-const videoAnalysisPrompt = ai.definePrompt({
-  name: 'videoAnalysisPrompt',
-  model: 'googleai/gemini-2.5-flash',
-  input: { schema: AnalyzeVideoInputSchema },
-  output: { schema: AnalyzeVideoOutputSchema },
-  config: {
-    temperature: 0.5,
-  },
-  prompt: `Você é uma consultora sênior especializada em crescimento orgânico, viralização, retenção e performance visual em short-form content (Reels, TikTok, Shorts).
-Sua função é analisar profundamente o vídeo enviado e fornecer uma avaliação técnica, objetiva e prática.
-
-Instrução do Usuário: {{{prompt}}}
-
-Vídeo para análise: {{media url=videoDataUri}}
-
-Analise o vídeo e retorne um objeto JSON com a sua avaliação, seguindo estritamente o schema de output definido.`,
-});
+import { videoAnalysisPrompt } from '@/lib/google-ai-client';
 
 
 export async function analyzeVideo(input: AnalyzeVideoInput): Promise<AnalyzeVideoOutput> {
