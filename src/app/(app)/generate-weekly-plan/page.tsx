@@ -125,7 +125,7 @@ export default function GenerateWeeklyPlanPage() {
   
   const [isSaving, startSavingTransition] = useTransition();
   const [isDiscarding, startDiscardingTransition] = useTransition();
-  const [isPlanCompleted, setIsPlanCompleted] = useState(false);
+  const [showCompletionDialog, setShowCompletionDialog] = useState(false);
 
   const { user } = useUser();
   const firestore = useFirestore();
@@ -215,7 +215,9 @@ export default function GenerateWeeklyPlanPage() {
 
   useEffect(() => {
     if (activePlan && activePlan.items.every(item => item.concluido)) {
-      setIsPlanCompleted(true);
+      setShowCompletionDialog(true);
+    } else {
+      setShowCompletionDialog(false);
     }
   }, [activePlan]);
 
@@ -405,7 +407,7 @@ export default function GenerateWeeklyPlanPage() {
   };
 
   const handleArchiveCompletedPlan = () => {
-    setIsPlanCompleted(false);
+    setShowCompletionDialog(false);
     handleDiscardActivePlan();
   }
   
@@ -420,7 +422,7 @@ export default function GenerateWeeklyPlanPage() {
         icon={ClipboardList}
       />
       
-      <AlertDialog open={isPlanCompleted} onOpenChange={setIsPlanCompleted}>
+      <AlertDialog open={showCompletionDialog} onOpenChange={setShowCompletionDialog}>
         <AlertDialogContent>
             <AlertDialogHeader className="text-center items-center">
                  <div className="h-16 w-16 rounded-full bg-yellow-400/10 flex items-center justify-center mb-2 border-2 border-yellow-400/20">
@@ -458,7 +460,7 @@ export default function GenerateWeeklyPlanPage() {
                                         <span className="text-lg font-semibold">{item.title}</span>
                                     </CardTitle>
                                 </CardHeader>
-                                <CardContent className="pb-4">
+                                <CardContent className="pb-6">
                                     <p className="text-muted-foreground text-sm">{item.description}</p>
                                 </CardContent>
                             </Card>
@@ -826,7 +828,7 @@ export default function GenerateWeeklyPlanPage() {
                             <Card className="shadow-primary-lg">
                                     <CardHeader><CardTitle className="text-center flex items-center justify-center gap-2 text-sm text-muted-foreground"><AlertTriangle className='h-4 w-4' /> Dicas de Realinhamento</CardTitle></CardHeader>
                                     <CardContent><p className='text-sm text-center'>{result.realignmentTips}</p></CardContent>
-                                </Card>
+                            </Card>
                             </div>
                             </div>
                         </div>
