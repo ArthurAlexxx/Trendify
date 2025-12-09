@@ -53,24 +53,28 @@ export async function POST(req: NextRequest) {
 
   if (isSuccessEvent) {
     const payment = event.payment;
-    const userId = payment?.items?.[0]?.externalReference || payment?.externalReference;
+    // Procurar o ID do usuário no externalReference do objeto de pagamento principal
+    const userId = payment?.externalReference;
     
     if (!userId) {
         console.warn('[Asaas Webhook] Received payment confirmation without a userId in externalReference.', payment);
         return NextResponse.json({ success: true, message: 'Event received, but missing user ID.' });
     }
 
-    const description = payment?.description?.toLowerCase() || payment?.items?.[0]?.name?.toLowerCase() || '';
+    const description = payment?.description?.toLowerCase() || '';
+    const itemName = payment?.items?.[0]?.name?.toLowerCase() || '';
+    const fullDescription = `${description} ${itemName}`;
+
     let plan: Plan | null = null;
-    if (description.includes('pro')) plan = 'pro';
-    if (description.includes('premium')) plan = 'premium';
+    if (fullDescription.includes('pro')) plan = 'pro';
+    if (fullDescription.includes('premium')) plan = 'premium';
 
     let cycle: 'monthly' | 'annual' | null = null;
-    if (description.includes('anual') || description.includes('annual')) cycle = 'annual';
-    if (description.includes('mensal') || description.includes('monthly')) cycle = 'monthly';
+    if (fullDescription.includes('anual') || fullDescription.includes('annual')) cycle = 'annual';
+    if (fullDescription.includes('mensal') || fullDescription.includes('monthly')) cycle = 'monthly';
     
     if (!plan || !cycle) {
-        console.warn(`[Asaas Webhook] Could not determine plan or cycle from description: '${description}'`);
+        console.warn(`[Asaas Webhook] Could not determine plan or cycle from description: '${fullDescription}'`);
         return NextResponse.json({ success: true, message: 'Could not determine plan or cycle.' });
     }
 
@@ -110,3 +114,5 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({ success: true, message: 'Webhook received.' });
 }
+
+    

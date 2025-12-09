@@ -239,6 +239,7 @@ export async function createAsaasPaymentAction(
         billingTypes: [billingType],
         chargeTypes: [isRecurrent ? 'RECURRENT' : 'DETACHED'],
         dueDateLimitDays: isRecurrent ? undefined : 1,
+        externalReference: userId, // Passando o userId aqui
         webhookUrl: `${appUrl}/api/webhooks/asaas`,
         callback: {
             successUrl: `${appUrl}/dashboard?checkout=success`,
@@ -251,7 +252,6 @@ export async function createAsaasPaymentAction(
             description: `Assinatura do plano ${planName} na Trendify`,
             value: price,
             quantity: 1,
-            externalReference: userId, // Passando o userId aqui
         }],
     };
 
@@ -347,3 +347,5 @@ export async function cancelAsaasCheckoutAction(
     return { error: e.message || 'Ocorreu um erro de comunicação com o provedor de pagamento.' };
   }
 }
+
+    
