@@ -1,3 +1,4 @@
+
 import { genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/google-genai';
 import { AnalyzeVideoInputSchema, AnalyzeVideoOutputSchema } from '@/ai/schemas';
