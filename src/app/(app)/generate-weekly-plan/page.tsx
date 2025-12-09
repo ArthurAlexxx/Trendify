@@ -1,4 +1,5 @@
 
+
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -599,13 +600,12 @@ export default function GenerateWeeklyPlanPage() {
                                   </Form>
                               </div>
                             </ScrollArea>
-                            <ResponsiveDialogFooter>
-                                <ResponsiveDialogClose asChild><Button type="button" variant="outline" className="w-full sm:w-auto">Cancelar</Button></ResponsiveDialogClose>
+                            <ResponsiveDialogFooter className="p-6 pt-4 border-t">
+                                <ResponsiveDialogClose asChild><Button type="button" variant="outline">Cancelar</Button></ResponsiveDialogClose>
                                 <Button
                                     type="button"
                                     onClick={form.handleSubmit(formAction)}
                                     disabled={isButtonDisabled}
-                                    className="w-full sm:w-auto"
                                 >
                                     {isGenerating || isSaving ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Sparkles className="mr-2 h-5 w-5" />}
                                     Gerar Plano

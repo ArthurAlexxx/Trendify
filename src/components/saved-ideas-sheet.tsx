@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -172,7 +173,7 @@ export function SavedIdeasSheet({ children }: { children: React.ReactNode}) {
                 </div>
                 </ScrollArea>
             </div>
-             <ResponsiveDialogFooter>
+             <ResponsiveDialogFooter className="p-6 pt-4">
                 <ResponsiveDialogClose asChild>
                     <Button type="button" variant="outline">Fechar</Button>
                 </ResponsiveDialogClose>
@@ -192,7 +193,7 @@ export function SavedIdeasSheet({ children }: { children: React.ReactNode}) {
                  <ScrollArea className="max-h-[calc(100vh-12rem)]">
                     {renderContent(selectedIdea)}
                  </ScrollArea>
-                  <ResponsiveDialogFooter className="p-6 border-t">
+                  <ResponsiveDialogFooter className="p-6 pt-4 border-t">
                     <ResponsiveDialogClose asChild>
                         <Button type="button" variant="outline">Fechar</Button>
                     </ResponsiveDialogClose>

@@ -1,4 +1,5 @@
 
+
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -547,15 +548,14 @@ function PublisAssistantPageContent() {
                             </Form>
                           </div>
                         </ScrollArea>
-                         <ResponsiveDialogFooter className="p-6 border-t flex-col sm:flex-row gap-2">
+                         <ResponsiveDialogFooter className="p-6 pt-4 border-t">
                              <ResponsiveDialogClose asChild>
-                                <Button type="button" variant="outline" className="w-full sm:w-auto">Cancelar</Button>
+                                <Button type="button" variant="outline">Cancelar</Button>
                              </ResponsiveDialogClose>
                             <Button
                             type="button"
                             onClick={form.handleSubmit(formAction)}
                             disabled={isButtonDisabled}
-                            className="w-full sm:w-auto"
                             >
                             {isGenerating ? (
                                 <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Gerando...</>

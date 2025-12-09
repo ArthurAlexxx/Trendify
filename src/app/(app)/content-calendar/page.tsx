@@ -515,13 +515,13 @@ export default function ContentCalendarPage() {
                 </Form>
              </div>
           </ScrollArea>
-           <ResponsiveDialogFooter className="p-6 border-t flex-col sm:flex-row gap-2">
-                <ResponsiveDialogClose asChild>
-                    <Button type="button" variant="outline" className='w-full sm:w-auto'>Cancelar</Button>
-                </ResponsiveDialogClose>
-                <Button type="button" onClick={form.handleSubmit(onSubmit)} className="w-full sm:w-auto">
-                   {editingPost ? "Salvar Alterações" : "Agendar Post"}
-                </Button>
+           <ResponsiveDialogFooter className="p-6 pt-4 border-t">
+              <ResponsiveDialogClose asChild>
+                <Button type="button" variant="outline">Cancelar</Button>
+              </ResponsiveDialogClose>
+              <Button type="button" onClick={form.handleSubmit(onSubmit)}>
+                {editingPost ? "Salvar Alterações" : "Agendar Post"}
+              </Button>
             </ResponsiveDialogFooter>
         </ResponsiveDialogContent>
       </ResponsiveDialog>
@@ -554,12 +554,12 @@ export default function ContentCalendarPage() {
                           Anotações
                         </h4>
                         <div className="p-4 rounded-lg bg-muted/50 border">
-                           <p className="whitespace-pre-wrap text-muted-foreground text-sm">{selectedEvent.notes}</p>
+                           <p className="whitespace-pre-wrap text-sm text-muted-foreground">{selectedEvent.notes}</p>
                         </div>
                     </div>
                  )}
             </ScrollArea>
-             <ResponsiveDialogFooter className="p-6 border-t flex flex-col-reverse sm:flex-row sm:justify-between gap-2">
+             <ResponsiveDialogFooter className="p-6 pt-4 border-t flex flex-col-reverse sm:flex-row sm:justify-between gap-2">
                 <div className='flex flex-col sm:flex-row gap-2'>
                     <Button variant="outline" onClick={() => handleEditEvent(selectedEvent)}><Edit className="mr-2 h-4 w-4" /> Editar</Button>
                     <Button variant="outline" disabled={selectedEvent.status === 'Publicado'} onClick={() => handleMarkAsCompleted(selectedEvent.id)}><CheckCircle className="mr-2 h-4 w-4" /> Publicado</Button>

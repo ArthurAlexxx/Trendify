@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useTransition, useEffect } from 'react';
@@ -33,7 +34,7 @@ import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import type { UserProfile } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
-import { changeUserPlanAction } from '@/app/admin/actions';
+import { changeUserPlanAction } from '@/app/(app)/admin/actions';
 import { useUser } from '@/firebase';
 import { ScrollArea } from '../ui/scroll-area';
 import { ResponsiveDialog, ResponsiveDialogClose, ResponsiveDialogContent, ResponsiveDialogDescription, ResponsiveDialogFooter, ResponsiveDialogHeader, ResponsiveDialogTitle, ResponsiveDialogTrigger } from '../ui/responsive-dialog';
@@ -170,7 +171,7 @@ export function ChangePlanDialog({ isOpen, setIsOpen, user, children }: ChangePl
             </Form>
         </div>
 
-        <ResponsiveDialogFooter>
+        <ResponsiveDialogFooter className="p-6 pt-4">
           <ResponsiveDialogClose asChild>
             <Button type="button" variant="outline" className='w-full sm:w-auto'>
               Cancelar
