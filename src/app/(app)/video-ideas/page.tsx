@@ -48,6 +48,8 @@ import {
   Newspaper,
   Calendar,
   Trash2,
+  BookMarked,
+  Inbox,
 } from 'lucide-react';
 import { useEffect, useTransition, useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
@@ -85,7 +87,6 @@ const formSchema = z.object({
 type FormSchemaType = z.infer<typeof formSchema>;
 
 const LOCAL_STORAGE_KEY = 'video-ideas-result';
-const VIEW_RESULT_KEY = 'ai-result-to-view';
 
 
 const analysisCriteria = [
@@ -141,37 +142,14 @@ export default function VideoIdeasPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
 
   useEffect(() => {
-    // Check for a result passed from the saved ideas page
-    const savedResultItem = localStorage.getItem(VIEW_RESULT_KEY);
-    if (savedResultItem) {
+    const savedResult = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (savedResult) {
         try {
-            const idea: IdeiaSalva = JSON.parse(savedResultItem);
-            // Only use it if it's from the correct origin page
-            if (idea.origem === 'Ideias de Vídeo' && idea.aiResponseData) {
-                setResult(idea.aiResponseData);
-                form.reset({
-                    topic: idea.titulo.replace('Ideia: ', '').replace('...', ''),
-                    targetAudience: idea.aiResponseData.formValues?.targetAudience || 'N/A',
-                    objective: idea.aiResponseData.formValues?.objective || 'N/A',
-                });
-                setActiveTab('result');
-            }
-        } catch (e) {
-            console.error("Failed to parse saved result from localStorage", e);
-        } finally {
-            localStorage.removeItem(VIEW_RESULT_KEY);
-        }
-    } else {
-        // Fallback to check older storage key if the new one isn't present
-        const savedResult = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (savedResult) {
-            try {
-                setResult(JSON.parse(savedResult));
-                setActiveTab('result');
-            } catch (error) {
-                console.error("Failed to parse saved result from localStorage", error);
-                localStorage.removeItem(LOCAL_STORAGE_KEY);
-            }
+            setResult(JSON.parse(savedResult));
+            setActiveTab('result');
+        } catch (error) {
+            console.error("Failed to parse saved result from localStorage", error);
+            localStorage.removeItem(LOCAL_STORAGE_KEY);
         }
     }
   }, []);
@@ -187,6 +165,19 @@ export default function VideoIdeasPage() {
 
     return () => unsubscribe();
   }, [user, firestore, todayStr]);
+  
+  const lastSavedIdeaQuery = useMemoFirebase(() =>
+    firestore && user ? query(
+        collection(firestore, `users/${user.uid}/ideiasSalvas`),
+        where('origem', '==', 'Ideias de Vídeo'),
+        orderBy('createdAt', 'desc'),
+        limit(1)
+    ) : null,
+  [firestore, user]);
+
+  const { data: lastSavedIdeaData, isLoading: isLoadingLastSaved } = useCollection<IdeiaSalva>(lastSavedIdeaQuery);
+  const lastSavedIdea = lastSavedIdeaData?.[0];
+
 
   const generationsToday = usageData?.geracoesAI || 0;
   const hasReachedFreeLimit = isTrialActive && generationsToday >= 2;
@@ -248,7 +239,7 @@ export default function VideoIdeasPage() {
   const { data: completedIdeas, isLoading: isLoadingCompleted } = useCollection<IdeiaSalva>(completedIdeasQuery);
 
   useEffect(() => {
-    if (userProfile && !searchParams.has('topic') && !localStorage.getItem(VIEW_RESULT_KEY)) {
+    if (userProfile && !searchParams.has('topic')) {
       form.reset({
         topic: '',
         targetAudience: userProfile.audience || '',
@@ -340,9 +331,7 @@ export default function VideoIdeasPage() {
         title="Gerador de Vídeos Virais"
         description="Crie roteiros completos e otimizados para viralizar."
         icon={Lightbulb}
-      >
-        <SavedIdeasSheet />
-      </PageHeader>
+      />
       
       <div>
         <div className="text-center">
@@ -488,38 +477,34 @@ export default function VideoIdeasPage() {
       <div className="space-y-8">
         <div className="text-center">
           <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">
-            Ideias Concluídas
+            Última Ideia Salva
           </h2>
           <p className="text-muted-foreground">
-            Aqui estão as ideias que você já marcou como concluídas.
+            Aqui está o último conteúdo de 'Ideias de Vídeo' que você salvou.
           </p>
         </div>
         <Card className="rounded-2xl border-0 shadow-primary-lg">
           <CardContent className='pt-6'>
-            {isLoadingCompleted ? (
-              <div className="space-y-4">
-                <Skeleton className="h-16 w-full" />
-                <Skeleton className="h-16 w-full" />
-              </div>
-            ) : completedIdeas && completedIdeas.length > 0 ? (
-              <ul className="space-y-4">
-                {completedIdeas.map((idea) => (
-                  <li key={idea.id} className="flex items-center gap-4 p-4 rounded-xl border bg-muted/30">
-                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-500/10 text-green-500">
-                        <Check className="h-5 w-5" />
-                     </div>
-                     <div className='flex-1'>
-                        <p className="font-semibold text-foreground">{idea.titulo}</p>
-                        <p className="text-sm text-muted-foreground">
-                          Concluído {idea.completedAt ? formatDistanceToNow(idea.completedAt.toDate(), { addSuffix: true, locale: ptBR }) : ''}
-                        </p>
-                     </div>
-                  </li>
-                ))}
-              </ul>
+            {isLoadingLastSaved ? (
+                <div className="flex justify-center items-center h-40">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+            ) : lastSavedIdea && lastSavedIdea.aiResponseData ? (
+                 <div>
+                    <VideoIdeasResultView result={lastSavedIdea.aiResponseData} formValues={lastSavedIdea.aiResponseData.formValues} />
+                    <div className="mt-4 text-center">
+                        <SavedIdeasSheet>
+                            <Button variant="outline"><BookMarked className="mr-2 h-4 w-4"/>Gerenciar todos os salvos</Button>
+                        </SavedIdeasSheet>
+                    </div>
+                 </div>
             ) : (
               <div className="text-center py-12 px-4">
-                 <p className="text-muted-foreground">Nenhuma tarefa concluída ainda.</p>
+                 <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-64">
+                    <Inbox className="h-10 w-10 text-muted-foreground" />
+                    <p className="mt-4 text-muted-foreground">Nenhuma ideia salva ainda.</p>
+                    <p className="text-sm text-muted-foreground">Use a ferramenta acima e salve seus resultados.</p>
+                 </div>
               </div>
             )}
           </CardContent>

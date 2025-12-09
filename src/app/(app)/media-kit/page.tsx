@@ -21,6 +21,8 @@ import {
   Edit,
   Trash2,
   Newspaper,
+  BookMarked,
+  Inbox,
 } from 'lucide-react';
 import { useTransition, useEffect, useState, useCallback } from 'react';
 import {
@@ -39,8 +41,8 @@ import {
   AiCareerPackageOutput,
 } from '@/app/(app)/media-kit/actions';
 import { useToast } from '@/hooks/use-toast';
-import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { collection, addDoc, serverTimestamp, doc, updateDoc, onSnapshot, getDoc, setDoc, increment } from 'firebase/firestore';
+import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
+import { collection, addDoc, serverTimestamp, doc, updateDoc, onSnapshot, getDoc, setDoc, increment, query, where, orderBy, limit } from 'firebase/firestore';
 import { SavedIdeasSheet } from '@/components/saved-ideas-sheet';
 import type { UserProfile, DailyUsage, IdeiaSalva } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -66,7 +68,6 @@ const formSchema = z.object({
 type FormSchemaType = z.infer<typeof formSchema>;
 
 const LOCAL_STORAGE_KEY = 'media-kit-result';
-const VIEW_RESULT_KEY = 'ai-result-to-view';
 
 
 const analysisCriteria = [
@@ -177,33 +178,14 @@ function MediaKitPageContent() {
 
 
   useEffect(() => {
-    // Check for a result passed from the saved ideas page
-    const savedResultItem = localStorage.getItem(VIEW_RESULT_KEY);
-    if (savedResultItem) {
+    const savedResult = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (savedResult) {
         try {
-            const idea: IdeiaSalva = JSON.parse(savedResultItem);
-            // Only use it if it's from the correct origin page
-            if (idea.origem === 'Mídia Kit & Prospecção' && idea.aiResponseData) {
-                setResult(idea.aiResponseData);
-                form.reset(idea.aiResponseData.formValues || form.getValues());
-                setActiveTab('result');
-            }
-        } catch (e) {
-            console.error("Failed to parse saved result from localStorage", e);
-        } finally {
-            localStorage.removeItem(VIEW_RESULT_KEY);
-        }
-    } else {
-        // Fallback to check older storage key if the new one isn't present
-        const savedResult = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (savedResult) {
-            try {
-                setResult(JSON.parse(savedResult));
-                setActiveTab('result');
-            } catch (error) {
-                console.error("Failed to parse saved result from localStorage", error);
-                localStorage.removeItem(LOCAL_STORAGE_KEY);
-            }
+            setResult(JSON.parse(savedResult));
+            setActiveTab('result');
+        } catch (error) {
+            console.error("Failed to parse saved result from localStorage", error);
+            localStorage.removeItem(LOCAL_STORAGE_KEY);
         }
     }
   }, []);
@@ -213,6 +195,19 @@ function MediaKitPageContent() {
     [firestore, user]
   );
   const { data: userProfile, isLoading: isLoadingProfile } = useDoc<UserProfile>(userProfileRef);
+  
+  const lastSavedIdeaQuery = useMemoFirebase(() =>
+    firestore && user ? query(
+        collection(firestore, `users/${user.uid}/ideiasSalvas`),
+        where('origem', '==', 'Mídia Kit & Prospecção'),
+        orderBy('createdAt', 'desc'),
+        limit(1)
+    ) : null,
+  [firestore, user]);
+
+  const { data: lastSavedIdeaData, isLoading: isLoadingLastSaved } = useCollection<IdeiaSalva>(lastSavedIdeaQuery);
+  const lastSavedIdea = lastSavedIdeaData?.[0];
+
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),
@@ -378,9 +373,7 @@ function MediaKitPageContent() {
         title="Pacote de Prospecção"
         description="Gere propostas, preços e seu mídia kit profissional."
         icon={Briefcase}
-      >
-        <SavedIdeasSheet />
-      </PageHeader>
+      />
       
       <div>
         <div className="text-center">
@@ -595,6 +588,44 @@ function MediaKitPageContent() {
           </Card>
         </TabsContent>
        </Tabs>
+        <Separator />
+
+        <div className="space-y-8">
+            <div className="text-center">
+                <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">
+                    Último Pacote Salvo
+                </h2>
+                <p className="text-muted-foreground">
+                    Aqui está o último pacote de prospecção que você salvou.
+                </p>
+            </div>
+            <Card className="rounded-2xl border-0 shadow-primary-lg">
+            <CardContent className='pt-6'>
+                {isLoadingLastSaved ? (
+                    <div className="flex justify-center items-center h-40">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    </div>
+                ) : lastSavedIdea && lastSavedIdea.aiResponseData ? (
+                    <div>
+                        <MediaKitResultView result={lastSavedIdea.aiResponseData} formValues={lastSavedIdea.aiResponseData.formValues} />
+                         <div className="mt-4 text-center">
+                            <SavedIdeasSheet>
+                                <Button variant="outline"><BookMarked className="mr-2 h-4 w-4"/>Gerenciar todos os salvos</Button>
+                            </SavedIdeasSheet>
+                        </div>
+                    </div>
+                ) : (
+                <div className="text-center py-12 px-4">
+                    <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-64">
+                        <Inbox className="h-10 w-10 text-muted-foreground" />
+                        <p className="mt-4 text-muted-foreground">Nenhum pacote salvo ainda.</p>
+                        <p className="text-sm text-muted-foreground">Use a ferramenta acima e salve seus resultados.</p>
+                    </div>
+                </div>
+                )}
+            </CardContent>
+            </Card>
+        </div>
     </div>
   );
 }

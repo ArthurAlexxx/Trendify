@@ -39,13 +39,15 @@ import {
   Edit,
   Calendar,
   Trash2,
+  BookMarked,
+  Inbox,
 } from 'lucide-react';
 import { useEffect, useTransition, useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { generatePubliProposalsAction, GeneratePubliProposalsOutput } from '@/app/(app)/publis-assistant/actions';
-import { useFirestore, useUser } from '@/firebase';
-import { collection, addDoc, serverTimestamp, doc, setDoc, increment, getDoc, updateDoc, onSnapshot } from 'firebase/firestore';
+import { useFirestore, useUser, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, addDoc, serverTimestamp, doc, setDoc, increment, getDoc, updateDoc, onSnapshot, query, orderBy, where, limit } from 'firebase/firestore';
 import { SavedIdeasSheet } from '@/components/saved-ideas-sheet';
 import { Textarea } from '@/components/ui/textarea';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -74,7 +76,6 @@ const formSchema = z.object({
 type FormSchemaType = z.infer<typeof formSchema>;
 
 const LOCAL_STORAGE_KEY = 'publis-assistant-result';
-const VIEW_RESULT_KEY = 'ai-result-to-view';
 
 
 const analysisCriteria = [
@@ -172,36 +173,30 @@ function PublisAssistantPageContent() {
   const [isLoadingUsage, setIsLoadingUsage] = useState(true);
 
   useEffect(() => {
-    // Check for a result passed from the saved ideas page
-    const savedResultItem = localStorage.getItem(VIEW_RESULT_KEY);
-    if (savedResultItem) {
+    const savedResult = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (savedResult) {
         try {
-            const idea: IdeiaSalva = JSON.parse(savedResultItem);
-            // Only use it if it's from the correct origin page
-            if (idea.origem === 'Propostas & Publis' && idea.aiResponseData) {
-                setResult(idea.aiResponseData);
-                form.reset(idea.aiResponseData.formValues || form.getValues());
-                setActiveTab('result');
-            }
-        } catch (e) {
-            console.error("Failed to parse saved result from localStorage", e);
-        } finally {
-            localStorage.removeItem(VIEW_RESULT_KEY);
-        }
-    } else {
-        // Fallback to check older storage key if the new one isn't present
-        const savedResult = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (savedResult) {
-            try {
-                setResult(JSON.parse(savedResult));
-                setActiveTab('result');
-            } catch (error) {
-                console.error("Failed to parse saved result from localStorage", error);
-                localStorage.removeItem(LOCAL_STORAGE_KEY);
-            }
+            setResult(JSON.parse(savedResult));
+            setActiveTab('result');
+        } catch (error) {
+            console.error("Failed to parse saved result from localStorage", error);
+            localStorage.removeItem(LOCAL_STORAGE_KEY);
         }
     }
   }, []);
+  
+  const lastSavedIdeaQuery = useMemoFirebase(() =>
+    firestore && user ? query(
+        collection(firestore, `users/${user.uid}/ideiasSalvas`),
+        where('origem', '==', 'Propostas & Publis'),
+        orderBy('createdAt', 'desc'),
+        limit(1)
+    ) : null,
+  [firestore, user]);
+
+  const { data: lastSavedIdeaData, isLoading: isLoadingLastSaved } = useCollection<IdeiaSalva>(lastSavedIdeaQuery);
+  const lastSavedIdea = lastSavedIdeaData?.[0];
+
 
   useEffect(() => {
     if (!user || !firestore) return;
@@ -358,9 +353,7 @@ function PublisAssistantPageContent() {
         title="Assistente de Publis"
         description="Crie pacotes de conteúdo para marcas com foco em conversão."
         icon={Newspaper}
-      >
-        <SavedIdeasSheet />
-      </PageHeader>
+      />
 
       <div>
         <div className="text-center">
@@ -618,6 +611,44 @@ function PublisAssistantPageContent() {
           </Card>
         </TabsContent>
       </Tabs>
+        <Separator />
+
+        <div className="space-y-8">
+            <div className="text-center">
+                <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">
+                    Última Campanha Salva
+                </h2>
+                <p className="text-muted-foreground">
+                    Aqui está a última campanha de "publi" que você salvou.
+                </p>
+            </div>
+            <Card className="rounded-2xl border-0 shadow-primary-lg">
+            <CardContent className='pt-6'>
+                {isLoadingLastSaved ? (
+                    <div className="flex justify-center items-center h-40">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    </div>
+                ) : lastSavedIdea && lastSavedIdea.aiResponseData ? (
+                    <div>
+                        <PublisAssistantResultView result={lastSavedIdea.aiResponseData} formValues={lastSavedIdea.aiResponseData.formValues} />
+                         <div className="mt-4 text-center">
+                            <SavedIdeasSheet>
+                                <Button variant="outline"><BookMarked className="mr-2 h-4 w-4"/>Gerenciar todos os salvos</Button>
+                            </SavedIdeasSheet>
+                        </div>
+                    </div>
+                ) : (
+                <div className="text-center py-12 px-4">
+                    <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-64">
+                        <Inbox className="h-10 w-10 text-muted-foreground" />
+                        <p className="mt-4 text-muted-foreground">Nenhuma campanha salva ainda.</p>
+                        <p className="text-sm text-muted-foreground">Use a ferramenta acima e salve seus resultados.</p>
+                    </div>
+                </div>
+                )}
+            </CardContent>
+            </Card>
+        </div>
     </div>
   );
 }

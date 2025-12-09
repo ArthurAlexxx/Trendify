@@ -15,6 +15,9 @@ import React, { useState } from 'react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter as AlertFooter, AlertDialogHeader, AlertDialogTitle } from './ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import { VideoIdeasResultView } from '@/app/(app)/video-ideas/video-ideas-result-view';
+import { PublisAssistantResultView } from '@/app/(app)/publis-assistant/publis-assistant-result-view';
+import { MediaKitResultView } from './media-kit/media-kit-result-view';
 
 const originToPathMap: Record<string, string> = {
   'Ideias de Vídeo': '/video-ideas',
@@ -23,14 +26,37 @@ const originToPathMap: Record<string, string> = {
   'Propostas & Publis': '/publis-assistant',
 };
 
-export function SavedIdeasSheet() {
+const renderContent = (idea: IdeiaSalva) => {
+    const props = {
+        result: idea.aiResponseData,
+        formValues: idea.aiResponseData.formValues,
+        isSheetView: true,
+    }
+
+    switch(idea.origem) {
+        case 'Ideias de Vídeo':
+            return <VideoIdeasResultView {...props} />;
+        case 'Propostas & Publis':
+            return <PublisAssistantResultView {...props} />;
+        case 'Mídia Kit & Prospecção':
+            return <MediaKitResultView {...props} />;
+        // case 'Plano Semanal':
+        //     return <WeeklyPlanResultView {...props} />;
+        default:
+            return <p className="text-sm text-muted-foreground whitespace-pre-wrap">{idea.conteudo}</p>;
+    }
+}
+
+export function SavedIdeasSheet({ children }: { children: React.ReactNode}) {
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
   const router = useRouter();
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [isListSheetOpen, setIsListSheetOpen] = useState(false);
   const [ideaToDelete, setIdeaToDelete] = useState<IdeiaSalva | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedIdea, setSelectedIdea] = useState<IdeiaSalva | null>(null);
+  const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
 
   const ideiasSalvasQuery = useMemoFirebase(
     () =>
@@ -44,22 +70,6 @@ export function SavedIdeasSheet() {
   );
   const { data: ideiasSalvas, isLoading } =
     useCollection<IdeiaSalva>(ideiasSalvasQuery);
-
-  const handleViewDetails = (idea: IdeiaSalva) => {
-    const path = originToPathMap[idea.origem];
-    if (path && idea.aiResponseData) {
-      // Use a consistent key for storing the temporary data.
-      localStorage.setItem('ai-result-to-view', JSON.stringify(idea));
-      setIsSheetOpen(false); // Close the list sheet
-      router.push(path);
-    } else {
-      toast({
-        title: "Visualização indisponível",
-        description: `Não foi possível encontrar a página de origem ou os dados para "${idea.origem}".`,
-        variant: "destructive",
-      });
-    }
-  };
   
   const confirmDelete = (idea: IdeiaSalva) => {
     setIdeaToDelete(idea);
@@ -86,14 +96,16 @@ export function SavedIdeasSheet() {
     }
   }
 
+  const handleViewDetails = (idea: IdeiaSalva) => {
+    setSelectedIdea(idea);
+    setIsDetailSheetOpen(true);
+  };
+
   return (
     <>
-    <ResponsiveDialog isOpen={isSheetOpen} onOpenChange={setIsSheetOpen}>
+    <ResponsiveDialog isOpen={isListSheetOpen} onOpenChange={setIsListSheetOpen}>
         <ResponsiveDialogTrigger asChild>
-            <Button variant="outline">
-                <BookMarked className="mr-2 h-4 w-4" />
-                Salvos
-            </Button>
+            {children}
         </ResponsiveDialogTrigger>
         <ResponsiveDialogContent className="sm:max-w-lg">
             <ResponsiveDialogHeader>
@@ -168,6 +180,27 @@ export function SavedIdeasSheet() {
         </ResponsiveDialogContent>
     </ResponsiveDialog>
     
+    <ResponsiveDialog isOpen={isDetailSheetOpen} onOpenChange={setIsDetailSheetOpen}>
+        {selectedIdea && (
+             <ResponsiveDialogContent className="sm:max-w-4xl p-0">
+                 <ResponsiveDialogHeader className="p-6 border-b">
+                    <ResponsiveDialogTitle className="font-headline text-xl">{selectedIdea.titulo}</ResponsiveDialogTitle>
+                    <ResponsiveDialogDescription>
+                        Salvo de "{selectedIdea.origem}" em {selectedIdea.createdAt.toDate().toLocaleDateString('pt-BR')}
+                    </ResponsiveDialogDescription>
+                </ResponsiveDialogHeader>
+                 <ScrollArea className="max-h-[calc(100vh-12rem)]">
+                    {renderContent(selectedIdea)}
+                 </ScrollArea>
+                  <ResponsiveDialogFooter className="p-6 border-t">
+                    <ResponsiveDialogClose asChild>
+                        <Button type="button" variant="outline">Fechar</Button>
+                    </ResponsiveDialogClose>
+                </ResponsiveDialogFooter>
+             </ResponsiveDialogContent>
+        )}
+    </ResponsiveDialog>
+
     <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
       <AlertDialogContent>
         <AlertDialogHeader>
