@@ -229,23 +229,15 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
             </h3>
             {isLoading ? <Skeleton className="h-[150px] w-full" /> : 
             posts.length > 0 ? (
-                posts.length > 5 ? (
-                    <Carousel className="w-full" opts={{ align: "start" }}>
-                        <CarouselContent className="-ml-3">
-                            {posts.map(post => (
-                                <CarouselItem key={post.id} className="pl-3 basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5">
-                                    <PostItem post={post} />
-                                </CarouselItem>
-                            ))}
-                        </CarouselContent>
-                        <CarouselPrevious className="left-[-8px]"/>
-                        <CarouselNext className="right-[-8px]"/>
-                    </Carousel>
-                ) : (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-                        {posts.map(post => <PostItem key={post.id} post={post} />)}
-                    </div>
-                )
+                 <Carousel className="w-full" opts={{ align: "start" }}>
+                    <CarouselContent className="-ml-3">
+                        {posts.map(post => (
+                            <CarouselItem key={post.id} className="pl-3 basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5">
+                                <PostItem post={post} />
+                            </CarouselItem>
+                        ))}
+                    </CarouselContent>
+                 </Carousel>
             ) : (
                 <div className="h-[150px] w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
                     <div>
@@ -265,9 +257,10 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
               Performance de Posts
             </CardTitle>
             <Tabs defaultValue="evolution" className="w-full pt-4">
-               <TabsList className="grid w-full grid-cols-2 mx-auto max-w-md">
+               <TabsList className="grid w-full grid-cols-3 mx-auto max-w-md">
                   <TabsTrigger value="evolution">Evolução</TabsTrigger>
-                  <TabsTrigger value="posts">Seus Posts</TabsTrigger>
+                  <TabsTrigger value="videos">Vídeos</TabsTrigger>
+                  <TabsTrigger value="photos">Fotos</TabsTrigger>
               </TabsList>
             </Tabs>
         </CardHeader>
@@ -342,8 +335,10 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                         </div>
                     )}
                 </TabsContent>
-               <TabsContent value="posts" className="space-y-8 mt-0">
+               <TabsContent value="videos" className="space-y-8 mt-0">
                      {renderPostGrid(videoPosts, "Últimos Vídeos", Video)}
+                </TabsContent>
+                 <TabsContent value="photos" className="space-y-8 mt-0">
                      {renderPostGrid(photoPosts, "Últimas Fotos", Camera)}
                 </TabsContent>
           </Tabs>
