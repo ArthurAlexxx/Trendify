@@ -1,3 +1,4 @@
+
 'use server';
 
 import { z } from 'zod';
@@ -147,6 +148,7 @@ const CreatePaymentSchema = z.object({
   phone: z.string().min(10, 'O telefone é obrigatório.'),
   postalCode: z.string().min(8, 'O CEP é obrigatório.'),
   addressNumber: z.string().min(1, 'O número é obrigatório.'),
+  billingType: z.enum(['PIX', 'BOLETO', 'CREDIT_CARD']),
   plan: z.enum(['pro', 'premium']),
   cycle: z.enum(['monthly', 'annual']),
   userId: z.string().min(1, 'ID do usuário é obrigatório.'),
@@ -168,7 +170,7 @@ export async function createAsaasPaymentAction(
     return { error: `Dados inválidos: ${errorMessages}` };
   }
 
-  const { name, cpfCnpj, email, phone, postalCode, addressNumber, plan, cycle, userId } = parsed.data;
+  const { name, cpfCnpj, email, phone, postalCode, addressNumber, billingType, plan, cycle, userId } = parsed.data;
   const apiKey = process.env.ASAAS_API_KEY;
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://trendify-beta.vercel.app';
   
@@ -216,7 +218,7 @@ export async function createAsaasPaymentAction(
 
     const checkoutBody = {
         customer: customerId,
-        billingType: 'PIX',
+        billingType,
         chargeType: 'DETACHED',
         dueDateLimitDays: 1, 
         externalReference: userId,
@@ -264,3 +266,5 @@ export async function createAsaasPaymentAction(
     return { error: e.message || 'Ocorreu um erro de comunicação com o provedor de pagamento.' };
   }
 }
+
+    
