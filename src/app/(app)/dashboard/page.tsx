@@ -344,54 +344,110 @@ export default function DashboardPage() {
           {userProfile && <ProfileCompletionAlert userProfile={userProfile} isPremium={isPremium} />}
 
           <Suspense fallback={<DashboardSkeleton />}>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-                <div className="lg:col-span-1 space-y-8">
-                   <GoalCard 
-                        isLoading={isLoading} 
-                        goalFollowers={goalFollowers}
-                        currentFollowers={currentFollowers}
-                        isGoalReached={isGoalReached}
-                        onEditGoal={() => setIsGoalSheetOpen(true)}
-                        formatMetricValue={formatMetricValue}
-                   />
+            {/* Mobile Carousel View */}
+            <div className="md:hidden">
+              <Carousel className="w-full" opts={{ align: "start" }}>
+                <CarouselContent className="-ml-4">
+                  <CarouselItem className="pl-4 basis-[90%]">
+                    <div className="p-1 h-full">
+                        <GoalCard 
+                            isLoading={isLoading} 
+                            goalFollowers={goalFollowers}
+                            currentFollowers={currentFollowers}
+                            isGoalReached={isGoalReached}
+                            onEditGoal={() => setIsGoalSheetOpen(true)}
+                            formatMetricValue={formatMetricValue}
+                        />
+                    </div>
+                  </CarouselItem>
+                  <CarouselItem className="pl-4 basis-[90%]">
+                     <div className="p-1 h-full">
+                        <EngagementMetricsCard 
+                            isLoading={isLoading} 
+                            latestMetrics={latestMetrics}
+                            formatIntegerValue={formatIntegerValue} 
+                        />
+                    </div>
+                  </CarouselItem>
+                </CarouselContent>
+              </Carousel>
+            </div>
+            
+            {/* Desktop Grid View */}
+            <div className="hidden md:grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+              <div className="lg:col-span-1 space-y-8">
+                <GoalCard 
+                  isLoading={isLoading} 
+                  goalFollowers={goalFollowers}
+                  currentFollowers={currentFollowers}
+                  isGoalReached={isGoalReached}
+                  onEditGoal={() => setIsGoalSheetOpen(true)}
+                  formatMetricValue={formatMetricValue}
+                />
+              </div>
+              <div className="lg:col-span-2 space-y-8">
+                <EngagementMetricsCard 
+                  isLoading={isLoading} 
+                  latestMetrics={latestMetrics}
+                  formatIntegerValue={formatIntegerValue} 
+                />
+              </div>
+            </div>
+
+            {/* Common Layout for rest of the page */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start mt-8">
+              <div className="lg:col-span-1 space-y-8 md:order-last lg:order-first">
+                 <div className="block md:hidden lg:block">
                   <DailyPlanCard 
                     isLoadingWeeklyPlans={isLoadingWeeklyPlans}
                     currentPlan={currentPlan} 
                     handleToggleRoteiro={handleToggleRoteiro} 
                   />
+                 </div>
+                 <div className="block md:hidden lg:block">
                   <ActionHubCard 
-                        isLoadingUpcoming={isLoadingUpcoming}
-                        upcomingContent={upcomingContent}
-                        isLoadingIdeias={isLoadingIdeias}
-                        ideiasSalvas={ideiasSalvas}
-                        handleToggleIdeia={handleToggleIdeia}
-                        handleMarkAsPublished={handleMarkAsPublished}
+                    isLoadingUpcoming={isLoadingUpcoming}
+                    upcomingContent={upcomingContent}
+                    isLoadingIdeias={isLoadingIdeias}
+                    ideiasSalvas={ideiasSalvas}
+                    handleToggleIdeia={handleToggleIdeia}
+                    handleMarkAsPublished={handleMarkAsPublished}
                   />
-                </div>
-
-                <div className="lg:col-span-2 space-y-8">
-                    <EngagementMetricsCard 
-                        isLoading={isLoading} 
-                        latestMetrics={latestMetrics}
-                        formatIntegerValue={formatIntegerValue} 
-                    />
-                    <EvolutionChartCard
-                      isLoading={isLoadingInstaPosts || isLoadingTiktokPosts || isLoadingMetricSnapshots}
-                      metricSnapshots={metricSnapshots}
-                      instaPosts={instaPosts}
-                      tiktokPosts={tiktokPosts}
-                      selectedPlatform={selectedPlatform}
-                      userProfile={userProfile}
-                      onItemClick={handleChartItemClick}
-                    />
-                   <PerformanceAnalysisCard 
-                        isGeneratingInsights={isGeneratingInsights}
-                        insights={insights}
-                        handleGenerateInsights={handleGenerateInsights}
-                    />
-                </div>
+                 </div>
               </div>
-            </Suspense>
+              <div className="lg:col-span-2 space-y-8">
+                <EvolutionChartCard
+                  isLoading={isLoadingInstaPosts || isLoadingTiktokPosts || isLoadingMetricSnapshots}
+                  metricSnapshots={metricSnapshots}
+                  instaPosts={instaPosts}
+                  tiktokPosts={tiktokPosts}
+                  selectedPlatform={selectedPlatform}
+                  userProfile={userProfile}
+                  onItemClick={handleChartItemClick}
+                />
+                <PerformanceAnalysisCard 
+                  isGeneratingInsights={isGeneratingInsights}
+                  insights={insights}
+                  handleGenerateInsights={handleGenerateInsights}
+                />
+              </div>
+               <div className="lg:col-span-3 md:grid md:grid-cols-2 lg:hidden gap-8">
+                 <DailyPlanCard 
+                    isLoadingWeeklyPlans={isLoadingWeeklyPlans}
+                    currentPlan={currentPlan} 
+                    handleToggleRoteiro={handleToggleRoteiro} 
+                  />
+                  <ActionHubCard 
+                    isLoadingUpcoming={isLoadingUpcoming}
+                    upcomingContent={upcomingContent}
+                    isLoadingIdeias={isLoadingIdeias}
+                    ideiasSalvas={ideiasSalvas}
+                    handleToggleIdeia={handleToggleIdeia}
+                    handleMarkAsPublished={handleMarkAsPublished}
+                  />
+              </div>
+            </div>
+          </Suspense>
         </div>
       </div>
     </>

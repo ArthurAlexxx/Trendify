@@ -335,7 +335,7 @@ export default function LandingPage() {
                 <Carousel className="w-full" opts={{ align: "start" }}>
                   <CarouselContent className="-ml-4">
                     {features.map((feature, index) => (
-                      <CarouselItem key={feature.title} className="pl-4 basis-[85%] md:basis-1/2">
+                      <CarouselItem key={feature.title} className="pl-4 basis-[90%] md:basis-1/2">
                          <div className="p-1 h-full">
                           <Card className="text-left h-full bg-card/50 rounded-2xl border shadow-primary-lg">
                             <CardHeader className="flex flex-row items-center justify-between">
@@ -575,7 +575,7 @@ export default function LandingPage() {
                           <Carousel className="w-full" opts={{ align: "start" }}>
                             <CarouselContent className="-ml-4">
                               {results.growthData && results.growthData.length > 0 && (
-                                <CarouselItem className="pl-4 basis-[85%]">
+                                <CarouselItem className="pl-4 basis-[90%]">
                                   <div className="p-1 h-full">
                                   <Card className="rounded-2xl border shadow-primary-lg">
                                     <CardHeader><CardTitle className="text-lg font-bold">Curva de Crescimento</CardTitle></CardHeader>
@@ -597,7 +597,7 @@ export default function LandingPage() {
                                 </CarouselItem>
                               )}
                               {(results.currentEarnings || results.goalEarnings) && (
-                                <CarouselItem className="pl-4 basis-[85%]">
+                                <CarouselItem className="pl-4 basis-[90%]">
                                   <div className="p-1 h-full">
                                   <Card className="h-full rounded-2xl border shadow-primary-lg">
                                     <CardHeader>
@@ -628,7 +628,7 @@ export default function LandingPage() {
                                 </CarouselItem>
                               )}
                                {results.accelerationScenarios && (
-                                <CarouselItem className="pl-4 basis-[85%]">
+                                <CarouselItem className="pl-4 basis-[90%]">
                                    <div className="p-1 h-full">
                                   <Card className="rounded-2xl h-full border shadow-primary-lg">
                                     <CardHeader><CardTitle className="text-lg font-bold">Cenários de Aceleração</CardTitle></CardHeader>

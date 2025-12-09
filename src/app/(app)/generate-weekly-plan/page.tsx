@@ -417,7 +417,7 @@ export default function GenerateWeeklyPlanPage() {
               <Carousel className="w-full" opts={{ align: 'start' }}>
                   <CarouselContent className="-ml-4">
                       {analysisCriteria.map((item, index) => (
-                          <CarouselItem key={index} className="pl-4 basis-full">
+                          <CarouselItem key={index} className="pl-4 basis-[90%]">
                               <Card className="h-full rounded-2xl border-0 text-center shadow-primary-lg">
                                   <CardHeader className="items-center">
                                       <CardTitle className="flex flex-col items-center gap-2">
@@ -608,8 +608,8 @@ export default function GenerateWeeklyPlanPage() {
                         <>
                         <div className="md:hidden">
                             <Carousel>
-                                <CarouselContent>
-                                    <CarouselItem>
+                                <CarouselContent className="-ml-4">
+                                    <CarouselItem className="pl-4 basis-[90%]">
                                          <Card className="shadow-primary-lg h-full">
                                             <CardHeader>
                                             <CardTitle className="text-center font-headline text-xl">
@@ -659,7 +659,7 @@ export default function GenerateWeeklyPlanPage() {
                                             </CardContent>
                                         </Card>
                                     </CarouselItem>
-                                    <CarouselItem>
+                                    <CarouselItem className="pl-4 basis-[90%]">
                                          <Card className="shadow-primary-lg h-full">
                                             <CardHeader>
                                             <CardTitle className="text-center font-headline text-xl">
@@ -680,19 +680,19 @@ export default function GenerateWeeklyPlanPage() {
                                             </CardContent>
                                         </Card>
                                     </CarouselItem>
-                                     <CarouselItem>
+                                     <CarouselItem className="pl-4 basis-[90%]">
                                         <Card className="shadow-primary-lg h-full">
                                             <CardHeader><CardTitle className="text-center flex items-center justify-center gap-2 text-lg"><Trophy className='h-5 w-5' /> Índice de Prioridade</CardTitle></CardHeader>
                                             <CardContent><ul className="space-y-2 text-base text-center">{result.priorityIndex.map(item => <li key={item} className='font-semibold'>{item}</li>)}</ul></CardContent>
                                         </Card>
                                      </CarouselItem>
-                                     <CarouselItem>
+                                     <CarouselItem className="pl-4 basis-[90%]">
                                         <Card className="shadow-primary-lg h-full">
                                             <CardHeader><CardTitle className="text-center flex items-center justify-center gap-2 text-lg"><Zap className='h-5 w-5' /> Nível de Esforço</CardTitle></CardHeader>
                                             <CardContent><p className='text-3xl font-bold text-center'>{result.effortLevel}</p></CardContent>
                                         </Card>
                                      </CarouselItem>
-                                      <CarouselItem>
+                                      <CarouselItem className="pl-4 basis-[90%]">
                                         <Card className="shadow-primary-lg h-full">
                                             <CardHeader><CardTitle className="text-center flex items-center justify-center gap-2 text-lg"><AlertTriangle className='h-5 w-5' /> Dicas de Realinhamento</CardTitle></CardHeader>
                                             <CardContent><p className='text-sm text-center'>{result.realignmentTips}</p></CardContent>

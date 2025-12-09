@@ -373,7 +373,7 @@ function MediaKitPageContent() {
                 <Carousel className="w-full" opts={{ align: 'start' }}>
                     <CarouselContent className="-ml-4">
                         {analysisCriteria.map((item, index) => (
-                            <CarouselItem key={index} className="pl-4 basis-full">
+                            <CarouselItem key={index} className="pl-4 basis-[90%]">
                                 <Card className="h-full rounded-2xl border-0 text-center shadow-primary-lg">
                                     <CardHeader className="items-center">
                                         <CardTitle className="flex flex-col items-center gap-2">
