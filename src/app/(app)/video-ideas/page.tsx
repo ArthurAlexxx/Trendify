@@ -342,22 +342,20 @@ export default function VideoIdeasPage() {
         <div className="py-8">
             <div className="md:hidden">
                 <Carousel className="w-full" opts={{ align: 'start' }}>
-                    <CarouselContent className="-ml-2 px-2">
+                    <CarouselContent className="-ml-4">
                         {analysisCriteria.map((item, index) => (
                             <CarouselItem key={index} className="pl-4 basis-[90%] pb-12">
-                                <div className='my-4 h-full'>
-                                    <Card className="relative z-10 rounded-2xl border-0 h-full text-center shadow-primary-lg">
-                                        <CardHeader className="items-center">
-                                            <CardTitle className="flex flex-col items-center gap-3">
-                                                <item.icon className="h-6 w-6 text-primary" />
-                                                <span className="text-lg font-semibold">{item.title}</span>
-                                            </CardTitle>
-                                        </CardHeader>
-                                        <CardContent className="pb-4">
-                                            <p className="text-muted-foreground text-sm">{item.description}</p>
-                                        </CardContent>
-                                    </Card>
-                                </div>
+                                <Card className="relative z-10 rounded-2xl border-0 h-full text-center shadow-primary-lg">
+                                    <CardHeader className="items-center">
+                                        <CardTitle className="flex flex-col items-center gap-3">
+                                            <item.icon className="h-6 w-6 text-primary" />
+                                            <span className="text-lg font-semibold">{item.title}</span>
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="pb-4">
+                                        <p className="text-muted-foreground text-sm">{item.description}</p>
+                                    </CardContent>
+                                </Card>
                             </CarouselItem>
                         ))}
                     </CarouselContent>
