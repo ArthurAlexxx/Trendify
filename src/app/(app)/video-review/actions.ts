@@ -1,7 +1,5 @@
-
 'use server';
 
-import { callOpenAI } from '@/lib/openai-client';
 import { z } from 'zod';
 
 const VideoAnalysisOutputSchema = z.object({
@@ -14,7 +12,6 @@ const VideoAnalysisOutputSchema = z.object({
   comparativeAnalysis: z.string().describe("Uma breve comparação do vídeo analisado com padrões de sucesso do nicho. Ex: 'Comparado a outros vídeos de receita, o seu tem uma ótima fotografia, mas o ritmo é 20% mais lento.'"),
 });
 
-
 export type VideoAnalysisOutput = z.infer<typeof VideoAnalysisOutputSchema>;
 
 type ActionState = {
@@ -22,7 +19,6 @@ type ActionState = {
   error?: string;
   isOverloaded?: boolean;
 } | null;
-
 
 const formSchema = z.object({
   videoUrl: z.string().url(),
@@ -117,8 +113,112 @@ Nada fora do JSON é permitido.`;
 
 
 /**
- * Server Action to analyze a video provided as a URL using OpenAI.
+ * Server Action to analyze a video provided as a URL using Gemini 1.5 Pro.
  */
+async function analyzeVideoWithGemini(
+  input: z.infer<typeof formSchema>
+): Promise<VideoAnalysisOutput> {
+  const { videoUrl, videoDescription, videoMimeType } = input;
+  const apiKey = process.env.GEMINI_API_KEY;
+
+  if (!apiKey) {
+    throw new Error('A chave de API do Gemini não está configurada no servidor.');
+  }
+
+  // 1. Upload the file to the Google AI File API
+  let fileUri = '';
+  try {
+    const uploadResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/files?key=${apiKey}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        file: {
+          mimeType: videoMimeType || 'video/mp4',
+          uri: videoUrl,
+          displayName: 'video-review-file',
+        },
+      }),
+    });
+
+    if (!uploadResponse.ok) {
+      const errorBody = await uploadResponse.json();
+      console.error('Google AI File API Upload Error:', errorBody);
+      throw new Error(`Falha no upload para a API do Google: ${errorBody.error?.message || 'Erro desconhecido'}`);
+    }
+
+    const uploadData = await uploadResponse.json();
+    fileUri = uploadData.file.uri;
+
+  } catch (e: any) {
+    console.error('Erro ao fazer upload do vídeo para a API do Google AI:', e);
+    throw new Error(`Falha ao fazer upload do vídeo para a API do Google AI: ${e.message}`);
+  }
+
+
+  // 2. Analyze the video using the uploaded file URI
+  try {
+     const promptWithData = systemPrompt.replace('{{videoDescription}}', videoDescription || 'N/A');
+     
+     const requestBody = {
+      contents: [
+        {
+          parts: [
+            { text: promptWithData },
+            {
+              file_data: {
+                mime_type: videoMimeType,
+                file_uri: fileUri,
+              },
+            },
+          ],
+        },
+      ],
+      generation_config: {
+        response_mime_type: "application/json",
+        response_schema: VideoAnalysisOutputSchema,
+        temperature: 0.7,
+      },
+    };
+
+    const analysisResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody),
+    });
+
+    if (!analysisResponse.ok) {
+      const errorBody = await analysisResponse.json();
+      console.error('Gemini 1.5 Pro API Error:', errorBody);
+      throw new Error(`A API Gemini retornou um erro: ${errorBody.error?.message || 'Erro desconhecido'}`);
+    }
+
+    const analysisData = await analysisResponse.json();
+    const responseText = analysisData.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!responseText) {
+      console.error('Resposta inválida do Gemini:', analysisData);
+      throw new Error('A resposta da IA não continha o JSON esperado.');
+    }
+    
+    const parsedJson = JSON.parse(responseText);
+
+    const validation = VideoAnalysisOutputSchema.safeParse(parsedJson);
+    if (!validation.success) {
+        console.error('Erro Zod:', validation.error.format());
+        throw new Error('A resposta da IA não corresponde ao schema esperado.');
+    }
+
+    return validation.data;
+
+  } catch (e: any) {
+    console.error('Erro ao analisar o vídeo com Gemini 1.5 Pro:', e);
+    throw new Error(`Falha ao analisar o vídeo com Gemini 1.5 Pro: ${e.message}`);
+  }
+}
+
+
 export async function analyzeVideo(
   input: { videoUrl: string, videoDescription?: string, videoMimeType?: string }
 ): Promise<ActionState> {
@@ -131,34 +231,20 @@ export async function analyzeVideo(
     return { error };
   }
   
-  const { videoUrl, videoDescription, videoMimeType } = parsed.data;
-
   try {
-    // A função callOpenAI foi atualizada para lidar com a URL do vídeo
-    const analysis = await callOpenAI({
-        prompt: systemPrompt,
-        jsonSchema: VideoAnalysisOutputSchema,
-        promptData: { videoDescription: videoDescription || 'N/A' },
-        videoUrl: videoUrl,
-        videoMimeType: videoMimeType,
-    });
+    const analysis = await analyzeVideoWithGemini(parsed.data);
     return { data: analysis };
-
   } catch (e: any) {
-    console.error("Falha na execução do fluxo de análise de vídeo com OpenAI:", e);
-
-    const errorMessage = e.message || '';
-    if (errorMessage.includes('429') || errorMessage.includes('503') || errorMessage.toLowerCase().includes('overloaded') || errorMessage.toLowerCase().includes('resource has been exhausted')) {
+    console.error("Falha na execução do fluxo de análise de vídeo com Gemini:", e);
+    const errorMessage = e.message || 'Erro desconhecido.';
+    
+     if (errorMessage.includes('429') || errorMessage.includes('503') || errorMessage.toLowerCase().includes('resource has been exhausted')) {
         return {
             error: 'Estamos com um grande número de requisições no momento. Por favor, aguarde alguns instantes e tente novamente.',
             isOverloaded: true,
         };
     }
     
-    const friendlyErrorMessage = errorMessage.includes('fetch') 
-      ? `Não foi possível acessar o vídeo para análise. Verifique se a URL está correta e publicamente acessível. Detalhe: ${errorMessage}`
-      : `Ocorreu um erro durante a análise: ${errorMessage || "Erro desconhecido."}`;
-
-    return { error: friendlyErrorMessage };
+    return { error: `Ocorreu um erro durante a análise: ${errorMessage}` };
   }
 }
