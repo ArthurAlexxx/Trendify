@@ -133,6 +133,18 @@ async function analyzeVideoWithGemini(
   try {
     const promptWithData = systemPrompt.replace('{{videoDescription}}', videoDescription || 'N/A');
     
+    // Convert Zod schema to a clean JSON schema for the API
+    const jsonSchema = zodToJsonSchema(VideoAnalysisOutputSchema, {
+        name: 'video_analysis_schema',
+        target: 'jsonSchema7'
+    });
+    // @ts-ignore
+    delete jsonSchema.$schema;
+    // @ts-ignore
+    delete jsonSchema.definitions;
+    // @ts-ignore
+    delete jsonSchema.$ref;
+
     const requestBody = {
      contents: [
        {
@@ -147,9 +159,13 @@ async function analyzeVideoWithGemini(
          ],
        },
      ],
+     generationConfig: {
+        response_mime_type: "application/json",
+        response_schema: jsonSchema,
+     }
    };
 
-    const analysisResponse = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key=${apiKey}`, {
+    const analysisResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody),
@@ -224,5 +240,4 @@ export async function analyzeVideo(
     return { error: `Ocorreu um erro durante a análise: ${errorMessage}` };
   }
 }
-
     
