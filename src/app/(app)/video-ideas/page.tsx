@@ -347,14 +347,14 @@ export default function VideoIdeasPage() {
                         {analysisCriteria.map((item, index) => (
                             <CarouselItem key={index} className="pl-4 basis-[90%]">
                                 <div className='my-4 h-full'>
-                                    <Card className="rounded-2xl border-0 h-full text-center shadow-primary-lg mb-4">
+                                    <Card className="rounded-2xl border-0 h-full text-center shadow-primary-lg mb-8">
                                         <CardHeader className="items-center">
                                             <CardTitle className="flex flex-col items-center gap-3">
                                                 <item.icon className="h-6 w-6 text-primary" />
                                                 <span className="text-lg font-semibold">{item.title}</span>
                                             </CardTitle>
                                         </CardHeader>
-                                        <CardContent className="pb-6">
+                                        <CardContent className="pb-4">
                                             <p className="text-muted-foreground text-base">{item.description}</p>
                                         </CardContent>
                                     </Card>
@@ -373,7 +373,7 @@ export default function VideoIdeasPage() {
                                 <span className="text-base font-semibold">{item.title}</span>
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="pb-6">
+                        <CardContent className="pb-4">
                             <p className="text-muted-foreground text-sm">{item.description}</p>
                         </CardContent>
                     </Card>
