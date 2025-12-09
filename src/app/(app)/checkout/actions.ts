@@ -26,7 +26,6 @@ const CreatePaymentSchema = z.object({
 type CreatePaymentInput = z.infer<typeof CreatePaymentSchema>;
 
 interface ActionState {
-  customerId?: string;
   checkoutUrl?: string;
   error?: string;
 }
@@ -49,7 +48,7 @@ export async function createAsaasPaymentAction(
   let appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
   
   if (appUrl.includes('localhost')) {
-    appUrl = 'https://example.com';
+    appUrl = 'https://trendify-beta.vercel.app/';
   }
 
   if (!apiKey) {
@@ -60,13 +59,23 @@ export async function createAsaasPaymentAction(
   }
   
   try {
+    // 1. Buscar endereço pelo CEP (postalCode)
+    const viaCepResponse = await fetch(`https://viacep.com.br/ws/${postalCode}/json/`);
+    if (!viaCepResponse.ok) {
+        throw new Error('Não foi possível consultar o CEP.');
+    }
+    const addressData = await viaCepResponse.json();
+    if (addressData.erro) {
+        throw new Error('CEP inválido ou não encontrado.');
+    }
+
     const price = priceMap[plan][cycle];
     const planName = `${plan.toUpperCase()} - ${cycle === 'monthly' ? 'Mensal' : 'Anual'}`;
 
     const checkoutBody = {
-        billingTypes: ['PIX'], // Simplificado para apenas PIX
+        billingTypes: ['PIX'],
         chargeTypes: ['DETACHED'],
-        externalReference: userId, // Referência para o webhook
+        externalReference: userId,
         callback: {
             successUrl: `${appUrl}/dashboard?checkout=success`,
             cancelUrl: `${appUrl}/subscribe`,
@@ -77,13 +86,15 @@ export async function createAsaasPaymentAction(
             value: price,
             quantity: 1,
         }],
-        customerData: { // Enviando dados do cliente diretamente
+        customerData: {
             name,
             cpfCnpj,
             email,
             phone,
             postalCode,
-            addressNumber
+            address: addressData.logradouro, // Usar a rua retornada pelo ViaCEP
+            addressNumber,
+            province: addressData.bairro, // Bairro
         }
     };
     
