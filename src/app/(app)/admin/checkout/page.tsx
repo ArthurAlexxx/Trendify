@@ -12,8 +12,9 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { createAsaasPaymentAction } from '@/app/(app)/admin/actions';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const formSchema = z.object({
   name: z.string().min(3, 'O nome completo é obrigatório.'),
@@ -22,6 +23,7 @@ const formSchema = z.object({
   phone: z.string().min(10, 'O telefone é obrigatório.'),
   postalCode: z.string().min(8, 'O CEP é obrigatório.'),
   addressNumber: z.string().min(1, 'O número é obrigatório.'),
+  billingType: z.enum(['PIX', 'BOLETO', 'CREDIT_CARD']),
 });
 
 type FormSchemaType = z.infer<typeof formSchema>;
@@ -42,6 +44,7 @@ export default function AdminCheckoutTestPage() {
       phone: '',
       postalCode: '',
       addressNumber: '',
+      billingType: 'PIX',
     },
   });
 
@@ -196,6 +199,29 @@ export default function AdminCheckoutTestPage() {
                     />
                 </div>
               </div>
+              
+              <FormField
+                control={form.control}
+                name="billingType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tipo de Cobrança</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="h-11">
+                          <SelectValue placeholder="Selecione o tipo de pagamento" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="PIX">PIX</SelectItem>
+                        <SelectItem value="BOLETO">Boleto</SelectItem>
+                        <SelectItem value="CREDIT_CARD">Cartão de Crédito</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
 
                {error && (
