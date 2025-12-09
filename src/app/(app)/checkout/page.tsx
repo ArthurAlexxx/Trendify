@@ -78,13 +78,13 @@ function CheckoutPageContent() {
 
       if (result.error) {
         setError(result.error);
-      } else if (result.paymentLink && result.customerId) {
+      } else if (result.checkoutUrl && result.customerId) {
         // Armazena o customerId no perfil do usuário ANTES de redirecionar
         try {
             const userRef = doc(firestore, `users/${user.uid}`);
             await updateDoc(userRef, { 'subscription.paymentId': result.customerId });
             // Redireciona para o pagamento
-            router.push(result.paymentLink);
+            router.push(result.checkoutUrl);
         } catch (e: any) {
             setError(`Ocorreu um erro ao salvar suas informações de pagamento: ${e.message}`);
         }

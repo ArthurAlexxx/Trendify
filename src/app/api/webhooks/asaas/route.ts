@@ -1,3 +1,4 @@
+
 import { NextRequest, NextResponse } from 'next/server';
 import { initializeFirebaseAdmin } from '@/firebase/admin';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
@@ -53,7 +54,6 @@ export async function POST(req: NextRequest) {
   if (event.event === 'PAYMENT_CONFIRMED') {
     const payment = event.payment;
     const userId = payment?.externalReference;
-    const paymentId = payment?.id;
     
     if (!userId) {
         console.warn('[Asaas Webhook] Received payment confirmation without a userId in externalReference.', payment);
@@ -67,11 +67,11 @@ export async function POST(req: NextRequest) {
     if (description.includes('premium')) plan = 'premium';
 
     let cycle: 'monthly' | 'annual' | null = null;
-    if (description.includes('anual')) cycle = 'annual';
-    if (description.includes('mensal')) cycle = 'monthly';
+    if (description.includes('anual') || description.includes('annual')) cycle = 'annual';
+    if (description.includes('mensal') || description.includes('monthly')) cycle = 'monthly';
     
     if (!plan || !cycle) {
-        console.warn('[Asaas Webhook] Could not determine plan or cycle from description:', description);
+        console.warn(`[Asaas Webhook] Could not determine plan or cycle from description: '${description}'`);
         return NextResponse.json({ success: true, message: 'Could not determine plan or cycle.' });
     }
 
