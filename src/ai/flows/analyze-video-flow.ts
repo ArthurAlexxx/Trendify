@@ -1,3 +1,4 @@
+
 'use server';
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
@@ -50,7 +51,7 @@ export const analyzeVideoFlow = ai.defineFlow(
     
     // Use a specific model that supports video input
     const llmResponse = await ai.generate({
-        model: 'googleai/gemini-1.5-pro',
+        model: 'googleai/gemini-2.5-flash',
         prompt: analysisPrompt,
         input: input,
         config: {
