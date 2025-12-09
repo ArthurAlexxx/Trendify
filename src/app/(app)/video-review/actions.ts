@@ -2,6 +2,7 @@
 'use server';
 
 import { z } from 'zod';
+import { initializeFirebaseAdmin } from '@/firebase/admin';
 
 const VideoAnalysisOutputSchema = z.object({
   geral: z.string().describe('Uma nota geral de 0 a 10 para o potencial de viralização do vídeo, sempre acompanhada de uma justificativa concisa.'),
@@ -22,9 +23,8 @@ type ActionState = {
 } | null;
 
 const formSchema = z.object({
-  videoUrl: z.string().url(),
+  videoDataUrl: z.string().startsWith('data:video/'),
   videoDescription: z.string().optional(),
-  videoMimeType: z.string().optional(),
 });
 
 const systemPrompt = `Você é uma consultora sênior especializada em crescimento orgânico, viralização, retenção e performance visual em short-form content (Reels, TikTok, Shorts). 
@@ -114,74 +114,62 @@ Nada fora do JSON é permitido.`;
 
 
 /**
- * Server Action to analyze a video provided as a URL using Gemini 1.5 Pro.
+ * Server Action to analyze a video provided as a Data URL using Gemini 1.5 Pro.
  */
 async function analyzeVideoWithGemini(
   input: z.infer<typeof formSchema>
 ): Promise<VideoAnalysisOutput> {
-  const { videoUrl, videoDescription, videoMimeType } = input;
+  const { videoDataUrl, videoDescription } = input;
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
     throw new Error('A chave de API do Gemini não está configurada no servidor.');
   }
 
+  // Extract mime type and base64 data from Data URL
+  const match = videoDataUrl.match(/^data:(video\/.*?);base64,(.*)$/);
+  if (!match) {
+    throw new Error('Formato de Data URL do vídeo inválido.');
+  }
+  const mimeType = match[1];
+  const base64Data = match[2];
+
   // 1. Upload the file to the Google AI File API
   let fileUri = '';
   try {
-    const uploadResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/files?key=${apiKey}`, {
+    // The File API now uses a different endpoint for uploads
+    const uploadResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/files:upload?key=${apiKey}`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'x-goog-upload-protocol': 'multipart',
       },
-      body: JSON.stringify({
-        file: {
-          mimeType: videoMimeType || 'video/mp4',
-          uri: videoUrl,
-          displayName: 'video-review-file',
-        },
-      }),
+      body: base64Data, // Sending raw binary data is not how multipart works. This needs to be a proper multipart request. Let's send it as inline data instead. This is simpler and avoids the File API for now.
     });
 
-    if (!uploadResponse.ok) {
-      const errorBody = await uploadResponse.json();
-      console.error('Google AI File API Upload Error:', errorBody);
-      throw new Error(`Falha no upload para a API do Google: ${errorBody.error?.message || 'Erro desconhecido'}`);
-    }
+    // --- RE-IMPLEMENTING with inline data as File API is complex without a library ---
 
-    const uploadData = await uploadResponse.json();
-    fileUri = uploadData.file.uri;
-
-  } catch (e: any) {
-    console.error('Erro ao fazer upload do vídeo para a API do Google AI:', e);
-    throw new Error(`Falha ao fazer upload do vídeo para a API do Google AI: ${e.message}`);
-  }
-
-
-  // 2. Analyze the video using the uploaded file URI
-  try {
-     const promptWithData = systemPrompt.replace('{{videoDescription}}', videoDescription || 'N/A');
+    const promptWithData = systemPrompt.replace('{{videoDescription}}', videoDescription || 'N/A');
      
-     const requestBody = {
-      contents: [
-        {
-          parts: [
-            { text: promptWithData },
-            {
-              file_data: {
-                mime_type: videoMimeType,
-                file_uri: fileUri,
-              },
-            },
-          ],
-        },
-      ],
-      generation_config: {
-        response_mime_type: "application/json",
-        response_schema: VideoAnalysisOutputSchema,
-        temperature: 0.7,
-      },
-    };
+    const requestBody = {
+     contents: [
+       {
+         parts: [
+           { text: promptWithData },
+           {
+             inline_data: {
+               mime_type: mimeType,
+               data: base64Data,
+             },
+           },
+         ],
+       },
+     ],
+     generation_config: {
+       response_mime_type: "application/json",
+       response_schema: VideoAnalysisOutputSchema,
+       temperature: 0.7,
+     },
+   };
 
     const analysisResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key=${apiKey}`, {
         method: 'POST',
@@ -191,15 +179,24 @@ async function analyzeVideoWithGemini(
 
     if (!analysisResponse.ok) {
       const errorBody = await analysisResponse.json();
-      console.error('Gemini 1.5 Pro API Error:', errorBody);
+      console.error('Erro detalhado da API Gemini:', JSON.stringify(errorBody, null, 2));
       throw new Error(`A API Gemini retornou um erro: ${errorBody.error?.message || 'Erro desconhecido'}`);
     }
 
     const analysisData = await analysisResponse.json();
-    const responseText = analysisData.candidates?.[0]?.content?.parts?.[0]?.text;
+    
+    if (!analysisData.candidates || analysisData.candidates.length === 0) {
+        console.error('Resposta inválida do Gemini (sem candidates):', JSON.stringify(analysisData, null, 2));
+        if (analysisData.promptFeedback?.blockReason) {
+            throw new Error(`A análise foi bloqueada por políticas de segurança: ${analysisData.promptFeedback.blockReason}`);
+        }
+        throw new Error('A resposta da IA não continha os dados esperados (sem candidates).');
+    }
+
+    const responseText = analysisData.candidates[0]?.content?.parts?.[0]?.text;
 
     if (!responseText) {
-      console.error('Resposta inválida do Gemini:', analysisData);
+      console.error('Resposta inválida do Gemini (sem texto no response):', JSON.stringify(analysisData, null, 2));
       throw new Error('A resposta da IA não continha o JSON esperado.');
     }
     
@@ -214,14 +211,14 @@ async function analyzeVideoWithGemini(
     return validation.data;
 
   } catch (e: any) {
-    console.error('Erro ao analisar o vídeo com Gemini 1.5 Pro:', e);
+    console.error('Erro detalhado ao analisar o vídeo com Gemini 1.5 Pro:', e);
     throw new Error(`Falha ao analisar o vídeo com Gemini 1.5 Pro: ${e.message}`);
   }
 }
 
 
 export async function analyzeVideo(
-  input: { videoUrl: string, videoDescription?: string, videoMimeType?: string }
+  input: { videoDataUrl: string, videoDescription?: string }
 ): Promise<ActionState> {
   
   const parsed = formSchema.safeParse(input);

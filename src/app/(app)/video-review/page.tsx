@@ -63,7 +63,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 
 
-type AnalysisStatus = "idle" | "uploading" | "loading" | "success" | "error";
+type AnalysisStatus = "idle" | "loading" | "success" | "error";
 const MAX_FILE_SIZE_MB = 70;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
@@ -128,7 +128,6 @@ function VideoReviewPageContent() {
   const [analysisStatus, setAnalysisStatus] = useState<AnalysisStatus>("idle");
   const [analysisResult, setAnalysisResult] = useState<VideoAnalysisOutput | null>(null);
   const [analysisError, setAnalysisError] = useState<string>("");
-  const [uploadProgress, setUploadProgress] = useState(0);
   const [activeTab, setActiveTab] = useState("generate");
   const [videoDescription, setVideoDescription] = useState("");
 
@@ -229,7 +228,6 @@ function VideoReviewPageContent() {
     setAnalysisStatus("idle");
     setAnalysisResult(null);
     setAnalysisError("");
-    setUploadProgress(0);
     setActiveTab("generate");
   };
 
@@ -253,87 +251,73 @@ function VideoReviewPageContent() {
     }
     
     setActiveTab("result");
-    setAnalysisStatus("uploading");
+    setAnalysisStatus("loading");
     setAnalysisError("");
 
-    const { firebaseApp } = initializeFirebase();
-    const storage = getStorage(firebaseApp);
-    const storagePath = `video-reviews/${user.uid}/${file.name}`;
-    const storageRef = ref(storage, storagePath);
-    const uploadTask = uploadBytesResumable(storageRef, file);
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = async () => {
+        const videoDataUrl = reader.result as string;
 
-    uploadTask.on('state_changed',
-      (snapshot) => {
-        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        setUploadProgress(progress);
-      },
-      (error) => {
-        console.error("Upload error:", error);
-        setAnalysisError("Falha no upload do vídeo. Tente novamente.");
-        setAnalysisStatus("error");
-        toast({
-          title: 'Erro no Upload',
-          description: `Não foi possível enviar seu vídeo. (${error.code})`,
-          variant: 'destructive'
-        });
-      },
-      async () => {
         try {
-          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-          setAnalysisStatus("loading");
+            const result = await analyzeVideo({ 
+              videoDataUrl, 
+              videoDescription,
+            });
 
-          const result = await analyzeVideo({ 
-            videoUrl: downloadURL, 
-            videoDescription,
-            videoMimeType: file.type
-          });
-
-          if (result?.isOverloaded) {
-              setAnalysisError(result.error || "Servidor sobrecarregado.");
-              setAnalysisStatus("error");
-              return;
-          }
-
-          if (result && result.data) {
-            setAnalysisResult(result.data);
-            setAnalysisStatus("success");
-
-            // Update usage log
-            const usageDocRef = doc(firestore, `users/${user.uid}/dailyUsage/${todayStr}`);
-            const usageDocSnap = await getDoc(usageDocRef);
-            if(usageDocSnap.exists()){
-                await updateDoc(usageDocRef, { videoAnalyses: increment(1) });
-            } else {
-                await setDoc(usageDocRef, {
-                    date: todayStr,
-                    videoAnalyses: 1,
-                    geracoesAI: 0,
-                });
+            if (result?.isOverloaded) {
+                setAnalysisError(result.error || "Servidor sobrecarregado.");
+                setAnalysisStatus("error");
+                return;
             }
 
-            // Save analysis result
-            await addDoc(collection(firestore, `users/${user.uid}/analisesVideo`), {
-                userId: user.uid,
-                videoUrl: downloadURL,
-                videoFileName: file.name,
-                analysisData: { ...result.data, videoDescription },
-                createdAt: serverTimestamp(),
-            });
+            if (result && result.data) {
+                setAnalysisResult(result.data);
+                setAnalysisStatus("success");
 
-            toast({
-              title: "Análise Concluída",
-              description: "A análise do seu vídeo está pronta.",
-            });
-          } else {
-            throw new Error(result?.error || "A análise não produziu um resultado.");
-          }
+                // Update usage log
+                const usageDocRef = doc(firestore, `users/${user.uid}/dailyUsage/${todayStr}`);
+                const usageDocSnap = await getDoc(usageDocRef);
+                if(usageDocSnap.exists()){
+                    await updateDoc(usageDocRef, { videoAnalyses: increment(1) });
+                } else {
+                    await setDoc(usageDocRef, {
+                        date: todayStr,
+                        videoAnalyses: 1,
+                        geracoesAI: 0,
+                    });
+                }
+                
+                // We are not saving the video to storage anymore in this flow
+                // so we don't have a URL to save. We could save the base64 but it's too large for firestore.
+                // We will save the analysis but not the video file itself.
+                 await addDoc(collection(firestore, `users/${user.uid}/analisesVideo`), {
+                    userId: user.uid,
+                    videoUrl: null, // No public URL available
+                    videoFileName: file.name,
+                    analysisData: { ...result.data, videoDescription },
+                    createdAt: serverTimestamp(),
+                });
+
+
+                toast({
+                title: "Análise Concluída",
+                description: "A análise do seu vídeo está pronta.",
+                });
+            } else {
+                throw new Error(result?.error || "A análise não produziu um resultado.");
+            }
         } catch (e: any) {
-          setAnalysisError(e.message || "Ocorreu um erro desconhecido.");
-          setAnalysisStatus("error");
-          toast({ title: "Falha na Análise", description: e.message, variant: "destructive" });
+            setAnalysisError(e.message || "Ocorreu um erro desconhecido.");
+            setAnalysisStatus("error");
+            toast({ title: "Falha na Análise", description: e.message, variant: "destructive" });
         }
-      }
-    );
+    };
+    reader.onerror = (error) => {
+        console.error("Error reading file:", error);
+        setAnalysisError("Falha ao ler o arquivo de vídeo.");
+        setAnalysisStatus("error");
+    };
   };
 
   const getNoteParts = (geralText: string | undefined): { note: string, description: string } => {
@@ -443,7 +427,7 @@ function VideoReviewPageContent() {
           <TabsTrigger value="generate">Analisar Vídeo</TabsTrigger>
           <TabsTrigger value="result" disabled={!file}>
             Resultado
-             {(analysisStatus === 'loading' || analysisStatus === 'uploading') && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
+             {(analysisStatus === 'loading') && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
           </TabsTrigger>
         </TabsList>
         <TabsContent value="generate">
@@ -498,7 +482,7 @@ function VideoReviewPageContent() {
                                 <p className="text-sm text-muted-foreground">{new Intl.NumberFormat('pt-BR', { style: 'unit', unit: 'megabyte', unitDisplay: 'short' }).format(file.size / 1024 / 1024)}</p>
                             </div>
                             <div className="flex w-full sm:w-auto flex-col sm:flex-row gap-2">
-                                <Button onClick={handleAnalyzeVideo} disabled={analysisStatus === 'loading' || analysisStatus === 'uploading' || hasReachedLimit} className="w-full sm:w-auto">
+                                <Button onClick={handleAnalyzeVideo} disabled={analysisStatus === 'loading' || hasReachedLimit} className="w-full sm:w-auto">
                                 <><Sparkles className="mr-2" />Analisar Vídeo</>
                                 </Button>
                                 <Button onClick={handleReset} variant="outline" className="w-full sm:w-auto">
@@ -543,22 +527,12 @@ function VideoReviewPageContent() {
                         </p>
                         </div>
                     </div>
-
-                    {analysisStatus === 'uploading' && (
-                        <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-96">
-                            <Loader2 className="h-10 w-10 animate-spin text-primary" />
-                            <p className="mt-4 text-muted-foreground">Enviando vídeo para análise...</p>
-                             <div className="mt-4 w-1/2">
-                                <Progress value={uploadProgress} />
-                             </div>
-                        </div>
-                    )}
                     
                     {analysisStatus === 'loading' && (
                         <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-96">
                             <Loader2 className="h-10 w-10 animate-spin text-primary" />
-                            <p className="mt-4 text-muted-foreground">Processando seu vídeo...</p>
-                            <p className="text-sm text-muted-foreground">Isso pode levar alguns instantes.</p>
+                            <p className="mt-4 text-muted-foreground">Analisando seu vídeo...</p>
+                            <p className="text-sm text-muted-foreground">Isso pode levar até 1 minuto.</p>
                         </div>
                     )}
                     
