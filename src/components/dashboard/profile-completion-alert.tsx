@@ -14,6 +14,7 @@ interface ProfileCompletionAlertProps {
 export function ProfileCompletionAlert({ userProfile, isPremium }: ProfileCompletionAlertProps) {
     const hasAnyPlatform = userProfile.instagramHandle || userProfile.tiktokHandle;
 
+    // Alerta para completar o nicho, continua sendo o mais prioritário.
     if (!userProfile.niche) {
       return (
           <Alert>
@@ -26,7 +27,9 @@ export function ProfileCompletionAlert({ userProfile, isPremium }: ProfileComple
       )
     }
 
-    if (!hasAnyPlatform && isPremium) {
+    // Alerta para conectar plataformas, agora visível para todos os usuários (free, pro, premium)
+    // que ainda não conectaram nenhuma conta.
+    if (!hasAnyPlatform) {
          return (
              <Alert>
                 <div className='flex flex-col sm:flex-row justify-between items-center gap-4'>
@@ -49,26 +52,7 @@ export function ProfileCompletionAlert({ userProfile, isPremium }: ProfileComple
             </Alert>
          )
     }
-     if (!isPremium) {
-         return (
-             <Alert>
-                <div className='flex flex-col sm:flex-row justify-between items-center gap-4'>
-                    <div className='text-center sm:text-left'>
-                        <AlertTitle className="flex items-center justify-center sm:justify-start gap-2">
-                           <Crown className="h-4 w-4 text-yellow-500" />
-                           Recurso Premium Disponível
-                        </AlertTitle>
-                        <AlertDescription>
-                           Faça upgrade para o Premium e conecte suas redes para atualizar métricas automaticamente.
-                        </AlertDescription>
-                    </div>
-                    <Button asChild className='w-full sm:w-auto'>
-                       <Link href="/subscribe">Ver Planos</Link>
-                    </Button>
-                </div>
-            </Alert>
-         )
-    }
     
+    // Não exibe nenhum alerta se o nicho estiver preenchido e pelo menos uma plataforma estiver conectada.
     return null;
 }
