@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { PageHeader } from '@/components/page-header';
@@ -36,17 +35,18 @@ export default function FinancialAdminPage() {
 
   const getEventType = (type: string) => {
     const types: Record<string, string> = {
-      'billing.paid': 'Pagamento Aprovado',
-      'billing.failed': 'Pagamento Falhou',
+      'PAYMENT_CONFIRMED': 'Pagamento Confirmado',
+      'PAYMENT_RECEIVED': 'Pagamento Recebido',
+      'PAYMENT_FAILED': 'Pagamento Falhou',
     };
     return types[type] || type;
   };
   
   const getEventIcon = (isSuccess: boolean, eventType: string) => {
-    if (eventType === 'billing.paid') {
+    if (eventType === 'PAYMENT_CONFIRMED' || eventType === 'PAYMENT_RECEIVED') {
       return <ArrowUpCircle className="h-5 w-5 text-green-500" />;
     }
-    if (eventType === 'billing.failed') {
+    if (eventType === 'PAYMENT_FAILED') {
       return <ArrowDownCircle className="h-5 w-5 text-red-500" />;
     }
     return <AlertCircle className="h-5 w-5 text-yellow-500" />;
@@ -55,16 +55,16 @@ export default function FinancialAdminPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Financeiro"
-        description="Histórico de transações da plataforma."
+        title="Financeiro & Webhooks"
+        description="Histórico de transações e eventos recebidos do gateway de pagamento."
         icon={DollarSign}
       />
 
       <Card className="shadow-primary-lg">
         <CardHeader>
-          <CardTitle className="text-center">Histórico de Transações</CardTitle>
+          <CardTitle className="text-center">Logs de Webhooks (Asaas)</CardTitle>
           <CardDescription className="text-center">
-            Logs de eventos recebidos pelo gateway de pagamento.
+            Visualize em tempo real todos os eventos de pagamento recebidos pela plataforma.
           </CardDescription>
         </CardHeader>
         <CardContent>

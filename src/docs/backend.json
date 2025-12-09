@@ -182,7 +182,7 @@
         },
         "eventType": {
           "type": "string",
-          "description": "The type of event (e.g., 'billing.paid')."
+          "description": "The type of event (e.g., 'PAYMENT_CONFIRMED')."
         },
         "payload": {
           "type": "object",
@@ -359,12 +359,13 @@
       "type": "object",
       "properties": {
         "userId": { "type": "string", "description": "O ID do usuário que solicitou a análise." },
+        "analysisName": { "type": "string", "description": "O nome personalizado para a análise."},
         "videoUrl": { "type": "string", "format": "uri", "description": "A URL do vídeo armazenado no Firebase Storage." },
         "videoFileName": { "type": "string", "description": "O nome original do arquivo de vídeo." },
         "analysisData": { "type": "object", "description": "O objeto JSON contendo os dados da análise da IA." },
         "createdAt": { "type": "string", "format": "date-time", "description": "O timestamp de quando a análise foi criada." }
       },
-      "required": ["userId", "videoUrl", "videoFileName", "analysisData", "createdAt"]
+      "required": ["userId", "videoUrl", "analysisData", "createdAt"]
     }
   },
   "auth": {

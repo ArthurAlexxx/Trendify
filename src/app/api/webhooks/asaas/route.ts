@@ -49,9 +49,11 @@ export async function POST(req: NextRequest) {
   }
 
   // Log all incoming events for auditing
-  await logWebhook(firestore, event, event.event === 'PAYMENT_CONFIRMED');
+  // Determine if the event is a success type for logging
+  const isSuccessEvent = ['PAYMENT_CONFIRMED', 'PAYMENT_RECEIVED'].includes(event.event);
+  await logWebhook(firestore, event, isSuccessEvent);
 
-  if (event.event === 'PAYMENT_CONFIRMED') {
+  if (isSuccessEvent) {
     const payment = event.payment;
     const userId = payment?.externalReference;
     

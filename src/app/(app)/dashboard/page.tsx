@@ -23,6 +23,7 @@ import {
   Loader2,
   PlayCircle,
   Upload,
+  CheckCircle,
 } from 'lucide-react';
 import type {
   IdeiaSalva,
@@ -53,6 +54,7 @@ import { Progress } from '@/components/ui/progress';
 import { getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/storage';
 import { initializeFirebase } from '@/firebase';
 import { updateProfile } from 'firebase/auth';
+import { useSearchParams } from 'next/navigation';
 
 const GoalCard = dynamic(() => import('@/components/dashboard/goal-card'), {
   loading: () => <Skeleton className="h-full min-h-[380px]" />,
@@ -94,6 +96,27 @@ function DashboardSkeleton() {
       </div>
     </div>
   );
+}
+
+function CheckoutStatusHandler() {
+    const searchParams = useSearchParams();
+    const { toast } = useToast();
+    const [hasShownToast, setHasShownToast] = useState(false);
+
+    useEffect(() => {
+        const checkoutStatus = searchParams.get('checkout');
+        if (checkoutStatus === 'success' && !hasShownToast) {
+            toast({
+                title: "Pagamento Aprovado!",
+                description: "Seu plano foi atualizado. Bem-vindo(a) à experiência completa!",
+                icon: <CheckCircle className="h-5 w-5 text-green-500" />,
+                duration: 8000,
+            });
+            setHasShownToast(true);
+        }
+    }, [searchParams, toast, hasShownToast]);
+
+    return null;
 }
 
 
@@ -309,6 +332,9 @@ export default function DashboardPage() {
   
   return (
     <>
+      <Suspense fallback={null}>
+        <CheckoutStatusHandler />
+      </Suspense>
       <div className="space-y-8">
         <PageHeader
           icon={!userProfile?.photoURL ? LayoutGrid : undefined}
