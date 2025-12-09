@@ -2,7 +2,7 @@
 'use client';
 
 import { Button, buttonVariants } from '@/components/ui/button';
-import { ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogTrigger, ResponsiveDialogHeader, ResponsiveDialogTitle, ResponsiveDialogDescription, ResponsiveDialogClose } from '@/components/ui/responsive-dialog';
+import { ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogTrigger, ResponsiveDialogHeader, ResponsiveDialogTitle, ResponsiveDialogDescription, ResponsiveDialogClose, ResponsiveDialogFooter } from '@/components/ui/responsive-dialog';
 import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import { IdeiaSalva } from '@/lib/types';
 import { collection, orderBy, query, doc, deleteDoc } from 'firebase/firestore';
@@ -12,7 +12,7 @@ import { ptBR } from 'date-fns/locale';
 import { Badge } from './ui/badge';
 import { ScrollArea } from './ui/scroll-area';
 import React, { useState } from 'react';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from './ui/alert-dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter as AlertFooter, AlertDialogHeader, AlertDialogTitle } from './ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 
@@ -89,7 +89,7 @@ export function SavedIdeasSheet() {
   return (
     <>
     <ResponsiveDialog isOpen={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <ResponsiveDialogTrigger>
+        <ResponsiveDialogTrigger asChild>
             <Button variant="outline">
                 <BookMarked className="mr-2 h-4 w-4" />
                 Salvos
@@ -176,12 +176,12 @@ export function SavedIdeasSheet() {
             O item "{ideaToDelete?.titulo}" será removido permanentemente. Esta ação não pode ser desfeita.
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter>
+        <AlertFooter>
           <AlertDialogCancel onClick={() => setIdeaToDelete(null)}>Cancelar</AlertDialogCancel>
           <AlertDialogAction onClick={handleDelete}>
             Sim, Excluir
           </AlertDialogAction>
-        </AlertDialogFooter>
+        </AlertFooter>
       </AlertDialogContent>
     </AlertDialog>
     </>
