@@ -2,7 +2,6 @@
 'use server';
 
 import { callOpenAI } from '@/lib/openai-client';
-import { callGoogleAI } from '@/lib/google-ai-client';
 import { z } from 'zod';
 
 const VideoAnalysisOutputSchema = z.object({
@@ -36,10 +35,10 @@ Sua função é analisar profundamente o vídeo enviado e fornecer uma avaliaç�
 A data atual é dezembro de 2025.
 
 ⚠️ SUA RESPOSTA DEVE SER:
-- EXCLUSIVAMENTE um objeto JSON válido que será usado como argumentos para a função 'output_formatter'.
-- estritamente compatível com o schema Zod fornecido
-- sem comentários, explicações ou texto fora do JSON
-- sem quebras de estrutura ou campos extras
+- EXCLUSIVAMENTE um objeto JSON válido que corresponda ao schema fornecido.
+- estritamente compatível com o schema Zod.
+- sem comentários, explicações ou texto fora do JSON.
+- sem quebras de estrutura ou campos extras.
 
 -----------------------------------------------------
 INSTRUÇÕES AVANÇADAS DE ANÁLISE
@@ -113,13 +112,12 @@ Inclua **uma vantagem** e **uma desvantagem**.
 - Descrição: {{videoDescription}}
 - O conteúdo do vídeo está sendo fornecido diretamente. Analise-o.
 
-Agora gere o JSON final para a função 'output_formatter' obedecendo rigorosamente o schema informado.
+Agora gere o JSON final estritamente de acordo com o schema informado.
 Nada fora do JSON é permitido.`;
 
 
-
 /**
- * Server Action to analyze a video provided as a URL.
+ * Server Action to analyze a video provided as a URL using OpenAI.
  */
 export async function analyzeVideo(
   input: { videoUrl: string, videoDescription?: string, videoMimeType?: string }
@@ -136,17 +134,18 @@ export async function analyzeVideo(
   const { videoUrl, videoDescription, videoMimeType } = parsed.data;
 
   try {
-    const analysis = await callGoogleAI({
+    // A função callOpenAI foi atualizada para lidar com a URL do vídeo
+    const analysis = await callOpenAI({
         prompt: systemPrompt,
         jsonSchema: VideoAnalysisOutputSchema,
         promptData: { videoDescription: videoDescription || 'N/A' },
         videoUrl: videoUrl,
-        videoMimeType: videoMimeType || 'video/mp4',
+        videoMimeType: videoMimeType,
     });
     return { data: analysis };
 
   } catch (e: any) {
-    console.error("Falha na execução do fluxo de análise de vídeo:", e);
+    console.error("Falha na execução do fluxo de análise de vídeo com OpenAI:", e);
 
     const errorMessage = e.message || '';
     if (errorMessage.includes('429') || errorMessage.includes('503') || errorMessage.toLowerCase().includes('overloaded') || errorMessage.toLowerCase().includes('resource has been exhausted')) {

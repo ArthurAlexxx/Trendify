@@ -1,3 +1,4 @@
+
 'use server';
 
 import { z } from 'zod';
@@ -10,61 +11,34 @@ if (!Handlebars.helpers.json) {
     });
 }
 
-// Converter vídeo para base64
-async function urlToGenerativePart(url: string, mimeType: string) {
-    const response = await fetch(url);
-    if (!response.ok) {
-        throw new Error(`Failed to fetch video from URL: ${url}`);
-    }
-    const buffer = await response.arrayBuffer();
-    const base64Data = Buffer.from(buffer).toString('base64');
-
-    return {
-        inline_data: {
-            mime_type: mimeType,
-            data: base64Data,
-        },
-    };
-}
-
+// Esta função não é mais usada para análise de vídeo, mas pode ser usada em outros lugares.
+// Portanto, a lógica de vídeo foi removida dela.
 interface CallGoogleAIParams<T extends z.ZodType<any, any, any>> {
     prompt: string;
     jsonSchema: T;
     promptData: Record<string, any>;
-    videoUrl?: string;
-    videoMimeType?: string;
 }
 
 export async function callGoogleAI<T extends z.ZodType<any, any, any>>(
     params: CallGoogleAIParams<T>
 ): Promise<z.infer<T>> {
-    const { prompt, jsonSchema, promptData, videoUrl, videoMimeType } = params;
+    const { prompt, jsonSchema, promptData } = params;
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
         throw new Error('A chave de API do Gemini não está configurada.');
     }
 
-    // Prompt instruindo saída JSON exato
     const template = Handlebars.compile(prompt);
     const processedPrompt =
         template(promptData) +
         "\n\nIMPORTANT: Return ONLY a valid JSON object. No markdown, no explanations.";
 
-    const parts: any[] = [];
-
-    // Se tiver vídeo, adiciona primeiro
-    if (videoUrl && videoMimeType) {
-        parts.push(await urlToGenerativePart(videoUrl, videoMimeType));
-    }
-
-    parts.push({ text: processedPrompt });
-
     const body = {
         contents: [
             {
                 role: 'user',
-                parts,
+                parts: [{ text: processedPrompt }],
             },
         ],
         generation_config: {
@@ -75,7 +49,7 @@ export async function callGoogleAI<T extends z.ZodType<any, any, any>>(
 
     try {
         const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${apiKey}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

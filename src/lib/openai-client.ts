@@ -12,17 +12,38 @@ if (!Handlebars.helpers.json) {
     });
 }
 
+// Converte uma URL de mídia para a representação base64 que a API da OpenAI espera.
+async function mediaUrlToGenerativePart(url: string, mimeType: string) {
+    const response = await fetch(url);
+    if (!response.ok) {
+        throw new Error(`Falha ao buscar a mídia da URL: ${url}`);
+    }
+    const buffer = await response.arrayBuffer();
+    const base64Data = Buffer.from(buffer).toString('base64');
+    
+    // Para vídeos, o GPT-4o espera que a URL seja passada no formato `image_url`.
+    // Isso é contraintuitivo, mas é como a API funciona para análise de vídeo no momento.
+    return {
+        type: "image_url",
+        image_url: {
+            url: `data:${mimeType};base64,${base64Data}`,
+        },
+    };
+}
+
+
 interface CallOpenAIParams<T extends z.ZodType<any, any, any>> {
   prompt: string;
   jsonSchema: T;
   promptData: Record<string, any>;
-  videoUrl?: string; // Tornar opcional
+  videoUrl?: string;
+  videoMimeType?: string;
 }
 
 export async function callOpenAI<T extends z.ZodType<any, any, any>>(
   params: CallOpenAIParams<T>
 ): Promise<z.infer<T>> {
-  const { prompt, jsonSchema, promptData, videoUrl } = params;
+  const { prompt, jsonSchema, promptData, videoUrl, videoMimeType } = params;
 
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
@@ -40,14 +61,9 @@ export async function callOpenAI<T extends z.ZodType<any, any, any>>(
 
   // Monta o conteúdo do usuário
   const userContent: any[] = [{ type: 'text', text: processedPrompt }];
-  if (videoUrl) {
-    // Para o modelo gpt-4o, vídeos são enviados via 'image_url'.
-    userContent.push({
-        type: 'image_url',
-        image_url: {
-            url: videoUrl
-        }
-    });
+  if (videoUrl && videoMimeType) {
+    // Adiciona o vídeo em base64 à requisição
+    userContent.push(await mediaUrlToGenerativePart(videoUrl, videoMimeType));
   }
   
   const body = {
