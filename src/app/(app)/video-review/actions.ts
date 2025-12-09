@@ -1,3 +1,4 @@
+
 'use server';
 
 import { analyzeVideo as analyzeVideoFlow, type AnalyzeVideoOutput } from '@/ai/flows/analyze-video-flow';
@@ -9,23 +10,20 @@ import { FieldValue } from 'firebase-admin/firestore';
  */
 export const analyzeVideo = analyzeVideoFlow;
 
+interface SaveAnalysisParams {
+    userId: string;
+    videoFileName?: string;
+    analysisData: AnalyzeVideoOutput;
+    videoDescription: string;
+}
+
 /**
  * Saves the video analysis result to Firestore.
- * @param userId - The ID of the user.
- * @param videoUrl - The public URL of the video in Firebase Storage.
- * @param videoFileName - The original name of the video file.
- * @param dataToSave - An object containing the analysisData and videoDescription.
  */
-export async function saveAnalysisToFirestore(
-  userId: string,
-  videoUrl: string,
-  videoFileName: string,
-  dataToSave: {
-    analysisData: AnalyzeVideoOutput,
-    videoDescription: string
-  }
-) {
-  if (!userId || !videoUrl || !videoFileName || !dataToSave.analysisData) {
+export async function saveAnalysisToFirestore(params: SaveAnalysisParams): Promise<{ success: boolean; error?: string }> {
+  const { userId, videoFileName, analysisData, videoDescription } = params;
+
+  if (!userId || !analysisData) {
     throw new Error('Dados insuficientes para salvar a análise.');
   }
 
@@ -35,10 +33,10 @@ export async function saveAnalysisToFirestore(
   try {
     await analysisCollectionRef.add({
       userId,
-      videoUrl,
-      videoFileName,
-      analysisData: dataToSave.analysisData,
-      videoDescription: dataToSave.videoDescription,
+      videoUrl: null, // Video URL is no longer saved
+      videoFileName: videoFileName || "Nome do arquivo não disponível",
+      analysisData,
+      videoDescription: videoDescription,
       createdAt: FieldValue.serverTimestamp(),
     });
     return { success: true };

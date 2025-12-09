@@ -86,9 +86,10 @@ export interface ConteudoAgendado {
 export interface AnaliseVideo {
     id: string;
     userId: string;
-    videoUrl: string;
-    videoFileName: string;
+    videoUrl?: string; // Made optional
+    videoFileName?: string; // Made optional
     analysisData: any; // O objeto JSON da análise
+    videoDescription?: string; // Added field for user prompt
     createdAt: Timestamp;
 }
 
