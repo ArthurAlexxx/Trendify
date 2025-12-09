@@ -1,13 +1,12 @@
 "use client";
 
-import { useState, useCallback, useRef, type ChangeEvent, type DragEvent, useEffect, useId } from "react";
+import { useState, useRef, type ChangeEvent } from "react";
 import {
   UploadCloud,
   Loader2,
   Sparkles,
   Clapperboard,
   Check,
-  Save,
   Video,
   XCircle,
   Lightbulb,
@@ -32,7 +31,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { analyzeVideo, type AnalyzeVideoOutput } from "@/ai/flows/analyze-video-flow";
+import { type AnalyzeVideoOutput } from "@/ai/flows/analyze-video-flow";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PageHeader } from "@/components/page-header";
 import {
@@ -41,14 +40,13 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from "@/firebase";
-import { collection, addDoc, serverTimestamp, doc, setDoc, increment, query, orderBy, limit, getDoc, updateDoc, onSnapshot } from "firebase/firestore";
-import { useTransition } from "react";
+import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
+import { collection, doc, setDoc, increment, query, orderBy, limit, getDoc, onSnapshot } from "firebase/firestore";
 import { Separator } from "@/components/ui/separator";
 import { useSubscription } from '@/hooks/useSubscription';
-import { Plan, AnaliseVideo } from "@/lib/types";
+import { Plan } from "@/lib/types";
 import Link from "next/link";
-import type { DailyUsage } from '@/lib/types';
+import type { DailyUsage, AnaliseVideo } from '@/lib/types';
 import { format as formatDate, formatDistanceToNow } from 'date-fns';
 import { ptBR } from "date-fns/locale";
 import { useRouter } from "next/navigation";
@@ -60,9 +58,10 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { analyzeVideo, saveAnalysisToFirestore } from "./actions";
 
 
-type AnalysisStatus = "idle" | "loading" | "success" | "error";
+type AnalysisStatus = "idle" | "uploading" | "analyzing" | "success" | "error";
 const MAX_FILE_SIZE_MB = 70;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
@@ -72,7 +71,7 @@ const PLAN_LIMITS: Record<Exclude<Plan, 'free'>, number> = {
 };
 
 function FeatureGuard({ children }: { children: React.ReactNode }) {
-    const { subscription, isLoading, isTrialActive, trialDaysLeft } = useSubscription();
+    const { subscription, isLoading, isTrialActive } = useSubscription();
     const router = useRouter();
 
     if (isLoading) {
@@ -95,7 +94,7 @@ function FeatureGuard({ children }: { children: React.ReactNode }) {
                    </div>
                   <AlertDialogTitle className="font-headline text-xl">Funcionalidade Indisponível</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Seu teste gratuito acabou. A Análise de Vídeo é um recurso para assinantes Pro ou Premium.
+                    A Análise de Vídeo é um recurso para assinantes Pro ou Premium.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -120,7 +119,6 @@ export default function VideoReviewPage() {
 
 function VideoReviewPageContent() {
   const [file, setFile] = useState<File | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -129,12 +127,11 @@ function VideoReviewPageContent() {
   const [analysisError, setAnalysisError] = useState<string>("");
   const [activeTab, setActiveTab] = useState("generate");
   const [videoDescription, setVideoDescription] = useState("");
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
 
   const { user } = useUser();
   const firestore = useFirestore();
   const { subscription, isTrialActive } = useSubscription();
-  const [isSaving, startSavingTransition] = useTransition();
-  const uniqueId = useId();
   
   const todayStr = formatDate(new Date(), 'yyyy-MM-dd');
   
@@ -186,34 +183,7 @@ function VideoReviewPageContent() {
         return;
       }
       setFile(selectedFile);
-      resetState();
-    }
-  };
-
-  const handleDragEnter = (e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-  };
-
-  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-  
-  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      handleFileSelect(e.dataTransfer.files[0]);
-      e.dataTransfer.clearData();
+      resetAnalysisState();
     }
   };
 
@@ -223,283 +193,155 @@ function VideoReviewPageContent() {
     }
   };
 
-  const resetState = () => {
+  const resetAnalysisState = () => {
     setAnalysisStatus("idle");
     setAnalysisResult(null);
     setAnalysisError("");
     setActiveTab("generate");
+    setUploadProgress(null);
   };
 
   const handleReset = () => {
     setFile(null);
-    resetState();
+    resetAnalysisState();
   };
 
   const handleAnalyzeVideo = async () => {
-    if (!file) {
-      toast({ title: "Nenhum arquivo selecionado", variant: "destructive" });
+    if (!file || !user || !firestore) {
+      toast({ title: "Faltam informações para iniciar a análise.", variant: "destructive" });
       return;
     }
     if (hasReachedLimit) {
-      toast({ title: "Limite diário atingido", variant: "destructive" });
-      return;
-    }
-    if (!user || !firestore) {
-      toast({ title: "Usuário não autenticado ou serviço indisponível", variant: "destructive" });
+      toast({ title: "Limite diário de análises atingido.", variant: "destructive" });
       return;
     }
     
     setActiveTab("result");
-    setAnalysisStatus("loading");
+    setAnalysisStatus("uploading");
     setAnalysisError("");
 
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = async () => {
-        const videoDataUri = reader.result as string;
+    const { firebaseApp } = initializeFirebase();
+    const storage = getStorage(firebaseApp);
+    const storagePath = `video-reviews/${user.uid}/${Date.now()}-${file.name}`;
+    const storageRef = ref(storage, storagePath);
+    const uploadTask = uploadBytesResumable(storageRef, file);
 
-        try {
-            const result = await analyzeVideo({ 
-              videoDataUri: videoDataUri,
-              prompt: videoDescription || "Faça uma análise completa deste vídeo para um criador de conteúdo.",
-            });
-
-            if (result) {
-                setAnalysisResult(result);
-                setAnalysisStatus("success");
-
-                // Update usage log
-                const usageDocRef = doc(firestore, `users/${user.uid}/dailyUsage/${todayStr}`);
-                const usageDocSnap = await getDoc(usageDocRef);
-                if(usageDocSnap.exists()){
-                    await updateDoc(usageDocRef, { videoAnalyses: increment(1) });
-                } else {
-                    await setDoc(usageDocRef, {
-                        date: todayStr,
-                        videoAnalyses: 1,
-                        geracoesAI: 0,
-                    });
-                }
-                
-                await addDoc(collection(firestore, `users/${user.uid}/analisesVideo`), {
-                    userId: user.uid,
-                    videoUrl: null, // We are not saving video file anymore
-                    videoFileName: file.name,
-                    analysisData: { ...result, videoDescription },
-                    createdAt: serverTimestamp(),
-                });
-
-                toast({
-                title: "Análise Concluída",
-                description: "A análise do seu vídeo está pronta.",
-                });
-            } else {
-                throw new Error("A análise não produziu um resultado.");
-            }
-        } catch (e: any) {
-            setAnalysisError(e.message || "Ocorreu um erro desconhecido.");
+    uploadTask.on(
+        'state_changed',
+        (snapshot) => {
+            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            setUploadProgress(progress);
+        },
+        (error) => {
+            console.error('Upload error:', error);
+            setAnalysisError('Falha ao fazer upload do vídeo.');
             setAnalysisStatus("error");
-            toast({ title: "Falha na Análise", description: e.message, variant: "destructive" });
+            setUploadProgress(null);
+        },
+        async () => {
+          try {
+              const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+              setAnalysisStatus("analyzing");
+              
+              const reader = new FileReader();
+              reader.readAsDataURL(file);
+              reader.onloadend = async () => {
+                  const videoDataUri = reader.result as string;
+                  
+                  try {
+                      const result = await analyzeVideo({ 
+                        videoDataUri: videoDataUri,
+                        prompt: videoDescription || "Faça uma análise completa deste vídeo para um criador de conteúdo.",
+                      });
+
+                      await saveAnalysisToFirestore(user.uid, downloadURL, file.name, result, videoDescription);
+                      
+                      setAnalysisResult(result);
+                      setAnalysisStatus("success");
+                      
+                      const usageDocRef = doc(firestore, `users/${user.uid}/dailyUsage/${todayStr}`);
+                      const usageDocSnap = await getDoc(usageDocRef);
+                      if(usageDocSnap.exists()){
+                          await increment(usageDocSnap.ref, 'videoAnalyses', 1);
+                      } else {
+                          await setDoc(usageDocRef, { date: todayStr, videoAnalyses: 1, geracoesAI: 0 });
+                      }
+
+                      toast({ title: "Análise Concluída!", description: "Seu vídeo foi analisado com sucesso." });
+                  } catch (e: any) {
+                      setAnalysisError(e.message || "Ocorreu um erro desconhecido na análise.");
+                      setAnalysisStatus("error");
+                  }
+              };
+              reader.onerror = (error) => {
+                throw new Error("Falha ao ler o arquivo de vídeo para análise.");
+              }
+          } catch (e: any) {
+              setAnalysisError(e.message || "Ocorreu um erro desconhecido.");
+              setAnalysisStatus("error");
+          } finally {
+              setUploadProgress(null);
+          }
         }
-    };
-    reader.onerror = (error) => {
-        console.error("Error reading file:", error);
-        setAnalysisError("Falha ao ler o arquivo de vídeo.");
-        setAnalysisStatus("error");
-    };
+    );
   };
 
   const getNoteParts = (geralText: string | undefined): { note: string, description: string } => {
-    if (!geralText) {
-      return { note: '-', description: 'Análise indisponível.' };
-    }
-  
-    // Tenta encontrar "X/10" ou "X / 10" ou "Nota: X" ou um número solto no início
+    if (!geralText) return { note: '-', description: 'Análise indisponível.' };
     const scoreRegex = /(\d{1,2}(?:[.,]\d{1,2})?)\s*\/\s*10|Nota:\s*(\d{1,2}(?:[.,]\d{1,2})?)|^(\d{1,2}(?:[.,]\d{1,2})?)\s*[-–—:]?/i;
     const scoreMatch = geralText.match(scoreRegex);
 
     if (scoreMatch) {
       const note = scoreMatch[1] || scoreMatch[2] || scoreMatch[3];
-      // Remove a nota e qualquer separador inicial da descrição
       const description = geralText.replace(scoreMatch[0], '').replace(/^[:\s-]+/, '').trim();
-      return {
-        note: note.replace(',', '.'), // Garante que a nota use ponto decimal
-        description: description,
-      };
+      return { note: note.replace(',', '.'), description: description };
     }
-  
-    // Se nada funcionar, retorna a string inteira como descrição
     return { note: '-', description: geralText };
   };
 
   const { note: numericNote, description: noteDescription } = getNoteParts(analysisResult?.geral);
 
   const analysisCriteria = [
-    {
-        icon: Eye,
-        title: "Retenção e Gancho",
-        description: "Avaliamos os 3 primeiros segundos para ver se o gancho é forte o suficiente para parar a rolagem."
-    },
-    {
-        icon: BrainCircuit,
-        title: "Ritmo e Conteúdo",
-        description: "Analisamos a estrutura do vídeo e a clareza da mensagem para identificar pontos de perda de interesse."
-    },
-    {
-        icon: Target,
-        title: "Eficácia do CTA",
-        description: "Verificamos se a chamada para ação é clara e está alinhada com o objetivo do vídeo."
-    },
-     {
-        icon: BarChartIcon,
-        title: "Potencial de Viralização",
-        description: "Com base em todos os fatores, atribuímos uma nota e um checklist de melhorias para seu vídeo."
-    }
-  ]
+    { icon: Eye, title: "Retenção e Gancho", description: "Avaliamos os 3 primeiros segundos para ver se o gancho é forte o suficiente para parar a rolagem." },
+    { icon: BrainCircuit, title: "Ritmo e Conteúdo", description: "Analisamos a estrutura do vídeo e a clareza da mensagem para identificar pontos de perda de interesse." },
+    { icon: Target, title: "Eficácia do CTA", description: "Verificamos se a chamada para ação é clara e está alinhada com o objetivo do vídeo." },
+    { icon: BarChartIcon, title: "Potencial de Viralização", description: "Com base em todos os fatores, atribuímos uma nota e um checklist de melhorias para seu vídeo." }
+  ];
   
   return (
     <div className="space-y-8">
-        <PageHeader
-            title="Diagnóstico de Vídeo"
-            description="Receba uma análise do potencial de viralização e um plano de ação para seu vídeo."
-            icon={Video}
-        />
+        <PageHeader title="Diagnóstico de Vídeo" description="Receba uma análise do potencial de viralização e um plano de ação para seu vídeo." icon={Video} />
         
         <div>
-          <div className="text-center">
-              <h2 className="text-xl font-bold font-headline">Como Avaliamos Seu Vídeo?</h2>
-              <p className="text-muted-foreground">Nossa IA atua como uma estrategista de conteúdo viral e analisa 4 pilares:</p>
-          </div>
+          <div className="text-center"><h2 className="text-xl font-bold font-headline">Como Avaliamos Seu Vídeo?</h2><p className="text-muted-foreground">Nossa IA atua como uma estrategista de conteúdo viral e analisa 4 pilares:</p></div>
           <Separator className="w-1/2 mx-auto my-4" />
           <div className="py-8">
             <div className="md:hidden">
-                <Carousel className="w-full" opts={{ align: 'start' }}>
-                    <CarouselContent className="-ml-4">
-                        {analysisCriteria.map((item, index) => (
-                            <CarouselItem key={index} className="pl-4 basis-full">
-                                <Card className="h-full rounded-2xl border-0 text-center shadow-primary-lg">
-                                    <CardHeader className="items-center">
-                                        <CardTitle className="flex flex-col items-center gap-2">
-                                            <item.icon className="h-5 w-5 text-primary" />
-                                            <span className="text-base font-semibold">{item.title}</span>
-                                        </CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <p className="text-muted-foreground text-sm">{item.description}</p>
-                                    </CardContent>
-                                </Card>
-                            </CarouselItem>
-                        ))}
-                    </CarouselContent>
-                </Carousel>
+                <Carousel className="w-full" opts={{ align: 'start' }}><CarouselContent className="-ml-4">{analysisCriteria.map((item, index) => (<CarouselItem key={index} className="pl-4 basis-full"><Card className="h-full rounded-2xl border-0 text-center shadow-primary-lg"><CardHeader className="items-center"><CardTitle className="flex flex-col items-center gap-2"><item.icon className="h-5 w-5 text-primary" /><span className="text-base font-semibold">{item.title}</span></CardTitle></CardHeader><CardContent><p className="text-muted-foreground text-sm">{item.description}</p></CardContent></Card></CarouselItem>))}</CarouselContent></Carousel>
             </div>
-            <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {analysisCriteria.map((item, index) => (
-                    <Card key={index} className='rounded-2xl border-0 text-center shadow-primary-lg'>
-                        <CardHeader className="items-center">
-                            <CardTitle className="flex flex-col items-center gap-2">
-                                <item.icon className="h-5 w-5 text-primary" />
-                                <span className="text-base font-semibold">{item.title}</span>
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-muted-foreground text-sm">{item.description}</p>
-                        </CardContent>
-                    </Card>
-                ))}
-            </div>
+            <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-4">{analysisCriteria.map((item, index) => (<Card key={index} className='rounded-2xl border-0 text-center shadow-primary-lg'><CardHeader className="items-center"><CardTitle className="flex flex-col items-center gap-2"><item.icon className="h-5 w-5 text-primary" /><span className="text-base font-semibold">{item.title}</span></CardTitle></CardHeader><CardContent><p className="text-muted-foreground text-sm">{item.description}</p></CardContent></Card>))}</div>
         </div>
         </div>
         
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="generate">Analisar Vídeo</TabsTrigger>
-          <TabsTrigger value="result" disabled={!file}>
-            Resultado
-             {(analysisStatus === 'loading') && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
-          </TabsTrigger>
-        </TabsList>
+        <TabsList className="grid w-full grid-cols-2"><TabsTrigger value="generate">Analisar Vídeo</TabsTrigger><TabsTrigger value="result" disabled={!file}>Resultado { (analysisStatus === 'uploading' || analysisStatus === 'analyzing') && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}</TabsTrigger></TabsList>
         <TabsContent value="generate">
             <Card className="rounded-t-none border-t-0 shadow-primary-lg">
-                 <CardHeader>
-                    <CardTitle className="text-center">Upload do Vídeo</CardTitle>
-                    <CardDescription className="text-center">Arraste seu vídeo ou clique para selecionar.</CardDescription>
-                </CardHeader>
+                 <CardHeader><CardTitle className="text-center">Upload do Vídeo</CardTitle><CardDescription className="text-center">Arraste seu vídeo ou clique para selecionar.</CardDescription></CardHeader>
                 <CardContent className="p-6 space-y-6">
                  {!file ? (
-                    <div
-                        className={`flex w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed p-12 text-center transition-colors ${
-                        isDragging ? "border-primary bg-primary/10" : "border-border/50"
-                        }`}
-                        onDragEnter={handleDragEnter}
-                        onDragLeave={handleDragLeave}
-                        onDragOver={handleDragOver}
-                        onDrop={handleDrop}
-                    >
-                        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20 text-primary">
-                            <UploadCloud className="h-8 w-8" />
-                        </div>
-                        <h3 className="mt-6 text-xl font-bold tracking-tight text-foreground">
-                            Arraste seu vídeo para cá
-                        </h3>
-                        <p className="mt-2 text-sm text-muted-foreground">
-                            ou clique para selecionar. Limite de ${MAX_FILE_SIZE_MB}MB.
-                        </p>
-                        <Button
-                        type="button"
-                        variant="outline"
-                        className="mt-6"
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={hasReachedLimit}
-                        >
-                        Selecionar Vídeo
-                        </Button>
-                        <Input
-                            ref={fileInputRef}
-                            type="file"
-                            className="hidden"
-                            onChange={handleFileInputChange}
-                            accept="video/*"
-                        />
-                    </div>
+                    <div className="flex w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed p-12 text-center transition-colors border-border/50"><div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20 text-primary"><UploadCloud className="h-8 w-8" /></div><h3 className="mt-6 text-xl font-bold tracking-tight text-foreground">Arraste seu vídeo para cá</h3><p className="mt-2 text-sm text-muted-foreground">ou clique para selecionar. Limite de ${MAX_FILE_SIZE_MB}MB.</p><Button type="button" variant="outline" className="mt-6" onClick={() => fileInputRef.current?.click()} disabled={hasReachedLimit}>Selecionar Vídeo</Button><Input ref={fileInputRef} type="file" className="hidden" onChange={handleFileInputChange} accept="video/*"/></div>
                 ) : (
                     <div>
                         <div className="p-4 border rounded-lg flex flex-col sm:flex-row items-center gap-4 bg-muted/30">
                             <Clapperboard className="h-10 w-10 text-primary" />
-                            <div className="flex-1 text-center sm:text-left">
-                                <p className="font-medium">{file.name}</p>
-                                <p className="text-sm text-muted-foreground">{new Intl.NumberFormat('pt-BR', { style: 'unit', unit: 'megabyte', unitDisplay: 'short' }).format(file.size / 1024 / 1024)}</p>
-                            </div>
-                            <div className="flex w-full sm:w-auto flex-col sm:flex-row gap-2">
-                                <Button onClick={handleAnalyzeVideo} disabled={analysisStatus === 'loading' || hasReachedLimit} className="w-full sm:w-auto">
-                                <><Sparkles className="mr-2" />Analisar Vídeo</>
-                                </Button>
-                                <Button onClick={handleReset} variant="outline" className="w-full sm:w-auto">
-                                    Trocar Vídeo
-                                </Button>
-                            </div>
+                            <div className="flex-1 text-center sm:text-left"><p className="font-medium">{file.name}</p><p className="text-sm text-muted-foreground">{new Intl.NumberFormat('pt-BR', { style: 'unit', unit: 'megabyte', unitDisplay: 'short' }).format(file.size / 1024 / 1024)}</p></div>
+                            <div className="flex w-full sm:w-auto flex-col sm:flex-row gap-2"><Button onClick={handleAnalyzeVideo} disabled={analysisStatus !== 'idle' || hasReachedLimit} className="w-full sm:w-auto"><Sparkles className="mr-2" />Analisar Vídeo</Button><Button onClick={handleReset} variant="outline" className="w-full sm:w-auto">Trocar Vídeo</Button></div>
                         </div>
-                         <Textarea
-                            placeholder="Opcional: Adicione um contexto para a IA (ex: 'Este é um vídeo de unboxing para meu público de tecnologia...')"
-                            value={videoDescription}
-                            onChange={(e) => setVideoDescription(e.target.value)}
-                            className="mt-4 bg-muted/50"
-                        />
+                         <Textarea placeholder="Opcional: Adicione um contexto para a IA (ex: 'Este é um vídeo de unboxing para meu público de tecnologia...')" value={videoDescription} onChange={(e) => setVideoDescription(e.target.value)} className="mt-4 bg-muted/50" />
                     </div>
                 )}
-                 <div className="text-center mt-6">
-                    <p className="text-sm text-muted-foreground">
-                        {isLoadingUsage ? <div className="h-4 bg-muted rounded w-48 inline-block animate-pulse" /> : 
-                        <>
-                        Análises restantes hoje: <span className="font-bold text-primary">{analysesLeft} de {limitCount}</span>
-                        </>}
-                    </p>
-                    {hasReachedLimit && currentPlan !== 'premium' && (
-                        <p className="text-xs text-muted-foreground">
-                        Você atingiu seu limite diário. Para mais análises, <Link href="/subscribe" className="underline text-primary">faça upgrade</Link>.
-                        </p>
-                    )}
-                 </div>
+                 <div className="text-center mt-6"><p className="text-sm text-muted-foreground">{isLoadingUsage ? <div className="h-4 bg-muted rounded w-48 inline-block animate-pulse" /> : <>Análises restantes hoje: <span className="font-bold text-primary">{analysesLeft} de {limitCount}</span></>}</p>{hasReachedLimit && currentPlan !== 'premium' && (<p className="text-xs text-muted-foreground">Você atingiu seu limite diário. Para mais análises, <Link href="/subscribe" className="underline text-primary">faça upgrade</Link>.</p>)}</div>
                 </CardContent>
             </Card>
         </TabsContent>
@@ -508,122 +350,13 @@ function VideoReviewPageContent() {
             <CardContent className="p-6">
               {(analysisStatus !== 'idle') && (
                 <div className="space-y-8 animate-fade-in">
-                    <div className="flex flex-col sm:flex-row justify-between items-start gap-4 text-center sm:text-left">
-                        <div className="flex-1">
-                        <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Resultado da Análise</h2>
-                        <p className="text-muted-foreground">
-                            Aqui está o diagnóstico completo do seu vídeo.
-                        </p>
-                        </div>
-                    </div>
-                    
-                    {analysisStatus === 'loading' && (
-                        <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-96">
-                            <Loader2 className="h-10 w-10 animate-spin text-primary" />
-                            <p className="mt-4 text-muted-foreground">Analisando seu vídeo...</p>
-                            <p className="text-sm text-muted-foreground">Isso pode levar até 1 minuto.</p>
-                        </div>
-                    )}
-                    
-                    {analysisStatus === 'error' && (
-                        <Alert variant="destructive">
-                        <XCircle className="h-4 w-4" />
-                        <AlertTitle>Erro na Análise</AlertTitle>
-                        <AlertDescription>
-                            {analysisError}
-                        </AlertDescription>
-                        </Alert>
-                    )}
-
-                    {analysisStatus === 'success' && analysisResult && (
-                        <div className="grid lg:grid-cols-2 gap-8 items-start">
-                        <div className="space-y-8">
-                            {videoDescription && (
-                                <Card className="shadow-primary-lg">
-                                    <CardHeader>
-                                        <CardTitle className="text-center font-headline text-lg flex items-center gap-2 justify-center">
-                                            <Info className="h-5 w-5 text-primary" />
-                                            Descrição Fornecida
-                                        </CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="text-center">
-                                        <p className="text-sm text-muted-foreground">{videoDescription}</p>
-                                    </CardContent>
-                                </Card>
-                            )}
-                            <Card className="lg:col-span-1 shadow-primary-lg">
-                                <CardHeader className='items-center text-center'>
-                                    <CardTitle className="text-center font-headline text-lg text-primary">Nota de Viralização</CardTitle>
-                                </CardHeader>
-                                <CardContent className="text-center">
-                                    <div className="text-4xl font-bold text-foreground">{numericNote}/10</div>
-                                    <p className="text-sm text-muted-foreground mt-2">{noteDescription}</p>
-                                </CardContent>
-                            </Card>
-
-                            <Card className="lg:col-span-2 shadow-primary-lg">
-                                <CardHeader>
-                                    <CardTitle className="text-center items-center flex gap-2 justify-center">
-                                         <Check className="h-5 w-5 text-primary" />
-                                        Checklist de Melhorias
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <ul className="space-y-3">
-                                        {analysisResult.melhorias.map((item, index) => (
-                                            <li key={index} className="flex items-start gap-3">
-                                            <Check className="h-5 w-5 text-primary mt-0.5 shrink-0" />
-                                            <span className="text-muted-foreground">{item.replace(/^✓\s*/, '')}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </CardContent>
-                            </Card>
-                        </div>
-                        
-                        <div className="space-y-8">
-                            <Card className="shadow-primary-lg">
-                                <CardHeader>
-                                    <CardTitle className="text-center font-headline text-lg flex items-center gap-2 justify-center">
-                                        <Flame className="h-5 w-5 text-primary" />
-                                        Análise de Retenção
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    <div>
-                                        <h4 className="font-semibold mb-1">Mapa de Calor Estimado</h4>
-                                        <p className="text-sm text-muted-foreground">{analysisResult.estimatedHeatmap}</p>
-                                    </div>
-                                    <div>
-                                        <h4 className="font-semibold mb-1">Análise Comparativa</h4>
-                                        <p className="text-sm text-muted-foreground">{analysisResult.comparativeAnalysis}</p>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                            <Card className="shadow-primary-lg">
-                                <CardHeader className='items-center text-center'>
-                                    <CardTitle className="text-center font-headline text-lg">Análise Detalhada</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                <Accordion type="single" collapsible defaultValue="item-1">
-                                        <AccordionItem value="item-1">
-                                            <AccordionTrigger>Análise do Gancho</AccordionTrigger>
-                                            <AccordionContent className="whitespace-pre-wrap">{analysisResult.gancho}</AccordionContent>
-                                        </AccordionItem>
-                                        <AccordionItem value="item-2">
-                                            <AccordionTrigger>Análise do Conteúdo</AccordionTrigger>
-                                            <AccordionContent className="whitespace-pre-wrap">{analysisResult.conteudo}</AccordionContent>
-                                        </AccordionItem>
-                                        <AccordionItem value="item-3">
-                                            <AccordionTrigger>Análise do CTA</AccordionTrigger>
-                                            <AccordionContent className="whitespace-pre-wrap">{analysisResult.cta}</AccordionContent>
-                                        </AccordionItem>
-                                    </Accordion>
-                                </CardContent>
-                            </Card>
-                        </div>
-                        </div>
-                    )}
+                    <div className="flex flex-col sm:flex-row justify-between items-start gap-4 text-center sm:text-left"><div className="flex-1"><h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Resultado da Análise</h2><p className="text-muted-foreground">Aqui está o diagnóstico completo do seu vídeo.</p></div></div>
+                    { (analysisStatus === 'uploading' || analysisStatus === 'analyzing') && (<div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-96"><Loader2 className="h-10 w-10 animate-spin text-primary" /><p className="mt-4 text-muted-foreground">{analysisStatus === 'uploading' ? 'Enviando vídeo...' : 'Analisando...'}</p>{uploadProgress !== null && analysisStatus === 'uploading' && <Progress value={uploadProgress} className="w-1/2 mt-4" />}<p className="text-sm text-muted-foreground">Isso pode levar até 1 minuto.</p></div>)}
+                    {analysisStatus === 'error' && (<Alert variant="destructive"><XCircle className="h-4 w-4" /><AlertTitle>Erro na Análise</AlertTitle><AlertDescription>{analysisError}</AlertDescription></Alert>)}
+                    {analysisStatus === 'success' && analysisResult && (<div className="grid lg:grid-cols-2 gap-8 items-start">
+                        <div className="space-y-8">{videoDescription && (<Card className="shadow-primary-lg"><CardHeader><CardTitle className="text-center font-headline text-lg flex items-center gap-2 justify-center"><Info className="h-5 w-5 text-primary" />Descrição Fornecida</CardTitle></CardHeader><CardContent className="text-center"><p className="text-sm text-muted-foreground">{videoDescription}</p></CardContent></Card>)}<Card className="lg:col-span-1 shadow-primary-lg"><CardHeader className='items-center text-center'><CardTitle className="text-center font-headline text-lg text-primary">Nota de Viralização</CardTitle></CardHeader><CardContent className="text-center"><div className="text-4xl font-bold text-foreground">{numericNote}/10</div><p className="text-sm text-muted-foreground mt-2">{noteDescription}</p></CardContent></Card><Card className="lg:col-span-2 shadow-primary-lg"><CardHeader><CardTitle className="text-center items-center flex gap-2 justify-center"><Check className="h-5 w-5 text-primary" />Checklist de Melhorias</CardTitle></CardHeader><CardContent><ul className="space-y-3">{analysisResult.melhorias.map((item, index) => (<li key={index} className="flex items-start gap-3"><Check className="h-5 w-5 text-primary mt-0.5 shrink-0" /><span className="text-muted-foreground">{item.replace(/^✓\s*/, '')}</span></li>))}</ul></CardContent></Card></div>
+                        <div className="space-y-8"><Card className="shadow-primary-lg"><CardHeader><CardTitle className="text-center font-headline text-lg flex items-center gap-2 justify-center"><Flame className="h-5 w-5 text-primary" />Análise de Retenção</CardTitle></CardHeader><CardContent className="space-y-4"><div><h4 className="font-semibold mb-1">Mapa de Calor Estimado</h4><p className="text-sm text-muted-foreground">{analysisResult.estimatedHeatmap}</p></div><div><h4 className="font-semibold mb-1">Análise Comparativa</h4><p className="text-sm text-muted-foreground">{analysisResult.comparativeAnalysis}</p></div></CardContent></Card><Card className="shadow-primary-lg"><CardHeader className='items-center text-center'><CardTitle className="text-center font-headline text-lg">Análise Detalhada</CardTitle></CardHeader><CardContent><Accordion type="single" collapsible defaultValue="item-1"><AccordionItem value="item-1"><AccordionTrigger>Análise do Gancho</AccordionTrigger><AccordionContent className="whitespace-pre-wrap">{analysisResult.gancho}</AccordionContent></AccordionItem><AccordionItem value="item-2"><AccordionTrigger>Análise do Conteúdo</AccordionTrigger><AccordionContent className="whitespace-pre-wrap">{analysisResult.conteudo}</AccordionContent></AccordionItem><AccordionItem value="item-3"><AccordionTrigger>Análise do CTA</AccordionTrigger><AccordionContent className="whitespace-pre-wrap">{analysisResult.cta}</AccordionContent></AccordionItem></Accordion></CardContent></Card></div>
+                        </div>)}
                 </div>
               )}
             </CardContent>
@@ -634,123 +367,26 @@ function VideoReviewPageContent() {
         <Separator />
 
         <div className="space-y-6">
-             <div className="text-center">
-                <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Análises Anteriores</h2>
-                <p className="text-muted-foreground">
-                    Aqui estão os últimos vídeos que você analisou.
-                </p>
-            </div>
+             <div className="text-center"><h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Análises Anteriores</h2><p className="text-muted-foreground">Aqui estão os últimos vídeos que você analisou.</p></div>
              <Card className="shadow-primary-lg">
                 <CardContent className="pt-6">
-                    {isLoadingAnalyses && (
-                         <div className="flex justify-center items-center h-40">
-                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                         </div>
-                    )}
-                    {!isLoadingAnalyses && previousAnalyses && previousAnalyses.length > 0 && (
-                        <ul className="space-y-4">
-                            {previousAnalyses.map(analise => (
-                                <li key={analise.id}>
-                                    <div className="flex items-center gap-4 p-2 rounded-lg hover:bg-muted">
-                                        <Clapperboard className="h-6 w-6 text-primary shrink-0" />
-                                        <div className="flex-1">
-                                            <p className="font-semibold text-foreground truncate">{analise.videoFileName}</p>
-                                            <p className="text-xs text-muted-foreground">{analise.createdAt ? formatDistanceToNow(analise.createdAt.toDate(), { addSuffix: true, locale: ptBR }) : ''}</p>
-                                        </div>
-                                        <Sheet>
-                                            <SheetTrigger asChild>
-                                                <Button variant="outline" size="sm"><Eye className="mr-2 h-4 w-4" /> Ver Análise</Button>
-                                            </SheetTrigger>
-                                            <SheetContent className="sm:max-w-4xl p-0">
-                                                <SheetHeader className="p-6 border-b">
-                                                    <SheetTitle className="text-center font-headline text-2xl">Análise de {analise.videoFileName}</SheetTitle>
-                                                </SheetHeader>
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 max-h-[calc(100vh-8rem)] overflow-y-auto">
-                                                    <div className="space-y-4">
-                                                         {analise.videoUrl && (
-                                                            <video controls src={analise.videoUrl} className="w-full rounded-lg bg-black"></video>
-                                                         )}
-                                                         
-                                                         {analise.analysisData.videoDescription && (
-                                                            <Card className="shadow-primary-lg">
-                                                                <CardHeader>
-                                                                    <CardTitle className="text-center font-headline text-lg flex items-center gap-2 justify-center">
-                                                                        <Info className="h-5 w-5 text-primary" />
-                                                                        Descrição Fornecida
-                                                                    </CardTitle>
-                                                                </CardHeader>
-                                                                <CardContent className="text-center">
-                                                                    <p className="text-sm text-muted-foreground">{analise.analysisData.videoDescription}</p>
-                                                                </CardContent>
-                                                            </Card>
-                                                          )}
-
-                                                        <Card className="shadow-primary-lg">
-                                                            <CardHeader>
-                                                                <CardTitle className="text-lg text-primary text-center">Nota de Viralização</CardTitle>
-                                                            </CardHeader>
-                                                            <CardContent className="text-center">
-                                                                <div className="text-3xl font-bold">{getNoteParts(analise.analysisData.geral).note}/10</div>
-                                                                <p className="text-sm text-muted-foreground mt-1">{getNoteParts(analise.analysisData.geral).description}</p>
-                                                            </CardContent>
-                                                        </Card>
-
-                                                         <Card className="shadow-primary-lg">
-                                                            <CardHeader>
-                                                                <CardTitle className="flex items-center gap-2 justify-center text-lg"><Check className="h-5 w-5 text-primary" /> Checklist de Melhorias</CardTitle>
-                                                            </CardHeader>
-                                                            <CardContent>
-                                                                <ul className="space-y-2 text-sm">
-                                                                    {analise.analysisData.melhorias.map((item: string, index: number) => (
-                                                                        <li key={index} className="flex items-start gap-2">
-                                                                            <Check className="h-4 w-4 text-primary mt-1 shrink-0" />
-                                                                            <span className="text-muted-foreground">{item.replace(/^✓\s*/, '')}</span>
-                                                                        </li>
-                                                                    ))}
-                                                                </ul>
-                                                            </CardContent>
-                                                        </Card>
-                                                    </div>
-                                                    <Card className="shadow-primary-lg">
-                                                         <CardHeader>
-                                                            <CardTitle className="text-center text-lg">Análise Detalhada</CardTitle>
-                                                        </CardHeader>
-                                                        <CardContent>
-                                                            <Accordion type="single" collapsible defaultValue="item-1">
-                                                                <AccordionItem value="item-1">
-                                                                    <AccordionTrigger>Análise do Gancho</AccordionTrigger>
-                                                                    <AccordionContent>{analise.analysisData.gancho}</AccordionContent>
-                                                                </AccordionItem>
-                                                                <AccordionItem value="item-2">
-                                                                    <AccordionTrigger>Análise do Conteúdo</AccordionTrigger>
-                                                                    <AccordionContent>{analise.analysisData.conteudo}</AccordionContent>
-                                                                </AccordionItem>
-                                                                <AccordionItem value="item-3">
-                                                                    <AccordionTrigger>Análise do CTA</AccordionTrigger>
-                                                                    <AccordionContent>{analise.analysisData.cta}</AccordionContent>
-                                                                </AccordionItem>
-                                                            </Accordion>
-                                                        </CardContent>
-                                                    </Card>
-                                                </div>
-                                            </SheetContent>
-                                        </Sheet>
-                                    </div>
-                                </li>
-                            ))}
-                        </ul>
-                    )}
-                     {!isLoadingAnalyses && (!previousAnalyses || previousAnalyses.length === 0) && (
-                        <div className="text-center py-16 px-4 rounded-xl bg-muted/50 border border-dashed">
-                            <Inbox className="mx-auto h-10 w-10 text-muted-foreground mb-4" />
-                            <h3 className="font-semibold text-foreground">
-                                Nenhuma análise anterior
-                            </h3>
-                            <p className="text-sm text-muted-foreground">
-                                Seus vídeos analisados aparecerão aqui.
-                            </p>
+                    {isLoadingAnalyses && (<div className="flex justify-center items-center h-40"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>)}
+                    {!isLoadingAnalyses && previousAnalyses && previousAnalyses.length > 0 && (<ul className="space-y-4">{previousAnalyses.map(analise => (<li key={analise.id}>
+                        <div className="flex items-center gap-4 p-2 rounded-lg hover:bg-muted">
+                        <Clapperboard className="h-6 w-6 text-primary shrink-0" />
+                        <div className="flex-1"><p className="font-semibold text-foreground truncate">{analise.videoFileName}</p><p className="text-xs text-muted-foreground">{analise.createdAt ? formatDistanceToNow(analise.createdAt.toDate(), { addSuffix: true, locale: ptBR }) : ''}</p></div>
+                        <Sheet><SheetTrigger asChild><Button variant="outline" size="sm"><Eye className="mr-2 h-4 w-4" /> Ver Análise</Button></SheetTrigger>
+                        <SheetContent className="sm:max-w-4xl p-0">
+                            <SheetHeader className="p-6 border-b"><SheetTitle className="text-center font-headline text-2xl">Análise de {analise.videoFileName}</SheetTitle></SheetHeader>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 max-h-[calc(100vh-8rem)] overflow-y-auto">
+                            <div className="space-y-4">{analise.videoUrl && (<video controls src={analise.videoUrl} className="w-full rounded-lg bg-black"></video>)}{analise.analysisData.videoDescription && (<Card className="shadow-primary-lg"><CardHeader><CardTitle className="text-center font-headline text-lg flex items-center gap-2 justify-center"><Info className="h-5 w-5 text-primary" />Descrição Fornecida</CardTitle></CardHeader><CardContent className="text-center"><p className="text-sm text-muted-foreground">{analise.analysisData.videoDescription}</p></CardContent></Card>)}<Card className="shadow-primary-lg"><CardHeader><CardTitle className="text-lg text-primary text-center">Nota de Viralização</CardTitle></CardHeader><CardContent className="text-center"><div className="text-3xl font-bold">{getNoteParts(analise.analysisData.geral).note}/10</div><p className="text-sm text-muted-foreground mt-1">{getNoteParts(analise.analysisData.geral).description}</p></CardContent></Card><Card className="shadow-primary-lg"><CardHeader><CardTitle className="flex items-center gap-2 justify-center text-lg"><Check className="h-5 w-5 text-primary" /> Checklist de Melhorias</CardTitle></CardHeader><CardContent><ul className="space-y-2 text-sm">{analise.analysisData.melhorias.map((item: string, index: number) => (<li key={index} className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-1 shrink-0" /><span className="text-muted-foreground">{item.replace(/^✓\s*/, '')}</span></li>))}</ul></CardContent></Card></div>
+                            <Card className="shadow-primary-lg"><CardHeader><CardTitle className="text-center text-lg">Análise Detalhada</CardTitle></CardHeader><CardContent><Accordion type="single" collapsible defaultValue="item-1"><AccordionItem value="item-1"><AccordionTrigger>Análise do Gancho</AccordionTrigger><AccordionContent>{analise.analysisData.gancho}</AccordionContent></AccordionItem><AccordionItem value="item-2"><AccordionTrigger>Análise do Conteúdo</AccordionTrigger><AccordionContent>{analise.analysisData.conteudo}</AccordionContent></AccordionItem><AccordionItem value="item-3"><AccordionTrigger>Análise do CTA</AccordionTrigger><AccordionContent>{analise.analysisData.cta}</AccordionContent></AccordionItem></Accordion></CardContent></Card>
+                            </div>
+                        </SheetContent>
+                        </Sheet>
                         </div>
-                    )}
+                    </li>))}</ul>)}
+                     {!isLoadingAnalyses && (!previousAnalyses || previousAnalyses.length === 0) && (<div className="text-center py-16 px-4 rounded-xl bg-muted/50 border border-dashed"><Inbox className="mx-auto h-10 w-10 text-muted-foreground mb-4" /><h3 className="font-semibold text-foreground">Nenhuma análise anterior</h3><p className="text-sm text-muted-foreground">Seus vídeos analisados aparecerão aqui.</p></div>)}
                 </CardContent>
             </Card>
         </div>
