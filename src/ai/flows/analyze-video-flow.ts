@@ -5,14 +5,22 @@
  * - analyzeVideo - Uma função que lida com o processo de análise de vídeo.
  */
 import type { AnalyzeVideoInput, AnalyzeVideoOutput } from '@/lib/types';
-import { AnalyzeVideoInputSchema, AnalyzeVideoOutputSchema } from '@/lib/types';
-import { ai } from '@/ai/genkit';
+import { AnalyzeVideoOutputSchema } from '@/lib/types';
+import { genkit } from 'genkit';
+import { googleAI } from '@genkit-ai/google-genai';
 
 
 export async function analyzeVideo(input: AnalyzeVideoInput): Promise<AnalyzeVideoOutput> {
     
+    // A inicialização do Genkit é feita aqui dentro para cumprir as regras do 'use server'.
+    const ai = genkit({
+      plugins: [googleAI({
+        apiKey: process.env.GEMINI_API_KEY
+      })],
+    });
+
     const { output } = await ai.generate({
-        model: 'googleai/gemini-2.5-flash',
+        model: 'googleai/gemini-1.5-flash',
         prompt: `Você é uma consultora sênior especializada em crescimento orgânico, viralização, retenção e performance visual em short-form content (Reels, TikTok, Shorts).
 Sua função é analisar profundamente o vídeo enviado e fornecer uma avaliação técnica, objetiva e prática.
 
