@@ -35,6 +35,7 @@ export type AnalyzeVideoOutput = z.infer<typeof AnalyzeVideoOutputSchema>;
 
 const videoAnalysisPrompt = ai.definePrompt({
   name: 'videoAnalysisPrompt',
+  model: 'googleai/gemini-pro-vision',
   input: { schema: AnalyzeVideoInputSchema },
   output: { schema: AnalyzeVideoOutputSchema },
   config: {
@@ -52,9 +53,8 @@ Analise o vídeo e retorne um objeto JSON com a sua avaliação, seguindo estrit
 
 
 export async function analyzeVideo(input: AnalyzeVideoInput): Promise<AnalyzeVideoOutput> {
-    const llmResponse = await videoAnalysisPrompt(input);
+    const { output } = await videoAnalysisPrompt(input);
 
-    const output = llmResponse;
     if (!output) {
       throw new Error("A análise da IA não produziu um resultado válido.");
     }
