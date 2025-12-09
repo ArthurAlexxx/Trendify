@@ -214,10 +214,8 @@ export default function GenerateWeeklyPlanPage() {
 
 
   useEffect(() => {
-    if (activePlan && activePlan.items.every(item => item.concluido)) {
+    if (activePlan?.items.every(item => item.concluido)) {
       setShowCompletionDialog(true);
-    } else {
-      setShowCompletionDialog(false);
     }
   }, [activePlan]);
 
@@ -386,7 +384,7 @@ export default function GenerateWeeklyPlanPage() {
     }
   };
 
-  const handleDiscardActivePlan = async () => {
+  const handleDiscardActivePlan = () => {
     if (!user || !firestore || !activePlan) return;
 
     startDiscardingTransition(async () => {
@@ -407,8 +405,16 @@ export default function GenerateWeeklyPlanPage() {
   };
 
   const handleArchiveCompletedPlan = () => {
+    if (!user || !activePlan) return;
     setShowCompletionDialog(false);
-    handleDiscardActivePlan();
+    startDiscardingTransition(async () => {
+      const result = await archiveAndClearWeeklyPlanAction(user.uid, activePlan.id, activePlan);
+      if (result.success) {
+        toast({ title: 'Plano Arquivado!', description: 'Seu plano concluído foi movido para o histórico.' });
+      } else {
+        toast({ title: 'Erro ao Arquivar', description: result.error, variant: 'destructive' });
+      }
+    });
   }
   
   const isButtonDisabled = isGenerating || isSaving || isLoadingProfile || hasReachedLimit;
@@ -870,7 +876,7 @@ export default function GenerateWeeklyPlanPage() {
                                 <AlertDialog>
                                     <AlertDialogTrigger asChild>
                                         <Button variant="destructive" disabled={isDiscarding}>
-                                            <Trash2 className="mr-2 h-4 w-4" />
+                                            {isDiscarding ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
                                             {isDiscarding ? "Descartando..." : "Descartar Plano"}
                                         </Button>
                                     </AlertDialogTrigger>

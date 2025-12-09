@@ -86,7 +86,7 @@ Siga as diretrizes para cada campo JSON:
 - desempenhoSimulado: Crie um array de 7 objetos (Seg a Dom) para um gráfico, com 'data', 'alcance' (int) e 'engajamento' (int). A simulação deve ser realista, variando conforme as tarefas do dia (dias de post têm picos).
 - effortLevel: Classifique o esforço da semana como 'Baixo', 'Médio' ou 'Alto', com base na complexidade e volume das tarefas.
 - priorityIndex: Identifique e liste as 3 tarefas da semana com o maior potencial de impacto para atingir o objetivo principal.
-- realignmentTips: Ofereça um conselho estratégico sobre como o usuário pode se realinhar caso perca 1 ou 2 dias do plano. Ex: "Se perder um dia de post, combine o tema com o do dia seguinte ou foque em dobrar a interação no fim de semana para compensar."
+- realignmentTips: Ofereça um conselho estratégico sobre como o usuário pode se realinhar caso o usuário perca 1 ou 2 dias do plano. Ex: "Se perder um dia de post, combine o tema com o do dia seguinte ou foque em dobrar a interação no fim de semana para compensar."
 `;
 
 async function generateWeeklyPlan(
@@ -144,19 +144,17 @@ export async function archiveAndClearWeeklyPlanAction(userId: string, planId: st
         const newArchivedRef = ideasCollectionRef.doc();
 
         // 2. Set the data for the new archived plan
-         if (activePlan.createdAt instanceof Timestamp) {
-            batch.set(newArchivedRef, {
-                userId: userId,
-                titulo: `Plano Concluído de ${activePlan.createdAt.toDate().toLocaleDateString('pt-BR')}`,
-                conteudo: activePlan.items.map(item => `**${item.dia}:** ${item.tarefa}`).join('\n'),
-                origem: "Plano Semanal",
-                concluido: true, // Mark as completed
-                createdAt: activePlan.createdAt,
-                completedAt: Timestamp.now(), // Set completion date
-                aiResponseData: activePlan,
-            });
-        }
-
+        batch.set(newArchivedRef, {
+            userId: userId,
+            titulo: `Plano Concluído de ${(activePlan.createdAt as unknown as Timestamp).toDate().toLocaleDateString('pt-BR')}`,
+            conteudo: activePlan.items.map(item => `**${item.dia}:** ${item.tarefa}`).join('\n'),
+            origem: "Plano Semanal",
+            concluido: true, // Mark as completed
+            createdAt: activePlan.createdAt,
+            completedAt: Timestamp.now(), // Set completion date
+            aiResponseData: activePlan,
+        });
+        
         // 3. Reference to the active plan to be deleted
         const activePlanRef = firestore.doc(`users/${userId}/weeklyPlans/${planId}`);
         batch.delete(activePlanRef);
