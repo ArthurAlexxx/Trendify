@@ -22,7 +22,7 @@ function verifyWebhookSignature(
   }
   
   if (!signature) {
-    console.error("[Asaas Webhook] Erro: Assinatura 'asaas-webhook-signature' ausente no cabeçalho.");
+    console.error("[Asaas Webhook] Erro: Assinatura ausente no cabeçalho.");
     return false;
   }
 
@@ -32,6 +32,7 @@ function verifyWebhookSignature(
       .update(requestBody, 'utf8')
       .digest('hex');
 
+    // Comparação segura contra ataques de timing
     const signatureBuffer = Buffer.from(signature, 'utf8');
     const expectedSignatureBuffer = Buffer.from(expectedSignature, 'utf8');
     
@@ -176,10 +177,15 @@ export async function POST(req: NextRequest) {
      return NextResponse.json({ error: 'Falha ao ler o corpo da requisição.' }, { status: 400 });
   }
   
-  const signature = req.headers.get('asaas-webhook-signature');
+  const signature = req.headers.get('asaas-signature');
+  
   if (!verifyWebhookSignature(rawBody, signature)) {
       console.error('[Asaas Webhook] Assinatura inválida');
-      return NextResponse.json({ error: 'Assinatura inválida.' }, { status: 401 });
+      // Em produção, rejeitamos a requisição. Em desenvolvimento, podemos apenas avisar e continuar.
+      if (process.env.NODE_ENV === 'production') {
+        return NextResponse.json({ error: 'Assinatura inválida.' }, { status: 401 });
+      }
+      console.warn('[Asaas Webhook] Modo desenvolvimento: ignorando falha na verificação de assinatura para depuração.');
   }
   
   let event;
@@ -199,11 +205,12 @@ export async function POST(req: NextRequest) {
 
   const payment = event.payment;
   const subscription = event.subscription;
+  
+  const userIdFromEvent = payment?.externalReference || subscription?.externalReference;
 
   if (event.event === 'SUBSCRIPTION_CREATED' && subscription) {
-      const userId = subscription.externalReference;
-      if (userId) {
-          const userRef = firestore.collection('users').doc(userId);
+      if (userIdFromEvent) {
+          const userRef = firestore.collection('users').doc(userIdFromEvent);
           await userRef.update({
               'subscription.asaasSubscriptionId': subscription.id,
           });
@@ -214,7 +221,6 @@ export async function POST(req: NextRequest) {
   if (!payment) {
        return NextResponse.json({ success: true, message: 'Evento recebido, mas sem dados de pagamento para processar agora.' });
   }
-
 
   const userId = await findUserId(firestore, payment);
 
