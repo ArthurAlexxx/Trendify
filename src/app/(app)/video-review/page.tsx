@@ -32,8 +32,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { analyzeVideo } from "@/app/(app)/video-review/actions";
-import type { AnalyzeVideoOutput } from "@/ai/flows/analyze-video-flow";
+import { analyzeVideo, type AnalyzeVideoOutput } from "@/ai/flows/analyze-video-flow";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PageHeader } from "@/components/page-header";
 import {
@@ -121,7 +120,7 @@ export default function VideoReviewPage() {
 
 function VideoReviewPageContent() {
   const [file, setFile] = useState<File | null>(null);
-  const [isDragging, setIsDragging] = useState(isDragging);
+  const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
