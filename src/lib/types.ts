@@ -87,7 +87,8 @@ export interface AnaliseVideo {
     id: string;
     userId: string;
     analysisName?: string;
-    videoFileName?: string; // Made optional
+    videoUrl?: string; // Changed from videoFileName to videoUrl
+    videoFileName?: string;
     analysisData: any; // O objeto JSON da análise
     videoDescription?: string; // Added field for user prompt
     createdAt: Timestamp;
@@ -96,11 +97,7 @@ export interface AnaliseVideo {
 
 // --- Tipos para Análise de Vídeo ---
 export const AnalyzeVideoInputSchema = z.object({
-  videoDataUri: z
-    .string()
-    .describe(
-      "Um vídeo como um data URI que deve incluir um tipo MIME e usar a codificação Base64. Formato esperado: 'data:<mimetype>;base64,<encoded_data>'."
-    ),
+  videoUrl: z.string().url().describe('A URL pública do vídeo a ser analisado.'),
   prompt: z.string().describe('A instrução para orientar a análise do vídeo.'),
 });
 export type AnalyzeVideoInput = z.infer<typeof AnalyzeVideoInputSchema>;

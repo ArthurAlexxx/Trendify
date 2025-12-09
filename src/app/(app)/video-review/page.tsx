@@ -58,8 +58,10 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { initializeFirebase } from "@/firebase";
 
-type AnalysisStatus = "idle" | "analyzing" | "success" | "error";
+type AnalysisStatus = "idle" | "uploading" | "analyzing" | "success" | "error";
 const MAX_FILE_SIZE_MB = 70;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
@@ -121,6 +123,7 @@ function VideoReviewPageContent() {
   const { toast } = useToast();
 
   const [analysisStatus, setAnalysisStatus] = useState<AnalysisStatus>("idle");
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [analysisResult, setAnalysisResult] = useState<AnalyzeVideoOutput | null>(null);
   const [analysisError, setAnalysisError] = useState<string>("");
   const [activeTab, setActiveTab] = useState("generate");
@@ -194,6 +197,7 @@ function VideoReviewPageContent() {
 
   const resetAnalysisState = () => {
     setAnalysisStatus("idle");
+    setUploadProgress(0);
     setAnalysisResult(null);
     setAnalysisError("");
     setActiveTab("generate");
@@ -216,66 +220,77 @@ function VideoReviewPageContent() {
     }
     
     setActiveTab("result");
-    setAnalysisStatus("analyzing");
+    setAnalysisStatus("uploading");
     setAnalysisError("");
     setAnalysisResult(null);
-    
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onloadend = async () => {
-        const videoDataUri = reader.result as string;
-        
+    setUploadProgress(0);
+
+    const { firebaseApp } = initializeFirebase();
+    const storage = getStorage(firebaseApp);
+    const storagePath = `video-reviews/${user.uid}/${Date.now()}-${file.name}`;
+    const storageRef = ref(storage, storagePath);
+    const uploadTask = uploadBytesResumable(storageRef, file);
+
+    uploadTask.on(
+      'state_changed',
+      (snapshot) => {
+        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        setUploadProgress(progress);
+      },
+      (error) => { // Upload error
+        console.error("Upload error:", error);
+        setAnalysisError("Falha ao enviar o vídeo para o armazenamento.");
+        setAnalysisStatus("error");
+      },
+      async () => { // Upload success
+        setAnalysisStatus("analyzing");
         try {
-            const result = await analyzeVideo({ 
-              videoDataUri: videoDataUri,
-              prompt: videoDescription || "Faça uma análise completa deste vídeo para um criador de conteúdo.",
+          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+          
+          const result = await analyzeVideo({
+            videoUrl: downloadURL,
+            prompt: videoDescription || "Faça uma análise completa deste vídeo para um criador de conteúdo.",
+          });
+
+          setAnalysisResult(result);
+          setAnalysisStatus("success");
+
+          // Save to Firestore on success
+          try {
+            const usageDocRef = doc(firestore, `users/${user.uid}/dailyUsage/${todayStr}`);
+            await addDoc(collection(firestore, `users/${user.uid}/analisesVideo`), {
+              userId: user.uid,
+              videoUrl: downloadURL,
+              videoFileName: file.name,
+              analysisName: analysisName || file.name,
+              analysisData: result,
+              videoDescription: videoDescription,
+              createdAt: serverTimestamp(),
             });
 
-            setAnalysisResult(result);
-            setAnalysisStatus("success");
-
-            // --- Save to Firestore on success ---
-            try {
-                const usageDocRef = doc(firestore, `users/${user.uid}/dailyUsage/${todayStr}`);
-                
-                await addDoc(collection(firestore, `users/${user.uid}/analisesVideo`), {
-                    userId: user.uid,
-                    videoFileName: file.name,
-                    analysisName: analysisName || file.name,
-                    analysisData: result,
-                    videoDescription: videoDescription,
-                    createdAt: serverTimestamp(),
-                });
-
-                const usageDoc = await getDoc(usageDocRef);
-                 if (usageDoc.exists()) {
-                     await updateDoc(usageDocRef, { videoAnalyses: increment(1) });
-                 } else {
-                     await setDoc(usageDocRef, { date: todayStr, videoAnalyses: 1, geracoesAI: 0 });
-                 }
-                
-                toast({ title: "Análise Concluída!", description: "Seu vídeo foi analisado e salvo no seu histórico." });
-            
-            } catch (saveError: any) {
-                console.error('Failed to save analysis:', saveError);
-                toast({
-                    title: 'Análise Concluída (com um porém)',
-                    description: 'A análise foi feita, mas não conseguimos salvá-la no seu histórico. O erro foi: ' + saveError.message,
-                    variant: 'destructive',
-                    duration: 7000,
-                });
+            const usageDoc = await getDoc(usageDocRef);
+            if (usageDoc.exists()) {
+              await updateDoc(usageDocRef, { videoAnalyses: increment(1) });
+            } else {
+              await setDoc(usageDocRef, { date: todayStr, videoAnalyses: 1, geracoesAI: 0 });
             }
+            toast({ title: "Análise Concluída!", description: "Seu vídeo foi analisado e salvo no seu histórico." });
+          } catch (saveError: any) {
+            console.error('Failed to save analysis:', saveError);
+            toast({
+              title: 'Análise Concluída (com um porém)',
+              description: 'Não foi possível salvar sua análise no histórico. Erro: ' + saveError.message,
+              variant: 'destructive',
+              duration: 7000,
+            });
+          }
 
         } catch (e: any) {
-            setAnalysisError(e.message || "Ocorreu um erro desconhecido na análise.");
-            setAnalysisStatus("error");
+          setAnalysisError(e.message || "Ocorreu um erro desconhecido na análise.");
+          setAnalysisStatus("error");
         }
-    };
-    reader.onerror = (error) => {
-      setAnalysisError("Falha ao ler o arquivo de vídeo para análise.");
-      setAnalysisStatus("error");
-      console.error("FileReader error:", error);
-    }
+      }
+    );
   };
 
   const getNoteParts = (geralText: string | undefined): { note: string, description: string } => {
@@ -316,7 +331,7 @@ function VideoReviewPageContent() {
         </div>
         
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2"><TabsTrigger value="generate">Analisar Vídeo</TabsTrigger><TabsTrigger value="result" disabled={!file}>Resultado { (analysisStatus === 'analyzing') && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}</TabsTrigger></TabsList>
+        <TabsList className="grid w-full grid-cols-2"><TabsTrigger value="generate">Analisar Vídeo</TabsTrigger><TabsTrigger value="result" disabled={!file}>Resultado { (analysisStatus === 'analyzing' || analysisStatus === 'uploading') && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}</TabsTrigger></TabsList>
         <TabsContent value="generate">
             <Card className="rounded-t-none border-t-0 shadow-primary-lg">
                  <CardHeader><CardTitle className="text-center">Upload do Vídeo</CardTitle><CardDescription className="text-center">Arraste seu vídeo ou clique para selecionar.</CardDescription></CardHeader>
@@ -346,7 +361,7 @@ function VideoReviewPageContent() {
               {(analysisStatus !== 'idle') && (
                 <div className="space-y-8 animate-fade-in">
                     <div className="flex flex-col sm:flex-row justify-between items-start gap-4 text-center sm:text-left"><div className="flex-1"><h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Resultado da Análise</h2><p className="text-muted-foreground">Aqui está o diagnóstico completo do seu vídeo.</p></div></div>
-                    { (analysisStatus === 'analyzing') && (<div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-96"><Loader2 className="h-10 w-10 animate-spin text-primary" /><p className="mt-4 text-muted-foreground">Analisando...</p><p className="text-sm text-muted-foreground">Isso pode levar até 1 minuto.</p></div>)}
+                    { (analysisStatus === 'uploading' || analysisStatus === 'analyzing') && (<div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-96"><Loader2 className="h-10 w-10 animate-spin text-primary" /><p className="mt-4 text-muted-foreground">{analysisStatus === 'uploading' ? 'Enviando seu vídeo...' : 'Analisando...'}</p><p className="text-sm text-muted-foreground">{analysisStatus === 'analyzing' && "Isso pode levar até 1 minuto."}</p>{analysisStatus === 'uploading' && <Progress value={uploadProgress} className="w-full max-w-sm mt-4" />}</div>)}
                     {analysisStatus === 'error' && (<Alert variant="destructive"><XCircle className="h-4 w-4" /><AlertTitle>Erro na Análise</AlertTitle><AlertDescription>{analysisError}</AlertDescription></Alert>)}
                     {analysisStatus === 'success' && analysisResult && (<div className="grid lg:grid-cols-2 gap-8 items-start">
                         <div className="space-y-8">{videoDescription && (<Card className="shadow-primary-lg"><CardHeader><CardTitle className="text-center font-headline text-lg flex items-center gap-2 justify-center"><Info className="h-5 w-5 text-primary" />Descrição Fornecida</CardTitle></CardHeader><CardContent className="text-center"><p className="text-sm text-muted-foreground">{videoDescription}</p></CardContent></Card>)}<Card className="lg:col-span-1 shadow-primary-lg"><CardHeader className='items-center text-center'><CardTitle className="text-center font-headline text-lg text-primary">Nota de Viralização</CardTitle></CardHeader><CardContent className="text-center"><div className="text-4xl font-bold text-foreground">{numericNote}/10</div><p className="text-sm text-muted-foreground mt-2">{noteDescription}</p></CardContent></Card><Card className="lg:col-span-2 shadow-primary-lg"><CardHeader><CardTitle className="text-center items-center flex gap-2 justify-center"><Check className="h-5 w-5 text-primary" />Checklist de Melhorias</CardTitle></CardHeader><CardContent><ul className="space-y-3">{analysisResult.melhorias.map((item, index) => (<li key={index} className="flex items-start gap-3"><Check className="h-5 w-5 text-primary mt-0.5 shrink-0" /><span className="text-muted-foreground">{item.replace(/^✓\s*/, '')}</span></li>))}</ul></CardContent></Card></div>
