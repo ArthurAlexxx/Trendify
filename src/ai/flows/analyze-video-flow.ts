@@ -11,7 +11,7 @@ import { genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/google-genai';
 
 // Para alterar o modelo do Gemini para esta análise, modifique a string abaixo.
-const GEMINI_MODEL = 'googleai/gemini-1.5-pro';
+const GEMINI_MODEL = 'googleai/gemini-2.5-flash';
 
 export async function analyzeVideo(input: { videoUrl: string, prompt: string }): Promise<AnalyzeVideoOutput> {
     
