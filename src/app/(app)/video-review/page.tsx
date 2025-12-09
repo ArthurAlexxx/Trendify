@@ -32,7 +32,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { type AnalyzeVideoOutput } from "@/ai/flows/analyze-video-flow";
+import { type AnalyzeVideoOutput, analyzeVideo } from "@/ai/flows/analyze-video-flow";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PageHeader } from "@/components/page-header";
 import {
@@ -42,7 +42,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
-import { collection, doc, setDoc, increment, query, orderBy, limit, getDoc, onSnapshot } from "firebase/firestore";
+import { collection, doc, setDoc, increment, query, orderBy, limit, getDoc, onSnapshot, serverTimestamp, addDoc } from "firebase/firestore";
 import { Separator } from "@/components/ui/separator";
 import { useSubscription } from '@/hooks/useSubscription';
 import { Plan } from "@/lib/types";
@@ -57,8 +57,6 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { analyzeVideo, saveAnalysisToFirestore } from "./actions";
-
 
 type AnalysisStatus = "idle" | "analyzing" | "success" | "error";
 const MAX_FILE_SIZE_MB = 70;
@@ -231,29 +229,35 @@ function VideoReviewPageContent() {
             setAnalysisResult(result);
             setAnalysisStatus("success");
 
+            // Save to Firestore
             try {
-              const saveResult = await saveAnalysisToFirestore({
-                userId: user.uid,
-                videoFileName: file.name,
-                analysisData: result,
-                videoDescription: videoDescription,
-              });
-
-              if (!saveResult.success) {
-                throw new Error(saveResult.error || 'Erro desconhecido ao salvar.');
-              }
-            
-              toast({ title: "Análise Concluída!", description: "Seu vídeo foi analisado e salvo no seu histórico." });
-
+                await addDoc(collection(firestore, `users/${user.uid}/analisesVideo`), {
+                    userId: user.uid,
+                    videoFileName: file.name,
+                    analysisData: result,
+                    videoDescription: videoDescription,
+                    createdAt: serverTimestamp(),
+                });
+                
+                 const usageDocRef = doc(firestore, `users/${user.uid}/dailyUsage/${todayStr}`);
+                 const usageDoc = await getDoc(usageDocRef);
+                 if (usageDoc.exists()) {
+                     await updateDoc(usageDocRef, { videoAnalyses: increment(1) });
+                 } else {
+                     await setDoc(usageDocRef, { date: todayStr, videoAnalyses: 1, geracoesAI: 0 });
+                 }
+                
+                toast({ title: "Análise Concluída!", description: "Seu vídeo foi analisado e salvo no seu histórico." });
             } catch (saveError: any) {
-              console.error('Failed to save analysis:', saveError);
-              toast({
-                title: 'Análise Concluída (com um porém)',
-                description: 'A análise foi feita, mas não conseguimos salvá-la no seu histórico. O erro foi: ' + saveError.message,
-                variant: 'destructive',
-                duration: 7000,
-              });
+                console.error('Failed to save analysis:', saveError);
+                toast({
+                    title: 'Análise Concluída (com um porém)',
+                    description: 'A análise foi feita, mas não conseguimos salvá-la no seu histórico. O erro foi: ' + saveError.message,
+                    variant: 'destructive',
+                    duration: 7000,
+                });
             }
+
         } catch (e: any) {
             setAnalysisError(e.message || "Ocorreu um erro desconhecido na análise.");
             setAnalysisStatus("error");
