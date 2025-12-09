@@ -21,7 +21,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Bot, Loader2, Sparkles, Check, History, ClipboardList, BrainCircuit, Target, Eye, BarChart as BarChartIcon, Zap, AlertTriangle, Trophy, Save, Edit, Lightbulb, Trash2, PartyPopper } from 'lucide-react';
+import { Bot, Loader2, Sparkles, Check, History, ClipboardList, BrainCircuit, Target, Eye, BarChart as BarChartIcon, Zap, AlertTriangle, Trophy, Save, Edit, Lightbulb, Trash2, PartyPopper, ArrowLeft } from 'lucide-react';
 import { useEffect, useTransition, useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -66,6 +66,8 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useSubscription } from '@/hooks/useSubscription';
 import { DailyUsage } from '@/lib/types';
 import { onSnapshot } from 'firebase/firestore';
+import { formatDistanceToNow } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 
 const formSchema = z.object({
@@ -135,6 +137,7 @@ export default function GenerateWeeklyPlanPage() {
   
   const [usageData, setUsageData] = useState<DailyUsage | null>(null);
   const [isLoadingUsage, setIsLoadingUsage] = useState(true);
+  const [viewingSavedItem, setViewingSavedItem] = useState<IdeiaSalva | null>(null);
 
   useEffect(() => {
     if (!user || !firestore) return;
@@ -197,6 +200,17 @@ export default function GenerateWeeklyPlanPage() {
   );
   const { data: activePlanData, isLoading: isLoadingActivePlan } = useCollection<PlanoSemanal>(activePlanQuery);
   const activePlan = activePlanData?.[0];
+  
+  const savedIdeasQuery = useMemoFirebase(() =>
+    firestore && user ? query(
+        collection(firestore, `users/${user.uid}/ideiasSalvas`),
+        where('origem', '==', 'Plano Semanal'),
+        orderBy('createdAt', 'desc')
+    ) : null,
+  [firestore, user]);
+
+  const { data: savedIdeas, isLoading: isLoadingSaved } = useCollection<IdeiaSalva>(savedIdeasQuery);
+
 
   useEffect(() => {
     if (activePlan && activePlan.items.every(item => item.concluido)) {

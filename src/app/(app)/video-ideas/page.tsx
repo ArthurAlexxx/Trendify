@@ -50,6 +50,7 @@ import {
   Trash2,
   BookMarked,
   Inbox,
+  ArrowLeft,
 } from 'lucide-react';
 import { useEffect, useTransition, useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
@@ -74,6 +75,7 @@ import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { ObjectiveFormCard } from '@/components/ui/objective-form-card';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { VideoIdeasResultView } from './video-ideas-result-view';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 
 const formSchema = z.object({
@@ -140,6 +142,7 @@ export default function VideoIdeasPage() {
   const [usageData, setUsageData] = useState<DailyUsage | null>(null);
   const [isLoadingUsage, setIsLoadingUsage] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [viewingSavedItem, setViewingSavedItem] = useState<IdeiaSalva | null>(null);
 
   useEffect(() => {
     const savedResult = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -166,17 +169,15 @@ export default function VideoIdeasPage() {
     return () => unsubscribe();
   }, [user, firestore, todayStr]);
   
-  const lastSavedIdeaQuery = useMemoFirebase(() =>
+  const savedIdeasQuery = useMemoFirebase(() =>
     firestore && user ? query(
         collection(firestore, `users/${user.uid}/ideiasSalvas`),
         where('origem', '==', 'Ideias de Vídeo'),
-        orderBy('createdAt', 'desc'),
-        limit(1)
+        orderBy('createdAt', 'desc')
     ) : null,
   [firestore, user]);
 
-  const { data: lastSavedIdeaData, isLoading: isLoadingLastSaved } = useCollection<IdeiaSalva>(lastSavedIdeaQuery);
-  const lastSavedIdea = lastSavedIdeaData?.[0];
+  const { data: savedIdeas, isLoading: isLoadingSaved } = useCollection<IdeiaSalva>(savedIdeasQuery);
 
 
   const generationsToday = usageData?.geracoesAI || 0;
@@ -380,11 +381,15 @@ export default function VideoIdeasPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="generate">Gerar Nova Ideia</TabsTrigger>
           <TabsTrigger value="result" disabled={!result && !isGenerating}>
             Resultado
             {isGenerating && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
+          </TabsTrigger>
+           <TabsTrigger value="saved" disabled={!savedIdeas || savedIdeas.length === 0}>
+            Salvos
+            {isLoadingSaved && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
           </TabsTrigger>
         </TabsList>
         <TabsContent value="generate">
@@ -469,47 +474,48 @@ export default function VideoIdeasPage() {
              </CardContent>
           </Card>
         </TabsContent>
+         <TabsContent value="saved">
+          <Card className="rounded-t-none border-t-0 shadow-primary-lg">
+            <CardContent className="pt-6">
+                {viewingSavedItem ? (
+                  <div>
+                    <Button variant="ghost" onClick={() => setViewingSavedItem(null)} className="mb-4">
+                      <ArrowLeft className="mr-2 h-4 w-4" />
+                      Voltar para a lista
+                    </Button>
+                    <VideoIdeasResultView result={viewingSavedItem.aiResponseData} formValues={viewingSavedItem.aiResponseData.formValues} />
+                  </div>
+                ) : (
+                  <ScrollArea className="h-96">
+                    <ul className="space-y-2">
+                        {isLoadingSaved ? <Loader2 className="mx-auto h-8 w-8 animate-spin" /> 
+                        : savedIdeas && savedIdeas.length > 0 ? (
+                           savedIdeas.map((idea) => (
+                             <li key={idea.id} className="p-3 rounded-lg border flex items-center justify-between gap-4 hover:bg-muted/50 transition-colors">
+                                <div className="flex-1 overflow-hidden">
+                                  <p className="font-semibold text-foreground truncate">{idea.titulo}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    Salvo {formatDistanceToNow(idea.createdAt.toDate(), { addSuffix: true, locale: ptBR })}
+                                  </p>
+                                </div>
+                                <Button size="sm" variant="outline" onClick={() => setViewingSavedItem(idea)}>
+                                  <Eye className="mr-2 h-4 w-4" /> Ver
+                                </Button>
+                             </li>
+                           ))
+                        ) : (
+                           <div className="text-center h-full flex flex-col items-center justify-center py-20">
+                              <Inbox className="h-10 w-10 text-muted-foreground mb-4" />
+                              <p className="text-muted-foreground">Nenhuma ideia salva.</p>
+                           </div>
+                        )}
+                    </ul>
+                  </ScrollArea>
+                )}
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
-
-
-      <Separator />
-
-      <div className="space-y-8">
-        <div className="text-center">
-          <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">
-            Última Ideia Salva
-          </h2>
-          <p className="text-muted-foreground">
-            Aqui está o último conteúdo de 'Ideias de Vídeo' que você salvou.
-          </p>
-        </div>
-        <Card className="rounded-2xl border-0 shadow-primary-lg">
-          <CardContent className='pt-6'>
-            {isLoadingLastSaved ? (
-                <div className="flex justify-center items-center h-40">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                </div>
-            ) : lastSavedIdea && lastSavedIdea.aiResponseData ? (
-                 <div>
-                    <VideoIdeasResultView result={lastSavedIdea.aiResponseData} formValues={lastSavedIdea.aiResponseData.formValues} />
-                    <div className="mt-4 text-center">
-                        <SavedIdeasSheet>
-                            <Button variant="outline"><BookMarked className="mr-2 h-4 w-4"/>Gerenciar todos os salvos</Button>
-                        </SavedIdeasSheet>
-                    </div>
-                 </div>
-            ) : (
-              <div className="text-center py-12 px-4">
-                 <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-64">
-                    <Inbox className="h-10 w-10 text-muted-foreground" />
-                    <p className="mt-4 text-muted-foreground">Nenhuma ideia salva ainda.</p>
-                    <p className="text-sm text-muted-foreground">Use a ferramenta acima e salve seus resultados.</p>
-                 </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
 
     </div>
   );
