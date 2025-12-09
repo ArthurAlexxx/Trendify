@@ -106,7 +106,7 @@ export async function createAsaasPaymentAction(
 
     const checkoutBody = {
         customer: customerId,
-        billingType: 'PIX', // Campo obrigatório
+        billingTypes: ['PIX', 'BOLETO', 'CREDIT_CARD'], // Campo obrigatório, pode ser ajustado
         chargeType: 'DETACHED',
         externalReference: userId,
         webhookUrl: `${appUrl}/api/webhooks/asaas`,
