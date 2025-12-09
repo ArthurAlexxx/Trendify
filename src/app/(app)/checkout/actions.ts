@@ -46,7 +46,6 @@ export async function createAsaasPaymentAction(
 
   const { name, cpfCnpj, email, phone, postalCode, addressNumber, plan, cycle, userId } = parsed.data;
   const apiKey = process.env.ASAAS_API_KEY;
-  // Use a URL de produção como padrão para evitar problemas com localhost
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://trendify-beta.vercel.app';
   
   if (!apiKey) {
@@ -95,7 +94,7 @@ export async function createAsaasPaymentAction(
 
     const checkoutBody = {
         customer: customerId,
-        billingType: 'PIX', // Simplificando para PIX por enquanto.
+        billingType: 'PIX',
         chargeType: 'DETACHED',
         externalReference: userId,
         callback: {
@@ -128,9 +127,15 @@ export async function createAsaasPaymentAction(
         console.error('[Asaas Action] Erro na resposta da API de checkout:', checkoutData);
         throw new Error(checkoutData.errors?.[0]?.description || 'Falha ao criar o link de checkout.');
     }
+    
+    if (!checkoutData.id) {
+         console.error('[Asaas Action] Resposta da API de checkout não continha um ID:', checkoutData);
+         throw new Error('Ocorreu um erro inesperado ao criar o link de checkout.');
+    }
 
-    // A resposta agora contém 'url' em vez de 'id' para o link direto.
-    return { checkoutUrl: checkoutData.url };
+    // A resposta contém 'id', então construímos a URL de checkout.
+    const checkoutUrl = `https://sandbox.asaas.com/checkoutSession/show?id=${checkoutData.id}`;
+    return { checkoutUrl: checkoutUrl };
 
   } catch (e: any) {
     console.error('[Asaas Action] Erro no fluxo de criação de checkout:', e);
