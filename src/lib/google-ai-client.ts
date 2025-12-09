@@ -24,7 +24,7 @@ export async function callGoogleAI<T extends z.ZodType<any, any, any>>(
 ): Promise<z.infer<T>> {
     const { prompt, jsonSchema, promptData } = params;
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
     if (!apiKey) {
         throw new Error('A chave de API do Gemini não está configurada.');
     }
