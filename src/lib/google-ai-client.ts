@@ -1,6 +1,3 @@
-
-'use server';
-
 import { z } from 'zod';
 import Handlebars from 'handlebars';
 import { ai } from '@/ai/genkit';
