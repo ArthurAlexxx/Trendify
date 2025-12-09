@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useCallback, useRef, type ChangeEvent, type DragEvent, useEffect, useId } from "react";
@@ -34,7 +33,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { analyzeVideo } from "@/app/(app)/video-review/actions";
-import type { AnalyzeVideoOutput } from "@/ai/schemas";
+import type { AnalyzeVideoOutput } from "@/ai/flows/analyze-video-flow";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PageHeader } from "@/components/page-header";
 import {
@@ -122,7 +121,7 @@ export default function VideoReviewPage() {
 
 function VideoReviewPageContent() {
   const [file, setFile] = useState<File | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
+  const [isDragging, setIsDragging] = useState(isDragging);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -258,16 +257,16 @@ function VideoReviewPageContent() {
     const reader = new FileReader();
     reader.readAsDataURL(file);
     reader.onload = async () => {
-        const videoDataUrl = reader.result as string;
+        const videoDataUri = reader.result as string;
 
         try {
             const result = await analyzeVideo({ 
-              videoDataUri: videoDataUrl,
+              videoDataUri: videoDataUri,
               prompt: videoDescription || "Faça uma análise completa deste vídeo para um criador de conteúdo.",
             });
 
-            if (result && result.data) {
-                setAnalysisResult(result.data);
+            if (result) {
+                setAnalysisResult(result);
                 setAnalysisStatus("success");
 
                 // Update usage log
@@ -287,7 +286,7 @@ function VideoReviewPageContent() {
                     userId: user.uid,
                     videoUrl: null, // We are not saving video file anymore
                     videoFileName: file.name,
-                    analysisData: { ...result.data, videoDescription },
+                    analysisData: { ...result, videoDescription },
                     createdAt: serverTimestamp(),
                 });
 
@@ -296,7 +295,7 @@ function VideoReviewPageContent() {
                 description: "A análise do seu vídeo está pronta.",
                 });
             } else {
-                throw new Error(result?.error || "A análise não produziu um resultado.");
+                throw new Error("A análise não produziu um resultado.");
             }
         } catch (e: any) {
             setAnalysisError(e.message || "Ocorreu um erro desconhecido.");
@@ -607,7 +606,7 @@ function VideoReviewPageContent() {
                                     <CardTitle className="text-center font-headline text-lg">Análise Detalhada</CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                <Accordion type="single" collapsible className="w-full">
+                                <Accordion type="single" collapsible defaultValue="item-1">
                                         <AccordionItem value="item-1">
                                             <AccordionTrigger>Análise do Gancho</AccordionTrigger>
                                             <AccordionContent className="whitespace-pre-wrap">{analysisResult.gancho}</AccordionContent>
