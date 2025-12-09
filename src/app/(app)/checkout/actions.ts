@@ -121,7 +121,7 @@ export async function createAsaasPaymentAction(
             description: `Assinatura do plano ${planName} na Trendify`,
             value: price,
             quantity: 1,
-            externalReference: userId,
+            externalReference: userId, // Passando o userId aqui
         }],
     };
     

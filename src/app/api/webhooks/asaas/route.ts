@@ -1,7 +1,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { initializeFirebaseAdmin } from '@/firebase/admin';
-import { getFirestore, Timestamp } from 'firebase-admin/firestore';
+import { getFirestore, Timestamp } from 'firebase/admin/firestore';
 import type { Plan } from '@/lib/types';
 
 // Webhook para lidar com eventos de pagamento da Asaas
@@ -55,8 +55,8 @@ export async function POST(req: NextRequest) {
 
   if (isSuccessEvent) {
     const payment = event.payment;
-    // Corrigido para buscar o externalReference de dentro do item do pagamento
-    const userId = payment?.items?.[0]?.externalReference;
+    // Tenta obter o externalReference de DENTRO do item, e se não encontrar, tenta do nível principal.
+    const userId = payment?.items?.[0]?.externalReference || payment?.externalReference;
     
     if (!userId) {
         console.warn('[Asaas Webhook] Received payment confirmation without a userId in externalReference.', payment);
@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Extrair plano e ciclo da descrição
-    const description = payment?.description?.toLowerCase() || '';
+    const description = payment?.description?.toLowerCase() || payment?.items?.[0]?.name?.toLowerCase() || '';
     let plan: Plan | null = null;
     if (description.includes('pro')) plan = 'pro';
     if (description.includes('premium')) plan = 'premium';
