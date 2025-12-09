@@ -74,12 +74,24 @@ export async function createAsaasPaymentAction(
     
     const customerData = await customerResponse.json();
 
-    if (!customerResponse.ok) {
+    if (!customerResponse.ok && customerData.errors?.[0]?.code !== 'invalid_customer') {
         console.error('[Asaas Action] Erro ao criar/obter cliente:', customerData);
         throw new Error(customerData.errors?.[0]?.description || 'Falha ao registrar cliente no gateway de pagamento.');
     }
 
-    const customerId = customerData.id;
+    let customerId = customerData.id;
+    // Se o cliente já existe, busca o ID dele
+    if (customerData.errors?.[0]?.code === 'invalid_customer') {
+        const searchResponse = await fetch(`https://api-sandbox.asaas.com/v3/customers?cpfCnpj=${cpfCnpj}`, {
+            headers: { 'access_token': apiKey },
+        });
+        const searchData = await searchResponse.json();
+        if (searchData.data && searchData.data.length > 0) {
+            customerId = searchData.data[0].id;
+        } else {
+             throw new Error('Falha ao encontrar cliente existente no gateway de pagamento.');
+        }
+    }
     
     // Salvar o customerId da Asaas no perfil do usuário no Firestore.
     // É crucial para associar o webhook ao usuário correto.
@@ -97,6 +109,7 @@ export async function createAsaasPaymentAction(
         billingType: 'PIX', // Campo obrigatório
         chargeType: 'DETACHED',
         externalReference: userId,
+        webhookUrl: `${appUrl}/api/webhooks/asaas`,
         callback: {
             successUrl: `${appUrl}/dashboard?checkout=success`,
             cancelUrl: `${appUrl}/dashboard?checkout=cancel`,

@@ -73,6 +73,7 @@ export async function changeUserPlanAction(
     }
     
     const userRef = firestore.collection('users').doc(targetUserId);
+    const userDoc = await userRef.get();
 
     let expiresAt: Timestamp | null = null;
     let newStatus: 'active' | 'inactive' = 'inactive';
