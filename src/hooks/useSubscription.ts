@@ -12,7 +12,7 @@ type SubscriptionStatus = 'active' | 'inactive';
 interface SubscriptionData {
   status: SubscriptionStatus;
   plan: Plan;
-  expiresAt?: Timestamp;
+  expiresAt?: Timestamp | null;
 }
 
 interface UseSubscriptionResult {
