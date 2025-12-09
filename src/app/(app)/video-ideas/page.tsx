@@ -340,43 +340,41 @@ export default function VideoIdeasPage() {
           <p className="text-muted-foreground">A IA atua como uma estrategista de conteúdo viral e analisa 4 pilares:</p>
         </div>
         <Separator className="w-1/2 mx-auto my-4" />
-        <div className="py-8">
-            <div className="md:hidden">
-                <Carousel className="w-full" opts={{ align: 'start' }}>
-                    <CarouselContent className="-ml-4">
-                        {analysisCriteria.map((item, index) => (
-                            <CarouselItem key={index} className="pl-4 basis-[90%]">
-                                <Card className="rounded-2xl border-0 h-full text-center shadow-primary-lg">
-                                    <CardHeader className="items-center">
-                                        <CardTitle className="flex flex-col items-center gap-2">
-                                            <item.icon className="h-5 w-5 text-primary" />
-                                            <span className="text-base font-semibold">{item.title}</span>
-                                        </CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="pb-6">
-                                        <p className="text-muted-foreground text-sm">{item.description}</p>
-                                    </CardContent>
-                                </Card>
-                            </CarouselItem>
-                        ))}
-                    </CarouselContent>
-                </Carousel>
-            </div>
-            <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {analysisCriteria.map((item, index) => (
-                    <Card key={index} className="rounded-2xl border-0 text-center shadow-primary-lg">
-                        <CardHeader className="items-center">
-                            <CardTitle className="flex flex-col items-center gap-2">
-                                <item.icon className="h-5 w-5 text-primary" />
-                                <span className="text-base font-semibold">{item.title}</span>
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="pb-6">
-                            <p className="text-muted-foreground text-sm">{item.description}</p>
-                        </CardContent>
-                    </Card>
-                ))}
-            </div>
+        <div className="md:hidden">
+            <Carousel className="w-full" opts={{ align: 'start' }}>
+                <CarouselContent className="-ml-4">
+                    {analysisCriteria.map((item, index) => (
+                        <CarouselItem key={index} className="pl-4 basis-[90%]">
+                            <Card className="rounded-2xl border-0 h-full text-center shadow-primary-lg">
+                                <CardHeader className="items-center">
+                                    <CardTitle className="flex flex-col items-center gap-2">
+                                        <item.icon className="h-5 w-5 text-primary" />
+                                        <span className="text-base font-semibold">{item.title}</span>
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="pb-6">
+                                    <p className="text-muted-foreground text-sm">{item.description}</p>
+                                </CardContent>
+                            </Card>
+                        </CarouselItem>
+                    ))}
+                </CarouselContent>
+            </Carousel>
+        </div>
+        <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {analysisCriteria.map((item, index) => (
+                <Card key={index} className="rounded-2xl border-0 text-center shadow-primary-lg">
+                    <CardHeader className="items-center">
+                        <CardTitle className="flex flex-col items-center gap-2">
+                            <item.icon className="h-5 w-5 text-primary" />
+                            <span className="text-base font-semibold">{item.title}</span>
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="pb-6">
+                        <p className="text-muted-foreground text-sm">{item.description}</p>
+                    </CardContent>
+                </Card>
+            ))}
         </div>
       </div>
 
