@@ -34,7 +34,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { analyzeVideo } from "@/app/(app)/video-review/actions";
-import type { AnalyzeVideoOutput } from "@/ai/flows/analyze-video-flow";
+import type { AnalyzeVideoOutput } from "@/ai/schemas";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PageHeader } from "@/components/page-header";
 import {

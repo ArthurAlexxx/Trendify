@@ -1,7 +1,7 @@
 
 'use server';
 
-import { analyzeVideo as analyzeVideoWithGenkit, type AnalyzeVideoInput, type AnalyzeVideoOutput } from '@/ai/flows/analyze-video-flow';
+import { analyzeVideo as analyzeVideoFlow, type AnalyzeVideoInput, type AnalyzeVideoOutput } from '@/ai/flows/analyze-video-flow';
 
 type ActionState = {
   data?: AnalyzeVideoOutput;
@@ -15,7 +15,7 @@ export async function analyzeVideo(
   input: AnalyzeVideoInput
 ): Promise<ActionState> {
   try {
-    const analysis = await analyzeVideoWithGenkit(input);
+    const analysis = await analyzeVideoFlow(input);
     return { data: analysis };
   } catch (e: any) {
     console.error("Falha na execução do fluxo de análise de vídeo:", e);

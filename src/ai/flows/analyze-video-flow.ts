@@ -8,7 +8,7 @@ import type { AnalyzeVideoInput, AnalyzeVideoOutput } from '@/ai/schemas';
 
 export async function analyzeVideo(input: AnalyzeVideoInput): Promise<AnalyzeVideoOutput> {
     const llmResponse = await ai.generate({
-        model: 'googleai/gemini-2.5-flash',
+        model: 'googleai/gemini-1.5-flash',
         prompt: videoAnalysisPrompt,
         input: input,
         config: {
