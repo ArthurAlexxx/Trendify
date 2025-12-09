@@ -32,7 +32,6 @@ function verifyWebhookSignature(
       .update(requestBody, 'utf8')
       .digest('hex');
 
-    // Comparação segura contra ataques de timing
     const signatureBuffer = Buffer.from(signature, 'utf8');
     const expectedSignatureBuffer = Buffer.from(expectedSignature, 'utf8');
     
@@ -177,17 +176,45 @@ export async function POST(req: NextRequest) {
      return NextResponse.json({ error: 'Falha ao ler o corpo da requisição.' }, { status: 400 });
   }
   
-  const signature = req.headers.get('asaas-signature');
+  // DEBUG: Log todos os headers para ver o que está chegando
+  const headers: Record<string, string> = {};
+  req.headers.forEach((value, key) => {
+    headers[key] = value;
+  });
+  
+  console.log('[Asaas Webhook DEBUG] Todos os headers recebidos:', JSON.stringify(headers, null, 2));
+  console.log('[Asaas Webhook DEBUG] ASAAS_WEBHOOK_SECRET configurada?', !!process.env.ASAAS_WEBHOOK_SECRET);
+  console.log('[Asaas Webhook DEBUG] NODE_ENV:', process.env.NODE_ENV);
+  
+  // Tenta obter a assinatura de múltiplos headers possíveis
+  const signature1 = req.headers.get('asaas-signature');
+  const signature2 = req.headers.get('asaas-webhook-signature');
+  const signature3 = req.headers.get('asaas-signature-v2');
+  const signature4 = req.headers.get('asaas-webhook-signature-v2');
+  
+  console.log('[Asaas Webhook DEBUG] Assinaturas encontradas:', {
+    'asaas-signature': signature1,
+    'asaas-webhook-signature': signature2,
+    'asaas-signature-v2': signature3,
+    'asaas-webhook-signature-v2': signature4
+  });
+  
+  const signature = signature1 || signature2 || signature3 || signature4;
   
   if (!verifyWebhookSignature(rawBody, signature)) {
-      console.error('[Asaas Webhook] Assinatura inválida');
-      // Em produção, rejeitamos a requisição. Em desenvolvimento, podemos apenas avisar e continuar.
-      if (process.env.NODE_ENV === 'production') {
+      console.error('[Asaas Webhook] Assinatura inválida ou ausente');
+      
+      // Em desenvolvimento, permite continuar para debug
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('[Asaas Webhook] Modo desenvolvimento: ignorando verificação de assinatura para permitir debug');
+        console.warn('[Asaas Webhook] Corpo da requisição (primeiros 500 chars):', rawBody.substring(0, 500));
+        
+        // Continue processando mesmo sem assinatura válida em dev
+      } else {
         return NextResponse.json({ error: 'Assinatura inválida.' }, { status: 401 });
       }
-      console.warn('[Asaas Webhook] Modo desenvolvimento: ignorando falha na verificação de assinatura para depuração.');
   }
-  
+
   let event;
   try {
     event = JSON.parse(rawBody);
