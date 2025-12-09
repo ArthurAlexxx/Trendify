@@ -38,11 +38,10 @@ const GoogleIcon = () => (
 );
 
 
-export default function LoginPage() {
+export default function LoginPage({ setIsPending }: { setIsPending: (isPending: boolean) => void }) {
   const { toast } = useToast();
   const auth = useAuth();
-  const [isPending, setIsPending] = useState(false);
-
+  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -66,8 +65,7 @@ export default function LoginPage() {
             : 'Ocorreu um erro. Tente novamente.',
         variant: 'destructive',
       });
-    } finally {
-      setIsPending(false);
+       setIsPending(false);
     }
   }
 
@@ -88,8 +86,6 @@ export default function LoginPage() {
         });
       }
       console.error("Google Sign-In error:", error.code);
-    } finally {
-      // The loader is stopped by the AuthLayout redirect or here if an error occurs.
       setIsPending(false);
     }
   }
@@ -97,11 +93,6 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
-       {isPending && (
-        <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
-          <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        </div>
-      )}
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link
@@ -125,7 +116,7 @@ export default function LoginPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-                <Button variant="outline" className="w-full h-11" onClick={handleGoogleSignIn} disabled={isPending}>
+                <Button variant="outline" className="w-full h-11" onClick={handleGoogleSignIn}>
                     <GoogleIcon />
                     Entrar com Google
                 </Button>
@@ -183,12 +174,8 @@ export default function LoginPage() {
                     />
                     <Button
                     type="submit"
-                    disabled={isPending}
                     className="w-full font-manrope h-11 text-base font-bold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-shadow"
                     >
-                    {isPending && (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    )}
                     Entrar com E-mail
                     </Button>
                 </form>
