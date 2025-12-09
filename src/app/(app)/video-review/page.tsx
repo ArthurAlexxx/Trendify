@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useRef, type ChangeEvent, useEffect } from "react";
@@ -319,7 +320,6 @@ function VideoReviewPageContent() {
         
         <div>
           <div className="text-center"><h2 className="text-xl font-bold font-headline">Como Avaliamos Seu Vídeo?</h2><p className="text-muted-foreground">Nossa IA atua como uma estrategista de conteúdo viral e analisa 4 pilares:</p></div>
-          <Separator className="w-1/2 mx-auto my-4" />
           <div className="py-8">
             <div className="md:hidden">
                 <Carousel className="w-full" opts={{ align: 'start' }}><CarouselContent className="-ml-4 px-2">{analysisCriteria.map((item, index) => (<CarouselItem key={index} className="pl-4 basis-[90%] pb-12"><div className="my-4 h-full"><Card className="relative z-10 h-full rounded-2xl border-0 text-center shadow-primary-lg"><CardHeader className="items-center"><CardTitle className="flex flex-col items-center gap-2"><item.icon className="h-5 w-5 text-primary" /><span className="text-base font-semibold">{item.title}</span></CardTitle></CardHeader><CardContent className="pb-6"><p className="text-muted-foreground text-sm">{item.description}</p></CardContent></Card></div></CarouselItem>))}</CarouselContent></Carousel>

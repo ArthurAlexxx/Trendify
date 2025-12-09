@@ -1,4 +1,5 @@
 
+
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -383,7 +384,6 @@ function MediaKitPageContent() {
             <h2 className="text-xl font-bold font-headline">Como Criamos seu Pacote?</h2>
             <p className="text-muted-foreground">A IA atua como sua gerente de talentos e foca em 4 pilares:</p>
         </div>
-        <Separator className="w-1/2 mx-auto my-4" />
         <div className="py-8">
             <div className="md:hidden">
                 <Carousel className="w-full" opts={{ align: 'start' }}>
