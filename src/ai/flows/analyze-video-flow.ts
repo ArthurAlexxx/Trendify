@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview Um fluxo de IA para analisar conteúdo de vídeo.
@@ -34,7 +35,6 @@ export type AnalyzeVideoOutput = z.infer<typeof AnalyzeVideoOutputSchema>;
 
 const videoAnalysisPrompt = ai.definePrompt({
   name: 'videoAnalysisPrompt',
-  model: 'googleai/gemini-1.5-flash',
   input: { schema: AnalyzeVideoInputSchema },
   output: { schema: AnalyzeVideoOutputSchema },
   config: {
