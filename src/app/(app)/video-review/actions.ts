@@ -1,4 +1,3 @@
-
 'use server';
 
 import { analyzeVideo as analyzeVideoFlow, type AnalyzeVideoOutput } from '@/ai/flows/analyze-video-flow';
@@ -38,7 +37,8 @@ export async function saveAnalysisToFirestore(
       userId,
       videoUrl,
       videoFileName,
-      analysisData: { ...dataToSave.analysisData, videoDescription: dataToSave.videoDescription },
+      analysisData: dataToSave.analysisData,
+      videoDescription: dataToSave.videoDescription,
       createdAt: FieldValue.serverTimestamp(),
     });
     return { success: true };

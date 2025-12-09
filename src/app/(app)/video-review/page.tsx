@@ -254,7 +254,7 @@ function VideoReviewPageContent() {
                         videoDataUri: videoDataUri,
                         prompt: videoDescription || "Faça uma análise completa deste vídeo para um criador de conteúdo.",
                       });
-
+                      
                       setAnalysisResult(result);
                       setAnalysisStatus("success");
 
@@ -356,7 +356,8 @@ function VideoReviewPageContent() {
                          <Textarea placeholder="Opcional: Adicione um contexto para a IA (ex: 'Este é um vídeo de unboxing para meu público de tecnologia...')" value={videoDescription} onChange={(e) => setVideoDescription(e.target.value)} className="mt-4 bg-muted/50" />
                     </div>
                 )}
-                 <div className="text-center mt-6"><p className="text-sm text-muted-foreground">{isLoadingUsage ? <div className="h-4 bg-muted rounded w-48 inline-block animate-pulse" /> : <>Análises restantes hoje: <span className="font-bold text-primary">{analysesLeft} de {limitCount}</span></>}</p>{hasReachedLimit && currentPlan !== 'premium' && (<p className="text-xs text-muted-foreground">Você atingiu seu limite diário. Para mais análises, <Link href="/subscribe" className="underline text-primary">faça upgrade</Link>.</p>)}</div>
+                 <div className="text-center mt-6"><p className="text-sm text-muted-foreground">{isLoadingUsage ? <div className="h-4 bg-muted rounded w-48 inline-block animate-pulse" /> : <>Análises restantes hoje: <span className="font-bold text-primary">{analysesLeft} de {limitCount}</span></>}
+</p>{hasReachedLimit && currentPlan !== 'premium' && (<p className="text-xs text-muted-foreground">Você atingiu seu limite diário. Para mais análises, <Link href="/subscribe" className="underline text-primary">faça upgrade</Link>.</p>)}</div>
                 </CardContent>
             </Card>
         </TabsContent>
