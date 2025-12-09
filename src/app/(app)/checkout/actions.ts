@@ -94,7 +94,7 @@ export async function createAsaasPaymentAction(
 
     const checkoutBody = {
         customer: customerId,
-        billingType: 'PIX',
+        billingType: 'PIX', // Campo obrigatório
         chargeType: 'DETACHED',
         externalReference: userId,
         callback: {
