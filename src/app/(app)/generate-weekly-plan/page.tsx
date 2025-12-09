@@ -124,8 +124,9 @@ export default function GenerateWeeklyPlanPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   
   const [isSaving, startSavingTransition] = useTransition();
-  const [isDiscarding, startDiscardingTransition] = useTransition();
   const [showCompletionDialog, setShowCompletionDialog] = useState(false);
+  const [isDiscardDialogOpen, setIsDiscardDialogOpen] = useState(false);
+
 
   const { user } = useUser();
   const firestore = useFirestore();
@@ -384,30 +385,10 @@ export default function GenerateWeeklyPlanPage() {
     }
   };
 
-  const handleDiscardActivePlan = () => {
-    if (!user || !firestore || !activePlan) return;
-
-    startDiscardingTransition(async () => {
-        const result = await archiveAndClearWeeklyPlanAction(user.uid, activePlan.id, activePlan);
-        if (result.success) {
-            toast({
-                title: 'Plano Arquivado',
-                description: 'O plano ativo foi movido para o seu histórico.',
-            });
-        } else {
-             toast({
-                title: 'Erro ao Arquivar',
-                description: result.error || 'Não foi possível arquivar o plano.',
-                variant: 'destructive',
-            });
-        }
-    });
-  };
-
   const handleArchiveCompletedPlan = () => {
     if (!user || !activePlan) return;
     setShowCompletionDialog(false);
-    startDiscardingTransition(async () => {
+    startTransition(async () => {
       const result = await archiveAndClearWeeklyPlanAction(user.uid, activePlan.id, activePlan);
       if (result.success) {
         toast({ title: 'Plano Arquivado!', description: 'Seu plano concluído foi movido para o histórico.' });
@@ -872,30 +853,6 @@ export default function GenerateWeeklyPlanPage() {
                         </div>
                         <div className="flex items-center gap-2">
                             <PreviousPlansSheet />
-                             {activePlan && (
-                                <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                        <Button variant="destructive" disabled={isDiscarding}>
-                                            {isDiscarding ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
-                                            {isDiscarding ? "Descartando..." : "Descartar Plano"}
-                                        </Button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle>Descartar Plano Ativo?</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                                Esta ação moverá o plano atual para o seu histórico. Você poderá reativá-lo mais tarde. Deseja continuar?
-                                            </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                            <AlertDialogAction onClick={handleDiscardActivePlan}>
-                                                Sim, Descartar
-                                            </AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
-                            )}
                         </div>
                     </div>
                 </CardHeader>

@@ -142,11 +142,17 @@ export async function archiveAndClearWeeklyPlanAction(userId: string, planId: st
         // 1. Reference to the new archived document in `ideiasSalvas`
         const ideasCollectionRef = firestore.collection(`users/${userId}/ideiasSalvas`);
         const newArchivedRef = ideasCollectionRef.doc();
+        
+        const createdAtDate = (activePlan.createdAt as unknown as Timestamp)?.toDate();
+        const title = createdAtDate 
+            ? `Plano Concluído de ${createdAtDate.toLocaleDateString('pt-BR')}`
+            : 'Plano Concluído';
+
 
         // 2. Set the data for the new archived plan
         batch.set(newArchivedRef, {
             userId: userId,
-            titulo: `Plano Concluído de ${(activePlan.createdAt as unknown as Timestamp).toDate().toLocaleDateString('pt-BR')}`,
+            titulo: title,
             conteudo: activePlan.items.map(item => `**${item.dia}:** ${item.tarefa}`).join('\n'),
             origem: "Plano Semanal",
             concluido: true, // Mark as completed
