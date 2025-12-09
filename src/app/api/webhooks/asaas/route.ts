@@ -2,50 +2,37 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { initializeFirebaseAdmin } from '@/firebase/admin';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
-import crypto from 'crypto';
 import type { Plan } from '@/lib/types';
 
-// Função para verificar a assinatura do webhook (segurança)
-function verifyWebhookSignature(
-  requestBody: string,
-  signature: string | null
-): boolean {
-  const webhookSecret = process.env.ASAAS_WEBHOOK_SECRET;
-  
-  if (!webhookSecret) {
-    console.warn("[Asaas Webhook] ASAAS_WEBHOOK_SECRET não está configurada. Pulando verificação em ambiente de não produção.");
-    if (process.env.NODE_ENV === 'production') {
-        console.error("[Asaas Webhook] ERRO CRÍTICO: ASAAS_WEBHOOK_SECRET é obrigatória em produção.");
-        return false;
-    }
-    return true; 
-  }
-  
-  if (!signature) {
-    console.error("[Asaas Webhook] Erro: Assinatura ausente no cabeçalho.");
+// Função para verificar o token de acesso (segurança)
+function verifyAccessToken(req: NextRequest): boolean {
+  const webhookToken = process.env.ASAAS_WEBHOOK_SECRET;
+
+  if (!webhookToken) {
+    console.error("[Asaas Webhook] ERRO CRÍTICO: ASAAS_WEBHOOK_SECRET não está configurada.");
     return false;
   }
+  
+  const receivedToken = req.headers.get('asaas-access-token');
 
-  try {
-    const expectedSignature = crypto
-      .createHmac('sha256', webhookSecret)
-      .update(requestBody, 'utf8')
-      .digest('hex');
-
-    const signatureBuffer = Buffer.from(signature, 'utf8');
-    const expectedSignatureBuffer = Buffer.from(expectedSignature, 'utf8');
-    
-    if (signatureBuffer.length !== expectedSignatureBuffer.length) {
-      console.error("[Asaas Webhook] Erro: O comprimento das assinaturas não corresponde.");
-      return false;
-    }
-
-    return crypto.timingSafeEqual(signatureBuffer, expectedSignatureBuffer);
-
-  } catch (error) {
-      console.error('[verifyWebhookSignature] Erro durante a verificação da assinatura:', error);
+  if (!receivedToken) {
+      console.error("[Asaas Webhook] Erro: Token de acesso ausente no cabeçalho 'asaas-access-token'.");
       return false;
   }
+
+  // Comparação segura contra "timing attacks"
+  if (receivedToken.length !== webhookToken.length) {
+      console.error("[Asaas Webhook] Erro: O comprimento do token recebido não corresponde ao esperado.");
+      return false;
+  }
+  
+  // Como é um token fixo e não uma assinatura criptográfica, uma comparação direta é suficiente aqui.
+  if (receivedToken === webhookToken) {
+      return true;
+  }
+  
+  console.error("[Asaas Webhook] Erro: O token recebido é inválido.");
+  return false;
 }
 
 
@@ -170,49 +157,15 @@ export async function POST(req: NextRequest) {
   const { firestore } = initializeFirebaseAdmin();
   let rawBody;
   
+  if (!verifyAccessToken(req)) {
+      console.error('[Asaas Webhook] Token de acesso inválido ou ausente.');
+      return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
+  }
+
   try {
     rawBody = await req.text();
   } catch (error) {
      return NextResponse.json({ error: 'Falha ao ler o corpo da requisição.' }, { status: 400 });
-  }
-  
-  // DEBUG: Log todos os headers para ver o que está chegando
-  const headers: Record<string, string> = {};
-  req.headers.forEach((value, key) => {
-    headers[key] = value;
-  });
-  
-  console.log('[Asaas Webhook DEBUG] Todos os headers recebidos:', JSON.stringify(headers, null, 2));
-  console.log('[Asaas Webhook DEBUG] ASAAS_WEBHOOK_SECRET configurada?', !!process.env.ASAAS_WEBHOOK_SECRET);
-  console.log('[Asaas Webhook DEBUG] NODE_ENV:', process.env.NODE_ENV);
-  
-  // Tenta obter a assinatura de múltiplos headers possíveis
-  const signature1 = req.headers.get('asaas-signature');
-  const signature2 = req.headers.get('asaas-webhook-signature');
-  const signature3 = req.headers.get('asaas-signature-v2');
-  const signature4 = req.headers.get('asaas-webhook-signature-v2');
-  
-  console.log('[Asaas Webhook DEBUG] Assinaturas encontradas:', {
-    'asaas-signature': signature1,
-    'asaas-webhook-signature': signature2,
-    'asaas-signature-v2': signature3,
-    'asaas-webhook-signature-v2': signature4
-  });
-  
-  const signature = signature1 || signature2 || signature3 || signature4;
-  
-  if (!verifyWebhookSignature(rawBody, signature)) {
-      console.error('[Asaas Webhook] Assinatura inválida ou ausente');
-      
-      // Em desenvolvimento, permite continuar para debug
-      if (process.env.NODE_ENV !== 'production') {
-        console.warn('[Asaas Webhook] Modo desenvolvimento: ignorando verificação de assinatura para permitir debug');
-        console.warn('[Asaas Webhook] Corpo da requisição (primeiros 500 chars):', rawBody.substring(0, 500));
-        
-        // Continue processando mesmo sem assinatura válida em dev
-      } else {
-        return NextResponse.json({ error: 'Assinatura inválida.' }, { status: 401 });
-      }
   }
 
   let event;
