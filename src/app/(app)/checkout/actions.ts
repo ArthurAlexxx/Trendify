@@ -47,10 +47,6 @@ export async function createAsaasPaymentAction(
   const apiKey = process.env.ASAAS_API_KEY;
   let appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
   
-  if (appUrl.includes('localhost')) {
-    appUrl = 'https://trendify-beta.vercel.app/';
-  }
-
   if (!apiKey) {
     const errorMessage = process.env.NODE_ENV === 'production'
       ? 'Erro de configuração do servidor. A chave de pagamento (ASAAS_API_KEY) não foi encontrada. Adicione-a nas variáveis de ambiente do seu projeto.'
@@ -94,7 +90,7 @@ export async function createAsaasPaymentAction(
             postalCode,
             address: addressData.logradouro, // Usar a rua retornada pelo ViaCEP
             addressNumber,
-            province: addressData.bairro, // Bairro
+            province: addressData.bairro, // Bairro - CORREÇÃO APLICADA AQUI
         }
     };
     
