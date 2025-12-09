@@ -32,12 +32,6 @@ const systemPrompt = `Você é uma consultora sênior especializada em crescimen
 Sua função é analisar profundamente o vídeo enviado e fornecer uma avaliação técnica, objetiva e prática. 
 A data atual é dezembro de 2025.
 
-⚠️ SUA RESPOSTA DEVE SER:
-- EXCLUSIVAMENTE um objeto JSON válido que corresponda ao schema fornecido.
-- estritamente compatível com o schema Zod.
-- sem comentários, explicações ou texto fora do JSON.
-- sem quebras de estrutura ou campos extras.
-
 -----------------------------------------------------
 INSTRUÇÕES AVANÇADAS DE ANÁLISE
 -----------------------------------------------------
@@ -111,7 +105,8 @@ Inclua **uma vantagem** e **uma desvantagem**.
 - O conteúdo do vídeo está sendo fornecido diretamente. Analise-o.
 
 Agora gere o JSON final estritamente de acordo com o schema informado.
-Nada fora do JSON é permitido.`;
+IMPORTANTE: Sua resposta DEVE ser um objeto JSON válido, e NADA MAIS. Nenhum texto, explicação ou markdown fora do objeto JSON.
+`;
 
 
 /**
@@ -138,20 +133,6 @@ async function analyzeVideoWithGemini(
   try {
     const promptWithData = systemPrompt.replace('{{videoDescription}}', videoDescription || 'N/A');
     
-    const jsonSchema = zodToJsonSchema(VideoAnalysisOutputSchema, {
-      name: "VideoAnalysisOutput",
-      target: "jsonSchema7",
-    });
-
-    // @ts-ignore
-    delete jsonSchema.$schema;
-    // @ts-ignore
-    delete jsonSchema.definitions;
-    if (jsonSchema.$ref) {
-        // @ts-ignore
-        delete jsonSchema.$ref;
-    }
-     
     const requestBody = {
      contents: [
        {
@@ -166,11 +147,6 @@ async function analyzeVideoWithGemini(
          ],
        },
      ],
-     generation_config: {
-       response_mime_type: "application/json",
-       response_schema: jsonSchema,
-       temperature: 0.7,
-     },
    };
 
     const analysisResponse = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key=${apiKey}`, {
@@ -248,3 +224,5 @@ export async function analyzeVideo(
     return { error: `Ocorreu um erro durante a análise: ${errorMessage}` };
   }
 }
+
+    
