@@ -24,13 +24,16 @@ export async function analyzeVideo(input: { videoUrl: string, prompt: string }):
 
     const { output } = await ai.generate({
         model: GEMINI_MODEL,
-        prompt: `Você é uma consultora sênior especializada em crescimento orgânico, viralização, retenção e performance visual em short-form content (Reels, TikTok, Shorts).
+        prompt: [
+            { text: `Você é uma consultora sênior especializada em crescimento orgânico, viralização, retenção e performance visual em short-form content (Reels, TikTok, Shorts).
 Sua função é analisar profundamente o vídeo enviado e fornecer uma avaliação técnica, objetiva e prática.
 
 Instrução do Usuário: ${input.prompt}
-Vídeo: {{media url=${input.videoUrl}}}
 
-Analise o vídeo e retorne um objeto JSON com a sua avaliação, seguindo estritamente o schema de output definido.`,
+Analise o vídeo e retorne um objeto JSON com a sua avaliação, seguindo estritamente o schema de output definido.` 
+            },
+            { media: { url: input.videoUrl } }
+        ],
         output: {
             schema: AnalyzeVideoOutputSchema,
         },
