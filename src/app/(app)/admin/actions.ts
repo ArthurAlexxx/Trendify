@@ -239,7 +239,7 @@ export async function createAsaasPaymentAction(
         billingTypes: [billingType],
         chargeTypes: [isRecurrent ? 'RECURRENT' : 'DETACHED'],
         dueDateLimitDays: isRecurrent ? undefined : 1,
-        externalReference: userId, // Passando o userId aqui
+        externalReference: userId, 
         webhookUrl: `${appUrl}/api/webhooks/asaas`,
         callback: {
             successUrl: `${appUrl}/dashboard?checkout=success`,
@@ -290,6 +290,11 @@ export async function createAsaasPaymentAction(
          console.error('[Asaas Action] Resposta da API de checkout não continha um ID:', checkoutData);
          throw new Error('Ocorreu um erro inesperado ao criar o link de checkout.');
     }
+
+    // Salvar o ID do checkout no Firestore
+    await userRef.update({ 
+        'subscription.checkoutId': checkoutData.id
+    });
 
     const checkoutUrl = `https://sandbox.asaas.com/checkoutSession/show?id=${checkoutData.id}`;
     return { checkoutUrl: checkoutUrl, checkoutId: checkoutData.id };
@@ -347,3 +352,5 @@ export async function cancelAsaasCheckoutAction(
     return { error: e.message || 'Ocorreu um erro de comunicação com o provedor de pagamento.' };
   }
 }
+
+    
