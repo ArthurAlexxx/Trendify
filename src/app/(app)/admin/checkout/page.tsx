@@ -21,6 +21,7 @@ const formSchema = z.object({
   name: z.string().min(3, 'O nome completo é obrigatório.'),
   email: z.string().email('O e-mail é obrigatório e deve ser válido.'),
   cpfCnpj: z.string().min(11, 'O CPF ou CNPJ é obrigatório e deve conter apenas números.').max(14, 'O CNPJ não pode ter mais que 14 números.'),
+  phone: z.string().min(10, 'O telefone é obrigatório.'),
 });
 
 type FormSchemaType = z.infer<typeof formSchema>;
@@ -38,6 +39,7 @@ export default function AdminCheckoutTestPage() {
       name: user?.displayName || '',
       email: user?.email || '',
       cpfCnpj: '',
+      phone: '',
     },
   });
 
@@ -60,6 +62,7 @@ export default function AdminCheckoutTestPage() {
         name: values.name,
         cpfCnpj: values.cpfCnpj.replace(/\D/g, ''), // Remove non-digits
         email: values.email,
+        phone: values.phone.replace(/\D/g, ''),
         // Hardcoding para teste
         plan: 'premium',
         cycle: 'monthly',
@@ -133,20 +136,37 @@ export default function AdminCheckoutTestPage() {
                     )}
                  />
               </div>
-               <div className="space-y-2">
-                 <FormField
-                    control={form.control}
-                    name="cpfCnpj"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>CPF ou CNPJ (do Pagador)</FormLabel>
-                        <FormControl>
-                            <Input placeholder="000.000.000-00" {...field} className="h-11" />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                 />
+              <div className="grid sm:grid-cols-2 gap-4">
+                 <div className="space-y-2">
+                    <FormField
+                        control={form.control}
+                        name="cpfCnpj"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>CPF ou CNPJ</FormLabel>
+                            <FormControl>
+                                <Input placeholder="000.000.000-00" {...field} className="h-11" />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+                 <div className="space-y-2">
+                    <FormField
+                        control={form.control}
+                        name="phone"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Telefone</FormLabel>
+                            <FormControl>
+                                <Input placeholder="(47) 99999-9999" {...field} className="h-11" />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
               </div>
 
                {error && (
