@@ -92,6 +92,8 @@ export async function changeUserPlanAction(
       'subscription.status': newPlan === 'free' ? 'inactive' : 'active',
       'subscription.cycle': newPlan === 'free' ? null : newCycle,
       'subscription.expiresAt': expiresAt,
+      // Se reverter para free, limpar o paymentId
+      'subscription.paymentId': newPlan === 'free' ? null : userDoc.data()?.subscription?.paymentId,
     };
     
     await userRef.update(updatePayload);
@@ -201,13 +203,26 @@ export async function createAsaasPaymentAction(
     
     const customerData = await customerResponse.json();
 
-    if (!customerResponse.ok) {
+    if (!customerResponse.ok && customerResponse.status !== 400) { // O erro 400 pode ser 'cliente já existe'
         console.error('[Asaas Action] Erro ao criar/obter cliente:', customerData);
         throw new Error(customerData.errors?.[0]?.description || 'Falha ao registrar cliente no gateway de pagamento.');
     }
-
-    const customerId = customerData.id;
     
+    let customerId = customerData.id;
+    // Se o cliente já existe, busca o ID dele
+    if (customerResponse.status === 400 && customerData.errors?.[0]?.code === 'invalid_customer') {
+        const searchResponse = await fetch(`https://api-sandbox.asaas.com/v3/customers?cpfCnpj=${cpfCnpj}`, {
+            headers: { 'access_token': apiKey },
+        });
+        const searchData = await searchResponse.json();
+        if (searchData.data && searchData.data.length > 0) {
+            customerId = searchData.data[0].id;
+        } else {
+             throw new Error('Falha ao encontrar cliente existente no gateway de pagamento.');
+        }
+    }
+
+
     const { firestore } = initializeFirebaseAdmin();
     const userRef = firestore.doc(`users/${userId}`);
     await userRef.update({ 'subscription.paymentId': customerId });
@@ -220,8 +235,8 @@ export async function createAsaasPaymentAction(
 
     const checkoutBody: any = {
         customer: customerId,
-        billingTypes: [billingType],
-        chargeTypes: [isRecurrent ? 'RECURRENT' : 'DETACHED'],
+        billingType: billingType,
+        chargeType: isRecurrent ? 'RECURRENT' : 'DETACHED',
         dueDateLimitDays: isRecurrent ? undefined : 1, 
         externalReference: userId,
         webhookUrl: `${appUrl}/api/webhooks/asaas`,
