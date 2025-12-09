@@ -124,6 +124,7 @@ function VideoReviewPageContent() {
   const [analysisError, setAnalysisError] = useState<string>("");
   const [activeTab, setActiveTab] = useState("generate");
   const [videoDescription, setVideoDescription] = useState("");
+  const [analysisName, setAnalysisName] = useState("");
 
   const { user } = useUser();
   const firestore = useFirestore();
@@ -179,6 +180,7 @@ function VideoReviewPageContent() {
         return;
       }
       setFile(selectedFile);
+      setAnalysisName(selectedFile.name); // Default name
       resetAnalysisState();
     }
   };
@@ -198,6 +200,7 @@ function VideoReviewPageContent() {
 
   const handleReset = () => {
     setFile(null);
+    setAnalysisName("");
     resetAnalysisState();
   };
 
@@ -221,47 +224,50 @@ function VideoReviewPageContent() {
     reader.onloadend = async () => {
         const videoDataUri = reader.result as string;
         
-        let result: AnalyzeVideoOutput;
         try {
-            result = await analyzeVideo({ 
+            const result = await analyzeVideo({ 
               videoDataUri: videoDataUri,
               prompt: videoDescription || "Faça uma análise completa deste vídeo para um criador de conteúdo.",
             });
+
             setAnalysisResult(result);
             setAnalysisStatus("success");
+
+            // --- Save to Firestore on success ---
+            try {
+                const usageDocRef = doc(firestore, `users/${user.uid}/dailyUsage/${todayStr}`);
+                
+                await addDoc(collection(firestore, `users/${user.uid}/analisesVideo`), {
+                    userId: user.uid,
+                    videoFileName: file.name,
+                    analysisName: analysisName || file.name,
+                    analysisData: result,
+                    videoDescription: videoDescription,
+                    createdAt: serverTimestamp(),
+                });
+
+                const usageDoc = await getDoc(usageDocRef);
+                 if (usageDoc.exists()) {
+                     await updateDoc(usageDocRef, { videoAnalyses: increment(1) });
+                 } else {
+                     await setDoc(usageDocRef, { date: todayStr, videoAnalyses: 1, geracoesAI: 0 });
+                 }
+                
+                toast({ title: "Análise Concluída!", description: "Seu vídeo foi analisado e salvo no seu histórico." });
+            
+            } catch (saveError: any) {
+                console.error('Failed to save analysis:', saveError);
+                toast({
+                    title: 'Análise Concluída (com um porém)',
+                    description: 'A análise foi feita, mas não conseguimos salvá-la no seu histórico. O erro foi: ' + saveError.message,
+                    variant: 'destructive',
+                    duration: 7000,
+                });
+            }
+
         } catch (e: any) {
             setAnalysisError(e.message || "Ocorreu um erro desconhecido na análise.");
             setAnalysisStatus("error");
-            return; // Stop execution if analysis fails
-        }
-
-        // Save to Firestore only if analysis was successful
-        try {
-            await addDoc(collection(firestore, `users/${user.uid}/analisesVideo`), {
-                userId: user.uid,
-                videoFileName: file.name,
-                analysisData: result,
-                videoDescription: videoDescription,
-                createdAt: serverTimestamp(),
-            });
-            
-             const usageDocRef = doc(firestore, `users/${user.uid}/dailyUsage/${todayStr}`);
-             const usageDoc = await getDoc(usageDocRef);
-             if (usageDoc.exists()) {
-                 await updateDoc(usageDocRef, { videoAnalyses: increment(1) });
-             } else {
-                 await setDoc(usageDocRef, { date: todayStr, videoAnalyses: 1, geracoesAI: 0 });
-             }
-            
-            toast({ title: "Análise Concluída!", description: "Seu vídeo foi analisado e salvo no seu histórico." });
-        } catch (saveError: any) {
-            console.error('Failed to save analysis:', saveError);
-            toast({
-                title: 'Análise Concluída (com um porém)',
-                description: 'A análise foi feita, mas não conseguimos salvá-la no seu histórico. O erro foi: ' + saveError.message,
-                variant: 'destructive',
-                duration: 7000,
-            });
         }
     };
     reader.onerror = (error) => {
@@ -273,7 +279,7 @@ function VideoReviewPageContent() {
 
   const getNoteParts = (geralText: string | undefined): { note: string, description: string } => {
     if (!geralText) return { note: '-', description: 'Análise indisponível.' };
-    const scoreRegex = /(\d{1,2}(?:[.,]\d{1,2})?)\s*\/\s*10|Nota:\s*(\d{1,2}(?:[.,]\d{1,2})?)|^(\d{1,2}(?:[.,]\d{1,2})?)\s*[-–—:]?/i;
+    const scoreRegex = /(\d{1,2}(?:[.,]\d{1,2})?)\s*\/\s*10|Nota:\s*(\d{1,2}(?:[.,]\d{1.2})?)|^(\d{1,2}(?:[.,]\d{1,2})?)\s*[-–—:]?/i;
     const scoreMatch = geralText.match(scoreRegex);
 
     if (scoreMatch) {
@@ -317,13 +323,15 @@ function VideoReviewPageContent() {
                  {!file ? (
                     <div className="flex w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed p-12 text-center transition-colors border-border/50"><div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20 text-primary"><UploadCloud className="h-8 w-8" /></div><h3 className="mt-6 text-xl font-bold tracking-tight text-foreground">Arraste seu vídeo para cá</h3><p className="mt-2 text-sm text-muted-foreground">ou clique para selecionar. Limite de ${MAX_FILE_SIZE_MB}MB.</p><Button type="button" variant="outline" className="mt-6" onClick={() => fileInputRef.current?.click()} disabled={hasReachedLimit}>Selecionar Vídeo</Button><Input ref={fileInputRef} type="file" className="hidden" onChange={handleFileInputChange} accept="video/*"/></div>
                 ) : (
-                    <div>
+                    <div className="space-y-4">
                         <div className="p-4 border rounded-lg flex flex-col sm:flex-row items-center gap-4 bg-muted/30">
                             <Clapperboard className="h-10 w-10 text-primary" />
                             <div className="flex-1 text-center sm:text-left"><p className="font-medium">{file.name}</p><p className="text-sm text-muted-foreground">{new Intl.NumberFormat('pt-BR', { style: 'unit', unit: 'megabyte', unitDisplay: 'short' }).format(file.size / 1024 / 1024)}</p></div>
-                            <div className="flex w-full sm:w-auto flex-col sm:flex-row gap-2"><Button onClick={handleAnalyzeVideo} disabled={analysisStatus !== 'idle' || hasReachedLimit} className="w-full sm:w-auto"><Sparkles className="mr-2" />Analisar Vídeo</Button><Button onClick={handleReset} variant="outline" className="w-full sm:w-auto">Trocar Vídeo</Button></div>
+                            <div className="flex w-full sm:w-auto flex-col sm:flex-row gap-2"><Button onClick={handleReset} variant="outline" className="w-full sm:w-auto">Trocar Vídeo</Button></div>
                         </div>
-                         <Textarea placeholder="Opcional: Adicione um contexto para a IA (ex: 'Este é um vídeo de unboxing para meu público de tecnologia...')" value={videoDescription} onChange={(e) => setVideoDescription(e.target.value)} className="mt-4 bg-muted/50" />
+                         <Input placeholder="Dê um nome para esta análise..." value={analysisName} onChange={(e) => setAnalysisName(e.target.value)} className="h-12 bg-muted/50 text-base" />
+                         <Textarea placeholder="Opcional: Adicione um contexto para a IA (ex: 'Este é um vídeo de unboxing para meu público de tecnologia...')" value={videoDescription} onChange={(e) => setVideoDescription(e.target.value)} className="bg-muted/50" />
+                          <Button onClick={handleAnalyzeVideo} disabled={analysisStatus !== 'idle' || hasReachedLimit} className="w-full h-12 text-base"><Sparkles className="mr-2" />Analisar Vídeo</Button>
                     </div>
                 )}
                  <div className="text-center mt-6"><p className="text-sm text-muted-foreground">{isLoadingUsage ? <div className="h-4 bg-muted rounded w-48 inline-block animate-pulse" /> : <>Análises restantes hoje: <span className="font-bold text-primary">{analysesLeft} de {limitCount}</span></>}
@@ -360,12 +368,12 @@ function VideoReviewPageContent() {
                     {!isLoadingAnalyses && previousAnalyses && previousAnalyses.length > 0 && (<ul className="space-y-4">{previousAnalyses.map(analise => (<li key={analise.id}>
                         <div className="flex items-center gap-4 p-2 rounded-lg hover:bg-muted">
                         <Clapperboard className="h-6 w-6 text-primary shrink-0" />
-                        <div className="flex-1"><p className="font-semibold text-foreground truncate">{analise.videoFileName}</p><p className="text-xs text-muted-foreground">{analise.createdAt ? formatDistanceToNow(analise.createdAt.toDate(), { addSuffix: true, locale: ptBR }) : ''}</p></div>
+                        <div className="flex-1"><p className="font-semibold text-foreground truncate">{analise.analysisName || analise.videoFileName}</p><p className="text-xs text-muted-foreground">{analise.createdAt ? formatDistanceToNow(analise.createdAt.toDate(), { addSuffix: true, locale: ptBR }) : ''}</p></div>
                         <Sheet><SheetTrigger asChild><Button variant="outline" size="sm"><Eye className="mr-2 h-4 w-4" /> Ver Análise</Button></SheetTrigger>
                         <SheetContent className="sm:max-w-4xl p-0">
-                            <SheetHeader className="p-6 border-b"><SheetTitle className="text-center font-headline text-2xl">Análise de {analise.videoFileName}</SheetTitle></SheetHeader>
+                            <SheetHeader className="p-6 border-b"><SheetTitle className="text-center font-headline text-2xl">Análise de {analise.analysisName || analise.videoFileName}</SheetTitle></SheetHeader>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 max-h-[calc(100vh-8rem)] overflow-y-auto">
-                            <div className="space-y-4">{analise.videoUrl && (<video controls src={analise.videoUrl} className="w-full rounded-lg bg-black"></video>)}{analise.analysisData.videoDescription && (<Card className="shadow-primary-lg"><CardHeader><CardTitle className="text-center font-headline text-lg flex items-center gap-2 justify-center"><Info className="h-5 w-5 text-primary" />Descrição Fornecida</CardTitle></CardHeader><CardContent className="text-center"><p className="text-sm text-muted-foreground">{analise.analysisData.videoDescription}</p></CardContent></Card>)}<Card className="shadow-primary-lg"><CardHeader><CardTitle className="text-lg text-primary text-center">Nota de Viralização</CardTitle></CardHeader><CardContent className="text-center"><div className="text-3xl font-bold">{getNoteParts(analise.analysisData.geral).note}/10</div><p className="text-sm text-muted-foreground mt-1">{getNoteParts(analise.analysisData.geral).description}</p></CardContent></Card><Card className="shadow-primary-lg"><CardHeader><CardTitle className="flex items-center gap-2 justify-center text-lg"><Check className="h-5 w-5 text-primary" /> Checklist de Melhorias</CardTitle></CardHeader><CardContent><ul className="space-y-2 text-sm">{analise.analysisData.melhorias.map((item: string, index: number) => (<li key={index} className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-1 shrink-0" /><span className="text-muted-foreground">{item.replace(/^✓\s*/, '')}</span></li>))}</ul></CardContent></Card></div>
+                            <div className="space-y-4">{analise.analysisData.videoDescription && (<Card className="shadow-primary-lg"><CardHeader><CardTitle className="text-center font-headline text-lg flex items-center gap-2 justify-center"><Info className="h-5 w-5 text-primary" />Descrição Fornecida</CardTitle></CardHeader><CardContent className="text-center"><p className="text-sm text-muted-foreground">{analise.analysisData.videoDescription}</p></CardContent></Card>)}<Card className="shadow-primary-lg"><CardHeader><CardTitle className="text-lg text-primary text-center">Nota de Viralização</CardTitle></CardHeader><CardContent className="text-center"><div className="text-3xl font-bold">{getNoteParts(analise.analysisData.geral).note}/10</div><p className="text-sm text-muted-foreground mt-1">{getNoteParts(analise.analysisData.geral).description}</p></CardContent></Card><Card className="shadow-primary-lg"><CardHeader><CardTitle className="flex items-center gap-2 justify-center text-lg"><Check className="h-5 w-5 text-primary" /> Checklist de Melhorias</CardTitle></CardHeader><CardContent><ul className="space-y-2 text-sm">{analise.analysisData.melhorias.map((item: string, index: number) => (<li key={index} className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-1 shrink-0" /><span className="text-muted-foreground">{item.replace(/^✓\s*/, '')}</span></li>))}</ul></CardContent></Card></div>
                             <Card className="shadow-primary-lg"><CardHeader><CardTitle className="text-center text-lg">Análise Detalhada</CardTitle></CardHeader><CardContent><Accordion type="single" collapsible defaultValue="item-1"><AccordionItem value="item-1"><AccordionTrigger>Análise do Gancho</AccordionTrigger><AccordionContent>{analise.analysisData.gancho}</AccordionContent></AccordionItem><AccordionItem value="item-2"><AccordionTrigger>Análise do Conteúdo</AccordionTrigger><AccordionContent>{analise.analysisData.conteudo}</AccordionContent></AccordionItem><AccordionItem value="item-3"><AccordionTrigger>Análise do CTA</AccordionTrigger><AccordionContent>{analise.analysisData.cta}</AccordionContent></AccordionItem></Accordion></CardContent></Card>
                             </div>
                         </SheetContent>

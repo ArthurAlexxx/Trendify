@@ -359,7 +359,7 @@
       "type": "object",
       "properties": {
         "userId": { "type": "string", "description": "O ID do usuário que solicitou a análise." },
-        "videoUrl": { "type": "string", "format": "uri", "description": "A URL do vídeo armazenado no Firebase Storage." },
+        "analysisName": { "type": "string", "description": "O nome personalizado para a análise."},
         "videoFileName": { "type": "string", "description": "O nome original do arquivo de vídeo." },
         "analysisData": { "type": "object", "description": "O objeto JSON contendo os dados da análise da IA." },
         "createdAt": { "type": "string", "format": "date-time", "description": "O timestamp de quando a análise foi criada." },
