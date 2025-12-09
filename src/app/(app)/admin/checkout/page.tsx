@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { CreditCard, Loader2, AlertTriangle, ExternalLink, XCircle, CheckCircle, RefreshCw } from 'lucide-react';
+import { CreditCard, Loader2, AlertTriangle, ExternalLink, XCircle, CheckCircle, RefreshCw, Info } from 'lucide-react';
 import { useState, useTransition, useEffect } from 'react';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { useForm } from 'react-hook-form';
@@ -169,6 +169,14 @@ export default function AdminCheckoutTestPage() {
         description="Use esta página para simular o fluxo de pagamento completo com a Asaas."
         icon={CreditCard}
       />
+
+       <Alert variant="default" className="max-w-2xl mx-auto">
+        <Info className="h-4 w-4" />
+        <AlertTitle>Debug: ID do Usuário</AlertTitle>
+        <AlertDescription>
+            O ID do usuário logado que será enviado é: <strong>{user?.uid || 'Nenhum usuário logado'}</strong>
+        </AlertDescription>
+      </Alert>
       
       {isProfileLoading ? <Loader2 className="mx-auto h-8 w-8 animate-spin" /> : userProfile && (
         <Card className="max-w-2xl mx-auto shadow-primary-inner">
