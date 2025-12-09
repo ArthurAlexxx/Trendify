@@ -260,8 +260,8 @@ export function SavedIdeasSheet() {
 
     {selectedIdea && (
         <Sheet open={isDetailSheetOpen} onOpenChange={setIsDetailSheetOpen}>
-            <SheetContent className="sm:max-w-3xl">
-                <SheetHeader>
+            <SheetContent className="p-0 sm:max-w-4xl">
+                <SheetHeader className="p-6 border-b">
                 <SheetTitle className="font-headline text-2xl">
                     {selectedIdea.titulo}
                 </SheetTitle>
