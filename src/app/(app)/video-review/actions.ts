@@ -159,7 +159,7 @@ async function analyzeVideoWithGemini(
          ],
        },
      ],
-     generationConfig: {
+     generation_config: {
         response_mime_type: "application/json",
         response_schema: jsonSchema,
      }
