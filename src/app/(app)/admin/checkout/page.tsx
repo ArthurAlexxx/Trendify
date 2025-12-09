@@ -5,7 +5,6 @@ import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { CreditCard, Loader2, AlertTriangle } from 'lucide-react';
 import { useState, useTransition, useEffect } from 'react';
@@ -17,6 +16,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { createAsaasPaymentAction } from '@/app/(app)/checkout/actions';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { doc, updateDoc } from 'firebase/firestore';
+import { Separator } from '@/components/ui/separator';
 
 const formSchema = z.object({
   name: z.string().min(3, 'O nome completo é obrigatório.'),
