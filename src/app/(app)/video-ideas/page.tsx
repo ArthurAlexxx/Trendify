@@ -344,8 +344,8 @@ export default function VideoIdeasPage() {
             <Carousel className="w-full" opts={{ align: 'start' }}>
                 <CarouselContent className="-ml-4">
                     {analysisCriteria.map((item, index) => (
-                        <CarouselItem key={index} className="pl-4 basis-[90%]">
-                            <Card className="rounded-2xl border-0 h-full text-center shadow-primary-lg mb-8">
+                        <CarouselItem key={index} className="pl-4 basis-[90%] mb-8">
+                            <Card className="rounded-2xl border-0 h-full text-center shadow-primary-lg">
                                 <CardHeader className="items-center">
                                     <CardTitle className="flex flex-col items-center gap-2">
                                         <item.icon className="h-5 w-5 text-primary" />
@@ -361,7 +361,7 @@ export default function VideoIdeasPage() {
                 </CarouselContent>
             </Carousel>
         </div>
-        <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-4">
             {analysisCriteria.map((item, index) => (
                 <Card key={index} className="rounded-2xl border-0 text-center shadow-primary-lg">
                     <CardHeader className="items-center">
