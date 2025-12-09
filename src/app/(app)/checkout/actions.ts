@@ -21,6 +21,7 @@ const CreatePaymentSchema = z.object({
   addressNumber: z.string().min(1, 'O número é obrigatório.'),
   plan: z.enum(['pro', 'premium']),
   cycle: z.enum(['monthly', 'annual']),
+  billingType: z.enum(['PIX', 'BOLETO', 'CREDIT_CARD']),
   userId: z.string().min(1, 'ID do usuário é obrigatório.'),
 });
 
@@ -44,7 +45,7 @@ export async function createAsaasPaymentAction(
     return { error: `Dados inválidos: ${errorMessages}` };
   }
 
-  const { name, cpfCnpj, email, phone, postalCode, addressNumber, plan, cycle, userId } = parsed.data;
+  const { name, cpfCnpj, email, phone, postalCode, addressNumber, plan, cycle, billingType, userId } = parsed.data;
   const apiKey = process.env.ASAAS_API_KEY;
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://trendify-beta.vercel.app';
   
@@ -93,8 +94,6 @@ export async function createAsaasPaymentAction(
         }
     }
     
-    // Salvar o customerId da Asaas no perfil do usuário no Firestore.
-    // É crucial para associar o webhook ao usuário correto.
     const { firestore } = initializeFirebaseAdmin();
     const userRef = firestore.doc(`users/${userId}`);
     await userRef.update({ 'subscription.paymentId': customerId });
@@ -103,18 +102,20 @@ export async function createAsaasPaymentAction(
     // ETAPA 2: Criar o link de checkout com o ID do cliente
     const price = priceMap[plan][cycle];
     const planName = `${plan.toUpperCase()} - ${cycle === 'monthly' ? 'Mensal' : 'Anual'}`;
+    const isRecurrent = billingType === 'CREDIT_CARD';
 
-    const checkoutBody = {
+    const checkoutBody: any = {
         customer: customerId,
-        billingTypes: ['PIX', 'BOLETO', 'CREDIT_CARD'], // Campo obrigatório, pode ser ajustado
-        chargeType: 'DETACHED',
+        billingTypes: [billingType],
+        chargeType: isRecurrent ? 'RECURRENT' : 'DETACHED',
+        dueDateLimitDays: isRecurrent ? undefined : 1, 
         externalReference: userId,
         webhookUrl: `${appUrl}/api/webhooks/asaas`,
         callback: {
             successUrl: `${appUrl}/dashboard?checkout=success`,
+            autoRedirect: true,
             cancelUrl: `${appUrl}/dashboard?checkout=cancel`,
             expiredUrl: `${appUrl}/dashboard?checkout=expired`,
-            autoRedirect: true,
         },
         items: [{
             name: planName,
@@ -123,6 +124,20 @@ export async function createAsaasPaymentAction(
             quantity: 1,
         }],
     };
+    
+    if (isRecurrent) {
+        const nextDueDate = new Date();
+        nextDueDate.setMonth(nextDueDate.getMonth() + 1);
+
+        const endDate = new Date();
+        endDate.setFullYear(endDate.getFullYear() + 5);
+
+        checkoutBody.subscription = {
+            cycle: cycle.toUpperCase(),
+            nextDueDate: nextDueDate.toISOString().split('T')[0],
+            endDate: endDate.toISOString().split('T')[0],
+        };
+    }
     
     const checkoutResponse = await fetch('https://api-sandbox.asaas.com/v3/checkouts', {
         method: 'POST',
@@ -146,7 +161,6 @@ export async function createAsaasPaymentAction(
          throw new Error('Ocorreu um erro inesperado ao criar o link de checkout.');
     }
 
-    // A resposta contém 'id', então construímos a URL de checkout.
     const checkoutUrl = `https://sandbox.asaas.com/checkoutSession/show?id=${checkoutData.id}`;
     return { checkoutUrl: checkoutUrl };
 
@@ -155,3 +169,5 @@ export async function createAsaasPaymentAction(
     return { error: e.message || 'Ocorreu um erro de comunicação com o provedor de pagamento.' };
   }
 }
+
+    

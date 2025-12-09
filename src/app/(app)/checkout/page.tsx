@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Suspense, useState, useTransition, useEffect } from 'react';
-import { Loader2, CheckCircle, AlertTriangle, CreditCard, ExternalLink } from 'lucide-react';
+import { Loader2, CheckCircle, AlertTriangle, CreditCard, ExternalLink, ShieldCheck, Banknote, Webcam } from 'lucide-react';
 import { useUser, useFirestore } from '@/firebase';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -23,13 +23,16 @@ import { Button } from '@/components/ui/button';
 import { createAsaasPaymentAction } from './actions';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { doc, updateDoc } from 'firebase/firestore';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 
 const formSchema = z.object({
   name: z.string().min(3, 'O nome completo é obrigatório.'),
-  cpfCnpj: z.string().min(11, 'O CPF ou CNPJ é obrigatório.').max(14, 'O CNPJ não pode ter mais que 14 números.'),
+  cpfCnpj: z.string().min(11, 'O CPF ou CNPJ é obrigatório.').max(18, 'O CPF/CNPJ é muito longo.'),
   phone: z.string().min(10, 'O telefone é obrigatório.'),
   postalCode: z.string().min(8, 'O CEP é obrigatório.'),
   addressNumber: z.string().min(1, 'O número é obrigatório.'),
+  billingType: z.enum(['PIX', 'BOLETO', 'CREDIT_CARD']),
 });
 
 type FormSchemaType = z.infer<typeof formSchema>;
@@ -53,6 +56,7 @@ function CheckoutPageContent() {
       phone: '',
       postalCode: '',
       addressNumber: '',
+      billingType: 'PIX',
     },
   });
   
@@ -94,6 +98,18 @@ function CheckoutPageContent() {
       }
     });
   };
+  
+  const priceMap = {
+    pro: { monthly: 'R$29', annual: 'R$299' },
+    premium: { monthly: 'R$39', annual: 'R$399' },
+  };
+
+  const getPrice = () => {
+      if (plan && cycle && (plan === 'pro' || plan === 'premium') && (cycle === 'monthly' || cycle === 'annual')) {
+          return priceMap[plan][cycle];
+      }
+      return 'R$0';
+  }
 
   return (
     <div className="space-y-8">
@@ -104,14 +120,59 @@ function CheckoutPageContent() {
       />
       <Card className="max-w-2xl mx-auto border-0 rounded-2xl shadow-primary-lg">
         <CardHeader>
-          <CardTitle>Plano Escolhido: {plan} ({cycle})</CardTitle>
-          <CardDescription>
-            Complete seu cadastro para gerar o link de pagamento.
-          </CardDescription>
+          <div className="text-center">
+            <p className="text-muted-foreground">Você está assinando</p>
+            <h2 className="text-2xl font-bold font-headline">Plano {plan} <span className="capitalize">({cycle})</span></h2>
+            <p className="text-3xl font-bold mt-2">{getPrice()}</p>
+          </div>
         </CardHeader>
         <CardContent>
             <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+               <FormField
+                control={form.control}
+                name="billingType"
+                render={({ field }) => (
+                  <FormItem className="space-y-3">
+                    <FormLabel className="font-semibold">Forma de Pagamento</FormLabel>
+                    <FormControl>
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="grid grid-cols-1 md:grid-cols-3 gap-4"
+                      >
+                        <FormItem className="flex-1">
+                          <FormControl>
+                            <RadioGroupItem value="PIX" id="pix" className="sr-only" />
+                          </FormControl>
+                          <Label htmlFor="pix" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer [&:has([data-state=checked])]:border-primary">
+                            <Banknote className="mb-3 h-6 w-6" /> PIX
+                          </Label>
+                        </FormItem>
+                        <FormItem className="flex-1">
+                          <FormControl>
+                            <RadioGroupItem value="BOLETO" id="boleto" className="sr-only" />
+                          </FormControl>
+                          <Label htmlFor="boleto" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer [&:has([data-state=checked])]:border-primary">
+                            <ShieldCheck className="mb-3 h-6 w-6" /> Boleto
+                          </Label>
+                        </FormItem>
+                         <FormItem className="flex-1">
+                          <FormControl>
+                            <RadioGroupItem value="CREDIT_CARD" id="cc" className="sr-only" />
+                          </FormControl>
+                          <Label htmlFor="cc" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer [&:has([data-state=checked])]:border-primary">
+                            <CreditCard className="mb-3 h-6 w-6" /> Cartão
+                          </Label>
+                        </FormItem>
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <h4 className="font-semibold pt-4">Dados do Pagador</h4>
               <div className="space-y-2">
                  <FormField
                     control={form.control}
@@ -225,3 +286,5 @@ export default function CheckoutPage() {
         </Suspense>
     )
 }
+
+    
