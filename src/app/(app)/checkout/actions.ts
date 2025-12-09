@@ -42,7 +42,12 @@ export async function createAsaasPaymentAction(
 
   const { name, cpfCnpj, email, plan, cycle, userId } = parsed.data;
   const apiKey = process.env.ASAAS_API_KEY;
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
+  let appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
+  
+  // Asaas sandbox requires a public URL, not localhost.
+  if (appUrl.includes('localhost')) {
+    appUrl = 'https://example.com';
+  }
 
 
   if (!apiKey) {
