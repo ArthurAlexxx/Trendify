@@ -20,8 +20,10 @@ import { doc, updateDoc } from 'firebase/firestore';
 const formSchema = z.object({
   name: z.string().min(3, 'O nome completo é obrigatório.'),
   email: z.string().email('O e-mail é obrigatório e deve ser válido.'),
-  cpfCnpj: z.string().min(11, 'O CPF ou CNPJ é obrigatório e deve conter apenas números.').max(14, 'O CNPJ não pode ter mais que 14 números.'),
+  cpfCnpj: z.string().min(11, 'O CPF ou CNPJ é obrigatório.').max(14, 'O CNPJ não pode ter mais que 14 números.'),
   phone: z.string().min(10, 'O telefone é obrigatório.'),
+  postalCode: z.string().min(8, 'O CEP é obrigatório.'),
+  addressNumber: z.string().min(1, 'O número é obrigatório.'),
 });
 
 type FormSchemaType = z.infer<typeof formSchema>;
@@ -40,6 +42,8 @@ export default function AdminCheckoutTestPage() {
       email: user?.email || '',
       cpfCnpj: '',
       phone: '',
+      postalCode: '',
+      addressNumber: '',
     },
   });
 
@@ -59,10 +63,10 @@ export default function AdminCheckoutTestPage() {
     setError(null);
     startTransition(async () => {
       const result = await createAsaasPaymentAction({
-        name: values.name,
+        ...values,
         cpfCnpj: values.cpfCnpj.replace(/\D/g, ''), // Remove non-digits
-        email: values.email,
         phone: values.phone.replace(/\D/g, ''),
+        postalCode: values.postalCode.replace(/\D/g, ''),
         // Hardcoding para teste
         plan: 'premium',
         cycle: 'monthly',
@@ -168,6 +172,40 @@ export default function AdminCheckoutTestPage() {
                     />
                 </div>
               </div>
+
+               <div className="grid sm:grid-cols-2 gap-4">
+                 <div className="space-y-2">
+                    <FormField
+                        control={form.control}
+                        name="postalCode"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>CEP</FormLabel>
+                            <FormControl>
+                                <Input placeholder="00000-000" {...field} className="h-11" />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+                 <div className="space-y-2">
+                    <FormField
+                        control={form.control}
+                        name="addressNumber"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Número</FormLabel>
+                            <FormControl>
+                                <Input placeholder="123" {...field} className="h-11" />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+              </div>
+
 
                {error && (
                 <Alert variant="destructive">

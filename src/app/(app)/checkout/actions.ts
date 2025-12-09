@@ -16,6 +16,8 @@ const CreatePaymentSchema = z.object({
   cpfCnpj: z.string().min(11, 'O CPF/CNPJ é obrigatório.'),
   email: z.string().email('O e-mail é inválido.'),
   phone: z.string().min(10, 'O telefone é obrigatório.'),
+  postalCode: z.string().min(8, 'O CEP é obrigatório.'),
+  addressNumber: z.string().min(1, 'O número é obrigatório.'),
   plan: z.enum(['pro', 'premium']),
   cycle: z.enum(['monthly', 'annual']),
   userId: z.string().min(1, 'ID do usuário é obrigatório.'),
@@ -42,7 +44,7 @@ export async function createAsaasPaymentAction(
     return { error: `Dados inválidos: ${errorMessages}` };
   }
 
-  const { name, cpfCnpj, email, phone, plan, cycle, userId } = parsed.data;
+  const { name, cpfCnpj, email, phone, postalCode, addressNumber, plan, cycle, userId } = parsed.data;
   const apiKey = process.env.ASAAS_API_KEY;
   let appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
   
@@ -70,7 +72,7 @@ export async function createAsaasPaymentAction(
         'content-type': 'application/json',
         access_token: apiKey,
       },
-      body: JSON.stringify({ name, cpfCnpj, email, phone }),
+      body: JSON.stringify({ name, cpfCnpj, email, phone, postalCode, addressNumber }),
     });
 
     const customerData = await customerResponse.json();
