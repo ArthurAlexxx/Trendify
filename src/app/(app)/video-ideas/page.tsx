@@ -353,8 +353,8 @@ export default function VideoIdeasPage() {
                                                 <span className="text-lg font-semibold">{item.title}</span>
                                             </CardTitle>
                                         </CardHeader>
-                                        <CardContent className="pb-6">
-                                            <p className="text-muted-foreground text-base">{item.description}</p>
+                                        <CardContent className="pb-4">
+                                            <p className="text-muted-foreground text-sm">{item.description}</p>
                                         </CardContent>
                                     </Card>
                                 </div>

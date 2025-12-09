@@ -1,5 +1,4 @@
 
-
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -455,12 +454,12 @@ export default function GenerateWeeklyPlanPage() {
                               <div className="my-4 h-full">
                                 <Card className="relative z-10 rounded-2xl border-0 h-full text-center shadow-primary-lg">
                                   <CardHeader className="items-center">
-                                      <CardTitle className="flex flex-col items-center gap-2">
-                                          <item.icon className="h-5 w-5 text-primary" />
-                                          <span className="text-base font-semibold">{item.title}</span>
+                                      <CardTitle className="flex flex-col items-center gap-3">
+                                          <item.icon className="h-6 w-6 text-primary" />
+                                          <span className="text-lg font-semibold">{item.title}</span>
                                       </CardTitle>
                                   </CardHeader>
-                                  <CardContent className="pb-6">
+                                  <CardContent className="pb-4">
                                       <p className="text-muted-foreground text-sm">{item.description}</p>
                                   </CardContent>
                                 </Card>
@@ -479,7 +478,7 @@ export default function GenerateWeeklyPlanPage() {
                               <span className="text-base font-semibold">{item.title}</span>
                           </CardTitle>
                       </CardHeader>
-                      <CardContent>
+                      <CardContent className="pb-4">
                           <p className="text-muted-foreground text-sm">{item.description}</p>
                       </CardContent>
                   </Card>
@@ -981,7 +980,3 @@ export default function GenerateWeeklyPlanPage() {
     </div>
   );
 }
-
-
-
-    

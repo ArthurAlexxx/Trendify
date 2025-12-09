@@ -244,7 +244,7 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
 
                     const content = (
                         <div className={cn(
-                            "flex items-center gap-3 p-3 rounded-lg transition-colors text-sm",
+                            "flex items-center gap-3 p-3 rounded-lg transition-colors text-base",
                             isActive 
                                 ? "bg-primary/10 text-primary font-semibold" 
                                 : canAccess 
@@ -296,8 +296,8 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
                                 </Avatar>
                             </div>
                             <div className="w-[120px] overflow-hidden text-left">
-                                <p className="text-sm font-semibold truncate text-foreground">{user?.displayName}</p>
-                                <p className="text-xs text-muted-foreground truncate">
+                                <p className="text-base font-semibold truncate text-foreground">{user?.displayName}</p>
+                                <p className="text-sm text-muted-foreground truncate">
                                     {user?.email}
                                 </p>
                             </div>

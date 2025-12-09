@@ -28,7 +28,7 @@ export function PageHeader({ title, description, children, icon: Icon, imageUrl1
             )}
             {hasOneImage && (
                 <div className='relative group'>
-                    <Avatar className="h-16 w-16 rounded-2xl border-2 border-primary/20 mb-2">
+                    <Avatar className="h-20 w-20 rounded-2xl border-2 border-primary/20 mb-2">
                         <AvatarImage src={imageUrl1 ?? undefined} />
                         <AvatarFallback>{title?.[0]}</AvatarFallback>
                     </Avatar>
@@ -47,7 +47,7 @@ export function PageHeader({ title, description, children, icon: Icon, imageUrl1
                 </div>
             )}
             <h1 className={cn(
-                "text-3xl md:text-4xl font-bold font-headline tracking-tighter",
+                "text-3xl md:text-4xl font-bold font-headline tracking-tight",
                 "bg-gradient-to-r from-primary via-purple-500 to-violet-600 bg-clip-text text-transparent",
                 "[text-shadow:0_0_15px_hsl(var(--primary)/30%)]"
             )}>
