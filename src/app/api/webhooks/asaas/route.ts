@@ -55,7 +55,8 @@ export async function POST(req: NextRequest) {
 
   if (isSuccessEvent) {
     const payment = event.payment;
-    const userId = payment?.externalReference;
+    // Corrigido para buscar o externalReference de dentro do item do pagamento
+    const userId = payment?.items?.[0]?.externalReference;
     
     if (!userId) {
         console.warn('[Asaas Webhook] Received payment confirmation without a userId in externalReference.', payment);
