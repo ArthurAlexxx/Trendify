@@ -1,3 +1,4 @@
+
 'use client';
 
 import { PageHeader } from '@/components/page-header';
@@ -5,16 +6,17 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { CreditCard, Loader2, AlertTriangle, ExternalLink } from 'lucide-react';
+import { CreditCard, Loader2, AlertTriangle, ExternalLink, XCircle } from 'lucide-react';
 import { useState, useTransition, useEffect } from 'react';
 import { useUser, useFirestore } from '@/firebase';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { createAsaasPaymentAction } from '@/app/(app)/admin/actions';
+import { createAsaasPaymentAction, cancelAsaasCheckoutAction } from '@/app/(app)/admin/actions';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import Link from 'next/link';
 
 const formSchema = z.object({
   name: z.string().min(3, 'O nome completo é obrigatório.'),
@@ -34,6 +36,10 @@ export default function AdminCheckoutTestPage() {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  
+  const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
+  const [checkoutId, setCheckoutId] = useState<string | null>(null);
+  const [isCancelling, startCancellingTransition] = useTransition();
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),
@@ -54,6 +60,12 @@ export default function AdminCheckoutTestPage() {
         form.setValue('email', user.email || '');
     }
   }, [user, form]);
+  
+  const resetCheckoutState = () => {
+    setCheckoutUrl(null);
+    setCheckoutId(null);
+    setError(null);
+  }
 
   const onSubmit = (values: FormSchemaType) => {
     if (!user?.uid || !firestore) {
@@ -61,7 +73,7 @@ export default function AdminCheckoutTestPage() {
       return;
     }
     
-    setError(null);
+    resetCheckoutState();
     startTransition(async () => {
       const result = await createAsaasPaymentAction({
         ...values,
@@ -76,17 +88,39 @@ export default function AdminCheckoutTestPage() {
 
       if (result.error) {
         setError(result.error);
-      } else if (result.checkoutUrl) {
+      } else if (result.checkoutUrl && result.checkoutId) {
          toast({
             title: "Checkout Gerado!",
-            description: `Redirecionando para o pagamento...`,
+            description: `Link de pagamento criado com sucesso.`,
          });
-         window.open(result.checkoutUrl, '_blank');
+         setCheckoutUrl(result.checkoutUrl);
+         setCheckoutId(result.checkoutId);
       } else {
         setError('Ocorreu um erro inesperado ao criar o link de checkout.');
       }
     });
   };
+
+  const handleCancelCheckout = () => {
+    if (!checkoutId) return;
+
+    startCancellingTransition(async () => {
+      const result = await cancelAsaasCheckoutAction({ checkoutId });
+      if (result.error) {
+        toast({
+            title: 'Erro ao Cancelar',
+            description: result.error,
+            variant: 'destructive',
+        });
+      } else {
+        toast({
+            title: 'Sucesso!',
+            description: 'O checkout foi cancelado.',
+        });
+        resetCheckoutState();
+      }
+    });
+  }
 
   return (
     <div className="space-y-8">
@@ -102,6 +136,30 @@ export default function AdminCheckoutTestPage() {
           <CardDescription>Insira os detalhes para criar um cliente e um link de pagamento no ambiente de sandbox.</CardDescription>
         </CardHeader>
         <CardContent>
+         {checkoutUrl ? (
+            <div className="space-y-4 text-center">
+                <Alert variant="default" className="text-left">
+                    <CheckCircle className="h-4 w-4" />
+                    <AlertTitle>Checkout Criado com Sucesso!</AlertTitle>
+                    <AlertDescription>
+                        Use os botões abaixo para abrir o link de pagamento ou cancelá-lo.
+                    </AlertDescription>
+                </Alert>
+                <Input value={checkoutUrl} readOnly className="h-11 text-center" />
+                 <div className="flex flex-col sm:flex-row gap-2">
+                    <Button asChild className="w-full h-11">
+                        <Link href={checkoutUrl} target="_blank" rel="noopener noreferrer">
+                            <ExternalLink className="mr-2 h-4 w-4"/> Abrir Link de Pagamento
+                        </Link>
+                    </Button>
+                    <Button onClick={handleCancelCheckout} variant="outline" disabled={isCancelling} className="w-full h-11">
+                         {isCancelling ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <XCircle className="mr-2 h-4 w-4" />}
+                        Cancelar Checkout
+                    </Button>
+                 </div>
+                 <Button onClick={resetCheckoutState} variant="link">Gerar novo checkout</Button>
+            </div>
+         ) : (
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                <div className="space-y-2">
@@ -238,10 +296,11 @@ export default function AdminCheckoutTestPage() {
 
               <Button type="submit" disabled={isPending} className="w-full h-11">
                 {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ExternalLink className="mr-2 h-4 w-4"/>}
-                Gerar e Abrir Checkout
+                Gerar Checkout
               </Button>
             </form>
           </Form>
+         )}
         </CardContent>
       </Card>
     </div>

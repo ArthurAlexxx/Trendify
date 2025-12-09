@@ -30,6 +30,7 @@ interface ActionState {
   success?: boolean;
   error?: string;
   checkoutUrl?: string;
+  checkoutId?: string;
 }
 
 /**
@@ -259,10 +260,58 @@ export async function createAsaasPaymentAction(
     }
 
     const checkoutUrl = `https://sandbox.asaas.com/checkoutSession/show?id=${checkoutData.id}`;
-    return { checkoutUrl: checkoutUrl };
+    return { checkoutUrl: checkoutUrl, checkoutId: checkoutData.id };
 
   } catch (e: any) {
     console.error('[Asaas Action] Erro no fluxo de criação de checkout:', e);
+    return { error: e.message || 'Ocorreu um erro de comunicação com o provedor de pagamento.' };
+  }
+}
+
+const CancelCheckoutSchema = z.object({
+  checkoutId: z.string().min(1, 'O ID do checkout é obrigatório.'),
+});
+
+/**
+ * Cancela um checkout existente na Asaas.
+ */
+export async function cancelAsaasCheckoutAction(
+  input: z.infer<typeof CancelCheckoutSchema>
+): Promise<ActionState> {
+  const parsed = CancelCheckoutSchema.safeParse(input);
+
+  if (!parsed.success) {
+    return { error: `Dados inválidos: ${parsed.error.issues.map(i => i.message).join(', ')}` };
+  }
+
+  const { checkoutId } = parsed.data;
+  const apiKey = process.env.ASAAS_API_KEY;
+
+  if (!apiKey) {
+    return { error: 'Erro de configuração do servidor: ASAAS_API_KEY não encontrada.' };
+  }
+
+  try {
+    const response = await fetch(`https://api-sandbox.asaas.com/v3/checkouts/${checkoutId}/cancel`, {
+      method: 'POST',
+      headers: {
+        'accept': 'application/json',
+        'content-type': 'application/json',
+        'access_token': apiKey,
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error(`[Asaas Cancel Action] Erro ao cancelar checkout ${checkoutId}:`, errorData);
+      throw new Error(errorData.errors?.[0]?.description || 'Falha ao cancelar o checkout.');
+    }
+
+    // A resposta de sucesso geralmente é um 200 OK com corpo vazio ou simples.
+    return { success: true };
+
+  } catch (e: any) {
+    console.error(`[Asaas Cancel Action] Erro no fluxo de cancelamento para ${checkoutId}:`, e);
     return { error: e.message || 'Ocorreu um erro de comunicação com o provedor de pagamento.' };
   }
 }
