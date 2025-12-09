@@ -346,66 +346,53 @@ export default function DashboardPage() {
           <Suspense fallback={<DashboardSkeleton />}>
             {/* Mobile Carousel View */}
             <div className="md:hidden">
-              <Carousel className="w-full" opts={{ align: "start" }}>
-                <CarouselContent className="-ml-4">
-                  <CarouselItem className="pl-4 basis-[90%]">
-                    <div className="p-1 h-full">
+                <Carousel className="w-full" opts={{ align: "start", loop: true }}>
+                  <CarouselContent className="-ml-4">
+                    <CarouselItem className="pl-4 basis-[90%]">
+                      <div className="p-1 h-full">
                         <GoalCard 
-                            isLoading={isLoading} 
-                            goalFollowers={goalFollowers}
-                            currentFollowers={currentFollowers}
-                            isGoalReached={isGoalReached}
-                            onEditGoal={() => setIsGoalSheetOpen(true)}
-                            formatMetricValue={formatMetricValue}
+                          isLoading={isLoading} 
+                          goalFollowers={goalFollowers}
+                          currentFollowers={currentFollowers}
+                          isGoalReached={isGoalReached}
+                          onEditGoal={() => setIsGoalSheetOpen(true)}
+                          formatMetricValue={formatMetricValue}
                         />
-                    </div>
-                  </CarouselItem>
-                  <CarouselItem className="pl-4 basis-[90%]">
-                     <div className="p-1 h-full">
+                      </div>
+                    </CarouselItem>
+                    <CarouselItem className="pl-4 basis-[90%]">
+                      <div className="p-1 h-full">
                         <EngagementMetricsCard 
-                            isLoading={isLoading} 
-                            latestMetrics={latestMetrics}
-                            formatIntegerValue={formatIntegerValue} 
+                          isLoading={isLoading} 
+                          latestMetrics={latestMetrics}
+                          formatIntegerValue={formatIntegerValue} 
                         />
-                    </div>
-                  </CarouselItem>
-                </CarouselContent>
-              </Carousel>
+                      </div>
+                    </CarouselItem>
+                  </CarouselContent>
+                </Carousel>
             </div>
             
-            {/* Desktop Grid View */}
-            <div className="hidden md:grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+            {/* Common Layout for the main content */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+              {/* Left Column (Desktop) / Second section (Mobile) */}
               <div className="lg:col-span-1 space-y-8">
-                <GoalCard 
-                  isLoading={isLoading} 
-                  goalFollowers={goalFollowers}
-                  currentFollowers={currentFollowers}
-                  isGoalReached={isGoalReached}
-                  onEditGoal={() => setIsGoalSheetOpen(true)}
-                  formatMetricValue={formatMetricValue}
-                />
-              </div>
-              <div className="lg:col-span-2 space-y-8">
-                <EngagementMetricsCard 
-                  isLoading={isLoading} 
-                  latestMetrics={latestMetrics}
-                  formatIntegerValue={formatIntegerValue} 
-                />
-              </div>
-            </div>
-
-            {/* Common Layout for rest of the page */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start mt-8">
-              <div className="lg:col-span-1 space-y-8 md:order-last lg:order-first">
-                 <div className="block md:hidden lg:block">
-                  <DailyPlanCard 
+                 <div className="hidden md:block">
+                  <GoalCard 
+                    isLoading={isLoading} 
+                    goalFollowers={goalFollowers}
+                    currentFollowers={currentFollowers}
+                    isGoalReached={isGoalReached}
+                    onEditGoal={() => setIsGoalSheetOpen(true)}
+                    formatMetricValue={formatMetricValue}
+                  />
+                 </div>
+                 <DailyPlanCard 
                     isLoadingWeeklyPlans={isLoadingWeeklyPlans}
                     currentPlan={currentPlan} 
                     handleToggleRoteiro={handleToggleRoteiro} 
                   />
-                 </div>
-                 <div className="block md:hidden lg:block">
-                  <ActionHubCard 
+                 <ActionHubCard 
                     isLoadingUpcoming={isLoadingUpcoming}
                     upcomingContent={upcomingContent}
                     isLoadingIdeias={isLoadingIdeias}
@@ -413,9 +400,17 @@ export default function DashboardPage() {
                     handleToggleIdeia={handleToggleIdeia}
                     handleMarkAsPublished={handleMarkAsPublished}
                   />
-                 </div>
               </div>
+
+              {/* Right Column (Desktop) / First section (Mobile) */}
               <div className="lg:col-span-2 space-y-8">
+                <div className="hidden md:block">
+                    <EngagementMetricsCard 
+                      isLoading={isLoading} 
+                      latestMetrics={latestMetrics}
+                      formatIntegerValue={formatIntegerValue} 
+                    />
+                </div>
                 <EvolutionChartCard
                   isLoading={isLoadingInstaPosts || isLoadingTiktokPosts || isLoadingMetricSnapshots}
                   metricSnapshots={metricSnapshots}
@@ -430,21 +425,6 @@ export default function DashboardPage() {
                   insights={insights}
                   handleGenerateInsights={handleGenerateInsights}
                 />
-              </div>
-               <div className="lg:col-span-3 md:grid md:grid-cols-2 lg:hidden gap-8">
-                 <DailyPlanCard 
-                    isLoadingWeeklyPlans={isLoadingWeeklyPlans}
-                    currentPlan={currentPlan} 
-                    handleToggleRoteiro={handleToggleRoteiro} 
-                  />
-                  <ActionHubCard 
-                    isLoadingUpcoming={isLoadingUpcoming}
-                    upcomingContent={upcomingContent}
-                    isLoadingIdeias={isLoadingIdeias}
-                    ideiasSalvas={ideiasSalvas}
-                    handleToggleIdeia={handleToggleIdeia}
-                    handleMarkAsPublished={handleMarkAsPublished}
-                  />
               </div>
             </div>
           </Suspense>
