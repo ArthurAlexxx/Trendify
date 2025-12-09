@@ -280,8 +280,8 @@ export default function VideoIdeasPage() {
     startSavingTransition(async () => {
       try {
         const title = `Ideia: ${form.getValues('topic').substring(0, 40)}...`;
-        const { gancho, scriptLongo, scriptCurto, cta } = data.script;
-        const content = `**Gancho:**\n${gancho}\n\n**Roteiro Longo:**\n${scriptLongo}\n\n**Roteiro Curto:**\n${scriptCurto}\n\n**CTA:**\n${cta}`;
+        const { gancho, scriptLongo, roteiroCurto, cta } = data.script;
+        const content = `**Gancho:**\n${gancho}\n\n**Roteiro Longo:**\n${scriptLongo}\n\n**Roteiro Curto:**\n${roteiroCurto}\n\n**CTA:**\n${cta}`;
 
         await addDoc(collection(firestore, `users/${user.uid}/ideiasSalvas`), {
           userId: user.uid,
@@ -494,9 +494,11 @@ export default function VideoIdeasPage() {
                              <li key={idea.id} className="p-3 rounded-lg border flex items-center justify-between gap-4 hover:bg-muted/50 transition-colors">
                                 <div className="flex-1 overflow-hidden">
                                   <p className="font-semibold text-foreground truncate">{idea.titulo}</p>
-                                  <p className="text-xs text-muted-foreground">
-                                    Salvo {formatDistanceToNow(idea.createdAt.toDate(), { addSuffix: true, locale: ptBR })}
-                                  </p>
+                                  {idea.createdAt && (
+                                    <p className="text-xs text-muted-foreground">
+                                      Salvo {formatDistanceToNow(idea.createdAt.toDate(), { addSuffix: true, locale: ptBR })}
+                                    </p>
+                                  )}
                                 </div>
                                 <Button size="sm" variant="outline" onClick={() => setViewingSavedItem(idea)}>
                                   <Eye className="mr-2 h-4 w-4" /> Ver
