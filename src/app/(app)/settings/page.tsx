@@ -64,8 +64,8 @@ export default function SettingsPage() {
 
 
   const handleCancelSubscription = () => {
-    if (!user || !userProfile?.subscription?.asaasSubscriptionId) {
-       toast({ title: "Erro", description: "Não foi possível encontrar o ID da sua assinatura.", variant: "destructive" });
+    if (!user || !userProfile || !userProfile.subscription || !userProfile.subscription.asaasSubscriptionId) {
+       toast({ title: "Erro", description: "Não foi possível encontrar o ID da sua assinatura para o cancelamento.", variant: "destructive" });
        return;
     };
 
