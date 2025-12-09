@@ -121,6 +121,12 @@ export default function AdminCheckoutTestPage() {
       }
     });
   }
+  
+  const handleOpenLink = () => {
+      if (checkoutUrl) {
+          window.open(checkoutUrl, '_blank', 'noopener,noreferrer');
+      }
+  }
 
   return (
     <div className="space-y-8">
@@ -147,10 +153,8 @@ export default function AdminCheckoutTestPage() {
                 </Alert>
                 <Input value={checkoutUrl} readOnly className="h-11 text-center" />
                  <div className="flex flex-col sm:flex-row gap-2">
-                    <Button asChild className="w-full h-11">
-                        <Link href={checkoutUrl} target="_blank" rel="noopener noreferrer">
-                            <ExternalLink className="mr-2 h-4 w-4"/> Abrir Link de Pagamento
-                        </Link>
+                    <Button onClick={handleOpenLink} className="w-full h-11">
+                        <ExternalLink className="mr-2 h-4 w-4"/> Abrir Link de Pagamento
                     </Button>
                     <Button onClick={handleCancelCheckout} variant="outline" disabled={isCancelling} className="w-full h-11">
                          {isCancelling ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <XCircle className="mr-2 h-4 w-4" />}
@@ -273,7 +277,7 @@ export default function AdminCheckoutTestPage() {
                       <SelectContent>
                         <SelectItem value="PIX">PIX</SelectItem>
                         <SelectItem value="BOLETO">Boleto</SelectItem>
-                        <SelectItem value="CREDIT_CARD">Cartão de Crédito</SelectItem>
+                        <SelectItem value="CREDIT_CARD">Cartão de Crédito (Recorrente)</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />

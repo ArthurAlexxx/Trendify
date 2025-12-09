@@ -216,12 +216,13 @@ export async function createAsaasPaymentAction(
     // ETAPA 2: Criar o link de checkout com o ID do cliente
     const price = priceMap[plan][cycle];
     const planName = `${plan.toUpperCase()} - ${cycle === 'monthly' ? 'Mensal' : 'Anual'}`;
+    const isRecurrent = billingType === 'CREDIT_CARD';
 
-    const checkoutBody = {
+    const checkoutBody: any = {
         customer: customerId,
         billingTypes: [billingType],
-        chargeTypes: ['DETACHED'],
-        dueDateLimitDays: 1, 
+        chargeTypes: [isRecurrent ? 'RECURRENT' : 'DETACHED'],
+        dueDateLimitDays: isRecurrent ? undefined : 1, 
         externalReference: userId,
         callback: {
             successUrl: `${appUrl}/dashboard?checkout=success`,
@@ -236,6 +237,20 @@ export async function createAsaasPaymentAction(
             quantity: 1,
         }],
     };
+
+    if (isRecurrent) {
+        const nextDueDate = new Date();
+        nextDueDate.setMonth(nextDueDate.getMonth() + 1);
+
+        const endDate = new Date();
+        endDate.setFullYear(endDate.getFullYear() + 5); // 5 years from now
+
+        checkoutBody.subscription = {
+            cycle: cycle.toUpperCase(),
+            nextDueDate: nextDueDate.toISOString().split('T')[0], // YYYY-MM-DD
+            endDate: endDate.toISOString().split('T')[0], // YYYY-MM-DD
+        };
+    }
     
     const checkoutResponse = await fetch('https://api-sandbox.asaas.com/v3/checkouts', {
         method: 'POST',
