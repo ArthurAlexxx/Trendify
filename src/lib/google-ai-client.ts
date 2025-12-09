@@ -11,24 +11,8 @@ if (!Handlebars.helpers.json) {
     });
 }
 
-// Definição do prompt de análise de vídeo movida para cá
-export const videoAnalysisPrompt = ai.definePrompt({
-  name: 'videoAnalysisPrompt',
-  model: 'googleai/gemini-2.5-flash',
-  input: { schema: AnalyzeVideoInputSchema },
-  output: { schema: AnalyzeVideoOutputSchema },
-  config: {
-    temperature: 0.5,
-  },
-  prompt: `Você é uma consultora sênior especializada em crescimento orgânico, viralização, retenção e performance visual em short-form content (Reels, TikTok, Shorts).
-Sua função é analisar profundamente o vídeo enviado e fornecer uma avaliação técnica, objetiva e prática.
-
-Instrução do Usuário: {{{prompt}}}
-
-Vídeo para análise: {{media url=videoDataUri}}
-
-Analise o vídeo e retorne um objeto JSON com a sua avaliação, seguindo estritamente o schema de output definido.`,
-});
+// A definição do prompt foi removida daqui para evitar o erro de exportação em server components.
+// A lógica agora está diretamente na action que chama a IA.
 
 
 interface CallGoogleAIParams<T extends z.ZodType<any, any, any>> {
