@@ -48,6 +48,8 @@ import { initializeFirebase } from '@/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 import { ScrollArea } from './ui/scroll-area';
 import { updateProfile } from 'firebase/auth';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from './ui/alert-dialog';
+
 
 const userMenuItems: {
   category: string;
@@ -339,10 +341,26 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
                     </DropdownMenuItem>
                  )}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut} className='text-red-500 focus:text-red-500 focus:bg-red-500/10'>
-                     <LogOut className="mr-2 h-4 w-4" />
-                     <span>Sair</span>
-                </DropdownMenuItem>
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <DropdownMenuItem onSelect={(e) => e.preventDefault()} className='text-red-500 focus:text-red-500 focus:bg-red-500/10'>
+                            <LogOut className="mr-2 h-4 w-4" />
+                            <span>Sair</span>
+                        </DropdownMenuItem>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Você tem certeza que quer sair?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Você será desconectado da sua conta e precisará fazer login novamente.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleSignOut}>Sim, sair</AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
             </DropdownMenuContent>
         </DropdownMenu>
        </div>

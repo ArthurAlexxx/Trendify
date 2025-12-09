@@ -105,6 +105,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                 engagement: parseFloat(engagement.toFixed(2)),
                 url: `https://www.instagram.com/p/${p.shortcode}`,
                 mediaUrl: p.mediaUrl,
+                coverUrl: p.mediaUrl,
                 date: date,
                 isVideo: p.is_video,
             }
@@ -280,7 +281,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                 </div>
                 {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
                 selectedPlatform === 'total' ? (
-                    followerHistoryData.length > 1 ? (
+                    followerHistoryData.length > 0 ? (
                     <ChartContainer config={chartConfigBase} className="h-[350px] w-full flex-1">
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={followerHistoryData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>

@@ -229,9 +229,6 @@ export default function IntegrationsPage() {
         form.setValue('tiktokProfile', profileResult);
         form.setValue('tiktokPosts', fullPostsData);
         form.setValue('tiktokHandle', `@${profileResult.username}`);
-        
-        setTiktokRawResponse(JSON.stringify({ profile: profileResult, posts: fullPostsData }, null, 2));
-
        
         if (user && userProfileRef && firestore) {
           const batch = writeBatch(firestore);
@@ -440,12 +437,6 @@ export default function IntegrationsPage() {
                          {tiktokStatus === 'success' && (
                           <>
                            <TikTokProfileResults profile={form.watch('tiktokProfile')!} posts={form.watch('tiktokPosts') ?? null} formatNumber={formatNumber} onVideoClick={handleTikTokClick} error={tiktokError} />
-                           {tiktokRawResponse && (
-                              <div className="mt-4">
-                                <h3 className="text-lg font-semibold mb-2">Resposta da API TikTok (JSON)</h3>
-                                <CodeBlock value={tiktokRawResponse} language="json" />
-                              </div>
-                           )}
                           </>
                          )}
                     </TabsContent>
