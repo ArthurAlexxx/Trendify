@@ -232,12 +232,16 @@ function VideoReviewPageContent() {
             setAnalysisStatus("success");
 
             try {
-              await saveAnalysisToFirestore({
+              const saveResult = await saveAnalysisToFirestore({
                 userId: user.uid,
                 videoFileName: file.name,
                 analysisData: result,
                 videoDescription: videoDescription,
               });
+
+              if (!saveResult.success) {
+                throw new Error(saveResult.error || 'Erro desconhecido ao salvar.');
+              }
             
               const usageDocRef = doc(firestore, `users/${user.uid}/dailyUsage/${todayStr}`);
               const usageDocSnap = await getDoc(usageDocRef);

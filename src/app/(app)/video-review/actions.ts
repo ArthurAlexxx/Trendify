@@ -24,7 +24,7 @@ export async function saveAnalysisToFirestore(params: SaveAnalysisParams): Promi
   const { userId, videoFileName, analysisData, videoDescription } = params;
 
   if (!userId || !analysisData) {
-    throw new Error('Dados insuficientes para salvar a análise.');
+    return { success: false, error: 'Dados insuficientes para salvar a análise.' };
   }
 
   const { firestore } = initializeFirebaseAdmin();
@@ -33,15 +33,14 @@ export async function saveAnalysisToFirestore(params: SaveAnalysisParams): Promi
   try {
     await analysisCollectionRef.add({
       userId,
-      videoUrl: null, // Video URL is no longer saved
       videoFileName: videoFileName || "Nome do arquivo não disponível",
       analysisData,
       videoDescription: videoDescription,
       createdAt: FieldValue.serverTimestamp(),
     });
     return { success: true };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error saving analysis to Firestore:', error);
-    throw new Error('Não foi possível salvar o resultado da análise no banco de dados.');
+    return { success: false, error: error.message || 'Não foi possível salvar o resultado da análise no banco de dados.' };
   }
 }
