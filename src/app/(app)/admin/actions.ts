@@ -224,6 +224,7 @@ export async function createAsaasPaymentAction(
         chargeTypes: [isRecurrent ? 'RECURRENT' : 'DETACHED'],
         dueDateLimitDays: isRecurrent ? undefined : 1, 
         externalReference: userId,
+        webhookUrl: `${appUrl}/api/webhooks/asaas`,
         callback: {
             successUrl: `${appUrl}/dashboard?checkout=success`,
             autoRedirect: true,
