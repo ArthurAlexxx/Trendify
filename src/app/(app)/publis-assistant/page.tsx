@@ -368,20 +368,22 @@ function PublisAssistantPageContent() {
         <div className="py-8">
             <div className="md:hidden">
                 <Carousel className="w-full" opts={{ align: 'start' }}>
-                    <CarouselContent className="-ml-4">
+                    <CarouselContent className="-ml-4 px-2">
                         {analysisCriteria.map((item, index) => (
-                            <CarouselItem key={index} className="pl-4 basis-[90%]">
-                                <Card className="h-full rounded-2xl border-0 text-center shadow-primary-lg">
+                            <CarouselItem key={index} className="pl-4 basis-[90%] pb-12">
+                               <div className="my-4 h-full">
+                                <Card className="relative z-10 rounded-2xl border-0 h-full text-center shadow-primary-lg">
                                     <CardHeader className="items-center">
                                         <CardTitle className="flex flex-col items-center gap-2">
                                             <item.icon className="h-5 w-5 text-primary" />
                                             <span className="text-base font-semibold">{item.title}</span>
                                         </CardTitle>
                                     </CardHeader>
-                                    <CardContent>
+                                    <CardContent className="pb-6">
                                         <p className="text-muted-foreground text-sm">{item.description}</p>
                                     </CardContent>
                                 </Card>
+                               </div>
                             </CarouselItem>
                         ))}
                     </CarouselContent>
@@ -664,3 +666,5 @@ function PublisAssistantPageContent() {
     </div>
   );
 }
+
+    
