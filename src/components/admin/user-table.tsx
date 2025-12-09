@@ -19,8 +19,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Button, buttonVariants } from '../ui/button';
 import { ChangePlanDialog } from './change-plan-dialog';
 import { useState, useTransition } from 'react';
-import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '../ui/sheet';
-import { changeUserRoleAction } from '@/app/admin/actions';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '../ui/sheet';
+import { changeUserRoleAction } from '@/app/(app)/admin/actions';
 import { useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -87,14 +87,14 @@ export function UserTable({ data }: UserTableProps) {
                         Esta ação concederá a <strong>{selectedUser.displayName}</strong> acesso total ao painel de administração. Você tem certeza?
                     </SheetDescription>
                 </SheetHeader>
-                <SheetFooter className="p-6 pt-4 bg-muted/50 flex-col-reverse sm:flex-row gap-2">
+                <div className="p-6 pt-4 bg-muted/50 flex flex-col-reverse sm:flex-row gap-2">
                     <SheetClose asChild>
                         <Button variant="outline" className="w-full sm:w-auto">Cancelar</Button>
                     </SheetClose>
                     <Button onClick={handlePromoteToAdmin} className={cn(buttonVariants({ variant: 'default' }), "bg-amber-600 hover:bg-amber-700 w-full sm:w-auto")}>
                         Sim, promover
                     </Button>
-                </SheetFooter>
+                </div>
             </SheetContent>
         </Sheet>
      )}

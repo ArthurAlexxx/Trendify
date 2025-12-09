@@ -26,7 +26,6 @@ import {
   Sheet,
   SheetContent,
   SheetDescription,
-  SheetFooter,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
@@ -133,11 +132,11 @@ export function PreviousPlansSheet() {
                 )}
             </div>
             </ScrollArea>
-         <SheetFooter className="p-6 border-t">
+        <div className="p-6 border-t">
             <SheetClose asChild>
                 <Button type="button" variant="outline" className='w-full'>Fechar</Button>
             </SheetClose>
-        </SheetFooter>
+        </div>
       </SheetContent>
     </Sheet>
     </>

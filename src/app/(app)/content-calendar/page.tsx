@@ -35,7 +35,6 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetFooter,
   SheetClose,
   SheetDescription,
 } from '@/components/ui/sheet';
@@ -581,14 +580,14 @@ export default function ContentCalendarPage() {
               Esta ação não pode ser desfeita e irá excluir permanentemente o agendamento.
             </SheetDescription>
           </SheetHeader>
-          <SheetFooter className="p-6 pt-4 bg-muted/50 flex-col-reverse sm:flex-row gap-2">
+          <div className="p-6 pt-4 bg-muted/50 flex flex-col-reverse sm:flex-row gap-2">
             <SheetClose asChild>
               <Button variant="outline" className="w-full sm:w-auto">Cancelar</Button>
             </SheetClose>
             <Button onClick={handleDeletePost} variant="destructive" className="w-full sm:w-auto">
               Sim, excluir
             </Button>
-          </SheetFooter>
+          </div>
         </SheetContent>
       </Sheet>
 
