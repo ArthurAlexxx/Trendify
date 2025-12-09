@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef, type ChangeEvent, useEffect } from "react";
@@ -254,20 +255,33 @@ function VideoReviewPageContent() {
                         prompt: videoDescription || "Faça uma análise completa deste vídeo para um criador de conteúdo.",
                       });
 
-                      await saveAnalysisToFirestore(user.uid, downloadURL, file.name, result, videoDescription);
-                      
                       setAnalysisResult(result);
                       setAnalysisStatus("success");
-                      
-                      const usageDocRef = doc(firestore, `users/${user.uid}/dailyUsage/${todayStr}`);
-                      const usageDocSnap = await getDoc(usageDocRef);
-                      if(usageDocSnap.exists()){
-                          await setDoc(usageDocRef, { videoAnalyses: increment(1) }, { merge: true });
-                      } else {
-                          await setDoc(usageDocRef, { date: todayStr, videoAnalyses: 1, geracoesAI: 0 });
-                      }
 
-                      toast({ title: "Análise Concluída!", description: "Seu vídeo foi analisado com sucesso." });
+                      try {
+                        await saveAnalysisToFirestore(user.uid, downloadURL, file.name, {
+                          analysisData: result,
+                          videoDescription: videoDescription,
+                        });
+                      
+                        // Only update usage if save is successful
+                        const usageDocRef = doc(firestore, `users/${user.uid}/dailyUsage/${todayStr}`);
+                        const usageDocSnap = await getDoc(usageDocRef);
+                        if(usageDocSnap.exists()){
+                            await setDoc(usageDocRef, { videoAnalyses: increment(1) }, { merge: true });
+                        } else {
+                            await setDoc(usageDocRef, { date: todayStr, videoAnalyses: 1, geracoesAI: 0 });
+                        }
+                         toast({ title: "Análise Concluída!", description: "Seu vídeo foi analisado e salvo no seu histórico." });
+                      } catch (saveError: any) {
+                        console.error('Failed to save analysis:', saveError);
+                        toast({
+                          title: 'Análise Concluída (com um porém)',
+                          description: 'A análise foi feita, mas não conseguimos salvá-la no seu histórico. O erro foi: ' + saveError.message,
+                          variant: 'destructive',
+                          duration: 7000,
+                        });
+                      }
                   } catch (e: any) {
                       setAnalysisError(e.message || "Ocorreu um erro desconhecido na análise.");
                       setAnalysisStatus("error");

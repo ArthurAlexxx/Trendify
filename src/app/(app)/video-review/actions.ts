@@ -1,3 +1,4 @@
+
 'use server';
 
 import { analyzeVideo as analyzeVideoFlow, type AnalyzeVideoOutput } from '@/ai/flows/analyze-video-flow';
@@ -14,16 +15,18 @@ export const analyzeVideo = analyzeVideoFlow;
  * @param userId - The ID of the user.
  * @param videoUrl - The public URL of the video in Firebase Storage.
  * @param videoFileName - The original name of the video file.
- * @param analysisData - The JSON object returned from the AI analysis.
+ * @param dataToSave - An object containing the analysisData and videoDescription.
  */
 export async function saveAnalysisToFirestore(
   userId: string,
   videoUrl: string,
   videoFileName: string,
-  analysisData: AnalyzeVideoOutput,
-  videoDescription: string,
+  dataToSave: {
+    analysisData: AnalyzeVideoOutput,
+    videoDescription: string
+  }
 ) {
-  if (!userId || !videoUrl || !videoFileName || !analysisData) {
+  if (!userId || !videoUrl || !videoFileName || !dataToSave.analysisData) {
     throw new Error('Dados insuficientes para salvar a análise.');
   }
 
@@ -35,7 +38,7 @@ export async function saveAnalysisToFirestore(
       userId,
       videoUrl,
       videoFileName,
-      analysisData: { ...analysisData, videoDescription }, // Include description in the saved data
+      analysisData: { ...dataToSave.analysisData, videoDescription: dataToSave.videoDescription }, // Include description
       createdAt: serverTimestamp(),
     });
     return { success: true };
