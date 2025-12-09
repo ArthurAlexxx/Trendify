@@ -16,7 +16,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { createAsaasPaymentAction } from '@/app/(app)/checkout/actions';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { doc, updateDoc } from 'firebase/firestore';
-import { Separator } from '@/components/ui/separator';
 
 const formSchema = z.object({
   name: z.string().min(3, 'O nome completo é obrigatório.'),
