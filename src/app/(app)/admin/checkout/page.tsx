@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { CreditCard, Loader2, AlertTriangle, ExternalLink, XCircle } from 'lucide-react';
+import { CreditCard, Loader2, AlertTriangle, ExternalLink, XCircle, CheckCircle } from 'lucide-react';
 import { useState, useTransition, useEffect } from 'react';
 import { useUser, useFirestore } from '@/firebase';
 import { useForm } from 'react-hook-form';
