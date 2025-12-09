@@ -252,94 +252,94 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
   
   return (
     <Card className="shadow-primary-lg">
-      <CardHeader>
-        <CardTitle className="text-center flex items-center justify-center gap-2">
-          Performance de Posts
-        </CardTitle>
-        <Tabs defaultValue="evolution" className="w-full pt-4">
-          <TabsList className="grid w-full grid-cols-2 mx-auto max-w-sm">
-            <TabsTrigger value="evolution">Evolução</TabsTrigger>
-            <TabsTrigger value="my-posts">Meus Posts</TabsTrigger>
-          </TabsList>
-        </Tabs>
-      </CardHeader>
-      <CardContent>
-        <Tabs defaultValue="evolution" className="w-full">
-          <TabsContent value="evolution" className="flex flex-col mt-0">
-            <div className="flex justify-end pr-4">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="max-w-xs">Acompanhe a evolução de métricas ao longo do tempo.</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+      <Tabs defaultValue="evolution" className="w-full">
+        <CardHeader>
+            <CardTitle className="text-center flex items-center justify-center gap-2">
+            Performance de Posts
+            </CardTitle>
+            <div className="w-full pt-4 flex justify-center">
+            <TabsList className="grid w-full grid-cols-2 mx-auto max-w-sm">
+                <TabsTrigger value="evolution">Evolução</TabsTrigger>
+                <TabsTrigger value="my-posts">Meus Posts</TabsTrigger>
+            </TabsList>
             </div>
-            {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
-            selectedPlatform === 'total' ? (
-                followerHistoryData.length > 1 ? (
-                <ChartContainer config={chartConfigBase} className="h-[350px] w-full flex-1">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={followerHistoryData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+        </CardHeader>
+        <CardContent>
+            <TabsContent value="evolution" className="flex flex-col mt-0">
+                <div className="flex justify-end pr-4">
+                <TooltipProvider>
+                    <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p className="max-w-xs">Acompanhe a evolução de métricas ao longo do tempo.</p>
+                    </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+                </div>
+                {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
+                selectedPlatform === 'total' ? (
+                    followerHistoryData.length > 1 ? (
+                    <ChartContainer config={chartConfigBase} className="h-[350px] w-full flex-1">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={followerHistoryData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                                <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                                <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} />
+                                <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
+                                <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
+                                <ChartLegend content={<ChartLegendContent />} />
+                                <Line type="monotone" dataKey="instagram" stroke="var(--color-instagram)" strokeWidth={2} dot={false} name="Instagram" />
+                                <Line type="monotone" dataKey="tiktok" stroke="var(--color-tiktok)" strokeWidth={2} dot={false} name="TikTok" />
+                            </LineChart>
+                        </ResponsiveContainer>
+                    </ChartContainer>
+                    ) : (
+                    <div className="h-[350px] w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
+                        <div>
+                        <Users className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+                        <h3 className="font-semibold text-foreground">Sincronize suas contas</h3>
+                        <p className="text-sm text-muted-foreground">Sincronize por alguns dias para ver o histórico de crescimento.</p>
+                        </div>
+                    </div>
+                    )
+                ) :
+                allPosts.length > 0 ? (
+                    <ChartContainer config={chartConfigBase} className="h-[350px] w-full flex-1">
+                        <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={allPosts.slice(0, 15).reverse()} margin={{ top: 5, right: 20, left: -10, bottom: 5 }} onClick={handleChartClick} className="cursor-pointer">
+                            <defs>
+                                <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="var(--color-views)" stopOpacity={0.8}/><stop offset="95%" stopColor="var(--color-views)" stopOpacity={0.1}/></linearGradient>
+                                <linearGradient id="colorLikes" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="var(--color-likes)" stopOpacity={0.8}/><stop offset="95%" stopColor="var(--color-likes)" stopOpacity={0.1}/></linearGradient>
+                                <linearGradient id="colorComments" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="var(--color-comments)" stopOpacity={0.8}/><stop offset="95%" stopColor="var(--color-comments)" stopOpacity={0.1}/></linearGradient>
+                            </defs>
                             <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                            <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} />
+                            <XAxis dataKey="postLabel" tick={false} axisLine={false} />
                             <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
                             <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
                             <ChartLegend content={<ChartLegendContent />} />
-                            <Line type="monotone" dataKey="instagram" stroke="var(--color-instagram)" strokeWidth={2} dot={false} name="Instagram" />
-                            <Line type="monotone" dataKey="tiktok" stroke="var(--color-tiktok)" strokeWidth={2} dot={false} name="TikTok" />
-                        </LineChart>
-                    </ResponsiveContainer>
-                </ChartContainer>
+                            <Area type="monotone" dataKey="views" stroke="var(--color-views)" fill="url(#colorViews)" stackId="a" name="Views" />
+                            <Area type="monotone" dataKey="likes" stroke="var(--color-likes)" fill="url(#colorLikes)" stackId="b" name="Likes" />
+                            <Area type="monotone" dataKey="comments" stroke="var(--color-comments)" fill="url(#colorComments)" stackId="b" name="Comentários" />
+                        </AreaChart>
+                        </ResponsiveContainer>
+                    </ChartContainer>
                 ) : (
-                <div className="h-[350px] w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
-                    <div>
-                    <Users className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
-                    <h3 className="font-semibold text-foreground">Sincronize suas contas</h3>
-                    <p className="text-sm text-muted-foreground">Sincronize por alguns dias para ver o histórico de crescimento.</p>
+                    <div className="h-[350px] w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
+                        <div>
+                        <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+                        <h3 className="font-semibold text-foreground">{(userProfile?.instagramHandle || userProfile?.tiktokHandle) ? "Dados insuficientes." : "Nenhuma plataforma conectada."}</h3>
+                        <p className="text-sm text-muted-foreground"> {userProfile && <Link href="/profile/integrations" className="text-primary font-medium hover:underline cursor-pointer">Sincronize suas métricas</Link>} para começar a ver seus dados.</p>
+                        </div>
                     </div>
-                </div>
-                )
-            ) :
-            allPosts.length > 0 ? (
-                <ChartContainer config={chartConfigBase} className="h-[350px] w-full flex-1">
-                    <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={allPosts.slice(0, 15).reverse()} margin={{ top: 5, right: 20, left: -10, bottom: 5 }} onClick={handleChartClick} className="cursor-pointer">
-                        <defs>
-                            <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="var(--color-views)" stopOpacity={0.8}/><stop offset="95%" stopColor="var(--color-views)" stopOpacity={0.1}/></linearGradient>
-                            <linearGradient id="colorLikes" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="var(--color-likes)" stopOpacity={0.8}/><stop offset="95%" stopColor="var(--color-likes)" stopOpacity={0.1}/></linearGradient>
-                            <linearGradient id="colorComments" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="var(--color-comments)" stopOpacity={0.8}/><stop offset="95%" stopColor="var(--color-comments)" stopOpacity={0.1}/></linearGradient>
-                        </defs>
-                        <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                        <XAxis dataKey="postLabel" tick={false} axisLine={false} />
-                        <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => typeof v === 'number' && v >= 1000 ? `${v/1000}k` : v} />
-                        <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
-                        <ChartLegend content={<ChartLegendContent />} />
-                        <Area type="monotone" dataKey="views" stroke="var(--color-views)" fill="url(#colorViews)" stackId="a" name="Views" />
-                        <Area type="monotone" dataKey="likes" stroke="var(--color-likes)" fill="url(#colorLikes)" stackId="b" name="Likes" />
-                        <Area type="monotone" dataKey="comments" stroke="var(--color-comments)" fill="url(#colorComments)" stackId="b" name="Comentários" />
-                    </AreaChart>
-                    </ResponsiveContainer>
-                </ChartContainer>
-            ) : (
-                <div className="h-[350px] w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
-                    <div>
-                    <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
-                    <h3 className="font-semibold text-foreground">{(userProfile?.instagramHandle || userProfile?.tiktokHandle) ? "Dados insuficientes." : "Nenhuma plataforma conectada."}</h3>
-                    <p className="text-sm text-muted-foreground"> {userProfile && <Link href="/profile/integrations" className="text-primary font-medium hover:underline cursor-pointer">Sincronize suas métricas</Link>} para começar a ver seus dados.</p>
-                    </div>
-                </div>
-            )}
-          </TabsContent>
-          <TabsContent value="my-posts" className="space-y-8 mt-0">
-            {renderPostGrid(videoPosts, "Últimos Vídeos", Video)}
-            {renderPostGrid(photoPosts, "Últimas Fotos", Camera)}
-          </TabsContent>
-        </Tabs>
-      </CardContent>
+                )}
+            </TabsContent>
+            <TabsContent value="my-posts" className="space-y-8 mt-0">
+                {renderPostGrid(videoPosts, "Últimos Vídeos", Video)}
+                {renderPostGrid(photoPosts, "Últimas Fotos", Camera)}
+            </TabsContent>
+        </CardContent>
+      </Tabs>
     </Card>
   );
 }
