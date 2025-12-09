@@ -14,6 +14,7 @@ function verifyWebhookSignature(
   
   if (!webhookSecret) {
     console.warn("[Asaas Webhook] ASAAS_WEBHOOK_SECRET não está configurada. Pulando verificação em ambiente de não produção.");
+    // Em produção, a chave DEVE existir.
     if (process.env.NODE_ENV === 'production') {
         return false;
     }
@@ -24,13 +25,26 @@ function verifyWebhookSignature(
     return false;
   }
 
-  const hmac = crypto.createHmac('sha256', webhookSecret);
-  const digest = hmac.update(requestBody).digest('hex');
-  
-  // A API da Asaas pode enviar o signature sem o 'sha256='
-  const signatureWithoutPrefix = signature.startsWith('sha256=') ? signature.substring(7) : signature;
+  try {
+    const hmac = crypto.createHmac('sha256', webhookSecret);
+    const expectedSignature = hmac.update(requestBody, 'utf8').digest('hex');
 
-  return crypto.timingSafeEqual(Buffer.from(digest), Buffer.from(signatureWithoutPrefix));
+    // A API da Asaas envia a assinatura em formato hexadecimal.
+    // Usamos timingSafeEqual para comparar de forma segura contra ataques de timing.
+    const receivedSignatureBuffer = Buffer.from(signature, 'hex');
+    const expectedSignatureBuffer = Buffer.from(expectedSignature, 'hex');
+    
+    // As assinaturas devem ter o mesmo tamanho para timingSafeEqual funcionar
+    if (receivedSignatureBuffer.length !== expectedSignatureBuffer.length) {
+      return false;
+    }
+
+    return crypto.timingSafeEqual(receivedSignatureBuffer, expectedSignatureBuffer);
+
+  } catch (error) {
+      console.error('[verifyWebhookSignature] Erro durante a verificação:', error);
+      return false;
+  }
 }
 
 
@@ -112,10 +126,12 @@ async function processPaymentConfirmation(userRef: FirebaseFirestore.DocumentRef
   let plan: Plan = 'pro';
   let cycle: 'monthly' | 'annual' = 'monthly';
 
+  // Valores exatos para evitar problemas com ponto flutuante
   if (planValue === 399) { cycle = 'annual'; plan = 'pro'; }
   else if (planValue === 499) { cycle = 'annual'; plan = 'premium'; }
   else if (planValue === 49.99) { cycle = 'monthly'; plan = 'premium'; }
   else if (planValue === 39.99) { cycle = 'monthly'; plan = 'pro'; }
+
 
   const now = new Date();
   const expiresAt = cycle === 'annual' 
@@ -179,7 +195,17 @@ export async function POST(req: NextRequest) {
   await logWebhook(firestore, event, isSuccessEvent);
 
   if (!event.payment) {
-      return NextResponse.json({ success: true, message: 'Evento recebido, mas sem dados de pagamento.' });
+      // Evento pode ser de outro tipo, como SUBSCRIPTION_CREATED, que não tem 'payment' no root
+      if (event.event === 'SUBSCRIPTION_CREATED' && event.subscription) {
+        const userId = event.subscription.externalReference;
+        if (userId) {
+          const userRef = firestore.collection('users').doc(userId);
+          await userRef.update({
+            'subscription.asaasSubscriptionId': event.subscription.id,
+          });
+        }
+      }
+      return NextResponse.json({ success: true, message: 'Evento recebido, mas sem dados de pagamento para processar agora.' });
   }
 
   const { payment } = event;
