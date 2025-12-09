@@ -1,12 +1,12 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { initializeFirebaseAdmin } from '@/firebase/admin';
-import { getFirestore, Timestamp } from 'firebase/admin/firestore';
+import { Timestamp } from 'firebase-admin/firestore';
 import type { Plan } from '@/lib/types';
 
 // Webhook para lidar com eventos de pagamento da Asaas
 
-async function logWebhook(firestore: ReturnType<typeof getFirestore>, event: any, isSuccess: boolean) {
+async function logWebhook(firestore: ReturnType<typeof import('firebase-admin/firestore').getFirestore>, event: any, isSuccess: boolean) {
   try {
     const logData = {
       receivedAt: Timestamp.now(),
@@ -39,7 +39,7 @@ async function logWebhook(firestore: ReturnType<typeof getFirestore>, event: any
 
 export async function POST(req: NextRequest) {
   let event;
-  const firestore = initializeFirebaseAdmin().firestore;
+  const { firestore } = initializeFirebaseAdmin();
 
   try {
     event = await req.json();
@@ -48,14 +48,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON body.' }, { status: 400 });
   }
 
-  // Log all incoming events for auditing
-  // Determine if the event is a success type for logging
   const isSuccessEvent = ['PAYMENT_CONFIRMED', 'PAYMENT_RECEIVED'].includes(event.event);
   await logWebhook(firestore, event, isSuccessEvent);
 
   if (isSuccessEvent) {
     const payment = event.payment;
-    // Tenta obter o externalReference de DENTRO do item, e se não encontrar, tenta do nível principal.
     const userId = payment?.items?.[0]?.externalReference || payment?.externalReference;
     
     if (!userId) {
@@ -63,7 +60,6 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: true, message: 'Event received, but missing user ID.' });
     }
 
-    // Extrair plano e ciclo da descrição
     const description = payment?.description?.toLowerCase() || payment?.items?.[0]?.name?.toLowerCase() || '';
     let plan: Plan | null = null;
     if (description.includes('pro')) plan = 'pro';
