@@ -42,7 +42,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
-import { collection, doc, setDoc, increment, query, orderBy, limit, getDoc, onSnapshot, serverTimestamp, addDoc } from "firebase/firestore";
+import { collection, doc, setDoc, increment, query, orderBy, limit, getDoc, onSnapshot, serverTimestamp, addDoc, updateDoc } from "firebase/firestore";
 import { Separator } from "@/components/ui/separator";
 import { useSubscription } from '@/hooks/useSubscription';
 import { Plan } from "@/lib/types";
@@ -214,53 +214,54 @@ function VideoReviewPageContent() {
     setActiveTab("result");
     setAnalysisStatus("analyzing");
     setAnalysisError("");
+    setAnalysisResult(null);
     
     const reader = new FileReader();
     reader.readAsDataURL(file);
     reader.onloadend = async () => {
         const videoDataUri = reader.result as string;
         
+        let result: AnalyzeVideoOutput;
         try {
-            const result = await analyzeVideo({ 
+            result = await analyzeVideo({ 
               videoDataUri: videoDataUri,
               prompt: videoDescription || "Faça uma análise completa deste vídeo para um criador de conteúdo.",
             });
-            
             setAnalysisResult(result);
             setAnalysisStatus("success");
-
-            // Save to Firestore
-            try {
-                await addDoc(collection(firestore, `users/${user.uid}/analisesVideo`), {
-                    userId: user.uid,
-                    videoFileName: file.name,
-                    analysisData: result,
-                    videoDescription: videoDescription,
-                    createdAt: serverTimestamp(),
-                });
-                
-                 const usageDocRef = doc(firestore, `users/${user.uid}/dailyUsage/${todayStr}`);
-                 const usageDoc = await getDoc(usageDocRef);
-                 if (usageDoc.exists()) {
-                     await updateDoc(usageDocRef, { videoAnalyses: increment(1) });
-                 } else {
-                     await setDoc(usageDocRef, { date: todayStr, videoAnalyses: 1, geracoesAI: 0 });
-                 }
-                
-                toast({ title: "Análise Concluída!", description: "Seu vídeo foi analisado e salvo no seu histórico." });
-            } catch (saveError: any) {
-                console.error('Failed to save analysis:', saveError);
-                toast({
-                    title: 'Análise Concluída (com um porém)',
-                    description: 'A análise foi feita, mas não conseguimos salvá-la no seu histórico. O erro foi: ' + saveError.message,
-                    variant: 'destructive',
-                    duration: 7000,
-                });
-            }
-
         } catch (e: any) {
             setAnalysisError(e.message || "Ocorreu um erro desconhecido na análise.");
             setAnalysisStatus("error");
+            return; // Stop execution if analysis fails
+        }
+
+        // Save to Firestore only if analysis was successful
+        try {
+            await addDoc(collection(firestore, `users/${user.uid}/analisesVideo`), {
+                userId: user.uid,
+                videoFileName: file.name,
+                analysisData: result,
+                videoDescription: videoDescription,
+                createdAt: serverTimestamp(),
+            });
+            
+             const usageDocRef = doc(firestore, `users/${user.uid}/dailyUsage/${todayStr}`);
+             const usageDoc = await getDoc(usageDocRef);
+             if (usageDoc.exists()) {
+                 await updateDoc(usageDocRef, { videoAnalyses: increment(1) });
+             } else {
+                 await setDoc(usageDocRef, { date: todayStr, videoAnalyses: 1, geracoesAI: 0 });
+             }
+            
+            toast({ title: "Análise Concluída!", description: "Seu vídeo foi analisado e salvo no seu histórico." });
+        } catch (saveError: any) {
+            console.error('Failed to save analysis:', saveError);
+            toast({
+                title: 'Análise Concluída (com um porém)',
+                description: 'A análise foi feita, mas não conseguimos salvá-la no seu histórico. O erro foi: ' + saveError.message,
+                variant: 'destructive',
+                duration: 7000,
+            });
         }
     };
     reader.onerror = (error) => {
