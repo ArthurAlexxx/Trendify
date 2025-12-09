@@ -3,6 +3,7 @@
 
 import { z } from 'zod';
 import type { Plan } from '@/lib/types';
+import { initializeFirebaseAdmin } from '@/firebase/admin';
 
 // Mapeamento de planos e preços
 const priceMap: Record<Plan, Record<'monthly' | 'annual', number>> = {
@@ -45,6 +46,7 @@ export async function createAsaasPaymentAction(
 
   const { name, cpfCnpj, email, phone, postalCode, addressNumber, plan, cycle, userId } = parsed.data;
   const apiKey = process.env.ASAAS_API_KEY;
+  // Use a URL de produção como padrão para evitar problemas com localhost
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://trendify-beta.vercel.app';
   
   if (!apiKey) {
@@ -53,7 +55,7 @@ export async function createAsaasPaymentAction(
   
   try {
     // ETAPA 1: Criar ou obter o cliente na Asaas
-    const customerResponse = await fetch('https://api-sandbox.asaas.com/v3/customers', {
+    const customerResponse = await fetch('https://api.asaas.com/v3/customers', {
         method: 'POST',
         headers: {
             'accept': 'application/json',
@@ -65,6 +67,8 @@ export async function createAsaasPaymentAction(
             email,
             phone,
             cpfCnpj,
+            postalCode,
+            addressNumber,
             externalReference: userId
         })
     });
@@ -77,6 +81,13 @@ export async function createAsaasPaymentAction(
     }
 
     const customerId = customerData.id;
+    
+    // Salvar o customerId da Asaas no perfil do usuário no Firestore.
+    // É crucial para associar o webhook ao usuário correto.
+    const { firestore } = initializeFirebaseAdmin();
+    const userRef = firestore.doc(`users/${userId}`);
+    await userRef.update({ 'subscription.paymentId': customerId });
+
 
     // ETAPA 2: Criar o link de checkout com o ID do cliente
     const price = priceMap[plan][cycle];
@@ -84,11 +95,13 @@ export async function createAsaasPaymentAction(
 
     const checkoutBody = {
         customer: customerId,
-        billingType: 'PIX', // Focado em PIX por enquanto
+        billingType: 'PIX', // Simplificando para PIX por enquanto.
         chargeType: 'DETACHED',
         externalReference: userId,
         callback: {
             successUrl: `${appUrl}/dashboard?checkout=success`,
+            cancelUrl: `${appUrl}/dashboard?checkout=cancel`,
+            expiredUrl: `${appUrl}/dashboard?checkout=expired`,
             autoRedirect: true,
         },
         items: [{
@@ -99,7 +112,7 @@ export async function createAsaasPaymentAction(
         }],
     };
     
-    const checkoutResponse = await fetch('https://api-sandbox.asaas.com/v3/checkouts', {
+    const checkoutResponse = await fetch('https://api.asaas.com/v3/checkouts', {
         method: 'POST',
         headers: {
             'accept': 'application/json',
@@ -116,6 +129,7 @@ export async function createAsaasPaymentAction(
         throw new Error(checkoutData.errors?.[0]?.description || 'Falha ao criar o link de checkout.');
     }
 
+    // A resposta agora contém 'url' em vez de 'id' para o link direto.
     return { checkoutUrl: checkoutData.url };
 
   } catch (e: any) {
