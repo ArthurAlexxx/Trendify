@@ -215,7 +215,7 @@ function PublisAssistantPageContent() {
 
   const generationsToday = usageData?.geracoesAI || 0;
   const isPremium = subscription?.plan === 'premium';
-  const hasReachedLimit = !isPremium;
+  const hasReachedLimit = !isPremium && generationsToday >= 5;
 
 
   const form = useForm<FormSchemaType>({

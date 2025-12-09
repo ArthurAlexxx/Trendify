@@ -123,7 +123,7 @@ function PremiumFeatureGuard({ children }: { children: React.ReactNode }) {
                   </div>
                   <AlertDialogTitle className="font-headline text-xl">Funcionalidade Premium</AlertDialogTitle>
                   <AlertDialogDescription>
-                    O Mídia Kit é um recurso exclusivo para assinantes Premium.
+                    O Pacote de Prospecção é um recurso exclusivo para assinantes Premium.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -179,7 +179,7 @@ function MediaKitPageContent() {
 
   const generationsToday = usageData?.geracoesAI || 0;
   const isPremium = subscription?.plan === 'premium';
-  const hasReachedLimit = !isPremium;
+  const hasReachedLimit = !isPremium && generationsToday >= 5;
 
 
   useEffect(() => {

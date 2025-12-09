@@ -22,7 +22,7 @@ interface UseSubscriptionResult {
   trialDaysLeft: number;
 }
 
-const TRIAL_PERIOD_DAYS = 2;
+const TRIAL_PERIOD_DAYS = 7;
 
 /**
  * A hook to get the real-time subscription status and trial period of the current user.
@@ -41,11 +41,58 @@ export function useSubscription(): UseSubscriptionResult {
 
   const isLoading = isUserLoading || isProfileLoading;
 
-  // Temporarily grant everyone premium access.
+  if (isLoading || !userProfile) {
+    return {
+      subscription: null,
+      isLoading: true,
+      isTrialActive: false,
+      trialDaysLeft: 0,
+    };
+  }
+
+  const { subscription, createdAt } = userProfile;
+  const now = new Date();
+
+  // Check for active subscription first
+  if (subscription && subscription.status === 'active' && subscription.plan !== 'free') {
+      const expiresAtDate = subscription.expiresAt?.toDate();
+      if (expiresAtDate && expiresAtDate > now) {
+          return {
+              subscription: {
+                  status: 'active',
+                  plan: subscription.plan,
+                  expiresAt: subscription.expiresAt
+              },
+              isLoading: false,
+              isTrialActive: false,
+              trialDaysLeft: 0,
+          };
+      }
+  }
+
+  // If no active subscription, check for trial period
+  const createdAtDate = createdAt.toDate();
+  const trialEndDate = new Date(createdAtDate.getTime() + TRIAL_PERIOD_DAYS * 24 * 60 * 60 * 1000);
+  const trialDaysLeft = differenceInDays(trialEndDate, now);
+  const isTrialActive = trialDaysLeft > 0;
+
+  if (isTrialActive) {
+       return {
+            subscription: {
+                status: 'active',
+                plan: 'pro', // Trial gives PRO access
+            },
+            isLoading: false,
+            isTrialActive: true,
+            trialDaysLeft,
+        };
+  }
+  
+  // Default to free plan if no active subscription and trial is over
   return {
     subscription: {
-      status: 'active',
-      plan: 'premium',
+      status: 'inactive',
+      plan: 'free',
     },
     isLoading: false,
     isTrialActive: false,

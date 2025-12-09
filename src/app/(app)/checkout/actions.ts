@@ -8,8 +8,8 @@ import { initializeFirebaseAdmin } from '@/firebase/admin';
 // Mapeamento de planos e preços
 const priceMap: Record<Plan, Record<'monthly' | 'annual', number>> = {
     free: { monthly: 0, annual: 0 },
-    pro: { monthly: 29, annual: 299 },
-    premium: { monthly: 39, annual: 399 },
+    pro: { monthly: 39.99, annual: 399 },
+    premium: { monthly: 49.99, annual: 499 },
 };
 
 const CreatePaymentSchema = z.object({
@@ -174,4 +174,3 @@ export async function createAsaasPaymentAction(
     return { error: e.message || 'Ocorreu um erro de comunicação com o provedor de pagamento.' };
   }
 }
-    
