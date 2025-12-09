@@ -47,6 +47,7 @@ import { getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/
 import { initializeFirebase } from '@/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 import { ScrollArea } from './ui/scroll-area';
+import { updateProfile } from 'firebase/auth';
 
 const userMenuItems: {
   category: string;
