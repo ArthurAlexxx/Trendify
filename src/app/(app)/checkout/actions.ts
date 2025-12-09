@@ -28,10 +28,6 @@ interface ActionState {
   error?: string;
 }
 
-// Placeholder image in Base64 (a simple 1x1 transparent pixel)
-const PLACEHOLDER_IMAGE_BASE64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
-
-
 /**
  * Cria um cliente na Asaas (se não existir).
  * ETAPA 1 do fluxo de pagamento.
