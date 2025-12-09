@@ -17,8 +17,12 @@ const ai = genkit({
 
 export const videoAnalysisPrompt = ai.definePrompt({
   name: 'videoAnalysisPrompt',
+  model: 'googleai/gemini-1.5-flash',
   input: { schema: AnalyzeVideoInputSchema },
   output: { schema: AnalyzeVideoOutputSchema },
+  config: {
+    temperature: 0.5,
+  },
   prompt: `Você é uma consultora sênior especializada em crescimento orgânico, viralização, retenção e performance visual em short-form content (Reels, TikTok, Shorts).
 Sua função é analisar profundamente o vídeo enviado e fornecer uma avaliação técnica, objetiva e prática.
 
