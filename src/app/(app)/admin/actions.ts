@@ -219,7 +219,7 @@ export async function createAsaasPaymentAction(
     const checkoutBody = {
         customer: customerId,
         billingTypes: [billingType],
-        chargeType: 'DETACHED',
+        chargeTypes: ['DETACHED'],
         dueDateLimitDays: 1, 
         externalReference: userId,
         callback: {
@@ -266,5 +266,3 @@ export async function createAsaasPaymentAction(
     return { error: e.message || 'Ocorreu um erro de comunicação com o provedor de pagamento.' };
   }
 }
-
-    
