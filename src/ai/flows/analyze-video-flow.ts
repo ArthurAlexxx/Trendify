@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview Um fluxo de IA para analisar conteúdo de vídeo.
@@ -20,7 +21,7 @@ export async function analyzeVideo(input: AnalyzeVideoInput): Promise<AnalyzeVid
     });
 
     const { output } = await ai.generate({
-        model: 'googleai/gemini-1.5-flash',
+        model: 'googleai/gemini-2.5-flash',
         prompt: `Você é uma consultora sênior especializada em crescimento orgânico, viralização, retenção e performance visual em short-form content (Reels, TikTok, Shorts).
 Sua função é analisar profundamente o vídeo enviado e fornecer uma avaliação técnica, objetiva e prática.
 
