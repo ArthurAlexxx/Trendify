@@ -83,7 +83,6 @@ const formSchema = z.object({
 type FormSchemaType = z.infer<typeof formSchema>;
 
 const LOCAL_STORAGE_KEY = 'weekly-plan-result';
-const VIEW_RESULT_KEY = 'ai-result-to-view';
 
 
 const chartConfig = {
@@ -124,9 +123,6 @@ export default function GenerateWeeklyPlanPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   
   const [isSaving, startSavingTransition] = useTransition();
-  const [showCompletionDialog, setShowCompletionDialog] = useState(false);
-  const [isDiscardDialogOpen, setIsDiscardDialogOpen] = useState(false);
-
 
   const { user } = useUser();
   const firestore = useFirestore();
@@ -139,7 +135,6 @@ export default function GenerateWeeklyPlanPage() {
   
   const [usageData, setUsageData] = useState<DailyUsage | null>(null);
   const [isLoadingUsage, setIsLoadingUsage] = useState(true);
-  const [viewingSavedItem, setViewingSavedItem] = useState<IdeiaSalva | null>(null);
 
   useEffect(() => {
     if (!user || !firestore) return;
@@ -159,33 +154,33 @@ export default function GenerateWeeklyPlanPage() {
 
 
   useEffect(() => {
-    // Check for a result passed from the saved ideas page
-    const savedResultItem = localStorage.getItem(VIEW_RESULT_KEY);
-    if (savedResultItem) {
-        try {
-            const idea: IdeiaSalva = JSON.parse(savedResultItem);
-            // Only use it if it's from the correct origin page
-            if (idea.origem === 'Plano Semanal' && idea.aiResponseData) {
-                setResult(idea.aiResponseData);
-                setActiveTab('result');
-            }
-        } catch (e) {
-            console.error("Failed to parse saved result from localStorage", e);
-        } finally {
-            localStorage.removeItem(VIEW_RESULT_KEY);
+    // Check for a result to view from another page
+    const itemToViewStr = localStorage.getItem('ai-result-to-view');
+    if (itemToViewStr) {
+      try {
+        const item: IdeiaSalva = JSON.parse(itemToViewStr);
+        if (item.origem === 'Plano Semanal' && item.aiResponseData) {
+          setResult(item.aiResponseData);
+          setActiveTab('result'); // Switch to result tab to show it
         }
-    } else {
-        // Fallback to check older storage key if the new one isn't present
-        const savedResult = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (savedResult) {
-            try {
-                setResult(JSON.parse(savedResult));
-                setActiveTab('result');
-            } catch (error) {
-                console.error("Failed to parse saved result from localStorage", error);
-                localStorage.removeItem(LOCAL_STORAGE_KEY);
-            }
-        }
+      } catch (e) {
+        console.error("Failed to parse item to view from localStorage", e);
+      } finally {
+        localStorage.removeItem('ai-result-to-view');
+      }
+      return; // Exit early if we are viewing a specific item
+    }
+
+    // Fallback to locally stored result if no specific item is being viewed
+    const savedResult = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (savedResult) {
+      try {
+        setResult(JSON.parse(savedResult));
+        setActiveTab('result');
+      } catch (error) {
+        console.error("Failed to parse saved result from localStorage", error);
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
+      }
     }
   }, []);
 
@@ -203,22 +198,13 @@ export default function GenerateWeeklyPlanPage() {
   const { data: activePlanData, isLoading: isLoadingActivePlan } = useCollection<PlanoSemanal>(activePlanQuery);
   const activePlan = activePlanData?.[0];
   
-  const savedIdeasQuery = useMemoFirebase(() =>
-    firestore && user ? query(
-        collection(firestore, `users/${user.uid}/ideiasSalvas`),
-        where('origem', '==', 'Plano Semanal'),
-        orderBy('createdAt', 'desc')
-    ) : null,
-  [firestore, user]);
-
-  const { data: savedIdeas, isLoading: isLoadingSaved } = useCollection<IdeiaSalva>(savedIdeasQuery);
-
-
   useEffect(() => {
-    if (activePlan?.items.every(item => item.concluido)) {
-      setShowCompletionDialog(true);
+    const tab = searchParams.get('tab');
+    if (tab === 'activePlan') {
+        setActiveTab('activePlan');
+        router.replace(pathname);
     }
-  }, [activePlan]);
+  }, [searchParams, router, pathname]);
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),
@@ -276,8 +262,9 @@ export default function GenerateWeeklyPlanPage() {
               titulo: `Plano Arquivado de ${oldPlanData.createdAt.toDate().toLocaleDateString('pt-BR')}`,
               conteudo: oldPlanData.items.map(item => `**${item.dia}:** ${item.tarefa}`).join('\n'),
               origem: "Plano Semanal",
-              concluido: false, 
+              concluido: true, 
               createdAt: oldPlanData.createdAt,
+              completedAt: serverTimestamp(),
               aiResponseData: oldPlanData,
             });
           }
@@ -384,19 +371,6 @@ export default function GenerateWeeklyPlanPage() {
       toast({ title: 'Erro ao atualizar tarefa', description: e.message, variant: 'destructive' });
     }
   };
-
-  const handleArchiveCompletedPlan = () => {
-    if (!user || !activePlan) return;
-    setShowCompletionDialog(false);
-    startTransition(async () => {
-      const result = await archiveAndClearWeeklyPlanAction(user.uid, activePlan.id, activePlan);
-      if (result.success) {
-        toast({ title: 'Plano Arquivado!', description: 'Seu plano concluído foi movido para o histórico.' });
-      } else {
-        toast({ title: 'Erro ao Arquivar', description: result.error, variant: 'destructive' });
-      }
-    });
-  }
   
   const isButtonDisabled = isGenerating || isSaving || isLoadingProfile || hasReachedLimit;
 
@@ -409,26 +383,6 @@ export default function GenerateWeeklyPlanPage() {
         icon={ClipboardList}
       />
       
-      <AlertDialog open={showCompletionDialog} onOpenChange={setShowCompletionDialog}>
-        <AlertDialogContent>
-            <AlertDialogHeader className="text-center items-center">
-                 <div className="h-16 w-16 rounded-full bg-yellow-400/10 flex items-center justify-center mb-2 border-2 border-yellow-400/20">
-                    <PartyPopper className="h-8 w-8 text-yellow-500 animate-pulse" />
-                  </div>
-                <AlertDialogTitle className="font-headline text-2xl">Parabéns!</AlertDialogTitle>
-                <AlertDialogDescription>
-                Você concluiu todas as tarefas do seu plano semanal. Deseja arquivar este plano e liberar espaço para o próximo?
-                </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-                <AlertDialogCancel>Continuar com o plano</AlertDialogCancel>
-                <AlertDialogAction onClick={handleArchiveCompletedPlan}>
-                    Arquivar e Criar Novo
-                </AlertDialogAction>
-            </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
       <div>
         <div className="text-center">
             <h2 className="text-xl font-bold font-headline">Como Montamos seu Plano?</h2>

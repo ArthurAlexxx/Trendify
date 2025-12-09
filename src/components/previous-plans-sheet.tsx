@@ -3,25 +3,14 @@
 
 import { Button } from '@/components/ui/button';
 import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
-import { IdeiaSalva, PlanoSemanal, ItemRoteiro } from '@/lib/types';
-import { collection, orderBy, query, where, getDocs, writeBatch, doc } from 'firebase/firestore';
-import { History, Eye, Inbox, Loader2, Zap, Trophy, AlertTriangle } from 'lucide-react';
+import { IdeiaSalva, PlanoSemanal } from '@/lib/types';
+import { collection, orderBy, query, where, getDocs, writeBatch, doc, deleteDoc, serverTimestamp, addDoc } from 'firebase/firestore';
+import { History, Eye, Inbox, Loader2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { ScrollArea } from './ui/scroll-area';
-import React, { useState, useTransition } from 'react';
+import React, { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
 import {
   Sheet,
   SheetContent,
@@ -54,22 +43,78 @@ export function PreviousPlansSheet() {
   const { data: savedPlans, isLoading } =
     useCollection<IdeiaSalva>(savedPlansQuery);
 
-  const handleViewDetails = (plan: IdeiaSalva) => {
-    if (plan.aiResponseData) {
-      localStorage.setItem('ai-result-to-view', JSON.stringify(plan));
-      setIsListSheetOpen(false); // Close the list sheet
-      router.push('/generate-weekly-plan');
-    } else {
+  const handleReactivatePlan = async (planToReactivate: IdeiaSalva) => {
+    if (!firestore || !user || !planToReactivate.aiResponseData) {
       toast({
         title: 'Erro',
-        description: 'Os dados do plano não foram encontrados.',
+        description: 'Não foi possível reativar o plano. Dados incompletos.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsListSheetOpen(false);
+
+    try {
+      const batch = writeBatch(firestore);
+      const planData = planToReactivate.aiResponseData as Omit<PlanoSemanal, 'id' | 'createdAt'>;
+
+      // 1. Archive any currently active plan
+      const activePlanCollectionRef = collection(firestore, `users/${user.uid}/weeklyPlans`);
+      const activePlansSnapshot = await getDocs(activePlanCollectionRef);
+      
+      for (const planDoc of activePlansSnapshot.docs) {
+        const oldPlanData = planDoc.data() as PlanoSemanal;
+        const newArchivedRef = doc(collection(firestore, `users/${user.uid}/ideiasSalvas`));
+        
+        batch.set(newArchivedRef, {
+            userId: user.uid,
+            titulo: `Plano Arquivado de ${oldPlanData.createdAt.toDate().toLocaleDateString('pt-BR')}`,
+            conteudo: oldPlanData.items.map(item => `**${item.dia}:** ${item.tarefa}`).join('\n'),
+            origem: "Plano Semanal",
+            concluido: true, 
+            createdAt: oldPlanData.createdAt,
+            completedAt: serverTimestamp(),
+            aiResponseData: oldPlanData,
+        });
+        
+        batch.delete(planDoc.ref);
+      }
+
+      // 2. Create the reactivated plan as the new active plan
+      const newActivePlanRef = doc(activePlanCollectionRef);
+      batch.set(newActivePlanRef, {
+        ...planData,
+        userId: user.uid,
+        createdAt: serverTimestamp(),
+        items: planData.items.map(item => ({ ...item, concluido: false })), // Reset completion status
+      });
+
+      // 3. Delete the plan from the history (ideiasSalvas)
+      const planInHistoryRef = doc(firestore, `users/${user.uid}/ideiasSalvas`, planToReactivate.id);
+      batch.delete(planInHistoryRef);
+
+      // 4. Commit all operations
+      await batch.commit();
+      
+      toast({
+        title: 'Plano Reativado!',
+        description: 'O plano selecionado é agora o seu plano ativo.',
+      });
+
+      router.push('/generate-weekly-plan?tab=activePlan');
+
+    } catch (e: any) {
+      console.error("Error reactivating plan:", e);
+      toast({
+        title: 'Erro ao Reativar',
+        description: `Ocorreu um erro: ${e.message}`,
         variant: 'destructive',
       });
     }
   };
 
   return (
-    <>
     <Sheet open={isListSheetOpen} onOpenChange={setIsListSheetOpen}>
       <SheetTrigger asChild>
         <Button variant="outline">
@@ -108,9 +153,9 @@ export function PreviousPlansSheet() {
                                 locale: ptBR,
                                 })}
                             </p>
-                            <Button variant="ghost" size="sm" className='h-8' onClick={() => handleViewDetails(plan)}>
+                            <Button variant="ghost" size="sm" className='h-8' onClick={() => handleReactivatePlan(plan)}>
                                 <Eye className="mr-2 h-4 w-4" />
-                                Ver Detalhes
+                                Reativar Plano
                             </Button>
                         </div>
                         </div>
@@ -139,6 +184,5 @@ export function PreviousPlansSheet() {
         </div>
       </SheetContent>
     </Sheet>
-    </>
   );
 }
