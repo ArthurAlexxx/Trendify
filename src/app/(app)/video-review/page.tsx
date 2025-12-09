@@ -264,7 +264,6 @@ function VideoReviewPageContent() {
                           videoDescription: videoDescription,
                         });
                       
-                        // Only update usage if save is successful
                         const usageDocRef = doc(firestore, `users/${user.uid}/dailyUsage/${todayStr}`);
                         const usageDocSnap = await getDoc(usageDocRef);
                         if(usageDocSnap.exists()){

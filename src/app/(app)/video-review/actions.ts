@@ -38,7 +38,7 @@ export async function saveAnalysisToFirestore(
       userId,
       videoUrl,
       videoFileName,
-      analysisData: { ...dataToSave.analysisData, videoDescription: dataToSave.videoDescription }, // Include description
+      analysisData: { ...dataToSave.analysisData, videoDescription: dataToSave.videoDescription },
       createdAt: FieldValue.serverTimestamp(),
     });
     return { success: true };
