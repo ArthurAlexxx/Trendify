@@ -13,7 +13,7 @@ function verifyWebhookSignature(
   const webhookSecret = process.env.ASAAS_WEBHOOK_SECRET;
   
   if (!webhookSecret) {
-    console.warn("[Asaas Webhook] ASAAS_WEBHOOK_SECRET não está configurada. Pulando verificação.");
+    console.warn("[Asaas Webhook] ASAAS_WEBHOOK_SECRET não está configurada. Pulando verificação em ambiente de não produção.");
     if (process.env.NODE_ENV === 'production') {
         return false;
     }
@@ -112,10 +112,10 @@ async function processPaymentConfirmation(userRef: FirebaseFirestore.DocumentRef
   let plan: Plan = 'pro';
   let cycle: 'monthly' | 'annual' = 'monthly';
 
-  if (planValue === 299) { cycle = 'annual'; plan = 'pro'; }
-  else if (planValue === 399) { cycle = 'annual'; plan = 'premium'; }
-  else if (planValue === 39) { cycle = 'monthly'; plan = 'premium'; }
-  else if (planValue === 29) { cycle = 'monthly'; plan = 'pro'; }
+  if (planValue === 399) { cycle = 'annual'; plan = 'pro'; }
+  else if (planValue === 499) { cycle = 'annual'; plan = 'premium'; }
+  else if (planValue === 49.99) { cycle = 'monthly'; plan = 'premium'; }
+  else if (planValue === 39.99) { cycle = 'monthly'; plan = 'pro'; }
 
   const now = new Date();
   const expiresAt = cycle === 'annual' 

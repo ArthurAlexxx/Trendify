@@ -103,21 +103,28 @@ export default function SubscribePage() {
     const { subscription, isLoading } = useSubscription();
 
     const renderPlanButtons = (plan: 'pro' | 'premium', isUpgrade: boolean) => {
-        const isCurrent = subscription?.plan === plan && subscription.status === 'active';
+        const isCurrentPlan = subscription?.plan === plan && subscription.status === 'active';
         
-        let monthlyCta = isCurrent ? "Mudar para Mensal" : (isUpgrade ? "Fazer Upgrade" : "Assinar Mensal");
-        let annualCta = isCurrent ? "Mudar para Anual" : (isUpgrade ? "Fazer Upgrade" : "Assinar Anual");
-        if (isCurrent && subscription?.cycle === 'monthly') monthlyCta = "Seu Plano Atual";
-        if (isCurrent && subscription?.cycle === 'annual') annualCta = "Seu Plano Atual";
+        let monthlyCta = isUpgrade ? "Fazer Upgrade" : "Assinar Mensal";
+        if (isCurrentPlan && subscription?.cycle === 'annual') {
+            monthlyCta = "Mudar para Mensal";
+        }
+        
+        let annualCta = isUpgrade ? "Fazer Upgrade" : "Assinar Anual";
+        if (isCurrentPlan && subscription?.cycle === 'monthly') {
+            annualCta = "Mudar para Anual";
+        }
 
         return (
             <>
-                <Button asChild className="w-full" disabled={isCurrent && subscription?.cycle === 'monthly'}>
-                    <Link href={`/checkout?plan=${plan}&cycle=monthly`}>{monthlyCta}</Link>
+                <Button asChild className="w-full" disabled={isCurrentPlan && subscription?.cycle === 'monthly'}>
+                    <Link href={`/checkout?plan=${plan}&cycle=monthly`}>
+                         {isCurrentPlan && subscription?.cycle === 'monthly' ? "Seu Plano Atual" : monthlyCta}
+                    </Link>
                 </Button>
-                 <Button asChild className="w-full" variant="outline" disabled={isCurrent && subscription?.cycle === 'annual'}>
+                 <Button asChild className="w-full" variant="outline" disabled={isCurrentPlan && subscription?.cycle === 'annual'}>
                     <Link href={`/checkout?plan=${plan}&cycle=annual`}>
-                        {annualCta} (economize 2 meses)
+                         {isCurrentPlan && subscription?.cycle === 'annual' ? "Seu Plano Atual" : `${annualCta} (economize 2 meses)`}
                     </Link>
                 </Button>
             </>
