@@ -41,10 +41,10 @@ export async function callOpenAI<T extends z.ZodType<any, any, any>>(
   // Monta o conteúdo do usuário
   const userContent: any[] = [{ type: 'text', text: processedPrompt }];
   if (videoUrl) {
-    // OpenAI's gpt-4o can accept video URLs directly
+    // Para o modelo gpt-4o, vídeos são enviados via 'image_url'.
     userContent.push({
-        type: 'video_url',
-        video_url: {
+        type: 'image_url',
+        image_url: {
             url: videoUrl
         }
     });
