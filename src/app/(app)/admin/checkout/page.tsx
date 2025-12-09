@@ -19,6 +19,7 @@ import { doc, updateDoc } from 'firebase/firestore';
 
 const formSchema = z.object({
   name: z.string().min(3, 'O nome completo é obrigatório.'),
+  email: z.string().email('O e-mail é obrigatório e deve ser válido.'),
   cpfCnpj: z.string().min(11, 'O CPF ou CNPJ é obrigatório e deve conter apenas números.').max(14, 'O CNPJ não pode ter mais que 14 números.'),
 });
 
@@ -35,18 +36,20 @@ export default function AdminCheckoutTestPage() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: user?.displayName || '',
+      email: user?.email || '',
       cpfCnpj: '',
     },
   });
 
   useEffect(() => {
-    if (user?.displayName) {
-      form.setValue('name', user.displayName);
+    if (user) {
+        form.setValue('name', user.displayName || '');
+        form.setValue('email', user.email || '');
     }
   }, [user, form]);
 
   const onSubmit = (values: FormSchemaType) => {
-    if (!user?.email || !user.uid || !firestore) {
+    if (!user?.uid || !firestore) {
       setError('Usuário não autenticado ou serviço indisponível. Faça login novamente.');
       return;
     }
@@ -56,7 +59,7 @@ export default function AdminCheckoutTestPage() {
       const result = await createAsaasPaymentAction({
         name: values.name,
         cpfCnpj: values.cpfCnpj.replace(/\D/g, ''), // Remove non-digits
-        email: user.email!,
+        email: values.email,
         // Hardcoding para teste
         plan: 'premium',
         cycle: 'monthly',
@@ -102,6 +105,21 @@ export default function AdminCheckoutTestPage() {
                         <FormLabel>Nome Completo (do Pagador)</FormLabel>
                         <FormControl>
                             <Input placeholder="Seu nome completo" {...field} className="h-11" />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                 />
+              </div>
+               <div className="space-y-2">
+                 <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>E-mail (do Pagador)</FormLabel>
+                        <FormControl>
+                            <Input placeholder="seu@email.com" {...field} className="h-11" />
                         </FormControl>
                         <FormMessage />
                         </FormItem>
