@@ -85,6 +85,7 @@ const formSchema = z.object({
 type FormSchemaType = z.infer<typeof formSchema>;
 
 const LOCAL_STORAGE_KEY = 'video-ideas-result';
+const VIEW_RESULT_KEY = 'ai-result-to-view';
 
 
 const analysisCriteria = [
@@ -140,15 +141,38 @@ export default function VideoIdeasPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
 
   useEffect(() => {
-    try {
+    // Check for a result passed from the saved ideas page
+    const savedResultItem = localStorage.getItem(VIEW_RESULT_KEY);
+    if (savedResultItem) {
+        try {
+            const idea: IdeiaSalva = JSON.parse(savedResultItem);
+            // Only use it if it's from the correct origin page
+            if (idea.origem === 'Ideias de Vídeo' && idea.aiResponseData) {
+                setResult(idea.aiResponseData);
+                form.reset({
+                    topic: idea.titulo.replace('Ideia: ', '').replace('...', ''),
+                    targetAudience: idea.aiResponseData.formValues?.targetAudience || 'N/A',
+                    objective: idea.aiResponseData.formValues?.objective || 'N/A',
+                });
+                setActiveTab('result');
+            }
+        } catch (e) {
+            console.error("Failed to parse saved result from localStorage", e);
+        } finally {
+            localStorage.removeItem(VIEW_RESULT_KEY);
+        }
+    } else {
+        // Fallback to check older storage key if the new one isn't present
         const savedResult = localStorage.getItem(LOCAL_STORAGE_KEY);
         if (savedResult) {
-            setResult(JSON.parse(savedResult));
-            setActiveTab('result');
+            try {
+                setResult(JSON.parse(savedResult));
+                setActiveTab('result');
+            } catch (error) {
+                console.error("Failed to parse saved result from localStorage", error);
+                localStorage.removeItem(LOCAL_STORAGE_KEY);
+            }
         }
-    } catch (error) {
-        console.error("Failed to parse saved result from localStorage", error);
-        localStorage.removeItem(LOCAL_STORAGE_KEY);
     }
   }, []);
 
@@ -179,8 +203,6 @@ export default function VideoIdeasPage() {
   
   useEffect(() => {
     const topicParam = searchParams.get('topic');
-    // We remove the context param to simplify the AI prompt and avoid errors.
-    // The main topic is usually enough for a good idea.
     if (topicParam) {
       form.reset({
         topic: topicParam,
@@ -188,7 +210,6 @@ export default function VideoIdeasPage() {
         objective: form.getValues('objective'),
       })
       setIsFormOpen(true); 
-      // Clean the URL to prevent re-triggering
       router.replace(pathname, { scroll: false });
     }
   }, [searchParams, form, router, pathname, userProfile]);
@@ -227,7 +248,7 @@ export default function VideoIdeasPage() {
   const { data: completedIdeas, isLoading: isLoadingCompleted } = useCollection<IdeiaSalva>(completedIdeasQuery);
 
   useEffect(() => {
-    if (userProfile && !searchParams.has('topic')) {
+    if (userProfile && !searchParams.has('topic') && !localStorage.getItem(VIEW_RESULT_KEY)) {
       form.reset({
         topic: '',
         targetAudience: userProfile.audience || '',
@@ -278,7 +299,7 @@ export default function VideoIdeasPage() {
           concluido: false,
           createdAt: serverTimestamp(),
           completedAt: null,
-          aiResponseData: data,
+          aiResponseData: { ...data, formValues: form.getValues() },
         });
 
         toast({

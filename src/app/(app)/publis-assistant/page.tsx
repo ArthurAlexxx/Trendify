@@ -52,7 +52,7 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { format as formatDate } from 'date-fns';
-import type { DailyUsage } from '@/lib/types';
+import type { DailyUsage, IdeiaSalva } from '@/lib/types';
 import Link from 'next/link';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Separator } from '@/components/ui/separator';
@@ -74,6 +74,7 @@ const formSchema = z.object({
 type FormSchemaType = z.infer<typeof formSchema>;
 
 const LOCAL_STORAGE_KEY = 'publis-assistant-result';
+const VIEW_RESULT_KEY = 'ai-result-to-view';
 
 
 const analysisCriteria = [
@@ -171,15 +172,34 @@ function PublisAssistantPageContent() {
   const [isLoadingUsage, setIsLoadingUsage] = useState(true);
 
   useEffect(() => {
-    try {
+    // Check for a result passed from the saved ideas page
+    const savedResultItem = localStorage.getItem(VIEW_RESULT_KEY);
+    if (savedResultItem) {
+        try {
+            const idea: IdeiaSalva = JSON.parse(savedResultItem);
+            // Only use it if it's from the correct origin page
+            if (idea.origem === 'Propostas & Publis' && idea.aiResponseData) {
+                setResult(idea.aiResponseData);
+                form.reset(idea.aiResponseData.formValues || form.getValues());
+                setActiveTab('result');
+            }
+        } catch (e) {
+            console.error("Failed to parse saved result from localStorage", e);
+        } finally {
+            localStorage.removeItem(VIEW_RESULT_KEY);
+        }
+    } else {
+        // Fallback to check older storage key if the new one isn't present
         const savedResult = localStorage.getItem(LOCAL_STORAGE_KEY);
         if (savedResult) {
-            setResult(JSON.parse(savedResult));
-            setActiveTab('result');
+            try {
+                setResult(JSON.parse(savedResult));
+                setActiveTab('result');
+            } catch (error) {
+                console.error("Failed to parse saved result from localStorage", error);
+                localStorage.removeItem(LOCAL_STORAGE_KEY);
+            }
         }
-    } catch (error) {
-        console.error("Failed to parse saved result from localStorage", error);
-        localStorage.removeItem(LOCAL_STORAGE_KEY);
     }
   }, []);
 
@@ -298,7 +318,7 @@ function PublisAssistantPageContent() {
           origem: 'Propostas & Publis',
           concluido: false,
           createdAt: serverTimestamp(),
-          aiResponseData: data,
+          aiResponseData: { ...data, formValues: form.getValues() },
         });
 
         toast({

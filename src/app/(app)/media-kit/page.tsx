@@ -42,7 +42,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { collection, addDoc, serverTimestamp, doc, updateDoc, onSnapshot, getDoc, setDoc, increment } from 'firebase/firestore';
 import { SavedIdeasSheet } from '@/components/saved-ideas-sheet';
-import type { UserProfile, DailyUsage } from '@/lib/types';
+import type { UserProfile, DailyUsage, IdeiaSalva } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useRouter } from 'next/navigation';
@@ -66,6 +66,7 @@ const formSchema = z.object({
 type FormSchemaType = z.infer<typeof formSchema>;
 
 const LOCAL_STORAGE_KEY = 'media-kit-result';
+const VIEW_RESULT_KEY = 'ai-result-to-view';
 
 
 const analysisCriteria = [
@@ -176,15 +177,34 @@ function MediaKitPageContent() {
 
 
   useEffect(() => {
-    try {
+    // Check for a result passed from the saved ideas page
+    const savedResultItem = localStorage.getItem(VIEW_RESULT_KEY);
+    if (savedResultItem) {
+        try {
+            const idea: IdeiaSalva = JSON.parse(savedResultItem);
+            // Only use it if it's from the correct origin page
+            if (idea.origem === 'Mídia Kit & Prospecção' && idea.aiResponseData) {
+                setResult(idea.aiResponseData);
+                form.reset(idea.aiResponseData.formValues || form.getValues());
+                setActiveTab('result');
+            }
+        } catch (e) {
+            console.error("Failed to parse saved result from localStorage", e);
+        } finally {
+            localStorage.removeItem(VIEW_RESULT_KEY);
+        }
+    } else {
+        // Fallback to check older storage key if the new one isn't present
         const savedResult = localStorage.getItem(LOCAL_STORAGE_KEY);
         if (savedResult) {
-            setResult(JSON.parse(savedResult));
-            setActiveTab('result');
+            try {
+                setResult(JSON.parse(savedResult));
+                setActiveTab('result');
+            } catch (error) {
+                console.error("Failed to parse saved result from localStorage", error);
+                localStorage.removeItem(LOCAL_STORAGE_KEY);
+            }
         }
-    } catch (error) {
-        console.error("Failed to parse saved result from localStorage", error);
-        localStorage.removeItem(LOCAL_STORAGE_KEY);
     }
   }, []);
 
@@ -319,7 +339,7 @@ function MediaKitPageContent() {
           origem: 'Mídia Kit & Prospecção',
           concluido: false,
           createdAt: serverTimestamp(),
-          aiResponseData: { ...data, targetBrand: targetBrand },
+          aiResponseData: { ...data, formValues: { ...form.getValues() } },
         });
 
         toast({

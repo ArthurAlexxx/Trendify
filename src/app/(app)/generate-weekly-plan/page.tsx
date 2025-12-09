@@ -80,6 +80,7 @@ const formSchema = z.object({
 type FormSchemaType = z.infer<typeof formSchema>;
 
 const LOCAL_STORAGE_KEY = 'weekly-plan-result';
+const VIEW_RESULT_KEY = 'ai-result-to-view';
 
 
 const chartConfig = {
@@ -153,15 +154,33 @@ export default function GenerateWeeklyPlanPage() {
 
 
   useEffect(() => {
-    try {
+    // Check for a result passed from the saved ideas page
+    const savedResultItem = localStorage.getItem(VIEW_RESULT_KEY);
+    if (savedResultItem) {
+        try {
+            const idea: IdeiaSalva = JSON.parse(savedResultItem);
+            // Only use it if it's from the correct origin page
+            if (idea.origem === 'Plano Semanal' && idea.aiResponseData) {
+                setResult(idea.aiResponseData);
+                setActiveTab('result');
+            }
+        } catch (e) {
+            console.error("Failed to parse saved result from localStorage", e);
+        } finally {
+            localStorage.removeItem(VIEW_RESULT_KEY);
+        }
+    } else {
+        // Fallback to check older storage key if the new one isn't present
         const savedResult = localStorage.getItem(LOCAL_STORAGE_KEY);
         if (savedResult) {
-            setResult(JSON.parse(savedResult));
-            setActiveTab('result');
+            try {
+                setResult(JSON.parse(savedResult));
+                setActiveTab('result');
+            } catch (error) {
+                console.error("Failed to parse saved result from localStorage", error);
+                localStorage.removeItem(LOCAL_STORAGE_KEY);
+            }
         }
-    } catch (error) {
-        console.error("Failed to parse saved result from localStorage", error);
-        localStorage.removeItem(LOCAL_STORAGE_KEY);
     }
   }, []);
 
