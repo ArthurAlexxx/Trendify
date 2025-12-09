@@ -339,7 +339,6 @@ export default function VideoIdeasPage() {
           <h2 className="text-xl font-bold font-headline">Como Criamos Suas Ideias?</h2>
           <p className="text-muted-foreground">A IA atua como uma estrategista de conteúdo viral e analisa 4 pilares:</p>
         </div>
-        <Separator className="w-1/2 mx-auto my-4" />
         <div className="py-8">
             <div className="md:hidden">
                 <Carousel className="w-full" opts={{ align: 'start' }}>
