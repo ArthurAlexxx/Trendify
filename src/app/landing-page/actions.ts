@@ -106,9 +106,13 @@ export async function calculateGrowthAction(
   try {
     const result = await calculateGrowthAI(parsed.data);
     return { data: result };
-  } catch (e) {
-    const errorMessage =
-      e instanceof Error ? e.message : 'Ocorreu um erro desconhecido.';
+  } catch (e: any) {
+    if (e instanceof z.ZodError) {
+        console.error("Zod Validation Error in calculateGrowthAction:", e.format());
+        return { error: `A resposta da IA não corresponde ao formato esperado.` };
+    }
+    const errorMessage = e.message || 'Ocorreu um erro desconhecido.';
+    console.error("Error in calculateGrowthAction:", errorMessage);
     return { error: `Falha ao calcular crescimento: ${errorMessage}` };
   }
 }

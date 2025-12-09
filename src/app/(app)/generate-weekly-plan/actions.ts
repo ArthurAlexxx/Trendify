@@ -119,9 +119,13 @@ export async function generateWeeklyPlanAction(
   try {
     const result = await generateWeeklyPlan(parsed.data);
     return { data: result };
-  } catch (e) {
-    const errorMessage =
-      e instanceof Error ? e.message : 'Ocorreu um erro desconhecido.';
+  } catch (e: any) {
+    if (e instanceof z.ZodError) {
+        console.error("Zod Validation Error in generateWeeklyPlanAction:", e.format());
+        return { error: `A resposta da IA não corresponde ao formato esperado.` };
+    }
+    const errorMessage = e.message || 'Ocorreu um erro desconhecido.';
+    console.error("Error in generateWeeklyPlanAction:", errorMessage);
     return { error: `Falha ao gerar plano: ${errorMessage}` };
   }
 }

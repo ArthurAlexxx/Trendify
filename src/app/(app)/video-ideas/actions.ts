@@ -101,9 +101,13 @@ export async function generateVideoIdeasAction(
   try {
     const result = await generateVideoIdeas(parsed.data);
     return { data: result };
-  } catch (e) {
-    const errorMessage =
-      e instanceof Error ? e.message : 'Ocorreu um erro desconhecido.';
+  } catch (e: any) {
+    if (e instanceof z.ZodError) {
+        console.error("Zod Validation Error in generateVideoIdeasAction:", e.format());
+        return { error: `A resposta da IA não corresponde ao formato esperado.` };
+    }
+    const errorMessage = e.message || 'Ocorreu um erro desconhecido.';
+    console.error("Error in generateVideoIdeasAction:", errorMessage);
     return { error: `Falha ao gerar ideias: ${errorMessage}` };
   }
 }
