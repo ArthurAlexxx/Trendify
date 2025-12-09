@@ -80,16 +80,6 @@
           "order": "ASCENDING"
         }
       ]
-    },
-    {
-      "collectionGroup": "webhookLogs",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "receivedAt",
-          "order": "DESCENDING"
-        }
-      ]
     }
   ],
   "fieldOverrides": []
