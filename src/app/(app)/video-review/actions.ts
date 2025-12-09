@@ -1,4 +1,3 @@
-
 'use server';
 
 import { analyzeVideo as analyzeVideoFlow, type AnalyzeVideoOutput } from '@/ai/flows/analyze-video-flow';
@@ -18,7 +17,7 @@ interface SaveAnalysisParams {
 }
 
 /**
- * Saves the video analysis result to Firestore.
+ * Saves the video analysis result to Firestore and increments the daily usage counter.
  */
 export async function saveAnalysisToFirestore(params: SaveAnalysisParams): Promise<{ success: boolean; error?: string }> {
   const { userId, videoFileName, analysisData, videoDescription } = params;
@@ -29,18 +28,43 @@ export async function saveAnalysisToFirestore(params: SaveAnalysisParams): Promi
 
   const { firestore } = initializeFirebaseAdmin();
   const analysisCollectionRef = firestore.collection(`users/${userId}/analisesVideo`);
+  const todayStr = new Date().toISOString().split('T')[0];
+  const usageDocRef = firestore.collection(`users/${userId}/dailyUsage`).doc(todayStr);
 
   try {
-    await analysisCollectionRef.add({
-      userId,
-      videoFileName: videoFileName || "Nome do arquivo não disponível",
-      analysisData,
-      videoDescription: videoDescription,
-      createdAt: FieldValue.serverTimestamp(),
+    // Use a transaction to ensure both writes succeed or fail together.
+    await firestore.runTransaction(async (transaction) => {
+      // 1. Add the new analysis document.
+      const newAnalysisRef = analysisCollectionRef.doc();
+      transaction.set(newAnalysisRef, {
+        userId,
+        videoFileName: videoFileName || "Nome do arquivo não disponível",
+        analysisData,
+        videoDescription: videoDescription,
+        createdAt: FieldValue.serverTimestamp(),
+      });
+
+      // 2. Read the daily usage document.
+      const usageDoc = await transaction.get(usageDocRef);
+      
+      if (!usageDoc.exists) {
+        // If it doesn't exist, create it with count 1.
+        transaction.set(usageDocRef, {
+            date: todayStr,
+            videoAnalyses: 1,
+            geracoesAI: 0
+        });
+      } else {
+        // If it exists, increment the count.
+        transaction.update(usageDocRef, {
+          videoAnalyses: FieldValue.increment(1)
+        });
+      }
     });
+
     return { success: true };
   } catch (error: any) {
-    console.error('Error saving analysis to Firestore:', error);
+    console.error('Error in saveAnalysisToFirestore transaction:', error);
     return { success: false, error: error.message || 'Não foi possível salvar o resultado da análise no banco de dados.' };
   }
 }

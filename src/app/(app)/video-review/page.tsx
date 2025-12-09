@@ -243,13 +243,6 @@ function VideoReviewPageContent() {
                 throw new Error(saveResult.error || 'Erro desconhecido ao salvar.');
               }
             
-              const usageDocRef = doc(firestore, `users/${user.uid}/dailyUsage/${todayStr}`);
-              const usageDocSnap = await getDoc(usageDocRef);
-              if(usageDocSnap.exists()){
-                  await setDoc(usageDocRef, { videoAnalyses: increment(1) }, { merge: true });
-              } else {
-                  await setDoc(usageDocRef, { date: todayStr, videoAnalyses: 1, geracoesAI: 0 });
-              }
               toast({ title: "Análise Concluída!", description: "Seu vídeo foi analisado e salvo no seu histórico." });
 
             } catch (saveError: any) {
