@@ -21,7 +21,7 @@ const CreatePaymentSchema = z.object({
   addressNumber: z.string().min(1, 'O número é obrigatório.'),
   plan: z.enum(['pro', 'premium']),
   cycle: z.enum(['monthly', 'annual']),
-  billingType: z.enum(['PIX', 'BOLETO', 'CREDIT_CARD']),
+  billingType: z.enum(['PIX', 'CREDIT_CARD']),
   userId: z.string().min(1, 'ID do usuário é obrigatório.'),
 });
 
@@ -169,7 +169,3 @@ export async function createAsaasPaymentAction(
     return { error: e.message || 'Ocorreu um erro de comunicação com o provedor de pagamento.' };
   }
 }
-
-    
-
-    

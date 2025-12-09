@@ -152,7 +152,7 @@ const CreatePaymentSchema = z.object({
   phone: z.string().min(10, 'O telefone é obrigatório.'),
   postalCode: z.string().min(8, 'O CEP é obrigatório.'),
   addressNumber: z.string().min(1, 'O número é obrigatório.'),
-  billingType: z.enum(['PIX', 'BOLETO', 'CREDIT_CARD']),
+  billingType: z.enum(['PIX', 'CREDIT_CARD']),
   plan: z.enum(['pro', 'premium']),
   cycle: z.enum(['monthly', 'annual']),
   userId: z.string().min(1, 'ID do usuário é obrigatório.'),
@@ -347,7 +347,3 @@ export async function cancelAsaasCheckoutAction(
     return { error: e.message || 'Ocorreu um erro de comunicação com o provedor de pagamento.' };
   }
 }
-
-    
-
-    

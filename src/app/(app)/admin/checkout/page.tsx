@@ -29,7 +29,7 @@ const formSchema = z.object({
   phone: z.string().min(10, 'O telefone é obrigatório.'),
   postalCode: z.string().min(8, 'O CEP é obrigatório.'),
   addressNumber: z.string().min(1, 'O número é obrigatório.'),
-  billingType: z.enum(['PIX', 'BOLETO', 'CREDIT_CARD']),
+  billingType: z.enum(['PIX', 'CREDIT_CARD']),
   plan: z.enum(['pro', 'premium']),
   cycle: z.enum(['monthly', 'annual']),
 });
@@ -380,7 +380,6 @@ export default function AdminCheckoutTestPage() {
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="PIX">PIX</SelectItem>
-                        <SelectItem value="BOLETO">Boleto</SelectItem>
                         <SelectItem value="CREDIT_CARD">Cartão de Crédito (Recorrente)</SelectItem>
                       </SelectContent>
                     </Select>
