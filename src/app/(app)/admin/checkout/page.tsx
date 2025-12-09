@@ -75,19 +75,12 @@ export default function AdminCheckoutTestPage() {
 
       if (result.error) {
         setError(result.error);
-      } else if (result.checkoutUrl && result.customerId) {
-         try {
-            const userRef = doc(firestore, `users/${user.uid}`);
-            await updateDoc(userRef, { 'subscription.paymentId': result.customerId });
-            
-            toast({
-              title: "Checkout Gerado!",
-              description: `Redirecionando para o pagamento...`,
-            });
-            window.open(result.checkoutUrl, '_blank');
-        } catch (e: any) {
-            setError(`Ocorreu um erro ao salvar suas informações de pagamento: ${e.message}`);
-        }
+      } else if (result.checkoutUrl) {
+         toast({
+            title: "Checkout Gerado!",
+            description: `Redirecionando para o pagamento...`,
+         });
+         window.open(result.checkoutUrl, '_blank');
       } else {
         setError('Ocorreu um erro inesperado ao criar o link de checkout.');
       }

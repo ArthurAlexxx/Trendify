@@ -76,7 +76,7 @@ function CheckoutPageContent() {
     startTransition(async () => {
       const result = await createAsaasPaymentAction({
         ...values,
-        cpfCnpj: values.cpfCnpj.replace(/\D/g, ''), 
+        cpfCnpj: values.cpfCnpj.replace(/\D/g, ''),
         phone: values.phone.replace(/\D/g, ''),
         postalCode: values.postalCode.replace(/\D/g, ''),
         email: user.email!,
@@ -87,16 +87,9 @@ function CheckoutPageContent() {
 
       if (result.error) {
         setError(result.error);
-      } else if (result.checkoutUrl && result.customerId) {
-        // Armazena o customerId no perfil do usuário ANTES de redirecionar
-        try {
-            const userRef = doc(firestore, `users/${user.uid}`);
-            await updateDoc(userRef, { 'subscription.paymentId': result.customerId });
-            // Redireciona para o pagamento
-            window.location.href = result.checkoutUrl;
-        } catch (e: any) {
-            setError(`Ocorreu um erro ao salvar suas informações de pagamento: ${e.message}`);
-        }
+      } else if (result.checkoutUrl) {
+        // Agora redireciona diretamente, pois não precisamos mais salvar o customerId
+        window.location.href = result.checkoutUrl;
       } else {
         setError('Ocorreu um erro inesperado ao gerar o link de pagamento.');
       }
