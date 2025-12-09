@@ -3,7 +3,7 @@
 
 import { analyzeVideo as analyzeVideoFlow, type AnalyzeVideoOutput } from '@/ai/flows/analyze-video-flow';
 import { initializeFirebaseAdmin } from '@/firebase/admin';
-import { serverTimestamp } from 'firebase/firestore';
+import { FieldValue } from 'firebase-admin/firestore';
 
 /**
  * Re-export the analyzeVideo function to be used as a Server Action.
@@ -39,7 +39,7 @@ export async function saveAnalysisToFirestore(
       videoUrl,
       videoFileName,
       analysisData: { ...dataToSave.analysisData, videoDescription: dataToSave.videoDescription }, // Include description
-      createdAt: serverTimestamp(),
+      createdAt: FieldValue.serverTimestamp(),
     });
     return { success: true };
   } catch (error) {

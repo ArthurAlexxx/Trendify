@@ -288,7 +288,9 @@ function VideoReviewPageContent() {
                   }
               };
               reader.onerror = (error) => {
-                throw new Error("Falha ao ler o arquivo de vídeo para análise.");
+                setAnalysisError("Falha ao ler o arquivo de vídeo para análise.");
+                setAnalysisStatus("error");
+                console.error("FileReader error:", error);
               }
           } catch (e: any) {
               setAnalysisError(e.message || "Ocorreu um erro desconhecido.");
