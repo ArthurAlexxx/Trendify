@@ -669,20 +669,6 @@ export default function GenerateWeeklyPlanPage() {
                                                             {item.detalhes}
                                                             </p>
                                                         </div>
-                                                        <TooltipProvider>
-                                                            <Tooltip>
-                                                                <TooltipTrigger asChild>
-                                                                    <Link href={`/video-ideas?topic=${encodeURIComponent(item.tarefa)}`}>
-                                                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-primary">
-                                                                            <Lightbulb className="h-4 w-4" />
-                                                                        </Button>
-                                                                    </Link>
-                                                                </TooltipTrigger>
-                                                                <TooltipContent>
-                                                                    <p>Gerar ideia de vídeo com esta tarefa</p>
-                                                                </TooltipContent>
-                                                            </Tooltip>
-                                                        </TooltipProvider>
                                                         </div>
                                                         {index < result.items.length - 1 && (
                                                         <Separator className="my-2" />
@@ -763,20 +749,6 @@ export default function GenerateWeeklyPlanPage() {
                                                 {item.detalhes}
                                                 </p>
                                             </div>
-                                             <TooltipProvider>
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                         <Link href={`/video-ideas?topic=${encodeURIComponent(item.tarefa)}`}>
-                                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-primary">
-                                                                <Lightbulb className="h-4 w-4" />
-                                                            </Button>
-                                                        </Link>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>
-                                                        <p>Gerar ideia de vídeo com esta tarefa</p>
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            </TooltipProvider>
                                             </div>
                                             {index < result.items.length - 1 && (
                                             <Separator className="my-2" />
@@ -954,20 +926,6 @@ export default function GenerateWeeklyPlanPage() {
                                                     </label>
                                                     <p className="text-sm text-muted-foreground">{item.detalhes}</p>
                                                     </div>
-                                                    <TooltipProvider>
-                                                        <Tooltip>
-                                                            <TooltipTrigger asChild>
-                                                                <Link href={`/video-ideas?topic=${encodeURIComponent(item.tarefa)}`}>
-                                                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-primary">
-                                                                        <Lightbulb className="h-4 w-4" />
-                                                                    </Button>
-                                                                </Link>
-                                                            </TooltipTrigger>
-                                                            <TooltipContent>
-                                                                <p>Gerar ideia de vídeo com esta tarefa</p>
-                                                            </TooltipContent>
-                                                        </Tooltip>
-                                                    </TooltipProvider>
                                                 </div>
                                                 {index < activePlan.items.length - 1 && <Separator className="my-2" />}
                                                 </li>
@@ -1022,3 +980,4 @@ export default function GenerateWeeklyPlanPage() {
     </div>
   );
 }
+
