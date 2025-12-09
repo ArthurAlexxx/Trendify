@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useUser } from '@/firebase';
@@ -9,7 +8,6 @@ import { Loader2 } from 'lucide-react';
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
-  const [isPending, setIsPending] = useState(false);
 
   useEffect(() => {
     // Redirect to dashboard if loading is complete and user is logged in
@@ -37,20 +35,5 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   }
 
   // If loading is finished and there's no user, show the login/signup page.
-  return (
-    <>
-      {isPending && (
-        <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-50">
-          <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        </div>
-      )}
-      {React.Children.map(children, child => {
-          if (React.isValidElement(child)) {
-              // @ts-ignore
-              return React.cloneElement(child, { setIsPending });
-          }
-          return child;
-      })}
-    </>
-  );
+  return <>{children}</>;
 }

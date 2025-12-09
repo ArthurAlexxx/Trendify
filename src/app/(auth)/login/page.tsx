@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -38,9 +37,10 @@ const GoogleIcon = () => (
 );
 
 
-export default function LoginPage({ setIsPending }: { setIsPending: (isPending: boolean) => void }) {
+export default function LoginPage() {
   const { toast } = useToast();
   const auth = useAuth();
+  const [isPending, setIsPending] = useState(false);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -93,6 +93,11 @@ export default function LoginPage({ setIsPending }: { setIsPending: (isPending: 
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
+      {isPending && (
+        <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-50">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        </div>
+      )}
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link
@@ -116,7 +121,8 @@ export default function LoginPage({ setIsPending }: { setIsPending: (isPending: 
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-                <Button variant="outline" className="w-full h-11" onClick={handleGoogleSignIn}>
+                <Button variant="outline" className="w-full h-11" onClick={handleGoogleSignIn} disabled={isPending}>
+                    {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     <GoogleIcon />
                     Entrar com Google
                 </Button>
@@ -141,6 +147,7 @@ export default function LoginPage({ setIsPending }: { setIsPending: (isPending: 
                             {...field}
                             type="email"
                             className="h-11 bg-muted/50"
+                            disabled={isPending}
                             />
                         </FormControl>
                         <FormMessage />
@@ -166,6 +173,7 @@ export default function LoginPage({ setIsPending }: { setIsPending: (isPending: 
                             {...field}
                             type="password"
                             className="h-11 bg-muted/50"
+                            disabled={isPending}
                             />
                         </FormControl>
                         <FormMessage />
@@ -175,7 +183,9 @@ export default function LoginPage({ setIsPending }: { setIsPending: (isPending: 
                     <Button
                     type="submit"
                     className="w-full font-manrope h-11 text-base font-bold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-shadow"
+                    disabled={isPending}
                     >
+                    {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Entrar com E-mail
                     </Button>
                 </form>
