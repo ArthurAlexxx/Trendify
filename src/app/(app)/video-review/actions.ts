@@ -34,6 +34,10 @@ export async function saveAnalysisToFirestore(params: SaveAnalysisParams): Promi
   try {
     // Use a transaction to ensure both writes succeed or fail together.
     await firestore.runTransaction(async (transaction) => {
+      // **READ** operation must come first.
+      const usageDoc = await transaction.get(usageDocRef);
+      
+      // Now, perform all **WRITE** operations.
       // 1. Add the new analysis document.
       const newAnalysisRef = analysisCollectionRef.doc();
       transaction.set(newAnalysisRef, {
@@ -43,10 +47,8 @@ export async function saveAnalysisToFirestore(params: SaveAnalysisParams): Promi
         videoDescription: videoDescription,
         createdAt: FieldValue.serverTimestamp(),
       });
-
-      // 2. Read the daily usage document.
-      const usageDoc = await transaction.get(usageDocRef);
       
+      // 2. Create or update the daily usage document.
       if (!usageDoc.exists) {
         // If it doesn't exist, create it with count 1.
         transaction.set(usageDocRef, {
