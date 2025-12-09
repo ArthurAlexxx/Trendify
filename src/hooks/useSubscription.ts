@@ -41,36 +41,14 @@ export function useSubscription(): UseSubscriptionResult {
 
   const isLoading = isUserLoading || isProfileLoading;
 
-  if (isLoading) {
-    return { subscription: null, isLoading: true, isTrialActive: false, trialDaysLeft: 0 };
-  }
-  
-  if (!user) {
-    return { subscription: null, isLoading: false, isTrialActive: false, trialDaysLeft: 0 };
-  }
-
-  const accountCreationDate = userProfile?.createdAt?.toDate() || new Date(user.metadata.creationTime || Date.now());
-  const daysSinceCreation = differenceInDays(new Date(), accountCreationDate);
-  
-  // A user has a paid plan if their subscription status is active AND their plan is not 'free'
-  const hasActivePaidPlan = userProfile?.subscription?.status === 'active' && userProfile.subscription.plan !== 'free';
-
-  const isStillInTrialPeriod = daysSinceCreation < TRIAL_PERIOD_DAYS;
-  const isTrialActive = isStillInTrialPeriod && !hasActivePaidPlan;
-
-  const trialDaysLeft = Math.max(0, TRIAL_PERIOD_DAYS - daysSinceCreation);
-  
-  const finalPlan: Plan = isTrialActive ? 'pro' : (userProfile?.subscription?.plan || 'free');
-  const finalStatus: SubscriptionStatus = (isTrialActive || hasActivePaidPlan) ? 'active' : 'inactive';
-
+  // Temporarily grant everyone premium access.
   return {
     subscription: {
-      status: finalStatus,
-      plan: finalPlan,
-      expiresAt: userProfile?.subscription?.expiresAt || undefined,
+      status: 'active',
+      plan: 'premium',
     },
     isLoading: false,
-    isTrialActive: isTrialActive,
-    trialDaysLeft: trialDaysLeft,
+    isTrialActive: false,
+    trialDaysLeft: 0,
   };
 }
