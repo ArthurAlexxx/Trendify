@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Suspense, useState, useTransition, useEffect } from 'react';
-import { Loader2, CheckCircle, AlertTriangle, CreditCard } from 'lucide-react';
+import { Loader2, CheckCircle, AlertTriangle, CreditCard, ExternalLink } from 'lucide-react';
 import { useUser, useFirestore } from '@/firebase';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -152,7 +152,7 @@ function CheckoutPageContent() {
                )}
 
               <Button type="submit" disabled={isPending} className="w-full h-11">
-                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ExternalLink className="mr-2 h-4 w-4" />}
                 Ir para o Pagamento
               </Button>
             </form>

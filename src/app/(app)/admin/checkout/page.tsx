@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { CreditCard, Loader2, AlertTriangle } from 'lucide-react';
+import { CreditCard, Loader2, AlertTriangle, ExternalLink } from 'lucide-react';
 import { useState, useTransition, useEffect } from 'react';
 import { useUser, useFirestore } from '@/firebase';
 import { useForm } from 'react-hook-form';
@@ -68,14 +68,21 @@ export default function AdminCheckoutTestPage() {
 
       if (result.error) {
         setError(result.error);
-      } else if (result.customerId) {
-        toast({
-          title: "Sucesso na Etapa 1!",
-          description: `Cliente criado/encontrado com ID: ${result.customerId}`,
-        });
-        // A lógica de redirecionamento foi removida para depuração
+      } else if (result.checkoutUrl && result.customerId) {
+         try {
+            const userRef = doc(firestore, `users/${user.uid}`);
+            await updateDoc(userRef, { 'subscription.paymentId': result.customerId });
+            
+            toast({
+              title: "Checkout Gerado!",
+              description: `Redirecionando para o pagamento...`,
+            });
+            window.open(result.checkoutUrl, '_blank');
+        } catch (e: any) {
+            setError(`Ocorreu um erro ao salvar suas informações de pagamento: ${e.message}`);
+        }
       } else {
-        setError('Ocorreu um erro inesperado ao criar o cliente.');
+        setError('Ocorreu um erro inesperado ao criar o link de checkout.');
       }
     });
   };
@@ -84,14 +91,14 @@ export default function AdminCheckoutTestPage() {
     <div className="space-y-8">
       <PageHeader
         title="Checkout de Teste"
-        description="Esta página simula o fluxo de pagamento. Etapa 1: Criação de Cliente no Asaas."
+        description="Use esta página para simular o fluxo de pagamento completo com a Asaas."
         icon={CreditCard}
       />
 
       <Card className="max-w-2xl mx-auto shadow-primary-lg">
         <CardHeader>
-          <CardTitle>Simular Criação de Cliente Asaas</CardTitle>
-          <CardDescription>Insira os detalhes para criar um cliente no ambiente de sandbox.</CardDescription>
+          <CardTitle>Simular Checkout Asaas</CardTitle>
+          <CardDescription>Insira os detalhes para criar um cliente e um link de pagamento no ambiente de sandbox.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -145,7 +152,7 @@ export default function AdminCheckoutTestPage() {
                {error && (
                 <Alert variant="destructive">
                     <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle>Erro ao Criar Cliente</AlertTitle>
+                    <AlertTitle>Erro no Processo</AlertTitle>
                     <AlertDescription>{error}</AlertDescription>
                 </Alert>
                )}
@@ -155,8 +162,8 @@ export default function AdminCheckoutTestPage() {
                </p>
 
               <Button type="submit" disabled={isPending} className="w-full h-11">
-                {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                Testar Criação de Cliente
+                {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ExternalLink className="mr-2 h-4 w-4"/>}
+                Gerar e Abrir Checkout
               </Button>
             </form>
           </Form>
