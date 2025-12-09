@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, type ChangeEvent } from "react";
+import { useState, useRef, type ChangeEvent, useEffect } from "react";
 import {
   UploadCloud,
   Loader2,
@@ -262,7 +262,7 @@ function VideoReviewPageContent() {
                       const usageDocRef = doc(firestore, `users/${user.uid}/dailyUsage/${todayStr}`);
                       const usageDocSnap = await getDoc(usageDocRef);
                       if(usageDocSnap.exists()){
-                          await increment(usageDocSnap.ref, 'videoAnalyses', 1);
+                          await setDoc(usageDocRef, { videoAnalyses: increment(1) }, { merge: true });
                       } else {
                           await setDoc(usageDocRef, { date: todayStr, videoAnalyses: 1, geracoesAI: 0 });
                       }
