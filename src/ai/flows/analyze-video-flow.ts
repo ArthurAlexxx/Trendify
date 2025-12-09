@@ -10,6 +10,8 @@ import { AnalyzeVideoOutputSchema } from '@/lib/types';
 import { genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/google-genai';
 
+// Para alterar o modelo do Gemini para esta análise, modifique a string abaixo.
+const GEMINI_MODEL = 'googleai/gemini-1.5-pro';
 
 export async function analyzeVideo(input: { videoUrl: string, prompt: string }): Promise<AnalyzeVideoOutput> {
     
@@ -21,7 +23,7 @@ export async function analyzeVideo(input: { videoUrl: string, prompt: string }):
     });
 
     const { output } = await ai.generate({
-        model: 'googleai/gemini-1.5-pro',
+        model: GEMINI_MODEL,
         prompt: `Você é uma consultora sênior especializada em crescimento orgânico, viralização, retenção e performance visual em short-form content (Reels, TikTok, Shorts).
 Sua função é analisar profundamente o vídeo enviado e fornecer uma avaliação técnica, objetiva e prática.
 
