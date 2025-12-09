@@ -41,7 +41,8 @@ export async function createAsaasPaymentAction(
   const parsed = CreatePaymentSchema.safeParse(input);
 
   if (!parsed.success) {
-    return { error: 'Dados inválidos: ' + parsed.error.format() };
+    const errorMessages = parsed.error.issues.map(issue => issue.message).join(' ');
+    return { error: `Dados inválidos: ${errorMessages}` };
   }
 
   const { name, cpfCnpj, email, plan, cycle, userId } = parsed.data;
@@ -68,11 +69,24 @@ export async function createAsaasPaymentAction(
     });
 
     const customerData = await customerResponse.json();
-    if (!customerResponse.ok && customerData.errors[0]?.code !== 'customer_already_exists') {
-        throw new Error(customerData.errors[0]?.description || 'Não foi possível criar o cliente na Asaas.');
-    }
+    let customerId;
 
-    const customerId = customerData.id || (await (await fetch(`https://api-sandbox.asaas.com/v3/customers?email=${email}`, { headers: { access_token: apiKey }})).json()).data[0].id;
+    if (customerResponse.ok) {
+        customerId = customerData.id;
+    } else if (customerData.errors?.[0]?.code === 'customer_already_exists') {
+        // Se o cliente já existe, busca pelo e-mail
+        const existingCustomerResponse = await fetch(`https://api-sandbox.asaas.com/v3/customers?email=${email}`, {
+            headers: { accept: 'application/json', access_token: apiKey }
+        });
+        const existingCustomerData = await existingCustomerResponse.json();
+        if (existingCustomerData.data && existingCustomerData.data.length > 0) {
+            customerId = existingCustomerData.data[0].id;
+        } else {
+             throw new Error('Cliente já existe, mas não foi possível encontrá-lo pelo e-mail.');
+        }
+    } else {
+        throw new Error(customerData.errors?.[0]?.description || 'Não foi possível criar o cliente na Asaas.');
+    }
 
     if (!customerId) {
         throw new Error('Não foi possível obter o ID do cliente da Asaas.');

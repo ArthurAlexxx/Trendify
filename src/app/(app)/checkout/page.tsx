@@ -25,8 +25,8 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { doc, updateDoc } from 'firebase/firestore';
 
 const formSchema = z.object({
-  name: z.string().min(3, 'O nome é obrigatório.'),
-  cpfCnpj: z.string().min(11, 'O CPF/CNPJ é obrigatório.'),
+  name: z.string().min(3, 'O nome completo é obrigatório.'),
+  cpfCnpj: z.string().min(11, 'O CPF ou CNPJ é obrigatório e deve conter apenas números.').max(14, 'O CNPJ não pode ter mais que 14 números.'),
 });
 
 type FormSchemaType = z.infer<typeof formSchema>;
@@ -70,6 +70,7 @@ function CheckoutPageContent() {
     startTransition(async () => {
       const result = await createAsaasPaymentAction({
         ...values,
+        cpfCnpj: values.cpfCnpj.replace(/\D/g, ''), // Remove non-digits
         email: user.email!,
         plan: plan as 'pro' | 'premium',
         cycle: cycle as 'monthly' | 'annual',
@@ -84,7 +85,7 @@ function CheckoutPageContent() {
             const userRef = doc(firestore, `users/${user.uid}`);
             await updateDoc(userRef, { 'subscription.paymentId': result.customerId });
             // Redireciona para o pagamento
-            router.push(result.checkoutUrl);
+            window.location.href = result.checkoutUrl;
         } catch (e: any) {
             setError(`Ocorreu um erro ao salvar suas informações de pagamento: ${e.message}`);
         }
