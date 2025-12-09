@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { PageHeader } from '@/components/page-header';
@@ -64,15 +63,18 @@ export default function SettingsPage() {
 
 
   const handleCancelSubscription = () => {
-    if (!user || !userProfile || !userProfile.subscription || !userProfile.subscription.asaasSubscriptionId) {
+    if (!user || !userProfile?.subscription?.asaasSubscriptionId) {
        toast({ title: "Erro", description: "Não foi possível encontrar o ID da sua assinatura para o cancelamento.", variant: "destructive" });
        return;
     };
+    
+    // Store the ID in a local constant to satisfy TypeScript inside the async transition
+    const subscriptionId = userProfile.subscription.asaasSubscriptionId;
 
     startCancellingTransition(async () => {
         const result = await cancelAsaasSubscriptionAction({
             userId: user.uid,
-            asaasSubscriptionId: userProfile.subscription.asaasSubscriptionId!
+            asaasSubscriptionId: subscriptionId
         });
 
         if (result.success) {
