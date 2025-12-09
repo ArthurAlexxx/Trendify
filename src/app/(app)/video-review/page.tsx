@@ -33,7 +33,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { analyzeVideo, type VideoAnalysisOutput } from "@/app/(app)/video-review/actions";
+import { analyzeVideo } from "@/app/(app)/video-review/actions";
+import type { AnalyzeVideoOutput } from "@/ai/flows/analyze-video-flow";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PageHeader } from "@/components/page-header";
 import {
@@ -126,7 +127,7 @@ function VideoReviewPageContent() {
   const { toast } = useToast();
 
   const [analysisStatus, setAnalysisStatus] = useState<AnalysisStatus>("idle");
-  const [analysisResult, setAnalysisResult] = useState<VideoAnalysisOutput | null>(null);
+  const [analysisResult, setAnalysisResult] = useState<AnalyzeVideoOutput | null>(null);
   const [analysisError, setAnalysisError] = useState<string>("");
   const [activeTab, setActiveTab] = useState("generate");
   const [videoDescription, setVideoDescription] = useState("");
@@ -261,15 +262,9 @@ function VideoReviewPageContent() {
 
         try {
             const result = await analyzeVideo({ 
-              videoDataUrl, 
-              videoDescription,
+              videoDataUri: videoDataUrl,
+              prompt: videoDescription || "Faça uma análise completa deste vídeo para um criador de conteúdo.",
             });
-
-            if (result?.isOverloaded) {
-                setAnalysisError(result.error || "Servidor sobrecarregado.");
-                setAnalysisStatus("error");
-                return;
-            }
 
             if (result && result.data) {
                 setAnalysisResult(result.data);
@@ -288,17 +283,13 @@ function VideoReviewPageContent() {
                     });
                 }
                 
-                // We are not saving the video to storage anymore in this flow
-                // so we don't have a URL to save. We could save the base64 but it's too large for firestore.
-                // We will save the analysis but not the video file itself.
-                 await addDoc(collection(firestore, `users/${user.uid}/analisesVideo`), {
+                await addDoc(collection(firestore, `users/${user.uid}/analisesVideo`), {
                     userId: user.uid,
-                    videoUrl: null, // No public URL available
+                    videoUrl: null, // We are not saving video file anymore
                     videoFileName: file.name,
                     analysisData: { ...result.data, videoDescription },
                     createdAt: serverTimestamp(),
                 });
-
 
                 toast({
                 title: "Análise Concluída",
