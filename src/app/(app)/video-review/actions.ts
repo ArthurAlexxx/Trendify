@@ -1,7 +1,7 @@
 
 'use server';
 
-import { callGoogleAI } from '@/lib/google-ai-client';
+import { callOpenAI } from '@/lib/openai-client';
 import { z } from 'zod';
 
 const VideoAnalysisOutputSchema = z.object({
@@ -27,7 +27,6 @@ type ActionState = {
 const formSchema = z.object({
   videoUrl: z.string().url(),
   videoDescription: z.string().optional(),
-  videoMimeType: z.string().optional().default('video/mp4'),
 });
 
 const systemPrompt = `Você é uma consultora sênior especializada em crescimento orgânico, viralização, retenção e performance visual em short-form content (Reels, TikTok, Shorts). 
@@ -121,7 +120,7 @@ Nada fora do JSON é permitido.`;
  * Server Action to analyze a video provided as a URL.
  */
 export async function analyzeVideo(
-  input: { videoUrl: string, videoDescription?: string, videoMimeType?: string }
+  input: { videoUrl: string, videoDescription?: string }
 ): Promise<ActionState> {
   
   const parsed = formSchema.safeParse(input);
@@ -132,15 +131,14 @@ export async function analyzeVideo(
     return { error };
   }
   
-  const { videoUrl, videoDescription, videoMimeType } = parsed.data;
+  const { videoUrl, videoDescription } = parsed.data;
 
   try {
-    const analysis = await callGoogleAI({
+    const analysis = await callOpenAI({
         prompt: systemPrompt,
         jsonSchema: VideoAnalysisOutputSchema,
         promptData: { videoDescription: videoDescription || 'N/A' },
         videoUrl: videoUrl,
-        videoMimeType: videoMimeType,
     });
     return { data: analysis };
 

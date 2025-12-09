@@ -16,12 +16,13 @@ interface CallOpenAIParams<T extends z.ZodType<any, any, any>> {
   prompt: string;
   jsonSchema: T;
   promptData: Record<string, any>;
+  videoUrl?: string; // Tornar opcional
 }
 
 export async function callOpenAI<T extends z.ZodType<any, any, any>>(
   params: CallOpenAIParams<T>
 ): Promise<z.infer<T>> {
-  const { prompt, jsonSchema, promptData } = params;
+  const { prompt, jsonSchema, promptData, videoUrl } = params;
 
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
@@ -36,6 +37,18 @@ export async function callOpenAI<T extends z.ZodType<any, any, any>>(
     name: 'openai_schema',
     target: 'jsonSchema7'
   });
+
+  // Monta o conteúdo do usuário
+  const userContent: any[] = [{ type: 'text', text: processedPrompt }];
+  if (videoUrl) {
+    // OpenAI's gpt-4o can accept video URLs directly
+    userContent.push({
+        type: 'video_url',
+        video_url: {
+            url: videoUrl
+        }
+    });
+  }
   
   const body = {
     model: 'gpt-4o',
@@ -46,7 +59,7 @@ export async function callOpenAI<T extends z.ZodType<any, any, any>>(
       },
       {
         role: 'user',
-        content: processedPrompt,
+        content: userContent,
       },
     ],
     response_format: { type: 'json_object' },
