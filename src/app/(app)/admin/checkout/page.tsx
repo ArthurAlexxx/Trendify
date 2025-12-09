@@ -1,4 +1,3 @@
-
 'use client';
 
 import { PageHeader } from '@/components/page-header';
@@ -13,9 +12,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { createAsaasPaymentAction } from '@/app/(app)/checkout/actions';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { doc, updateDoc } from 'firebase/firestore';
+import { createAsaasPaymentAction } from '@/app/(app)/admin/actions';
 
 const formSchema = z.object({
   name: z.string().min(3, 'O nome completo é obrigatório.'),
