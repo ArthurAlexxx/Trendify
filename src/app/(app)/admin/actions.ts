@@ -218,7 +218,7 @@ export async function createAsaasPaymentAction(
 
     const checkoutBody = {
         customer: customerId,
-        billingType,
+        billingTypes: [billingType],
         chargeType: 'DETACHED',
         dueDateLimitDays: 1, 
         externalReference: userId,
