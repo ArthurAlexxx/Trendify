@@ -31,7 +31,7 @@ interface ActionState {
 }
 
 /**
- * Cria um cliente e um link de checkout na Asaas em uma única chamada.
+ * Cria um cliente na Asaas (ou obtém um existente) e depois cria um link de checkout.
  */
 export async function createAsaasPaymentAction(
   input: CreatePaymentInput
@@ -45,37 +45,51 @@ export async function createAsaasPaymentAction(
 
   const { name, cpfCnpj, email, phone, postalCode, addressNumber, plan, cycle, userId } = parsed.data;
   const apiKey = process.env.ASAAS_API_KEY;
-  // Garante que haja uma URL pública, evitando 'localhost'
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://trendify-beta.vercel.app';
   
   if (!apiKey) {
-    const errorMessage = process.env.NODE_ENV === 'production'
-      ? 'Erro de configuração do servidor. A chave de pagamento (ASAAS_API_KEY) não foi encontrada. Adicione-a nas variáveis de ambiente do seu projeto.'
-      : 'Erro de configuração local. A chave de pagamento (ASAAS_API_KEY) não foi encontrada. Verifique seu arquivo .env e reinicie o servidor de desenvolvimento.';
-    return { error: errorMessage };
+    return { error: 'Erro de configuração do servidor: ASAAS_API_KEY não encontrada.' };
   }
   
   try {
-    // 1. Buscar endereço pelo CEP (postalCode)
-    const viaCepResponse = await fetch(`https://viacep.com.br/ws/${postalCode}/json/`);
-    if (!viaCepResponse.ok) {
-        throw new Error('Não foi possível consultar o CEP.');
-    }
-    const addressData = await viaCepResponse.json();
-    if (addressData.erro) {
-        throw new Error('CEP inválido ou não encontrado.');
+    // ETAPA 1: Criar ou obter o cliente na Asaas
+    const customerResponse = await fetch('https://api-sandbox.asaas.com/v3/customers', {
+        method: 'POST',
+        headers: {
+            'accept': 'application/json',
+            'content-type': 'application/json',
+            'access_token': apiKey,
+        },
+        body: JSON.stringify({
+            name,
+            email,
+            phone,
+            cpfCnpj,
+            externalReference: userId
+        })
+    });
+    
+    const customerData = await customerResponse.json();
+
+    if (!customerResponse.ok) {
+        console.error('[Asaas Action] Erro ao criar/obter cliente:', customerData);
+        throw new Error(customerData.errors?.[0]?.description || 'Falha ao registrar cliente no gateway de pagamento.');
     }
 
+    const customerId = customerData.id;
+
+    // ETAPA 2: Criar o link de checkout com o ID do cliente
     const price = priceMap[plan][cycle];
     const planName = `${plan.toUpperCase()} - ${cycle === 'monthly' ? 'Mensal' : 'Anual'}`;
 
     const checkoutBody = {
-        billingTypes: ['PIX'],
-        chargeTypes: ['DETACHED'],
+        customer: customerId,
+        billingType: 'PIX', // Focado em PIX por enquanto
+        chargeType: 'DETACHED',
         externalReference: userId,
         callback: {
             successUrl: `${appUrl}/dashboard?checkout=success`,
-            cancelUrl: `${appUrl}/subscribe`,
+            autoRedirect: true,
         },
         items: [{
             name: planName,
@@ -83,16 +97,6 @@ export async function createAsaasPaymentAction(
             value: price,
             quantity: 1,
         }],
-        customerData: {
-            name,
-            cpfCnpj,
-            email,
-            phone,
-            postalCode,
-            address: addressData.logradouro,
-            addressNumber,
-            province: addressData.bairro,
-        }
     };
     
     const checkoutResponse = await fetch('https://api-sandbox.asaas.com/v3/checkouts', {
