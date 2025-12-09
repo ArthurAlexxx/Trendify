@@ -3,6 +3,7 @@
 
 import { z } from 'zod';
 import { initializeFirebaseAdmin } from '@/firebase/admin';
+import { zodToJsonSchema } from 'zod-to-json-schema';
 
 const VideoAnalysisOutputSchema = z.object({
   geral: z.string().describe('Uma nota geral de 0 a 10 para o potencial de viralização do vídeo, sempre acompanhada de uma justificativa concisa.'),
@@ -134,21 +135,14 @@ async function analyzeVideoWithGemini(
   const mimeType = match[1];
   const base64Data = match[2];
 
-  // 1. Upload the file to the Google AI File API
-  let fileUri = '';
   try {
-    // The File API now uses a different endpoint for uploads
-    const uploadResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/files:upload?key=${apiKey}`, {
-      method: 'POST',
-      headers: {
-        'x-goog-upload-protocol': 'multipart',
-      },
-      body: base64Data, // Sending raw binary data is not how multipart works. This needs to be a proper multipart request. Let's send it as inline data instead. This is simpler and avoids the File API for now.
-    });
-
-    // --- RE-IMPLEMENTING with inline data as File API is complex without a library ---
-
     const promptWithData = systemPrompt.replace('{{videoDescription}}', videoDescription || 'N/A');
+    
+    // Convert Zod schema to JSON schema
+    const jsonSchema = zodToJsonSchema(VideoAnalysisOutputSchema, {
+      name: "VideoAnalysisOutput",
+      target: "jsonSchema7",
+    });
      
     const requestBody = {
      contents: [
@@ -166,7 +160,7 @@ async function analyzeVideoWithGemini(
      ],
      generation_config: {
        response_mime_type: "application/json",
-       response_schema: VideoAnalysisOutputSchema,
+       response_schema: jsonSchema,
        temperature: 0.7,
      },
    };
