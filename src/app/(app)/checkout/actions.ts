@@ -45,7 +45,8 @@ export async function createAsaasPaymentAction(
 
   const { name, cpfCnpj, email, phone, postalCode, addressNumber, plan, cycle, userId } = parsed.data;
   const apiKey = process.env.ASAAS_API_KEY;
-  let appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
+  // Garante que haja uma URL pública, evitando 'localhost'
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://trendify-beta.vercel.app';
   
   if (!apiKey) {
     const errorMessage = process.env.NODE_ENV === 'production'
@@ -88,9 +89,9 @@ export async function createAsaasPaymentAction(
             email,
             phone,
             postalCode,
-            address: addressData.logradouro, // Usar a rua retornada pelo ViaCEP
+            address: addressData.logradouro,
             addressNumber,
-            province: addressData.bairro, // Bairro - CORREÇÃO APLICADA AQUI
+            province: addressData.bairro,
         }
     };
     
