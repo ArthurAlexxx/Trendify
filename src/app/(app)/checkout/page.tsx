@@ -1,13 +1,12 @@
 
-
 'use client';
 
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Suspense, useState, useTransition, useEffect } from 'react';
 import { Loader2, CheckCircle, AlertTriangle, CreditCard } from 'lucide-react';
-import { useUser } from '@/firebase';
+import { useUser, useFirestore } from '@/firebase';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -21,8 +20,9 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { createAsaasCustomerAction } from './actions';
+import { createAsaasPaymentAction } from './actions';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { doc, updateDoc } from 'firebase/firestore';
 
 const formSchema = z.object({
   name: z.string().min(3, 'O nome é obrigatório.'),
@@ -33,12 +33,13 @@ type FormSchemaType = z.infer<typeof formSchema>;
 
 function CheckoutPageContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const plan = searchParams.get('plan');
   const cycle = searchParams.get('cycle');
   const { user } = useUser();
+  const firestore = useFirestore();
   
   const [isPending, startTransition] = useTransition();
-  const [customerId, setCustomerId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const form = useForm<FormSchemaType>({
@@ -56,25 +57,39 @@ function CheckoutPageContent() {
   }, [user, form]);
 
   const onSubmit = (values: FormSchemaType) => {
-    if (!user?.email) {
-      setError('E-mail do usuário não encontrado. Faça login novamente.');
+    if (!user?.email || !user.uid || !firestore) {
+      setError('Usuário não autenticado ou serviço indisponível. Faça login novamente.');
       return;
+    }
+    if (!plan || !cycle) {
+       setError('Plano ou ciclo de pagamento não especificado na URL.');
+       return;
     }
     
     setError(null);
     startTransition(async () => {
-      const result = await createAsaasCustomerAction({
+      const result = await createAsaasPaymentAction({
         ...values,
         email: user.email!,
+        plan: plan as 'pro' | 'premium',
+        cycle: cycle as 'monthly' | 'annual',
+        userId: user.uid,
       });
 
       if (result.error) {
         setError(result.error);
-        setCustomerId(null);
-      } else if (result.customerId) {
-        setCustomerId(result.customerId);
-        setError(null);
-        // Próximo passo: Usar o customerId para criar a cobrança
+      } else if (result.paymentLink && result.customerId) {
+        // Armazena o customerId no perfil do usuário ANTES de redirecionar
+        try {
+            const userRef = doc(firestore, `users/${user.uid}`);
+            await updateDoc(userRef, { 'subscription.paymentId': result.customerId });
+            // Redireciona para o pagamento
+            router.push(result.paymentLink);
+        } catch (e: any) {
+            setError(`Ocorreu um erro ao salvar suas informações de pagamento: ${e.message}`);
+        }
+      } else {
+        setError('Ocorreu um erro inesperado ao gerar o link de pagamento.');
       }
     });
   };
@@ -83,27 +98,17 @@ function CheckoutPageContent() {
     <div className="space-y-8">
       <PageHeader
         title="Finalizar Assinatura"
-        description="Estamos quase lá! Preencha seus dados para continuar."
+        description="Estamos quase lá! Preencha seus dados para ir para o pagamento."
         icon={CreditCard}
       />
       <Card className="max-w-2xl mx-auto border-0 rounded-2xl shadow-primary-lg">
         <CardHeader>
           <CardTitle>Plano Escolhido: {plan} ({cycle})</CardTitle>
           <CardDescription>
-            Complete seu cadastro na plataforma de pagamentos.
+            Complete seu cadastro para gerar o link de pagamento.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {customerId ? (
-             <Alert variant="default" className="bg-green-500/10 border-green-500/20 text-green-700">
-                <CheckCircle className="h-4 w-4 text-green-500" />
-                <AlertTitle>Sucesso!</AlertTitle>
-                <AlertDescription>
-                   Seu cadastro na plataforma de pagamento foi criado com o ID: <strong>{customerId}</strong>.
-                   O próximo passo (geração da cobrança) será implementado em breve.
-                </AlertDescription>
-            </Alert>
-          ) : (
             <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <div className="space-y-2">
@@ -140,18 +145,17 @@ function CheckoutPageContent() {
                {error && (
                 <Alert variant="destructive">
                     <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle>Erro ao Criar Cliente</AlertTitle>
+                    <AlertTitle>Erro ao Criar Pagamento</AlertTitle>
                     <AlertDescription>{error}</AlertDescription>
                 </Alert>
                )}
 
               <Button type="submit" disabled={isPending} className="w-full h-11">
                 {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Salvar e ir para o Pagamento
+                Ir para o Pagamento
               </Button>
             </form>
           </Form>
-          )}
         </CardContent>
       </Card>
     </div>
