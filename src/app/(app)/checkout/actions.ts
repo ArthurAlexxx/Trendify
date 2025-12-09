@@ -45,9 +45,13 @@ export async function createAsaasPaymentAction(
   const { name, cpfCnpj, email, plan, cycle, userId } = parsed.data;
   const apiKey = process.env.ASAAS_API_KEY;
 
+  // Verificação de ambiente aprimorada para depuração
   if (!apiKey) {
-    console.error('[Asaas Action] Erro: Chave de API da Asaas não configurada.');
-    return { error: 'Erro de configuração do servidor. A chave de pagamento não foi encontrada.' };
+    console.error('[Asaas Action] Erro: A variável de ambiente ASAAS_API_KEY não está configurada no servidor.');
+    const errorMessage = process.env.NODE_ENV === 'production'
+      ? 'Erro de configuração do servidor. A chave de pagamento (ASAAS_API_KEY) não foi encontrada. Adicione-a nas variáveis de ambiente do seu projeto na Vercel (ou outro provedor).'
+      : 'Erro de configuração local. A chave de pagamento (ASAAS_API_KEY) não foi encontrada. Verifique seu arquivo .env.local e reinicie o servidor de desenvolvimento.';
+    return { error: errorMessage };
   }
 
   try {
@@ -68,15 +72,15 @@ export async function createAsaasPaymentAction(
     if (customerResponse.ok) {
         customerId = customerData.id;
     } else if (customerData.errors?.[0]?.code === 'customer_already_exists') {
-        // Se o cliente já existe, busca pelo e-mail
-        const existingCustomerResponse = await fetch(`https://api-sandbox.asaas.com/v3/customers?email=${email}`, {
+        // Se o cliente já existe, busca pelo CPF/CNPJ que é um identificador único
+        const existingCustomerResponse = await fetch(`https://api-sandbox.asaas.com/v3/customers?cpfCnpj=${cpfCnpj}`, {
             headers: { accept: 'application/json', access_token: apiKey }
         });
         const existingCustomerData = await existingCustomerResponse.json();
         if (existingCustomerData.data && existingCustomerData.data.length > 0) {
             customerId = existingCustomerData.data[0].id;
         } else {
-             throw new Error('Cliente já existe, mas não foi possível encontrá-lo pelo e-mail.');
+             throw new Error('Cliente já existe, mas não foi possível encontrá-lo pelo CPF/CNPJ.');
         }
     } else {
         throw new Error(customerData.errors?.[0]?.description || 'Não foi possível criar o cliente na Asaas.');
