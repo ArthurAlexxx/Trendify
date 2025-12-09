@@ -1,3 +1,4 @@
+
 import type { Timestamp, FieldValue } from 'firebase/firestore';
 import { z } from 'zod';
 
@@ -90,7 +91,6 @@ export interface AnaliseVideo {
     videoUrl?: string; // Changed from videoFileName to videoUrl
     videoFileName?: string;
     analysisData: any; // O objeto JSON da análise
-    videoDescription?: string; // Added field for user prompt
     createdAt: Timestamp;
 }
 
@@ -200,3 +200,5 @@ export interface PlanoSemanal {
   realignmentTips: string;
   createdAt: Timestamp;
 }
+
+    

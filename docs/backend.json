@@ -363,8 +363,7 @@
         "videoUrl": { "type": "string", "format": "uri", "description": "A URL do vídeo armazenado no Firebase Storage." },
         "videoFileName": { "type": "string", "description": "O nome original do arquivo de vídeo." },
         "analysisData": { "type": "object", "description": "O objeto JSON contendo os dados da análise da IA." },
-        "createdAt": { "type": "string", "format": "date-time", "description": "O timestamp de quando a análise foi criada." },
-        "videoDescription": { "type": "string", "description": "O prompt ou descrição fornecido pelo usuário para a análise." }
+        "createdAt": { "type": "string", "format": "date-time", "description": "O timestamp de quando a análise foi criada." }
       },
       "required": ["userId", "videoUrl", "analysisData", "createdAt"]
     }
@@ -415,3 +414,5 @@
     }
   }
 }
+
+    

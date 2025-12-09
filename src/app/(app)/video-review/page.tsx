@@ -127,7 +127,6 @@ function VideoReviewPageContent() {
   const [analysisResult, setAnalysisResult] = useState<AnalyzeVideoOutput | null>(null);
   const [analysisError, setAnalysisError] = useState<string>("");
   const [activeTab, setActiveTab] = useState("generate");
-  const [videoDescription, setVideoDescription] = useState("");
   const [analysisName, setAnalysisName] = useState("");
 
   const { user } = useUser();
@@ -249,7 +248,7 @@ function VideoReviewPageContent() {
           
           const result = await analyzeVideo({
             videoUrl: downloadURL,
-            prompt: videoDescription || "Faça uma análise completa deste vídeo para um criador de conteúdo.",
+            prompt: "Faça uma análise completa deste vídeo para um criador de conteúdo.",
           });
 
           setAnalysisResult(result);
@@ -264,7 +263,6 @@ function VideoReviewPageContent() {
               videoFileName: file.name,
               analysisName: analysisName || file.name,
               analysisData: result,
-              videoDescription: videoDescription,
               createdAt: serverTimestamp(),
             });
 
@@ -346,7 +344,6 @@ function VideoReviewPageContent() {
                             <div className="flex w-full sm:w-auto flex-col sm:flex-row gap-2"><Button onClick={handleReset} variant="outline" className="w-full sm:w-auto">Trocar Vídeo</Button></div>
                         </div>
                          <Input placeholder="Dê um nome para esta análise..." value={analysisName} onChange={(e) => setAnalysisName(e.target.value)} className="h-12 bg-muted/50 text-base" />
-                         <Textarea placeholder="Opcional: Adicione um contexto para a IA (ex: 'Este é um vídeo de unboxing para meu público de tecnologia...')" value={videoDescription} onChange={(e) => setVideoDescription(e.target.value)} className="bg-muted/50" />
                           <Button onClick={handleAnalyzeVideo} disabled={analysisStatus !== 'idle' || hasReachedLimit} className="w-full h-12 text-base"><Sparkles className="mr-2" />Analisar Vídeo</Button>
                     </div>
                 )}
@@ -364,7 +361,7 @@ function VideoReviewPageContent() {
                     { (analysisStatus === 'uploading' || analysisStatus === 'analyzing') && (<div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-96"><Loader2 className="h-10 w-10 animate-spin text-primary" /><p className="mt-4 text-muted-foreground">{analysisStatus === 'uploading' ? 'Enviando seu vídeo...' : 'Analisando...'}</p><p className="text-sm text-muted-foreground">{analysisStatus === 'analyzing' && "Isso pode levar até 1 minuto."}</p>{analysisStatus === 'uploading' && <Progress value={uploadProgress} className="w-full max-w-sm mt-4" />}</div>)}
                     {analysisStatus === 'error' && (<Alert variant="destructive"><XCircle className="h-4 w-4" /><AlertTitle>Erro na Análise</AlertTitle><AlertDescription>{analysisError}</AlertDescription></Alert>)}
                     {analysisStatus === 'success' && analysisResult && (<div className="grid lg:grid-cols-2 gap-8 items-start">
-                        <div className="space-y-8">{videoDescription && (<Card className="shadow-primary-lg"><CardHeader><CardTitle className="text-center font-headline text-lg flex items-center gap-2 justify-center"><Info className="h-5 w-5 text-primary" />Descrição Fornecida</CardTitle></CardHeader><CardContent className="text-center"><p className="text-sm text-muted-foreground">{videoDescription}</p></CardContent></Card>)}<Card className="lg:col-span-1 shadow-primary-lg"><CardHeader className='items-center text-center'><CardTitle className="text-center font-headline text-lg text-primary">Nota de Viralização</CardTitle></CardHeader><CardContent className="text-center"><div className="text-4xl font-bold text-foreground">{numericNote}/10</div><p className="text-sm text-muted-foreground mt-2">{noteDescription}</p></CardContent></Card><Card className="lg:col-span-2 shadow-primary-lg"><CardHeader><CardTitle className="text-center items-center flex gap-2 justify-center"><Check className="h-5 w-5 text-primary" />Checklist de Melhorias</CardTitle></CardHeader><CardContent><ul className="space-y-3">{analysisResult.melhorias.map((item, index) => (<li key={index} className="flex items-start gap-3"><Check className="h-5 w-5 text-primary mt-0.5 shrink-0" /><span className="text-muted-foreground">{item.replace(/^✓\s*/, '')}</span></li>))}</ul></CardContent></Card></div>
+                        <div className="space-y-8"><Card className="lg:col-span-1 shadow-primary-lg"><CardHeader className='items-center text-center'><CardTitle className="text-center font-headline text-lg text-primary">Nota de Viralização</CardTitle></CardHeader><CardContent className="text-center"><div className="text-4xl font-bold text-foreground">{numericNote}/10</div><p className="text-sm text-muted-foreground mt-2">{noteDescription}</p></CardContent></Card><Card className="lg:col-span-2 shadow-primary-lg"><CardHeader><CardTitle className="text-center items-center flex gap-2 justify-center"><Check className="h-5 w-5 text-primary" />Checklist de Melhorias</CardTitle></CardHeader><CardContent><ul className="space-y-3">{analysisResult.melhorias.map((item, index) => (<li key={index} className="flex items-start gap-3"><Check className="h-5 w-5 text-primary mt-0.5 shrink-0" /><span className="text-muted-foreground">{item.replace(/^✓\s*/, '')}</span></li>))}</ul></CardContent></Card></div>
                         <div className="space-y-8"><Card className="shadow-primary-lg"><CardHeader><CardTitle className="text-center font-headline text-lg flex items-center gap-2 justify-center"><Flame className="h-5 w-5 text-primary" />Análise de Retenção</CardTitle></CardHeader><CardContent className="space-y-4"><div><h4 className="font-semibold mb-1">Mapa de Calor Estimado</h4><p className="text-sm text-muted-foreground">{analysisResult.estimatedHeatmap}</p></div><div><h4 className="font-semibold mb-1">Análise Comparativa</h4><p className="text-sm text-muted-foreground">{analysisResult.comparativeAnalysis}</p></div></CardContent></Card><Card className="shadow-primary-lg"><CardHeader className='items-center text-center'><CardTitle className="text-center font-headline text-lg">Análise Detalhada</CardTitle></CardHeader><CardContent><Accordion type="single" collapsible defaultValue="item-1"><AccordionItem value="item-1"><AccordionTrigger>Análise do Gancho</AccordionTrigger><AccordionContent className="whitespace-pre-wrap">{analysisResult.gancho}</AccordionContent></AccordionItem><AccordionItem value="item-2"><AccordionTrigger>Análise do Conteúdo</AccordionTrigger><AccordionContent className="whitespace-pre-wrap">{analysisResult.conteudo}</AccordionContent></AccordionItem><AccordionItem value="item-3"><AccordionTrigger>Análise do CTA</AccordionTrigger><AccordionContent className="whitespace-pre-wrap">{analysisResult.cta}</AccordionContent></AccordionItem></Accordion></CardContent></Card></div>
                         </div>)}
                 </div>
@@ -389,7 +386,7 @@ function VideoReviewPageContent() {
                         <SheetContent className="sm:max-w-4xl p-0">
                             <SheetHeader className="p-6 border-b"><SheetTitle className="text-center font-headline text-2xl">Análise de {analise.analysisName || analise.videoFileName}</SheetTitle></SheetHeader>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 max-h-[calc(100vh-8rem)] overflow-y-auto">
-                            <div className="space-y-4">{analise.analysisData.videoDescription && (<Card className="shadow-primary-lg"><CardHeader><CardTitle className="text-center font-headline text-lg flex items-center gap-2 justify-center"><Info className="h-5 w-5 text-primary" />Descrição Fornecida</CardTitle></CardHeader><CardContent className="text-center"><p className="text-sm text-muted-foreground">{analise.analysisData.videoDescription}</p></CardContent></Card>)}<Card className="shadow-primary-lg"><CardHeader><CardTitle className="text-lg text-primary text-center">Nota de Viralização</CardTitle></CardHeader><CardContent className="text-center"><div className="text-3xl font-bold">{getNoteParts(analise.analysisData.geral).note}/10</div><p className="text-sm text-muted-foreground mt-1">{getNoteParts(analise.analysisData.geral).description}</p></CardContent></Card><Card className="shadow-primary-lg"><CardHeader><CardTitle className="flex items-center gap-2 justify-center text-lg"><Check className="h-5 w-5 text-primary" /> Checklist de Melhorias</CardTitle></CardHeader><CardContent><ul className="space-y-2 text-sm">{analise.analysisData.melhorias.map((item: string, index: number) => (<li key={index} className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-1 shrink-0" /><span className="text-muted-foreground">{item.replace(/^✓\s*/, '')}</span></li>))}</ul></CardContent></Card></div>
+                            <div className="space-y-4"><Card className="shadow-primary-lg"><CardHeader><CardTitle className="text-lg text-primary text-center">Nota de Viralização</CardTitle></CardHeader><CardContent className="text-center"><div className="text-3xl font-bold">{getNoteParts(analise.analysisData.geral).note}/10</div><p className="text-sm text-muted-foreground mt-1">{getNoteParts(analise.analysisData.geral).description}</p></CardContent></Card><Card className="shadow-primary-lg"><CardHeader><CardTitle className="flex items-center gap-2 justify-center text-lg"><Check className="h-5 w-5 text-primary" /> Checklist de Melhorias</CardTitle></CardHeader><CardContent><ul className="space-y-2 text-sm">{analise.analysisData.melhorias.map((item: string, index: number) => (<li key={index} className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-1 shrink-0" /><span className="text-muted-foreground">{item.replace(/^✓\s*/, '')}</span></li>))}</ul></CardContent></Card></div>
                             <Card className="shadow-primary-lg"><CardHeader><CardTitle className="text-center text-lg">Análise Detalhada</CardTitle></CardHeader><CardContent><Accordion type="single" collapsible defaultValue="item-1"><AccordionItem value="item-1"><AccordionTrigger>Análise do Gancho</AccordionTrigger><AccordionContent>{analise.analysisData.gancho}</AccordionContent></AccordionItem><AccordionItem value="item-2"><AccordionTrigger>Análise do Conteúdo</AccordionTrigger><AccordionContent>{analise.analysisData.conteudo}</AccordionContent></AccordionItem><AccordionItem value="item-3"><AccordionTrigger>Análise do CTA</AccordionTrigger><AccordionContent>{analise.analysisData.cta}</AccordionContent></AccordionItem></Accordion></CardContent></Card>
                             </div>
                         </SheetContent>
@@ -403,3 +400,5 @@ function VideoReviewPageContent() {
     </div>
   );
 }
+
+    
