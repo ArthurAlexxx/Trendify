@@ -133,7 +133,7 @@ export async function createAsaasPaymentAction(
         endDate.setFullYear(endDate.getFullYear() + 5);
 
         checkoutBody.subscription = {
-            cycle: cycle.toUpperCase(),
+            cycle: cycle === 'annual' ? 'YEARLY' : 'MONTHLY',
             nextDueDate: nextDueDate.toISOString().split('T')[0],
             endDate: endDate.toISOString().split('T')[0],
         };
