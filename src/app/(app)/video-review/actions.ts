@@ -138,11 +138,26 @@ async function analyzeVideoWithGemini(
   try {
     const promptWithData = systemPrompt.replace('{{videoDescription}}', videoDescription || 'N/A');
     
-    // Convert Zod schema to JSON schema
+    // Convert Zod schema to a clean JSON schema for Gemini
     const jsonSchema = zodToJsonSchema(VideoAnalysisOutputSchema, {
       name: "VideoAnalysisOutput",
       target: "jsonSchema7",
     });
+
+    // Gemini API has a stricter schema requirement and doesn't like $schema, definitions, or $ref.
+    // We remove them to ensure compatibility.
+    // @ts-ignore
+    delete jsonSchema.$schema;
+    // @ts-ignore
+    delete jsonSchema.definitions;
+     // The main schema object might be a $ref, so we need to handle that if it exists.
+    if (jsonSchema.$ref) {
+        // This is a simple case and might need adjustment if the schema is more complex
+        // but for now, it's a common pattern to just remove the ref.
+        // @ts-ignore
+        delete jsonSchema.$ref;
+    }
+
      
     const requestBody = {
      contents: [
