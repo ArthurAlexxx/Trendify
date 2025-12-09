@@ -112,3 +112,69 @@ export async function resetAllMetricsAction(
     return { error: e.message || 'Ocorreu um erro desconhecido.' };
   }
 }
+
+const cancelSubscriptionSchema = z.object({
+  userId: z.string().min(1, 'O ID do usuário é obrigatório.'),
+  asaasSubscriptionId: z.string().min(1, 'O ID da assinatura Asaas é obrigatório.'),
+});
+
+/**
+ * Cancels a subscription on Asaas and updates the user's status in Firestore.
+ */
+export async function cancelAsaasSubscriptionAction(
+  input: z.infer<typeof cancelSubscriptionSchema>
+): Promise<ActionState> {
+  const parsed = cancelSubscriptionSchema.safeParse(input);
+  if (!parsed.success) {
+    return { error: 'Dados inválidos.' };
+  }
+
+  const { userId, asaasSubscriptionId } = parsed.data;
+  const apiKey = process.env.ASAAS_API_KEY;
+
+  if (!apiKey) {
+    return { error: 'Erro de configuração do servidor: ASAAS_API_KEY não encontrada.' };
+  }
+
+  try {
+    // Step 1: Cancel subscription on Asaas
+    const response = await fetch(`https://api-sandbox.asaas.com/v3/subscriptions/${asaasSubscriptionId}`, {
+      method: 'DELETE',
+      headers: {
+        'accept': 'application/json',
+        'access_token': apiKey,
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      // Handle cases where the subscription might already be canceled or doesn't exist
+      if (response.status === 404) {
+         console.warn(`[cancelAsaas] Tentativa de cancelar assinatura não encontrada na Asaas: ${asaasSubscriptionId}`);
+      } else {
+        console.error(`[cancelAsaas] Erro ao cancelar assinatura ${asaasSubscriptionId}:`, errorData);
+        throw new Error(errorData.errors?.[0]?.description || 'Falha ao cancelar a assinatura no gateway de pagamento.');
+      }
+    }
+    
+    // Step 2: Update user's status in Firestore regardless of Asaas API result (to ensure user is downgraded)
+    const { firestore } = initializeFirebaseAdmin();
+    const userRef = firestore.collection('users').doc(userId);
+
+    const updatePayload = {
+      'subscription.status': 'inactive',
+      'subscription.plan': 'free',
+      'subscription.expiresAt': null,
+      'subscription.cycle': null,
+      'subscription.asaasSubscriptionId': null, // Clear the ID
+    };
+
+    await userRef.update(updatePayload);
+
+    return { success: true };
+
+  } catch (e: any) {
+    console.error(`[cancelAsaasSubscriptionAction] Erro no fluxo para ${userId}:`, e);
+    return { error: e.message || 'Ocorreu um erro de comunicação com o provedor de pagamento.' };
+  }
+}

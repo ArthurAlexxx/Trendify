@@ -39,7 +39,9 @@ export interface UserProfile {
     plan: Plan;
     cycle?: 'monthly' | 'annual';
     expiresAt?: Timestamp | null;
-    paymentId?: string | null;
+    paymentId?: string | null; // Customer ID from Asaas
+    checkoutId?: string; // Last checkout session ID
+    asaasSubscriptionId?: string; // Asaas Subscription ID (sub_...)
   }
 }
 
@@ -200,5 +202,3 @@ export interface PlanoSemanal {
   realignmentTips: string;
   createdAt: Timestamp;
 }
-
-    

@@ -14,7 +14,6 @@ function verifyWebhookSignature(
   
   if (!webhookSecret) {
     console.warn("[Asaas Webhook] ASAAS_WEBHOOK_SECRET não está configurada. Pulando verificação.");
-    // Em desenvolvimento, podemos permitir passar sem o segredo. Em produção, isso deve ser um erro.
     if (process.env.NODE_ENV === 'production') {
         return false;
     }
@@ -28,8 +27,12 @@ function verifyWebhookSignature(
   const hmac = crypto.createHmac('sha256', webhookSecret);
   const digest = hmac.update(requestBody).digest('hex');
   
-  return crypto.timingSafeEqual(Buffer.from(digest), Buffer.from(signature));
+  // A API da Asaas pode enviar o signature sem o 'sha256='
+  const signatureWithoutPrefix = signature.startsWith('sha256=') ? signature.substring(7) : signature;
+
+  return crypto.timingSafeEqual(Buffer.from(digest), Buffer.from(signatureWithoutPrefix));
 }
+
 
 async function logWebhook(firestore: ReturnType<typeof getFirestore>, event: any, isSuccess: boolean) {
   try {
@@ -109,7 +112,6 @@ async function processPaymentConfirmation(userRef: FirebaseFirestore.DocumentRef
   let plan: Plan = 'pro';
   let cycle: 'monthly' | 'annual' = 'monthly';
 
-  // Lógica para determinar o plano e ciclo baseado no valor (ajuste conforme necessário)
   if (planValue === 299) { cycle = 'annual'; plan = 'pro'; }
   else if (planValue === 399) { cycle = 'annual'; plan = 'premium'; }
   else if (planValue === 39) { cycle = 'monthly'; plan = 'premium'; }
@@ -120,16 +122,22 @@ async function processPaymentConfirmation(userRef: FirebaseFirestore.DocumentRef
     ? new Date(now.setFullYear(now.getFullYear() + 1))
     : new Date(now.setMonth(now.getMonth() + 1));
 
-  await userRef.update({
+  const updatePayload: any = {
     'subscription.plan': plan,
     'subscription.status': 'active',
     'subscription.cycle': cycle,
     'subscription.expiresAt': Timestamp.fromDate(expiresAt),
-    'subscription.lastPaymentId': payment.id,
-    'subscription.lastPaymentDate': Timestamp.fromDate(new Date(payment.paymentDate)),
     'subscription.lastPaymentStatus': 'confirmed',
     'subscription.lastUpdated': Timestamp.now(),
-  });
+  };
+
+  // Se o pagamento for de uma assinatura, salve o ID da assinatura
+  if (payment.subscription) {
+      updatePayload['subscription.asaasSubscriptionId'] = payment.subscription;
+  }
+  
+  await userRef.update(updatePayload);
+
 
   await userRef.collection('paymentHistory').doc(payment.id).set({
     paymentId: payment.id,
@@ -153,11 +161,11 @@ export async function POST(req: NextRequest) {
      return NextResponse.json({ error: 'Falha ao ler o corpo da requisição.' }, { status: 400 });
   }
   
-  // O ideal é verificar a assinatura aqui, se configurada no Asaas
-  // const signature = req.headers.get('asaas-webhook-signature');
-  // if (!verifyWebhookSignature(rawBody, signature)) {
-  //   return NextResponse.json({ error: 'Assinatura inválida.' }, { status: 401 });
-  // }
+  const signature = req.headers.get('asaas-webhook-signature');
+  if (!verifyWebhookSignature(rawBody, signature)) {
+      console.error('[Asaas Webhook] Assinatura inválida');
+      return NextResponse.json({ error: 'Assinatura inválida.' }, { status: 401 });
+  }
   
   let event;
   try {
@@ -178,8 +186,8 @@ export async function POST(req: NextRequest) {
   const userId = await findUserId(firestore, payment);
 
   if (!userId) {
-    console.warn('[Asaas Webhook] Received payment confirmation without a userId in externalReference.', payment);
-    return NextResponse.json({ success: true, message: 'Event received, but missing user ID.' });
+    console.warn('[Asaas Webhook] Received payment confirmation without a resolvable user ID.', payment);
+    return NextResponse.json({ success: true, message: 'Event received, but could not resolve user ID.' });
   }
   
   const userRef = firestore.collection('users').doc(userId);
@@ -219,5 +227,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Falha ao processar o webhook.', details: error.message }, { status: 500 });
   }
 }
-
-    

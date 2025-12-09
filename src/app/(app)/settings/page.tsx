@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { LogOut, ShieldAlert, Crown, Settings as SettingsIcon, Hammer, Trash2, RefreshCw } from 'lucide-react';
+import { LogOut, ShieldAlert, Crown, Settings as SettingsIcon, Hammer, Trash2, RefreshCw, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -29,7 +29,6 @@ import {
 import { useState, useTransition } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { doc, updateDoc } from 'firebase/firestore';
-import { Loader2 } from 'lucide-react';
 import type { UserProfile } from '@/lib/types';
 import { useSubscription } from '@/hooks/useSubscription';
 import { Badge } from '@/components/ui/badge';
@@ -41,7 +40,7 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
-import { resetLastSyncAction, resetAllMetricsAction } from './actions';
+import { resetLastSyncAction, resetAllMetricsAction, cancelAsaasSubscriptionAction } from './actions';
 
 export default function SettingsPage() {
   const { user } = useUser();
@@ -65,25 +64,26 @@ export default function SettingsPage() {
 
 
   const handleCancelSubscription = () => {
-    if (!userProfileRef) return;
+    if (!user || !userProfile?.subscription?.asaasSubscriptionId) {
+       toast({ title: "Erro", description: "Não foi possível encontrar o ID da sua assinatura.", variant: "destructive" });
+       return;
+    };
 
     startCancellingTransition(async () => {
-        try {
-            await updateDoc(userProfileRef, {
-                'subscription.status': 'inactive',
-                'subscription.plan': 'free',
-                'subscription.expiresAt': null,
-                'subscription.paymentId': null,
-            });
+        const result = await cancelAsaasSubscriptionAction({
+            userId: user.uid,
+            asaasSubscriptionId: userProfile.subscription.asaasSubscriptionId!
+        });
+
+        if (result.success) {
             toast({
                 title: 'Assinatura Cancelada',
-                description: 'Seu plano foi revertido para o gratuito.',
+                description: 'Sua assinatura foi cancelada e seu plano revertido para o gratuito.',
             });
-        } catch (error: any) {
-            console.error('Error cancelling subscription:', error);
-            toast({
+        } else {
+             toast({
                 title: 'Erro ao Cancelar',
-                description: 'Não foi possível cancelar sua assinatura. Tente novamente.',
+                description: result.error || 'Não foi possível cancelar sua assinatura. Tente novamente.',
                 variant: 'destructive',
             });
         }
@@ -173,7 +173,7 @@ export default function SettingsPage() {
                         <Button asChild variant="outline" className="w-full sm:w-auto">
                             <Link href="/subscribe">Ver Planos</Link>
                         </Button>
-                        {subscription.plan !== 'free' && subscription.status === 'active' && !isTrialActive ? (
+                        {userProfile?.subscription?.asaasSubscriptionId && subscription.plan !== 'free' && subscription.status === 'active' && !isTrialActive ? (
                             <AlertDialog>
                                 <AlertDialogTrigger asChild>
                                     <Button variant="destructive" disabled={isCancelling} className="w-full sm:w-auto">
@@ -185,7 +185,7 @@ export default function SettingsPage() {
                                     <AlertDialogHeader>
                                         <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
                                         <AlertDialogDescription>
-                                            Seu acesso continuará até o final do período de faturamento. Após isso, sua conta será revertida para o plano gratuito.
+                                            Sua assinatura na Asaas será cancelada e não haverá cobranças futuras. Seu acesso continuará até o final do período já pago.
                                         </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
