@@ -14,35 +14,36 @@ function verifyWebhookSignature(
   
   if (!webhookSecret) {
     console.warn("[Asaas Webhook] ASAAS_WEBHOOK_SECRET não está configurada. Pulando verificação em ambiente de não produção.");
-    // Em produção, a chave DEVE existir.
     if (process.env.NODE_ENV === 'production') {
+        console.error("[Asaas Webhook] ERRO CRÍTICO: ASAAS_WEBHOOK_SECRET é obrigatória em produção.");
         return false;
     }
     return true; 
   }
   
   if (!signature) {
+    console.error("[Asaas Webhook] Erro: Assinatura 'asaas-webhook-signature' ausente no cabeçalho.");
     return false;
   }
 
   try {
-    const hmac = crypto.createHmac('sha256', webhookSecret);
-    const expectedSignature = hmac.update(requestBody, 'utf8').digest('hex');
+    const expectedSignature = crypto
+      .createHmac('sha256', webhookSecret)
+      .update(requestBody, 'utf8')
+      .digest('hex');
 
-    // A API da Asaas envia a assinatura em formato hexadecimal.
-    // Usamos timingSafeEqual para comparar de forma segura contra ataques de timing.
-    const receivedSignatureBuffer = Buffer.from(signature, 'hex');
-    const expectedSignatureBuffer = Buffer.from(expectedSignature, 'hex');
+    const signatureBuffer = Buffer.from(signature, 'utf8');
+    const expectedSignatureBuffer = Buffer.from(expectedSignature, 'utf8');
     
-    // As assinaturas devem ter o mesmo tamanho para timingSafeEqual funcionar
-    if (receivedSignatureBuffer.length !== expectedSignatureBuffer.length) {
+    if (signatureBuffer.length !== expectedSignatureBuffer.length) {
+      console.error("[Asaas Webhook] Erro: O comprimento das assinaturas não corresponde.");
       return false;
     }
 
-    return crypto.timingSafeEqual(receivedSignatureBuffer, expectedSignatureBuffer);
+    return crypto.timingSafeEqual(signatureBuffer, expectedSignatureBuffer);
 
   } catch (error) {
-      console.error('[verifyWebhookSignature] Erro durante a verificação:', error);
+      console.error('[verifyWebhookSignature] Erro durante a verificação da assinatura:', error);
       return false;
   }
 }
@@ -126,7 +127,6 @@ async function processPaymentConfirmation(userRef: FirebaseFirestore.DocumentRef
   let plan: Plan = 'pro';
   let cycle: 'monthly' | 'annual' = 'monthly';
 
-  // Valores exatos para evitar problemas com ponto flutuante
   if (planValue === 399) { cycle = 'annual'; plan = 'pro'; }
   else if (planValue === 499) { cycle = 'annual'; plan = 'premium'; }
   else if (planValue === 49.99) { cycle = 'monthly'; plan = 'premium'; }
@@ -147,7 +147,6 @@ async function processPaymentConfirmation(userRef: FirebaseFirestore.DocumentRef
     'subscription.lastUpdated': Timestamp.now(),
   };
 
-  // Se o pagamento for de uma assinatura, salve o ID da assinatura
   if (payment.subscription) {
       updatePayload['subscription.asaasSubscriptionId'] = payment.subscription;
   }
@@ -194,21 +193,29 @@ export async function POST(req: NextRequest) {
   const isSuccessEvent = ['PAYMENT_CONFIRMED', 'PAYMENT_RECEIVED'].includes(event.event);
   await logWebhook(firestore, event, isSuccessEvent);
 
-  if (!event.payment) {
-      // Evento pode ser de outro tipo, como SUBSCRIPTION_CREATED, que não tem 'payment' no root
-      if (event.event === 'SUBSCRIPTION_CREATED' && event.subscription) {
-        const userId = event.subscription.externalReference;
-        if (userId) {
-          const userRef = firestore.collection('users').doc(userId);
-          await userRef.update({
-            'subscription.asaasSubscriptionId': event.subscription.id,
-          });
-        }
-      }
-      return NextResponse.json({ success: true, message: 'Evento recebido, mas sem dados de pagamento para processar agora.' });
+  if (!event.payment && !event.subscription) {
+      return NextResponse.json({ success: true, message: 'Evento recebido, mas sem dados de pagamento ou assinatura para processar.' });
   }
 
-  const { payment } = event;
+  const payment = event.payment;
+  const subscription = event.subscription;
+
+  if (event.event === 'SUBSCRIPTION_CREATED' && subscription) {
+      const userId = subscription.externalReference;
+      if (userId) {
+          const userRef = firestore.collection('users').doc(userId);
+          await userRef.update({
+              'subscription.asaasSubscriptionId': subscription.id,
+          });
+      }
+      return NextResponse.json({ success: true, message: 'Evento de criação de assinatura processado.' });
+  }
+  
+  if (!payment) {
+       return NextResponse.json({ success: true, message: 'Evento recebido, mas sem dados de pagamento para processar agora.' });
+  }
+
+
   const userId = await findUserId(firestore, payment);
 
   if (!userId) {
