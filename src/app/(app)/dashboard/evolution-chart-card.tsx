@@ -9,7 +9,7 @@ import { ChartConfig, ChartContainer, ChartLegend, ChartLegendContent } from '@/
 import { TrendingUp, Percent, BarChartHorizontal, ClipboardList, Info, Camera, Video, PlayCircle, Eye, Heart, MessageSquare, Users } from 'lucide-react';
 import type { MetricSnapshot, InstagramPostData, TikTokPost, UserProfile } from '@/lib/types';
 import Link from 'next/link';
-import { format } from 'date-fns';
+import { format, subDays } from 'date-fns';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import Image from 'next/image';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
@@ -137,13 +137,12 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
   const photoPosts = useMemo(() => allPosts.filter(p => !p.isVideo), [allPosts]);
 
   const followerHistoryData = useMemo(() => {
-    if (!metricSnapshots) return [];
+    if (!metricSnapshots || metricSnapshots.length === 0) return [];
 
+    const sortedSnapshots = [...metricSnapshots].sort((a, b) => a.date.toMillis() - b.date.toMillis());
     const dataByDate: Record<string, { date: string, instagram?: number, tiktok?: number }> = {};
     
-    metricSnapshots
-        .sort((a,b) => a.date.toMillis() - b.date.toMillis())
-        .forEach(snapshot => {
+    sortedSnapshots.forEach(snapshot => {
         const dateStr = format(snapshot.date.toDate(), 'dd/MM');
         if (!dataByDate[dateStr]) {
             dataByDate[dateStr] = { date: dateStr };
@@ -151,7 +150,21 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
         dataByDate[dateStr][snapshot.platform] = parseMetric(snapshot.followers);
     });
 
-    return Object.values(dataByDate);
+    let finalData = Object.values(dataByDate);
+    
+    // If there's only one data point, add a "zero" point to start the line chart from 0.
+    if (finalData.length === 1 && metricSnapshots.length > 0) {
+        const firstDate = metricSnapshots[0].date.toDate();
+        const dayBeforeStr = format(subDays(firstDate, 1), 'dd/MM');
+
+        finalData.unshift({
+            date: dayBeforeStr,
+            instagram: 0,
+            tiktok: 0,
+        });
+    }
+
+    return finalData;
   }, [metricSnapshots]);
 
 
@@ -344,3 +357,4 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
     </Card>
   );
 }
+
