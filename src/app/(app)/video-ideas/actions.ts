@@ -64,6 +64,7 @@ Gere uma ideia de vídeo completa e profissional com base nos seguintes requisit
 - Objetivo Principal: {{objective}}
   
 Para cada campo do JSON, siga estas diretrizes:
+- script: DEVE ser um objeto contendo os campos 'gancho', 'scriptLongo', 'roteiroCurto' e 'cta'.
 - script.gancho: Crie uma frase ou cena de 2-3 segundos que gere curiosidade ou quebre uma crença. Seja contraintuitivo.
 - script.scriptLongo: Escreva um roteiro detalhado para um vídeo de 45-60 segundos. Estruture em: Introdução (gancho), Desenvolvimento (entrega de valor) e Conclusão (CTA). Inclua sugestões de cenas entre colchetes. Ex: "[CENA: Close-up no produto] Você erra a ordem. A regra é: do mais leve ao mais denso...".
 - script.roteiroCurto: Crie uma versão de 15-25 segundos do roteiro principal, focada no gancho e no ponto principal.
