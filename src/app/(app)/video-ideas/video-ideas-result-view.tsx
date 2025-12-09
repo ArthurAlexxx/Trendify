@@ -82,7 +82,7 @@ export function VideoIdeasResultView({ result, formValues, isSheetView = false }
                                 </AccordionItem>
                                 <AccordionItem value="item-2">
                                     <AccordionTrigger>Roteiro Curto (15-25s)</AccordionTrigger>
-                                    <AccordionContent className="text-base text-muted-foreground whitespace-pre-wrap">{result.script.scriptCurto}</AccordionContent>
+                                    <AccordionContent className="text-base text-muted-foreground whitespace-pre-wrap">{result.script.roteiroCurto}</AccordionContent>
                                 </AccordionItem>
                             </Accordion>
                         </CardContent>

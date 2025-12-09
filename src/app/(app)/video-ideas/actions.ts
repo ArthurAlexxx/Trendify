@@ -12,7 +12,7 @@ const NicheCompetitorSchema = z.object({
 const ScriptSchema = z.object({
   gancho: z.string().describe('Um gancho de 2-3 segundos, otimizado para parar a rolagem e gerar curiosidade imediata.'),
   scriptLongo: z.string().describe('Um roteiro detalhado para um vídeo de 45-60 segundos, com indicações de cena e narração.'),
-  scriptCurto: z.string().describe('Uma versão resumida do roteiro para um vídeo de 15-25 segundos.'),
+  roteiroCurto: z.string().describe('Uma versão resumida do roteiro para um vídeo de 15-25 segundos.'),
   cta: z.string().describe('Uma chamada para ação clara, convincente e alinhada ao objetivo do vídeo.'),
 });
 
@@ -66,7 +66,7 @@ Gere uma ideia de vídeo completa e profissional com base nos seguintes requisit
 Para cada campo do JSON, siga estas diretrizes:
 - script.gancho: Crie uma frase ou cena de 2-3 segundos que gere curiosidade ou quebre uma crença. Seja contraintuitivo.
 - script.scriptLongo: Escreva um roteiro detalhado para um vídeo de 45-60 segundos. Estruture em: Introdução (gancho), Desenvolvimento (entrega de valor) e Conclusão (CTA). Inclua sugestões de cenas entre colchetes. Ex: "[CENA: Close-up no produto] Você erra a ordem. A regra é: do mais leve ao mais denso...".
-- script.scriptCurto: Crie uma versão de 15-25 segundos do roteiro principal, focada no gancho e no ponto principal.
+- script.roteiroCurto: Crie uma versão de 15-25 segundos do roteiro principal, focada no gancho e no ponto principal.
 - script.cta: A chamada para ação deve ser direta e alinhada ao objetivo. Se o objetivo for 'Vendas', use "Comente 'EU QUERO' para receber o link". Se for 'Engajamento', "Qual sua opinião? Comente aqui!".
 - takesChecklist: Liste 3 a 4 tomadas práticas que o criador precisa gravar. Ex: ["Take do seu rosto falando.", "Take de unboxing.", "Take mostrando resultado."].
 - suggestedPostTime: Sugira um dia e horário de pico para postagem (ex: "Sexta-feira, 18:30h").
