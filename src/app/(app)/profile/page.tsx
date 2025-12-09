@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useUser, useFirestore, useDoc, useMemoFirebase, useAuth } from '@/firebase';
-import { User as UserIcon, Instagram, Film, Search, Loader2, AlertTriangle, Users, Heart, MessageSquare, Clapperboard, PlayCircle, Eye, Upload, Crown, Check, RefreshCw, Link2 } from 'lucide-react';
+import { User as UserIcon, Loader2, Upload, RefreshCw } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -21,49 +21,23 @@ import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { Textarea } from '@/components/ui/textarea';
+import { doc, updateDoc } from 'firebase/firestore';
 import { updateProfile } from 'firebase/auth';
-import type { UserProfile, InstagramProfileData, InstagramPostData, TikTokProfileData, TikTokPost } from '@/lib/types';
-import { Separator } from '@/components/ui/separator';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import type { UserProfile } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { getInstagramProfile, getTikTokPosts, getTikTokProfile, getInstagramPosts } from '@/app/(app)/profile/actions';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { Progress } from '@/components/ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useSubscription } from '@/hooks/useSubscription';
 import Link from 'next/link';
-import { InstagramProfileResults, TikTokProfileResults } from '@/components/dashboard/platform-results';
 import { initializeFirebase } from '@/firebase';
-import { isToday } from 'date-fns';
 
 
 const profileFormSchema = z.object({
   displayName: z.string().min(2, 'O nome deve ter pelo menos 2 caracteres.'),
   photoURL: z.string().url().optional().nullable(),
   niche: z.string().optional(),
-  instagramHandle: z.string().optional(),
-  instagramFollowers: z.string().optional(),
-  instagramAverageViews: z.string().optional(),
-  instagramAverageLikes: z.string().optional(),
-  instagramAverageComments: z.string().optional(),
-  tiktokHandle: z.string().optional(),
-  tiktokFollowers: z.string().optional(),
-  tiktokAverageViews: z.string().optional(),
-  tiktokAverageLikes: z.string().optional(),
-  tiktokAverageComments: z.string().optional(),
-  // --- Campos para dados da API que não são salvos diretamente no Firestore, mas usados na UI ---
-  instagramProfile: z.custom<InstagramProfileData>().optional(),
-  instagramPosts: z.custom<InstagramPostData[]>().optional(),
-  tiktokProfile: z.custom<TikTokProfileData>().optional(),
-  tiktokPosts: z.custom<TikTokPost[]>().optional(),
 });
 
 type ProfileFormData = z.infer<typeof profileFormSchema>;
-
-type SearchStatus = 'idle' | 'loading' | 'success' | 'error';
 
 
 export default function ProfilePage() {
@@ -87,16 +61,6 @@ export default function ProfilePage() {
       displayName: '',
       photoURL: null,
       niche: '',
-      instagramHandle: '',
-      instagramFollowers: '',
-      instagramAverageViews: '',
-      instagramAverageLikes: '',
-      instagramAverageComments: '',
-      tiktokHandle: '',
-      tiktokFollowers: '',
-      tiktokAverageViews: '',
-      tiktokAverageLikes: '',
-      tiktokAverageComments: '',
     },
   });
   
@@ -106,16 +70,6 @@ export default function ProfilePage() {
         displayName: userProfile.displayName || '',
         photoURL: userProfile.photoURL || null,
         niche: userProfile.niche || '',
-        instagramHandle: userProfile.instagramHandle || '',
-        instagramFollowers: userProfile.instagramFollowers || '',
-        instagramAverageViews: userProfile.instagramAverageViews || '',
-        instagramAverageLikes: userProfile.instagramAverageLikes || '',
-        instagramAverageComments: userProfile.instagramAverageComments || '',
-        tiktokHandle: userProfile.tiktokHandle || '',
-        tiktokFollowers: userProfile.tiktokFollowers || '',
-        tiktokAverageViews: userProfile.tiktokAverageViews || '',
-        tiktokAverageLikes: userProfile.tiktokAverageLikes || '',
-        tiktokAverageComments: userProfile.tiktokAverageComments || '',
       });
     } else if (user) {
         form.reset({
@@ -134,16 +88,6 @@ export default function ProfilePage() {
             displayName: values.displayName,
             photoURL: values.photoURL,
             niche: values.niche,
-            instagramHandle: values.instagramHandle,
-            instagramFollowers: values.instagramFollowers,
-            instagramAverageViews: values.instagramAverageViews,
-            instagramAverageLikes: values.instagramAverageLikes,
-            instagramAverageComments: values.instagramAverageComments,
-            tiktokHandle: values.tiktokHandle,
-            tiktokFollowers: values.tiktokFollowers,
-            tiktokAverageViews: values.tiktokAverageViews,
-            tiktokAverageLikes: values.tiktokAverageLikes,
-            tiktokAverageComments: values.tiktokAverageComments,
         };
 
         // Firestore does not accept 'undefined' values.
@@ -156,9 +100,10 @@ export default function ProfilePage() {
 
         await updateDoc(userProfileRef, dataToSave);
         
-        if (auth.currentUser && user.displayName !== values.displayName) {
+        if (auth.currentUser && (user.displayName !== values.displayName || user.photoURL !== values.photoURL)) {
             await updateProfile(auth.currentUser, {
                 displayName: values.displayName,
+                photoURL: values.photoURL ?? undefined,
             });
         }
         
@@ -208,14 +153,9 @@ export default function ProfilePage() {
         async () => {
             try {
                 const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                if (auth.currentUser) {
-                  await updateProfile(auth.currentUser, { photoURL: downloadURL });
-                }
-                if (userProfileRef) {
-                    await updateDoc(userProfileRef, { photoURL: downloadURL });
-                }
                 form.setValue('photoURL', downloadURL);
-                toast({ title: 'Sucesso!', description: 'Sua foto de perfil foi atualizada.' });
+                // Trigger form submission to save the new URL
+                onProfileSubmit(form.getValues());
             } catch (e: any) {
                 toast({ title: 'Erro ao Atualizar', description: `Não foi possível salvar a nova foto. ${e.message}`, variant: 'destructive' });
             } finally {
@@ -227,8 +167,6 @@ export default function ProfilePage() {
 
 
   const isLoading = isProfileLoading;
-  const instaSyncedToday = !!userProfile?.lastInstagramSync && isToday(userProfile.lastInstagramSync.toDate());
-  const tiktokSyncedToday = !!userProfile?.lastTikTokSync && isToday(userProfile.lastTikTokSync.toDate());
 
 
   return (
@@ -241,7 +179,7 @@ export default function ProfilePage() {
           <Card className="rounded-2xl border-0 shadow-primary-lg">
             <CardHeader>
               <CardTitle className="font-headline text-xl">
-                Perfil & Métricas Manuais
+                Seu Perfil
               </CardTitle>
               <CardDescription>
                 Essas informações serão usadas pela IA para criar estratégias.
@@ -296,83 +234,6 @@ export default function ProfilePage() {
                     />
                   </div>
 
-                <Separator />
-
-                {/* Instagram */}
-                <fieldset disabled={instaSyncedToday} className="space-y-6 group">
-                    <h3 className="text-lg font-semibold flex items-center gap-2"><Instagram className="h-5 w-5" /> Métricas do Instagram
-                     {instaSyncedToday && <span className="text-xs font-normal text-muted-foreground">(Sincronizado hoje)</span>}
-                    </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                        <Label htmlFor="instagramHandle">Handle do Instagram</Label>
-                        <Input
-                            id="instagramHandle"
-                            placeholder="@seu_usuario"
-                            {...form.register('instagramHandle')}
-                            className="h-11 disabled:bg-muted/50"
-                        />
-                        </div>
-                        <div className="space-y-2">
-                        <Label htmlFor="instagramFollowers">Seguidores no Instagram</Label>
-                        <Input id="instagramFollowers" {...form.register('instagramFollowers')} placeholder="Ex: 250K" className="h-11 disabled:bg-muted/50" />
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                        <div className="space-y-2">
-                        <Label htmlFor="instagramAverageViews">Média de Views</Label>
-                        <Input id="instagramAverageViews" {...form.register('instagramAverageViews')} placeholder="Ex: 15.5K" className="h-11 disabled:bg-muted/50" />
-                        </div>
-                        <div className="space-y-2">
-                        <Label htmlFor="instagramAverageLikes">Média de Likes</Label>
-                        <Input id="instagramAverageLikes" {...form.register('instagramAverageLikes')} placeholder="Ex: 890" className="h-11 disabled:bg-muted/50" />
-                        </div>
-                        <div className="space-y-2">
-                        <Label htmlFor="instagramAverageComments">Média de Comentários</Label>
-                        <Input id="instagramAverageComments" {...form.register('instagramAverageComments')} placeholder="Ex: 120" className="h-11 disabled:bg-muted/50" />
-                        </div>
-                    </div>
-                </fieldset>
-
-                <Separator />
-
-                {/* TikTok */}
-                <fieldset disabled={tiktokSyncedToday} className="space-y-6 group">
-                    <h3 className="text-lg font-semibold flex items-center gap-2"><Film className="h-5 w-5" /> Métricas do TikTok
-                        {tiktokSyncedToday && <span className="text-xs font-normal text-muted-foreground">(Sincronizado hoje)</span>}
-                    </h3>
-                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                        <Label htmlFor="tiktokHandle">Handle do TikTok</Label>
-                        <Input
-                            id="tiktokHandle"
-                            placeholder="@seu_usuario"
-                            {...form.register('tiktokHandle')}
-                            className="h-11 disabled:bg-muted/50"
-                        />
-                        </div>
-                        <div className="space-y-2">
-                        <Label htmlFor="tiktokFollowers">Seguidores no TikTok</Label>
-                        <Input id="tiktokFollowers" {...form.register('tiktokFollowers')} placeholder="Ex: 1.2M" className="h-11 disabled:bg-muted/50" />
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                        <div className="space-y-2">
-                        <Label htmlFor="tiktokAverageViews">Média de Views</Label>
-                        <Input id="tiktokAverageViews" {...form.register('tiktokAverageViews')} placeholder="Ex: 1M" className="h-11 disabled:bg-muted/50" />
-                        </div>
-                        <div className="space-y-2">
-                        <Label htmlFor="tiktokAverageLikes">Média de Likes</Label>
-                        <Input id="tiktokAverageLikes" {...form.register('tiktokAverageLikes')} placeholder="Ex: 100K" className="h-11 disabled:bg-muted/50" />
-                        </div>
-                        <div className="space-y-2">
-                        <Label htmlFor="tiktokAverageComments">Média de Comentários</Label>
-                        <Input id="tiktokAverageComments" {...form.register('tiktokAverageComments')} placeholder="Ex: 1.5K" className="h-11 disabled:bg-muted/50" />
-                        </div>
-                    </div>
-                </fieldset>
-
-
                 <div className="flex justify-end pt-2">
                   <Button type="submit" disabled={isSaving || isProfileLoading} className="w-full sm:w-auto">
                      {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -394,13 +255,6 @@ export default function ProfilePage() {
                 </CardDescription>
             </CardHeader>
             <CardContent>
-                <Alert>
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle>Funcionalidade Premium</AlertTitle>
-                    <AlertDescription>
-                        A integração automática é um recurso exclusivo para assinantes Premium.
-                    </AlertDescription>
-                </Alert>
                 <Button asChild className="mt-4">
                     <Link href="/profile/integrations">
                         <RefreshCw className="mr-2 h-4 w-4" />

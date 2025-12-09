@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { PageHeader } from '@/components/page-header';
@@ -26,11 +27,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { getInstagramProfile, getTikTokProfile, getInstagramPosts, getTikTokPosts } from '@/app/(app)/profile/actions';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useSubscription } from '@/hooks/useSubscription';
 import Link from 'next/link';
 import { InstagramProfileResults, TikTokProfileResults } from '@/components/dashboard/platform-results';
 import { useRouter } from 'next/navigation';
-import { format as formatDate, isToday } from 'date-fns';
 import { CodeBlock } from '@/components/ui/code-block';
 import { Dialog } from '@/components/ui/dialog';
 import { DialogContent } from '@radix-ui/react-dialog';
@@ -52,8 +51,6 @@ export default function IntegrationsPage() {
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
-  const { subscription, isLoading: isSubscriptionLoading } = useSubscription();
-  const isPremium = subscription?.plan === 'premium' && subscription.status === 'active';
   const router = useRouter();
   
   const [instaStatus, setInstaStatus] = useState<SearchStatus>('idle');
@@ -99,13 +96,11 @@ export default function IntegrationsPage() {
   const updateOrCreateMetricSnapshot = async (platform: 'instagram' | 'tiktok', data: any) => {
     if (!user || !firestore) return;
   
-    // Use a consistent date string (YYYY-MM-DD) as the document ID
-    // to avoid timezone issues.
     const todayDateString = new Date().toISOString().split('T')[0];
     const snapshotDocRef = doc(firestore, `users/${user.uid}/metricSnapshots`, `${platform}_${todayDateString}`);
   
     const snapshotData = {
-      date: serverTimestamp(), // Keep server timestamp for sorting/logging
+      date: serverTimestamp(),
       platform,
       followers: data.followers || '0',
       views: data.views || '0',
@@ -113,7 +108,6 @@ export default function IntegrationsPage() {
       comments: data.comments || '0',
     };
   
-    // Use setDoc with merge:true to create or update the document for today.
     await setDoc(snapshotDocRef, snapshotData, { merge: true });
   };
 
@@ -166,7 +160,6 @@ export default function IntegrationsPage() {
           };
           batch.update(userProfileRef, dataToSave as any);
 
-          // Save posts
           const postsCollectionRef = collection(firestore, `users/${user.uid}/instagramPosts`);
           const oldPostsSnap = await getDocs(postsCollectionRef);
           oldPostsSnap.forEach(doc => batch.delete(doc.ref));
@@ -218,11 +211,10 @@ export default function IntegrationsPage() {
     const cleanedUsername = tiktokUsername.replace('@', '');
 
     try {
-      // 1. Fetch Profile
-      const profileResult = await getTikTokProfile(cleanedUsername);
-
-      // 2. Fetch Posts using username
-      const postsResult = await getTikTokPosts(cleanedUsername);
+      const [profileResult, postsResult] = await Promise.all([
+        getTikTokProfile(cleanedUsername),
+        getTikTokPosts(cleanedUsername),
+      ]);
       
         const averageLikes = postsResult.length > 0 ? postsResult.reduce((acc, p) => acc + p.likes, 0) / postsResult.length : 0;
         const averageComments = postsResult.length > 0 ? postsResult.reduce((acc, p) => acc + p.comments, 0) / postsResult.length : 0;
@@ -300,7 +292,7 @@ export default function IntegrationsPage() {
   };
 
 
-  const isLoading = isProfileLoading || isSubscriptionLoading;
+  const isLoading = isProfileLoading;
 
 
   return (
@@ -334,7 +326,7 @@ export default function IntegrationsPage() {
             <CardContent className="pt-6 space-y-6">
                 {isLoading ? (
                     <Skeleton className="h-64 w-full" />
-                ) : isPremium ? (
+                ) : (
                 <>
                  <Alert>
                     <AlertTriangle className="h-4 w-4" />
@@ -459,21 +451,6 @@ export default function IntegrationsPage() {
                     </TabsContent>
                   </Tabs>
                 </>
-                ) : (
-                    <Card className="border-yellow-400/50 bg-yellow-400/5 rounded-2xl text-center">
-                        <CardHeader>
-                            <CardTitle className="flex items-center justify-center gap-3 font-headline text-xl text-yellow-600">
-                                <Crown className="h-6 w-6" />
-                                <span>Recurso Premium</span>
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <p className="text-muted-foreground">A integração automática é um recurso para assinantes Premium.</p>
-                            <Button asChild>
-                                <Link href="/subscribe">Ver Planos</Link>
-                            </Button>
-                        </CardContent>
-                    </Card>
                 )}
             </CardContent>
           </Card>
