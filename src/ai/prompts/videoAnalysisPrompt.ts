@@ -1,6 +1,18 @@
-
-import { ai } from '@/ai/genkit';
+import { genkit } from 'genkit';
+import { googleAI } from '@genkit-ai/google-genai';
 import { AnalyzeVideoInputSchema, AnalyzeVideoOutputSchema } from '@/ai/schemas';
+
+// Initialize Genkit directly in the file that uses it.
+const ai = genkit({
+  plugins: [
+    googleAI({
+      // Specify the API version if needed, e.g., 'v1beta'
+      // apiVersion: 'v1beta',
+    }),
+  ],
+  logLevel: 'debug',
+  enableTracingAndMetrics: true,
+});
 
 export const videoAnalysisPrompt = ai.definePrompt({
   name: 'videoAnalysisPrompt',
