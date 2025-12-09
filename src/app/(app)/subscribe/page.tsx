@@ -11,8 +11,13 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Check, Star, Crown } from 'lucide-react';
+import { Check, Star, Crown, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
+import { useSubscription } from '@/hooks/useSubscription';
+import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
+import type { Plan } from '@/lib/types';
+
 
 const proFeatures = [
     "Gerações de IA ilimitadas",
@@ -31,7 +36,93 @@ const premiumFeatures = [
     "Acesso antecipado a novas ferramentas"
 ]
 
+const SubscriptionPlan = ({
+    title,
+    icon: Icon,
+    price,
+    features,
+    plan,
+    cycle,
+    isCurrent,
+    isCurrentCycle,
+    ctaText,
+    isUpgrade,
+}: {
+    title: string;
+    icon: React.ElementType;
+    price: string;
+    features: string[];
+    plan: 'pro' | 'premium';
+    cycle: 'monthly' | 'annual';
+    isCurrent: boolean;
+    isCurrentCycle: boolean;
+    ctaText: string;
+    isUpgrade: boolean;
+}) => {
+    const link = `/checkout?plan=${plan}&cycle=${cycle}`;
+
+    return (
+        <Card className={cn(
+            "rounded-2xl border-0 flex flex-col h-full shadow-primary-lg",
+            isCurrent && isCurrentCycle && "border-2 border-primary"
+        )}>
+            <CardHeader className='text-center'>
+                <CardTitle className="font-headline text-xl flex items-center gap-2 justify-center">
+                    <Icon className="w-5 h-5 text-primary" />
+                    {title}
+                </CardTitle>
+                <p className="text-3xl font-bold">{price}<span className="text-base font-normal text-muted-foreground">/mês</span></p>
+            </CardHeader>
+            <CardContent className='flex-grow'>
+                <ul className="space-y-3 text-sm text-foreground">
+                    {features.map(feature => (
+                         <li key={feature} className="flex items-start gap-2">
+                            <Check className="h-4 w-4 text-primary mt-1 shrink-0" />
+                            <span>{feature}</span>
+                        </li>
+                    ))}
+                </ul>
+            </CardContent>
+             <CardFooter className="flex flex-col gap-2">
+                {isCurrent && isCurrentCycle ? (
+                    <Button disabled className="w-full">
+                        <CheckCircle className="mr-2 h-4 w-4"/> Seu Plano Atual
+                    </Button>
+                ) : (
+                    <Button asChild className="w-full" variant={isCurrent && !isCurrentCycle ? "outline" : "default"}>
+                        <Link href={link}>{ctaText}</Link>
+                    </Button>
+                )}
+            </CardFooter>
+        </Card>
+    );
+};
+
+
 export default function SubscribePage() {
+    const { subscription, isLoading } = useSubscription();
+
+    const renderPlanButtons = (plan: 'pro' | 'premium', isUpgrade: boolean) => {
+        const isCurrent = subscription?.plan === plan && subscription.status === 'active';
+        
+        let monthlyCta = isCurrent ? "Mudar para Mensal" : (isUpgrade ? "Fazer Upgrade" : "Assinar Mensal");
+        let annualCta = isCurrent ? "Mudar para Anual" : (isUpgrade ? "Fazer Upgrade" : "Assinar Anual");
+        if (isCurrent && subscription?.cycle === 'monthly') monthlyCta = "Seu Plano Atual";
+        if (isCurrent && subscription?.cycle === 'annual') annualCta = "Seu Plano Atual";
+
+        return (
+            <>
+                <Button asChild className="w-full" disabled={isCurrent && subscription?.cycle === 'monthly'}>
+                    <Link href={`/checkout?plan=${plan}&cycle=monthly`}>{monthlyCta}</Link>
+                </Button>
+                 <Button asChild className="w-full" variant="outline" disabled={isCurrent && subscription?.cycle === 'annual'}>
+                    <Link href={`/checkout?plan=${plan}&cycle=annual`}>
+                        {annualCta} (economize 2 meses)
+                    </Link>
+                </Button>
+            </>
+        )
+    }
 
   return (
     <div className="space-y-8">
@@ -41,8 +132,13 @@ export default function SubscribePage() {
         icon={Crown}
       />
       
+       {isLoading ? (
+        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <Skeleton className="h-96 w-full" />
+            <Skeleton className="h-96 w-full" />
+        </div>
+       ) : (
         <div className="grid md:grid-cols-2 gap-8 items-start max-w-4xl mx-auto">
-            {/* Plano Pro */}
             <Card className="rounded-2xl border-0 flex flex-col h-full shadow-primary-lg">
                 <CardHeader className='text-center'>
                     <CardTitle className="font-headline text-xl flex items-center gap-2 justify-center">
@@ -62,16 +158,10 @@ export default function SubscribePage() {
                     </ul>
                 </CardContent>
                  <CardFooter className="flex flex-col gap-2">
-                    <Button asChild className="w-full">
-                        <Link href={`/checkout?plan=pro&cycle=monthly`}>Assinar Plano Pro Mensal</Link>
-                    </Button>
-                     <Button asChild className="w-full" variant="outline">
-                        <Link href={`/checkout?plan=pro&cycle=annual`}>Economize com o Plano Anual (R$399)</Link>
-                    </Button>
+                    {renderPlanButtons('pro', false)}
                 </CardFooter>
             </Card>
 
-            {/* Plano Premium */}
             <Card className="rounded-2xl border-2 border-primary relative flex flex-col h-full shadow-primary-lg">
                  <CardHeader className='text-center'>
                     <CardTitle className="font-headline text-xl flex items-center gap-2 justify-center">
@@ -91,15 +181,11 @@ export default function SubscribePage() {
                     </ul>
                 </CardContent>
                  <CardFooter className="flex flex-col gap-2">
-                    <Button asChild className="w-full">
-                        <Link href={`/checkout?plan=premium&cycle=monthly`}>Assinar Plano Premium Mensal</Link>
-                    </Button>
-                     <Button asChild className="w-full" variant="outline">
-                        <Link href={`/checkout?plan=premium&cycle=annual`}>Economize com o Plano Anual (R$499)</Link>
-                    </Button>
+                    {renderPlanButtons('premium', subscription?.plan === 'pro')}
                 </CardFooter>
             </Card>
         </div>
+       )}
     </div>
   );
 }

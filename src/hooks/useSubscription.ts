@@ -12,7 +12,9 @@ type SubscriptionStatus = 'active' | 'inactive';
 interface SubscriptionData {
   status: SubscriptionStatus;
   plan: Plan;
+  cycle?: 'monthly' | 'annual';
   expiresAt?: Timestamp | null;
+  asaasSubscriptionId?: string | null;
 }
 
 interface UseSubscriptionResult {
@@ -61,7 +63,9 @@ export function useSubscription(): UseSubscriptionResult {
               subscription: {
                   status: 'active',
                   plan: subscription.plan,
-                  expiresAt: subscription.expiresAt
+                  cycle: subscription.cycle,
+                  expiresAt: subscription.expiresAt,
+                  asaasSubscriptionId: subscription.asaasSubscriptionId,
               },
               isLoading: false,
               isTrialActive: false,
@@ -88,6 +92,22 @@ export function useSubscription(): UseSubscriptionResult {
         };
   }
   
+  // If subscription is inactive but was previously paid
+  if (subscription && subscription.status === 'inactive' && subscription.plan !== 'free') {
+    return {
+      subscription: {
+          status: 'inactive',
+          plan: subscription.plan,
+          cycle: subscription.cycle,
+          expiresAt: subscription.expiresAt,
+          asaasSubscriptionId: subscription.asaasSubscriptionId,
+      },
+      isLoading: false,
+      isTrialActive: false,
+      trialDaysLeft: 0,
+    };
+  }
+
   // Default to free plan if no active subscription and trial is over
   return {
     subscription: {

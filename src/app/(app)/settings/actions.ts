@@ -113,7 +113,7 @@ export async function resetAllMetricsAction(
   }
 }
 
-const cancelSubscriptionSchema = z.object({
+const subscriptionActionSchema = z.object({
   userId: z.string().min(1, 'O ID do usuário é obrigatório.'),
   asaasSubscriptionId: z.string().min(1, 'O ID da assinatura Asaas é obrigatório.'),
 });
@@ -122,9 +122,9 @@ const cancelSubscriptionSchema = z.object({
  * Cancels a subscription on Asaas and updates the user's status in Firestore.
  */
 export async function cancelAsaasSubscriptionAction(
-  input: z.infer<typeof cancelSubscriptionSchema>
+  input: z.infer<typeof subscriptionActionSchema>
 ): Promise<ActionState> {
-  const parsed = cancelSubscriptionSchema.safeParse(input);
+  const parsed = subscriptionActionSchema.safeParse(input);
   if (!parsed.success) {
     return { error: 'Dados inválidos.' };
   }
@@ -148,7 +148,6 @@ export async function cancelAsaasSubscriptionAction(
 
     if (!response.ok) {
       const errorData = await response.json();
-      // Handle cases where the subscription might already be canceled or doesn't exist
       if (response.status === 404) {
          console.warn(`[cancelAsaas] Tentativa de cancelar assinatura não encontrada na Asaas: ${asaasSubscriptionId}`);
       } else {
@@ -157,16 +156,12 @@ export async function cancelAsaasSubscriptionAction(
       }
     }
     
-    // Step 2: Update user's status in Firestore regardless of Asaas API result (to ensure user is downgraded)
+    // Step 2: Update user's status in Firestore
     const { firestore } = initializeFirebaseAdmin();
     const userRef = firestore.collection('users').doc(userId);
 
     const updatePayload = {
       'subscription.status': 'inactive',
-      'subscription.plan': 'free',
-      'subscription.expiresAt': null,
-      'subscription.cycle': null,
-      'subscription.asaasSubscriptionId': null, // Clear the ID
     };
 
     await userRef.update(updatePayload);
@@ -175,6 +170,63 @@ export async function cancelAsaasSubscriptionAction(
 
   } catch (e: any) {
     console.error(`[cancelAsaasSubscriptionAction] Erro no fluxo para ${userId}:`, e);
+    return { error: e.message || 'Ocorreu um erro de comunicação com o provedor de pagamento.' };
+  }
+}
+
+
+/**
+ * Reactivates a subscription on Asaas and updates the user's status in Firestore.
+ */
+export async function reactivateAsaasSubscriptionAction(
+  input: z.infer<typeof subscriptionActionSchema>
+): Promise<ActionState> {
+  const parsed = subscriptionActionSchema.safeParse(input);
+  if (!parsed.success) {
+    return { error: 'Dados inválidos para reativação.' };
+  }
+
+  const { userId, asaasSubscriptionId } = parsed.data;
+  const apiKey = process.env.ASAAS_API_KEY;
+
+  if (!apiKey) {
+    return { error: 'Erro de configuração do servidor: ASAAS_API_KEY não encontrada.' };
+  }
+  
+  try {
+     const nextDueDate = new Date();
+     nextDueDate.setDate(nextDueDate.getDate() + 1); // Set next billing for tomorrow
+
+    // Step 1: Reactivate subscription on Asaas
+    const response = await fetch(`https://api-sandbox.asaas.com/v3/subscriptions/${asaasSubscriptionId}`, {
+      method: 'PUT',
+      headers: {
+        'accept': 'application/json',
+        'content-type': 'application/json',
+        'access_token': apiKey,
+      },
+      body: JSON.stringify({
+        status: 'ACTIVE',
+        nextDueDate: nextDueDate.toISOString().split('T')[0],
+        updatePendingPayments: false
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error(`[reactivateAsaas] Erro ao reativar assinatura ${asaasSubscriptionId}:`, errorData);
+      throw new Error(errorData.errors?.[0]?.description || 'Falha ao reativar a assinatura no gateway de pagamento.');
+    }
+    
+    // Step 2: Update user's status in Firestore
+    const { firestore } = initializeFirebaseAdmin();
+    const userRef = firestore.collection('users').doc(userId);
+    await userRef.update({ 'subscription.status': 'active' });
+
+    return { success: true };
+
+  } catch (e: any) {
+    console.error(`[reactivateAsaasSubscriptionAction] Erro no fluxo para ${userId}:`, e);
     return { error: e.message || 'Ocorreu um erro de comunicação com o provedor de pagamento.' };
   }
 }

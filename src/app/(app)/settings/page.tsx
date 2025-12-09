@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { LogOut, ShieldAlert, Crown, Settings as SettingsIcon, Hammer, Trash2, RefreshCw, Loader2 } from 'lucide-react';
+import { LogOut, ShieldAlert, Crown, Settings as SettingsIcon, Hammer, Trash2, RefreshCw, Loader2, PlayCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -39,7 +39,7 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
-import { resetLastSyncAction, resetAllMetricsAction, cancelAsaasSubscriptionAction } from './actions';
+import { resetLastSyncAction, resetAllMetricsAction, cancelAsaasSubscriptionAction, reactivateAsaasSubscriptionAction } from './actions';
 
 export default function SettingsPage() {
   const { user } = useUser();
@@ -48,6 +48,7 @@ export default function SettingsPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isCancelling, startCancellingTransition] = useTransition();
+  const [isReactivating, startReactivatingTransition] = useTransition();
 
   const [confirmationInput, setConfirmationInput] = useState('');
   const [resetType, setResetType] = useState<'lastSync' | 'all' | null>(null);
@@ -68,7 +69,6 @@ export default function SettingsPage() {
        return;
     };
     
-    // Store the ID in a local constant to satisfy TypeScript inside the async transition
     const subscriptionId = userProfile.subscription.asaasSubscriptionId;
 
     startCancellingTransition(async () => {
@@ -80,7 +80,7 @@ export default function SettingsPage() {
         if (result.success) {
             toast({
                 title: 'Assinatura Cancelada',
-                description: 'Sua assinatura foi cancelada e seu plano revertido para o gratuito.',
+                description: 'Sua assinatura foi cancelada. Seu acesso continuará até o final do período de faturamento.',
             });
         } else {
              toast({
@@ -91,6 +91,26 @@ export default function SettingsPage() {
         }
     });
 };
+
+  const handleReactivateSubscription = () => {
+    if (!user || !subscription?.asaasSubscriptionId) {
+      toast({ title: 'Erro', description: 'Não foi possível encontrar o ID da sua assinatura para reativar.', variant: 'destructive'});
+      return;
+    }
+    const subscriptionId = subscription.asaasSubscriptionId;
+
+    startReactivatingTransition(async () => {
+      const result = await reactivateAsaasSubscriptionAction({
+        userId: user.uid,
+        asaasSubscriptionId: subscriptionId,
+      });
+      if (result.success) {
+        toast({ title: 'Sucesso!', description: 'Sua assinatura foi reativada e as cobranças serão retomadas.' });
+      } else {
+        toast({ title: 'Erro ao reativar', description: result.error, variant: 'destructive' });
+      }
+    });
+  };
 
   const getPlanName = (plan: 'free' | 'pro' | 'premium') => {
     switch(plan) {
@@ -160,9 +180,9 @@ export default function SettingsPage() {
                                 Seu teste gratuito termina em {trialDaysLeft} {trialDaysLeft === 1 ? 'dia' : 'dias'}.
                            </p>
                         )}
-                        {subscription.status === 'active' && !isTrialActive && userProfile?.subscription?.expiresAt && userProfile.subscription.expiresAt.toDate && (
+                        {subscription.expiresAt && subscription.expiresAt.toDate && (
                             <p className="text-sm text-muted-foreground">
-                                Acesso até {format(userProfile.subscription.expiresAt.toDate(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}.
+                                {subscription.status === 'active' ? 'Acesso até' : 'Acesso expirou em'} {format(subscription.expiresAt.toDate(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}.
                             </p>
                         )}
                          {subscription.plan === 'free' && !isTrialActive && (
@@ -175,7 +195,8 @@ export default function SettingsPage() {
                         <Button asChild variant="outline" className="w-full sm:w-auto">
                             <Link href="/subscribe">Ver Planos</Link>
                         </Button>
-                        {userProfile?.subscription?.asaasSubscriptionId && subscription.plan !== 'free' && subscription.status === 'active' && !isTrialActive ? (
+                        
+                        {subscription.status === 'active' && subscription.asaasSubscriptionId && !isTrialActive ? (
                             <AlertDialog>
                                 <AlertDialogTrigger asChild>
                                     <Button variant="destructive" disabled={isCancelling} className="w-full sm:w-auto">
@@ -199,6 +220,31 @@ export default function SettingsPage() {
                                 </AlertDialogContent>
                             </AlertDialog>
                         ) : null}
+
+                         {subscription.status === 'inactive' && subscription.asaasSubscriptionId && !isTrialActive ? (
+                             <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                     <Button disabled={isReactivating} className="w-full sm:w-auto">
+                                        {isReactivating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <PlayCircle className="mr-2 h-4 w-4" />}
+                                        Reativar Assinatura
+                                    </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Reativar Assinatura?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                           Ao reativar, as cobranças recorrentes serão retomadas a partir de amanhã.
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Voltar</AlertDialogCancel>
+                                        <AlertDialogAction onClick={handleReactivateSubscription}>
+                                            Sim, reativar
+                                        </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                         ): null}
                     </div>
                 </div>
             ) : null}
