@@ -481,11 +481,6 @@ export default function VideoIdeasPage() {
                             <Trash2 className="mr-2 h-4 w-4" />
                             Descartar e Gerar Nova
                         </Button>
-                         <Link href={`/content-calendar?title=${encodeURIComponent(result.title)}&notes=${encodeURIComponent(result.script.scriptLongo)}`}
-                         className={cn(buttonVariants({ variant: 'outline', className: 'w-full sm:w-auto' }))}>
-                           <Calendar className="mr-2 h-4 w-4" />
-                           Agendar Post
-                        </Link>
                       </div>
                     )}
 
@@ -517,9 +512,9 @@ export default function VideoIdeasPage() {
                                 <p className="font-semibold text-foreground truncate">{idea.titulo}</p>
                                 {idea.createdAt && (
                                     <p className="text-xs text-muted-foreground">
-                                    Salvo {formatDistanceToNow(idea.createdAt.toDate(), { addSuffix: true, locale: ptBR })}
+                                      Salvo {formatDistanceToNow(idea.createdAt.toDate(), { addSuffix: true, locale: ptBR })}
                                     </p>
-                                )}
+                                  )}
                                 </div>
                                 <div className="flex items-center gap-1">
                                     <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground" onClick={() => { setViewingSavedItem(idea); setIsDetailSheetOpen(true); }}>
@@ -578,4 +573,3 @@ export default function VideoIdeasPage() {
   );
 }
 
-    

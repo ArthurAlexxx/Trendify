@@ -613,11 +613,6 @@ function PublisAssistantPageContent() {
                             <Trash2 className="mr-2 h-4 w-4" />
                             Descartar e Gerar Nova
                         </Button>
-                         <Link href={`/content-calendar?title=${encodeURIComponent(form.getValues('product'))}&notes=${encodeURIComponent(result.scripts[0].script)}`}
-                         className={cn(buttonVariants({ variant: 'outline', className: 'w-full sm:w-auto' }))}>
-                           <Calendar className="mr-2 h-4 w-4" />
-                           Agendar Post
-                        </Link>
                       </div>
                     )}
 
