@@ -12,7 +12,7 @@ import { ptBR } from 'date-fns/locale';
 import { Badge } from './ui/badge';
 import { ScrollArea } from './ui/scroll-area';
 import React, { useState } from 'react';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter as AlertFooter, AlertDialogHeader, AlertDialogTitle } from './ui/alert-dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter as AlertFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from './ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { VideoIdeasResultView } from '@/app/(app)/video-ideas/video-ideas-result-view';
