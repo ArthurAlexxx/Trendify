@@ -22,6 +22,7 @@ import type {
   IdeiaSalva
 } from '@/lib/types';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
+import { SavedIdeasSheet } from '../saved-ideas-sheet';
 
 interface ActionHubCardProps {
   isLoadingUpcoming: boolean;
@@ -48,10 +49,10 @@ export default function ActionHubCard({
         </CardTitle>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col">
-        <Tabs defaultValue="calendario" className="w-full flex-1 flex flex-col">
+        <Tabs defaultValue="ideias" className="w-full flex-1 flex flex-col">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="calendario">Calendário</TabsTrigger>
             <TabsTrigger value="ideias">Ideias</TabsTrigger>
+            <TabsTrigger value="calendario">Calendário</TabsTrigger>
           </TabsList>
           <div className="flex-1 mt-4">
             <TabsContent value="calendario" className="h-full">
@@ -131,7 +132,7 @@ export default function ActionHubCard({
                         onCheckedChange={() => handleToggleIdeia(ideia)}
                         className="h-5 w-5 mt-0.5"
                       />
-                      <div className="grid gap-0.5">
+                      <div className="flex-1 grid gap-0.5">
                         <label
                           htmlFor={`ideia-${ideia.id}`}
                           className={cn(
@@ -147,6 +148,20 @@ export default function ActionHubCard({
                           de "{ideia.origem}"
                         </p>
                       </div>
+                       <SavedIdeasSheet idea={ideia}>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 -my-1 -mr-2 text-muted-foreground">
+                                    <Info className="h-4 w-4" />
+                                  </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Ver detalhes da ideia</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                       </SavedIdeasSheet>
                     </li>
                   ))}
                 </ul>

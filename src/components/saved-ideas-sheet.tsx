@@ -48,7 +48,7 @@ const renderContent = (idea: IdeiaSalva) => {
     }
 }
 
-export function SavedIdeasSheet({ children }: { children: React.ReactNode}) {
+export function SavedIdeasSheet({ children, idea }: { children: React.ReactNode, idea: IdeiaSalva | null }) {
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
@@ -56,8 +56,8 @@ export function SavedIdeasSheet({ children }: { children: React.ReactNode}) {
   const [isListSheetOpen, setIsListSheetOpen] = useState(false);
   const [ideaToDelete, setIdeaToDelete] = useState<IdeiaSalva | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedIdea, setSelectedIdea] = useState<IdeiaSalva | null>(null);
-  const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
+  const [selectedIdea, setSelectedIdea] = useState<IdeiaSalva | null>(idea);
+  const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(!!idea);
 
   const ideiasSalvasQuery = useMemoFirebase(
     () =>
@@ -99,8 +99,17 @@ export function SavedIdeasSheet({ children }: { children: React.ReactNode}) {
 
   const handleViewDetails = (idea: IdeiaSalva) => {
     setSelectedIdea(idea);
+    setIsListSheetOpen(false);
     setIsDetailSheetOpen(true);
   };
+  
+  // Effect to open detail view if an idea is passed directly
+  React.useEffect(() => {
+    if(idea) {
+        setSelectedIdea(idea);
+        setIsDetailSheetOpen(true);
+    }
+  }, [idea]);
 
   return (
     <>

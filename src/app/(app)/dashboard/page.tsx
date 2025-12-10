@@ -55,6 +55,7 @@ import { getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/
 import { initializeFirebase } from '@/firebase';
 import { updateProfile } from 'firebase/auth';
 import { useSearchParams } from 'next/navigation';
+import { SavedIdeasSheet } from '@/components/saved-ideas-sheet';
 
 const GoalCard = dynamic(() => import('@/components/dashboard/goal-card'), {
   loading: () => <Skeleton className="h-full min-h-[380px]" />,
@@ -154,7 +155,7 @@ export default function DashboardPage() {
   const currentPlan = weeklyPlansData?.[0];
 
   const ideiasQuery = useMemoFirebase(() => (
-    firestore && user ? query(collection(firestore, `users/${user.uid}/ideiasSalvas`), where('concluido', '==', false), where('origem', '==', 'Ideias de Vídeo'), orderBy('createdAt', 'desc'), limit(5)) : null
+    firestore && user ? query(collection(firestore, `users/${user.uid}/ideiasSalvas`), where('concluido', '==', false), orderBy('createdAt', 'desc'), limit(5)) : null
   ), [firestore, user]);
   const { data: ideiasSalvas, isLoading: isLoadingIdeias } = useCollection<IdeiaSalva>(ideiasQuery);
 
