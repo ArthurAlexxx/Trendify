@@ -16,7 +16,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
+import { useResponsiveToast } from '@/hooks/use-responsive-toast';
 import { Loader2, ArrowUpRight, ArrowLeft, MailCheck } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/firebase';
@@ -27,7 +27,7 @@ const formSchema = z.object({
 });
 
 export default function ForgotPasswordPage() {
-  const { toast } = useToast();
+  const { toast } = useResponsiveToast();
   const auth = useAuth();
   const [isPending, setIsPending] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);

@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -42,7 +43,7 @@ import { Separator } from './ui/separator';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useRef, useState } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import { useResponsiveToast } from '@/hooks/use-responsive-toast';
 import { getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/storage';
 import { initializeFirebase } from '@/firebase';
 import { doc, updateDoc, Timestamp } from 'firebase/firestore';
@@ -110,7 +111,7 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
   const { isAdmin, isLoading: isAdminLoading } = useAdmin();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { toast } = useToast();
+  const { toast } = useResponsiveToast();
 
   const handleSignOut = () => {
     auth.signOut();

@@ -19,7 +19,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useToast } from '@/hooks/use-toast';
+import { useResponsiveToast } from '@/hooks/use-responsive-toast';
 
 type ActionCodeMode = 'resetPassword' | 'verifyEmail' | 'recoverEmail' | null;
 type ViewState = 'loading' | 'invalid' | 'form' | 'success';
@@ -39,7 +39,7 @@ function AuthActionHandler() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const auth = useAuth();
-  const { toast } = useToast();
+  const { toast } = useResponsiveToast();
 
   const mode = searchParams.get('mode') as ActionCodeMode;
   const actionCode = searchParams.get('oobCode');

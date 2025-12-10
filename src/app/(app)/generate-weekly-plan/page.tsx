@@ -19,7 +19,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/hooks/use-responsive-toast';
+import { useResponsiveToast } from '@/hooks/use-responsive-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Bot, Loader2, Sparkles, Check, History, ClipboardList, BrainCircuit, Target, Eye, BarChart as BarChartIcon, Zap, AlertTriangle, Trophy, Save, Edit, Lightbulb, Trash2, PartyPopper, ArrowLeft } from 'lucide-react';
 import { useEffect, useTransition, useState, useCallback, useMemo } from 'react';
@@ -116,7 +116,7 @@ const analysisCriteria = [
 
 
 export default function GenerateWeeklyPlanPage() {
-  const { toast } = useToast();
+  const { toast } = useResponsiveToast();
   const [isGenerating, startTransition] = useTransition();
   const [result, setResult] = useState<GenerateWeeklyPlanOutput | null>(null);
   const [viewingSavedItem, setViewingSavedItem] = useState<IdeiaSalva | null>(null);

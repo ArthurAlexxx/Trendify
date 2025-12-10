@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -15,7 +16,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
+import { useResponsiveToast } from '@/hooks/use-responsive-toast';
 import { Loader2, ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/firebase';
@@ -38,7 +39,7 @@ const GoogleIcon = () => (
 
 
 export default function LoginPage() {
-  const { toast } = useToast();
+  const { toast } = useResponsiveToast();
   const auth = useAuth();
   const [isPending, setIsPending] = useState(false);
   

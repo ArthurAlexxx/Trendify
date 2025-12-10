@@ -10,7 +10,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { ScrollArea } from './ui/scroll-area';
 import React, { useState, useMemo } from 'react';
-import { useToast } from '@/hooks/use-responsive-toast';
+import { useResponsiveToast } from '@/hooks/use-responsive-toast';
 import {
   Sheet,
   SheetContent,
@@ -26,7 +26,7 @@ import { Input } from './ui/input';
 export function PreviousPlansSheet() {
   const { user } = useUser();
   const firestore = useFirestore();
-  const { toast } = useToast();
+  const { toast } = useResponsiveToast();
   const router = useRouter();
   const [isListSheetOpen, setIsListSheetOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');

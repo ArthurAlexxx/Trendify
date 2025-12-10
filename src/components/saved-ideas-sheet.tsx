@@ -13,7 +13,7 @@ import { Badge } from './ui/badge';
 import { ScrollArea } from './ui/scroll-area';
 import React, { useState, useMemo } from 'react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter as AlertFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from './ui/alert-dialog';
-import { useToast } from '@/hooks/use-toast';
+import { useResponsiveToast } from '@/hooks/use-responsive-toast';
 import { useRouter } from 'next/navigation';
 import { VideoIdeasResultView } from '@/app/(app)/video-ideas/video-ideas-result-view';
 import { PublisAssistantResultView } from '@/app/(app)/publis-assistant/publis-assistant-result-view';
@@ -51,7 +51,7 @@ const renderContent = (idea: IdeiaSalva) => {
 export function SavedIdeasSheet({ children, idea }: { children: React.ReactNode, idea: IdeiaSalva | null }) {
   const { user } = useUser();
   const firestore = useFirestore();
-  const { toast } = useToast();
+  const { toast } = useResponsiveToast();
   const router = useRouter();
   const [isListSheetOpen, setIsListSheetOpen] = useState(false);
   const [ideaToDelete, setIdeaToDelete] = useState<IdeiaSalva | null>(null);
