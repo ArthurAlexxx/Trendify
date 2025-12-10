@@ -390,87 +390,102 @@ function VideoReviewPageContent() {
              <div className="text-center"><h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Análises Anteriores</h2><p className="text-muted-foreground">Aqui estão os últimos vídeos que você analisou.</p></div>
              <Card className="shadow-primary-lg">
                 <CardContent className="pt-6">
-                    {isLoadingAnalyses && (<div className="flex justify-center items-center h-40"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>)}
+                  <div className="min-h-[400px] flex flex-col">
+                    {isLoadingAnalyses && (<div className="flex-1 flex justify-center items-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>)}
+                    
                     {!isLoadingAnalyses && paginatedAnalyses && paginatedAnalyses.length > 0 ? (
-                    <>
-                        <ul className="space-y-4">{paginatedAnalyses.map(analise => (<li key={analise.id}>
-                            <div className="flex flex-col sm:flex-row items-center gap-4 p-2 rounded-lg hover:bg-muted">
-                                <Clapperboard className="h-6 w-6 text-primary shrink-0" />
-                                <div className="flex-1 text-center sm:text-left">
-                                    <p className="font-semibold text-foreground truncate">{analise.analysisName || analise.videoFileName}</p>
-                                    <p className="text-xs text-muted-foreground">
-                                        {analise.createdAt ? formatDistanceToNow(analise.createdAt.toDate(), { addSuffix: true, locale: ptBR }) : ''}
-                                    </p>
-                                </div>
-                                <Sheet>
-                                    <SheetTrigger asChild>
-                                        <Button variant="outline" size="sm" className="w-full sm:w-auto">
-                                            <Eye className="mr-2 h-4 w-4" /> Ver Análise
-                                        </Button>
-                                    </SheetTrigger>
-                                    <SheetContent className="sm:max-w-4xl p-0">
-                                        <SheetHeader className="p-6 border-b">
-                                            <SheetTitle className="text-center font-headline text-2xl">
-                                                Análise de {analise.analysisName || analise.videoFileName}
-                                            </SheetTitle>
-                                        </SheetHeader>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 max-h-[calc(100vh-8rem)] overflow-y-auto">
-                                            <div className="space-y-4">
-                                                <Card className="shadow-primary-lg">
-                                                    <CardHeader><CardTitle className="text-lg text-primary text-center">Nota de Viralização</CardTitle></CardHeader>
-                                                    <CardContent className="text-center">
-                                                        <div className="text-3xl font-bold">{getNoteParts(analise.analysisData.geral).note}/10</div>
-                                                        <p className="text-sm text-muted-foreground mt-1">{getNoteParts(analise.analysisData.geral).description}</p>
-                                                    </CardContent>
-                                                </Card>
-                                                <Card className="shadow-primary-lg">
-                                                    <CardHeader><CardTitle className="flex items-center gap-2 justify-center text-lg"><Check className="h-5 w-5 text-primary" /> Checklist de Melhorias</CardTitle></CardHeader>
-                                                    <CardContent><ul className="space-y-2 text-sm">{analise.analysisData.melhorias.map((item: string, index: number) => (<li key={index} className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-1 shrink-0" /><span className="text-muted-foreground">{item.replace(/^✓\s*/, '')}</span></li>))}</ul></CardContent>
-                                                </Card>
-                                            </div>
-                                            <Card className="shadow-primary-lg">
-                                                <CardHeader><CardTitle className="text-center text-lg">Análise Detalhada</CardTitle></CardHeader>
-                                                <CardContent>
-                                                    <Accordion type="single" collapsible defaultValue="item-1">
-                                                        <AccordionItem value="item-1"><AccordionTrigger>Análise do Gancho</AccordionTrigger><AccordionContent>{analise.analysisData.gancho}</AccordionContent></AccordionItem>
-                                                        <AccordionItem value="item-2"><AccordionTrigger>Análise do Conteúdo</AccordionTrigger><AccordionContent>{analise.analysisData.conteudo}</AccordionContent></AccordionItem>
-                                                        <AccordionItem value="item-3"><AccordionTrigger>Análise do CTA</AccordionTrigger><AccordionContent>{analise.analysisData.cta}</AccordionContent></AccordionItem>
-                                                    </Accordion>
-                                                </CardContent>
-                                            </Card>
-                                        </div>
-                                    </SheetContent>
-                                </Sheet>
-                            </div>
-                        </li>))}</ul>
-                        {totalPages > 1 && (
-                            <div className="flex justify-center items-center gap-2 mt-6">
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                                    disabled={currentPage === 1}
-                                >
-                                    <ChevronLeft className="h-4 w-4 mr-1" />
-                                    Anterior
-                                </Button>
-                                <span className="text-sm text-muted-foreground">
-                                    Página {currentPage} de {totalPages}
-                                </span>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                                    disabled={currentPage === totalPages}
-                                >
-                                    Próxima
-                                    <ChevronRight className="h-4 w-4 ml-1" />
-                                </Button>
-                            </div>
-                        )}
-                    </>
+                      <ul className="space-y-4 flex-1">
+                        {paginatedAnalyses.map(analise => (
+                          <li key={analise.id}>
+                              <div className="flex flex-col sm:flex-row items-center gap-4 p-2 rounded-lg hover:bg-muted">
+                                  <div className="flex items-center gap-4 w-full sm:w-auto sm:flex-1">
+                                    <Clapperboard className="h-6 w-6 text-primary shrink-0" />
+                                    <div className="flex-1 text-center sm:text-left">
+                                        <p className="font-semibold text-foreground truncate">{analise.analysisName || analise.videoFileName}</p>
+                                        <p className="text-xs text-muted-foreground">
+                                            {analise.createdAt ? formatDistanceToNow(analise.createdAt.toDate(), { addSuffix: true, locale: ptBR }) : ''}
+                                        </p>
+                                    </div>
+                                  </div>
+                                  <Sheet>
+                                      <SheetTrigger asChild>
+                                          <Button variant="outline" size="sm" className="w-full mt-2 sm:mt-0 sm:w-auto">
+                                              <Eye className="mr-2 h-4 w-4" /> Ver Análise
+                                          </Button>
+                                      </SheetTrigger>
+                                      <SheetContent className="sm:max-w-4xl p-0">
+                                          <SheetHeader className="p-6 border-b">
+                                              <SheetTitle className="text-center font-headline text-2xl">
+                                                  Análise de {analise.analysisName || analise.videoFileName}
+                                              </SheetTitle>
+                                          </SheetHeader>
+                                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 max-h-[calc(100vh-8rem)] overflow-y-auto">
+                                              <div className="space-y-4">
+                                                  <Card className="shadow-primary-lg">
+                                                      <CardHeader><CardTitle className="text-lg text-primary text-center">Nota de Viralização</CardTitle></CardHeader>
+                                                      <CardContent className="text-center">
+                                                          <div className="text-3xl font-bold">{getNoteParts(analise.analysisData.geral).note}/10</div>
+                                                          <p className="text-sm text-muted-foreground mt-1">{getNoteParts(analise.analysisData.geral).description}</p>
+                                                      </CardContent>
+                                                  </Card>
+                                                  <Card className="shadow-primary-lg">
+                                                      <CardHeader><CardTitle className="flex items-center gap-2 justify-center text-lg"><Check className="h-5 w-5 text-primary" /> Checklist de Melhorias</CardTitle></CardHeader>
+                                                      <CardContent><ul className="space-y-2 text-sm">{analise.analysisData.melhorias.map((item: string, index: number) => (<li key={index} className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-1 shrink-0" /><span className="text-muted-foreground">{item.replace(/^✓\s*/, '')}</span></li>))}</ul></CardContent>
+                                                  </Card>
+                                              </div>
+                                              <Card className="shadow-primary-lg">
+                                                  <CardHeader><CardTitle className="text-center text-lg">Análise Detalhada</CardTitle></CardHeader>
+                                                  <CardContent>
+                                                      <Accordion type="single" collapsible defaultValue="item-1">
+                                                          <AccordionItem value="item-1"><AccordionTrigger>Análise do Gancho</AccordionTrigger><AccordionContent>{analise.analysisData.gancho}</AccordionContent></AccordionItem>
+                                                          <AccordionItem value="item-2"><AccordionTrigger>Análise do Conteúdo</AccordionTrigger><AccordionContent>{analise.analysisData.conteudo}</AccordionContent></AccordionItem>
+                                                          <AccordionItem value="item-3"><AccordionTrigger>Análise do CTA</AccordionTrigger><AccordionContent>{analise.analysisData.cta}</AccordionContent></AccordionItem>
+                                                      </Accordion>
+                                                  </CardContent>
+                                              </Card>
+                                          </div>
+                                      </SheetContent>
+                                  </Sheet>
+                              </div>
+                          </li>
+                        ))}
+                      </ul>
                     ) : null}
-                     {!isLoadingAnalyses && (!previousAnalyses || previousAnalyses.length === 0) && (<div className="text-center py-16 px-4 rounded-xl bg-muted/50 border border-dashed"><Inbox className="mx-auto h-10 w-10 text-muted-foreground mb-4" /><h3 className="font-semibold text-foreground">Nenhuma análise anterior</h3><p className="text-sm text-muted-foreground">Seus vídeos analisados aparecerão aqui.</p></div>)}
+
+                     {!isLoadingAnalyses && (!paginatedAnalyses || paginatedAnalyses.length === 0) && (
+                      <div className="flex-1 flex flex-col justify-center items-center text-center py-16 px-4 rounded-xl bg-muted/50 border border-dashed">
+                        <Inbox className="mx-auto h-10 w-10 text-muted-foreground mb-4" />
+                        <h3 className="font-semibold text-foreground">Nenhuma análise anterior</h3>
+                        <p className="text-sm text-muted-foreground">Seus vídeos analisados aparecerão aqui.</p>
+                      </div>
+                     )}
+                  </div>
+
+                  {totalPages > 1 && (
+                      <div className="flex justify-center items-center gap-2 mt-6">
+                          <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                              disabled={currentPage === 1}
+                          >
+                              <ChevronLeft className="h-4 w-4 mr-1" />
+                              Anterior
+                          </Button>
+                          <span className="text-sm text-muted-foreground">
+                              Página {currentPage} de {totalPages}
+                          </span>
+                          <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                              disabled={currentPage === totalPages}
+                          >
+                              Próxima
+                              <ChevronRight className="h-4 w-4 ml-1" />
+                          </Button>
+                      </div>
+                  )}
                 </CardContent>
             </Card>
         </div>
