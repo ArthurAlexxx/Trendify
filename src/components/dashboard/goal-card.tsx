@@ -35,12 +35,12 @@ export default function GoalCard({ isLoading, goalFollowers, currentFollowers, i
                     Meta de Seguidores
                 </CardTitle>
             </CardHeader>
-            <CardContent className="pt-6">
+            <CardContent className="pt-2">
                 <div className="flex flex-col items-center justify-center text-center">
                     {isLoading ? (
-                        <Skeleton className="h-48 w-48 rounded-full" />
+                        <Skeleton className="h-36 w-36 rounded-full" />
                     ) : goalFollowers > 0 ? (
-                        <div className="relative h-48 w-48" style={{ filter: 'drop-shadow(0 4px 10px hsl(var(--primary) / 0.2))' }}>
+                        <div className="relative h-36 w-36" style={{ filter: 'drop-shadow(0 4px 10px hsl(var(--primary) / 0.2))' }}>
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
                                     <Pie
@@ -61,17 +61,17 @@ export default function GoalCard({ isLoading, goalFollowers, currentFollowers, i
                                 </PieChart>
                             </ResponsiveContainer>
                             <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                <span className="text-4xl font-bold font-headline text-primary">
+                                <span className="text-3xl font-bold font-headline text-primary">
                                     {followerGoalProgress.toFixed(0)}%
                                 </span>
                             </div>
                         </div>
                     ) : (
-                        <div className="flex flex-col items-center justify-center h-48 w-48 rounded-full border-4 border-dashed bg-muted">
+                        <div className="flex flex-col items-center justify-center h-36 w-36 rounded-full border-4 border-dashed bg-muted">
                             <Target className="h-12 w-12 text-muted-foreground" />
                         </div>
                     )}
-                    <p className="text-3xl font-bold font-headline mt-4">
+                    <p className="text-2xl font-bold font-headline mt-4">
                         {formatMetricValue(currentFollowers)}
                     </p>
                     {goalFollowers > 0 ? (
