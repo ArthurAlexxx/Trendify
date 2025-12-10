@@ -45,6 +45,32 @@ export default function ActionHubCard({
   handleToggleIdeia,
   handleMarkAsPublished,
 }: ActionHubCardProps) {
+
+    const renderIdeiaItem = (ideia: IdeiaSalva) => (
+         <li key={ideia.id} className="flex items-start gap-3">
+            <Checkbox
+                id={`ideia-${ideia.id}`}
+                checked={ideia.concluido}
+                onCheckedChange={() => handleToggleIdeia(ideia)}
+                className="h-5 w-5 mt-0.5"
+            />
+            <div className="flex-1 grid gap-0.5">
+                <SavedIdeasSheet idea={ideia}>
+                    <span
+                        className={cn(
+                        'font-medium transition-colors cursor-pointer text-sm hover:text-primary',
+                        ideia.concluido
+                            ? 'line-through text-muted-foreground'
+                            : 'text-foreground'
+                        )}
+                    >
+                        {ideia.titulo}
+                    </span>
+                </SavedIdeasSheet>
+            </div>
+        </li>
+    )
+
   return (
     <Card className="h-full flex flex-col shadow-primary-lg">
       <CardHeader>
@@ -129,31 +155,7 @@ export default function ActionHubCard({
                 </div>
               ) : ideiasSalvas && ideiasSalvas.length > 0 ? (
                 <ul className="space-y-3">
-                  {ideiasSalvas.map((ideia: IdeiaSalva) => (
-                    <li key={ideia.id} className="flex items-start gap-3">
-                      <Checkbox
-                        id={`ideia-${ideia.id}`}
-                        checked={ideia.concluido}
-                        onCheckedChange={() => handleToggleIdeia(ideia)}
-                        className="h-5 w-5 mt-0.5"
-                      />
-                      <div className="flex-1 grid gap-0.5">
-                         <SavedIdeasSheet idea={ideia}>
-                           <label
-                              htmlFor={`ideia-${ideia.id}`}
-                              className={cn(
-                                'font-medium transition-colors cursor-pointer text-sm hover:text-primary',
-                                ideia.concluido
-                                  ? 'line-through text-muted-foreground'
-                                  : 'text-foreground'
-                              )}
-                            >
-                              {ideia.titulo}
-                            </label>
-                         </SavedIdeasSheet>
-                      </div>
-                    </li>
-                  ))}
+                  {ideiasSalvas.map(renderIdeiaItem)}
                 </ul>
               ) : (
                 <div className="text-center h-full flex flex-col items-center justify-center">
@@ -173,31 +175,7 @@ export default function ActionHubCard({
                     </div>
                  ) : completedIdeas && completedIdeas.length > 0 ? (
                     <ul className="space-y-3">
-                    {completedIdeas.map((ideia: IdeiaSalva) => (
-                        <li key={ideia.id} className="flex items-start gap-3">
-                        <Checkbox
-                            id={`ideia-${ideia.id}`}
-                            checked={ideia.concluido}
-                            onCheckedChange={() => handleToggleIdeia(ideia)}
-                            className="h-5 w-5 mt-0.5"
-                        />
-                         <div className="flex-1 grid gap-0.5">
-                         <SavedIdeasSheet idea={ideia}>
-                           <label
-                              htmlFor={`ideia-${ideia.id}`}
-                              className={cn(
-                                'font-medium transition-colors cursor-pointer text-sm hover:text-primary',
-                                ideia.concluido
-                                  ? 'line-through text-muted-foreground'
-                                  : 'text-foreground'
-                              )}
-                            >
-                              {ideia.titulo}
-                            </label>
-                         </SavedIdeasSheet>
-                      </div>
-                        </li>
-                    ))}
+                     {completedIdeas.map(renderIdeiaItem)}
                     </ul>
                 ) : (
                      <div className="text-center h-full flex flex-col items-center justify-center">
