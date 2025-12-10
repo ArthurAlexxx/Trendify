@@ -31,7 +31,7 @@ import { Button } from '@/components/ui/button';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useToast } from '@/hooks/use-toast';
+import { useResponsiveToast } from '@/hooks/use-responsive-toast';
 import type { UserProfile } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
 import { changeUserPlanAction } from '@/app/(app)/admin/actions';
@@ -54,7 +54,7 @@ interface ChangePlanDialogProps {
 }
 
 export function ChangePlanDialog({ isOpen, setIsOpen, user, children }: ChangePlanDialogProps) {
-  const { toast } = useToast();
+  const { toast } = useResponsiveToast();
   const [isPending, startTransition] = useTransition();
   const { user: adminUser } = useUser();
 

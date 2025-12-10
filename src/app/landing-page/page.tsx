@@ -63,7 +63,7 @@ import {
   GrowthCalculatorOutput,
   calculateGrowthAction,
 } from '@/app/landing-page/actions';
-import { useToast } from '@/hooks/use-toast';
+import { useResponsiveToast } from '@/hooks/use-responsive-toast';
 import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
 
 const features = [
@@ -154,7 +154,7 @@ export default function LandingPage() {
   const [isCalculating, setIsCalculating] = useState(false);
   const [results, setResults] = useState<GrowthCalculatorOutput | null>(null);
   const [step, setStep] = useState(0); // 0: form, 1: results
-  const { toast } = useToast();
+  const { toast } = useResponsiveToast();
 
   const navLinks = [
       { href: '#beneficios', text: 'Benefícios' },

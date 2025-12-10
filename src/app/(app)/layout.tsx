@@ -9,11 +9,14 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import React from 'react';
 import { AppSidebar } from '@/components/app-sidebar';
+import { useResponsiveToast } from '@/hooks/use-responsive-toast';
 
 function AppLayoutContent({ children }: { children: React.ReactNode }) {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { ToastContainer } = useResponsiveToast();
+
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -70,6 +73,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
           </div>
         </main>
       </div>
+      <ToastContainer />
     </div>
   );
 }

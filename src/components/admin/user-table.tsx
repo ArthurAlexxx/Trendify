@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import {
@@ -22,7 +23,7 @@ import { useState, useTransition } from 'react';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '../ui/sheet';
 import { changeUserRoleAction } from '@/app/(app)/admin/actions';
 import { useUser } from '@/firebase';
-import { useToast } from '@/hooks/use-toast';
+import { useResponsiveToast } from '@/hooks/use-responsive-toast';
 import { cn } from '@/lib/utils';
 
 interface UserTableProps {
@@ -43,7 +44,7 @@ export function UserTable({ data }: UserTableProps) {
   const [isRoleSheetOpen, setIsRoleSheetOpen] = useState(false);
   const [isRoleTransitioning, startRoleTransition] = useTransition();
   const { user: adminUser } = useUser();
-  const { toast } = useToast();
+  const { toast } = useResponsiveToast();
 
   const handleOpenPlanSheet = (user: UserProfile) => {
     setSelectedUser(user);

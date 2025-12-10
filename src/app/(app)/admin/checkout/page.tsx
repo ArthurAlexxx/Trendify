@@ -4,7 +4,7 @@ import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/hooks/use-toast';
+import { useResponsiveToast } from '@/hooks/use-responsive-toast';
 import { CreditCard, Loader2, AlertTriangle, ExternalLink, XCircle, CheckCircle, RefreshCw, Info } from 'lucide-react';
 import { useState, useTransition, useEffect } from 'react';
 import { useUser, useFirestore } from '@/firebase';
@@ -35,7 +35,7 @@ export default function AdminCheckoutTestPage() {
   const firestore = useFirestore();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const { toast } = useToast();
+  const { toast } = useResponsiveToast();
   
   const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
   const [checkoutId, setCheckoutId] = useState<string | null>(null);
