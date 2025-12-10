@@ -100,7 +100,7 @@ function AnimatedHero() {
             <div className="absolute -inset-4 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl opacity-20 blur-2xl"></div>
              <div className="relative rounded-2xl shadow-2xl shadow-primary/20 overflow-hidden">
                 <Image
-                    src="https://firebasestorage.googleapis.com/v0/b/studio-4233590611-a8ab0.firebasestorage.app/o/FundoHeroBolo.png?alt=media&token=84189787-4b79-4217-b72a-c613f9d42cd1"
+                    src="https://firebasestorage.googleapis.com/v0/b/studio-4233590611-a8ab0.firebasestorage.app/o/Design%20sem%20nome%20(4).png?alt=media&token=3b4598c8-c32e-47da-9447-89b5f9104d9c"
                     alt="Dashboard da Trendify mostrando métricas de crescimento"
                     width={1200}
                     height={750}
