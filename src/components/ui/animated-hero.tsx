@@ -1,7 +1,6 @@
-
 'use client';
-import { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useMemo, useState, useRef } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowUpRight, Sparkles } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import Link from "next/link";
@@ -25,6 +24,15 @@ function AnimatedHero() {
     }, 2000);
     return () => clearTimeout(timeoutId);
   }, [titleNumber, titles]);
+
+  const targetRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: targetRef,
+    offset: ["start end", "end start"],
+  });
+
+  const scale = useTransform(scrollYProgress, [0, 0.5], [0.9, 1]);
+
 
   return (
     <div className="w-full">
@@ -92,8 +100,9 @@ function AnimatedHero() {
           </div>
         </div>
       </div>
-      {/* Nova seção para a imagem com gradiente */}
-      <div
+      
+      <section
+        ref={targetRef}
         className="relative py-12"
         style={{
           background:
@@ -102,9 +111,7 @@ function AnimatedHero() {
       >
         <div className="container mx-auto">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
+            style={{ scale }}
             className="relative w-full max-w-7xl mx-auto"
           >
             <Image
@@ -117,7 +124,7 @@ function AnimatedHero() {
             />
           </motion.div>
         </div>
-      </div>
+      </section>
     </div>
   );
 }
