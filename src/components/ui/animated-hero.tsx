@@ -94,7 +94,7 @@ function AnimatedHero() {
       </div>
       {/* Nova seção para a imagem com gradiente */}
       <div
-        className="relative py-0"
+        className="relative py-20"
         style={{
           background:
             'radial-gradient(circle at 50% 50%, hsl(var(--primary) / 0.15) 0%, transparent 70%)',
