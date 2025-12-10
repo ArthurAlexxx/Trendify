@@ -116,34 +116,17 @@ const hasAccess = (userPlan: Plan, itemPlan: Plan): boolean => {
     return planHierarchy[userPlan] >= planHierarchy[itemPlan];
 }
 
-const mockUser: UserProfile = {
-    id: 'demo-user',
-    displayName: 'Ana Clara',
-    email: 'ana.clara@example.com',
-    photoURL: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80',
-    createdAt: Timestamp.now(),
-};
-
 
 export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile?: boolean, setIsMobileMenuOpen?: (isOpen: boolean) => void }) {
   const pathname = usePathname();
-  // const { user, firestore, isUserLoading } = useUser();
+  const { user, firestore, isUserLoading } = useUser();
   const auth = useAuth();
   const router = useRouter();
-  // const { subscription, isLoading: isSubscriptionLoading } = useSubscription();
-  // const { isAdmin, isLoading: isAdminLoading } = useAdmin();
+  const { subscription, isLoading: isSubscriptionLoading } = useSubscription();
+  const { isAdmin, isLoading: isAdminLoading } = useAdmin();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
-
-    // --- USE MOCK DATA ---
-  const user = mockUser as any;
-  const isUserLoading = false;
-  const isSubscriptionLoading = false;
-  const isAdmin = false;
-  const isAdminLoading = false;
-  // --- END OF MOCK DATA USAGE ---
-
 
   const handleSignOut = () => {
     auth.signOut();
@@ -156,10 +139,8 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
     }
   };
   
-  // const userPlan = subscription?.plan || 'free';
-  // const isUserActive = subscription?.status === 'active';
-  const userPlan = 'premium';
-  const isUserActive = true;
+  const userPlan = subscription?.plan || 'free';
+  const isUserActive = subscription?.status === 'active';
 
   const getPlanName = () => {
     if (isSubscriptionLoading || isAdminLoading) return "Carregando...";

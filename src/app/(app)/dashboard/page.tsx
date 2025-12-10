@@ -120,148 +120,105 @@ function CheckoutStatusHandler() {
     return null;
 }
 
-// --- MOCK DATA ---
-const mockUserProfile: UserProfile = {
-    id: 'demo-user',
-    displayName: 'Ana Clara',
-    email: 'ana.clara@example.com',
-    photoURL: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80',
-    createdAt: Timestamp.now(),
-    role: 'user',
-    niche: 'Lifestyle e moda sustentável',
-    instagramHandle: '@anaclara.style',
-    tiktokHandle: '@anaclarastyle',
-    totalFollowerGoal: 250000,
-    instagramFollowerGoal: 150000,
-    tiktokFollowerGoal: 100000,
-    instagramFollowers: '125K',
-    instagramAverageViews: '35.5K',
-    instagramAverageLikes: '2.1K',
-    instagramAverageComments: '350',
-    tiktokFollowers: '85K',
-    tiktokAverageViews: '150K',
-    tiktokAverageLikes: '12.5K',
-    tiktokAverageComments: '890',
-};
-
-const generateMockSnapshots = (): MetricSnapshot[] => {
-    const snapshots: MetricSnapshot[] = [];
-    const today = new Date();
-    const instagramStartFollowers = 110000;
-    const tiktokStartFollowers = 75000;
-
-    for (let i = 0; i < 30; i++) {
-        const date = new Date();
-        date.setDate(today.getDate() - (29 - i));
-
-        // Instagram data with more volatility
-        const instaFollowers = instagramStartFollowers + (i * 500) + Math.sin(i / 3) * 1000 + (Math.random() - 0.5) * 800;
-        snapshots.push({
-            id: `snap_insta_${i}`,
-            date: Timestamp.fromDate(date),
-            platform: 'instagram',
-            followers: Math.round(instaFollowers).toString(),
-            views: (30000 + i * 150 + Math.sin(i/2) * 500).toString(),
-            likes: (2000 + i * 25 + Math.sin(i/2) * 100).toString(),
-            comments: (300 + i * 5 + Math.sin(i/2) * 20).toString(),
-        });
-
-        // TikTok data with different growth pattern
-        const tiktokFollowers = tiktokStartFollowers + (i * 800) + Math.sin(i / 5) * 1500 + (Math.random() - 0.5) * 1000;
-        snapshots.push({
-            id: `snap_tiktok_${i}`,
-            date: Timestamp.fromDate(date),
-            platform: 'tiktok',
-            followers: Math.round(tiktokFollowers).toString(),
-            views: (140000 + i * 200 + Math.sin(i/3) * 1000).toString(),
-            likes: (12000 + i * 40 + Math.sin(i/3) * 200).toString(),
-            comments: (800 + i * 10 + Math.sin(i/3) * 50).toString(),
-        });
-    }
-    return snapshots;
-};
-const mockMetricSnapshots: MetricSnapshot[] = generateMockSnapshots();
-
-
-const mockWeeklyPlan: PlanoSemanal = {
-    id: 'plan1',
-    userId: 'demo-user',
-    createdAt: Timestamp.now(),
-    items: [
-        { dia: 'Terça', tarefa: 'Gravar Reel sobre "3 formas de usar uma camisa branca"', detalhes: 'Focar em transições rápidas e música em alta.', concluido: true },
-        { dia: 'Terça', tarefa: 'Interagir com 10 perfis do mesmo nicho', detalhes: 'Deixar comentários genuínos para aumentar a visibilidade.', concluido: false },
-    ],
-    desempenhoSimulado: [],
-    effortLevel: 'Médio',
-    priorityIndex: [],
-    realignmentTips: '',
-};
-
-const mockIdeiasSalvas: IdeiaSalva[] = [
-    { id: 'idea1', titulo: 'Review do novo serum da marca X', origem: 'Ideias de Vídeo', concluido: false, createdAt: Timestamp.now(), userId: 'demo-user', conteudo: '' },
-    { id: 'idea2', titulo: 'Collab com @outracriadora sobre moda circular', origem: 'Ideias de Vídeo', concluido: false, createdAt: Timestamp.now(), userId: 'demo-user', conteudo: '' },
-];
-const mockCompletedIdeas: IdeiaSalva[] = [
-    { id: 'idea3', titulo: 'Segredo Revelado: A Ordem Correta do Skincare', origem: 'Ideias de Vídeo', concluido: true, createdAt: Timestamp.now(), userId: 'demo-user', conteudo: '' },
-];
-
-
-const mockUpcomingContent: ConteudoAgendado[] = [
-    { id: 'cont1', title: 'Post: Lançamento do lookbook de inverno', contentType: 'Post', status: 'Agendado', date: Timestamp.fromDate(new Date()), userId: 'demo-user', createdAt: Timestamp.now() },
-    { id: 'cont2', title: 'Story: Enquete sobre próximos vídeos', contentType: 'Story', status: 'Agendado', date: Timestamp.fromDate(new Date()), userId: 'demo-user', createdAt: Timestamp.now() },
-];
-
-const mockInstaPosts: InstagramPostData[] = [
-    { id: 'insta1', shortcode: '', caption: 'Um dia incrível na praia, aproveitando o sol!', mediaUrl: 'https://images.unsplash.com/photo-1507525428034-b723a996f329?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80', likes: 2500, comments: 150, is_video: false, fetchedAt: Timestamp.now() },
-    { id: 'insta2', shortcode: '', caption: 'Provando o novo café da cidade. Recomendo!', mediaUrl: 'https://images.unsplash.com/photo-1511920183359-b1a7d5891341?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80', likes: 1800, comments: 95, is_video: false, fetchedAt: Timestamp.now() },
-];
-const mockTiktokPosts: TikTokPost[] = [
-     { id: 'tiktok1', description: 'Challenge de dança que deu (quase) certo!', coverUrl: 'https://images.unsplash.com/photo-1516974409955-1f19b0654877?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80', views: 250000, likes: 22000, comments: 1200, fetchedAt: Timestamp.now() },
-     { id: 'tiktok2', description: 'Tutorial rápido de maquiagem para o dia a dia.', coverUrl: 'https://images.unsplash.com/photo-1620421682332-1b6a65234552?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80', views: 180000, likes: 15000, comments: 850, fetchedAt: Timestamp.now() },
-];
-
-const mockInsights: DashboardInsightsOutput = {
-    insights: ["Seus vídeos de tutorial estão com uma taxa de salvamento 30% maior, indicando alto valor percebido.", "A taxa de engajamento em posts sobre sustentabilidade cresceu 15% na última semana.", "Seus stories com enquetes têm o dobro de interações em comparação com os de perguntas e respostas."],
-    trendAnalysis: { rising: ["Taxa de Salvamento", "Engajamento em Stories"], falling: ["Alcance de Reels"] },
-    predictiveForecast: { next7days: "+ 3.500 seguidores", next30days: "+ 12.000 seguidores" },
-    riskAlerts: ["O alcance dos Reels diminuiu 10%. Pode ser saturação do formato atual ou mudança no algoritmo.", "A frequência de posts diminuiu, o que pode impactar a entrega do seu conteúdo."],
-    recommendedActions: ["Crie uma série de tutoriais rápidos para capitalizar a alta taxa de salvamento.", "Faça uma colaboração com outro criador do nicho de moda sustentável para expandir o alcance.", "Teste novos formatos de Reels, como 'POV' ou 'Get Ready With Me'."],
-    bestPostTime: "Terças e Quintas, entre 18h e 20h.",
-    contentOpportunities: ["Criar um guia compilado dos seus melhores tutoriais.", "Fazer uma live sobre 'Como construir um guarda-roupa cápsula sustentável'."]
-}
-// --- END OF MOCK DATA ---
-
 
 export default function DashboardPage() {
-  // const { user, auth } = useUser();
-  // const firestore = useFirestore();
+  const { user, auth } = useUser();
+  const firestore = useFirestore();
   const { toast } = useToast();
   const [selectedPlatform, setSelectedPlatform] = useState<'total' | 'instagram' | 'tiktok'>('total');
   
   const [isGoalSheetOpen, setIsGoalSheetOpen] = useState(false);
-  // const [insights, setInsights] = useState<DashboardInsightsOutput | null>(null);
+  const [insights, setInsights] = useState<DashboardInsightsOutput | null>(null);
   const [isGeneratingInsights, setIsGeneratingInsights] = useState(false);
   
   const [selectedChartItem, setSelectedChartItem] = useState<any>(null);
 
-  // const { subscription, isLoading: isSubscriptionLoading } = useSubscription();
-  // const isPremium = subscription?.plan === 'premium' && subscription.status === 'active';
+  const { subscription, isLoading: isSubscriptionLoading } = useSubscription();
+  const isPremium = subscription?.plan === 'premium' && subscription.status === 'active';
 
-  // --- USE MOCK DATA ---
-  const user = { uid: 'demo-user' }; // mock user
-  const userProfile = mockUserProfile;
-  const metricSnapshots = mockMetricSnapshots;
-  const weeklyPlansData = [mockWeeklyPlan];
+  const userProfileRef = useMemoFirebase(
+    () => (user && firestore ? doc(firestore, `users/${user.uid}`) : null),
+    [user, firestore]
+  );
+  const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userProfileRef);
+
+  const metricSnapshotsQuery = useMemoFirebase(
+      () => user && firestore ? query(collection(firestore, `users/${user.uid}/metricSnapshots`), orderBy('date', 'desc'), limit(60)) : null,
+      [user, firestore]
+  )
+  const { data: metricSnapshots, isLoading: isLoadingMetrics } = useCollection<MetricSnapshot>(metricSnapshotsQuery);
+
+  const weeklyPlansQuery = useMemoFirebase(
+    () => user && firestore ? query(collection(firestore, `users/${user.uid}/weeklyPlans`), orderBy('createdAt', 'desc'), limit(1)) : null,
+    [user, firestore]
+  );
+  const { data: weeklyPlansData, isLoading: isLoadingWeeklyPlans } = useCollection<PlanoSemanal>(weeklyPlansQuery);
   const currentPlan = weeklyPlansData?.[0];
-  const ideiasSalvas = mockIdeiasSalvas;
-  const completedIdeas = mockCompletedIdeas;
-  const upcomingContent = mockUpcomingContent;
-  const instaPosts = mockInstaPosts;
-  const tiktokPosts = mockTiktokPosts;
-  const insights = mockInsights;
-  const isPremium = true;
-  const isLoading = false; // Set loading to false since we use mock data
-  // --- END OF MOCK DATA USAGE ---
+
+  const ideiasSalvasQuery = useMemoFirebase(
+    () =>
+      user && firestore
+        ? query(
+            collection(firestore, `users/${user.uid}/ideiasSalvas`),
+            where('concluido', '==', false),
+            orderBy('createdAt', 'desc'),
+            limit(3)
+          )
+        : null,
+    [user, firestore]
+  );
+  const { data: ideiasSalvas, isLoading: isLoadingIdeias } = useCollection<IdeiaSalva>(ideiasSalvasQuery);
+
+  const completedIdeasQuery = useMemoFirebase(
+    () =>
+      user && firestore
+        ? query(
+            collection(firestore, `users/${user.uid}/ideiasSalvas`),
+            where('concluido', '==', true),
+            orderBy('completedAt', 'desc'),
+            limit(3)
+          )
+        : null,
+    [user, firestore]
+  );
+  const { data: completedIdeas, isLoading: isLoadingCompleted } = useCollection<IdeiaSalva>(completedIdeasQuery);
+
+
+  const upcomingContentQuery = useMemoFirebase(
+    () =>
+      user && firestore
+        ? query(
+            collection(firestore, `users/${user.uid}/conteudoAgendado`),
+            where('status', '==', 'Agendado'),
+            orderBy('date', 'asc'),
+            limit(3)
+          )
+        : null,
+    [user, firestore]
+  );
+  const { data: upcomingContent, isLoading: isLoadingUpcoming } = useCollection<ConteudoAgendado>(upcomingContentQuery);
+
+  const instaPostsQuery = useMemoFirebase(
+      () => user && firestore ? query(collection(firestore, `users/${user.uid}/instagramPosts`), orderBy('fetchedAt', 'desc'), limit(10)) : null,
+      [user, firestore]
+  )
+  const { data: instaPosts, isLoading: isLoadingInstaPosts } = useCollection<InstagramPostData>(instaPostsQuery);
+
+  const tiktokPostsQuery = useMemoFirebase(
+      () => user && firestore ? query(collection(firestore, `users/${user.uid}/tiktokPosts`), orderBy('fetchedAt', 'desc'), limit(10)) : null,
+      [user, firestore]
+  )
+  const { data: tiktokPosts, isLoading: isLoadingTiktokPosts } = useCollection<TikTokPost>(tiktokPostsQuery);
+
+  const isLoading =
+    isProfileLoading ||
+    isLoadingMetrics ||
+    isLoadingWeeklyPlans ||
+    isLoadingIdeias ||
+    isLoadingUpcoming ||
+    isLoadingCompleted ||
+    isLoadingInstaPosts ||
+    isLoadingTiktokPosts;
 
 
   const handleChartItemClick = (item: any) => {
@@ -269,15 +226,46 @@ export default function DashboardPage() {
   }
   
   const handleToggleIdeia = async (ideia: IdeiaSalva) => {
-    toast({ title: "Ação de demonstração."});
+    if (!user || !firestore) return;
+    const ideaRef = doc(firestore, `users/${user.uid}/ideiasSalvas`, ideia.id);
+    try {
+      await updateDoc(ideaRef, {
+        concluido: !ideia.concluido,
+        completedAt: !ideia.concluido ? serverTimestamp() : null,
+      });
+      toast({
+        title: 'Sucesso!',
+        description: `Ideia marcada como ${!ideia.concluido ? 'concluída' : 'pendente'}.`,
+      });
+    } catch (e: any) {
+      toast({ title: 'Erro ao atualizar ideia', description: e.message, variant: 'destructive' });
+    }
   };
 
   const handleMarkAsPublished = async (postId: string) => {
-    toast({ title: "Ação de demonstração."});
+    if (!user || !firestore) return;
+    const postRef = doc(firestore, `users/${user.uid}/conteudoAgendado`, postId);
+    try {
+        await updateDoc(postRef, { status: 'Publicado' });
+        toast({ title: 'Sucesso!', description: 'Post marcado como publicado.' });
+    } catch (e: any) {
+        toast({ title: 'Erro ao atualizar post', description: e.message, variant: 'destructive' });
+    }
   };
 
   const handleToggleRoteiro = async (itemIndex: number) => {
-     toast({ title: "Ação de demonstração."});
+    if (!firestore || !currentPlan || !user) return;
+
+    const planRef = doc(firestore, `users/${user.uid}/weeklyPlans`, currentPlan.id);
+    const updatedItems = currentPlan.items.map((item, index) =>
+      index === itemIndex ? { ...item, concluido: !item.concluido } : item
+    );
+
+    try {
+      await updateDoc(planRef, { items: updatedItems });
+    } catch (e: any) {
+      toast({ title: 'Erro ao atualizar tarefa', description: e.message, variant: 'destructive' });
+    }
   };
 
   const parseMetric = useCallback((value?: string | number): number => {
@@ -302,8 +290,51 @@ export default function DashboardPage() {
   };
 
   const handleGenerateInsights = useCallback(async () => {
-     toast({ title: "Ação de demonstração."});
-  }, [toast]);
+    if (!isPremium) {
+      toast({
+        title: "Funcionalidade Premium",
+        description: "A análise de desempenho com IA está disponível no plano Premium.",
+      });
+      return;
+    }
+    if (!metricSnapshots || metricSnapshots.length < 2) {
+      toast({
+        title: "Dados Insuficientes",
+        description: "Sincronize suas métricas por pelo menos 2 dias para gerar insights.",
+        variant: "destructive"
+      });
+      return;
+    }
+    if (!userProfile?.niche || !userProfile?.totalFollowerGoal) {
+       toast({
+        title: "Perfil Incompleto",
+        description: "Por favor, defina seu nicho e sua meta de seguidores no seu perfil.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsGeneratingInsights(true);
+    try {
+      const result = await generateDashboardInsights({
+        metricSnapshots: metricSnapshots.map(s => ({
+            ...s,
+            date: s.date.toDate().toISOString(),
+            followers: parseMetric(s.followers),
+            views: parseMetric(s.views),
+            likes: parseMetric(s.likes),
+            comments: parseMetric(s.comments),
+        })),
+        niche: userProfile.niche,
+        objective: `Atingir a meta de ${userProfile.totalFollowerGoal} seguidores.`,
+      });
+      setInsights(result);
+    } catch (e: any) {
+      toast({ title: "Erro ao Gerar Insights", description: e.message, variant: "destructive" });
+    } finally {
+      setIsGeneratingInsights(false);
+    }
+  }, [isPremium, metricSnapshots, userProfile, parseMetric, toast]);
 
   const { currentFollowers, goalFollowers, isGoalReached } = useMemo(() => {
     if (!userProfile) return { currentFollowers: 0, goalFollowers: 0, isGoalReached: false };
@@ -448,17 +479,17 @@ export default function DashboardPage() {
                   />
                  </div>
                  <DailyPlanCard 
-                    isLoadingWeeklyPlans={isLoading}
+                    isLoadingWeeklyPlans={isLoadingWeeklyPlans}
                     currentPlan={currentPlan} 
                     handleToggleRoteiro={handleToggleRoteiro} 
                   />
                  <ActionHubCard 
-                    isLoadingUpcoming={isLoading}
+                    isLoadingUpcoming={isLoadingUpcoming}
                     upcomingContent={upcomingContent}
-                    isLoadingIdeias={isLoading}
+                    isLoadingIdeias={isLoadingIdeias}
                     ideiasSalvas={ideiasSalvas}
                     completedIdeas={completedIdeas}
-                    isLoadingCompleted={isLoading}
+                    isLoadingCompleted={isLoadingCompleted}
                     handleToggleIdeia={handleToggleIdeia}
                     handleMarkAsPublished={handleMarkAsPublished}
                   />
