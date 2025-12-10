@@ -399,9 +399,9 @@ export default function DashboardPage() {
             </div>
             
             {/* Common Layout for the main content */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+            <div className="grid grid-cols-1 xl:grid-cols-5 gap-8 items-start">
               {/* Left Column (Desktop) / Second section (Mobile) */}
-              <div className="lg:col-span-1 space-y-8">
+              <div className="xl:col-span-2 space-y-8">
                  <div className="hidden md:block">
                   <GoalCard 
                     isLoading={isLoading} 
@@ -428,7 +428,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Right Column (Desktop) / First section (Mobile) */}
-              <div className="lg:col-span-2 space-y-8">
+              <div className="xl:col-span-3 space-y-8">
                 <div className="hidden md:block">
                     <EngagementMetricsCard 
                       isLoading={isLoading} 
