@@ -133,17 +133,19 @@ export default function ActionHubCard({
                         className="h-5 w-5 mt-0.5"
                       />
                       <div className="flex-1 grid gap-0.5">
-                        <label
-                          htmlFor={`ideia-${ideia.id}`}
-                          className={cn(
-                            'font-medium transition-colors cursor-pointer text-sm',
-                            ideia.concluido
-                              ? 'line-through text-muted-foreground'
-                              : 'text-foreground'
-                          )}
-                        >
-                          {ideia.titulo}
-                        </label>
+                         <SavedIdeasSheet idea={ideia}>
+                           <label
+                              htmlFor={`ideia-${ideia.id}-label`}
+                              className={cn(
+                                'font-medium transition-colors cursor-pointer text-sm',
+                                ideia.concluido
+                                  ? 'line-through text-muted-foreground'
+                                  : 'text-foreground'
+                              )}
+                            >
+                              {ideia.titulo}
+                            </label>
+                         </SavedIdeasSheet>
                         <p className="text-xs text-muted-foreground">
                           de "{ideia.origem}"
                         </p>

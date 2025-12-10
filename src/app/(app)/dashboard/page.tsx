@@ -69,7 +69,7 @@ const ActionHubCard = dynamic(() => import('@/components/dashboard/action-hub-ca
   loading: () => <Skeleton className="h-full min-h-[300px]" />,
 });
 
-const EngagementMetricsCard = dynamic(() => import('@/components/dashboard/engagement-metrics-card'), {
+const EngagementMetricsCard = dynamic(() => import('@/app/(app)/dashboard/engagement-metrics-card'), {
   loading: () => <Skeleton className="h-[140px]" />,
 });
 
@@ -155,7 +155,13 @@ export default function DashboardPage() {
   const currentPlan = weeklyPlansData?.[0];
 
   const ideiasQuery = useMemoFirebase(() => (
-    firestore && user ? query(collection(firestore, `users/${user.uid}/ideiasSalvas`), where('concluido', '==', false), orderBy('createdAt', 'desc'), limit(5)) : null
+    firestore && user ? query(
+        collection(firestore, `users/${user.uid}/ideiasSalvas`), 
+        where('concluido', '==', false),
+        where('origem', '==', 'Ideias de Vídeo'),
+        orderBy('createdAt', 'desc'), 
+        limit(5)) 
+    : null
   ), [firestore, user]);
   const { data: ideiasSalvas, isLoading: isLoadingIdeias } = useCollection<IdeiaSalva>(ideiasQuery);
 
