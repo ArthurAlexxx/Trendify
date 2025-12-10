@@ -159,9 +159,9 @@ export default function ActionHubCard({
                     </div>
                   ))}
                    <div className="pt-2">
-                        <SavedIdeasSheet idea={null}>
-                            <Button variant="link" className="w-full">Ver todos</Button>
-                        </SavedIdeasSheet>
+                        <Button variant="link" className="w-full" asChild>
+                            <Link href="/content-calendar">Ver calendário completo</Link>
+                        </Button>
                     </div>
                 </div>
               ) : (
