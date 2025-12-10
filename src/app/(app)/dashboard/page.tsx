@@ -390,7 +390,7 @@ export default function DashboardPage() {
             <div className="md:hidden">
                 <Carousel className="w-full" opts={{ align: "start", loop: true }}>
                   <CarouselContent className="-ml-4">
-                    <CarouselItem className="pl-4 basis-[90%] pb-4">
+                    <CarouselItem className="pl-4 basis-[90%] pb-8">
                       <div className="p-1 h-full">
                         <GoalCard 
                           isLoading={isLoading} 
@@ -402,7 +402,7 @@ export default function DashboardPage() {
                         />
                       </div>
                     </CarouselItem>
-                    <CarouselItem className="pl-4 basis-[90%] pb-4">
+                    <CarouselItem className="pl-4 basis-[90%] pb-8">
                       <div className="p-1 h-full">
                         <EngagementMetricsCard 
                           isLoading={isLoading} 
