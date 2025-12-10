@@ -22,6 +22,7 @@ import type {
 import { SavedIdeasSheet } from '../saved-ideas-sheet';
 import React from 'react';
 import { Input } from '../ui/input';
+import { useRouter } from 'next/navigation';
 
 interface ActionHubCardProps {
   isLoadingUpcoming: boolean;
@@ -35,6 +36,13 @@ interface ActionHubCardProps {
 }
 
 const ITEMS_PER_PAGE = 3;
+
+const originToPathMap: Record<string, string> = {
+  'Ideias de Vídeo': '/video-ideas',
+  'Plano Semanal': '/generate-weekly-plan',
+  'Mídia Kit & Prospecção': '/media-kit',
+  'Propostas & Publis': '/publis-assistant',
+};
 
 export default function ActionHubCard({
   isLoadingUpcoming,
@@ -50,6 +58,19 @@ export default function ActionHubCard({
     const [completedPage, setCompletedPage] = React.useState(1);
     const [savedSearchTerm, setSavedSearchTerm] = React.useState('');
     const [completedSearchTerm, setCompletedSearchTerm] = React.useState('');
+    const router = useRouter();
+
+
+    const handleViewDetails = (idea: IdeiaSalva) => {
+        const path = originToPathMap[idea.origem];
+        if (path) {
+            localStorage.setItem('ai-result-to-view', JSON.stringify(idea));
+            router.push(path);
+        } else {
+            // Fallback for ideas without a specific page, like older ones
+            alert("Não foi possível encontrar a página de origem para esta ideia.");
+        }
+    }
 
     const filteredSavedIdeas = React.useMemo(() => {
         if (!ideiasSalvas) return [];
@@ -122,12 +143,10 @@ export default function ActionHubCard({
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                    <SavedIdeasSheet idea={ideia}>
-                       <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                            <Eye className="mr-2 h-4 w-4" />
-                            <span>Ver Detalhes</span>
-                        </DropdownMenuItem>
-                    </SavedIdeasSheet>
+                   <DropdownMenuItem onSelect={() => handleViewDetails(ideia)}>
+                        <Eye className="mr-2 h-4 w-4" />
+                        <span>Ver Detalhes</span>
+                    </DropdownMenuItem>
                     <DropdownMenuItem
                         onClick={() => handleToggleIdeia(ideia)}
                     >

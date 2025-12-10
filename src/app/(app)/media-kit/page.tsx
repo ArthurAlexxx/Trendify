@@ -189,6 +189,24 @@ function MediaKitPageContent() {
 
 
   useEffect(() => {
+    // Check for a result to view from another page
+    const itemToViewStr = localStorage.getItem('ai-result-to-view');
+    if (itemToViewStr) {
+      try {
+        const item: IdeiaSalva = JSON.parse(itemToViewStr);
+        if (item.origem === 'Mídia Kit & Prospecção' && item.aiResponseData) {
+          setResult(item.aiResponseData);
+          setActiveTab('result'); // Switch to result tab to show it
+        }
+      } catch (e) {
+        console.error("Failed to parse item to view from localStorage", e);
+      } finally {
+        localStorage.removeItem('ai-result-to-view');
+      }
+      return; // Exit early if we are viewing a specific item
+    }
+
+
     const savedResult = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (savedResult) {
         try {
