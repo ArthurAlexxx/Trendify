@@ -150,7 +150,8 @@ export default function GenerateWeeklyPlanPage() {
 
   const generationsToday = usageData?.geracoesAI || 0;
   const isPremium = subscription?.plan === 'premium';
-  const hasReachedLimit = !isPremium;
+  const isPro = subscription?.plan === 'pro';
+  const hasReachedLimit = !isPremium && !isPro;
 
 
   useEffect(() => {
@@ -556,7 +557,7 @@ export default function GenerateWeeklyPlanPage() {
                     </ResponsiveDialog>
                     {hasReachedLimit && (
                       <p className="text-sm text-muted-foreground text-center sm:text-left">
-                        Você precisa de um plano <Link href="/subscribe" className='underline text-primary font-semibold'>Premium</Link> para usar esta ferramenta.
+                        Você precisa de um plano <Link href="/subscribe" className='underline text-primary font-semibold'>Pro</Link> ou superior para usar esta ferramenta.
                       </p>
                     )}
                 </div>
@@ -627,7 +628,7 @@ export default function GenerateWeeklyPlanPage() {
                                             </CardTitle>
                                             </CardHeader>
                                             <CardContent className="pl-0 sm:pl-2">
-                                                <ChartContainer config={chartConfig} className="h-[300px] w-full">
+                                                <ChartContainer config={chartConfig} className="h-[250px] w-full">
                                                     <BarChart accessibilityLayer data={result.desempenhoSimulado} margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
                                                         <CartesianGrid vertical={false} />
                                                         <XAxis dataKey="data" tickLine={false} axisLine={false} />
@@ -709,7 +710,7 @@ export default function GenerateWeeklyPlanPage() {
                                 <CardContent className="pl-0 sm:pl-2">
                                 <ChartContainer
                                     config={chartConfig}
-                                    className="h-[300px] w-full"
+                                    className="h-[250px] w-full"
                                 >
                                     <BarChart
                                         accessibilityLayer
@@ -853,7 +854,7 @@ export default function GenerateWeeklyPlanPage() {
                                     <Card className="shadow-primary-lg">
                                         <CardHeader><CardTitle className="font-headline text-lg">Desempenho Simulado</CardTitle></CardHeader>
                                         <CardContent className="pl-0 sm:pl-2">
-                                            <ChartContainer config={chartConfig} className="h-[300px] w-full">
+                                            <ChartContainer config={chartConfig} className="h-[250px] w-full">
                                             <BarChart data={activePlan.desempenhoSimulado} margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
                                                 <CartesianGrid vertical={false} />
                                                 <XAxis dataKey="data" tickLine={false} axisLine={false} />

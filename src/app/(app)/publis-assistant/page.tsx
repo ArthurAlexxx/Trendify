@@ -215,7 +215,8 @@ function PublisAssistantPageContent() {
 
   const generationsToday = usageData?.geracoesAI || 0;
   const isPremium = subscription?.plan === 'premium';
-  const hasReachedLimit = !isPremium && generationsToday >= 5;
+  const isPro = subscription?.plan === 'pro';
+  const hasReachedLimit = !isPremium && !isPro;
 
 
   const form = useForm<FormSchemaType>({
@@ -565,7 +566,7 @@ function PublisAssistantPageContent() {
                     </ResponsiveDialog>
                     {hasReachedLimit && (
                       <p className="text-sm text-muted-foreground text-center sm:text-left">
-                        Você precisa de um plano <Link href="/subscribe" className='underline text-primary font-semibold'>Premium</Link> para usar esta ferramenta.
+                        Você precisa de um plano <Link href="/subscribe" className='underline text-primary font-semibold'>Pro</Link> ou superior para usar esta ferramenta.
                       </p>
                     )}
               </div>

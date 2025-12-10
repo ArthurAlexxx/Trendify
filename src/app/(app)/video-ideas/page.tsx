@@ -181,7 +181,8 @@ export default function VideoIdeasPage() {
 
 
   const generationsToday = usageData?.geracoesAI || 0;
-  const hasReachedFreeLimit = isTrialActive && generationsToday >= 2;
+  const isPro = subscription?.plan === 'pro';
+  const hasReachedFreeLimit = !isPro && isTrialActive && generationsToday >= 2;
 
 
   const form = useForm<FormSchemaType>({
