@@ -58,6 +58,24 @@
       ]
     },
     {
+      "collectionGroup": "ideiasSalvas",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "concluido",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "origem",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "metricSnapshots",
       "queryScope": "COLLECTION_GROUP",
       "fields": [
@@ -98,3 +116,4 @@
   ],
   "fieldOverrides": []
 }
+
