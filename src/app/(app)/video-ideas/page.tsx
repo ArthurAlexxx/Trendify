@@ -146,6 +146,8 @@ export default function VideoIdeasPage() {
   const [viewingSavedItem, setViewingSavedItem] = useState<IdeiaSalva | null>(null);
   const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
   const [ideaToDelete, setIdeaToDelete] = useState<IdeiaSalva | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
 
   useEffect(() => {
     const savedResult = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -327,30 +329,34 @@ export default function VideoIdeasPage() {
   
   const confirmDelete = (idea: IdeiaSalva) => {
     setIdeaToDelete(idea);
+    setIsDeleteDialogOpen(true);
   }
 
   const handleDelete = async () => {
     if (!ideaToDelete || !user || !firestore) return;
-    
+
     try {
-      await deleteDoc(doc(firestore, `users/${user.uid}/ideiasSalvas`, ideaToDelete.id));
-      toast({
-        title: "Ideia Excluída",
-        description: `"${ideaToDelete.titulo}" foi removido permanentemente.`,
-      });
-      setIdeaToDelete(null);
-      if(viewingSavedItem?.id === ideaToDelete.id) {
-        setIsDetailSheetOpen(false);
-        setViewingSavedItem(null);
-      }
-    } catch(e: any) {
+        await deleteDoc(doc(firestore, `users/${user.uid}/ideiasSalvas`, ideaToDelete.id));
         toast({
-          title: "Erro ao Excluir",
-          description: e.message,
-          variant: "destructive"
+            title: "Ideia Excluída",
+            description: `"${ideaToDelete.titulo}" foi removido permanentemente.`,
+        });
+        setIsDeleteDialogOpen(false);
+        // If the deleted idea was being viewed, close the detail modal
+        if (viewingSavedItem?.id === ideaToDelete.id) {
+            setIsDetailSheetOpen(false);
+            setViewingSavedItem(null);
+        }
+        setIdeaToDelete(null);
+    } catch (e: any) {
+        toast({
+            title: "Erro ao Excluir",
+            description: e.message,
+            variant: "destructive"
         });
     }
   }
+
 
   const isButtonDisabled = isGenerating || hasReachedLimit;
 
@@ -546,28 +552,27 @@ export default function VideoIdeasPage() {
               <VideoIdeasResultView result={viewingSavedItem.aiResponseData} formValues={viewingSavedItem.aiResponseData.formValues} isSheetView />
             </ScrollArea>
             <div className="p-6 pt-4 border-t flex justify-between">
-                <AlertDialog>
-                   <AlertDialogTrigger asChild>
-                     <Button variant="destructive">
-                        <Trash2 className="mr-2 h-4 w-4" /> Excluir
-                     </Button>
-                   </AlertDialogTrigger>
-                   <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Tem certeza que deseja excluir?</AlertDialogTitle>
-                      <AlertDialogDescription>A ideia "{viewingSavedItem.titulo}" será removida. Esta ação não pode ser desfeita.</AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => handleDelete()}>Sim, Excluir</AlertDialogAction>
-                    </AlertDialogFooter>
-                   </AlertDialogContent>
-                </AlertDialog>
+                <Button variant="destructive" onClick={() => confirmDelete(viewingSavedItem)}>
+                    <Trash2 className="mr-2 h-4 w-4" /> Excluir
+                </Button>
                 <Button type="button" variant="outline" onClick={() => setIsDetailSheetOpen(false)}>Fechar</Button>
             </div>
           </DialogContent>
         )}
       </Dialog>
+      
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+           <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Tem certeza que deseja excluir?</AlertDialogTitle>
+              <AlertDialogDescription>A ideia "{ideaToDelete?.titulo}" será removida permanentemente. Esta ação não pode ser desfeita.</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setIdeaToDelete(null)}>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete}>Sim, Excluir</AlertDialogAction>
+            </AlertDialogFooter>
+           </AlertDialogContent>
+        </AlertDialog>
     </div>
   );
 }
