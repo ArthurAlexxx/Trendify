@@ -29,7 +29,7 @@ function AnimatedHero() {
   return (
     <div className="w-full">
       <div className="container mx-auto">
-        <div className="flex gap-8 pt-20 items-center justify-center flex-col pb-6">
+        <div className="flex gap-8 pt-12 items-center justify-center flex-col pb-6">
           <div>
             <Button variant="outline" size="sm" className="gap-4 rounded-full bg-transparent text-primary hover:bg-primary/10 border-primary">
                <Sparkles className="w-4 h-4 animate-pulse" />
@@ -97,9 +97,9 @@ function AnimatedHero() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="relative w-full max-w-5xl mt-8"
           >
-             <div
+            <div
               className="relative rounded-2xl p-2"
-              style={{
+               style={{
                 background: 'radial-gradient(circle at center, hsl(var(--primary) / 0.15) 0%, hsl(var(--primary) / 0.05) 40%, transparent 70%)',
               }}
              >
