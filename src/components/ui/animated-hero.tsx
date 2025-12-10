@@ -95,10 +95,9 @@ function AnimatedHero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="relative w-full max-w-7xl mt-12"
+            className="relative w-full max-w-6xl mt-12"
           >
-            <div className="absolute -inset-4 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl opacity-20 blur-2xl"></div>
-             <div className="relative rounded-2xl shadow-2xl shadow-primary/20 overflow-hidden">
+             <div className="relative rounded-2xl overflow-hidden">
                 <Image
                     src="https://firebasestorage.googleapis.com/v0/b/studio-4233590611-a8ab0.firebasestorage.app/o/Design%20sem%20nome%20(4).png?alt=media&token=3b4598c8-c32e-47da-9447-89b5f9104d9c"
                     alt="Dashboard da Trendify mostrando métricas de crescimento"
