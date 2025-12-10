@@ -166,6 +166,28 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
 
     return finalData;
   }, [metricSnapshots]);
+  
+   const chartPostsData = useMemo(() => {
+    let posts = allPosts.slice(0, 15).reverse();
+    if (posts.length === 1) {
+      const zeroPoint: PostData = {
+        id: 'zero',
+        name: 'Início',
+        postLabel: 'Post 0',
+        views: 0,
+        likes: 0,
+        comments: 0,
+        engagement: 0,
+        url: '',
+        mediaUrl: '',
+        coverUrl: '',
+        date: subDays(posts[0].date, 1),
+        isVideo: false,
+      };
+      return [zeroPoint, ...posts];
+    }
+    return posts;
+  }, [allPosts]);
 
 
   const CustomTooltip = ({ active, payload, label }: any) => {
@@ -268,7 +290,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
     <Card className="shadow-primary-lg">
       <Tabs defaultValue="evolution" className="w-full">
         <CardHeader>
-            <CardTitle className="text-center flex items-center justify-center gap-2 text-base">
+            <CardTitle className="text-center text-lg">
             Performance de Posts
             </CardTitle>
             <div className="w-full pt-4 flex justify-center">
@@ -321,7 +343,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                 allPosts.length > 0 ? (
                     <ChartContainer config={chartConfigBase} className="h-[250px] w-full flex-1">
                         <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={allPosts.slice(0, 15).reverse()} margin={{ top: 5, right: 20, left: -10, bottom: 5 }} onClick={handleChartClick} className="cursor-pointer">
+                        <AreaChart data={chartPostsData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }} onClick={handleChartClick} className="cursor-pointer">
                             <defs>
                                 <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="var(--color-views)" stopOpacity={0.8}/><stop offset="95%" stopColor="var(--color-views)" stopOpacity={0.1}/></linearGradient>
                                 <linearGradient id="colorLikes" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="var(--color-likes)" stopOpacity={0.8}/><stop offset="95%" stopColor="var(--color-likes)" stopOpacity={0.1}/></linearGradient>
