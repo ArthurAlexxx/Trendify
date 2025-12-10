@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-responsive-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Camera,
@@ -53,6 +53,7 @@ import {
   ArrowLeft,
   ChevronLeft,
   ChevronRight,
+  Search,
 } from 'lucide-react';
 import { useEffect, useTransition, useState, useCallback, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
@@ -150,6 +151,7 @@ export default function VideoIdeasPage() {
   const [ideaToDelete, setIdeaToDelete] = useState<IdeiaSalva | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [savedIdeasPage, setSavedIdeasPage] = useState(1);
+  const [savedSearchTerm, setSavedSearchTerm] = useState('');
 
 
   useEffect(() => {
@@ -187,8 +189,12 @@ export default function VideoIdeasPage() {
   const { data: savedIdeas, isLoading: isLoadingSaved } = useCollection<IdeiaSalva>(savedIdeasQuery);
   
   const videoIdeas = useMemo(() => {
-    return savedIdeas?.filter(idea => idea.origem === 'Ideias de Vídeo') || [];
-  }, [savedIdeas]);
+    if (!savedIdeas) return [];
+    return savedIdeas.filter(idea => 
+      idea.origem === 'Ideias de Vídeo' &&
+      idea.titulo.toLowerCase().includes(savedSearchTerm.toLowerCase())
+    );
+  }, [savedIdeas, savedSearchTerm]);
   
   const paginatedVideoIdeas = useMemo(() => {
     const startIndex = (savedIdeasPage - 1) * ITEMS_PER_PAGE;
@@ -515,10 +521,24 @@ export default function VideoIdeasPage() {
         </TabsContent>
          <TabsContent value="saved">
           <Card className="rounded-t-none border-t-0 shadow-primary-lg">
-            <CardContent className="pt-6">
+            <CardHeader>
+                 <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                        placeholder="Buscar ideias salvas..."
+                        className="pl-10 h-11"
+                        value={savedSearchTerm}
+                        onChange={(e) => {
+                            setSavedSearchTerm(e.target.value);
+                            setSavedIdeasPage(1); // Reset page on new search
+                        }}
+                    />
+                </div>
+            </CardHeader>
+            <CardContent>
                 <div className="min-h-[400px]">
                     {isLoadingSaved ? <Loader2 className="mx-auto h-8 w-8 animate-spin" /> 
-                    : videoIdeas && videoIdeas.length > 0 ? (
+                    : paginatedVideoIdeas && paginatedVideoIdeas.length > 0 ? (
                         <>
                         <ul className="space-y-2">
                         {paginatedVideoIdeas.map((idea) => (
@@ -586,8 +606,8 @@ export default function VideoIdeasPage() {
                         </>
                     ) : (
                         <div className="text-center h-full flex flex-col items-center justify-center py-20">
-                        <Inbox className="h-10 w-10 text-muted-foreground mb-4" />
-                        <p className="text-muted-foreground">Nenhuma ideia salva.</p>
+                           <Inbox className="h-10 w-10 text-muted-foreground mb-4" />
+                           <p className="text-muted-foreground">{savedSearchTerm ? "Nenhuma ideia encontrada." : "Nenhuma ideia salva."}</p>
                         </div>
                     )}
                 </div>
@@ -615,4 +635,3 @@ export default function VideoIdeasPage() {
     </div>
   );
 }
-
