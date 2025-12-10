@@ -69,7 +69,7 @@ export function VideoIdeasResultView({ result, formValues, isSheetView = false }
                 <div className="lg:col-span-2 space-y-6">
                     <Card className="shadow-primary-lg">
                         <CardHeader>
-                            <CardTitle className="text-center flex items-center gap-3 text-lg font-semibold text-foreground">
+                            <CardTitle className="flex items-center gap-3 text-lg font-semibold text-foreground">
                                 <Pen className="h-5 w-5 text-primary" />
                                 <span>Roteiro do Vídeo</span>
                             </CardTitle>
@@ -77,11 +77,11 @@ export function VideoIdeasResultView({ result, formValues, isSheetView = false }
                         <CardContent>
                             <Accordion type="single" collapsible defaultValue='item-1' className="w-full">
                                 <AccordionItem value="item-1">
-                                    <AccordionTrigger>Roteiro Longo (45-60s)</AccordionTrigger>
+                                    <AccordionTrigger className="text-base">Roteiro Longo (45-60s)</AccordionTrigger>
                                     <AccordionContent className="text-base text-muted-foreground whitespace-pre-wrap">{result.script.scriptLongo}</AccordionContent>
                                 </AccordionItem>
                                 <AccordionItem value="item-2">
-                                    <AccordionTrigger>Roteiro Curto (15-25s)</AccordionTrigger>
+                                    <AccordionTrigger className="text-base">Roteiro Curto (15-25s)</AccordionTrigger>
                                     <AccordionContent className="text-base text-muted-foreground whitespace-pre-wrap">{result.script.roteiroCurto}</AccordionContent>
                                 </AccordionItem>
                             </Accordion>
@@ -89,7 +89,7 @@ export function VideoIdeasResultView({ result, formValues, isSheetView = false }
                     </Card>
 
                     <Card className="shadow-primary-lg">
-                        <CardHeader><CardTitle className="text-center flex items-center gap-3 text-lg font-semibold"><AlertTriangle className="h-5 w-5 text-primary" />Análise de Concorrência</CardTitle></CardHeader>
+                        <CardHeader><CardTitle className="flex items-center gap-3 text-lg font-semibold"><AlertTriangle className="h-5 w-5 text-primary" />Análise de Concorrência</CardTitle></CardHeader>
                         <CardContent>
                             <Accordion type="single" collapsible className="w-full">
                                 {result.nicheCompetitors.map((item: any, index: number) => (
@@ -107,7 +107,7 @@ export function VideoIdeasResultView({ result, formValues, isSheetView = false }
                 </div>
                 <div className="space-y-8">
                     <Card className="shadow-primary-lg">
-                        <CardHeader><CardTitle className="text-center flex items-center gap-3 text-lg font-semibold"><TrendingUp className="h-5 w-5 text-primary" />Potencial de Viralização</CardTitle></CardHeader>
+                        <CardHeader><CardTitle className="flex items-center gap-3 text-lg font-semibold"><TrendingUp className="h-5 w-5 text-primary" />Potencial de Viralização</CardTitle></CardHeader>
                         <CardContent className="space-y-4">
                             <div className="text-center">
                                 <p className="text-5xl font-bold font-headline">{result.viralScore}</p>
@@ -124,9 +124,9 @@ export function VideoIdeasResultView({ result, formValues, isSheetView = false }
                         <InfoCard title="Música em Alta" icon={Disc} content={result.trendingSong} />
                     </div>
 
-                    {result.platformAdaptations && (result.platformAdaptations.tiktok || result.platformAdaptations.reels || result.platformAdaptations.shorts) && (
+                    {result.platformAdaptations && (
                         <Card className="shadow-primary-lg">
-                            <CardHeader><CardTitle className="text-center flex items-center gap-3 text-lg font-semibold"><LightbulbIcon className="h-5 w-5 text-primary" />Adaptação para Plataformas</CardTitle></CardHeader>
+                            <CardHeader><CardTitle className="flex items-center gap-3 text-lg font-semibold"><LightbulbIcon className="h-5 w-5 text-primary" />Adaptação para Plataformas</CardTitle></CardHeader>
                             <CardContent className="space-y-4">
                                 {result.platformAdaptations.tiktok && (
                                     <div>
@@ -151,12 +151,12 @@ export function VideoIdeasResultView({ result, formValues, isSheetView = false }
                     )}
 
                     <Card className="shadow-primary-lg">
-                        <CardHeader><CardTitle className="text-center flex items-center gap-3 text-lg font-semibold"><Camera className="h-5 w-5 text-primary" />Checklist de Gravação</CardTitle></CardHeader>
+                        <CardHeader><CardTitle className="flex items-center gap-3 text-lg font-semibold"><Camera className="h-5 w-5 text-primary" />Checklist de Gravação</CardTitle></CardHeader>
                         <CardContent>
                             <ul className="space-y-2">
                                 {result.takesChecklist.map((take: string, index: number) => (
-                                    <li key={index} className="flex items-center gap-2 text-sm text-muted-foreground">
-                                        <Check className="h-4 w-4 text-primary shrink-0" />
+                                    <li key={index} className="flex items-start gap-2 text-sm text-muted-foreground">
+                                        <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
                                         <span>{take}</span>
                                     </li>
                                 ))}

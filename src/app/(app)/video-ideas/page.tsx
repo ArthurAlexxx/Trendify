@@ -182,7 +182,7 @@ export default function VideoIdeasPage() {
 
   const generationsToday = usageData?.geracoesAI || 0;
   const isPro = subscription?.plan === 'pro';
-  const hasReachedFreeLimit = !isPro && isTrialActive && generationsToday >= 2;
+  const hasReachedLimit = !isPro && !isTrialActive;
 
 
   const form = useForm<FormSchemaType>({
@@ -323,8 +323,7 @@ export default function VideoIdeasPage() {
     });
   }
 
-  const isButtonDisabled = isGenerating || hasReachedFreeLimit;
-  const isFreePlan = subscription?.plan === 'free';
+  const isButtonDisabled = isGenerating || hasReachedLimit;
 
 
   return (
@@ -417,12 +416,9 @@ export default function VideoIdeasPage() {
                         />
                       </DialogContent>
                     </Dialog>
-                     {isFreePlan && (
+                     {hasReachedLimit && (
                       <p className="text-sm text-muted-foreground text-center sm:text-left">
-                        {isLoadingUsage ? <Skeleton className="h-4 w-32" /> : hasReachedFreeLimit 
-                          ? 'Você atingiu seu limite de hoje.'
-                          : `Gerações restantes hoje: ${2 - generationsToday}/2.`
-                        }
+                        Você atingiu seu limite diário de gerações gratuitas.
                         {' '}
                         <Link href="/subscribe" className='underline text-primary font-semibold'>Faça upgrade para mais.</Link>
                       </p>
