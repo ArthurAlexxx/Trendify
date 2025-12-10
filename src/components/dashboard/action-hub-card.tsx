@@ -101,9 +101,9 @@ export default function ActionHubCard({
         </CardTitle>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col">
-        <Tabs defaultValue="ideias" className="w-full flex-1 flex flex-col">
+        <Tabs defaultValue="salvos" className="w-full flex-1 flex flex-col">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="ideias">Ideias</TabsTrigger>
+            <TabsTrigger value="salvos">Salvos</TabsTrigger>
             <TabsTrigger value="calendario">Calendário</TabsTrigger>
             <TabsTrigger value="concluidos">Concluídos</TabsTrigger>
           </TabsList>
@@ -170,7 +170,7 @@ export default function ActionHubCard({
                 </div>
               )}
             </TabsContent>
-            <TabsContent value="ideias" className="h-full">
+            <TabsContent value="salvos" className="h-full">
               {isLoadingIdeias ? (
                 <div className="flex justify-center items-center h-full">
                   <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -182,7 +182,7 @@ export default function ActionHubCard({
               ) : (
                 <div className="text-center h-full flex flex-col items-center justify-center">
                   <p className="text-muted-foreground text-sm">
-                    Nenhuma ideia salva.
+                    Nenhum item salvo.
                   </p>
                   <Button variant="link" asChild>
                     <Link href="/video-ideas">Gerar Novas Ideias</Link>
