@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -82,25 +81,10 @@ const adminMenuItems: {
     {
         category: 'Admin',
         items: [
-            { href: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
             { href: '/admin/users', icon: User, label: 'Usuários' },
             { href: '/admin/financial', icon: DollarSign, label: 'Financeiro' },
             { href: '/admin/usage', icon: Activity, label: 'Uso da IA' },
             { href: '/admin/checkout', icon: CreditCard, label: 'Checkout de Teste' },
-        ]
-    },
-    {
-        category: "App (Testes)",
-        items: [
-            { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard (App)'},
-            { href: '/content-calendar', icon: Calendar, label: 'Calendário'},
-            { href: '/generate-weekly-plan', icon: ClipboardList, label: 'Plano Semanal'},
-            { href: '/video-ideas', icon: Lightbulb, label: 'Ideias de Vídeos'},
-            { href: '/video-review', icon: Video, label: 'Análise de Vídeo'},
-            { href: '/media-kit', icon: Briefcase, label: 'Mídia Kit'},
-            { href: '/publis-assistant', icon: Newspaper, label: 'Assistente de Publis'},
-            { href: '/profile', icon: User, label: 'Perfil'},
-            { href: '/settings', icon: Settings, label: 'Configurações'},
         ]
     }
 ];
@@ -234,7 +218,7 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
         <nav className="px-4 py-4">
             {!isMobile && (
             <div className='relative'>
-                <Link href={isAdmin ? "/admin" : "/subscribe"} onClick={handleLinkClick} className="block w-full text-left p-4 rounded-xl bg-gradient-to-br from-primary via-purple-500 to-violet-600 text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-shadow">
+                <Link href={isAdmin ? "/admin/users" : "/subscribe"} onClick={handleLinkClick} className="block w-full text-left p-4 rounded-xl bg-gradient-to-br from-primary via-purple-500 to-violet-600 text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-shadow">
                     <div className='flex items-center gap-3'>
                         {getPlanIcon()}
                         <div className='flex flex-col'>
@@ -350,7 +334,7 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
                     </DropdownMenuItem>
                  ) : null}
                  {isAdmin && (
-                    <DropdownMenuItem onClick={() => router.push('/admin/dashboard')}>
+                    <DropdownMenuItem onClick={() => router.push('/admin/users')}>
                       <Shield className="mr-2 h-4 w-4" />
                       <span>Painel Admin</span>
                     </DropdownMenuItem>

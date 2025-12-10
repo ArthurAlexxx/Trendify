@@ -22,7 +22,12 @@ export default function AdminLayout({
     if (!isLoading && !isAdmin) {
       router.replace('/dashboard');
     }
-  }, [isAdmin, isLoading, router]);
+    
+    // Redireciona da raiz /admin para /admin/users
+    if (pathname === '/admin' && !isLoading && isAdmin) {
+      router.replace('/admin/users');
+    }
+  }, [isAdmin, isLoading, router, pathname]);
 
   // Enquanto verifica o status de admin, mostra um loader de tela cheia.
   if (isLoading) {
