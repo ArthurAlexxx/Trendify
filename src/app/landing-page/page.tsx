@@ -205,15 +205,13 @@ export default function LandingPage() {
     <div className="flex flex-col min-h-screen bg-background text-foreground">
       	<header
 			className={cn(
-				'sticky top-0 z-50 w-full border-b backdrop-blur-lg transition-all ease-out',
-                scrolled ? 'h-16' : 'h-20',
-                'bg-background/95 supports-[backdrop-filter]:bg-background/60 border-border/50'
+				'sticky top-0 z-50 w-full border-b backdrop-blur-lg transition-all ease-out h-20',
+        'bg-background/95 supports-[backdrop-filter]:bg-background/60 border-border/50'
 			)}
 		>
 			<nav
 				className={cn(
-					'container flex w-full items-center justify-between transition-all duration-300',
-                    scrolled ? 'h-16' : 'h-20'
+					'container flex w-full items-center justify-between transition-all duration-300 h-20'
 				)}
 			>
 				<div className="flex-1 justify-start">
