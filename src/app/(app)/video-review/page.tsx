@@ -461,7 +461,9 @@ function VideoReviewPageContent() {
                       <div className="flex-1 flex flex-col justify-center items-center text-center py-16 px-4 rounded-xl bg-muted/50 border border-dashed">
                         <Inbox className="mx-auto h-10 w-10 text-muted-foreground mb-4" />
                         <h3 className="font-semibold text-foreground">Nenhuma análise anterior</h3>
-                        <p className="text-sm text-muted-foreground">Seus vídeos analisados aparecerão aqui.</p>
+                        <p className="text-sm text-muted-foreground">
+                          Seus vídeos analisados aparecerão aqui.
+                        </p>
                       </div>
                      )}
                   </div>

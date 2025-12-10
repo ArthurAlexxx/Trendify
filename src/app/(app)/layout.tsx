@@ -15,8 +15,6 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { ToastContainer } = useResponsiveToast();
-
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -67,15 +65,24 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
             </SheetContent>
           </Sheet>
         </header>
-        <main className="flex-1 py-4 px-4 sm:px-6 sm:py-8 md:p-8 overflow-x-hidden">
+        <main className="flex-1 p-4 sm:px-6 sm:py-8 md:p-8 overflow-x-hidden">
           <div className="w-full max-w-7xl mx-auto">
             {children}
           </div>
         </main>
       </div>
-      <ToastContainer />
     </div>
   );
+}
+
+function ToastProvider({ children }: { children: React.ReactNode }) {
+    const { ToastContainer } = useResponsiveToast();
+    return (
+        <>
+            {children}
+            <ToastContainer />
+        </>
+    )
 }
 
 
@@ -86,9 +93,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
         }>
-            <AppLayoutContent>
-                {children}
-            </AppLayoutContent>
+            <ToastProvider>
+                <AppLayoutContent>
+                    {children}
+                </AppLayoutContent>
+            </ToastProvider>
         </Suspense>
     )
 }
