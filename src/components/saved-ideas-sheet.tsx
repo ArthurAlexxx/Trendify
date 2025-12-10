@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -108,7 +107,6 @@ export function SavedIdeasSheet({ children, idea }: { children: React.ReactNode,
     setIsDetailSheetOpen(true); // Open detail view
   };
   
-  // Combines the trigger logic: if it's the direct child, it opens details, otherwise it opens the list
   const trigger = React.Children.map(children, (child) => {
       if (React.isValidElement(child)) {
           return React.cloneElement(child, {
@@ -216,9 +214,26 @@ export function SavedIdeasSheet({ children, idea }: { children: React.ReactNode,
                     {renderContent(selectedIdea)}
                  </ScrollArea>
                   <ResponsiveDialogFooter className="p-6 pt-4 border-t flex justify-between">
-                     <Button variant="destructive" onClick={() => confirmDelete(selectedIdea)}>
-                        <Trash2 className="mr-2 h-4 w-4" /> Excluir
-                     </Button>
+                     <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button variant="destructive">
+                                <Trash2 className="mr-2 h-4 w-4" /> Excluir
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                            <AlertDialogTitle>Tem certeza que deseja excluir?</AlertDialogTitle>
+                            <AlertDialogDescription>A ideia "{selectedIdea.titulo}" será removida permanentemente. Esta ação não pode ser desfeita.</AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => {
+                                confirmDelete(selectedIdea);
+                                handleDelete();
+                            }}>Sim, Excluir</AlertDialogAction>
+                            </AlertFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
                     <ResponsiveDialogClose asChild>
                         <Button type="button" variant="outline">Fechar</Button>
                     </ResponsiveDialogClose>

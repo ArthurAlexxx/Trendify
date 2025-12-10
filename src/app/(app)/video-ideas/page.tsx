@@ -57,8 +57,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { generateVideoIdeasAction, GenerateVideoIdeasOutput } from '@/app/(app)/video-ideas/actions';
 import { useCollection, useFirestore, useUser, useMemoFirebase, useDoc } from '@/firebase';
-import { collection, addDoc, serverTimestamp, where, query, orderBy, setDoc, doc, increment, getDoc, updateDoc, onSnapshot } from 'firebase/firestore';
-import { SavedIdeasSheet } from '@/components/saved-ideas-sheet';
+import { collection, addDoc, serverTimestamp, where, query, orderBy, setDoc, doc, increment, getDoc, updateDoc, onSnapshot, deleteDoc } from 'firebase/firestore';
 import type { DailyUsage, IdeiaSalva, UserProfile } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
@@ -76,6 +75,7 @@ import { ObjectiveFormCard } from '@/components/ui/objective-form-card';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { VideoIdeasResultView } from './video-ideas-result-view';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 
 const formSchema = z.object({
@@ -142,7 +142,10 @@ export default function VideoIdeasPage() {
   const [usageData, setUsageData] = useState<DailyUsage | null>(null);
   const [isLoadingUsage, setIsLoadingUsage] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  
   const [viewingSavedItem, setViewingSavedItem] = useState<IdeiaSalva | null>(null);
+  const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
+  const [ideaToDelete, setIdeaToDelete] = useState<IdeiaSalva | null>(null);
 
   useEffect(() => {
     const savedResult = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -285,7 +288,7 @@ export default function VideoIdeasPage() {
 
         await addDoc(collection(firestore, `users/${user.uid}/ideiasSalvas`), {
           userId: user.uid,
-          titulo: data.title, // Use the AI-generated title
+          titulo: data.title,
           conteudo: content,
           origem: 'Ideias de Vídeo',
           concluido: false,
@@ -320,6 +323,33 @@ export default function VideoIdeasPage() {
         title: 'Resultado Descartado',
         description: 'Você pode gerar uma nova ideia agora.',
     });
+  }
+  
+  const confirmDelete = (idea: IdeiaSalva) => {
+    setIdeaToDelete(idea);
+  }
+
+  const handleDelete = async () => {
+    if (!ideaToDelete || !user || !firestore) return;
+    
+    try {
+      await deleteDoc(doc(firestore, `users/${user.uid}/ideiasSalvas`, ideaToDelete.id));
+      toast({
+        title: "Ideia Excluída",
+        description: `"${ideaToDelete.titulo}" foi removido permanentemente.`,
+      });
+      setIdeaToDelete(null);
+      if(viewingSavedItem?.id === ideaToDelete.id) {
+        setIsDetailSheetOpen(false);
+        setViewingSavedItem(null);
+      }
+    } catch(e: any) {
+        toast({
+          title: "Erro ao Excluir",
+          description: e.message,
+          variant: "destructive"
+        });
+    }
   }
 
   const isButtonDisabled = isGenerating || hasReachedLimit;
@@ -471,52 +501,73 @@ export default function VideoIdeasPage() {
          <TabsContent value="saved">
           <Card className="rounded-t-none border-t-0 shadow-primary-lg">
             <CardContent className="pt-6">
-                {viewingSavedItem ? (
-                  <div>
-                    <Button variant="ghost" onClick={() => setViewingSavedItem(null)} className="mb-4">
-                      <ArrowLeft className="mr-2 h-4 w-4" />
-                      Voltar para a lista
-                    </Button>
-                    <VideoIdeasResultView result={viewingSavedItem.aiResponseData} formValues={viewingSavedItem.aiResponseData.formValues} />
-                  </div>
-                ) : (
-                  <SavedIdeasSheet>
-                    <ScrollArea className="h-96">
-                        {isLoadingSaved ? <Loader2 className="mx-auto h-8 w-8 animate-spin" /> 
-                        : savedIdeas && savedIdeas.length > 0 ? (
-                           <ul className="space-y-2 pr-4">
-                            {savedIdeas.map((idea) => (
-                                <li key={idea.id} className="p-3 rounded-lg border flex items-center justify-between gap-4 hover:bg-muted/50 transition-colors">
-                                    <div className="flex-1 overflow-hidden">
-                                    <p className="font-semibold text-foreground truncate">{idea.titulo}</p>
-                                    {idea.createdAt && (
-                                        <p className="text-xs text-muted-foreground">
-                                        Salvo {formatDistanceToNow(idea.createdAt.toDate(), { addSuffix: true, locale: ptBR })}
-                                        </p>
-                                    )}
-                                    </div>
-                                    <SavedIdeasSheet idea={idea}>
-                                        <Button size="sm" variant="outline">
-                                            <Eye className="mr-2 h-4 w-4" /> Ver
-                                        </Button>
-                                    </SavedIdeasSheet>
-                                </li>
-                            ))}
-                           </ul>
-                        ) : (
-                           <div className="text-center h-full flex flex-col items-center justify-center py-20">
-                              <Inbox className="h-10 w-10 text-muted-foreground mb-4" />
-                              <p className="text-muted-foreground">Nenhuma ideia salva.</p>
-                           </div>
-                        )}
-                    </ScrollArea>
-                   </SavedIdeasSheet>
-                )}
+                <ScrollArea className="h-96">
+                    {isLoadingSaved ? <Loader2 className="mx-auto h-8 w-8 animate-spin" /> 
+                    : savedIdeas && savedIdeas.length > 0 ? (
+                        <ul className="space-y-2 pr-4">
+                        {savedIdeas.map((idea) => (
+                            <li key={idea.id} className="p-3 rounded-lg border flex items-center justify-between gap-4 hover:bg-muted/50 transition-colors">
+                                <div className="flex-1 overflow-hidden">
+                                <p className="font-semibold text-foreground truncate">{idea.titulo}</p>
+                                {idea.createdAt && (
+                                    <p className="text-xs text-muted-foreground">
+                                    Salvo {formatDistanceToNow(idea.createdAt.toDate(), { addSuffix: true, locale: ptBR })}
+                                    </p>
+                                )}
+                                </div>
+                                <Button size="sm" variant="outline" onClick={() => { setViewingSavedItem(idea); setIsDetailSheetOpen(true); }}>
+                                    <Eye className="mr-2 h-4 w-4" /> Ver
+                                </Button>
+                            </li>
+                        ))}
+                        </ul>
+                    ) : (
+                        <div className="text-center h-full flex flex-col items-center justify-center py-20">
+                        <Inbox className="h-10 w-10 text-muted-foreground mb-4" />
+                        <p className="text-muted-foreground">Nenhuma ideia salva.</p>
+                        </div>
+                    )}
+                </ScrollArea>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
 
+      <Dialog open={isDetailSheetOpen} onOpenChange={setIsDetailSheetOpen}>
+        {viewingSavedItem && (
+          <DialogContent className="sm:max-w-4xl p-0">
+             <div className="p-6 border-b">
+                <h2 className="text-xl font-bold font-headline">{viewingSavedItem.titulo}</h2>
+                <p className="text-sm text-muted-foreground">
+                    Salvo de "{viewingSavedItem.origem}" em {viewingSavedItem.createdAt.toDate().toLocaleDateString('pt-BR')}
+                </p>
+            </div>
+            <ScrollArea className="max-h-[calc(100vh-14rem)]">
+              <VideoIdeasResultView result={viewingSavedItem.aiResponseData} formValues={viewingSavedItem.aiResponseData.formValues} isSheetView />
+            </ScrollArea>
+            <div className="p-6 pt-4 border-t flex justify-between">
+                <AlertDialog>
+                   <AlertDialogTrigger asChild>
+                     <Button variant="destructive">
+                        <Trash2 className="mr-2 h-4 w-4" /> Excluir
+                     </Button>
+                   </AlertDialogTrigger>
+                   <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Tem certeza que deseja excluir?</AlertDialogTitle>
+                      <AlertDialogDescription>A ideia "{viewingSavedItem.titulo}" será removida. Esta ação não pode ser desfeita.</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => handleDelete()}>Sim, Excluir</AlertDialogAction>
+                    </AlertDialogFooter>
+                   </AlertDialogContent>
+                </AlertDialog>
+                <Button type="button" variant="outline" onClick={() => setIsDetailSheetOpen(false)}>Fechar</Button>
+            </div>
+          </DialogContent>
+        )}
+      </Dialog>
     </div>
   );
 }
