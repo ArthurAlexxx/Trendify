@@ -42,5 +42,16 @@ export default function AdminLayout({
   // Se o carregamento terminou e o usuário é admin, renderiza o layout.
   // Caso contrário (não é admin), renderiza null enquanto o useEffect cuida do redirect.
   // Isso evita piscar a UI de admin para usuários não-admins.
-  return isAdmin ? <>{children}</> : null;
+  return isAdmin ? (
+    <div className="flex min-h-screen w-full bg-muted/30">
+      <AppSidebar isMobile={false} setIsMobileMenuOpen={() => {}} />
+      <div className="flex flex-col flex-1 w-full md:pl-64">
+         <main className="flex-1 p-4 sm:px-6 md:p-8 overflow-x-hidden">
+            <div className="w-full max-w-7xl mx-auto">
+             {children}
+            </div>
+        </main>
+      </div>
+    </div>
+  ) : null;
 }
