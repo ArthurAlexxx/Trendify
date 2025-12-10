@@ -225,9 +225,10 @@ export default function LandingPage() {
                   {user ? (
                       <Link
                         href="/dashboard"
-                        className={buttonVariants({
-                          variant: 'secondary',
-                        })}
+                         className={cn(
+                            buttonVariants({ size: 'default' }),
+                            'font-semibold rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 text-primary-foreground shadow-lg shadow-indigo-500/50 hover:opacity-90 transition-opacity'
+                        )}
                       >
                         Painel
                       </Link>
