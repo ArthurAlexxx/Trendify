@@ -20,6 +20,7 @@ import {
   BarChart as BarChartIcon,
   AlertTriangle,
   DollarSign,
+  Users,
 } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { useUser } from '@/firebase';
@@ -324,7 +325,11 @@ export default function LandingPage() {
                   <CarouselContent className="-ml-4">
                     {features.map((feature, index) => (
                       <CarouselItem key={feature.title} className="pl-4 basis-[90%] md:basis-1/2">
-                         <div className="p-1 h-full">
+                         <motion.div 
+                            className="p-1 h-full"
+                            whileHover={{ scale: 1.03 }}
+                            whileTap={{ scale: 0.98 }}
+                         >
                           <Card className="text-left h-full bg-card/50 rounded-2xl border shadow-primary-lg p-6">
                             <div className='flex flex-col h-full'>
                               <div className='flex items-center justify-between mb-4'>
@@ -345,7 +350,7 @@ export default function LandingPage() {
                               </p>
                             </div>
                           </Card>
-                         </div>
+                         </motion.div>
                     </CarouselItem>
                     ))}
                   </CarouselContent>
@@ -357,10 +362,9 @@ export default function LandingPage() {
                 {features.slice(0, 3).map((feature) => (
                   <motion.div
                     key={feature.title}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                    viewport={{ once: true, amount: 0.3 }}
+                    whileHover={{ scale: 1.03, y: -5 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ type: "spring", stiffness: 300 }}
                     className="h-full"
                   >
                     <Card className="text-left h-full bg-card/50 rounded-2xl shadow-primary-lg p-6 flex flex-col">
@@ -389,10 +393,9 @@ export default function LandingPage() {
                     {features.slice(3).map((feature) => (
                     <motion.div
                         key={feature.title}
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5 }}
-                        viewport={{ once: true, amount: 0.3 }}
+                        whileHover={{ scale: 1.03, y: -5 }}
+                        whileTap={{ scale: 0.98 }}
+                        transition={{ type: "spring", stiffness: 300 }}
                         className="h-full"
                     >
                         <Card className="text-left h-full bg-card/50 rounded-2xl shadow-primary-lg p-6 flex flex-col">

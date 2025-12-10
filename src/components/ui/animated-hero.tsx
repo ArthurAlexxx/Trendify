@@ -2,7 +2,7 @@
 'use client';
 import { useEffect, useMemo, useState, useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { ArrowUpRight, Sparkles } from "lucide-react";
+import { ArrowUpRight, Sparkles, Users, Lightbulb, BarChart as BarChartIcon } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -98,6 +98,20 @@ function AnimatedHero() {
             >
               Começar Grátis <ArrowUpRight className="w-4 h-4" />
             </Link>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 mt-4">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Users className="h-4 w-4" />
+                <span>+20 mil criadores ativos</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Lightbulb className="h-4 w-4" />
+                <span>+500 mil ideias geradas</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <BarChartIcon className="h-4 w-4" />
+                <span>+85% de crescimento médio</span>
+              </div>
           </div>
         </div>
       </div>
