@@ -9,6 +9,7 @@ import type { AnalyzeVideoInput, AnalyzeVideoOutput } from '@/lib/types';
 import { AnalyzeVideoOutputSchema } from '@/lib/types';
 import { genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/google-genai';
+import { z } from 'zod';
 
 // Para alterar o modelo do Gemini para esta análise, modifique a string abaixo.
 const GEMINI_MODEL = 'googleai/gemini-2.5-flash';
@@ -56,7 +57,19 @@ Analise o vídeo e retorne um objeto JSON com a sua avaliação, seguindo estrit
     if (!output) {
       throw new Error("A análise da IA não produziu um resultado válido.");
     }
-    return output;
+    
+    // Garante que todos os campos tenham um valor padrão para evitar erros no Firestore
+    const validatedOutput: z.infer<typeof AnalyzeVideoOutputSchema> = {
+      geral: output.geral ?? "",
+      gancho: output.gancho ?? "",
+      conteudo: output.conteudo ?? "",
+      cta: output.cta ?? "",
+      melhorias: output.melhorias ?? [],
+      estimatedHeatmap: output.estimatedHeatmap ?? "",
+      comparativeAnalysis: output.comparativeAnalysis ?? ""
+    };
+    
+    return validatedOutput;
 }
 
     
