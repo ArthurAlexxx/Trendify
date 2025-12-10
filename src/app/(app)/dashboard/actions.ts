@@ -32,9 +32,11 @@ const GenerateDashboardInsightsOutputSchema = z.object({
 export type DashboardInsightsOutput = z.infer<typeof GenerateDashboardInsightsOutputSchema>;
 export type DashboardInsight = z.infer<typeof DashboardInsightSchema>;
 
+// This schema defines the data structure expected by the Server Action
 const GenerateDashboardInsightsInputSchema = z.object({
   metricSnapshots: z.array(z.object({
-    date: z.string(),
+    // date is now a string because complex objects like Date/Timestamp can't be passed to Server Actions
+    date: z.string(), 
     platform: z.enum(['instagram', 'tiktok']),
     followers: z.number(),
     views: z.number(),
@@ -94,3 +96,5 @@ export async function generateDashboardInsights(
     throw new Error(`Falha ao gerar insights com a IA: ${errorMessage}`);
   }
 }
+
+    

@@ -289,8 +289,8 @@ export default function GenerateWeeklyPlanPage() {
         await batch.commit();
   
         toast({
-          title: 'Sucesso!',
-          description: 'Seu novo plano semanal foi ativado. O plano anterior foi arquivado.',
+          title: 'Plano Ativado!',
+          description: 'Seu novo plano semanal está visível no dashboard.',
         });
         localStorage.removeItem(LOCAL_STORAGE_KEY);
         setResult(null);
@@ -418,7 +418,7 @@ export default function GenerateWeeklyPlanPage() {
                       <CardHeader className="items-center">
                           <CardTitle className="flex flex-col items-center gap-2">
                               <item.icon className="h-5 w-5 text-primary" />
-                              <span className="text-sm font-semibold">{item.title}</span>
+                              <span className="text-base font-semibold">{item.title}</span>
                           </CardTitle>
                       </CardHeader>
                       <CardContent className="pb-4">
@@ -896,3 +896,5 @@ export default function GenerateWeeklyPlanPage() {
     </div>
   );
 }
+
+    

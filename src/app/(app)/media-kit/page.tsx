@@ -344,8 +344,8 @@ function MediaKitPageContent() {
         });
 
         toast({
-          title: 'Sucesso!',
-          description: 'Seu pacote de prospecção foi salvo.',
+          title: 'Pacote Salvo!',
+          description: 'Seu pacote de prospecção foi guardado nos Itens Salvos.',
         });
         localStorage.removeItem(LOCAL_STORAGE_KEY);
         setResult(null);
@@ -642,3 +642,5 @@ function MediaKitPageContent() {
     </div>
   );
 }
+
+    

@@ -304,8 +304,8 @@ export default function VideoIdeasPage() {
         });
 
         toast({
-          title: 'Sucesso!',
-          description: 'Sua ideia foi salva.',
+          title: 'Ideia Salva!',
+          description: 'Sua ideia foi guardada nos seus Itens Salvos.',
         });
         localStorage.removeItem(LOCAL_STORAGE_KEY);
         setResult(null);
@@ -578,3 +578,5 @@ export default function VideoIdeasPage() {
     </div>
   );
 }
+
+    

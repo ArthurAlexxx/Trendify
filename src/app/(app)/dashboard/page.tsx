@@ -44,7 +44,6 @@ import { ProfileCompletionAlert } from '@/components/dashboard/profile-completio
 import { generateDashboardInsights, type DashboardInsightsOutput } from './actions';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import React, { useState, useMemo, useEffect, Suspense, useCallback, useTransition, useRef } from 'react';
-import dynamic from 'next/dynamic';
 import { syncInstagramAction, syncTikTokAction } from './sync-actions';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import Image from 'next/image';
@@ -59,10 +58,9 @@ import { SavedIdeasSheet } from '@/components/saved-ideas-sheet';
 import GoalCard from '@/components/dashboard/goal-card';
 import DailyPlanCard from '@/components/dashboard/daily-plan-card';
 import ActionHubCard from '@/components/dashboard/action-hub-card';
+import PerformanceAnalysisCard from '@/app/(app)/dashboard/performance-analysis-card';
+import EvolutionChartCard from '@/app/(app)/dashboard/evolution-chart-card';
 import EngagementMetricsCard from '@/app/(app)/dashboard/engagement-metrics-card';
-import EvolutionChartCard from './evolution-chart-card';
-import PerformanceAnalysisCard from '@/components/dashboard/performance-analysis-card';
-
 
 function DashboardSkeleton() {
   return (
@@ -143,7 +141,7 @@ export default function DashboardPage() {
         ? query(
             collection(firestore, `users/${user.uid}/ideiasSalvas`),
             where('concluido', '==', false),
-            orderBy('createdAt', 'desc'),
+            orderBy('createdAt', 'desc')
           )
         : null,
     [user, firestore]
@@ -297,15 +295,17 @@ export default function DashboardPage() {
 
     setIsGeneratingInsights(true);
     try {
+      const plainMetricSnapshots = metricSnapshots.map(s => ({
+        ...s,
+        date: s.date.toDate().toISOString(), // Convert Timestamp to ISO string
+        followers: parseMetric(s.followers),
+        views: parseMetric(s.views),
+        likes: parseMetric(s.likes),
+        comments: parseMetric(s.comments),
+      }));
+
       const result = await generateDashboardInsights({
-        metricSnapshots: metricSnapshots.map(s => ({
-            ...s,
-            date: s.date.toDate().toISOString(),
-            followers: parseMetric(s.followers),
-            views: parseMetric(s.views),
-            likes: parseMetric(s.likes),
-            comments: parseMetric(s.comments),
-        })),
+        metricSnapshots: plainMetricSnapshots,
         niche: userProfile.niche,
         objective: `Atingir a meta de ${userProfile.totalFollowerGoal} seguidores.`,
       });
@@ -417,41 +417,9 @@ export default function DashboardPage() {
           <Suspense fallback={<DashboardSkeleton />}>
              {isLoading ? <DashboardSkeleton /> : (
             <>
-            {/* Mobile Carousel View */}
-            <div className="md:hidden">
-                <Carousel className="w-full" opts={{ align: "start", loop: true }}>
-                  <CarouselContent className="-ml-4">
-                    <CarouselItem className="pl-4 basis-[90%] pb-8">
-                      <div className="p-1 h-full">
-                        <GoalCard 
-                          isLoading={isLoading} 
-                          goalFollowers={goalFollowers}
-                          currentFollowers={currentFollowers}
-                          isGoalReached={isGoalReached}
-                          onEditGoal={() => setIsGoalSheetOpen(true)}
-                          formatMetricValue={formatMetricValue}
-                        />
-                      </div>
-                    </CarouselItem>
-                    <CarouselItem className="pl-4 basis-[90%] pb-8">
-                      <div className="p-1 h-full">
-                        <EngagementMetricsCard 
-                          isLoading={isLoading} 
-                          latestMetrics={latestMetrics}
-                          formatIntegerValue={formatIntegerValue} 
-                        />
-                      </div>
-                    </CarouselItem>
-                  </CarouselContent>
-                </Carousel>
-            </div>
-            
-            {/* Common Layout for the main content */}
             <div className="grid grid-cols-1 xl:grid-cols-5 gap-8 items-start">
-              {/* Left Column (Desktop) / Second section (Mobile) */}
               <div className="xl:col-span-2 space-y-8">
-                 <div className="hidden md:block">
-                  <GoalCard 
+                 <GoalCard 
                     isLoading={isLoading} 
                     goalFollowers={goalFollowers}
                     currentFollowers={currentFollowers}
@@ -459,7 +427,6 @@ export default function DashboardPage() {
                     onEditGoal={() => setIsGoalSheetOpen(true)}
                     formatMetricValue={formatMetricValue}
                   />
-                 </div>
                  <DailyPlanCard 
                     isLoadingWeeklyPlans={isLoadingWeeklyPlans}
                     currentPlan={currentPlan} 
@@ -476,16 +443,12 @@ export default function DashboardPage() {
                     handleMarkAsPublished={handleMarkAsPublished}
                   />
               </div>
-
-              {/* Right Column (Desktop) / First section (Mobile) */}
               <div className="xl:col-span-3 space-y-8">
-                <div className="hidden md:block">
-                    <EngagementMetricsCard 
-                      isLoading={isLoading} 
-                      latestMetrics={latestMetrics}
-                      formatIntegerValue={formatIntegerValue} 
-                    />
-                </div>
+                <EngagementMetricsCard 
+                    isLoading={isLoading} 
+                    latestMetrics={latestMetrics}
+                    formatIntegerValue={formatIntegerValue} 
+                />
                 <EvolutionChartCard
                   isLoading={isLoading}
                   metricSnapshots={metricSnapshots}
@@ -510,3 +473,5 @@ export default function DashboardPage() {
     </>
   );
 }
+
+    

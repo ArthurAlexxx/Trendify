@@ -345,8 +345,8 @@ function PublisAssistantPageContent() {
         });
 
         toast({
-          title: 'Sucesso!',
-          description: 'Sua campanha foi salva.',
+          title: 'Campanha Salva!',
+          description: 'Sua campanha foi adicionada aos seus Itens Salvos.',
         });
         localStorage.removeItem(LOCAL_STORAGE_KEY);
         setResult(null);
@@ -681,3 +681,5 @@ function PublisAssistantPageContent() {
     </div>
   );
 }
+
+    

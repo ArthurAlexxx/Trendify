@@ -264,3 +264,5 @@ export function FullScreenCalendar({ data, onNewEvent, onEventClick, renderEvent
     </div>
   )
 }
+
+    
