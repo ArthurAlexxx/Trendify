@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useDoc, useFirestore, useUser, useMemoFirebase } from '@/firebase';
@@ -73,8 +74,24 @@ export function useSubscription(): UseSubscriptionResult {
           };
       }
   }
+  
+  // If subscription has a trialEndsAt date in the future, it's a trial.
+  const trialEndsAtDate = userProfile.subscription?.trialEndsAt?.toDate();
+  if (trialEndsAtDate && trialEndsAtDate > now) {
+    const trialDaysLeft = differenceInDays(trialEndsAtDate, now);
+    return {
+      subscription: {
+        status: 'active',
+        plan: 'pro',
+      },
+      isLoading: false,
+      isTrialActive: true,
+      trialDaysLeft,
+    }
+  }
 
-  // If no active subscription, check for trial period
+
+  // If no active subscription, check for trial period from creation date
   const createdAtDate = createdAt.toDate();
   const trialEndDate = new Date(createdAtDate.getTime() + TRIAL_PERIOD_DAYS * 24 * 60 * 60 * 1000);
   const trialDaysLeft = differenceInDays(trialEndDate, now);

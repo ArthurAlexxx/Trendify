@@ -1,4 +1,5 @@
 
+
 import type { Timestamp, FieldValue } from 'firebase/firestore';
 import { z } from 'zod';
 
@@ -39,6 +40,7 @@ export interface UserProfile {
     plan: Plan;
     cycle?: 'monthly' | 'annual';
     expiresAt?: Timestamp | null;
+    trialEndsAt?: Timestamp | null; // Add trial period end date
     paymentId?: string | null; // Customer ID from Asaas
     checkoutId?: string; // Last checkout session ID
     asaasSubscriptionId?: string; // Asaas Subscription ID (sub_...)

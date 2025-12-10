@@ -1,12 +1,14 @@
 
+
 'use client';
 
 import React, { createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
 import { FirebaseApp } from 'firebase/app';
-import { Firestore, doc, getDoc, setDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { Firestore, doc, getDoc, setDoc, serverTimestamp, updateDoc, Timestamp } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged, getRedirectResult } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
 import { useToast } from '@/hooks/use-toast';
+import { differenceInDays } from 'date-fns';
 
 interface FirebaseProviderProps {
   children: ReactNode;
@@ -56,6 +58,8 @@ export interface UserHookResult {
 // React Context
 export const FirebaseContext = createContext<FirebaseContextState | undefined>(undefined);
 
+const TRIAL_PERIOD_DAYS = 2;
+
 /**
  * Ensures a user profile exists in Firestore and has a role. If not, it creates or updates one.
  * @param firestore The Firestore instance.
@@ -66,8 +70,11 @@ async function ensureUserProfile(firestore: Firestore, user: User) {
     const docSnap = await getDoc(userRef);
 
     if (!docSnap.exists()) {
-        console.log(`[FirebaseProvider] No profile found for UID: ${user.uid}. Creating new one.`);
+        console.log(`[FirebaseProvider] No profile found for UID: ${user.uid}. Creating new one with trial.`);
         const { displayName, email, photoURL } = user;
+        const now = new Date();
+        const trialEndsAt = new Date(now.setDate(now.getDate() + TRIAL_PERIOD_DAYS));
+
         await setDoc(userRef, {
             displayName,
             email,
@@ -75,19 +82,33 @@ async function ensureUserProfile(firestore: Firestore, user: User) {
             createdAt: serverTimestamp(),
             role: 'user', // Default role for new users
             subscription: {
-                status: 'inactive',
-                plan: 'free',
+                status: 'active', // Trial is active
+                plan: 'pro',       // Trial gives 'pro' access
+                trialEndsAt: Timestamp.fromDate(trialEndsAt),
             },
         });
-        console.log(`[FirebaseProvider] New user profile created for UID: ${user.uid}`);
+        console.log(`[FirebaseProvider] New user profile with trial created for UID: ${user.uid}`);
     } else {
-      // If the document exists, check if the 'role' field is missing.
-      if (docSnap.data().role === undefined) {
-        console.log(`[FirebaseProvider] Profile for UID: ${user.uid} is missing 'role'. Updating.`);
-        await updateDoc(userRef, {
-          role: 'user'
-        });
-        console.log(`[FirebaseProvider] 'role' field added to existing profile for UID: ${user.uid}`);
+      const userData = docSnap.data();
+      // If the document exists, check if role or subscription is missing.
+      const updates: { [key: string]: any } = {};
+      if (userData.role === undefined) {
+        updates.role = 'user';
+      }
+      if (userData.subscription === undefined) {
+         const now = new Date();
+         const trialEndsAt = new Date(now.setDate(now.getDate() + TRIAL_PERIOD_DAYS));
+         updates.subscription = {
+            status: 'active',
+            plan: 'pro',
+            trialEndsAt: Timestamp.fromDate(trialEndsAt),
+         };
+      }
+      
+      if (Object.keys(updates).length > 0) {
+        console.log(`[FirebaseProvider] Profile for UID: ${user.uid} is missing fields. Updating.`);
+        await updateDoc(userRef, updates);
+        console.log(`[FirebaseProvider] Missing fields added to existing profile for UID: ${user.uid}`);
       }
     }
 }
