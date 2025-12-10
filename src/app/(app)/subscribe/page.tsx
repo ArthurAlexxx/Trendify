@@ -40,21 +40,21 @@ const premiumFeatures = [
 export default function SubscribePage() {
     const { subscription, isLoading } = useSubscription();
 
-    const renderPlanButtons = (plan: 'pro' | 'premium', isUpgrade: boolean) => {
+    const renderPlanButtons = (plan: 'pro' | 'premium') => {
         const isCurrentPlan = subscription?.plan === plan && subscription?.status === 'active';
 
         // --- Monthly Button Logic ---
         const isCurrentMonthly = isCurrentPlan && subscription?.cycle === 'monthly';
-        let monthlyCta = isUpgrade ? "Fazer Upgrade (Mensal)" : "Assinar Mensal";
-        if (isCurrentPlan && !isCurrentMonthly) {
-            monthlyCta = "Mudar para Mensal";
+        let monthlyCta = subscription?.plan === 'free' ? "Assinar Mensal" : "Mudar para Mensal";
+        if (subscription?.plan === 'pro' && plan === 'premium') {
+          monthlyCta = "Fazer Upgrade (Mensal)";
         }
-        
+
         // --- Annual Button Logic ---
         const isCurrentAnnual = isCurrentPlan && subscription?.cycle === 'annual';
-        let annualCta = isUpgrade ? "Fazer Upgrade (Anual)" : "Assinar Anual";
-        if (isCurrentPlan && !isCurrentAnnual) {
-            annualCta = "Mudar para Anual";
+        let annualCta = subscription?.plan === 'free' ? "Assinar Anual" : "Mudar para Anual";
+         if (subscription?.plan === 'pro' && plan === 'premium') {
+          annualCta = "Fazer Upgrade (Anual)";
         }
         
         return (
@@ -107,7 +107,7 @@ export default function SubscribePage() {
                     </ul>
                 </CardContent>
                  <CardFooter className="flex flex-col gap-2">
-                    {renderPlanButtons('pro', false)}
+                    {renderPlanButtons('pro')}
                 </CardFooter>
             </Card>
 
@@ -130,7 +130,7 @@ export default function SubscribePage() {
                     </ul>
                 </CardContent>
                  <CardFooter className="flex flex-col gap-2">
-                    {renderPlanButtons('premium', subscription?.plan === 'pro')}
+                    {renderPlanButtons('premium')}
                 </CardFooter>
             </Card>
         </div>

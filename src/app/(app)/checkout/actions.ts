@@ -6,7 +6,7 @@ import type { Plan } from '@/lib/types';
 import { initializeFirebaseAdmin } from '@/firebase/admin';
 
 // Mapeamento de planos e preços
-const priceMap: Record<Plan, Record<'monthly' | 'annual', number>> = {
+const priceMap: Record<Plan, Record<'monthly' | 'annual'>> = {
     free: { monthly: 0, annual: 0 },
     pro: { monthly: 39.99, annual: 399 },
     premium: { monthly: 49.99, annual: 499 },
@@ -136,6 +136,7 @@ export async function createAsaasPaymentAction(
             cycle: cycle === 'annual' ? 'YEARLY' : 'MONTHLY',
             nextDueDate: nextDueDate.toISOString().split('T')[0],
             endDate: endDate.toISOString().split('T')[0],
+            externalReference: userId, // Ensure userId is also in the subscription object
         };
     }
     

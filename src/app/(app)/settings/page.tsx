@@ -146,6 +146,10 @@ export default function SettingsPage() {
     
   const isConfirmationButtonDisabled = isResetting || confirmationInput !== confirmationText;
 
+  const showCancelButton = subscription?.status === 'active' && 
+                           (subscription.plan === 'pro' || subscription.plan === 'premium') &&
+                           subscription.asaasSubscriptionId && 
+                           !isTrialActive;
 
   return (
     <div className="space-y-8">
@@ -196,7 +200,7 @@ export default function SettingsPage() {
                             <Link href="/subscribe">Ver Planos</Link>
                         </Button>
                         
-                        {subscription.status === 'active' && subscription.asaasSubscriptionId && !isTrialActive ? (
+                        {showCancelButton ? (
                             <AlertDialog>
                                 <AlertDialogTrigger asChild>
                                     <Button variant="destructive" disabled={isCancelling} className="w-full sm:w-auto">
