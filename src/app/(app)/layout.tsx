@@ -67,7 +67,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
             </SheetContent>
           </Sheet>
         </header>
-        <main className="flex-1 p-4 sm:px-6 sm:py-8 md:p-8 overflow-x-hidden">
+        <main className="flex-1 py-4 sm:px-6 sm:py-8 md:p-8 overflow-x-hidden">
           <div className="w-full max-w-7xl mx-auto">
             {children}
           </div>
