@@ -355,7 +355,6 @@ function PublisAssistantPageContent() {
       <PageHeader
         title="Assistente de Publis"
         description="Crie pacotes de conteúdo para marcas com foco em conversão."
-        icon={Newspaper}
       />
 
       <div>

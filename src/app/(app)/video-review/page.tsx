@@ -316,7 +316,7 @@ function VideoReviewPageContent() {
   
   return (
     <div className="space-y-8">
-        <PageHeader title="Diagnóstico de Vídeo" description="Receba uma análise do potencial de viralização e um plano de ação para seu vídeo." icon={Video} />
+        <PageHeader title="Diagnóstico de Vídeo" description="Receba uma análise do potencial de viralização e um plano de ação para seu vídeo." />
         
         <div>
           <div className="text-center"><h2 className="text-xl font-bold font-headline">Como Avaliamos Seu Vídeo?</h2><p className="text-muted-foreground">Nossa IA atua como uma estrategista de conteúdo viral e analisa 4 pilares:</p></div>
@@ -400,7 +400,3 @@ function VideoReviewPageContent() {
     </div>
   );
 }
-
-    
-
-    

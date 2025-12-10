@@ -331,7 +331,6 @@ export default function VideoIdeasPage() {
       <PageHeader
         title="Gerador de Vídeos Virais"
         description="Crie roteiros completos e otimizados para viralizar."
-        icon={Lightbulb}
       />
       
       <div>
