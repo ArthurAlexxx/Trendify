@@ -97,7 +97,7 @@ function AnimatedHero() {
         className="relative py-20"
         style={{
           background:
-            'radial-gradient(circle at 50% 50%, hsl(var(--primary) / 0.15) 0%, transparent 70%)',
+            'radial-gradient(ellipse 70% 40% at 50% 50%, hsl(var(--primary) / 0.2) 0%, transparent 100%)',
         }}
       >
         <div className="container mx-auto">
