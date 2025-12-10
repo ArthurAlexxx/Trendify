@@ -65,7 +65,7 @@ export default function AdminLayout({
             </Sheet>
             </header>
             <main className="flex-1 p-4 sm:px-6 sm:py-0 md:p-8 overflow-x-hidden">
-                <div className="max-w-screen-2xl mx-auto w-full">
+                <div className="max-w-7xl mx-auto w-full">
                     {children}
                 </div>
             </main>
