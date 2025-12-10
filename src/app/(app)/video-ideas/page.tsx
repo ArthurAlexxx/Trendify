@@ -521,9 +521,28 @@ export default function VideoIdeasPage() {
                                     </p>
                                 )}
                                 </div>
-                                <Button size="sm" variant="outline" onClick={() => { setViewingSavedItem(idea); setIsDetailSheetOpen(true); }}>
-                                    <Eye className="mr-2 h-4 w-4" /> Ver
-                                </Button>
+                                <div className="flex items-center gap-1">
+                                    <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground" onClick={() => { setViewingSavedItem(idea); setIsDetailSheetOpen(true); }}>
+                                        <Eye className="h-4 w-4" />
+                                    </Button>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                             <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive/70 hover:text-destructive">
+                                                <Trash2 className="h-4 w-4" />
+                                             </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                            <AlertDialogTitle>Tem certeza que deseja excluir?</AlertDialogTitle>
+                                            <AlertDialogDescription>A ideia "{idea.titulo}" será removida permanentemente. Esta ação não pode ser desfeita.</AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                            <AlertDialogAction onClick={() => handleDelete(idea)}>Sim, Excluir</AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                </div>
                             </li>
                         ))}
                         </ul>
@@ -548,31 +567,13 @@ export default function VideoIdeasPage() {
                     Salvo de "{viewingSavedItem.origem}" em {viewingSavedItem.createdAt.toDate().toLocaleDateString('pt-BR')}
                 </p>
             </div>
-            <ScrollArea className="max-h-[calc(100vh-14rem)]">
+            <ScrollArea className="max-h-[calc(100vh-12rem)]">
               <VideoIdeasResultView result={viewingSavedItem.aiResponseData} formValues={viewingSavedItem.aiResponseData.formValues} isSheetView />
             </ScrollArea>
-            <div className="p-6 pt-4 border-t flex justify-between">
-                <Button variant="destructive" onClick={() => confirmDelete(viewingSavedItem)}>
-                    <Trash2 className="mr-2 h-4 w-4" /> Excluir
-                </Button>
-                <Button type="button" variant="outline" onClick={() => setIsDetailSheetOpen(false)}>Fechar</Button>
-            </div>
           </DialogContent>
         )}
       </Dialog>
       
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-           <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Tem certeza que deseja excluir?</AlertDialogTitle>
-              <AlertDialogDescription>A ideia "{ideaToDelete?.titulo}" será removida permanentemente. Esta ação não pode ser desfeita.</AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => setIdeaToDelete(null)}>Cancelar</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDelete}>Sim, Excluir</AlertDialogAction>
-            </AlertDialogFooter>
-           </AlertDialogContent>
-        </AlertDialog>
     </div>
   );
 }
