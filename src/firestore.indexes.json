@@ -58,24 +58,6 @@
       ]
     },
     {
-      "collectionGroup": "ideiasSalvas",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "concluido",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "origem",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "createdAt",
-          "order": "DESCENDING"
-        }
-      ]
-    },
-    {
       "collectionGroup": "metricSnapshots",
       "queryScope": "COLLECTION_GROUP",
       "fields": [
@@ -98,22 +80,7 @@
           "order": "ASCENDING"
         }
       ]
-    },
-    {
-      "collectionGroup": "webhookLogs",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "receivedAt",
-          "order": "DESCENDING"
-        },
-        {
-          "fieldPath": "eventType",
-          "order": "ASCENDING"
-        }
-      ]
     }
   ],
   "fieldOverrides": []
 }
-

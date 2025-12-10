@@ -52,7 +52,7 @@ import {
   Inbox,
   ArrowLeft,
 } from 'lucide-react';
-import { useEffect, useTransition, useState, useCallback } from 'react';
+import { useEffect, useTransition, useState, useCallback, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { generateVideoIdeasAction, GenerateVideoIdeasOutput } from '@/app/(app)/video-ideas/actions';
@@ -507,36 +507,38 @@ export default function VideoIdeasPage() {
                     : savedIdeas && savedIdeas.length > 0 ? (
                         <ul className="space-y-2 pr-4">
                         {savedIdeas.map((idea) => (
-                            <li key={idea.id} className="p-3 rounded-lg border flex items-center justify-between gap-4 hover:bg-muted/50 transition-colors">
-                                <div className="flex-1 overflow-hidden">
-                                <p className="font-semibold text-foreground truncate">{idea.titulo}</p>
-                                {idea.createdAt && (
-                                    <p className="text-xs text-muted-foreground">
-                                      Salvo {formatDistanceToNow(idea.createdAt.toDate(), { addSuffix: true, locale: ptBR })}
-                                    </p>
-                                  )}
-                                </div>
-                                <div className="flex items-center gap-1">
-                                    <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground" onClick={() => { setViewingSavedItem(idea); setIsDetailSheetOpen(true); }}>
-                                        <Eye className="h-4 w-4" />
-                                    </Button>
-                                    <AlertDialog>
-                                        <AlertDialogTrigger asChild>
-                                             <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive/70 hover:text-destructive" onClick={() => confirmDelete(idea)}>
-                                                <Trash2 className="h-4 w-4" />
-                                             </Button>
-                                        </AlertDialogTrigger>
-                                        <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                            <AlertDialogTitle>Tem certeza que deseja excluir?</AlertDialogTitle>
-                                            <AlertDialogDescription>A ideia "{idea.titulo}" será removida permanentemente. Esta ação não pode ser desfeita.</AlertDialogDescription>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                            <AlertDialogAction onClick={() => handleDelete()}>Sim, Excluir</AlertDialogAction>
-                                            </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                    </AlertDialog>
+                            <li key={idea.id}>
+                                <div className="p-3 rounded-lg border flex items-center justify-between gap-4 hover:bg-muted/50 transition-colors">
+                                    <div className="flex-1 overflow-hidden">
+                                    <p className="font-semibold text-foreground truncate">{idea.titulo}</p>
+                                    {idea.createdAt && (
+                                        <p className="text-xs text-muted-foreground">
+                                        Salvo {formatDistanceToNow(idea.createdAt.toDate(), { addSuffix: true, locale: ptBR })}
+                                        </p>
+                                    )}
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground" onClick={() => { setViewingSavedItem(idea); setIsDetailSheetOpen(true); }}>
+                                            <Eye className="h-4 w-4" />
+                                        </Button>
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild>
+                                                <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive/70 hover:text-destructive" onClick={() => confirmDelete(idea)}>
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                <AlertDialogTitle>Tem certeza que deseja excluir?</AlertDialogTitle>
+                                                <AlertDialogDescription>A ideia "{idea.titulo}" será removida permanentemente. Esta ação não pode ser desfeita.</AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                <AlertDialogAction onClick={() => handleDelete()}>Sim, Excluir</AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
+                                    </div>
                                 </div>
                             </li>
                         ))}
@@ -572,4 +574,3 @@ export default function VideoIdeasPage() {
     </div>
   );
 }
-

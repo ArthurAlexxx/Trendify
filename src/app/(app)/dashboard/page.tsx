@@ -161,14 +161,18 @@ export default function DashboardPage() {
         ? query(
             collection(firestore, `users/${user.uid}/ideiasSalvas`),
             where('concluido', '==', false),
-            where('origem', '!=', 'Plano Semanal'),
             orderBy('createdAt', 'desc'),
-            limit(3)
+            limit(5)
           )
         : null,
     [user, firestore]
   );
-  const { data: ideiasSalvas, isLoading: isLoadingIdeias } = useCollection<IdeiaSalva>(ideiasSalvasQuery);
+  const { data: allIdeiasSalvas, isLoading: isLoadingIdeias } = useCollection<IdeiaSalva>(ideiasSalvasQuery);
+
+  const ideiasSalvas = useMemo(() => {
+    return allIdeiasSalvas?.filter(idea => idea.origem !== 'Plano Semanal').slice(0, 3) || null;
+  }, [allIdeiasSalvas]);
+
 
   const completedIdeasQuery = useMemoFirebase(
     () =>
