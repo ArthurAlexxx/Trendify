@@ -65,7 +65,7 @@ import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/
 import { initializeFirebase } from "@/firebase";
 
 type AnalysisStatus = "idle" | "uploading" | "analyzing" | "success" | "error";
-const MAX_FILE_SIZE_MB = 10;
+const MAX_FILE_SIZE_MB = 70;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
 const PLAN_LIMITS: Record<Exclude<Plan, 'free'>, number> = {
@@ -221,6 +221,15 @@ function VideoReviewPageContent() {
     setAnalysisName("");
     resetAnalysisState();
   };
+  
+  const fileToDataUri = (file: File): Promise<string> => {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+  }
 
   const handleAnalyzeVideo = async () => {
     if (!file || !user || !firestore) {
@@ -233,76 +242,72 @@ function VideoReviewPageContent() {
     }
     
     setActiveTab("result");
-    setAnalysisStatus("uploading");
+    setAnalysisStatus("analyzing");
     setAnalysisError("");
     setAnalysisResult(null);
     setUploadProgress(0);
 
-    const { firebaseApp } = initializeFirebase();
-    const storage = getStorage(firebaseApp);
-    const storagePath = `video-reviews/${user.uid}/${Date.now()}-${file.name}`;
-    const storageRef = ref(storage, storagePath);
-    const uploadTask = uploadBytesResumable(storageRef, file);
-
-    uploadTask.on(
-      'state_changed',
-      (snapshot) => {
-        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        setUploadProgress(progress);
-      },
-      (error) => { // Upload error
-        console.error("Upload error:", error);
-        setAnalysisError("Falha ao enviar o vídeo para o armazenamento.");
-        setAnalysisStatus("error");
-      },
-      async () => { // Upload success
-        setAnalysisStatus("analyzing");
-        try {
-          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-          
-          const result = await analyzeVideo({
-            videoUrl: downloadURL,
+    try {
+        const videoDataUri = await fileToDataUri(file);
+        
+        const result = await analyzeVideo({
+            videoDataUri: videoDataUri,
             prompt: "Faça uma análise completa deste vídeo para um criador de conteúdo.",
-          });
+        });
 
-          setAnalysisResult(result);
-          setAnalysisStatus("success");
+        setAnalysisResult(result);
+        setAnalysisStatus("success");
 
-          // Save to Firestore on success
-          try {
-            const usageDocRef = doc(firestore, `users/${user.uid}/dailyUsage/${todayStr}`);
-            await addDoc(collection(firestore, `users/${user.uid}/analisesVideo`), {
-              userId: user.uid,
-              videoUrl: downloadURL,
-              videoFileName: file.name,
-              analysisName: analysisName || file.name,
-              analysisData: result,
-              createdAt: serverTimestamp(),
-            });
+        // Start upload to Firebase Storage in the background for history
+        const { firebaseApp } = initializeFirebase();
+        const storage = getStorage(firebaseApp);
+        const storagePath = `video-reviews/${user.uid}/${Date.now()}-${file.name}`;
+        const storageRef = ref(storage, storagePath);
+        const uploadTask = uploadBytesResumable(storageRef, file);
 
-            const usageDoc = await getDoc(usageDocRef);
-            if (usageDoc.exists()) {
-              await updateDoc(usageDocRef, { videoAnalyses: increment(1) });
-            } else {
-              await setDoc(usageDocRef, { date: todayStr, videoAnalyses: 1, geracoesAI: 0 });
+        uploadTask.on(
+            'state_changed',
+            null, // No need to track progress for background upload
+            (error) => {
+                console.error("Background upload error:", error);
+                // Optionally notify user that history save failed
+            },
+            async () => { // Upload success
+                const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                 try {
+                    await addDoc(collection(firestore, `users/${user.uid}/analisesVideo`), {
+                        userId: user.uid,
+                        videoUrl: downloadURL,
+                        videoFileName: file.name,
+                        analysisName: analysisName || file.name,
+                        analysisData: result,
+                        createdAt: serverTimestamp(),
+                    });
+
+                    const usageDocRef = doc(firestore, `users/${user.uid}/dailyUsage/${todayStr}`);
+                    const usageDoc = await getDoc(usageDocRef);
+                    if (usageDoc.exists()) {
+                        await updateDoc(usageDocRef, { videoAnalyses: increment(1) });
+                    } else {
+                        await setDoc(usageDocRef, { date: todayStr, videoAnalyses: 1, geracoesAI: 0 });
+                    }
+                    toast({ title: "Análise Concluída!", description: "Seu vídeo foi analisado e salvo no seu histórico." });
+                } catch (saveError: any) {
+                    console.error('Failed to save analysis:', saveError);
+                    toast({
+                        title: 'Análise Concluída (com um porém)',
+                        description: 'Não foi possível salvar sua análise no histórico. Erro: ' + saveError.message,
+                        variant: 'destructive',
+                        duration: 7000,
+                    });
+                }
             }
-            toast({ title: "Análise Concluída!", description: "Seu vídeo foi analisado e salvo no seu histórico." });
-          } catch (saveError: any) {
-            console.error('Failed to save analysis:', saveError);
-            toast({
-              title: 'Análise Concluída (com um porém)',
-              description: 'Não foi possível salvar sua análise no histórico. Erro: ' + saveError.message,
-              variant: 'destructive',
-              duration: 7000,
-            });
-          }
+        );
 
-        } catch (e: any) {
-          setAnalysisError(e.message || "Ocorreu um erro desconhecido na análise.");
-          setAnalysisStatus("error");
-        }
-      }
-    );
+    } catch (e: any) {
+        setAnalysisError(e.message || "Ocorreu um erro desconhecido na análise.");
+        setAnalysisStatus("error");
+    }
   };
 
   const getNoteParts = (geralText: string | undefined): { note: string, description: string } => {

@@ -11,9 +11,9 @@ import { genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/google-genai';
 
 // Para alterar o modelo do Gemini para esta análise, modifique a string abaixo.
-const GEMINI_MODEL = 'googleai/gemini-2.5-flash';
+const GEMINI_MODEL = 'googleai/gemini-1.5-pro-latest';
 
-export async function analyzeVideo(input: { videoUrl: string, prompt: string }): Promise<AnalyzeVideoOutput> {
+export async function analyzeVideo(input: { videoDataUri: string, prompt: string }): Promise<AnalyzeVideoOutput> {
     
     // A inicialização do Genkit é feita aqui dentro para cumprir as regras do 'use server'.
     const ai = genkit({
@@ -42,7 +42,7 @@ Instrução do Usuário: ${input.prompt}
 
 Analise o vídeo e retorne um objeto JSON com a sua avaliação, seguindo estritamente o schema de output definido.` 
             },
-            { media: { url: input.videoUrl } }
+            { media: { url: input.videoDataUri } }
         ],
         output: {
             schema: AnalyzeVideoOutputSchema,
