@@ -24,35 +24,17 @@
           "order": "ASCENDING"
         },
         {
-          "fieldPath": "createdAt",
-          "order": "DESCENDING"
-        }
-      ]
-    },
-    {
-      "collectionGroup": "ideiasSalvas",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "origem",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "createdAt",
-          "order": "DESCENDING"
-        }
-      ]
-    },
-    {
-      "collectionGroup": "ideiasSalvas",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "concluido",
-          "order": "ASCENDING"
-        },
-        {
           "fieldPath": "completedAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "ideiasSalvas",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
+          "fieldPath": "createdAt",
           "order": "DESCENDING"
         }
       ]

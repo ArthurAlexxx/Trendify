@@ -160,11 +160,8 @@ export default function DashboardPage() {
       user && firestore
         ? query(
             collection(firestore, `users/${user.uid}/ideiasSalvas`),
-            where('concluido', '==', false),
-            where('origem', '!=', 'Plano Semanal'),
-            orderBy('origem'), // Required by Firestore for inequality filters
             orderBy('createdAt', 'desc'),
-            limit(3)
+            limit(10) // Fetch a bit more to filter on the client
           )
         : null,
     [user, firestore]
@@ -172,7 +169,8 @@ export default function DashboardPage() {
   const { data: allIdeiasSalvas, isLoading: isLoadingIdeias } = useCollection<IdeiaSalva>(ideiasSalvasQuery);
 
   const ideiasSalvas = useMemo(() => {
-    return allIdeiasSalvas?.filter(idea => idea.origem !== 'Plano Semanal').slice(0, 3) || null;
+    if (!allIdeiasSalvas) return null;
+    return allIdeiasSalvas.filter(idea => idea.origem !== 'Plano Semanal' && !idea.concluido).slice(0, 3);
   }, [allIdeiasSalvas]);
 
 
