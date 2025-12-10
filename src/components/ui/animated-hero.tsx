@@ -95,7 +95,7 @@ function AnimatedHero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="relative w-full max-w-5xl mt-12"
+            className="relative w-full max-w-7xl mt-12"
           >
             <div className="absolute -inset-4 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl opacity-20 blur-2xl"></div>
              <div className="relative rounded-2xl shadow-2xl shadow-primary/20 overflow-hidden">
