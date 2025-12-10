@@ -96,12 +96,6 @@ const features = [
     title: 'Assistente de Publis',
     description: 'Crie roteiros e estratégias de conteúdo patrocinado (publis) que sejam autênticos e que convertam.',
     plan: 'premium'
-  },
-  {
-    icon: LineChart,
-    title: 'Métricas Inteligentes',
-    description: 'Conecte suas redes e acompanhe seu crescimento com um dashboard que traduz dados em insights acionáveis.',
-    plan: 'premium'
   }
 ];
 
@@ -335,25 +329,25 @@ export default function LandingPage() {
                     {features.map((feature, index) => (
                       <CarouselItem key={feature.title} className="pl-4 basis-[90%] md:basis-1/2">
                          <div className="p-1 h-full">
-                          <Card className="text-left h-full bg-card/50 rounded-2xl border shadow-primary-lg">
-                            <CardHeader className="flex flex-row items-center justify-between">
-                              <div className="bg-primary/10 text-primary p-3 rounded-lg">
-                                <feature.icon className="h-6 w-6" />
+                          <Card className="text-left h-full bg-card/50 rounded-2xl border shadow-primary-lg p-6">
+                            <div className='flex flex-col h-full'>
+                              <div className='flex items-center justify-between mb-4'>
+                                <div className="bg-primary/10 text-primary p-3 rounded-lg">
+                                  <feature.icon className="h-6 w-6" />
+                                </div>
+                                {feature.plan && (
+                                  <Badge variant={feature.plan === 'premium' ? 'default' : 'secondary'} className={cn(feature.plan === 'premium' && 'bg-yellow-400/20 text-yellow-600 border-yellow-400/30')}>
+                                    {feature.plan === 'premium' ? 'Premium' : 'Pro'}
+                                  </Badge>
+                                )}
                               </div>
-                              {feature.plan && (
-                                <Badge variant={feature.plan === 'premium' ? 'default' : 'secondary'} className={cn(feature.plan === 'premium' && 'bg-yellow-400/20 text-yellow-600 border-yellow-400/30')}>
-                                  {feature.plan === 'premium' ? 'Premium' : 'Pro'}
-                                </Badge>
-                              )}
-                            </CardHeader>
-                            <CardContent className="pb-6">
                               <h3 className="font-bold text-base mb-2 text-foreground">
                                 {feature.title}
                               </h3>
-                              <p className="text-sm text-muted-foreground">
+                              <p className="text-sm text-muted-foreground flex-grow">
                                 {feature.description}
                               </p>
-                            </CardContent>
+                            </div>
                           </Card>
                          </div>
                     </CarouselItem>
@@ -370,10 +364,11 @@ export default function LandingPage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5 }}
                   viewport={{ once: true, amount: 0.3 }}
+                  className="h-full"
                 >
-                  <Card className="text-left h-full bg-card/50 rounded-2xl shadow-primary-lg">
-                    <CardHeader className="flex flex-row items-center justify-between">
-                       <div className="bg-primary/10 text-primary p-3 rounded-lg">
+                  <Card className="text-left h-full bg-card/50 rounded-2xl shadow-primary-lg p-6 flex flex-col">
+                     <div className='flex items-center justify-between mb-4'>
+                      <div className="bg-primary/10 text-primary p-3 rounded-lg">
                         <feature.icon className="h-6 w-6" />
                       </div>
                       {feature.plan && (
@@ -381,15 +376,13 @@ export default function LandingPage() {
                            {feature.plan === 'premium' ? 'Premium' : 'Pro'}
                         </Badge>
                       )}
-                    </CardHeader>
-                    <CardContent className="pb-6">
-                      <h3 className="font-bold text-base mb-2 text-foreground">
-                        {feature.title}
-                      </h3>
-                      <p className="text-sm text-muted-foreground">
-                        {feature.description}
-                      </p>
-                    </CardContent>
+                    </div>
+                    <h3 className="font-bold text-base mb-2 text-foreground">
+                      {feature.title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground flex-grow">
+                      {feature.description}
+                    </p>
                   </Card>
                 </motion.div>
               ))}
