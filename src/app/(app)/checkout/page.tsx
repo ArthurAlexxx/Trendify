@@ -115,7 +115,6 @@ function CheckoutPageContent() {
       <PageHeader
         title="Finalizar Assinatura"
         description="Estamos quase lá! Preencha seus dados para ir para o pagamento."
-        icon={CreditCard}
       />
       <Card className="max-w-2xl mx-auto border-0 rounded-2xl shadow-primary-lg">
         <CardHeader>

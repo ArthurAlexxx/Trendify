@@ -77,7 +77,6 @@ export default function SupportPage() {
       <PageHeader
         title="Suporte & Contato"
         description="Precisa de ajuda ou tem alguma sugestão? Preencha o formulário abaixo."
-        icon={Hammer}
       />
 
       <Card className="max-w-2xl mx-auto border-0 rounded-2xl">

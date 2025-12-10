@@ -200,21 +200,18 @@ function AuthActionHandler() {
     }
   };
 
-  const { title, icon, description } = useMemo(() => {
+  const { title, description } = useMemo(() => {
     switch(mode) {
         case 'resetPassword': return {
             title: 'Redefinir sua Senha',
-            icon: <KeyRound className="h-8 w-8 text-primary" />,
             description: 'Crie uma nova senha segura para sua conta.'
         };
         case 'verifyEmail': return {
             title: 'Verificação de E-mail',
-            icon: <MailCheck className="h-8 w-8 text-primary" />,
             description: 'Finalizando a verificação do seu e-mail.'
         };
         default: return {
             title: 'Ação de Autenticação',
-            icon: <KeyRound className="h-8 w-8 text-primary" />,
             description: ''
         }
     }
@@ -237,7 +234,7 @@ function AuthActionHandler() {
         <Card className="rounded-2xl shadow-lg shadow-primary/5 border-0">
           <CardHeader className="text-center">
              <div className="w-16 h-16 bg-primary/10 mx-auto rounded-full flex items-center justify-center border-2 border-primary/20 mb-4">
-                {icon}
+                {mode === 'resetPassword' ? <KeyRound className="h-8 w-8 text-primary" /> : <MailCheck className="h-8 w-8 text-primary" />}
              </div>
             <CardTitle className="font-headline text-xl">
               {title}

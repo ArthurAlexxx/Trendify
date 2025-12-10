@@ -350,7 +350,6 @@ export default function ContentCalendarPage() {
       <PageHeader
         title="Calendário de Conteúdo"
         description="Visualize e organize suas publicações."
-        icon={CalendarIcon}
       />
 
       {/* Sheet for Creating/Editing */}
@@ -604,9 +603,3 @@ export default function ContentCalendarPage() {
     </div>
   );
 }
-
-    
-
-    
-
-    

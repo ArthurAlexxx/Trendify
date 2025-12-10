@@ -33,7 +33,6 @@ export default function TokensAdminPage() {
       <PageHeader
         title="Uso de Tokens"
         description="Acompanhe o consumo de tokens da API de sincronização."
-        icon={Coins}
       />
 
        <Card className="shadow-primary-lg">

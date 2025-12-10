@@ -142,7 +142,6 @@ export default function UsageAdminPage() {
       <PageHeader
         title="Uso da IA"
         description="Acompanhe o consumo das principais ferramentas da plataforma."
-        icon={Activity}
       />
       
        <div className="grid gap-4 md:grid-cols-2">

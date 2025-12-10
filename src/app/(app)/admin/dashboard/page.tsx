@@ -73,7 +73,6 @@ export default function AdminDashboardPage() {
       <PageHeader
         title="Dashboard de Administração"
         description="Métricas e visão geral da plataforma."
-        icon={LayoutGrid}
       />
 
        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

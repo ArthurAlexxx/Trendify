@@ -156,7 +156,6 @@ export default function SettingsPage() {
       <PageHeader
         title="Configurações"
         description="Gerencie sua assinatura e informações da conta."
-        icon={SettingsIcon}
       />
 
        <Card className="border-0 rounded-2xl shadow-primary-lg">

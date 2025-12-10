@@ -57,7 +57,6 @@ export default function FinancialAdminPage() {
       <PageHeader
         title="Financeiro & Webhooks"
         description="Histórico de transações e eventos recebidos do gateway de pagamento."
-        icon={DollarSign}
       />
 
       <Card className="shadow-primary-lg">

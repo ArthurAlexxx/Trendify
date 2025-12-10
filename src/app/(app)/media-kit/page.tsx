@@ -375,7 +375,6 @@ function MediaKitPageContent() {
       <PageHeader
         title="Pacote de Prospecção"
         description="Gere propostas, preços e seu mídia kit profissional."
-        icon={Briefcase}
       />
       
       <div>

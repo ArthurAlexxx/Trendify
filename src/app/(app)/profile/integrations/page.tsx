@@ -309,7 +309,6 @@ export default function IntegrationsPage() {
       <PageHeader
         title="Integrações"
         description="Sincronize seus dados para obter métricas automáticas."
-        icon={Link2}
       >
          <Button variant="ghost" asChild>
           <Link href="/profile">

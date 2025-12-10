@@ -132,7 +132,6 @@ export default function AdminCheckoutTestPage() {
       <PageHeader
         title="Checkout de Teste"
         description="Use esta página para simular o fluxo de pagamento completo com a Asaas."
-        icon={CreditCard}
       />
 
        <Alert variant="default" className="max-w-2xl mx-auto">

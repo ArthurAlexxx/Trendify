@@ -41,7 +41,6 @@ export default function AdminUsersPage() {
       <PageHeader
         title="Gerenciamento de Usuários"
         description="Visualize, filtre e gerencie todos os usuários."
-        icon={Users}
       />
 
       <Card className="shadow-primary-lg">

@@ -174,7 +174,6 @@ export default function ProfilePage() {
       <PageHeader
         title="Gerenciar Perfil"
         description="Mantenha suas informações atualizadas para a IA."
-        icon={UserIcon}
       />
           <Card className="rounded-2xl border-0 shadow-primary-lg">
             <CardHeader>

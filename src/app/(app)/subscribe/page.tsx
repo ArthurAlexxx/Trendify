@@ -78,7 +78,6 @@ export default function SubscribePage() {
       <PageHeader
         title="Planos de Assinatura"
         description="Escolha o plano que melhor se adapta à sua jornada de criador."
-        icon={Crown}
       />
       
        {isLoading ? (
