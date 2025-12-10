@@ -1,3 +1,4 @@
+
 'use client';
 import { useEffect, useMemo, useState, useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
@@ -106,7 +107,7 @@ function AnimatedHero() {
         className="relative py-12"
         style={{
           background:
-            'radial-gradient(ellipse 70% 40% at 50% 50%, hsl(var(--primary) / 0.15) 0%, transparent 70%)',
+            'radial-gradient(ellipse 70% 40% at 50% 50%, hsl(var(--primary) / 0.2) 0%, transparent 70%)',
         }}
       >
         <div className="container mx-auto">
