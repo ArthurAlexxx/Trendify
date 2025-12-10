@@ -34,7 +34,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
+import { useResponsiveToast } from "@/hooks/use-responsive-toast";
 import { analyzeVideo } from "@/ai/flows/analyze-video-flow";
 import type { AnalyzeVideoOutput } from '@/lib/types';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -65,7 +65,7 @@ import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/
 import { initializeFirebase } from "@/firebase";
 
 type AnalysisStatus = "idle" | "uploading" | "analyzing" | "success" | "error";
-const MAX_FILE_SIZE_MB = 70;
+const MAX_FILE_SIZE_MB = 20;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
 const PLAN_LIMITS: Record<Exclude<Plan, 'free'>, number> = {
@@ -123,7 +123,7 @@ export default function VideoReviewPage() {
 function VideoReviewPageContent() {
   const [file, setFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { toast } = useToast();
+  const { toast } = useResponsiveToast();
 
   const [analysisStatus, setAnalysisStatus] = useState<AnalysisStatus>("idle");
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -191,7 +191,7 @@ function VideoReviewPageContent() {
       if (selectedFile.size > MAX_FILE_SIZE_BYTES) {
         toast({
           title: "Arquivo Muito Grande",
-          description: `O vídeo deve ter no máximo ${MAX_FILE_SIZE_MB}MB.`,
+          description: `O vídeo para análise deve ter no máximo ${MAX_FILE_SIZE_MB}MB.`,
           variant: "destructive",
         });
         return;
