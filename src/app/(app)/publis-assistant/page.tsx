@@ -369,7 +369,7 @@ function PublisAssistantPageContent() {
     });
   }
   
-  const isButtonDisabled = isGenerating || hasReachedLimit;
+  const isButtonDisabled = isGenerating || !isPremium;
 
 
   return (
@@ -585,7 +585,7 @@ function PublisAssistantPageContent() {
                         </ResponsiveDialogFooter>
                       </ResponsiveDialogContent>
                     </ResponsiveDialog>
-                    {hasReachedLimit && (
+                    {!isPremium && (
                       <p className="text-sm text-muted-foreground text-center sm:text-left">
                         Você precisa de um plano <Link href="/subscribe" className='underline text-primary font-semibold'>Premium</Link> para usar esta ferramenta.
                       </p>

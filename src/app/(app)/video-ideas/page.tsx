@@ -190,7 +190,8 @@ export default function VideoIdeasPage() {
 
   const generationsToday = usageData?.geracoesAI || 0;
   const isPro = subscription?.plan === 'pro';
-  const hasReachedLimit = !isPro && !isTrialActive;
+  const isPremium = subscription?.plan === 'premium';
+  const hasReachedLimit = !isPro && !isPremium && !isTrialActive;
 
 
   const form = useForm<FormSchemaType>({
@@ -577,5 +578,3 @@ export default function VideoIdeasPage() {
     </div>
   );
 }
-
-    
