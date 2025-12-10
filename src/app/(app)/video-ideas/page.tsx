@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/hooks/use-responsive-toast';
+import { useResponsiveToast } from '@/hooks/use-responsive-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Camera,
@@ -121,7 +121,7 @@ const ITEMS_PER_PAGE = 5;
 
 
 export default function VideoIdeasPage() {
-  const { toast } = useToast();
+  const { toast } = useResponsiveToast();
   const [isGenerating, startTransition] = useTransition();
   const [result, setResult] = useState<GenerateVideoIdeasOutput | null>(null);
   const [activeTab, setActiveTab] = useState("generate");

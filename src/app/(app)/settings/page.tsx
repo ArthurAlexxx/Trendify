@@ -26,7 +26,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { useState, useTransition } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import { useResponsiveToast } from '@/hooks/use-responsive-toast';
 import { doc, updateDoc } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/types';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -46,7 +46,7 @@ export default function SettingsPage() {
   const auth = useAuth();
   const firestore = useFirestore();
   const router = useRouter();
-  const { toast } = useToast();
+  const { toast } = useResponsiveToast();
   const [isCancelling, startCancellingTransition] = useTransition();
   const [isReactivating, startReactivatingTransition] = useTransition();
 

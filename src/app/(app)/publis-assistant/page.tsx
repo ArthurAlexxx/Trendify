@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-responsive-toast';
+import { useResponsiveToast } from '@/hooks/use-responsive-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Bot,
@@ -180,7 +180,7 @@ export default function PublisAssistantPage() {
 
 
 function PublisAssistantPageContent() {
-  const { toast } = useToast();
+  const { toast } = useResponsiveToast();
   const [isGenerating, startTransition] = useTransition();
   const [result, setResult] = useState<GeneratePubliProposalsOutput | null>(null);
   const [activeTab, setActiveTab] = useState("generate");

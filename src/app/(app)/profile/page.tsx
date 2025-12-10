@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { PageHeader } from '@/components/page-header';
@@ -17,7 +16,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useState, useEffect, useTransition, useRef } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import { useResponsiveToast } from '@/hooks/use-responsive-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -44,7 +43,7 @@ export default function ProfilePage() {
   const { user } = useUser();
   const auth = useAuth();
   const firestore = useFirestore();
-  const { toast } = useToast();
+  const { toast } = useResponsiveToast();
   const [isSaving, startSavingTransition] = useTransition();
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);

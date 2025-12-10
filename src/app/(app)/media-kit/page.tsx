@@ -45,7 +45,7 @@ import {
   getAiCareerPackageAction,
   AiCareerPackageOutput,
 } from '@/app/(app)/media-kit/actions';
-import { useToast } from '@/hooks/use-responsive-toast';
+import { useResponsiveToast } from '@/hooks/use-responsive-toast';
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
 import { collection, addDoc, serverTimestamp, doc, updateDoc, onSnapshot, getDoc, setDoc, increment, query, where, orderBy, limit } from 'firebase/firestore';
 import { SavedIdeasSheet } from '@/components/saved-ideas-sheet';
@@ -151,7 +151,7 @@ export default function MediaKitPage() {
 
 
 function MediaKitPageContent() {
-  const { toast } = useToast();
+  const { toast } = useResponsiveToast();
   const [isGenerating, startTransition] = useTransition();
   const [result, setResult] = useState<AiCareerPackageOutput | null>(null);
   const [activeTab, setActiveTab] = useState("generate");

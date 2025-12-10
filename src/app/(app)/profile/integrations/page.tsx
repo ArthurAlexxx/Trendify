@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { PageHeader } from '@/components/page-header';
@@ -16,7 +15,7 @@ import { User as UserIcon, Instagram, Film, Search, Loader2, AlertTriangle, User
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useState, useEffect, useTransition } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import { useResponsiveToast } from '@/hooks/use-responsive-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -50,7 +49,7 @@ type SearchStatus = 'idle' | 'loading' | 'success' | 'error';
 export default function IntegrationsPage() {
   const { user } = useUser();
   const firestore = useFirestore();
-  const { toast } = useToast();
+  const { toast } = useResponsiveToast();
   const router = useRouter();
   
   const [instaStatus, setInstaStatus] = useState<SearchStatus>('idle');
