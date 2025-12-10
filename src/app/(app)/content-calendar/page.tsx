@@ -75,7 +75,7 @@ import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-responsive-toast';
 import { FullScreenCalendar } from '@/components/ui/fullscreen-calendar';
 import { Calendar } from '@/components/ui/calendar';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -359,6 +359,9 @@ export default function ContentCalendarPage() {
             <ResponsiveDialogTitle className="font-headline text-xl">
               {editingPost ? "Editar Agendamento" : "Novo Agendamento"}
             </ResponsiveDialogTitle>
+             <ResponsiveDialogDescription>
+              {format(form.getValues('date'), "'Para' dd 'de' MMMM", { locale: ptBR })}
+            </ResponsiveDialogDescription>
           </ResponsiveDialogHeader>
           <ScrollArea className="flex-1 max-h-[calc(100vh-10rem)]">
              <div className="p-6">
@@ -439,46 +442,7 @@ export default function ContentCalendarPage() {
                         />
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <FormField
-                        control={form.control}
-                        name="date"
-                        render={({ field }) => (
-                            <FormItem className="flex flex-col">
-                            <FormLabel>Data</FormLabel>
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                <FormControl>
-                                    <Button
-                                    variant={'outline'}
-                                    className={cn(
-                                        'w-full pl-3 text-left font-normal',
-                                        !field.value && 'text-muted-foreground'
-                                    )}
-                                    >
-                                    {field.value ? (
-                                        format(field.value, 'PPP', { locale: ptBR })
-                                    ) : (
-                                        <span>Escolha uma data</span>
-                                    )}
-                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                    </Button>
-                                </FormControl>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar
-                                    mode="single"
-                                    selected={field.value}
-                                    onSelect={(day) => day && field.onChange(day)}
-                                    disabled={(date) => date < new Date('1900-01-01')}
-                                    initialFocus
-                                />
-                                </PopoverContent>
-                            </Popover>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                        />
+                    <div className="grid grid-cols-1 gap-4">
                         <FormField
                         control={form.control}
                         name="time"
