@@ -99,18 +99,21 @@ function AnimatedHero() {
               Começar Grátis <ArrowUpRight className="w-4 h-4" />
             </Link>
           </div>
-          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 mt-4">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Users className="h-4 w-4" />
-                <span>+20 mil criadores ativos</span>
+          <div className="flex flex-wrap items-center justify-center gap-3 mt-4">
+              <div className="flex items-center gap-2 text-sm text-foreground bg-muted/50 border rounded-lg px-3 py-1.5">
+                <Users className="h-4 w-4 text-primary" />
+                <span className="font-semibold">+20 mil</span>
+                <span className="text-muted-foreground">criadores ativos</span>
               </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Lightbulb className="h-4 w-4" />
-                <span>+500 mil ideias geradas</span>
+              <div className="flex items-center gap-2 text-sm text-foreground bg-muted/50 border rounded-lg px-3 py-1.5">
+                <Lightbulb className="h-4 w-4 text-primary" />
+                 <span className="font-semibold">+500 mil</span>
+                <span className="text-muted-foreground">ideias geradas</span>
               </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <BarChartIcon className="h-4 w-4" />
-                <span>+85% de crescimento médio</span>
+              <div className="flex items-center gap-2 text-sm text-foreground bg-muted/50 border rounded-lg px-3 py-1.5">
+                <BarChartIcon className="h-4 w-4 text-primary" />
+                <span className="font-semibold">+85%</span>
+                <span className="text-muted-foreground">de crescimento médio</span>
               </div>
           </div>
         </div>
