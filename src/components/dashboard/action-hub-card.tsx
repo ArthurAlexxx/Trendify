@@ -146,9 +146,6 @@ export default function ActionHubCard({
                               {ideia.titulo}
                             </label>
                          </SavedIdeasSheet>
-                        <p className="text-xs text-muted-foreground">
-                          de "{ideia.origem}"
-                        </p>
                       </div>
                     </li>
                   ))}
