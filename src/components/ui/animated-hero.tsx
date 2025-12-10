@@ -31,13 +31,13 @@ function AnimatedHero() {
     offset: ["start end", "end start"],
   });
 
-  const scale = useTransform(scrollYProgress, [0, 0.5], [0.9, 1]);
+  const scale = useTransform(scrollYProgress, [0, 0.5], [0.75, 1]);
 
 
   return (
     <div className="w-full">
       <div className="container mx-auto">
-        <div className="flex gap-8 pt-12 items-center justify-center flex-col">
+        <div className="flex gap-8 pt-24 items-center justify-center flex-col">
           <div>
             <Button variant="outline" size="sm" className="gap-4 rounded-full bg-transparent text-primary hover:bg-primary/10 border-primary">
                <Sparkles className="w-4 h-4 animate-pulse" />
