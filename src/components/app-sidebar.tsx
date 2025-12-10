@@ -143,13 +143,24 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
   const isUserActive = subscription?.status === 'active';
 
   const getPlanName = () => {
-    if (isSubscriptionLoading || isAdminLoading) return "Carregando...";
-    if (isAdmin) return "Admin";
-    if (!isUserActive && userPlan === 'free') return "Fazer Upgrade";
-    if (userPlan === 'premium') return 'Premium';
-    if (userPlan === 'pro') return 'Pro';
-    return "Gratuito";
-  }
+    if (isSubscriptionLoading || isAdminLoading) {
+      return "Carregando...";
+    }
+    if (isAdmin) {
+      return "Admin";
+    }
+    if (!isUserActive && userPlan === 'free') {
+      return "Fazer Upgrade";
+    }
+    switch (userPlan) {
+      case 'premium':
+        return 'Premium';
+      case 'pro':
+        return 'Pro';
+      default:
+        return "Gratuito";
+    }
+  };
   
   const getPlanIcon = () => {
     if (isAdmin) return <Shield className="h-5 w-5" />;
