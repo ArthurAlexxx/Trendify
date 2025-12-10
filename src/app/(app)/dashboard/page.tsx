@@ -295,14 +295,21 @@ export default function DashboardPage() {
 
     setIsGeneratingInsights(true);
     try {
-      const plainMetricSnapshots = metricSnapshots.map(s => ({
-        ...s,
-        date: s.date.toDate().toISOString(), // Convert Timestamp to ISO string
-        followers: parseMetric(s.followers),
-        views: parseMetric(s.views),
-        likes: parseMetric(s.likes),
-        comments: parseMetric(s.comments),
-      }));
+       const plainMetricSnapshots = metricSnapshots.map(s => {
+        // Ensure 's.date' is a Firestore Timestamp before calling .toDate()
+        const date = (s.date instanceof Timestamp) ? s.date.toDate() : new Date(s.date);
+        
+        return {
+          // No direct complex objects passed
+          date: date.toISOString(), 
+          platform: s.platform,
+          followers: parseMetric(s.followers),
+          views: parseMetric(s.views),
+          likes: parseMetric(s.likes),
+          comments: parseMetric(s.comments),
+        };
+      });
+
 
       const result = await generateDashboardInsights({
         metricSnapshots: plainMetricSnapshots,
@@ -473,5 +480,3 @@ export default function DashboardPage() {
     </>
   );
 }
-
-    
