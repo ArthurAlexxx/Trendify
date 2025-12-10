@@ -105,7 +105,7 @@ function AnimatedHero() {
                 <div className="w-3 h-3 rounded-full bg-green-400"></div>
               </div>
               <Image
-                src="https://firebasestorage.googleapis.com/v0/b/studio-4233590611-a8ab0.firebasestorage.app/o/HeroDemo.png?alt=media&token=5d241b5f-cffb-4361-a8c3-57c8bf3966f3"
+                src="https://firebasestorage.googleapis.com/v0/b/studio-4233590611-a8ab0.firebasestorage.app/o/FundoHeroBolo.png?alt=media&token=84189787-4b79-4217-b72a-c613f9d42cd1"
                 alt="Dashboard da Trendify mostrando métricas de crescimento"
                 width={1200}
                 height={750}
