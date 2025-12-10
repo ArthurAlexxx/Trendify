@@ -29,7 +29,7 @@ function AnimatedHero() {
   return (
     <div className="w-full">
       <div className="container mx-auto">
-        <div className="flex gap-8 pt-12 items-center justify-center flex-col pb-6">
+        <div className="flex gap-8 pt-12 items-center justify-center flex-col pb-12">
           <div>
             <Button variant="outline" size="sm" className="gap-4 rounded-full bg-transparent text-primary hover:bg-primary/10 border-primary">
                <Sparkles className="w-4 h-4 animate-pulse" />
@@ -90,30 +90,31 @@ function AnimatedHero() {
               Começar Grátis <ArrowUpRight className="w-4 h-4" />
             </Link>
           </div>
-
-           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="relative w-full max-w-6xl mt-8"
+        </div>
+      </div>
+      {/* Nova seção para a imagem com gradiente */}
+      <div 
+        className="relative py-12" 
+        style={{
+          background: 'radial-gradient(circle at 50% 50%, hsl(var(--primary) / 0.1) 0%, transparent 60%)'
+        }}
+      >
+        <div className="container mx-auto">
+          <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="relative w-full max-w-6xl mx-auto"
           >
-            <div
-              className="relative rounded-2xl p-2"
-               style={{
-                background: 'radial-gradient(circle at center, hsl(var(--primary) / 0.15) 0%, hsl(var(--primary) / 0.05) 40%, transparent 70%)',
-              }}
-             >
-                <Image
-                    src="https://firebasestorage.googleapis.com/v0/b/studio-4233590611-a8ab0.firebasestorage.app/o/Sem%20nome%20(Quadro%20branco).png?alt=media&token=242aeba3-137e-4a70-b344-c81507275c68"
-                    alt="Dashboard da Trendify mostrando métricas de crescimento"
-                    width={1200}
-                    height={750}
-                    className="w-full h-auto rounded-xl"
-                    priority
-                />
-             </div>
+              <Image
+                  src="https://firebasestorage.googleapis.com/v0/b/studio-4233590611-a8ab0.firebasestorage.app/o/Sem%20nome%20(Quadro%20branco).png?alt=media&token=242aeba3-137e-4a70-b344-c81507275c68"
+                  alt="Dashboard da Trendify mostrando métricas de crescimento"
+                  width={1200}
+                  height={750}
+                  className="w-full h-auto rounded-xl"
+                  priority
+              />
           </motion.div>
-
         </div>
       </div>
     </div>
