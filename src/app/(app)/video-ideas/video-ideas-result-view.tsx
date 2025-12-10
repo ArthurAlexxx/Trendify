@@ -104,6 +104,20 @@ export function VideoIdeasResultView({ result, formValues, isSheetView = false }
                             </Accordion>
                         </CardContent>
                     </Card>
+
+                    <Card className="shadow-primary-lg">
+                        <CardHeader><CardTitle className="flex items-center gap-3 text-lg font-semibold"><Camera className="h-5 w-5 text-primary" />Checklist de Gravação</CardTitle></CardHeader>
+                        <CardContent>
+                            <ul className="space-y-2">
+                                {result.takesChecklist.map((take: string, index: number) => (
+                                    <li key={index} className="flex items-start gap-2 text-sm text-muted-foreground">
+                                        <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                                        <span>{take}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </CardContent>
+                    </Card>
                 </div>
                 <div className="space-y-8">
                     <Card className="shadow-primary-lg">
@@ -149,20 +163,6 @@ export function VideoIdeasResultView({ result, formValues, isSheetView = false }
                             </CardContent>
                         </Card>
                     )}
-
-                    <Card className="shadow-primary-lg">
-                        <CardHeader><CardTitle className="flex items-center gap-3 text-lg font-semibold"><Camera className="h-5 w-5 text-primary" />Checklist de Gravação</CardTitle></CardHeader>
-                        <CardContent>
-                            <ul className="space-y-2">
-                                {result.takesChecklist.map((take: string, index: number) => (
-                                    <li key={index} className="flex items-start gap-2 text-sm text-muted-foreground">
-                                        <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                                        <span>{take}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </CardContent>
-                    </Card>
                 </div>
             </div>
         </div>
