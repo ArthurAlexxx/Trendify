@@ -194,9 +194,9 @@ export default function ActionHubCard({
                   <p className="text-muted-foreground text-sm">
                     Nenhum item salvo.
                   </p>
-                  <Button variant="link" asChild>
-                    <Link href="/video-ideas">Gerar Novas Ideias</Link>
-                  </Button>
+                  <SavedIdeasSheet idea={null}>
+                     <Button variant="link">Ver todos</Button>
+                  </SavedIdeasSheet>
                 </div>
               )}
             </TabsContent>
@@ -215,10 +215,13 @@ export default function ActionHubCard({
                     </div>
                     </div>
                 ) : (
-                     <div className="text-center h-full flex flex-col items-center justify-center">
+                    <div className="text-center h-full flex flex-col items-center justify-center">
                         <p className="text-muted-foreground text-sm">
                            Nenhuma tarefa concluída ainda.
                         </p>
+                         <SavedIdeasSheet idea={null}>
+                           <Button variant="link">Ver todos</Button>
+                        </SavedIdeasSheet>
                     </div>
                 )}
             </TabsContent>
