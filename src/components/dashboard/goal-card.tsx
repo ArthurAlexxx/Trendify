@@ -26,12 +26,12 @@ export default function GoalCard({ isLoading, goalFollowers, currentFollowers, i
     }, [isGoalReached, onEditGoal]);
     
     const followerGoalProgress = goalFollowers > 0 ? Math.min((currentFollowers / goalFollowers) * 100, 100) : 0;
-    const pieData = [{ value: followerGoalProgress, fill: 'hsl(var(--primary))' }, { value: 100 - followerGoalProgress, fill: 'hsl(var(--secondary))' }];
+    const pieData = [{ value: followerGoalProgress, fill: 'hsl(var(--primary))' }, { value: 100 - followerGoalProgress, fill: 'hsl(var(--muted))' }];
 
     return (
         <Card className="h-full shadow-primary-lg">
             <CardHeader>
-                <CardTitle className="text-center font-headline text-base flex items-center justify-center gap-2">
+                <CardTitle className="text-center font-headline text-lg flex items-center justify-center gap-2">
                     Meta de Seguidores
                 </CardTitle>
             </CardHeader>
@@ -40,7 +40,7 @@ export default function GoalCard({ isLoading, goalFollowers, currentFollowers, i
                     {isLoading ? (
                         <Skeleton className="h-48 w-48 rounded-full" />
                     ) : goalFollowers > 0 ? (
-                        <div className="relative h-48 w-48">
+                        <div className="relative h-48 w-48" style={{ filter: 'drop-shadow(0 4px 10px hsl(var(--primary) / 0.2))' }}>
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
                                     <Pie
