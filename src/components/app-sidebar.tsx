@@ -37,7 +37,7 @@ import { useUser, useAuth } from '@/firebase';
 import { Button } from './ui/button';
 import { useSubscription } from '@/hooks/useSubscription';
 import { Skeleton } from './ui/skeleton';
-import { Plan } from '@/lib/types';
+import { Plan, UserProfile } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Separator } from './ui/separator';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -46,7 +46,7 @@ import { useRef, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/storage';
 import { initializeFirebase } from '@/firebase';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, Timestamp } from 'firebase/firestore';
 import { ScrollArea } from './ui/scroll-area';
 import { updateProfile } from 'firebase/auth';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from './ui/alert-dialog';
@@ -116,16 +116,34 @@ const hasAccess = (userPlan: Plan, itemPlan: Plan): boolean => {
     return planHierarchy[userPlan] >= planHierarchy[itemPlan];
 }
 
+const mockUser: UserProfile = {
+    id: 'demo-user',
+    displayName: 'Ana Clara',
+    email: 'ana.clara@example.com',
+    photoURL: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80',
+    createdAt: Timestamp.now(),
+};
+
+
 export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile?: boolean, setIsMobileMenuOpen?: (isOpen: boolean) => void }) {
   const pathname = usePathname();
-  const { user, firestore, isUserLoading } = useUser();
+  // const { user, firestore, isUserLoading } = useUser();
   const auth = useAuth();
   const router = useRouter();
-  const { subscription, isLoading: isSubscriptionLoading } = useSubscription();
-  const { isAdmin, isLoading: isAdminLoading } = useAdmin();
+  // const { subscription, isLoading: isSubscriptionLoading } = useSubscription();
+  // const { isAdmin, isLoading: isAdminLoading } = useAdmin();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+    // --- USE MOCK DATA ---
+  const user = mockUser as any;
+  const isUserLoading = false;
+  const isSubscriptionLoading = false;
+  const isAdmin = false;
+  const isAdminLoading = false;
+  // --- END OF MOCK DATA USAGE ---
+
 
   const handleSignOut = () => {
     auth.signOut();
@@ -138,8 +156,10 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
     }
   };
   
-  const userPlan = subscription?.plan || 'free';
-  const isUserActive = subscription?.status === 'active';
+  // const userPlan = subscription?.plan || 'free';
+  // const isUserActive = subscription?.status === 'active';
+  const userPlan = 'premium';
+  const isUserActive = true;
 
   const getPlanName = () => {
     if (isSubscriptionLoading || isAdminLoading) return "Carregando...";
@@ -185,6 +205,7 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
                 if (auth.currentUser) {
                   await updateProfile(auth.currentUser, { photoURL: downloadURL });
                 }
+                const firestore = (await import('@/firebase')).useFirestore();
                 if (firestore) {
                     await updateDoc(doc(firestore, "users", user.uid), { photoURL: downloadURL });
                 }
