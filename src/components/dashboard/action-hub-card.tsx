@@ -183,19 +183,17 @@ export default function ActionHubCard({
               ) : ideiasSalvas && ideiasSalvas.length > 0 ? (
                 <div className="space-y-2">
                   {ideiasSalvas.map(ideia => renderIdeiaItem(ideia, false))}
-                   <div className="pt-2">
-                        <SavedIdeasSheet idea={null}>
-                            <Button variant="link" className="w-full">Ver todos</Button>
-                        </SavedIdeasSheet>
-                    </div>
+                  <div className="pt-2">
+                    <SavedIdeasSheet idea={null}>
+                      <Button variant="link" className="w-full">Ver todos</Button>
+                    </SavedIdeasSheet>
+                  </div>
                 </div>
               ) : (
                 <div className="text-center h-full flex flex-col items-center justify-center">
-                  <p className="text-muted-foreground text-sm">
-                    Nenhum item salvo.
-                  </p>
+                  <p className="text-muted-foreground text-sm">Nenhum item salvo.</p>
                   <SavedIdeasSheet idea={null}>
-                     <Button variant="link">Ver todos</Button>
+                    <Button variant="link">Ver todos</Button>
                   </SavedIdeasSheet>
                 </div>
               )}
