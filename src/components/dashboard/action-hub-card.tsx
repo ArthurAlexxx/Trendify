@@ -3,7 +3,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, MoreHorizontal, CheckCircle, Tag, Info, Calendar } from 'lucide-react';
+import { Loader2, MoreHorizontal, CheckCircle, Tag, Info, Calendar, Lightbulb } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import {
@@ -46,29 +46,54 @@ export default function ActionHubCard({
   handleMarkAsPublished,
 }: ActionHubCardProps) {
 
-    const renderIdeiaItem = (ideia: IdeiaSalva) => (
-         <li key={ideia.id} className="flex items-start gap-3">
-            <Checkbox
-                id={`ideia-${ideia.id}`}
-                checked={ideia.concluido}
-                onCheckedChange={() => handleToggleIdeia(ideia)}
-                className="h-5 w-5 mt-0.5"
-            />
-            <div className="flex-1 grid gap-0.5">
-                <SavedIdeasSheet idea={ideia}>
-                    <span
-                        className={cn(
-                        'font-medium transition-colors cursor-pointer text-sm hover:text-primary',
-                        ideia.concluido
-                            ? 'line-through text-muted-foreground'
-                            : 'text-foreground'
-                        )}
-                    >
+    const renderIdeiaItem = (ideia: IdeiaSalva, isCompletedTab: boolean) => (
+         <div
+            key={ideia.id}
+            className="p-3 rounded-lg border bg-background/50 flex items-start justify-between gap-4"
+        >
+            <div className="flex items-start gap-4 flex-1 overflow-hidden">
+                <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                    <Lightbulb className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <div className="flex-1 overflow-hidden">
+                    <p className={cn("font-semibold text-foreground truncate text-sm", isCompletedTab && "line-through text-muted-foreground")}>
                         {ideia.titulo}
-                    </span>
-                </SavedIdeasSheet>
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                        Salvo{' '}
+                        {formatDistanceToNow(ideia.createdAt.toDate(), {
+                          addSuffix: true,
+                          locale: ptBR,
+                        })}
+                    </p>
+                </div>
             </div>
-        </li>
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 shrink-0"
+                    >
+                        <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <SavedIdeasSheet idea={ideia}>
+                       <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                            <Info className="mr-2 h-4 w-4" />
+                            <span>Ver Detalhes</span>
+                        </DropdownMenuItem>
+                    </SavedIdeasSheet>
+                    <DropdownMenuItem
+                        onClick={() => handleToggleIdeia(ideia)}
+                    >
+                        <CheckCircle className="mr-2 h-4 w-4" />
+                        <span>{isCompletedTab ? "Marcar como Não Concluído" : "Marcar como Concluído"}</span>
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+        </div>
     )
 
   return (
@@ -154,9 +179,9 @@ export default function ActionHubCard({
                   <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 </div>
               ) : ideiasSalvas && ideiasSalvas.length > 0 ? (
-                <ul className="space-y-3">
-                  {ideiasSalvas.map(renderIdeiaItem)}
-                </ul>
+                <div className="space-y-2">
+                  {ideiasSalvas.map(ideia => renderIdeiaItem(ideia, false))}
+                </div>
               ) : (
                 <div className="text-center h-full flex flex-col items-center justify-center">
                   <p className="text-muted-foreground text-sm">
@@ -174,31 +199,9 @@ export default function ActionHubCard({
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
                     </div>
                  ) : completedIdeas && completedIdeas.length > 0 ? (
-                    <ul className="space-y-3">
-                     {completedIdeas.map(ideia => (
-                        <li key={ideia.id} className="flex items-start gap-3">
-                            <Checkbox
-                                id={`ideia-${ideia.id}`}
-                                checked={ideia.concluido}
-                                onCheckedChange={() => handleToggleIdeia(ideia)}
-                                className="h-5 w-5 mt-0.5"
-                            />
-                            <div className="flex-1 grid gap-0.5">
-                                <label
-                                    htmlFor={`ideia-${ideia.id}`}
-                                    className={cn(
-                                    'font-medium transition-colors text-sm',
-                                    ideia.concluido
-                                        ? 'line-through text-muted-foreground'
-                                        : 'text-foreground'
-                                    )}
-                                >
-                                    {ideia.titulo}
-                                </label>
-                            </div>
-                        </li>
-                     ))}
-                    </ul>
+                    <div className="space-y-2">
+                     {completedIdeas.map(ideia => renderIdeiaItem(ideia, true))}
+                    </div>
                 ) : (
                      <div className="text-center h-full flex flex-col items-center justify-center">
                         <p className="text-muted-foreground text-sm">
