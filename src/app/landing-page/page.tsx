@@ -325,7 +325,7 @@ export default function LandingPage() {
                 <Carousel className="w-full" opts={{ align: "start" }}>
                   <CarouselContent className="-ml-4">
                     {features.map((feature, index) => (
-                      <CarouselItem key={feature.title} className="pl-4 basis-[90%] md:basis-1/2">
+                      <CarouselItem key={feature.title} className="pl-4 basis-[90%] md:basis-1/2 pb-12">
                          <motion.div 
                             className="p-1 h-full"
                             whileHover={{ scale: 1.03 }}
