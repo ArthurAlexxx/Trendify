@@ -9,14 +9,12 @@ interface PageHeaderProps {
   description?: string;
   children?: React.ReactNode;
   icon?: React.ElementType;
-  imageUrl1?: string | null;
-  imageUrl2?: string | null;
+  imageUrl?: string | null;
 }
 
-export function PageHeader({ title, description, children, icon: Icon, imageUrl1, imageUrl2 }: PageHeaderProps) {
-  const hasOneImage = imageUrl1 && !imageUrl2;
-  const hasTwoImages = imageUrl1 && imageUrl2;
-  const hasIcon = Icon && !hasOneImage && !hasTwoImages;
+export function PageHeader({ title, description, children, icon: Icon, imageUrl }: PageHeaderProps) {
+  const hasImage = imageUrl;
+  const hasIcon = Icon && !hasImage;
 
   return (
     <div className="flex flex-col items-center gap-8 w-full mb-12">
@@ -26,30 +24,16 @@ export function PageHeader({ title, description, children, icon: Icon, imageUrl1
                     <Icon className="h-8 w-8" />
                 </div>
             )}
-            {hasOneImage && (
+            {hasImage && (
                 <div className='relative group'>
                     <Avatar className="h-20 w-20 rounded-2xl border-2 border-primary/20 mb-2">
-                        <AvatarImage src={imageUrl1 ?? undefined} />
+                        <AvatarImage src={imageUrl ?? undefined} />
                         <AvatarFallback>{title?.[0]}</AvatarFallback>
-                    </Avatar>
-                </div>
-            )}
-            {hasTwoImages && (
-                 <div className="relative h-16 w-16 rounded-2xl border-2 border-primary/20 mb-2 overflow-hidden bg-muted">
-                    <Avatar className="absolute h-full w-[55%] top-0 left-0 rounded-none">
-                        <AvatarImage src={imageUrl1 ?? undefined} style={{ objectFit: 'cover', height: '100%', width: '100%' }}/>
-                        <AvatarFallback>{title?.[0]}</AvatarFallback>
-                    </Avatar>
-                     <Avatar className="absolute h-full w-[55%] top-0 right-0 rounded-none">
-                        <AvatarImage src={imageUrl2 ?? undefined} style={{ objectFit: 'cover', height: '100%', width: '100%' }}/>
-                        <AvatarFallback>{title?.[1]}</AvatarFallback>
                     </Avatar>
                 </div>
             )}
             <h1 className={cn(
-                "text-3xl md:text-4xl font-bold font-headline tracking-tight",
-                "bg-gradient-to-r from-primary via-purple-500 to-violet-600 bg-clip-text text-transparent",
-                "[text-shadow:0_0_15px_hsl(var(--primary)/30%)]"
+                "text-3xl md:text-4xl font-bold font-headline tracking-tight"
             )}>
                 {title}
             </h1>

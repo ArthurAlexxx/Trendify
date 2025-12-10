@@ -339,6 +339,7 @@ export default function DashboardPage() {
         <PageHeader
           title={`Bem-vindo(a), ${userProfile?.displayName?.split(' ')[0] || 'Criador'}!`}
           description="Seu centro de comando para crescimento e monetização."
+          imageUrl={userProfile?.photoURL}
         >
           <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
               <Tabs value={selectedPlatform} onValueChange={(value) => setSelectedPlatform(value as any)}>
