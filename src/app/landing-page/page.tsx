@@ -556,7 +556,7 @@ export default function LandingPage() {
                   )}
 
                   {results && !isCalculating && (
-                    <div className="space-y-8">
+                    <div className="space-y-6">
                       <div className="text-center max-w-3xl mx-auto">
                         <h2 className="text-3xl md:text-4xl font-bold font-headline tracking-tight mb-2">
                           Sua projeção de crescimento está pronta!
@@ -575,18 +575,18 @@ export default function LandingPage() {
                           <Carousel className="w-full" opts={{ align: "start" }}>
                             <CarouselContent className="-ml-4">
                               {results.growthData && results.growthData.length > 0 && (
-                                <CarouselItem className="pl-4 basis-[90%]">
+                                <CarouselItem className="pl-4 basis-[90%] pb-8">
                                   <div className="p-1 h-full">
                                   <Card className="rounded-2xl border shadow-primary-lg">
-                                    <CardHeader><CardTitle className="text-base font-bold">Curva de Crescimento</CardTitle></CardHeader>
-                                    <CardContent className="pt-2 pl-2">
-                                        <div className="h-[250px] w-full">
+                                    <CardHeader className="p-4"><CardTitle className="text-sm font-bold">Curva de Crescimento</CardTitle></CardHeader>
+                                    <CardContent className="p-2 pl-0">
+                                        <div className="h-[200px] w-full">
                                             <ResponsiveContainer>
                                                 <AreaChart data={results.growthData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                                                     <defs><linearGradient id="colorFollowers" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.8}/><stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/></linearGradient></defs>
-                                                    <XAxis dataKey="month" tickFormatter={(v) => `Mês ${v}`} />
-                                                    <YAxis domain={[0, (dataMax: number) => Math.ceil((Math.max(form.getValues('goal'), dataMax) * 1.1) / 1000) * 1000]} tickFormatter={(v) => v >= 1000 ? `${v / 1000}k` : v.toString()} />
-                                                    <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }} />
+                                                    <XAxis dataKey="month" tickFormatter={(v) => `Mês ${v}`} tick={{fontSize: 10}} />
+                                                    <YAxis domain={[0, (dataMax: number) => Math.ceil((Math.max(form.getValues('goal'), dataMax) * 1.1) / 1000) * 1000]} tickFormatter={(v) => v >= 1000 ? `${v / 1000}k` : v.toString()} tick={{fontSize: 10}} />
+                                                    <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', fontSize: '12px', padding: '4px 8px' }} />
                                                     <Area type="monotone" dataKey="followers" stroke="hsl(var(--primary))" fillOpacity={1} fill="url(#colorFollowers)" />
                                                 </AreaChart>
                                             </ResponsiveContainer>
@@ -597,18 +597,18 @@ export default function LandingPage() {
                                 </CarouselItem>
                               )}
                               {(results.currentEarnings || results.goalEarnings) && (
-                                <CarouselItem className="pl-4 basis-[90%]">
+                                <CarouselItem className="pl-4 basis-[90%] pb-8">
                                   <div className="p-1 h-full">
                                   <Card className="h-full rounded-2xl border shadow-primary-lg">
-                                    <CardHeader>
-                                      <CardTitle className="text-base font-bold">
+                                    <CardHeader className="p-4">
+                                      <CardTitle className="text-sm font-bold">
                                         Potencial de Ganhos/Mês
                                       </CardTitle>
                                     </CardHeader>
-                                    <CardContent className="space-y-4 text-center">
+                                    <CardContent className="space-y-4 text-center p-4">
                                       {results.currentEarnings && (
                                         <div>
-                                          <p className="text-xl font-bold">
+                                          <p className="text-lg font-bold">
                                             {formatCurrency(results.currentEarnings[0])} - {formatCurrency(results.currentEarnings[1])}
                                           </p>
                                           <p className="text-xs text-muted-foreground">(estimativa atual)</p>
@@ -616,7 +616,7 @@ export default function LandingPage() {
                                       )}
                                       {results.goalEarnings && (
                                          <div>
-                                          <p className="text-xl font-bold">
+                                          <p className="text-lg font-bold">
                                             {formatCurrency(results.goalEarnings[0])} - {formatCurrency(results.goalEarnings[1])}
                                           </p>
                                           <p className="text-xs text-muted-foreground">(estimativa na meta)</p>
@@ -628,14 +628,14 @@ export default function LandingPage() {
                                 </CarouselItem>
                               )}
                                {results.accelerationScenarios && (
-                                <CarouselItem className="pl-4 basis-[90%]">
+                                <CarouselItem className="pl-4 basis-[90%] pb-8">
                                    <div className="p-1 h-full">
                                   <Card className="rounded-2xl h-full border shadow-primary-lg">
-                                    <CardHeader><CardTitle className="text-base font-bold">Cenários de Aceleração</CardTitle></CardHeader>
-                                    <CardContent className="grid grid-cols-3 gap-4 text-center">
-                                        <div><p className="font-bold text-xl">{results.accelerationScenarios.maintain}</p><p className="text-xs text-muted-foreground">Meses (Ritmo Atual)</p></div>
-                                        <div><p className="font-bold text-xl">{results.accelerationScenarios.plus20}</p><p className="text-xs text-muted-foreground">Meses (+20% Posts)</p></div>
-                                        <div><p className="font-bold text-xl">{results.accelerationScenarios.plus40}</p><p className="text-xs text-muted-foreground">Meses (+40% Posts)</p></div>
+                                    <CardHeader className="p-4"><CardTitle className="text-sm font-bold">Cenários de Aceleração</CardTitle></CardHeader>
+                                    <CardContent className="grid grid-cols-3 gap-2 text-center p-4">
+                                        <div><p className="font-bold text-lg">{results.accelerationScenarios.maintain}</p><p className="text-xs text-muted-foreground">Meses (Ritmo Atual)</p></div>
+                                        <div><p className="font-bold text-lg">{results.accelerationScenarios.plus20}</p><p className="text-xs text-muted-foreground">Meses (+20% Posts)</p></div>
+                                        <div><p className="font-bold text-lg">{results.accelerationScenarios.plus40}</p><p className="text-xs text-muted-foreground">Meses (+40% Posts)</p></div>
                                     </CardContent>
                                   </Card>
                                   </div>
@@ -646,20 +646,20 @@ export default function LandingPage() {
                       </div>
 
                       {/* Desktop Grid */}
-                      <div className="hidden lg:grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                      <div className="hidden lg:grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
                           {/* Left Column */}
-                          <div className="space-y-8">
+                          <div className="space-y-6">
                               {results.growthData && results.growthData.length > 0 && (
                               <Card className="rounded-2xl border shadow-primary-lg">
-                                  <CardHeader><CardTitle className="text-base font-bold">Curva de Crescimento</CardTitle></CardHeader>
-                                  <CardContent className="pt-2 pl-2">
-                                      <div className="h-[250px] w-full">
+                                  <CardHeader className="p-4"><CardTitle className="text-sm font-bold">Curva de Crescimento</CardTitle></CardHeader>
+                                  <CardContent className="p-2 pl-0">
+                                      <div className="h-[220px] w-full">
                                           <ResponsiveContainer>
                                               <AreaChart data={results.growthData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                                                   <defs><linearGradient id="colorFollowers" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.8}/><stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/></linearGradient></defs>
-                                                  <XAxis dataKey="month" tickFormatter={(v) => `Mês ${v}`} />
-                                                  <YAxis domain={[0, (dataMax: number) => Math.ceil((Math.max(form.getValues('goal'), dataMax) * 1.1) / 1000) * 1000]} tickFormatter={(v) => v >= 1000 ? `${v / 1000}k` : v.toString()} />
-                                                  <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }} />
+                                                  <XAxis dataKey="month" tickFormatter={(v) => `Mês ${v}`} tick={{fontSize: 10}} />
+                                                  <YAxis domain={[0, (dataMax: number) => Math.ceil((Math.max(form.getValues('goal'), dataMax) * 1.1) / 1000) * 1000]} tickFormatter={(v) => v >= 1000 ? `${v / 1000}k` : v.toString()} tick={{fontSize: 10}}/>
+                                                  <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', fontSize: '12px', padding: '4px 8px' }} />
                                                   <Area type="monotone" dataKey="followers" stroke="hsl(var(--primary))" fillOpacity={1} fill="url(#colorFollowers)" />
                                               </AreaChart>
                                           </ResponsiveContainer>
@@ -669,34 +669,34 @@ export default function LandingPage() {
                               )}
                               {results.accelerationScenarios && (
                               <Card className="rounded-2xl border shadow-primary-lg">
-                                  <CardHeader><CardTitle className="text-base font-bold">Cenários de Aceleração</CardTitle></CardHeader>
-                                  <CardContent className="grid grid-cols-3 gap-4 text-center">
-                                      <div><p className="font-bold text-xl">{results.accelerationScenarios.maintain}</p><p className="text-xs text-muted-foreground">Meses (Ritmo Atual)</p></div>
-                                      <div><p className="font-bold text-xl">{results.accelerationScenarios.plus20}</p><p className="text-xs text-muted-foreground">Meses (+20% Posts)</p></div>
-                                      <div><p className="font-bold text-xl">{results.accelerationScenarios.plus40}</p><p className="text-xs text-muted-foreground">Meses (+40% Posts)</p></div>
+                                  <CardHeader className="p-4"><CardTitle className="text-sm font-bold">Cenários de Aceleração</CardTitle></CardHeader>
+                                  <CardContent className="grid grid-cols-3 gap-2 text-center p-4">
+                                      <div><p className="font-bold text-lg">{results.accelerationScenarios.maintain}</p><p className="text-xs text-muted-foreground">Meses (Ritmo Atual)</p></div>
+                                      <div><p className="font-bold text-lg">{results.accelerationScenarios.plus20}</p><p className="text-xs text-muted-foreground">Meses (+20% Posts)</p></div>
+                                      <div><p className="font-bold text-lg">{results.accelerationScenarios.plus40}</p><p className="text-xs text-muted-foreground">Meses (+40% Posts)</p></div>
                                   </CardContent>
                               </Card>
                               )}
                           </div>
 
                           {/* Right Column */}
-                          <div className="space-y-8">
+                          <div className="space-y-6">
                               <div className="grid grid-cols-2 gap-4">
                                   {results.months != null && (
-                                    <Card className="bg-primary/5 border-primary/20 text-center shadow-primary-lg"><CardContent className="p-4"><p className="text-xs text-muted-foreground">Tempo até a Meta</p><p className="text-xl font-bold">{results.months} meses</p></CardContent></Card>
+                                    <Card className="bg-primary/5 border-primary/20 text-center shadow-primary-lg"><CardContent className="p-4"><p className="text-xs text-muted-foreground">Tempo até a Meta</p><p className="text-lg font-bold">{results.months} meses</p></CardContent></Card>
                                   )}
                                   {results.difficultyScore && (
-                                    <Card className="bg-primary/5 border-primary/20 text-center shadow-primary-lg"><CardContent className="p-4"><p className="text-xs text-muted-foreground">Nível da Meta</p><p className="text-xl font-bold">{results.difficultyScore}</p></CardContent></Card>
+                                    <Card className="bg-primary/5 border-primary/20 text-center shadow-primary-lg"><CardContent className="p-4"><p className="text-xs text-muted-foreground">Nível da Meta</p><p className="text-lg font-bold">{results.difficultyScore}</p></CardContent></Card>
                                   )}
                               </div>
                                {(results.currentEarnings || results.goalEarnings) && (
                                 <Card className="border shadow-primary-lg">
-                                  <CardHeader>
-                                    <CardTitle className="text-base font-bold">
+                                  <CardHeader className="p-4">
+                                    <CardTitle className="text-sm font-bold">
                                       Potencial de Ganhos/Mês
                                     </CardTitle>
                                   </CardHeader>
-                                  <CardContent>
+                                  <CardContent className="p-4 pt-0">
                                     {results.currentEarnings && (
                                       <p className="text-base font-semibold">
                                         {formatCurrency(results.currentEarnings[0])} -{' '}
@@ -719,20 +719,20 @@ export default function LandingPage() {
                                 </Card>
                               )}
                               {results.benchmarkComparison && (
-                                <Card className="border shadow-primary-lg"><CardHeader><CardTitle className="text-base font-bold">Análise do Mercado</CardTitle></CardHeader><CardContent><p className="text-sm text-muted-foreground">{results.benchmarkComparison}</p></CardContent></Card>
+                                <Card className="border shadow-primary-lg"><CardHeader className="p-4"><CardTitle className="text-sm font-bold">Análise do Mercado</CardTitle></CardHeader><CardContent className="p-4 pt-0"><p className="text-sm text-muted-foreground">{results.benchmarkComparison}</p></CardContent></Card>
                               )}
                           </div>
                       </div>
                       
                       {results.earningsAnalysis && (
                          <Card className="bg-card border shadow-primary-lg">
-                            <CardHeader>
-                               <CardTitle className="font-bold text-base flex items-center gap-2">
+                            <CardHeader className="p-4">
+                               <CardTitle className="font-bold text-sm flex items-center gap-2">
                                 Análise de Monetização
                                </CardTitle>
                                <CardDescription>Como transformar seus seguidores em receita no nicho de {form.getValues('niche')}.</CardDescription>
                             </CardHeader>
-                            <CardContent>
+                            <CardContent className="p-4 pt-0">
                                 <p className="text-sm text-muted-foreground whitespace-pre-wrap">{results.earningsAnalysis}</p>
                             </CardContent>
                          </Card>
@@ -741,29 +741,29 @@ export default function LandingPage() {
                       {/* Action Plan */}
                        {(results.recommendations?.length || results.riskPanel?.length || results.trendSuggestions?.length) && (
                       <Card className="bg-card border shadow-primary-lg">
-                          <CardHeader><h4 className="font-bold text-base text-center">Seu Plano Inicial para Acelerar</h4></CardHeader>
-                          <CardContent className="grid sm:grid-cols-2 lg:grid-cols-2 gap-8">
+                          <CardHeader className="p-4"><h4 className="font-bold text-sm text-center">Seu Plano Inicial para Acelerar</h4></CardHeader>
+                          <CardContent className="grid sm:grid-cols-2 lg:grid-cols-2 gap-6 p-4 pt-0">
                               {results.recommendations && results.recommendations.length > 0 && (
                               <div>
-                                <h5 className="font-semibold mb-3 flex items-center gap-2"><Rocket className="h-5 w-5 text-primary" />Recomendações Estratégicas</h5>
-                                <ul className="space-y-2 text-sm">
-                                    {results.recommendations.map(rec => <li key={rec} className="flex items-start gap-2"><Check className="h-4 w-4 text-primary shrink-0 mt-1" /><span>{rec}</span></li>)}
+                                <h5 className="font-semibold mb-2 flex items-center gap-2 text-sm"><Rocket className="h-4 w-4 text-primary" />Recomendações</h5>
+                                <ul className="space-y-1.5 text-sm">
+                                    {results.recommendations.map(rec => <li key={rec} className="flex items-start gap-2"><Check className="h-4 w-4 text-primary shrink-0 mt-0.5" /><span>{rec}</span></li>)}
                                 </ul>
                               </div>
                               )}
                               {results.riskPanel && results.riskPanel.length > 0 && (
                               <div>
-                                <h5 className="font-semibold mb-3 flex items-center gap-2"><AlertTriangle className="h-5 w-5 text-amber-500" />Pontos de Atenção (Riscos)</h5>
-                                <ul className="space-y-2 text-sm">
-                                    {results.riskPanel.map(risk => <li key={risk} className="flex items-start gap-2"><AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-1" /><span>{risk}</span></li>)}
+                                <h5 className="font-semibold mb-2 flex items-center gap-2 text-sm"><AlertTriangle className="h-4 w-4 text-amber-500" />Pontos de Atenção</h5>
+                                <ul className="space-y-1.5 text-sm">
+                                    {results.riskPanel.map(risk => <li key={risk} className="flex items-start gap-2"><AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" /><span>{risk}</span></li>)}
                                 </ul>
                               </div>
                               )}
                               {results.trendSuggestions && results.trendSuggestions.length > 0 && (
                               <div className="lg:col-span-2">
-                                <h5 className="font-semibold mb-3 flex items-center gap-2"><Sparkles className="h-5 w-5 text-primary" />Ideias de Ganchos Virais</h5>
-                                <div className="grid sm:grid-cols-3 gap-4">
-                                     {results.trendSuggestions.map(sug => <div key={sug.hook} className="p-3 rounded-lg bg-muted/50 border text-center"><p className="text-2xl mb-1">{sug.icon}</p><p className="text-sm font-medium">{sug.hook}</p></div>)}
+                                <h5 className="font-semibold mb-2 flex items-center gap-2 text-sm"><Sparkles className="h-4 w-4 text-primary" />Ideias de Ganchos Virais</h5>
+                                <div className="grid sm:grid-cols-3 gap-3">
+                                     {results.trendSuggestions.map(sug => <div key={sug.hook} className="p-3 rounded-lg bg-muted/50 border text-center"><p className="text-xl mb-1">{sug.icon}</p><p className="text-xs font-medium">{sug.hook}</p></div>)}
                                 </div>
                               </div>
                               )}
@@ -771,7 +771,7 @@ export default function LandingPage() {
                       </Card>
                        )}
 
-                      <div className="text-center mt-8 space-y-4">
+                      <div className="text-center mt-6 space-y-4">
                           <Button onClick={() => setStep(0)} variant="outline" size="lg" className="h-11 text-base">Calcular Novamente</Button>
                           <Button asChild size="lg" className="h-11 text-base ml-4"><Link href="/sign-up">Criar conta grátis para acelerar</Link></Button>
                       </div>
