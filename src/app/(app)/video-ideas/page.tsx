@@ -75,7 +75,7 @@ import { ObjectiveFormCard } from '@/components/ui/objective-form-card';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { VideoIdeasResultView } from './video-ideas-result-view';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 
 const formSchema = z.object({
