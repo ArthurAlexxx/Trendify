@@ -3,7 +3,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, MoreHorizontal, CheckCircle, Tag, Info, Calendar, Lightbulb, Eye } from 'lucide-react';
+import { Loader2, MoreHorizontal, CheckCircle, Tag, Info, Calendar, Lightbulb, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import {
@@ -20,6 +20,7 @@ import type {
   IdeiaSalva
 } from '@/lib/types';
 import { SavedIdeasSheet } from '../saved-ideas-sheet';
+import React from 'react';
 
 interface ActionHubCardProps {
   isLoadingUpcoming: boolean;
@@ -32,6 +33,8 @@ interface ActionHubCardProps {
   handleMarkAsPublished: (postId: string) => void;
 }
 
+const ITEMS_PER_PAGE = 3;
+
 export default function ActionHubCard({
   isLoadingUpcoming,
   upcomingContent,
@@ -42,6 +45,24 @@ export default function ActionHubCard({
   handleToggleIdeia,
   handleMarkAsPublished,
 }: ActionHubCardProps) {
+    const [savedPage, setSavedPage] = React.useState(1);
+    const [completedPage, setCompletedPage] = React.useState(1);
+
+    const paginatedSavedIdeas = React.useMemo(() => {
+        if (!ideiasSalvas) return [];
+        const startIndex = (savedPage - 1) * ITEMS_PER_PAGE;
+        return ideiasSalvas.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    }, [ideiasSalvas, savedPage]);
+
+    const totalSavedPages = ideiasSalvas ? Math.ceil(ideiasSalvas.length / ITEMS_PER_PAGE) : 0;
+
+    const paginatedCompletedIdeas = React.useMemo(() => {
+        if (!completedIdeas) return [];
+        const startIndex = (completedPage - 1) * ITEMS_PER_PAGE;
+        return completedIdeas.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    }, [completedIdeas, completedPage]);
+
+    const totalCompletedPages = completedIdeas ? Math.ceil(completedIdeas.length / ITEMS_PER_PAGE) : 0;
 
     const renderIdeiaItem = (ideia: IdeiaSalva, isCompletedTab: boolean) => (
          <div
@@ -180,9 +201,16 @@ export default function ActionHubCard({
                 <div className="flex justify-center items-center h-full">
                   <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 </div>
-              ) : ideiasSalvas && ideiasSalvas.length > 0 ? (
+              ) : paginatedSavedIdeas && paginatedSavedIdeas.length > 0 ? (
                 <div className="space-y-2">
-                  {ideiasSalvas.map(ideia => renderIdeiaItem(ideia, false))}
+                  {paginatedSavedIdeas.map(ideia => renderIdeiaItem(ideia, false))}
+                  {totalSavedPages > 1 && (
+                    <div className="flex justify-center items-center gap-2 pt-2">
+                        <Button variant="outline" size="sm" onClick={() => setSavedPage(p => Math.max(1, p - 1))} disabled={savedPage === 1}><ChevronLeft className="h-4 w-4" /></Button>
+                        <span className="text-xs text-muted-foreground">Pág {savedPage} de {totalSavedPages}</span>
+                        <Button variant="outline" size="sm" onClick={() => setSavedPage(p => Math.min(totalSavedPages, p + 1))} disabled={savedPage === totalSavedPages}><ChevronRight className="h-4 w-4" /></Button>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="text-center h-full flex flex-col items-center justify-center">
@@ -195,9 +223,16 @@ export default function ActionHubCard({
                     <div className="flex justify-center items-center h-full">
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
                     </div>
-                 ) : completedIdeas && completedIdeas.length > 0 ? (
+                 ) : paginatedCompletedIdeas && paginatedCompletedIdeas.length > 0 ? (
                     <div className="space-y-2">
-                     {completedIdeas.map(ideia => renderIdeiaItem(ideia, true))}
+                     {paginatedCompletedIdeas.map(ideia => renderIdeiaItem(ideia, true))}
+                     {totalCompletedPages > 1 && (
+                        <div className="flex justify-center items-center gap-2 pt-2">
+                            <Button variant="outline" size="sm" onClick={() => setCompletedPage(p => Math.max(1, p - 1))} disabled={completedPage === 1}><ChevronLeft className="h-4 w-4" /></Button>
+                            <span className="text-xs text-muted-foreground">Pág {completedPage} de {totalCompletedPages}</span>
+                            <Button variant="outline" size="sm" onClick={() => setCompletedPage(p => Math.min(totalCompletedPages, p + 1))} disabled={completedPage === totalCompletedPages}><ChevronRight className="h-4 w-4" /></Button>
+                        </div>
+                    )}
                     </div>
                 ) : (
                     <div className="text-center h-full flex flex-col items-center justify-center">

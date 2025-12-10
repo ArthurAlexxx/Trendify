@@ -144,7 +144,6 @@ export default function DashboardPage() {
             collection(firestore, `users/${user.uid}/ideiasSalvas`),
             where('concluido', '==', false),
             orderBy('createdAt', 'desc'),
-            limit(3)
           )
         : null,
     [user, firestore]
@@ -159,7 +158,6 @@ export default function DashboardPage() {
             collection(firestore, `users/${user.uid}/ideiasSalvas`),
             where('concluido', '==', true),
             orderBy('completedAt', 'desc'),
-            limit(3)
           )
         : null,
     [user, firestore]
