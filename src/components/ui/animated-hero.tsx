@@ -117,7 +117,7 @@ function AnimatedHero() {
         <div className="container mx-auto">
           <motion.div
             style={{ scale }}
-            className="relative w-full max-w-7xl mx-auto hidden lg:block"
+            className="relative w-full max-w-screen-xl mx-auto hidden lg:block"
           >
             <Image
               src="https://firebasestorage.googleapis.com/v0/b/studio-4233590611-a8ab0.firebasestorage.app/o/Sem%20nome%20(Quadro%20branco).png?alt=media&token=242aeba3-137e-4a70-b344-c81507275c68"
