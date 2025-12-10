@@ -29,7 +29,7 @@ function AnimatedHero() {
   return (
     <div className="w-full">
       <div className="container mx-auto">
-        <div className="flex gap-8 py-20 lg:py-40 items-center justify-center flex-col">
+        <div className="flex gap-8 pt-20 lg:pt-40 items-center justify-center flex-col">
           <div>
             <Button variant="outline" size="sm" className="gap-4 rounded-full bg-transparent text-primary hover:bg-primary/10 border-primary">
                <Sparkles className="w-4 h-4 animate-pulse" />
@@ -44,7 +44,7 @@ function AnimatedHero() {
                 {titles.map((title, index) => (
                   <motion.span
                     key={index}
-                    className="absolute font-semibold bg-gradient-to-r from-purple-600 via-indigo-500 to-purple-600 text-gradient text-shadow-glow"
+                    className="absolute font-semibold bg-gradient-to-r from-purple-600 via-indigo-500 to-purple-600 text-gradient"
                     initial={{ opacity: 0, y: "-100" }}
                     transition={{ type: "spring", stiffness: 50 }}
                     animate={
@@ -97,16 +97,14 @@ function AnimatedHero() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="relative w-full max-w-5xl mt-12"
           >
-             <div className="relative rounded-2xl overflow-hidden">
-                <Image
-                    src="https://firebasestorage.googleapis.com/v0/b/studio-4233590611-a8ab0.firebasestorage.app/o/Design%20sem%20nome%20(4).png?alt=media&token=3b4598c8-c32e-47da-9447-89b5f9104d9c"
-                    alt="Dashboard da Trendify mostrando métricas de crescimento"
-                    width={1200}
-                    height={750}
-                    className="w-full h-auto"
-                    priority
-                />
-             </div>
+              <Image
+                src="https://firebasestorage.googleapis.com/v0/b/studio-4233590611-a8ab0.firebasestorage.app/o/Design%20sem%20nome%20(4).png?alt=media&token=3b4598c8-c32e-47da-9447-89b5f9104d9c"
+                alt="Dashboard da Trendify mostrando métricas de crescimento"
+                width={1200}
+                height={750}
+                className="w-full h-auto rounded-2xl"
+                priority
+              />
           </motion.div>
 
         </div>
