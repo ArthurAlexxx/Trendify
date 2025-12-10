@@ -65,7 +65,7 @@ import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/
 import { initializeFirebase } from "@/firebase";
 
 type AnalysisStatus = "idle" | "uploading" | "analyzing" | "success" | "error";
-const MAX_FILE_SIZE_MB = 10;
+const MAX_FILE_SIZE_MB = 70;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
 const PLAN_LIMITS: Record<Exclude<Plan, 'free'>, number> = {
@@ -499,3 +499,5 @@ function VideoReviewPageContent() {
     </div>
   );
 }
+
+    

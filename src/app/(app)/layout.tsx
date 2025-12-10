@@ -75,29 +75,20 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
   );
 }
 
-function ToastProvider({ children }: { children: React.ReactNode }) {
-    const { ToastContainer } = useResponsiveToast();
-    return (
-        <>
-            {children}
-            <ToastContainer />
-        </>
-    )
-}
-
-
 export default function AppLayout({ children }: { children: React.ReactNode }) {
+    const { ToastContainer } = useResponsiveToast();
     return (
         <Suspense fallback={
              <div className="flex h-screen w-full items-center justify-center bg-background">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
         }>
-            <ToastProvider>
-                <AppLayoutContent>
-                    {children}
-                </AppLayoutContent>
-            </ToastProvider>
+            <AppLayoutContent>
+                {children}
+            </AppLayoutContent>
+            <ToastContainer />
         </Suspense>
     )
 }
+
+    
