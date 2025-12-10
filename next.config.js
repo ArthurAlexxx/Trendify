@@ -7,7 +7,7 @@ const nextConfig = {
   },
   experimental: {
     serverActions: {
-      bodySizeLimit: '80mb',
+      bodySizeLimit: '100mb',
       serverActionsTimeout: 120, // Aumenta o timeout para 120 segundos
     },
   },
