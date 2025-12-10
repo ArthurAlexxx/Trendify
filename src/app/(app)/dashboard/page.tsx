@@ -144,19 +144,44 @@ const mockUserProfile: UserProfile = {
     tiktokAverageComments: '890',
 };
 
-const mockMetricSnapshots: MetricSnapshot[] = Array.from({ length: 15 }, (_, i) => {
-    const date = new Date();
-    date.setDate(date.getDate() - (15 - i));
-    return {
-        id: `snap${i}`,
-        date: Timestamp.fromDate(date),
-        platform: 'instagram',
-        followers: (110000 + i * 1000).toString(),
-        views: (30000 + i * 300).toString(),
-        likes: (2000 + i * 50).toString(),
-        comments: (300 + i * 10).toString(),
-    };
-});
+const generateMockSnapshots = (): MetricSnapshot[] => {
+    const snapshots: MetricSnapshot[] = [];
+    const today = new Date();
+    const instagramStartFollowers = 110000;
+    const tiktokStartFollowers = 75000;
+
+    for (let i = 0; i < 30; i++) {
+        const date = new Date();
+        date.setDate(today.getDate() - (29 - i));
+
+        // Instagram data with more volatility
+        const instaFollowers = instagramStartFollowers + (i * 500) + Math.sin(i / 3) * 1000 + (Math.random() - 0.5) * 800;
+        snapshots.push({
+            id: `snap_insta_${i}`,
+            date: Timestamp.fromDate(date),
+            platform: 'instagram',
+            followers: Math.round(instaFollowers).toString(),
+            views: (30000 + i * 150 + Math.sin(i/2) * 500).toString(),
+            likes: (2000 + i * 25 + Math.sin(i/2) * 100).toString(),
+            comments: (300 + i * 5 + Math.sin(i/2) * 20).toString(),
+        });
+
+        // TikTok data with different growth pattern
+        const tiktokFollowers = tiktokStartFollowers + (i * 800) + Math.sin(i / 5) * 1500 + (Math.random() - 0.5) * 1000;
+        snapshots.push({
+            id: `snap_tiktok_${i}`,
+            date: Timestamp.fromDate(date),
+            platform: 'tiktok',
+            followers: Math.round(tiktokFollowers).toString(),
+            views: (140000 + i * 200 + Math.sin(i/3) * 1000).toString(),
+            likes: (12000 + i * 40 + Math.sin(i/3) * 200).toString(),
+            comments: (800 + i * 10 + Math.sin(i/3) * 50).toString(),
+        });
+    }
+    return snapshots;
+};
+const mockMetricSnapshots: MetricSnapshot[] = generateMockSnapshots();
+
 
 const mockWeeklyPlan: PlanoSemanal = {
     id: 'plan1',
