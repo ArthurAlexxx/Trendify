@@ -134,36 +134,21 @@ export default function ActionHubCard({
                       />
                       <div className="flex-1 grid gap-0.5">
                          <SavedIdeasSheet idea={ideia}>
-                           <label
-                              htmlFor={`ideia-${ideia.id}-label`}
+                           <span
                               className={cn(
-                                'font-medium transition-colors cursor-pointer text-sm',
+                                'font-medium transition-colors cursor-pointer text-sm hover:text-primary',
                                 ideia.concluido
                                   ? 'line-through text-muted-foreground'
                                   : 'text-foreground'
                               )}
                             >
                               {ideia.titulo}
-                            </label>
+                            </span>
                          </SavedIdeasSheet>
                         <p className="text-xs text-muted-foreground">
                           de "{ideia.origem}"
                         </p>
                       </div>
-                       <SavedIdeasSheet idea={ideia}>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="h-8 w-8 -my-1 -mr-2 text-muted-foreground">
-                                    <Info className="h-4 w-4" />
-                                  </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Ver detalhes da ideia</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                       </SavedIdeasSheet>
                     </li>
                   ))}
                 </ul>
