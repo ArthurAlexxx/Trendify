@@ -165,6 +165,16 @@ export default function DashboardPage() {
   ), [firestore, user]);
   const { data: ideiasSalvas, isLoading: isLoadingIdeias } = useCollection<IdeiaSalva>(ideiasQuery);
 
+  const completedIdeasQuery = useMemoFirebase(() => (
+    firestore && user ? query(
+        collection(firestore, `users/${user.uid}/ideiasSalvas`), 
+        where('concluido', '==', true),
+        orderBy('completedAt', 'desc'), 
+        limit(5)) 
+    : null
+  ), [firestore, user]);
+  const { data: completedIdeas, isLoading: isLoadingCompleted } = useCollection<IdeiaSalva>(completedIdeasQuery);
+
   const upcomingContentQuery = useMemoFirebase(() => (
       firestore && user ? query(collection(firestore, `users/${user.uid}/conteudoAgendado`), where('status', '==', 'Agendado'), orderBy('date', 'asc'), limit(3)) : null
   ), [firestore, user]);
@@ -181,7 +191,7 @@ export default function DashboardPage() {
   const { data: tiktokPosts, isLoading: isLoadingTiktokPosts } = useCollection<TikTokPost>(tiktokPostsQuery);
 
 
-  const isLoading = isLoadingProfile || isLoadingUpcoming || isSubscriptionLoading || isLoadingIdeias || isLoadingWeeklyPlans || isLoadingInstaPosts || isLoadingTiktokPosts || isLoadingMetricSnapshots;
+  const isLoading = isLoadingProfile || isLoadingUpcoming || isSubscriptionLoading || isLoadingIdeias || isLoadingWeeklyPlans || isLoadingInstaPosts || isLoadingTiktokPosts || isLoadingMetricSnapshots || isLoadingCompleted;
   
   const handleChartItemClick = (item: any) => {
     setSelectedChartItem(item);
@@ -429,6 +439,8 @@ export default function DashboardPage() {
                     upcomingContent={upcomingContent}
                     isLoadingIdeias={isLoadingIdeias}
                     ideiasSalvas={ideiasSalvas}
+                    completedIdeas={completedIdeas}
+                    isLoadingCompleted={isLoadingCompleted}
                     handleToggleIdeia={handleToggleIdeia}
                     handleMarkAsPublished={handleMarkAsPublished}
                   />

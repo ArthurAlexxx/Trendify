@@ -29,6 +29,8 @@ interface ActionHubCardProps {
   upcomingContent: ConteudoAgendado[] | null;
   isLoadingIdeias: boolean;
   ideiasSalvas: IdeiaSalva[] | null;
+  completedIdeas: IdeiaSalva[] | null;
+  isLoadingCompleted: boolean;
   handleToggleIdeia: (ideia: IdeiaSalva) => void;
   handleMarkAsPublished: (postId: string) => void;
 }
@@ -38,6 +40,8 @@ export default function ActionHubCard({
   upcomingContent,
   isLoadingIdeias,
   ideiasSalvas,
+  completedIdeas,
+  isLoadingCompleted,
   handleToggleIdeia,
   handleMarkAsPublished,
 }: ActionHubCardProps) {
@@ -50,9 +54,10 @@ export default function ActionHubCard({
       </CardHeader>
       <CardContent className="flex-1 flex flex-col">
         <Tabs defaultValue="ideias" className="w-full flex-1 flex flex-col">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="ideias">Ideias</TabsTrigger>
             <TabsTrigger value="calendario">Calendário</TabsTrigger>
+            <TabsTrigger value="concluidos">Concluídos</TabsTrigger>
           </TabsList>
           <div className="flex-1 mt-4">
             <TabsContent value="calendario" className="h-full">
@@ -160,6 +165,47 @@ export default function ActionHubCard({
                   </Button>
                 </div>
               )}
+            </TabsContent>
+            <TabsContent value="concluidos" className="h-full">
+                 {isLoadingCompleted ? (
+                    <div className="flex justify-center items-center h-full">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    </div>
+                 ) : completedIdeas && completedIdeas.length > 0 ? (
+                    <ul className="space-y-3">
+                    {completedIdeas.map((ideia: IdeiaSalva) => (
+                        <li key={ideia.id} className="flex items-start gap-3">
+                        <Checkbox
+                            id={`ideia-${ideia.id}`}
+                            checked={ideia.concluido}
+                            onCheckedChange={() => handleToggleIdeia(ideia)}
+                            className="h-5 w-5 mt-0.5"
+                        />
+                         <div className="flex-1 grid gap-0.5">
+                         <SavedIdeasSheet idea={ideia}>
+                           <label
+                              htmlFor={`ideia-${ideia.id}`}
+                              className={cn(
+                                'font-medium transition-colors cursor-pointer text-sm hover:text-primary',
+                                ideia.concluido
+                                  ? 'line-through text-muted-foreground'
+                                  : 'text-foreground'
+                              )}
+                            >
+                              {ideia.titulo}
+                            </label>
+                         </SavedIdeasSheet>
+                      </div>
+                        </li>
+                    ))}
+                    </ul>
+                ) : (
+                     <div className="text-center h-full flex flex-col items-center justify-center">
+                        <p className="text-muted-foreground text-sm">
+                           Nenhuma tarefa concluída ainda.
+                        </p>
+                    </div>
+                )}
             </TabsContent>
           </div>
         </Tabs>
