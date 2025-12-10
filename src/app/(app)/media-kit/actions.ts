@@ -66,7 +66,9 @@ type CareerPackageState = {
 
 const systemPrompt = `Você é um "AI Talent Manager", um estrategista de negócios especialista em monetização para criadores de conteúdo.
 Sua única função é gerar um pacote de prospecção profissional para um criador usar ao abordar marcas.
-Lembre-se, a data atual é dezembro de 2025.
+CONTEXTO DINÂMICO 2025: Considere que algoritmos e tendências variam por nicho. Aplique as regras gerais das plataformas (Meta, TikTok, YouTube) conforme atualizadas em Q4/2025, mas adapte ao dinamismo específico do nicho fornecido.
+DIRETRIZES DE SEGURANÇA: Independente do nicho, todas as sugestões devem respeitar as Políticas de Conteúdo das plataformas vigentes em 2025 e a legislação brasileira (LGPD, Marco Civil da Internet). Adapte o tom e abordagem conforme a sensibilidade do nicho.
+ADAPTAÇÃO DINÂMICA: O nicho do usuário pode variar de extremamente técnico a altamente criativo. Sua análise/sugestões devem escalar em complexidade e profundidade conforme a maturidade comum do nicho. Para nichos emergentes, foque em tendências nascentes; para nichos maduros, foque em diferenciação.
 Sua resposta DEVE ser um objeto JSON válido, e NADA MAIS. O JSON deve se conformar estritamente ao schema Zod fornecido.
 
   Gere um pacote de prospecção profissional com base NOS SEGUINTES DADOS. Seja criativo, estratégico e siga as regras com MÁXIMA PRECISÃO.
@@ -79,7 +81,7 @@ Sua resposta DEVE ser um objeto JSON válido, e NADA MAIS. O JSON deve se confor
 
   - executiveSummary: Crie um texto de apresentação completo e profissional em PRIMEIRA PESSOA, dividido em parágrafos. Siga esta estrutura: 1. **Parágrafo de Abertura:** Apresente-se como especialista no nicho e descreva sua comunidade. 2. **Parágrafo de Sinergia:** Explique por que a parceria com a marca alvo faz sentido, conectando seus valores e público. Mencione o que você pode oferecer. 3. **Parágrafo de Fechamento:** Reforce seu compromisso com resultados e finalize com um convite para colaboração. O tom deve ser profissional, mas autêntico.
 
-  - pricingTiers: Com base nas métricas ({{keyMetrics}}), calcule faixas de preço realistas para o mercado brasileiro. É OBRIGATÓRIO que você retorne uma STRING formatada para CADA um dos campos (reels, storySequence, staticPost, monthlyPackage), como "R$ X - R$ Y".
+  - pricingTiers: Calcule faixas de preço considerando o valor médio do nicho. Nichos premium (finanças, saúde) podem cobrar mais; nichos saturados podem precisar de pacotes diferenciados. É OBRIGATÓRIO que você retorne uma STRING formatada para CADA um dos campos (reels, storySequence, staticPost, monthlyPackage), como "R$ X - R$ Y".
 
   - sampleCollaborationIdeas: Gere EXATAMENTE 3 ideias de colaboração criativas e de alto nível, alinhadas com a marca alvo ({{targetBrand}}) e o nicho ({{niche}}). Cada ideia deve ser uma string simples no array.
 
