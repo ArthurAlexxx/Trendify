@@ -17,14 +17,6 @@ export function PageHeader({ title, description, children, imageUrl }: PageHeade
   return (
     <div className="flex flex-col items-center gap-4 w-full mb-8">
         <div className="flex flex-col items-center gap-2 text-center">
-            {hasImage && (
-                <div className='relative group'>
-                    <Avatar className="h-20 w-20 rounded-2xl border-2 border-primary/20 mb-2">
-                        <AvatarImage src={imageUrl ?? undefined} />
-                        <AvatarFallback>{title?.[0]}</AvatarFallback>
-                    </Avatar>
-                </div>
-            )}
             <h1 className={cn(
                 "text-3xl md:text-4xl font-bold font-headline tracking-tight"
             )}>
