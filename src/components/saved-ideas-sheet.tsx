@@ -6,18 +6,19 @@ import { ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogTrigger, Res
 import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import { IdeiaSalva } from '@/lib/types';
 import { collection, orderBy, query, doc, deleteDoc } from 'firebase/firestore';
-import { BookMarked, Eye, Inbox, Loader2, Trash2 } from 'lucide-react';
+import { BookMarked, Eye, Inbox, Loader2, Trash2, Search } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Badge } from './ui/badge';
 import { ScrollArea } from './ui/scroll-area';
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter as AlertFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from './ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { VideoIdeasResultView } from '@/app/(app)/video-ideas/video-ideas-result-view';
 import { PublisAssistantResultView } from '@/app/(app)/publis-assistant/publis-assistant-result-view';
 import { MediaKitResultView } from './media-kit/media-kit-result-view';
+import { Input } from './ui/input';
 
 const originToPathMap: Record<string, string> = {
   'Ideias de Vídeo': '/video-ideas',
@@ -57,6 +58,7 @@ export function SavedIdeasSheet({ children, idea }: { children: React.ReactNode,
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedIdea, setSelectedIdea] = useState<IdeiaSalva | null>(null);
   const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const ideiasSalvasQuery = useMemoFirebase(
     () =>
@@ -70,6 +72,13 @@ export function SavedIdeasSheet({ children, idea }: { children: React.ReactNode,
   );
   const { data: ideiasSalvas, isLoading } =
     useCollection<IdeiaSalva>(ideiasSalvasQuery);
+    
+  const filteredIdeas = useMemo(() => {
+    if (!ideiasSalvas) return [];
+    return ideiasSalvas.filter(idea => 
+      idea.titulo.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [ideiasSalvas, searchTerm]);
   
   const confirmDelete = (idea: IdeiaSalva) => {
     setIdeaToDelete(idea);
@@ -131,10 +140,21 @@ export function SavedIdeasSheet({ children, idea }: { children: React.ReactNode,
             <ResponsiveDialogHeader>
             <ResponsiveDialogTitle className="font-headline text-xl">Itens Salvos</ResponsiveDialogTitle>
             <ResponsiveDialogDescription>
-                Acesse aqui todas as ideias e planos gerados pela IA que você salvou.
+                Acesse e pesquise todas as ideias e planos gerados pela IA que você salvou.
             </ResponsiveDialogDescription>
             </ResponsiveDialogHeader>
             <div className="flex-1 py-4 border-y">
+                 <div className="px-6 pb-4">
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input 
+                            placeholder="Buscar por título..."
+                            className="pl-10 h-11"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                </div>
                 <ScrollArea className="h-96">
                 <div className="px-6 space-y-4">
                     {isLoading && (
@@ -143,9 +163,9 @@ export function SavedIdeasSheet({ children, idea }: { children: React.ReactNode,
                     </div>
                     )}
 
-                    {!isLoading && ideiasSalvas && ideiasSalvas.length > 0 && (
+                    {!isLoading && filteredIdeas && filteredIdeas.length > 0 && (
                     <ul className="space-y-4">
-                        {ideiasSalvas.map((ideia) => (
+                        {filteredIdeas.map((ideia) => (
                         <li key={ideia.id}>
                             <div className="border p-4 rounded-xl hover:border-primary/50 transition-colors">
                             <div className="flex justify-between items-start mb-2">
@@ -178,14 +198,14 @@ export function SavedIdeasSheet({ children, idea }: { children: React.ReactNode,
                     </ul>
                     )}
 
-                    {!isLoading && (!ideiasSalvas || ideiasSalvas.length === 0) && (
+                    {!isLoading && (!filteredIdeas || filteredIdeas.length === 0) && (
                     <div className="text-center py-20 px-4 rounded-xl bg-muted/50 border border-dashed">
                         <Inbox className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
                         <h3 className="font-semibold text-foreground">
-                        Nenhum item salvo
+                         {searchTerm ? "Nenhum resultado encontrado" : "Nenhum item salvo"}
                         </h3>
                         <p className="text-sm text-muted-foreground">
-                        Use as ferramentas de IA e salve seus resultados.
+                          {searchTerm ? "Tente uma busca diferente." : "Use as ferramentas de IA e salve seus resultados."}
                         </p>
                     </div>
                     )}
