@@ -11,13 +11,11 @@ export function useScroll(threshold: number) {
 
 	React.useEffect(() => {
 		window.addEventListener('scroll', onScroll);
+		// Call onScroll on mount to set the initial state correctly on the client.
+		onScroll(); 
 		return () => window.removeEventListener('scroll', onScroll);
 	}, [onScroll]);
 
-	// also check on first load
-	React.useEffect(() => {
-		onScroll();
-	}, [onScroll]);
 
 	return scrolled;
 }
