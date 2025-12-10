@@ -327,7 +327,7 @@ export default function LandingPage() {
             <h2 className="text-3xl md:text-4xl font-bold font-headline tracking-tight mb-4">
               A plataforma completa para criadores
             </h2>
-            <p className="text-lg text-muted-foreground mb-12 max-w-2xl mx-auto">
+            <p className="text-base text-muted-foreground mb-12 max-w-2xl mx-auto">
               Da estratégia de conteúdo à monetização, a Trendify centraliza tudo que você precisa para crescer de forma inteligente.
             </p>
             {/* Mobile Carousel */}
@@ -349,7 +349,7 @@ export default function LandingPage() {
                               )}
                             </CardHeader>
                             <CardContent className="pb-6">
-                              <h3 className="font-bold text-lg mb-2 text-foreground">
+                              <h3 className="font-bold text-base mb-2 text-foreground">
                                 {feature.title}
                               </h3>
                               <p className="text-sm text-muted-foreground">
@@ -385,7 +385,7 @@ export default function LandingPage() {
                       )}
                     </CardHeader>
                     <CardContent className="pb-6">
-                      <h3 className="font-bold text-lg mb-2 text-foreground">
+                      <h3 className="font-bold text-base mb-2 text-foreground">
                         {feature.title}
                       </h3>
                       <p className="text-sm text-muted-foreground">
@@ -415,7 +415,7 @@ export default function LandingPage() {
                     <h2 className="text-4xl md:text-5xl font-bold font-headline tracking-tight mb-4">
                       Calcule seu Potencial de Crescimento
                     </h2>
-                    <p className="text-lg text-muted-foreground">
+                    <p className="text-base text-muted-foreground">
                       Responda 3 perguntas e, em segundos, mostraremos seu
                       plano de crescimento, tempo até a meta e potencial de ganhos no seu nicho.
                     </p>
@@ -439,7 +439,7 @@ export default function LandingPage() {
                                   <FormControl>
                                     <Input
                                       placeholder="Ex: Beleza, Finanças"
-                                      className="h-12 text-base bg-muted/50"
+                                      className="h-11 text-base bg-muted/50"
                                       {...field}
                                     />
                                   </FormControl>
@@ -464,7 +464,7 @@ export default function LandingPage() {
                                         const num = parseInt(value, 10);
                                         field.onChange(isNaN(num) ? 0 : num > 50000000 ? 50000000 : num);
                                       }}
-                                      className="h-12 text-base bg-muted/50"
+                                      className="h-11 text-base bg-muted/50"
                                     />
                                   </FormControl>
                                   <FormMessage />
@@ -488,7 +488,7 @@ export default function LandingPage() {
                                         const num = parseInt(value, 10);
                                         field.onChange(isNaN(num) ? 0 : num > 50000000 ? 50000000 : num);
                                       }}
-                                      className="h-12 text-base bg-muted/50"
+                                      className="h-11 text-base bg-muted/50"
                                     />
                                   </FormControl>
                                   <FormMessage />
@@ -505,7 +505,7 @@ export default function LandingPage() {
                                   <FormLabel className="font-semibold">
                                     Quantas publicações você faz por mês?
                                   </FormLabel>
-                                  <span className="text-xl font-bold text-primary">
+                                  <span className="text-lg font-bold text-primary">
                                     {field.value}
                                   </span>
                                 </div>
@@ -523,7 +523,7 @@ export default function LandingPage() {
                           <Button
                             type="submit"
                             size="lg"
-                            className="w-full h-12 text-base font-bold bg-gradient-to-r from-purple-600 to-indigo-600 text-primary-foreground shadow-lg shadow-indigo-500/50 hover:opacity-90 transition-opacity"
+                            className="w-full h-11 text-base font-bold bg-gradient-to-r from-purple-600 to-indigo-600 text-primary-foreground shadow-lg shadow-indigo-500/50 hover:opacity-90 transition-opacity"
                             disabled={isCalculating}
                           >
                             {isCalculating ? (
@@ -561,7 +561,7 @@ export default function LandingPage() {
                         <h2 className="text-3xl md:text-4xl font-bold font-headline tracking-tight mb-2">
                           Sua projeção de crescimento está pronta!
                         </h2>
-                        <p className="text-lg text-muted-foreground">
+                        <p className="text-base text-muted-foreground">
                           Com base nos seus dados e benchmarks do nicho de{' '}
                           <span className="font-semibold text-primary">
                             {form.getValues('niche')}
@@ -578,9 +578,9 @@ export default function LandingPage() {
                                 <CarouselItem className="pl-4 basis-[90%]">
                                   <div className="p-1 h-full">
                                   <Card className="rounded-2xl border shadow-primary-lg">
-                                    <CardHeader><CardTitle className="text-lg font-bold">Curva de Crescimento</CardTitle></CardHeader>
+                                    <CardHeader><CardTitle className="text-base font-bold">Curva de Crescimento</CardTitle></CardHeader>
                                     <CardContent className="pt-2 pl-2">
-                                        <div className="h-64 w-full">
+                                        <div className="h-[250px] w-full">
                                             <ResponsiveContainer>
                                                 <AreaChart data={results.growthData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                                                     <defs><linearGradient id="colorFollowers" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.8}/><stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/></linearGradient></defs>
@@ -601,25 +601,25 @@ export default function LandingPage() {
                                   <div className="p-1 h-full">
                                   <Card className="h-full rounded-2xl border shadow-primary-lg">
                                     <CardHeader>
-                                      <CardTitle className="text-lg font-bold">
+                                      <CardTitle className="text-base font-bold">
                                         Potencial de Ganhos/Mês
                                       </CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-4 text-center">
                                       {results.currentEarnings && (
                                         <div>
-                                          <p className="text-2xl font-bold">
+                                          <p className="text-xl font-bold">
                                             {formatCurrency(results.currentEarnings[0])} - {formatCurrency(results.currentEarnings[1])}
                                           </p>
-                                          <p className="text-sm text-muted-foreground">(estimativa atual)</p>
+                                          <p className="text-xs text-muted-foreground">(estimativa atual)</p>
                                         </div>
                                       )}
                                       {results.goalEarnings && (
                                          <div>
-                                          <p className="text-2xl font-bold">
+                                          <p className="text-xl font-bold">
                                             {formatCurrency(results.goalEarnings[0])} - {formatCurrency(results.goalEarnings[1])}
                                           </p>
-                                          <p className="text-sm text-muted-foreground">(estimativa na meta)</p>
+                                          <p className="text-xs text-muted-foreground">(estimativa na meta)</p>
                                         </div>
                                       )}
                                     </CardContent>
@@ -631,11 +631,11 @@ export default function LandingPage() {
                                 <CarouselItem className="pl-4 basis-[90%]">
                                    <div className="p-1 h-full">
                                   <Card className="rounded-2xl h-full border shadow-primary-lg">
-                                    <CardHeader><CardTitle className="text-lg font-bold">Cenários de Aceleração</CardTitle></CardHeader>
+                                    <CardHeader><CardTitle className="text-base font-bold">Cenários de Aceleração</CardTitle></CardHeader>
                                     <CardContent className="grid grid-cols-3 gap-4 text-center">
-                                        <div><p className="font-bold text-2xl">{results.accelerationScenarios.maintain}</p><p className="text-xs text-muted-foreground">Meses (Ritmo Atual)</p></div>
-                                        <div><p className="font-bold text-2xl">{results.accelerationScenarios.plus20}</p><p className="text-xs text-muted-foreground">Meses (+20% Posts)</p></div>
-                                        <div><p className="font-bold text-2xl">{results.accelerationScenarios.plus40}</p><p className="text-xs text-muted-foreground">Meses (+40% Posts)</p></div>
+                                        <div><p className="font-bold text-xl">{results.accelerationScenarios.maintain}</p><p className="text-xs text-muted-foreground">Meses (Ritmo Atual)</p></div>
+                                        <div><p className="font-bold text-xl">{results.accelerationScenarios.plus20}</p><p className="text-xs text-muted-foreground">Meses (+20% Posts)</p></div>
+                                        <div><p className="font-bold text-xl">{results.accelerationScenarios.plus40}</p><p className="text-xs text-muted-foreground">Meses (+40% Posts)</p></div>
                                     </CardContent>
                                   </Card>
                                   </div>
@@ -651,9 +651,9 @@ export default function LandingPage() {
                           <div className="space-y-8">
                               {results.growthData && results.growthData.length > 0 && (
                               <Card className="rounded-2xl border shadow-primary-lg">
-                                  <CardHeader><CardTitle className="text-lg font-bold">Curva de Crescimento</CardTitle></CardHeader>
+                                  <CardHeader><CardTitle className="text-base font-bold">Curva de Crescimento</CardTitle></CardHeader>
                                   <CardContent className="pt-2 pl-2">
-                                      <div className="h-64 w-full">
+                                      <div className="h-[250px] w-full">
                                           <ResponsiveContainer>
                                               <AreaChart data={results.growthData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                                                   <defs><linearGradient id="colorFollowers" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.8}/><stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/></linearGradient></defs>
@@ -669,11 +669,11 @@ export default function LandingPage() {
                               )}
                               {results.accelerationScenarios && (
                               <Card className="rounded-2xl border shadow-primary-lg">
-                                  <CardHeader><CardTitle className="text-lg font-bold">Cenários de Aceleração</CardTitle></CardHeader>
+                                  <CardHeader><CardTitle className="text-base font-bold">Cenários de Aceleração</CardTitle></CardHeader>
                                   <CardContent className="grid grid-cols-3 gap-4 text-center">
-                                      <div><p className="font-bold text-2xl">{results.accelerationScenarios.maintain}</p><p className="text-xs text-muted-foreground">Meses (Ritmo Atual)</p></div>
-                                      <div><p className="font-bold text-2xl">{results.accelerationScenarios.plus20}</p><p className="text-xs text-muted-foreground">Meses (+20% Posts)</p></div>
-                                      <div><p className="font-bold text-2xl">{results.accelerationScenarios.plus40}</p><p className="text-xs text-muted-foreground">Meses (+40% Posts)</p></div>
+                                      <div><p className="font-bold text-xl">{results.accelerationScenarios.maintain}</p><p className="text-xs text-muted-foreground">Meses (Ritmo Atual)</p></div>
+                                      <div><p className="font-bold text-xl">{results.accelerationScenarios.plus20}</p><p className="text-xs text-muted-foreground">Meses (+20% Posts)</p></div>
+                                      <div><p className="font-bold text-xl">{results.accelerationScenarios.plus40}</p><p className="text-xs text-muted-foreground">Meses (+40% Posts)</p></div>
                                   </CardContent>
                               </Card>
                               )}
@@ -683,34 +683,34 @@ export default function LandingPage() {
                           <div className="space-y-8">
                               <div className="grid grid-cols-2 gap-4">
                                   {results.months != null && (
-                                    <Card className="bg-primary/5 border-primary/20 text-center shadow-primary-lg"><CardContent className="p-4"><p className="text-sm text-muted-foreground">Tempo até a Meta</p><p className="text-2xl font-bold">{results.months} meses</p></CardContent></Card>
+                                    <Card className="bg-primary/5 border-primary/20 text-center shadow-primary-lg"><CardContent className="p-4"><p className="text-xs text-muted-foreground">Tempo até a Meta</p><p className="text-xl font-bold">{results.months} meses</p></CardContent></Card>
                                   )}
                                   {results.difficultyScore && (
-                                    <Card className="bg-primary/5 border-primary/20 text-center shadow-primary-lg"><CardContent className="p-4"><p className="text-sm text-muted-foreground">Nível da Meta</p><p className="text-2xl font-bold">{results.difficultyScore}</p></CardContent></Card>
+                                    <Card className="bg-primary/5 border-primary/20 text-center shadow-primary-lg"><CardContent className="p-4"><p className="text-xs text-muted-foreground">Nível da Meta</p><p className="text-xl font-bold">{results.difficultyScore}</p></CardContent></Card>
                                   )}
                               </div>
                                {(results.currentEarnings || results.goalEarnings) && (
                                 <Card className="border shadow-primary-lg">
                                   <CardHeader>
-                                    <CardTitle className="text-lg font-bold">
+                                    <CardTitle className="text-base font-bold">
                                       Potencial de Ganhos/Mês
                                     </CardTitle>
                                   </CardHeader>
                                   <CardContent>
                                     {results.currentEarnings && (
-                                      <p className="text-lg font-semibold">
+                                      <p className="text-base font-semibold">
                                         {formatCurrency(results.currentEarnings[0])} -{' '}
                                         {formatCurrency(results.currentEarnings[1])}
-                                        <span className="text-sm font-normal text-muted-foreground ml-2">
+                                        <span className="text-xs font-normal text-muted-foreground ml-2">
                                           (agora)
                                         </span>
                                       </p>
                                     )}
                                     {results.goalEarnings && (
-                                      <p className="text-lg font-semibold mt-1">
+                                      <p className="text-base font-semibold mt-1">
                                         {formatCurrency(results.goalEarnings[0])} -{' '}
                                         {formatCurrency(results.goalEarnings[1])}
-                                        <span className="text-sm font-normal text-muted-foreground ml-2">
+                                        <span className="text-xs font-normal text-muted-foreground ml-2">
                                           (na meta)
                                         </span>
                                       </p>
@@ -719,7 +719,7 @@ export default function LandingPage() {
                                 </Card>
                               )}
                               {results.benchmarkComparison && (
-                                <Card className="border shadow-primary-lg"><CardHeader><CardTitle className="text-lg font-bold">Análise do Mercado</CardTitle></CardHeader><CardContent><p className="text-sm text-muted-foreground">{results.benchmarkComparison}</p></CardContent></Card>
+                                <Card className="border shadow-primary-lg"><CardHeader><CardTitle className="text-base font-bold">Análise do Mercado</CardTitle></CardHeader><CardContent><p className="text-sm text-muted-foreground">{results.benchmarkComparison}</p></CardContent></Card>
                               )}
                           </div>
                       </div>
@@ -727,7 +727,7 @@ export default function LandingPage() {
                       {results.earningsAnalysis && (
                          <Card className="bg-card border shadow-primary-lg">
                             <CardHeader>
-                               <CardTitle className="font-bold text-lg flex items-center gap-2">
+                               <CardTitle className="font-bold text-base flex items-center gap-2">
                                 Análise de Monetização
                                </CardTitle>
                                <CardDescription>Como transformar seus seguidores em receita no nicho de {form.getValues('niche')}.</CardDescription>
@@ -741,7 +741,7 @@ export default function LandingPage() {
                       {/* Action Plan */}
                        {(results.recommendations?.length || results.riskPanel?.length || results.trendSuggestions?.length) && (
                       <Card className="bg-card border shadow-primary-lg">
-                          <CardHeader><h4 className="font-bold text-lg text-center">Seu Plano Inicial para Acelerar</h4></CardHeader>
+                          <CardHeader><h4 className="font-bold text-base text-center">Seu Plano Inicial para Acelerar</h4></CardHeader>
                           <CardContent className="grid sm:grid-cols-2 lg:grid-cols-2 gap-8">
                               {results.recommendations && results.recommendations.length > 0 && (
                               <div>
@@ -772,8 +772,8 @@ export default function LandingPage() {
                        )}
 
                       <div className="text-center mt-8 space-y-4">
-                          <Button onClick={() => setStep(0)} variant="outline" size="lg" className="h-12 text-base">Calcular Novamente</Button>
-                          <Button asChild size="lg" className="h-12 text-base ml-4"><Link href="/sign-up">Criar conta grátis para acelerar</Link></Button>
+                          <Button onClick={() => setStep(0)} variant="outline" size="lg" className="h-11 text-base">Calcular Novamente</Button>
+                          <Button asChild size="lg" className="h-11 text-base ml-4"><Link href="/sign-up">Criar conta grátis para acelerar</Link></Button>
                       </div>
                       <p className="text-xs text-muted-foreground text-center pt-2 max-w-4xl mx-auto">
                         Estimativas com base em benchmarks do nicho. Resultados variam por conteúdo, mercado e consistência.
@@ -793,14 +793,14 @@ export default function LandingPage() {
               <h2 className="text-4xl md:text-5xl font-bold font-headline tracking-tight mb-4">
                 Planos para cada fase da sua jornada
               </h2>
-              <p className="text-lg text-muted-foreground">
+              <p className="text-base text-muted-foreground">
                 Comece de graça e faça o upgrade quando estiver pronto para monetizar e profissionalizar.
               </p>
             </div>
             <div className="grid lg:grid-cols-3 gap-8 max-w-6xl mx-auto items-start">
                {/* Plano Grátis */}
               <Card className="rounded-2xl p-6 flex flex-col h-full bg-muted/30 shadow-lg">
-                <h3 className="text-2xl font-bold font-headline mb-2">
+                <h3 className="text-xl font-bold font-headline mb-2">
                   Grátis
                 </h3>
                 <p className="text-muted-foreground mb-6 flex-grow text-sm">
@@ -808,7 +808,7 @@ export default function LandingPage() {
                 </p>
                 <p className="text-4xl font-bold mb-6">
                   R$0{' '}
-                  <span className="text-lg font-normal text-muted-foreground">
+                  <span className="text-base font-normal text-muted-foreground">
                     /para sempre
                   </span>
                 </p>
@@ -836,13 +836,13 @@ export default function LandingPage() {
                 <Badge className="absolute -top-4 left-1/2 -translate-x-1/2">
                   Mais Popular
                 </Badge>
-                <h3 className="text-2xl font-bold font-headline mb-2">Pro</h3>
+                <h3 className="text-xl font-bold font-headline mb-2">Pro</h3>
                 <p className="text-muted-foreground mb-6 flex-grow text-sm">
                   Para criadores que levam o crescimento a sério e querem otimizar seu conteúdo.
                 </p>
                 <p className="text-4xl font-bold mb-6">
                   R$29{' '}
-                  <span className="text-lg font-normal text-muted-foreground">
+                  <span className="text-base font-normal text-muted-foreground">
                     /mês
                   </span>
                 </p>
@@ -879,7 +879,7 @@ export default function LandingPage() {
 
               {/* Plano Premium */}
                <Card className="rounded-2xl p-6 border border-yellow-400/50 bg-yellow-400/5 flex flex-col h-full shadow-lg">
-                 <h3 className="text-2xl font-bold font-headline mb-2 flex items-center gap-2">
+                 <h3 className="text-xl font-bold font-headline mb-2 flex items-center gap-2">
                   Premium
                   <Crown className="h-5 w-5 text-yellow-500 fill-yellow-500" />
                 </h3>
@@ -888,7 +888,7 @@ export default function LandingPage() {
                 </p>
                 <p className="text-4xl font-bold mb-6">
                   R$39{' '}
-                  <span className="text-lg font-normal text-muted-foreground">
+                  <span className="text-base font-normal text-muted-foreground">
                     /mês
                   </span>
                 </p>
@@ -933,14 +933,14 @@ export default function LandingPage() {
               <h2 className="text-4xl md:text-5xl font-bold font-headline tracking-tight mb-4">
                 Perguntas Frequentes
               </h2>
-              <p className="text-lg text-muted-foreground">
+              <p className="text-base text-muted-foreground">
                 Respostas rápidas para as dúvidas mais comuns.
               </p>
             </div>
             <Accordion type="single" collapsible className="w-full">
               {faqItems.map((item) => (
                 <AccordionItem value={item.question} key={item.question}>
-                  <AccordionTrigger className="text-lg font-semibold text-left">
+                  <AccordionTrigger className="text-base font-semibold text-left">
                     {item.question}
                   </AccordionTrigger>
                   <AccordionContent className="text-base text-muted-foreground">
@@ -969,7 +969,7 @@ export default function LandingPage() {
                     <h2 className="text-4xl md:text-5xl font-bold font-headline tracking-tight mb-4">
                         Pronto para crescer?
                     </h2>
-                    <p className="text-lg text-primary-foreground/80 mb-8 max-w-xl mx-auto">
+                    <p className="text-base text-primary-foreground/80 mb-8 max-w-xl mx-auto">
                         Crie sua conta grátis e transforme seu conteúdo com o poder da
                         inteligência artificial.
                     </p>

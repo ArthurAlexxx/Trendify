@@ -43,7 +43,7 @@ export default function ActionHubCard({
   return (
     <Card className="h-full flex flex-col shadow-primary-lg">
       <CardHeader>
-        <CardTitle className="text-center font-headline text-xl flex items-center justify-center gap-2">
+        <CardTitle className="text-center font-headline text-lg flex items-center justify-center gap-2">
           Hub de Ação Rápida
         </CardTitle>
       </CardHeader>
@@ -135,7 +135,7 @@ export default function ActionHubCard({
                         <label
                           htmlFor={`ideia-${ideia.id}`}
                           className={cn(
-                            'font-medium transition-colors cursor-pointer',
+                            'font-medium transition-colors cursor-pointer text-sm',
                             ideia.concluido
                               ? 'line-through text-muted-foreground'
                               : 'text-foreground'

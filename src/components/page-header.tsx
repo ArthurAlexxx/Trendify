@@ -8,22 +8,15 @@ interface PageHeaderProps {
   title: string;
   description?: string;
   children?: React.ReactNode;
-  icon?: React.ElementType;
   imageUrl?: string | null;
 }
 
-export function PageHeader({ title, description, children, icon: Icon, imageUrl }: PageHeaderProps) {
+export function PageHeader({ title, description, children, imageUrl }: PageHeaderProps) {
   const hasImage = imageUrl;
-  const hasIcon = Icon && !hasImage;
 
   return (
     <div className="flex flex-col items-center gap-8 w-full mb-12">
         <div className="flex flex-col items-center gap-4 text-center">
-            {hasIcon && Icon && (
-                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20 text-primary mb-2">
-                    <Icon className="h-8 w-8" />
-                </div>
-            )}
             {hasImage && (
                 <div className='relative group'>
                     <Avatar className="h-20 w-20 rounded-2xl border-2 border-primary/20 mb-2">
@@ -38,7 +31,7 @@ export function PageHeader({ title, description, children, icon: Icon, imageUrl 
                 {title}
             </h1>
             {description && (
-                <p className="text-lg text-muted-foreground max-w-2xl">{description}</p>
+                <p className="text-base text-muted-foreground max-w-2xl">{description}</p>
             )}
         </div>
         {children && <div className="flex w-full md:w-auto items-center justify-center gap-2">{children}</div>}

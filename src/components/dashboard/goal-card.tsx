@@ -31,7 +31,7 @@ export default function GoalCard({ isLoading, goalFollowers, currentFollowers, i
     return (
         <Card className="h-full shadow-primary-lg">
             <CardHeader>
-                <CardTitle className="text-center font-headline text-xl flex items-center justify-center gap-2">
+                <CardTitle className="text-center font-headline text-lg flex items-center justify-center gap-2">
                     Meta de Seguidores
                 </CardTitle>
             </CardHeader>

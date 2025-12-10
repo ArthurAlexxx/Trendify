@@ -292,10 +292,10 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                     </Tooltip>
                 </TooltipProvider>
                 </div>
-                {isLoading ? <Skeleton className="h-[350px] w-full" /> : 
+                {isLoading ? <Skeleton className="h-[300px] w-full" /> : 
                 selectedPlatform === 'total' ? (
                     followerHistoryData.length > 0 ? (
-                    <ChartContainer config={chartConfigBase} className="h-[350px] w-full flex-1">
+                    <ChartContainer config={chartConfigBase} className="h-[300px] w-full flex-1">
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={followerHistoryData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
                                 <CartesianGrid vertical={false} strokeDasharray="3 3" />
@@ -309,7 +309,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                         </ResponsiveContainer>
                     </ChartContainer>
                     ) : (
-                    <div className="h-[350px] w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
+                    <div className="h-[300px] w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
                         <div>
                         <Users className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
                         <h3 className="font-semibold text-foreground">Sincronize suas contas</h3>
@@ -319,7 +319,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                     )
                 ) :
                 allPosts.length > 0 ? (
-                    <ChartContainer config={chartConfigBase} className="h-[350px] w-full flex-1">
+                    <ChartContainer config={chartConfigBase} className="h-[300px] w-full flex-1">
                         <ResponsiveContainer width="100%" height="100%">
                         <AreaChart data={allPosts.slice(0, 15).reverse()} margin={{ top: 5, right: 20, left: -10, bottom: 5 }} onClick={handleChartClick} className="cursor-pointer">
                             <defs>
@@ -339,7 +339,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                         </ResponsiveContainer>
                     </ChartContainer>
                 ) : (
-                    <div className="h-[350px] w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
+                    <div className="h-[300px] w-full flex items-center justify-center text-center p-4 rounded-xl bg-muted/50 border border-dashed">
                         <div>
                         <ClipboardList className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
                         <h3 className="font-semibold text-foreground">{(userProfile?.instagramHandle || userProfile?.tiktokHandle) ? "Dados insuficientes." : "Nenhuma plataforma conectada."}</h3>
@@ -357,4 +357,3 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
     </Card>
   );
 }
-

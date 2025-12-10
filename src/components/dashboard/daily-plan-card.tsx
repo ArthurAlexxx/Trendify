@@ -35,7 +35,7 @@ export default function DailyPlanCard({ isLoadingWeeklyPlans, currentPlan, handl
   return (
     <Card className="h-full shadow-primary-lg">
       <CardHeader>
-        <CardTitle className="text-center font-headline text-xl flex items-center justify-center gap-2">
+        <CardTitle className="text-center font-headline text-lg flex items-center justify-center gap-2">
           Plano para Hoje
         </CardTitle>
       </CardHeader>
@@ -58,7 +58,7 @@ export default function DailyPlanCard({ isLoadingWeeklyPlans, currentPlan, handl
                     <label
                       htmlFor={`daily-plan-task-${index}`}
                       className={cn(
-                        'font-medium transition-colors cursor-pointer',
+                        'font-medium transition-colors cursor-pointer text-sm',
                         item.concluido ? 'line-through text-muted-foreground' : 'text-foreground'
                       )}
                     >
@@ -73,7 +73,7 @@ export default function DailyPlanCard({ isLoadingWeeklyPlans, currentPlan, handl
         ) : (
           <div className="text-center py-4">
             <p className="text-muted-foreground text-sm">Nenhuma tarefa para hoje.</p>
-            <Button variant="link" asChild size="sm">
+            <Button variant="link" size="sm">
               <Link href="/generate-weekly-plan">Ver plano completo</Link>
             </Button>
           </div>
