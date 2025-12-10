@@ -162,7 +162,6 @@ export default function DashboardPage() {
             collection(firestore, `users/${user.uid}/ideiasSalvas`),
             where('concluido', '==', false),
             where('origem', '!=', 'Plano Semanal'),
-            orderBy('origem'), // Firestore requires an orderBy when using inequality
             orderBy('createdAt', 'desc'),
             limit(3)
           )
