@@ -527,7 +527,7 @@ export default function VideoIdeasPage() {
                                     </Button>
                                     <AlertDialog>
                                         <AlertDialogTrigger asChild>
-                                             <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive/70 hover:text-destructive">
+                                             <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive/70 hover:text-destructive" onClick={() => confirmDelete(idea)}>
                                                 <Trash2 className="h-4 w-4" />
                                              </Button>
                                         </AlertDialogTrigger>
@@ -538,7 +538,7 @@ export default function VideoIdeasPage() {
                                             </AlertDialogHeader>
                                             <AlertDialogFooter>
                                             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                            <AlertDialogAction onClick={() => handleDelete(idea)}>Sim, Excluir</AlertDialogAction>
+                                            <AlertDialogAction onClick={() => handleDelete()}>Sim, Excluir</AlertDialogAction>
                                             </AlertDialogFooter>
                                         </AlertDialogContent>
                                     </AlertDialog>
@@ -577,3 +577,5 @@ export default function VideoIdeasPage() {
     </div>
   );
 }
+
+    
