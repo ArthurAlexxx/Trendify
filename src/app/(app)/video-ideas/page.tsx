@@ -177,12 +177,15 @@ export default function VideoIdeasPage() {
   const savedIdeasQuery = useMemoFirebase(() =>
     firestore && user ? query(
         collection(firestore, `users/${user.uid}/ideiasSalvas`),
-        where('origem', '==', 'Ideias de Vídeo'),
         orderBy('createdAt', 'desc')
     ) : null,
   [firestore, user]);
 
   const { data: savedIdeas, isLoading: isLoadingSaved } = useCollection<IdeiaSalva>(savedIdeasQuery);
+  
+  const videoIdeas = useMemo(() => {
+    return savedIdeas?.filter(idea => idea.origem === 'Ideias de Vídeo') || [];
+  }, [savedIdeas]);
 
 
   const generationsToday = usageData?.geracoesAI || 0;
@@ -420,7 +423,7 @@ export default function VideoIdeasPage() {
             Resultado
             {isGenerating && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
           </TabsTrigger>
-           <TabsTrigger value="saved" disabled={!savedIdeas || savedIdeas.length === 0}>
+           <TabsTrigger value="saved" disabled={!videoIdeas || videoIdeas.length === 0}>
             Salvos
             {isLoadingSaved && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
           </TabsTrigger>
@@ -504,9 +507,9 @@ export default function VideoIdeasPage() {
             <CardContent className="pt-6">
                 <ScrollArea className="h-96">
                     {isLoadingSaved ? <Loader2 className="mx-auto h-8 w-8 animate-spin" /> 
-                    : savedIdeas && savedIdeas.length > 0 ? (
+                    : videoIdeas && videoIdeas.length > 0 ? (
                         <ul className="space-y-2 pr-4">
-                        {savedIdeas.map((idea) => (
+                        {videoIdeas.map((idea) => (
                             <li key={idea.id}>
                                 <div className="p-3 rounded-lg border flex items-center justify-between gap-4 hover:bg-muted/50 transition-colors">
                                     <div className="flex-1 overflow-hidden">
@@ -574,3 +577,5 @@ export default function VideoIdeasPage() {
     </div>
   );
 }
+
+    
