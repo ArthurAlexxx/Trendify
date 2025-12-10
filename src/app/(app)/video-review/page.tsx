@@ -65,7 +65,7 @@ import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/
 import { initializeFirebase } from "@/firebase";
 
 type AnalysisStatus = "idle" | "uploading" | "analyzing" | "success" | "error";
-const MAX_FILE_SIZE_MB = 70;
+const MAX_FILE_SIZE_MB = 10;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
 const PLAN_LIMITS: Record<Exclude<Plan, 'free'>, number> = {
@@ -405,7 +405,7 @@ function VideoReviewPageContent() {
                               <div className="flex flex-col sm:flex-row items-center gap-4 p-2 rounded-lg hover:bg-muted">
                                   <div className="flex items-center gap-4 w-full sm:w-auto sm:flex-1">
                                     <Clapperboard className="h-6 w-6 text-primary shrink-0" />
-                                    <div className="flex-1 text-center sm:text-left">
+                                    <div className="flex-1 text-center sm:text-left overflow-hidden">
                                         <p className="font-semibold text-foreground truncate">{analise.analysisName || analise.videoFileName}</p>
                                         <p className="text-xs text-muted-foreground">
                                             {analise.createdAt ? formatDistanceToNow(analise.createdAt.toDate(), { addSuffix: true, locale: ptBR }) : ''}
