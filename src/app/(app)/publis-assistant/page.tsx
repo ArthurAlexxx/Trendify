@@ -44,7 +44,7 @@ import {
   Eye,
   ArrowLeft,
 } from 'lucide-react';
-import { useEffect, useTransition, useState, useCallback } from 'react';
+import { useEffect, useTransition, useState, useCallback, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { generatePubliProposalsAction, GeneratePubliProposalsOutput } from '@/app/(app)/publis-assistant/actions';
@@ -212,15 +212,18 @@ function PublisAssistantPageContent() {
     }
   }, []);
   
-  const savedIdeasQuery = useMemoFirebase(() =>
+  const allSavedIdeasQuery = useMemoFirebase(() =>
     firestore && user ? query(
         collection(firestore, `users/${user.uid}/ideiasSalvas`),
-        where('origem', '==', 'Propostas & Publis'),
         orderBy('createdAt', 'desc')
     ) : null,
   [firestore, user]);
 
-  const { data: savedIdeas, isLoading: isLoadingSaved } = useCollection<IdeiaSalva>(savedIdeasQuery);
+  const { data: allSavedIdeas, isLoading: isLoadingSaved } = useCollection<IdeiaSalva>(allSavedIdeasQuery);
+
+  const savedIdeas = useMemo(() => {
+    return allSavedIdeas?.filter(idea => idea.origem === 'Propostas & Publis') || [];
+  }, [allSavedIdeas]);
 
 
   useEffect(() => {
@@ -369,7 +372,7 @@ function PublisAssistantPageContent() {
     });
   }
   
-  const isButtonDisabled = isGenerating || !isPremium;
+  const isButtonDisabled = isGenerating || hasReachedLimit;
 
 
   return (
@@ -585,7 +588,7 @@ function PublisAssistantPageContent() {
                         </ResponsiveDialogFooter>
                       </ResponsiveDialogContent>
                     </ResponsiveDialog>
-                    {!isPremium && (
+                    {!isPremium && !isTrialActive && (
                       <p className="text-sm text-muted-foreground text-center sm:text-left">
                         Você precisa de um plano <Link href="/subscribe" className='underline text-primary font-semibold'>Premium</Link> para usar esta ferramenta.
                       </p>

@@ -26,7 +26,7 @@ import {
   Eye,
   ArrowLeft,
 } from 'lucide-react';
-import { useTransition, useEffect, useState, useCallback } from 'react';
+import { useTransition, useEffect, useState, useCallback, useMemo } from 'react';
 import {
   Form,
   FormControl,
@@ -201,15 +201,18 @@ function MediaKitPageContent() {
   );
   const { data: userProfile, isLoading: isLoadingProfile } = useDoc<UserProfile>(userProfileRef);
   
-  const savedIdeasQuery = useMemoFirebase(() =>
+  const allSavedIdeasQuery = useMemoFirebase(() =>
     firestore && user ? query(
         collection(firestore, `users/${user.uid}/ideiasSalvas`),
-        where('origem', '==', 'Mídia Kit & Prospecção'),
         orderBy('createdAt', 'desc')
     ) : null,
   [firestore, user]);
 
-  const { data: savedIdeas, isLoading: isLoadingSaved } = useCollection<IdeiaSalva>(savedIdeasQuery);
+  const { data: allSavedIdeas, isLoading: isLoadingSaved } = useCollection<IdeiaSalva>(allSavedIdeasQuery);
+
+  const savedIdeas = useMemo(() => {
+    return allSavedIdeas?.filter(idea => idea.origem === 'Mídia Kit & Prospecção') || [];
+  }, [allSavedIdeas]);
 
 
   const form = useForm<FormSchemaType>({
@@ -368,7 +371,7 @@ function MediaKitPageContent() {
     });
   }
 
-  const isButtonDisabled = isGenerating || !isPremium;
+  const isButtonDisabled = isGenerating || hasReachedLimit;
 
   return (
     <div className="space-y-8">
@@ -548,7 +551,7 @@ function MediaKitPageContent() {
                             </ResponsiveDialogFooter>
                       </ResponsiveDialogContent>
                     </ResponsiveDialog>
-                    {!isPremium && (
+                    {!isPremium && !isTrialActive && (
                       <p className="text-sm text-muted-foreground text-center sm:text-left">
                         Você precisa de um plano <Link href="/subscribe" className='underline text-primary font-semibold'>Premium</Link> para usar esta ferramenta.
                       </p>
