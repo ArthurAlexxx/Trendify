@@ -226,7 +226,7 @@ export default function LandingPage() {
                       <Link
                         href="/dashboard"
                         className={buttonVariants({
-                          variant: 'ghost',
+                          variant: 'secondary',
                         })}
                       >
                         Painel
