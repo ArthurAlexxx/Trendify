@@ -105,11 +105,14 @@ function AnimatedHero() {
       <section
         ref={targetRef}
         className="relative py-12"
-        style={{
-          background:
-            'radial-gradient(ellipse 70% 40% at 50% 50%, hsl(var(--primary) / 0.2) 0%, transparent 70%)',
-        }}
       >
+         <div
+            className="absolute inset-0"
+            style={{
+                background: 'radial-gradient(ellipse 70% 40% at 50% 50%, hsl(var(--primary) / 0.25) 0%, transparent 70%)',
+            }}
+            aria-hidden="true"
+        />
         <div className="container mx-auto">
           <motion.div
             style={{ scale }}
