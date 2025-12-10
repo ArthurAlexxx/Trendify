@@ -51,6 +51,8 @@ import {
   BookMarked,
   Inbox,
   ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { useEffect, useTransition, useState, useCallback, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
@@ -114,7 +116,7 @@ const analysisCriteria = [
     },
   ]
 
-
+const ITEMS_PER_PAGE = 5;
 
 
 export default function VideoIdeasPage() {
@@ -147,6 +149,7 @@ export default function VideoIdeasPage() {
   const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
   const [ideaToDelete, setIdeaToDelete] = useState<IdeiaSalva | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [savedIdeasPage, setSavedIdeasPage] = useState(1);
 
 
   useEffect(() => {
@@ -186,6 +189,13 @@ export default function VideoIdeasPage() {
   const videoIdeas = useMemo(() => {
     return savedIdeas?.filter(idea => idea.origem === 'Ideias de Vídeo') || [];
   }, [savedIdeas]);
+  
+  const paginatedVideoIdeas = useMemo(() => {
+    const startIndex = (savedIdeasPage - 1) * ITEMS_PER_PAGE;
+    return videoIdeas.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [videoIdeas, savedIdeasPage]);
+  
+  const totalSavedPages = Math.ceil(videoIdeas.length / ITEMS_PER_PAGE);
 
 
   const generationsToday = usageData?.geracoesAI || 0;
@@ -506,11 +516,12 @@ export default function VideoIdeasPage() {
          <TabsContent value="saved">
           <Card className="rounded-t-none border-t-0 shadow-primary-lg">
             <CardContent className="pt-6">
-                <ScrollArea className="h-96">
+                <div className="min-h-[400px]">
                     {isLoadingSaved ? <Loader2 className="mx-auto h-8 w-8 animate-spin" /> 
                     : videoIdeas && videoIdeas.length > 0 ? (
-                        <ul className="space-y-2 pr-4">
-                        {videoIdeas.map((idea) => (
+                        <>
+                        <ul className="space-y-2">
+                        {paginatedVideoIdeas.map((idea) => (
                             <li key={idea.id}>
                                 <div className="p-3 rounded-lg border flex items-center justify-between gap-4 hover:bg-muted/50 transition-colors">
                                     <div className="flex-1 overflow-hidden">
@@ -547,13 +558,39 @@ export default function VideoIdeasPage() {
                             </li>
                         ))}
                         </ul>
+                         {totalSavedPages > 1 && (
+                            <div className="flex justify-center items-center gap-2 pt-4">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setSavedIdeasPage(prev => Math.max(prev - 1, 1))}
+                                    disabled={savedIdeasPage === 1}
+                                >
+                                    <ChevronLeft className="h-4 w-4 mr-1" />
+                                    Anterior
+                                </Button>
+                                <span className="text-sm text-muted-foreground">
+                                    Página {savedIdeasPage} de {totalSavedPages}
+                                </span>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setSavedIdeasPage(prev => Math.min(prev + 1, totalSavedPages))}
+                                    disabled={savedIdeasPage === totalSavedPages}
+                                >
+                                    Próxima
+                                    <ChevronRight className="h-4 w-4 ml-1" />
+                                </Button>
+                            </div>
+                        )}
+                        </>
                     ) : (
                         <div className="text-center h-full flex flex-col items-center justify-center py-20">
                         <Inbox className="h-10 w-10 text-muted-foreground mb-4" />
                         <p className="text-muted-foreground">Nenhuma ideia salva.</p>
                         </div>
                     )}
-                </ScrollArea>
+                </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -579,4 +616,3 @@ export default function VideoIdeasPage() {
   );
 }
 
-    
