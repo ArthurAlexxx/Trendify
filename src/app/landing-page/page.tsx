@@ -306,10 +306,6 @@ export default function LandingPage() {
       <main className="flex-1">
         {/* Hero Section */}
         <section className="relative overflow-hidden">
-          <div
-            className="absolute top-0 left-0 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] sm:w-[1500px] sm:h-[1500px] bg-gradient-radial from-primary/5 via-background to-background -z-10"
-            aria-hidden="true"
-          />
            <AnimatedHero />
         </section>
 
@@ -356,36 +352,71 @@ export default function LandingPage() {
                 </Carousel>
             </div>
             {/* Desktop Grid */}
-            <div className="hidden lg:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {features.map((feature) => (
-                <motion.div
-                  key={feature.title}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5 }}
-                  viewport={{ once: true, amount: 0.3 }}
-                  className="h-full"
-                >
-                  <Card className="text-left h-full bg-card/50 rounded-2xl shadow-primary-lg p-6 flex flex-col">
-                     <div className='flex items-center justify-between mb-4'>
-                      <div className="bg-primary/10 text-primary p-3 rounded-lg">
-                        <feature.icon className="h-6 w-6" />
+            <div className="hidden lg:block">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {features.slice(0, 3).map((feature) => (
+                  <motion.div
+                    key={feature.title}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                    viewport={{ once: true, amount: 0.3 }}
+                    className="h-full"
+                  >
+                    <Card className="text-left h-full bg-card/50 rounded-2xl shadow-primary-lg p-6 flex flex-col">
+                      <div className='flex items-center justify-between mb-4'>
+                        <div className="bg-primary/10 text-primary p-3 rounded-lg">
+                          <feature.icon className="h-6 w-6" />
+                        </div>
+                        {feature.plan && (
+                          <Badge variant={feature.plan === 'premium' ? 'default' : 'secondary'} className={cn(feature.plan === 'premium' && 'bg-yellow-400/20 text-yellow-600 border-yellow-400/30')}>
+                            {feature.plan === 'premium' ? 'Premium' : 'Pro'}
+                          </Badge>
+                        )}
                       </div>
-                      {feature.plan && (
-                        <Badge variant={feature.plan === 'premium' ? 'default' : 'secondary'} className={cn(feature.plan === 'premium' && 'bg-yellow-400/20 text-yellow-600 border-yellow-400/30')}>
-                           {feature.plan === 'premium' ? 'Premium' : 'Pro'}
-                        </Badge>
-                      )}
-                    </div>
-                    <h3 className="font-bold text-base mb-2 text-foreground">
-                      {feature.title}
-                    </h3>
-                    <p className="text-sm text-muted-foreground flex-grow">
-                      {feature.description}
-                    </p>
-                  </Card>
-                </motion.div>
-              ))}
+                      <h3 className="font-bold text-base mb-2 text-foreground">
+                        {feature.title}
+                      </h3>
+                      <p className="text-sm text-muted-foreground flex-grow">
+                        {feature.description}
+                      </p>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+              <div className="mt-6 flex justify-center">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full lg:w-2/3">
+                    {features.slice(3).map((feature) => (
+                    <motion.div
+                        key={feature.title}
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5 }}
+                        viewport={{ once: true, amount: 0.3 }}
+                        className="h-full"
+                    >
+                        <Card className="text-left h-full bg-card/50 rounded-2xl shadow-primary-lg p-6 flex flex-col">
+                        <div className='flex items-center justify-between mb-4'>
+                            <div className="bg-primary/10 text-primary p-3 rounded-lg">
+                            <feature.icon className="h-6 w-6" />
+                            </div>
+                            {feature.plan && (
+                            <Badge variant={feature.plan === 'premium' ? 'default' : 'secondary'} className={cn(feature.plan === 'premium' && 'bg-yellow-400/20 text-yellow-600 border-yellow-400/30')}>
+                                {feature.plan === 'premium' ? 'Premium' : 'Pro'}
+                            </Badge>
+                            )}
+                        </div>
+                        <h3 className="font-bold text-base mb-2 text-foreground">
+                            {feature.title}
+                        </h3>
+                        <p className="text-sm text-muted-foreground flex-grow">
+                            {feature.description}
+                        </p>
+                        </Card>
+                    </motion.div>
+                    ))}
+                </div>
+              </div>
             </div>
           </div>
         </section>
