@@ -47,7 +47,7 @@ import {
 } from '@/app/(app)/media-kit/actions';
 import { useResponsiveToast } from '@/hooks/use-responsive-toast';
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
-import { collection, addDoc, serverTimestamp, doc, updateDoc, onSnapshot, getDoc, setDoc, increment, query, where, orderBy, limit } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, doc, updateDoc, onSnapshot, getDoc, setDoc, increment, query, where, orderBy, limit, Timestamp } from 'firebase/firestore';
 import { SavedIdeasSheet } from '@/components/saved-ideas-sheet';
 import type { UserProfile, DailyUsage, IdeiaSalva } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';

@@ -60,7 +60,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { generateVideoIdeasAction, GenerateVideoIdeasOutput } from '@/app/(app)/video-ideas/actions';
 import { useCollection, useFirestore, useUser, useMemoFirebase, useDoc } from '@/firebase';
-import { collection, addDoc, serverTimestamp, where, query, orderBy, setDoc, doc, increment, getDoc, updateDoc, onSnapshot, deleteDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, where, query, orderBy, setDoc, doc, increment, getDoc, updateDoc, onSnapshot, deleteDoc, Timestamp } from 'firebase/firestore';
 import type { DailyUsage, IdeiaSalva, UserProfile } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
@@ -644,7 +644,7 @@ export default function VideoIdeasPage() {
              <div className="p-6 border-b">
                 <h2 className="text-xl font-bold font-headline">{viewingSavedItem.titulo}</h2>
                 <p className="text-sm text-muted-foreground">
-                    Salvo de "{viewingSavedItem.origem}" em {viewingSavedItem.createdAt.toDate().toLocaleDateString('pt-BR')}
+                     Salvo de "{viewingSavedItem.origem}" em {(viewingSavedItem.createdAt as any) instanceof Timestamp ? (viewingSavedItem.createdAt as any).toDate().toLocaleDateString('pt-BR') : new Date(viewingSavedItem.createdAt as any).toLocaleDateString('pt-BR')}
                 </p>
             </div>
             <ScrollArea className="max-h-[calc(100vh-12rem)]">

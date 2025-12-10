@@ -575,7 +575,7 @@ export default function GenerateWeeklyPlanPage() {
              <Card className="rounded-t-none border-t-0 shadow-primary-lg">
                 <CardHeader className='text-center'>
                     <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">{viewingSavedItem ? viewingSavedItem.titulo : 'Plano Gerado'}</h2>
-                    <p className="text-muted-foreground">{viewingSavedItem ? `Salvo em ${viewingSavedItem.createdAt.toDate().toLocaleDateString('pt-BR')}` : "Seu novo plano semanal está pronto. Ative-o para começar a usar."}</p>
+                     <p className="text-muted-foreground">{viewingSavedItem ? `Salvo em ${ (viewingSavedItem.createdAt as any) instanceof Timestamp ? (viewingSavedItem.createdAt as any).toDate().toLocaleDateString('pt-BR') : new Date(viewingSavedItem.createdAt as any).toLocaleDateString('pt-BR') }` : "Seu novo plano semanal está pronto. Ative-o para começar a usar."}</p>
                 </CardHeader>
                 <CardContent className="p-6">
                     <div className="space-y-8 animate-fade-in">
