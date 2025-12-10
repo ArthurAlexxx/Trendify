@@ -3,7 +3,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, MoreHorizontal, CheckCircle, Tag, Info, Calendar, Lightbulb } from 'lucide-react';
+import { Loader2, MoreHorizontal, CheckCircle, Tag, Info, Calendar, Lightbulb, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import {
@@ -12,16 +12,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { RecentPostsSheet } from '@/components/dashboard/recent-posts-sheet';
 import type {
   ConteudoAgendado,
   IdeiaSalva
 } from '@/lib/types';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 import { SavedIdeasSheet } from '../saved-ideas-sheet';
 
 interface ActionHubCardProps {
@@ -60,7 +57,7 @@ export default function ActionHubCard({
                         {ideia.titulo}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                        Salvo{' '}
+                        {isCompletedTab ? 'Concluído' : 'Salvo'}{' '}
                         {formatDistanceToNow(ideia.createdAt.toDate(), {
                           addSuffix: true,
                           locale: ptBR,
@@ -81,7 +78,7 @@ export default function ActionHubCard({
                 <DropdownMenuContent align="end">
                     <SavedIdeasSheet idea={ideia}>
                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                            <Info className="mr-2 h-4 w-4" />
+                            <Eye className="mr-2 h-4 w-4" />
                             <span>Ver Detalhes</span>
                         </DropdownMenuItem>
                     </SavedIdeasSheet>
