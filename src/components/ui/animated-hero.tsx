@@ -40,7 +40,7 @@ function AnimatedHero() {
             <h1 className="text-5xl md:text-6xl max-w-3xl tracking-tighter text-center font-bold font-headline">
               <span className="text-foreground/90">A plataforma para seu</span>
               <span className="relative flex w-full justify-center overflow-hidden text-center md:pb-4 md:pt-1 text-primary">
-                &nbsp;
+                 
                 {titles.map((title, index) => (
                   <motion.span
                     key={index}
@@ -95,7 +95,7 @@ function AnimatedHero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="relative w-full max-w-5xl mt-8"
+            className="relative w-full max-w-6xl mt-8"
           >
             <div
               className="relative rounded-2xl p-2"
