@@ -3,7 +3,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, MoreHorizontal, CheckCircle, Tag, Info, Calendar, Lightbulb, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Loader2, MoreHorizontal, CheckCircle, Tag, Info, Calendar, Lightbulb, Eye, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import {
@@ -21,6 +21,7 @@ import type {
 } from '@/lib/types';
 import { SavedIdeasSheet } from '../saved-ideas-sheet';
 import React from 'react';
+import { Input } from '../ui/input';
 
 interface ActionHubCardProps {
   isLoadingUpcoming: boolean;
@@ -47,22 +48,46 @@ export default function ActionHubCard({
 }: ActionHubCardProps) {
     const [savedPage, setSavedPage] = React.useState(1);
     const [completedPage, setCompletedPage] = React.useState(1);
+    const [savedSearchTerm, setSavedSearchTerm] = React.useState('');
+    const [completedSearchTerm, setCompletedSearchTerm] = React.useState('');
+
+    const filteredSavedIdeas = React.useMemo(() => {
+        if (!ideiasSalvas) return [];
+        return ideiasSalvas.filter(idea => 
+            idea.titulo.toLowerCase().includes(savedSearchTerm.toLowerCase())
+        );
+    }, [ideiasSalvas, savedSearchTerm]);
 
     const paginatedSavedIdeas = React.useMemo(() => {
-        if (!ideiasSalvas) return [];
         const startIndex = (savedPage - 1) * ITEMS_PER_PAGE;
-        return ideiasSalvas.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-    }, [ideiasSalvas, savedPage]);
+        return filteredSavedIdeas.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    }, [filteredSavedIdeas, savedPage]);
 
-    const totalSavedPages = ideiasSalvas ? Math.ceil(ideiasSalvas.length / ITEMS_PER_PAGE) : 0;
+    const totalSavedPages = Math.ceil(filteredSavedIdeas.length / ITEMS_PER_PAGE);
+    
+    React.useEffect(() => {
+        setSavedPage(1);
+    }, [savedSearchTerm]);
+
+
+    const filteredCompletedIdeas = React.useMemo(() => {
+        if (!completedIdeas) return [];
+        return completedIdeas.filter(idea => 
+            idea.titulo.toLowerCase().includes(completedSearchTerm.toLowerCase())
+        );
+    }, [completedIdeas, completedSearchTerm]);
 
     const paginatedCompletedIdeas = React.useMemo(() => {
-        if (!completedIdeas) return [];
         const startIndex = (completedPage - 1) * ITEMS_PER_PAGE;
-        return completedIdeas.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-    }, [completedIdeas, completedPage]);
+        return filteredCompletedIdeas.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    }, [filteredCompletedIdeas, completedPage]);
 
-    const totalCompletedPages = completedIdeas ? Math.ceil(completedIdeas.length / ITEMS_PER_PAGE) : 0;
+    const totalCompletedPages = Math.ceil(filteredCompletedIdeas.length / ITEMS_PER_PAGE);
+    
+    React.useEffect(() => {
+        setCompletedPage(1);
+    }, [completedSearchTerm]);
+
 
     const renderIdeiaItem = (ideia: IdeiaSalva, isCompletedTab: boolean) => (
          <div
@@ -196,7 +221,17 @@ export default function ActionHubCard({
                 </div>
               )}
             </TabsContent>
-            <TabsContent value="salvos" className="h-full">
+            <TabsContent value="salvos" className="h-full flex flex-col gap-4">
+                 <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                        placeholder="Buscar itens salvos..."
+                        className="pl-10 h-10"
+                        value={savedSearchTerm}
+                        onChange={(e) => setSavedSearchTerm(e.target.value)}
+                    />
+                </div>
+
               {isLoadingIdeias ? (
                 <div className="flex justify-center items-center h-full">
                   <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -214,11 +249,20 @@ export default function ActionHubCard({
                 </div>
               ) : (
                 <div className="text-center h-full flex flex-col items-center justify-center">
-                  <p className="text-muted-foreground text-sm">Nenhum item salvo.</p>
+                  <p className="text-muted-foreground text-sm">{savedSearchTerm ? "Nenhum item encontrado." : "Nenhum item salvo."}</p>
                 </div>
               )}
             </TabsContent>
-            <TabsContent value="concluidos" className="h-full">
+            <TabsContent value="concluidos" className="h-full flex flex-col gap-4">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                        placeholder="Buscar itens concluídos..."
+                        className="pl-10 h-10"
+                        value={completedSearchTerm}
+                        onChange={(e) => setCompletedSearchTerm(e.target.value)}
+                    />
+                  </div>
                  {isLoadingCompleted ? (
                     <div className="flex justify-center items-center h-full">
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -237,7 +281,7 @@ export default function ActionHubCard({
                 ) : (
                     <div className="text-center h-full flex flex-col items-center justify-center">
                         <p className="text-muted-foreground text-sm">
-                           Nenhuma tarefa concluída ainda.
+                           {completedSearchTerm ? "Nenhum item encontrado." : "Nenhuma tarefa concluída ainda."}
                         </p>
                     </div>
                 )}
