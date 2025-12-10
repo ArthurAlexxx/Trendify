@@ -337,8 +337,6 @@ export default function DashboardPage() {
       </Suspense>
       <div className="space-y-8">
         <PageHeader
-          icon={!userProfile?.photoURL ? LayoutGrid : undefined}
-          imageUrl1={userProfile?.photoURL}
           title={`Bem-vindo(a), ${userProfile?.displayName?.split(' ')[0] || 'Criador'}!`}
           description="Seu centro de comando para crescimento e monetização."
         >
@@ -374,7 +372,7 @@ export default function DashboardPage() {
             <div className="md:hidden">
                 <Carousel className="w-full" opts={{ align: "start", loop: true }}>
                   <CarouselContent className="-ml-4">
-                    <CarouselItem className="pl-4 basis-[90%]">
+                    <CarouselItem className="pl-4 basis-[90%] pb-4">
                       <div className="p-1 h-full">
                         <GoalCard 
                           isLoading={isLoading} 
@@ -386,7 +384,7 @@ export default function DashboardPage() {
                         />
                       </div>
                     </CarouselItem>
-                    <CarouselItem className="pl-4 basis-[90%]">
+                    <CarouselItem className="pl-4 basis-[90%] pb-4">
                       <div className="p-1 h-full">
                         <EngagementMetricsCard 
                           isLoading={isLoading} 
