@@ -1,10 +1,12 @@
-
 'use client';
 
 import { useAdmin } from '@/hooks/useAdmin';
-import { Loader2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { Loader2, PanelLeft } from 'lucide-react';
+import { useRouter, usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { AppSidebar } from '@/components/app-sidebar';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 export default function AdminLayout({
   children,
@@ -13,15 +15,12 @@ export default function AdminLayout({
 }) {
   const { isAdmin, isLoading } = useAdmin();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     // Apenas redireciona quando o carregamento terminar e o usuário explicitamente NÃO for um admin.
     if (!isLoading && !isAdmin) {
       router.replace('/dashboard');
-    }
-    // Redireciona para o dashboard de admin se for admin e estiver na raiz /admin
-    if (!isLoading && isAdmin && window.location.pathname === '/admin') {
-      router.replace('/admin/dashboard');
     }
   }, [isAdmin, isLoading, router]);
 
