@@ -19,7 +19,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-responsive-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Bot, Loader2, Sparkles, Check, History, ClipboardList, BrainCircuit, Target, Eye, BarChart as BarChartIcon, Zap, AlertTriangle, Trophy, Save, Edit, Lightbulb, Trash2, PartyPopper, ArrowLeft } from 'lucide-react';
 import { useEffect, useTransition, useState, useCallback, useMemo } from 'react';
@@ -119,6 +119,7 @@ export default function GenerateWeeklyPlanPage() {
   const { toast } = useToast();
   const [isGenerating, startTransition] = useTransition();
   const [result, setResult] = useState<GenerateWeeklyPlanOutput | null>(null);
+  const [viewingSavedItem, setViewingSavedItem] = useState<IdeiaSalva | null>(null);
   const [activeTab, setActiveTab] = useState("generate");
   const [isFormOpen, setIsFormOpen] = useState(false);
   
@@ -161,6 +162,7 @@ export default function GenerateWeeklyPlanPage() {
       try {
         const item: IdeiaSalva = JSON.parse(itemToViewStr);
         if (item.origem === 'Plano Semanal' && item.aiResponseData) {
+          setViewingSavedItem(item);
           setResult(item.aiResponseData);
           setActiveTab('result'); // Switch to result tab to show it
         }
@@ -227,6 +229,7 @@ export default function GenerateWeeklyPlanPage() {
     
     setIsFormOpen(false);
     startTransition(async () => {
+        setViewingSavedItem(null);
         const actionResult = await generateWeeklyPlanAction(null, formData);
         if(actionResult?.error){
             toast({
@@ -294,6 +297,7 @@ export default function GenerateWeeklyPlanPage() {
         });
         localStorage.removeItem(LOCAL_STORAGE_KEY);
         setResult(null);
+        setViewingSavedItem(null);
         setActiveTab('generate');
       } catch (e: any) {
         console.error('Erro ao salvar plano:', e);
@@ -309,6 +313,7 @@ export default function GenerateWeeklyPlanPage() {
   const handleDiscard = () => {
     localStorage.removeItem(LOCAL_STORAGE_KEY);
     setResult(null);
+    setViewingSavedItem(null);
     setActiveTab("generate");
     toast({
         title: 'Resultado Descartado',
@@ -569,8 +574,8 @@ export default function GenerateWeeklyPlanPage() {
         <TabsContent value="result">
              <Card className="rounded-t-none border-t-0 shadow-primary-lg">
                 <CardHeader className='text-center'>
-                    <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Plano Gerado</h2>
-                    <p className="text-muted-foreground">Seu novo plano semanal está pronto. Ative-o para começar a usar.</p>
+                    <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">{viewingSavedItem ? viewingSavedItem.titulo : 'Plano Gerado'}</h2>
+                    <p className="text-muted-foreground">{viewingSavedItem ? `Salvo em ${viewingSavedItem.createdAt.toDate().toLocaleDateString('pt-BR')}` : "Seu novo plano semanal está pronto. Ative-o para começar a usar."}</p>
                 </CardHeader>
                 <CardContent className="p-6">
                     <div className="space-y-8 animate-fade-in">
@@ -776,16 +781,18 @@ export default function GenerateWeeklyPlanPage() {
                             </div>
                         </div>
 
-                            <div className='flex justify-center pt-4 gap-2'>
-                                <Button onClick={handleActivatePlan} disabled={isSaving} className="w-full sm:w-auto">
-                                    <Save className="mr-2 h-4 w-4" />
-                                    {isSaving ? 'Ativando...' : 'Ativar Plano'}
-                                </Button>
-                                <Button onClick={handleDiscard} variant="outline" className="w-full sm:w-auto">
-                                    <Trash2 className="mr-2 h-4 w-4" />
-                                    Descartar
-                                </Button>
-                            </div>
+                            {!viewingSavedItem && (
+                                <div className='flex justify-center pt-4 gap-2'>
+                                    <Button onClick={handleActivatePlan} disabled={isSaving} className="w-full sm:w-auto">
+                                        <Save className="mr-2 h-4 w-4" />
+                                        {isSaving ? 'Ativando...' : 'Ativar Plano'}
+                                    </Button>
+                                    <Button onClick={handleDiscard} variant="outline" className="w-full sm:w-auto">
+                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        Descartar
+                                    </Button>
+                                </div>
+                            )}
                         </>
                       ) : (
                          <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/50 bg-background h-96">
@@ -896,5 +903,3 @@ export default function GenerateWeeklyPlanPage() {
     </div>
   );
 }
-
-    

@@ -195,6 +195,7 @@ function MediaKitPageContent() {
       try {
         const item: IdeiaSalva = JSON.parse(itemToViewStr);
         if (item.origem === 'Mídia Kit & Prospecção' && item.aiResponseData) {
+          setViewingSavedItem(item);
           setResult(item.aiResponseData);
           setActiveTab('result'); // Switch to result tab to show it
         }
@@ -263,6 +264,7 @@ function MediaKitPageContent() {
   const formAction = useCallback(async (formData: FormSchemaType) => {
     setIsFormOpen(false);
     startTransition(async () => {
+      setViewingSavedItem(null);
       const actionResult = await getAiCareerPackageAction(null, formData);
       if(actionResult?.error) {
           toast({
@@ -385,6 +387,7 @@ function MediaKitPageContent() {
         });
         localStorage.removeItem(LOCAL_STORAGE_KEY);
         setResult(null);
+        setViewingSavedItem(null);
         setActiveTab("generate");
       } catch (error) {
         console.error('Failed to save idea:', error);
@@ -400,6 +403,7 @@ function MediaKitPageContent() {
   const handleDiscard = () => {
     localStorage.removeItem(LOCAL_STORAGE_KEY);
     setResult(null);
+    setViewingSavedItem(null);
     setActiveTab("generate");
     toast({
         title: 'Resultado Descartado',
@@ -599,13 +603,13 @@ function MediaKitPageContent() {
         <TabsContent value="result">
           <Card className="rounded-t-none border-t-0 shadow-primary-lg">
             <CardHeader className="text-center">
-                <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Resultado Gerado</h2>
+                <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">{viewingSavedItem ? viewingSavedItem.titulo : "Resultado Gerado"}</h2>
                 <p className="text-muted-foreground">Um pacote completo para sua prospecção.</p>
             </CardHeader>
             <CardContent>
               {(isGenerating || result) && (
                 <div className="space-y-8 animate-fade-in">
-                  {result && (
+                  {result && !viewingSavedItem && (
                       <div className='flex justify-center pt-4 gap-2'>
                          <Button onClick={() => handleSave(result)} disabled={isSaving} className="w-full sm:w-auto">
                             {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}

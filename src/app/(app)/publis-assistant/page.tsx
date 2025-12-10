@@ -204,13 +204,14 @@ function PublisAssistantPageContent() {
   const [savedSearchTerm, setSavedSearchTerm] = useState('');
 
 
-  useEffect(() => {
+   useEffect(() => {
     // Check for a result to view from another page
     const itemToViewStr = localStorage.getItem('ai-result-to-view');
     if (itemToViewStr) {
       try {
         const item: IdeiaSalva = JSON.parse(itemToViewStr);
         if (item.origem === 'Propostas & Publis' && item.aiResponseData) {
+          setViewingSavedItem(item);
           setResult(item.aiResponseData);
           setActiveTab('result'); // Switch to result tab to show it
         }
@@ -312,6 +313,7 @@ function PublisAssistantPageContent() {
   const formAction = useCallback(async (formData: FormSchemaType) => {
     setIsFormOpen(false);
     startTransition(async () => {
+      setViewingSavedItem(null);
       const actionResult = await generatePubliProposalsAction(null, formData);
       if(actionResult?.error) {
           toast({
@@ -385,6 +387,7 @@ function PublisAssistantPageContent() {
         });
         localStorage.removeItem(LOCAL_STORAGE_KEY);
         setResult(null);
+        setViewingSavedItem(null);
         setActiveTab("generate");
       } catch (error) {
         console.error('Failed to save idea:', error);
@@ -400,6 +403,7 @@ function PublisAssistantPageContent() {
   const handleDiscard = () => {
     localStorage.removeItem(LOCAL_STORAGE_KEY);
     setResult(null);
+    setViewingSavedItem(null);
     setActiveTab("generate");
     toast({
         title: 'Resultado Descartado',
@@ -635,13 +639,13 @@ function PublisAssistantPageContent() {
          <TabsContent value="result">
           <Card className="rounded-t-none border-t-0 shadow-primary-lg">
             <CardHeader className='text-center'>
-                <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Pacote de Conteúdo Gerado</h2>
+                <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">{viewingSavedItem ? viewingSavedItem.titulo : "Pacote de Conteúdo Gerado"}</h2>
                 <p className="text-muted-foreground">Ideias, roteiros e estratégias para a campanha.</p>
             </CardHeader>
              <CardContent>
                {(isGenerating || result) && (
                 <div className="space-y-8 animate-fade-in">
-                    {result && (
+                    {result && !viewingSavedItem && (
                        <div className="flex flex-col sm:flex-row justify-center items-center gap-2">
                          <Button onClick={() => handleSave(result)} disabled={isSaving} className="w-full sm:w-auto">
                             {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
