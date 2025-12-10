@@ -280,13 +280,12 @@ export default function VideoIdeasPage() {
 
     startSavingTransition(async () => {
       try {
-        const title = `Ideia: ${form.getValues('topic').substring(0, 40)}...`;
         const { gancho, scriptLongo, roteiroCurto, cta } = data.script;
         const content = `**Gancho:**\n${gancho}\n\n**Roteiro Longo:**\n${scriptLongo}\n\n**Roteiro Curto:**\n${roteiroCurto}\n\n**CTA:**\n${cta}`;
 
         await addDoc(collection(firestore, `users/${user.uid}/ideiasSalvas`), {
           userId: user.uid,
-          titulo: title,
+          titulo: data.title, // Use the AI-generated title
           conteudo: content,
           origem: 'Ideias de Vídeo',
           concluido: false,
@@ -446,7 +445,7 @@ export default function VideoIdeasPage() {
                             <Trash2 className="mr-2 h-4 w-4" />
                             Descartar e Gerar Nova
                         </Button>
-                         <Link href={`/content-calendar?title=${encodeURIComponent(form.getValues('topic'))}&notes=${encodeURIComponent(result.script.scriptLongo)}`}
+                         <Link href={`/content-calendar?title=${encodeURIComponent(result.title)}&notes=${encodeURIComponent(result.script.scriptLongo)}`}
                          className={cn(buttonVariants({ variant: 'outline', className: 'w-full sm:w-auto' }))}>
                            <Calendar className="mr-2 h-4 w-4" />
                            Agendar Post
@@ -481,33 +480,37 @@ export default function VideoIdeasPage() {
                     <VideoIdeasResultView result={viewingSavedItem.aiResponseData} formValues={viewingSavedItem.aiResponseData.formValues} />
                   </div>
                 ) : (
-                  <ScrollArea className="h-96">
-                    <ul className="space-y-2">
+                  <SavedIdeasSheet>
+                    <ScrollArea className="h-96">
                         {isLoadingSaved ? <Loader2 className="mx-auto h-8 w-8 animate-spin" /> 
                         : savedIdeas && savedIdeas.length > 0 ? (
-                           savedIdeas.map((idea) => (
-                             <li key={idea.id} className="p-3 rounded-lg border flex items-center justify-between gap-4 hover:bg-muted/50 transition-colors">
-                                <div className="flex-1 overflow-hidden">
-                                  <p className="font-semibold text-foreground truncate">{idea.titulo}</p>
-                                  {idea.createdAt && (
-                                    <p className="text-xs text-muted-foreground">
-                                      Salvo {formatDistanceToNow(idea.createdAt.toDate(), { addSuffix: true, locale: ptBR })}
-                                    </p>
-                                  )}
-                                </div>
-                                <Button size="sm" variant="outline" onClick={() => setViewingSavedItem(idea)}>
-                                  <Eye className="mr-2 h-4 w-4" /> Ver
-                                </Button>
-                             </li>
-                           ))
+                           <ul className="space-y-2 pr-4">
+                            {savedIdeas.map((idea) => (
+                                <li key={idea.id} className="p-3 rounded-lg border flex items-center justify-between gap-4 hover:bg-muted/50 transition-colors">
+                                    <div className="flex-1 overflow-hidden">
+                                    <p className="font-semibold text-foreground truncate">{idea.titulo}</p>
+                                    {idea.createdAt && (
+                                        <p className="text-xs text-muted-foreground">
+                                        Salvo {formatDistanceToNow(idea.createdAt.toDate(), { addSuffix: true, locale: ptBR })}
+                                        </p>
+                                    )}
+                                    </div>
+                                    <SavedIdeasSheet idea={idea}>
+                                        <Button size="sm" variant="outline">
+                                            <Eye className="mr-2 h-4 w-4" /> Ver
+                                        </Button>
+                                    </SavedIdeasSheet>
+                                </li>
+                            ))}
+                           </ul>
                         ) : (
                            <div className="text-center h-full flex flex-col items-center justify-center py-20">
                               <Inbox className="h-10 w-10 text-muted-foreground mb-4" />
                               <p className="text-muted-foreground">Nenhuma ideia salva.</p>
                            </div>
                         )}
-                    </ul>
-                  </ScrollArea>
+                    </ScrollArea>
+                   </SavedIdeasSheet>
                 )}
             </CardContent>
           </Card>

@@ -88,6 +88,11 @@ export function SavedIdeasSheet({ children, idea }: { children: React.ReactNode,
       });
       setIsDeleteDialogOpen(false);
       setIdeaToDelete(null);
+      // Close detail view if the deleted item was open
+      if(selectedIdea?.id === ideaToDelete.id) {
+        setIsDetailSheetOpen(false);
+        setSelectedIdea(null);
+      }
     } catch(e: any) {
         toast({
           title: "Erro ao Excluir",
@@ -210,7 +215,10 @@ export function SavedIdeasSheet({ children, idea }: { children: React.ReactNode,
                  <ScrollArea className="max-h-[calc(100vh-12rem)]">
                     {renderContent(selectedIdea)}
                  </ScrollArea>
-                  <ResponsiveDialogFooter className="p-6 pt-4 border-t">
+                  <ResponsiveDialogFooter className="p-6 pt-4 border-t flex justify-between">
+                     <Button variant="destructive" onClick={() => confirmDelete(selectedIdea)}>
+                        <Trash2 className="mr-2 h-4 w-4" /> Excluir
+                     </Button>
                     <ResponsiveDialogClose asChild>
                         <Button type="button" variant="outline">Fechar</Button>
                     </ResponsiveDialogClose>

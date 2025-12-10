@@ -17,6 +17,7 @@ const ScriptSchema = z.object({
 });
 
 const GenerateVideoIdeasOutputSchema = z.object({
+  title: z.string().describe("Um título curto e chamativo para a ideia de vídeo. Este título será usado para identificar a ideia quando salva."),
   script: ScriptSchema,
   takesChecklist: z.array(z.string()).length(4).describe('Uma lista de 4 cenas ou tomadas específicas para gravar, facilitando a produção do conteúdo.'),
   suggestedPostTime: z.string().describe('O melhor dia e horário sugerido para postar o vídeo, visando máximo alcance.'),
@@ -64,6 +65,7 @@ Gere uma ideia de vídeo completa e profissional com base nos seguintes requisit
 - Objetivo Principal: {{objective}}
   
 Para cada campo do JSON, siga estas diretrizes:
+- title: Crie um título curto e chamativo para esta ideia de vídeo. Este será o nome da ideia salva. Ex: "Rotina de Skincare Noturna".
 - script: DEVE ser um objeto contendo os campos 'gancho', 'scriptLongo', 'roteiroCurto' e 'cta'.
 - script.gancho: Crie uma frase ou cena de 2-3 segundos que gere curiosidade ou quebre uma crença. Seja contraintuitivo.
 - script.scriptLongo: Escreva um roteiro detalhado para um vídeo de 45-60 segundos. Estruture em: Introdução (gancho), Desenvolvimento (entrega de valor) e Conclusão (CTA). Inclua sugestões de cenas entre colchetes. Ex: "[CENA: Close-up no produto] Você erra a ordem. A regra é: do mais leve ao mais denso...".
