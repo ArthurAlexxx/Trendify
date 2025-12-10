@@ -99,23 +99,6 @@ function AnimatedHero() {
               Começar Grátis <ArrowUpRight className="w-4 h-4" />
             </Link>
           </div>
-          <div className="flex flex-wrap items-center justify-center gap-3 mt-4">
-              <div className="flex items-center gap-2 text-sm text-foreground bg-muted/50 border rounded-lg px-3 py-1.5">
-                <Users className="h-4 w-4 text-primary" />
-                <span className="font-semibold">+20 mil</span>
-                <span className="text-muted-foreground">criadores ativos</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-foreground bg-muted/50 border rounded-lg px-3 py-1.5">
-                <Lightbulb className="h-4 w-4 text-primary" />
-                 <span className="font-semibold">+500 mil</span>
-                <span className="text-muted-foreground">ideias geradas</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-foreground bg-muted/50 border rounded-lg px-3 py-1.5">
-                <BarChartIcon className="h-4 w-4 text-primary" />
-                <span className="font-semibold">+85%</span>
-                <span className="text-muted-foreground">de crescimento médio</span>
-              </div>
-          </div>
         </div>
       </div>
       
@@ -126,7 +109,8 @@ function AnimatedHero() {
          <div
             className="absolute inset-0"
             style={{
-                background: 'radial-gradient(ellipse 70% 40% at 50% 50%, hsl(var(--primary) / 0.25) 0%, transparent 70%)',
+                background: 'ellipse 70% 40% at 50% 50%',
+                backgroundImage: 'radial-gradient(ellipse 70% 40% at 50% 50%, hsl(var(--primary) / 0.25) 0%, transparent 70%)',
             }}
             aria-hidden="true"
         />
@@ -144,6 +128,23 @@ function AnimatedHero() {
               priority
             />
           </motion.div>
+          <div className="flex flex-wrap items-center justify-center gap-3 mt-4">
+              <div className="flex items-center gap-2 text-sm text-foreground bg-muted/50 border rounded-lg px-3 py-1.5">
+                <Users className="h-4 w-4 text-primary" />
+                <span className="font-semibold">+20 mil</span>
+                <span className="text-muted-foreground">criadores ativos</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-foreground bg-muted/50 border rounded-lg px-3 py-1.5">
+                <Lightbulb className="h-4 w-4 text-primary" />
+                 <span className="font-semibold">+500 mil</span>
+                <span className="text-muted-foreground">ideias geradas</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-foreground bg-muted/50 border rounded-lg px-3 py-1.5">
+                <BarChartIcon className="h-4 w-4 text-primary" />
+                <span className="font-semibold">+85%</span>
+                <span className="text-muted-foreground">de crescimento médio</span>
+              </div>
+          </div>
         </div>
       </section>
     </div>
