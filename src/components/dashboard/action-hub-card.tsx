@@ -134,7 +134,8 @@ export default function ActionHubCard({
                       />
                       <div className="flex-1 grid gap-0.5">
                          <SavedIdeasSheet idea={ideia}>
-                           <span
+                           <label
+                              htmlFor={`ideia-${ideia.id}`}
                               className={cn(
                                 'font-medium transition-colors cursor-pointer text-sm hover:text-primary',
                                 ideia.concluido
@@ -143,7 +144,7 @@ export default function ActionHubCard({
                               )}
                             >
                               {ideia.titulo}
-                            </span>
+                            </label>
                          </SavedIdeasSheet>
                         <p className="text-xs text-muted-foreground">
                           de "{ideia.origem}"
