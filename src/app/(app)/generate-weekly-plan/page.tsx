@@ -22,7 +22,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Bot, Loader2, Sparkles, Check, History, ClipboardList, BrainCircuit, Target, Eye, BarChart as BarChartIcon, Zap, AlertTriangle, Trophy, Save, Edit, Lightbulb, Trash2, PartyPopper, ArrowLeft } from 'lucide-react';
-import { useEffect, useTransition, useState, useCallback } from 'react';
+import { useEffect, useTransition, useState, useCallback, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { generateWeeklyPlanAction, GenerateWeeklyPlanOutput, archiveAndClearWeeklyPlanAction } from '@/app/(app)/generate-weekly-plan/actions';
@@ -381,7 +381,9 @@ export default function GenerateWeeklyPlanPage() {
       <PageHeader
         title="Plano Semanal"
         description="Transforme seu objetivo em um roteiro de conteúdo acionável."
-      />
+      >
+        <PreviousPlansSheet />
+      </PageHeader>
       
       <div>
         <div className="text-center">
@@ -804,9 +806,6 @@ export default function GenerateWeeklyPlanPage() {
                         <div>
                             <CardTitle className="font-headline text-lg">Plano Semanal Ativo</CardTitle>
                             <CardDescription>Este é o plano visível no seu dashboard.</CardDescription>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <PreviousPlansSheet />
                         </div>
                     </div>
                 </CardHeader>

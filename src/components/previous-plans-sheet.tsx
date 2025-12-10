@@ -9,7 +9,7 @@ import { History, Eye, Inbox, Loader2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { ScrollArea } from './ui/scroll-area';
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import {
   Sheet,
@@ -29,19 +29,24 @@ export function PreviousPlansSheet() {
   const router = useRouter();
   const [isListSheetOpen, setIsListSheetOpen] = useState(false);
 
-  const savedPlansQuery = useMemoFirebase(
+  // Simplified query that only orders by date.
+  const allIdeasQuery = useMemoFirebase(
     () =>
       firestore && user
         ? query(
             collection(firestore, `users/${user.uid}/ideiasSalvas`),
-            where('origem', '==', 'Plano Semanal'),
             orderBy('createdAt', 'desc')
           )
         : null,
     [firestore, user]
   );
-  const { data: savedPlans, isLoading } =
-    useCollection<IdeiaSalva>(savedPlansQuery);
+  const { data: allIdeas, isLoading } = useCollection<IdeiaSalva>(allIdeasQuery);
+
+  // Client-side filtering
+  const savedPlans = useMemo(() => {
+    if (!allIdeas) return [];
+    return allIdeas.filter(idea => idea.origem === 'Plano Semanal');
+  }, [allIdeas]);
 
   const handleReactivatePlan = async (planToReactivate: IdeiaSalva) => {
     if (!firestore || !user || !planToReactivate.aiResponseData) {
