@@ -25,6 +25,9 @@ import {
   Inbox,
   Eye,
   ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
+  Search,
 } from 'lucide-react';
 import { useTransition, useEffect, useState, useCallback, useMemo } from 'react';
 import {
@@ -42,7 +45,7 @@ import {
   getAiCareerPackageAction,
   AiCareerPackageOutput,
 } from '@/app/(app)/media-kit/actions';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-responsive-toast';
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
 import { collection, addDoc, serverTimestamp, doc, updateDoc, onSnapshot, getDoc, setDoc, increment, query, where, orderBy, limit } from 'firebase/firestore';
 import { SavedIdeasSheet } from '@/components/saved-ideas-sheet';
@@ -72,7 +75,7 @@ const formSchema = z.object({
 type FormSchemaType = z.infer<typeof formSchema>;
 
 const LOCAL_STORAGE_KEY = 'media-kit-result';
-
+const ITEMS_PER_PAGE = 5;
 
 const analysisCriteria = [
     {
@@ -164,6 +167,9 @@ function MediaKitPageContent() {
   const [usageData, setUsageData] = useState<DailyUsage | null>(null);
   const [isLoadingUsage, setIsLoadingUsage] = useState(true);
   const [viewingSavedItem, setViewingSavedItem] = useState<IdeiaSalva | null>(null);
+  const [savedPage, setSavedPage] = useState(1);
+  const [savedSearchTerm, setSavedSearchTerm] = useState('');
+
 
    useEffect(() => {
     if (!user || !firestore) return;
@@ -211,8 +217,20 @@ function MediaKitPageContent() {
   const { data: allSavedIdeas, isLoading: isLoadingSaved } = useCollection<IdeiaSalva>(allSavedIdeasQuery);
 
   const savedIdeas = useMemo(() => {
-    return allSavedIdeas?.filter(idea => idea.origem === 'Mídia Kit & Prospecção') || [];
-  }, [allSavedIdeas]);
+    if (!allSavedIdeas) return [];
+    return allSavedIdeas
+      .filter(idea => 
+        idea.origem === 'Mídia Kit & Prospecção' &&
+        idea.titulo.toLowerCase().includes(savedSearchTerm.toLowerCase())
+      );
+  }, [allSavedIdeas, savedSearchTerm]);
+  
+  const paginatedSavedIdeas = useMemo(() => {
+    const startIndex = (savedPage - 1) * ITEMS_PER_PAGE;
+    return savedIdeas.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [savedIdeas, savedPage]);
+
+  const totalSavedPages = Math.ceil(savedIdeas.length / ITEMS_PER_PAGE);
 
 
   const form = useForm<FormSchemaType>({
@@ -597,7 +615,21 @@ function MediaKitPageContent() {
         </TabsContent>
          <TabsContent value="saved">
           <Card className="rounded-t-none border-t-0 shadow-primary-lg">
-            <CardContent className="pt-6">
+            <CardHeader>
+                <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                        placeholder="Buscar pacotes salvos..."
+                        className="pl-10 h-11"
+                        value={savedSearchTerm}
+                        onChange={(e) => {
+                            setSavedSearchTerm(e.target.value);
+                            setSavedPage(1); // Reset page on new search
+                        }}
+                    />
+                </div>
+            </CardHeader>
+            <CardContent>
                 {viewingSavedItem ? (
                   <div>
                     <Button variant="ghost" onClick={() => setViewingSavedItem(null)} className="mb-4">
@@ -610,8 +642,8 @@ function MediaKitPageContent() {
                   <ScrollArea className="h-96">
                     <ul className="space-y-2">
                         {isLoadingSaved ? <Loader2 className="mx-auto h-8 w-8 animate-spin" /> 
-                        : savedIdeas && savedIdeas.length > 0 ? (
-                           savedIdeas.map((idea) => (
+                        : paginatedSavedIdeas && paginatedSavedIdeas.length > 0 ? (
+                           paginatedSavedIdeas.map((idea) => (
                              <li key={idea.id} className="p-3 rounded-lg border flex items-center justify-between gap-4 hover:bg-muted/50 transition-colors">
                                 <div className="flex-1 overflow-hidden">
                                   <p className="font-semibold text-foreground truncate">{idea.titulo}</p>
@@ -629,10 +661,35 @@ function MediaKitPageContent() {
                         ) : (
                            <div className="text-center h-full flex flex-col items-center justify-center py-20">
                               <Inbox className="h-10 w-10 text-muted-foreground mb-4" />
-                              <p className="text-muted-foreground">Nenhum pacote salvo.</p>
+                              <p className="text-muted-foreground">{savedSearchTerm ? "Nenhum pacote encontrado." : "Nenhum pacote salvo."}</p>
                            </div>
                         )}
                     </ul>
+                     {totalSavedPages > 1 && (
+                        <div className="flex justify-center items-center gap-2 pt-4">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setSavedPage(prev => Math.max(prev - 1, 1))}
+                                disabled={savedPage === 1}
+                            >
+                                <ChevronLeft className="h-4 w-4 mr-1" />
+                                Anterior
+                            </Button>
+                            <span className="text-sm text-muted-foreground">
+                                Página {savedPage} de {totalSavedPages}
+                            </span>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setSavedPage(prev => Math.min(prev + 1, totalSavedPages))}
+                                disabled={savedPage === totalSavedPages}
+                            >
+                                Próxima
+                                <ChevronRight className="h-4 w-4 ml-1" />
+                            </Button>
+                        </div>
+                    )}
                   </ScrollArea>
                 )}
             </CardContent>
@@ -642,5 +699,3 @@ function MediaKitPageContent() {
     </div>
   );
 }
-
-    

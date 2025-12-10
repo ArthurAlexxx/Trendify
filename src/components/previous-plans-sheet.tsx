@@ -5,12 +5,12 @@ import { Button } from '@/components/ui/button';
 import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import { IdeiaSalva, PlanoSemanal } from '@/lib/types';
 import { collection, orderBy, query, where, getDocs, writeBatch, doc, deleteDoc, serverTimestamp, addDoc } from 'firebase/firestore';
-import { History, Eye, Inbox, Loader2 } from 'lucide-react';
+import { History, Eye, Inbox, Loader2, Search } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { ScrollArea } from './ui/scroll-area';
 import React, { useState, useMemo } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-responsive-toast';
 import {
   Sheet,
   SheetContent,
@@ -21,6 +21,7 @@ import {
   SheetClose,
 } from './ui/sheet';
 import { useRouter } from 'next/navigation';
+import { Input } from './ui/input';
 
 export function PreviousPlansSheet() {
   const { user } = useUser();
@@ -28,6 +29,7 @@ export function PreviousPlansSheet() {
   const { toast } = useToast();
   const router = useRouter();
   const [isListSheetOpen, setIsListSheetOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Simplified query that only orders by date.
   const allIdeasQuery = useMemoFirebase(
@@ -45,8 +47,11 @@ export function PreviousPlansSheet() {
   // Client-side filtering
   const savedPlans = useMemo(() => {
     if (!allIdeas) return [];
-    return allIdeas.filter(idea => idea.origem === 'Plano Semanal');
-  }, [allIdeas]);
+    return allIdeas.filter(idea => 
+        idea.origem === 'Plano Semanal' && 
+        idea.titulo.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [allIdeas, searchTerm]);
 
   const handleReactivatePlan = async (planToReactivate: IdeiaSalva) => {
     if (!firestore || !user || !planToReactivate.aiResponseData) {
@@ -134,6 +139,17 @@ export function PreviousPlansSheet() {
             Consulte e reative planos semanais que você já salvou.
           </SheetDescription>
         </SheetHeader>
+        <div className="p-6 border-b">
+            <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input 
+                    placeholder="Buscar por título..."
+                    className="pl-10 h-11"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+            </div>
+        </div>
         <ScrollArea className="flex-1">
             <div className="p-6 space-y-4">
                 {isLoading && (
@@ -173,10 +189,10 @@ export function PreviousPlansSheet() {
                 <div className="text-center py-20 px-4 rounded-xl bg-muted/50 border border-dashed">
                     <Inbox className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
                     <h3 className="font-semibold text-foreground">
-                    Nenhum plano no histórico
+                      {searchTerm ? "Nenhum plano encontrado" : "Nenhum plano no histórico"}
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                    Quando você gerar e salvar um novo plano, o antigo virá para cá.
+                      {searchTerm ? "Tente uma busca diferente." : "Quando você gerar e salvar um novo plano, o antigo virá para cá."}
                     </p>
                 </div>
                 )}
