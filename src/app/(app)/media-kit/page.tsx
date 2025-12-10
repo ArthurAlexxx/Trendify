@@ -100,7 +100,7 @@ const analysisCriteria = [
 
 
 function PremiumFeatureGuard({ children }: { children: React.ReactNode }) {
-    const { subscription, isLoading } = useSubscription();
+    const { subscription, isLoading, isTrialActive } = useSubscription();
     const router = useRouter();
 
     if (isLoading) {
@@ -158,7 +158,7 @@ function MediaKitPageContent() {
   const { user } = useUser();
   const firestore = useFirestore();
 
-  const { subscription } = useSubscription();
+  const { subscription, isTrialActive } = useSubscription();
   const todayStr = new Date().toISOString().split('T')[0];
   
   const [usageData, setUsageData] = useState<DailyUsage | null>(null);
@@ -179,7 +179,7 @@ function MediaKitPageContent() {
 
   const generationsToday = usageData?.geracoesAI || 0;
   const isPremium = subscription?.plan === 'premium';
-  const hasReachedLimit = !isPremium && generationsToday >= 5;
+  const hasReachedLimit = !isPremium && !isTrialActive;
 
 
   useEffect(() => {

@@ -24,7 +24,7 @@ interface UseSubscriptionResult {
   trialDaysLeft: number;
 }
 
-const TRIAL_PERIOD_DAYS = 7;
+const TRIAL_PERIOD_DAYS = 2;
 
 /**
  * A hook to get the real-time subscription status and trial period of the current user.

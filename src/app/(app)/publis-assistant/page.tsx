@@ -107,7 +107,7 @@ const analysisCriteria = [
 
 
 function PremiumFeatureGuard({ children }: { children: React.ReactNode }) {
-    const { subscription, isLoading } = useSubscription();
+    const { subscription, isLoading, isTrialActive } = useSubscription();
     const router = useRouter();
 
     if (isLoading) {
@@ -119,8 +119,8 @@ function PremiumFeatureGuard({ children }: { children: React.ReactNode }) {
     }
     
     const isPremiumActive = subscription?.plan === 'premium' && subscription.status === 'active';
-
-    if (!isPremiumActive) {
+    
+    if (!isPremiumActive && !isTrialActive) { // Allow access during trial
         return (
              <AlertDialog open={true} onOpenChange={(open) => !open && router.push('/subscribe')}>
               <AlertDialogContent>
@@ -135,6 +135,28 @@ function PremiumFeatureGuard({ children }: { children: React.ReactNode }) {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogAction onClick={() => router.push('/subscribe')} className="w-full">Ver Planos</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+        );
+    }
+    
+    // During trial, they have 'pro' access, which is not 'premium'. So we must also check for trial.
+    if(subscription?.plan === 'pro' && !isTrialActive && !isPremiumActive) {
+         return (
+             <AlertDialog open={true} onOpenChange={(open) => !open && router.push('/subscribe')}>
+              <AlertDialogContent>
+                 <AlertDialogHeader className="text-center items-center">
+                  <div className="h-16 w-16 rounded-full bg-yellow-400/10 flex items-center justify-center mb-2 border-2 border-yellow-400/20">
+                    <Crown className="h-8 w-8 text-yellow-500 animate-pulse" />
+                  </div>
+                  <AlertDialogTitle className="font-headline text-xl">Funcionalidade Premium</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    O Assistente de Publis é um recurso exclusivo para assinantes Premium.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogAction onClick={() => router.push('/subscribe')} className="w-full">Fazer Upgrade</AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
@@ -215,8 +237,7 @@ function PublisAssistantPageContent() {
 
   const generationsToday = usageData?.geracoesAI || 0;
   const isPremium = subscription?.plan === 'premium';
-  const isPro = subscription?.plan === 'pro';
-  const hasReachedLimit = !isPremium && !isPro;
+  const hasReachedLimit = !isPremium && !isTrialActive;
 
 
   const form = useForm<FormSchemaType>({
@@ -566,7 +587,7 @@ function PublisAssistantPageContent() {
                     </ResponsiveDialog>
                     {hasReachedLimit && (
                       <p className="text-sm text-muted-foreground text-center sm:text-left">
-                        Você precisa de um plano <Link href="/subscribe" className='underline text-primary font-semibold'>Pro</Link> ou superior para usar esta ferramenta.
+                        Você precisa de um plano <Link href="/subscribe" className='underline text-primary font-semibold'>Premium</Link> para usar esta ferramenta.
                       </p>
                     )}
               </div>

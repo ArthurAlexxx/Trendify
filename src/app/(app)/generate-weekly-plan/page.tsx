@@ -151,7 +151,7 @@ export default function GenerateWeeklyPlanPage() {
   const generationsToday = usageData?.geracoesAI || 0;
   const isPremium = subscription?.plan === 'premium';
   const isPro = subscription?.plan === 'pro';
-  const hasReachedLimit = !isPremium && !isPro;
+  const hasReachedLimit = !isPremium && !isPro && !isTrialActive;
 
 
   useEffect(() => {
@@ -386,7 +386,7 @@ export default function GenerateWeeklyPlanPage() {
       <div>
         <div className="text-center">
             <h2 className="text-xl font-bold font-headline">Como Montamos seu Plano?</h2>
-            <p className="text-muted-foreground text-sm">A IA atua como sua estrategista e analisa 4 pilares:</p>
+            <p className="text-muted-foreground">A IA atua como sua estrategista e analisa 4 pilares:</p>
         </div>
         <div className="py-8">
           <div className="md:hidden">
@@ -420,7 +420,7 @@ export default function GenerateWeeklyPlanPage() {
                           </CardTitle>
                       </CardHeader>
                       <CardContent className="pb-4">
-                          <p className="text-muted-foreground text-xs">{item.description}</p>
+                          <p className="text-muted-foreground text-sm">{item.description}</p>
                       </CardContent>
                   </Card>
               ))}
@@ -568,7 +568,7 @@ export default function GenerateWeeklyPlanPage() {
              <Card className="rounded-t-none border-t-0 shadow-primary-lg">
                 <CardHeader className='text-center'>
                     <h2 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Plano Gerado</h2>
-                    <p className="text-muted-foreground text-sm">Seu novo plano semanal está pronto. Ative-o para começar a usar.</p>
+                    <p className="text-muted-foreground">Seu novo plano semanal está pronto. Ative-o para começar a usar.</p>
                 </CardHeader>
                 <CardContent className="p-6">
                     <div className="space-y-8 animate-fade-in">
@@ -650,7 +650,7 @@ export default function GenerateWeeklyPlanPage() {
                                      <CarouselItem className="pl-4 basis-[90%]">
                                         <Card className="shadow-primary-lg h-full">
                                             <CardHeader><CardTitle className="text-center flex items-center justify-center gap-2 text-base"><Zap className='h-5 w-5' /> Nível de Esforço</CardTitle></CardHeader>
-                                            <CardContent><p className='text-2xl font-bold text-center'>{result.effortLevel}</p></CardContent>
+                                            <CardContent><p className='text-lg font-bold text-center'>{result.effortLevel}</p></CardContent>
                                         </Card>
                                      </CarouselItem>
                                       <CarouselItem className="pl-4 basis-[90%]">
@@ -803,7 +803,7 @@ export default function GenerateWeeklyPlanPage() {
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 text-center sm:text-left">
                         <div>
                             <CardTitle className="font-headline text-lg">Plano Semanal Ativo</CardTitle>
-                            <CardDescription className='text-sm'>Este é o plano visível no seu dashboard.</CardDescription>
+                            <CardDescription>Este é o plano visível no seu dashboard.</CardDescription>
                         </div>
                         <div className="flex items-center gap-2">
                             <PreviousPlansSheet />
