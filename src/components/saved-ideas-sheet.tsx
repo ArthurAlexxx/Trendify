@@ -56,8 +56,8 @@ export function SavedIdeasSheet({ children, idea }: { children: React.ReactNode,
   const [isListSheetOpen, setIsListSheetOpen] = useState(false);
   const [ideaToDelete, setIdeaToDelete] = useState<IdeiaSalva | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedIdea, setSelectedIdea] = useState<IdeiaSalva | null>(idea);
-  const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(!!idea);
+  const [selectedIdea, setSelectedIdea] = useState<IdeiaSalva | null>(null);
+  const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
 
   const ideiasSalvasQuery = useMemoFirebase(
     () =>
@@ -99,24 +99,31 @@ export function SavedIdeasSheet({ children, idea }: { children: React.ReactNode,
 
   const handleViewDetails = (idea: IdeiaSalva) => {
     setSelectedIdea(idea);
-    setIsListSheetOpen(false);
-    setIsDetailSheetOpen(true);
+    setIsListSheetOpen(false); // Close list if it's open
+    setIsDetailSheetOpen(true); // Open detail view
   };
   
-  // Effect to open detail view if an idea is passed directly
-  React.useEffect(() => {
-    if(idea) {
-        setSelectedIdea(idea);
-        setIsDetailSheetOpen(true);
-    }
-  }, [idea]);
+  // Combines the trigger logic: if it's the direct child, it opens details, otherwise it opens the list
+  const trigger = React.Children.map(children, (child) => {
+      if (React.isValidElement(child)) {
+          return React.cloneElement(child, {
+              onClick: () => {
+                  if (idea) {
+                      handleViewDetails(idea);
+                  } else {
+                      setIsListSheetOpen(true);
+                  }
+              },
+          } as React.HTMLAttributes<HTMLElement>);
+      }
+      return child;
+  });
+
 
   return (
     <>
     <ResponsiveDialog isOpen={isListSheetOpen} onOpenChange={setIsListSheetOpen}>
-        <ResponsiveDialogTrigger asChild>
-            {children}
-        </ResponsiveDialogTrigger>
+        {!idea && <ResponsiveDialogTrigger asChild>{trigger}</ResponsiveDialogTrigger>}
         <ResponsiveDialogContent className="sm:max-w-lg">
             <ResponsiveDialogHeader>
             <ResponsiveDialogTitle className="font-headline text-xl">Itens Salvos</ResponsiveDialogTitle>
@@ -191,6 +198,7 @@ export function SavedIdeasSheet({ children, idea }: { children: React.ReactNode,
     </ResponsiveDialog>
     
     <ResponsiveDialog isOpen={isDetailSheetOpen} onOpenChange={setIsDetailSheetOpen}>
+        {idea && <ResponsiveDialogTrigger asChild>{trigger}</ResponsiveDialogTrigger>}
         {selectedIdea && (
              <ResponsiveDialogContent className="sm:max-w-4xl p-0">
                  <ResponsiveDialogHeader className="p-6 border-b">
