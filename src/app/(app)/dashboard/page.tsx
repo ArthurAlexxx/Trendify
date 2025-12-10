@@ -56,30 +56,12 @@ import { initializeFirebase } from '@/firebase';
 import { updateProfile } from 'firebase/auth';
 import { useSearchParams } from 'next/navigation';
 import { SavedIdeasSheet } from '@/components/saved-ideas-sheet';
-
-const GoalCard = dynamic(() => import('@/components/dashboard/goal-card'), {
-  loading: () => <Skeleton className="h-full min-h-[380px]" />,
-});
-
-const DailyPlanCard = dynamic(() => import('@/components/dashboard/daily-plan-card'), {
-  loading: () => <Skeleton className="h-full min-h-[250px]" />,
-});
-
-const ActionHubCard = dynamic(() => import('@/components/dashboard/action-hub-card'), {
-  loading: () => <Skeleton className="h-full min-h-[300px]" />,
-});
-
-const EngagementMetricsCard = dynamic(() => import('@/app/(app)/dashboard/engagement-metrics-card'), {
-  loading: () => <Skeleton className="h-[140px]" />,
-});
-
-const EvolutionChartCard = dynamic(() => import('./evolution-chart-card'), {
-    loading: () => <Skeleton className="h-[438px]" />,
-});
-
-const PerformanceAnalysisCard = dynamic(() => import('@/components/dashboard/performance-analysis-card'), {
-    loading: () => <Skeleton className="h-full min-h-[250px]" />,
-});
+import GoalCard from '@/components/dashboard/goal-card';
+import DailyPlanCard from '@/components/dashboard/daily-plan-card';
+import ActionHubCard from '@/components/dashboard/action-hub-card';
+import EngagementMetricsCard from '@/app/(app)/dashboard/engagement-metrics-card';
+import EvolutionChartCard from './evolution-chart-card';
+import PerformanceAnalysisCard from '@/components/dashboard/performance-analysis-card';
 
 
 function DashboardSkeleton() {
@@ -160,18 +142,14 @@ export default function DashboardPage() {
       user && firestore
         ? query(
             collection(firestore, `users/${user.uid}/ideiasSalvas`),
+            where('concluido', '==', false),
             orderBy('createdAt', 'desc'),
-            limit(10) // Fetch a bit more to filter on the client
+            limit(3)
           )
         : null,
     [user, firestore]
   );
-  const { data: allIdeiasSalvas, isLoading: isLoadingIdeias } = useCollection<IdeiaSalva>(ideiasSalvasQuery);
-
-  const ideiasSalvas = useMemo(() => {
-    if (!allIdeiasSalvas) return null;
-    return allIdeiasSalvas.filter(idea => idea.origem !== 'Plano Semanal' && !idea.concluido).slice(0, 3);
-  }, [allIdeiasSalvas]);
+  const { data: ideiasSalvas, isLoading: isLoadingIdeias } = useCollection<IdeiaSalva>(ideiasSalvasQuery);
 
 
   const completedIdeasQuery = useMemoFirebase(
@@ -439,6 +417,8 @@ export default function DashboardPage() {
           {userProfile && <ProfileCompletionAlert userProfile={userProfile} isPremium={isPremium} />}
 
           <Suspense fallback={<DashboardSkeleton />}>
+             {isLoading ? <DashboardSkeleton /> : (
+            <>
             {/* Mobile Carousel View */}
             <div className="md:hidden">
                 <Carousel className="w-full" opts={{ align: "start", loop: true }}>
@@ -524,6 +504,8 @@ export default function DashboardPage() {
                 />
               </div>
             </div>
+            </>
+             )}
           </Suspense>
         </div>
       </div>

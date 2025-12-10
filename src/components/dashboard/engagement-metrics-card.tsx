@@ -43,7 +43,7 @@ export default function EngagementMetricsCard({ isLoading, latestMetrics, format
     return (
         <Card className="shadow-primary-lg">
         <CardHeader>
-            <CardTitle className="text-center">Métricas de Engajamento</CardTitle>
+            <CardTitle className="text-center text-lg">Métricas de Engajamento</CardTitle>
         </CardHeader>
         <CardContent>
             <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
