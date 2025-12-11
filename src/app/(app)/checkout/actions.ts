@@ -56,7 +56,7 @@ export async function createAsaasPaymentAction(
   
   try {
     // ETAPA 1: Criar ou obter o cliente na Asaas
-    const customerResponse = await fetch('https://api.asaas.com/v3/customers', {
+    const customerResponse = await fetch('https://www.asaas.com/api/v3/customers', {
         method: 'POST',
         headers: {
             'accept': 'application/json',
@@ -68,23 +68,16 @@ export async function createAsaasPaymentAction(
             email,
             phone,
             cpfCnpj,
-            postalCode,
-            addressNumber,
             externalReference: userId
         })
     });
     
     const customerData = await customerResponse.json();
 
-    if (!customerResponse.ok && customerData.errors?.[0]?.code !== 'invalid_customer') {
-        console.error('[Asaas Action] Erro ao criar/obter cliente:', customerData);
-        throw new Error(customerData.errors?.[0]?.description || 'Falha ao registrar cliente no gateway de pagamento.');
-    }
-
     let customerId = customerData.id;
     // Se o cliente já existe, busca o ID dele
     if (customerData.errors?.[0]?.code === 'invalid_customer') {
-        const searchResponse = await fetch(`https://api.asaas.com/v3/customers?cpfCnpj=${cpfCnpj}`, {
+        const searchResponse = await fetch(`https://www.asaas.com/api/v3/customers?cpfCnpj=${cpfCnpj}`, {
             headers: { 'access_token': apiKey },
         });
         const searchData = await searchResponse.json();
@@ -93,6 +86,9 @@ export async function createAsaasPaymentAction(
         } else {
              throw new Error('Falha ao encontrar cliente existente no gateway de pagamento.');
         }
+    } else if (!customerResponse.ok) {
+        console.error('[Asaas Action] Erro ao criar/obter cliente:', customerData);
+        throw new Error(customerData.errors?.[0]?.description || 'Falha ao registrar cliente no gateway de pagamento.');
     }
     
     const { firestore } = initializeFirebaseAdmin();
@@ -104,11 +100,12 @@ export async function createAsaasPaymentAction(
     const price = priceMap[plan][cycle];
     const planName = `${plan.toUpperCase()} - ${cycle === 'monthly' ? 'Mensal' : 'Anual'}`;
     const isRecurrent = billingType === 'CREDIT_CARD';
+    const today = new Date().toISOString().split('T')[0];
 
     const checkoutBody: any = {
         customer: customerId,
-        billingType: isRecurrent ? 'CREDIT_CARD' : billingType,
-        dueDateLimitDays: 1, // Para PIX
+        billingType: billingType,
+        dueDate: today, // Garante que a cobrança seja para hoje
         externalReference: userId, 
         value: price,
         description: `Assinatura do plano ${planName} na Trendify`,
@@ -116,6 +113,7 @@ export async function createAsaasPaymentAction(
             successUrl: `${appUrl}/dashboard?checkout=success`,
             autoRedirect: true,
         },
+        postalService: false,
     };
     
     if (isRecurrent) {
@@ -123,8 +121,9 @@ export async function createAsaasPaymentAction(
         checkoutBody.subscription = {
             cycle: cycle === 'annual' ? 'YEARLY' : 'MONTHLY',
         };
-    } else {
+    } else { // PIX
         checkoutBody.operationType = 'PAYMENT';
+        checkoutBody.dueDateLimitDays = 1; // Para PIX, mantém um prazo curto
     }
     
     const checkoutResponse = await fetch('https://www.asaas.com/api/v3/payments', {
