@@ -34,6 +34,31 @@ interface ActionState {
 }
 
 /**
+ * Busca o endereço a partir do CEP usando a API ViaCEP.
+ */
+async function getAddressFromCEP(cep: string): Promise<{ address: string; province: string; city: string; error?: string }> {
+    try {
+        const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+        if (!response.ok) {
+            throw new Error('Não foi possível consultar o CEP.');
+        }
+        const data = await response.json();
+        if (data.erro) {
+            throw new Error('CEP não encontrado.');
+        }
+        return {
+            address: data.logradouro,
+            province: data.bairro,
+            city: data.localidade,
+        };
+    } catch (e: any) {
+        console.error(`[ViaCEP Error] ${e.message}`);
+        return { error: e.message, address: '', province: '', city: '' };
+    }
+}
+
+
+/**
  * Cria um link de checkout na Asaas usando o endpoint /checkouts.
  */
 export async function createAsaasPaymentAction(
@@ -47,14 +72,24 @@ export async function createAsaasPaymentAction(
   }
 
   const { name, cpfCnpj, email, phone, postalCode, addressNumber, plan, cycle, billingType, userId } = parsed.data;
+  
   const apiKey = process.env.ASAAS_API_KEY;
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
   
   if (!apiKey) {
     return { error: 'Erro de configuração do servidor: ASAAS_API_KEY não encontrada.' };
   }
+   if (!appUrl) {
+    return { error: 'Erro de configuração do servidor: NEXT_PUBLIC_APP_URL não encontrada.' };
+  }
   
   try {
+    const { address, province, city, error: cepError } = await getAddressFromCEP(postalCode);
+
+    if (cepError) {
+      return { error: `Erro no CEP: ${cepError}` };
+    }
+
     const price = priceMap[plan][cycle];
     const planName = `Plano ${plan.toUpperCase()} - ${cycle === 'monthly' ? 'Mensal' : 'Anual'}`;
     const isRecurrent = billingType === 'CREDIT_CARD';
@@ -62,11 +97,11 @@ export async function createAsaasPaymentAction(
     const checkoutBody: any = {
       billingTypes: [billingType],
       chargeTypes: [isRecurrent ? "RECURRENT" : "DETACHED"],
-      minutesToExpire: 60, // Link expira em 1 hora
+      minutesToExpire: 60, 
       callback: {
         successUrl: `${appUrl}/dashboard?checkout=success`,
         cancelUrl: `${appUrl}/subscribe`,
-        expiredUrl: `${appUrl}/subscribe`,
+        autoRedirect: true,
       },
       items: [{
         name: planName,
@@ -80,17 +115,21 @@ export async function createAsaasPaymentAction(
         cpfCnpj,
         phone,
         postalCode,
+        address, // Endereço obtido do CEP
         addressNumber,
         complement: '',
-        province: '', // Not strictly required by Asaas for checkout but good to have
+        province, // Bairro obtido do CEP
       },
-      externalReference: JSON.stringify({ userId, plan, cycle }),
     };
 
     if (isRecurrent) {
       checkoutBody.subscription = {
         cycle: cycle === 'annual' ? 'YEARLY' : 'MONTHLY',
+        description: `Assinatura do plano ${plan.toUpperCase()} (${cycle === 'annual' ? 'Anual' : 'Mensal'}) na Trendify`,
+        externalReference: JSON.stringify({ userId, plan, cycle }),
       };
+    } else {
+        checkoutBody.externalReference = JSON.stringify({ userId, plan, cycle });
     }
 
     const checkoutResponse = await fetch('https://sandbox.asaas.com/api/v3/checkouts', {
