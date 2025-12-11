@@ -362,30 +362,48 @@ export default function DashboardPage() {
     const instaComments = parseMetric(userProfile.instagramAverageComments);
     const tiktokComments = parseMetric(userProfile.tiktokAverageComments);
     
+    let platformMetrics = {
+        followers: 0,
+        views: 0,
+        likes: 0,
+        comments: 0,
+        engagementRate: 0,
+    };
+
     if (selectedPlatform === 'total') {
         const platformCount = [userProfile.instagramHandle, userProfile.tiktokHandle].filter(Boolean).length || 1;
-        const totalViews = (instaViews + tiktokViews)
-        const totalLikes = (instaLikes + tiktokLikes)
-        const totalComments = (instaComments + tiktokComments)
-
-        return {
-            followers: parseMetric(userProfile.instagramFollowers) + parseMetric(userProfile.tiktokFollowers),
-            views: platformCount > 1 ? totalViews / platformCount : totalViews,
-            likes: platformCount > 1 ? totalLikes / platformCount : totalLikes,
-            comments: platformCount > 1 ? totalComments / platformCount : totalComments,
-        }
+        const totalFollowers = parseMetric(userProfile.instagramFollowers) + parseMetric(userProfile.tiktokFollowers);
+        const totalLikes = instaLikes + tiktokLikes;
+        const totalComments = instaComments + tiktokComments;
+        
+        platformMetrics = {
+            followers: totalFollowers,
+            views: (instaViews + tiktokViews) / platformCount,
+            likes: totalLikes / platformCount,
+            comments: totalComments / platformCount,
+            engagementRate: totalFollowers > 0 ? ((totalLikes + totalComments) / totalFollowers) * 100 : 0,
+        };
+    } else if (selectedPlatform === 'instagram') {
+        const followers = parseMetric(userProfile.instagramFollowers);
+        platformMetrics = {
+            followers,
+            views: instaViews,
+            likes: instaLikes,
+            comments: instaComments,
+            engagementRate: followers > 0 ? ((instaLikes + instaComments) / followers) * 100 : 0,
+        };
+    } else { // tiktok
+        const followers = parseMetric(userProfile.tiktokFollowers);
+        platformMetrics = {
+            followers,
+            views: tiktokViews,
+            likes: tiktokLikes,
+            comments: tiktokComments,
+            engagementRate: followers > 0 ? ((tiktokLikes + tiktokComments) / followers) * 100 : 0,
+        };
     }
-    return selectedPlatform === 'instagram' ? {
-        followers: parseMetric(userProfile.instagramFollowers),
-        views: instaViews,
-        likes: instaLikes,
-        comments: instaComments,
-    } : {
-        followers: parseMetric(userProfile.tiktokFollowers),
-        views: tiktokViews,
-        likes: tiktokLikes,
-        comments: tiktokComments,
-    }
+    
+    return platformMetrics;
   }, [userProfile, selectedPlatform, parseMetric]);
   
   return (
