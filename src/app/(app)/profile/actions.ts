@@ -164,11 +164,7 @@ async function fetchData(url: string, options: RequestInit) {
         console.error(`[API ERROR] Status ${response.status} para ${url}:`, errorText);
         
         let data: any = {};
-        try {
-            data = JSON.parse(errorText);
-        } catch (e) {
-            // Not a JSON response, use the raw text.
-        }
+        try { data = JSON.parse(errorText); } catch (e) { /* Not a JSON response, use the raw text. */ }
 
         if (response.status === 404) throw new Error(`Endpoint não encontrado. Verifique a URL da API.`);
         if (errorText.includes("You are not subscribed to this API")) throw new Error("Você não está inscrito nesta API na RapidAPI. Verifique sua assinatura e chave.");
@@ -176,12 +172,17 @@ async function fetchData(url: string, options: RequestInit) {
         if (errorText.toLowerCase().includes("this page is private")) throw new Error("Este perfil é privado. A integração funciona apenas com perfis públicos.");
         if (data.message && (data.message.includes("Couldn't find user") || data.message.includes("User not found"))) throw new Error("Usuário não encontrado. Verifique o nome de usuário e tente novamente.");
 
+        // Specific for expired/invalid tokens
+        if (response.status === 401 || response.status === 403 || (data.error?.type === 'OAuthException')) {
+          throw new Error('Ocorreu um erro de autenticação com a API. Tente sincronizar novamente.');
+        }
         
-        throw new Error(`A API retornou um erro: ${response.statusText} - ${errorText}`);
+        throw new Error(`A API retornou um erro inesperado. Verifique os logs para mais detalhes.`);
     }
     
     const data = await response.json();
 
+    // Check for logical errors in a 200 OK response
     if (data.message && (data.message.includes("Couldn't find user") || data.message.includes("User not found"))) throw new Error("Usuário não encontrado. Verifique o nome de usuário e tente novamente.");
     if (data.error) throw new Error(data.error);
     if (data.status_code !== 0 && data.status_msg) throw new Error(`A API do TikTok retornou um erro: ${data.status_msg}`);
@@ -200,34 +201,35 @@ export async function getInstagramProfile(username: string): Promise<InstagramPr
             throw new Error("A resposta da API não continha os dados do usuário.");
         }
         
-        const parsed = InstagramLooterProfileSchema.parse(dataToParse);
+        const parsed = InstagramLooterProfileSchema.safeParse(dataToParse);
 
-        if (parsed.is_private) {
+        if (!parsed.success) {
+            throw new Error("Usuário não encontrado. Verifique o nome de usuário e tente novamente.");
+        }
+
+        if (parsed.data.is_private) {
             throw new Error("Este perfil é privado. A integração funciona apenas com perfis públicos.");
         }
         
-        if (parsed.is_professional_account === false) { // Explicitly check for false
+        if (parsed.data.is_professional_account === false) { // Explicitly check for false
             throw new Error("Esta conta não é do tipo 'Comercial' ou 'Criador de Conteúdo'. Altere o tipo de conta nas configurações do Instagram para continuar.");
         }
 
         return {
-            id: parsed.id,
-            username: parsed.username,
-            isPrivate: parsed.is_private,
-            isBusiness: parsed.is_professional_account,
-            profilePicUrlHd: parsed.profile_pic_url_hd,
-            biography: parsed.biography,
-            fullName: parsed.full_name,
-            mediaCount: parsed.edge_owner_to_timeline_media.count,
-            followersCount: parsed.edge_followed_by.count,
-            followingCount: parsed.edge_follow.count,
+            id: parsed.data.id,
+            username: parsed.data.username,
+            isPrivate: parsed.data.is_private,
+            isBusiness: parsed.data.is_professional_account,
+            profilePicUrlHd: parsed.data.profile_pic_url_hd,
+            biography: parsed.data.biography,
+            fullName: parsed.data.full_name,
+            mediaCount: parsed.data.edge_owner_to_timeline_media.count,
+            followersCount: parsed.data.edge_followed_by.count,
+            followingCount: parsed.data.edge_follow.count,
         };
     } catch (e: any) {
         console.error(`[ACTION ERROR - getInstagramProfile] ${e.message}`);
         await logApiError('instagram', 'profile', username, e);
-        if (e.issues) {
-             throw new Error(`Falha na validação dos dados do perfil: ${e.issues.map((issue: any) => `${issue.path.join('.')} - ${issue.message}`).join(', ')}`);
-        }
         throw e;
     }
 }
@@ -261,9 +263,8 @@ export async function getInstagramPosts(username: string): Promise<Omit<Instagra
     } catch (e: any) {
         console.error(`[ACTION ERROR - getInstagramPosts] ${e.message}`);
         await logApiError('instagram', 'posts', username, e);
-        if (e.issues) {
-             const errorDetails = e.issues.map((issue: any) => `${issue.path.join('.')} - ${issue.message}`).join(', ');
-             throw new Error(`Falha na validação dos dados dos posts do Instagram: ${errorDetails}`);
+        if (e instanceof z.ZodError) {
+             throw new Error(`Falha na validação dos dados dos posts. Tente novamente.`);
         }
         throw e;
     }
@@ -281,32 +282,33 @@ export async function getTikTokProfile(username: string): Promise<TikTokProfileD
         throw new Error("A resposta da API do TikTok não contém os dados esperados do usuário.");
       }
 
-      const parsed = TikTokApi6ProfileSchema.parse(userData);
+      const parsed = TikTokApi6ProfileSchema.safeParse(userData);
 
-      if (parsed.is_private) {
+       if (!parsed.success) {
+            throw new Error("Usuário não encontrado. Verifique o nome de usuário e tente novamente.");
+        }
+
+      if (parsed.data.is_private) {
         throw new Error("Este perfil é privado. A integração funciona apenas com perfis públicos.");
       }
 
       return {
-          id: parsed.user_id!,
-          username: parsed.username!,
-          nickname: parsed.nickname || '',
-          avatarUrl: parsed.profile_image || '',
-          bio: parsed.description || '',
-          isVerified: parsed.verified || false,
-          isPrivate: parsed.is_private || false,
-          secUid: parsed.secondary_id,
-          followersCount: parsed.followers || 0,
-          followingCount: parsed.following || 0,
-          heartsCount: parsed.total_heart || 0,
-          videoCount: parsed.total_videos || 0,
+          id: parsed.data.user_id!,
+          username: parsed.data.username!,
+          nickname: parsed.data.nickname || '',
+          avatarUrl: parsed.data.profile_image || '',
+          bio: parsed.data.description || '',
+          isVerified: parsed.data.verified || false,
+          isPrivate: parsed.data.is_private || false,
+          secUid: parsed.data.secondary_id,
+          followersCount: parsed.data.followers || 0,
+          followingCount: parsed.data.following || 0,
+          heartsCount: parsed.data.total_heart || 0,
+          videoCount: parsed.data.total_videos || 0,
       };
   } catch (e: any) {
       console.error(`[ACTION ERROR - getTikTokProfile]`, e);
       await logApiError('tiktok', 'profile', username, e);
-      if (e.issues) {
-          throw new Error(`Falha na validação dos dados do perfil do TikTok: ${e.issues.map((issue: any) => `${issue.path.join('.')} - ${issue.message}`).join(', ')}`);
-      }
       throw e;
   }
 }
@@ -318,8 +320,13 @@ export async function getTikTokPosts(username: string): Promise<Omit<TikTokPost,
     }
     try {
         const result = await fetchFromRapidApi('tiktok-posts', username);
-        const parsed = TikTokPostResponseSchema.parse(result);
-        const videos = parsed.videos ?? [];
+        const parsed = TikTokPostResponseSchema.safeParse(result);
+        
+        if (!parsed.success) {
+            throw new Error(`Falha na validação dos dados dos posts do TikTok. Tente novamente.`);
+        }
+
+        const videos = parsed.data.videos ?? [];
 
         return videos.slice(0, 10).map((post) => ({
             id: post.video_id,
@@ -335,10 +342,6 @@ export async function getTikTokPosts(username: string): Promise<Omit<TikTokPost,
     } catch (e: any) {
         console.error(`[ACTION ERROR - getTikTokPosts] ${e.message}`);
         await logApiError('tiktok', 'posts', username, e);
-        if (e.issues) {
-             const errorDetails = e.issues.map((issue: any) => `${issue.path.join('.')} - ${issue.message}`).join(', ');
-             throw new Error(`Falha na validação dos dados dos posts do TikTok: ${errorDetails}`);
-        }
         throw e;
     }
 }
