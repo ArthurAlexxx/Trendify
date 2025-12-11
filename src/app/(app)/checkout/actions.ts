@@ -4,6 +4,8 @@
 import { z } from 'zod';
 import type { Plan } from '@/lib/types';
 import { initializeFirebaseAdmin } from '@/firebase/admin';
+import fetch from 'node-fetch';
+
 
 // Mapeamento de planos e preços
 const priceMap: Record<Plan, Record<'monthly' | 'annual', number>> = {
@@ -42,7 +44,7 @@ async function getAddressFromCEP(cep: string): Promise<{ address: string; provin
         if (!response.ok) {
             throw new Error('Não foi possível consultar o CEP.');
         }
-        const data = await response.json();
+        const data = await response.json() as any;
         if (data.erro) {
             throw new Error('CEP não encontrado.');
         }
@@ -96,7 +98,7 @@ export async function createAsaasPaymentAction(
 
     const checkoutBody: any = {
       billingTypes: [billingType],
-      chargeTypes: [isRecurrent ? "RECURRENT" : "DETACHED"],
+      chargeType: isRecurrent ? "RECURRENT" : "DETACHED",
       minutesToExpire: 60, 
       callback: {
         successUrl: `${appUrl}/dashboard?checkout=success`,
@@ -109,7 +111,7 @@ export async function createAsaasPaymentAction(
         quantity: 1,
         value: price,
       }],
-      customerData: {
+      customer: {
         name,
         email,
         cpfCnpj,
@@ -120,6 +122,7 @@ export async function createAsaasPaymentAction(
         complement: '',
         province, // Bairro obtido do CEP
       },
+      externalReference: JSON.stringify({ userId, plan, cycle }),
     };
 
     if (isRecurrent) {
@@ -135,11 +138,8 @@ export async function createAsaasPaymentAction(
       checkoutBody.subscription = {
         cycle: cycle === 'annual' ? 'YEARLY' : 'MONTHLY',
         description: `Assinatura do plano ${plan.toUpperCase()} (${cycle === 'annual' ? 'Anual' : 'Mensal'}) na Trendify`,
-        externalReference: JSON.stringify({ userId, plan, cycle }),
         nextDueDate: nextDueDate.toISOString().split('T')[0], // Formato YYYY-MM-DD
       };
-    } else {
-        checkoutBody.externalReference = JSON.stringify({ userId, plan, cycle });
     }
 
     const checkoutResponse = await fetch('https://sandbox.asaas.com/api/v3/checkouts', {
