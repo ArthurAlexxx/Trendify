@@ -15,7 +15,7 @@ const priceMap: Record<Plan, Record<'monthly' | 'annual', number>> = {
 const CreatePaymentSchema = z.object({
   name: z.string().min(3, 'O nome é obrigatório.'),
   email: z.string().email('O e-mail é inválido.'),
-  cpfCnpj: z.string().min(11, 'O CPF/CNPJ é obrigatório.'),
+  cpfCnpj: z.string().min(11, 'O CPF ou CNPJ é obrigatório.'),
   phone: z.string().min(10, 'O telefone é obrigatório.'),
   postalCode: z.string().min(8, 'O CEP é obrigatório.'),
   addressNumber: z.string().min(1, 'O número é obrigatório.'),
@@ -91,7 +91,7 @@ export async function createAsaasPaymentAction(
 
     const price = priceMap[plan][cycle];
     const externalReference = JSON.stringify({ userId, plan, cycle });
-    const isRecurrent = plan !== 'free'; // Assume any paid plan is a subscription
+    const isRecurrent = true; // Any paid plan is a subscription
     
     const checkoutBody: any = {
       operationType: isRecurrent ? 'SUBSCRIPTION' : 'PAYMENT',
@@ -117,7 +117,6 @@ export async function createAsaasPaymentAction(
         value: price,
         quantity: 1,
       }],
-      externalReference: externalReference, // For single payments
     };
     
     if (isRecurrent) {
@@ -125,8 +124,10 @@ export async function createAsaasPaymentAction(
             description: `Assinatura do plano ${plan.toUpperCase()} (${cycle === 'annual' ? 'Anual' : 'Mensal'}) na Trendify`,
             cycle: cycle === 'annual' ? 'YEARLY' : 'MONTHLY',
             value: price,
-            externalReference: externalReference,
+            externalReference: externalReference, // Adicionado aqui para garantir que seja recebido
         };
+    } else {
+        checkoutBody.externalReference = externalReference;
     }
     
     const checkoutResponse = await fetch('https://sandbox.asaas.com/api/v3/checkouts', {
