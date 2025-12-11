@@ -21,7 +21,7 @@ const CreatePaymentSchema = z.object({
   addressNumber: z.string().min(1, 'O número é obrigatório.'),
   plan: z.enum(['pro', 'premium']),
   cycle: z.enum(['monthly', 'annual']),
-  billingTypes: z.array(z.enum(['PIX', 'CREDIT_CARD'])),
+  billingType: z.enum(['PIX', 'CREDIT_CARD']),
   userId: z.string().min(1, 'ID do usuário é obrigatório.'),
 });
 
@@ -63,7 +63,7 @@ export async function createAsaasPaymentAction(
     return { error: `Dados inválidos: ${errorMessages}` };
   }
 
-  const { name, cpfCnpj, email, phone, postalCode, addressNumber, plan, cycle, billingTypes, userId } = parsed.data;
+  const { name, cpfCnpj, email, phone, postalCode, addressNumber, plan, cycle, billingType, userId } = parsed.data;
   
   const apiKey = process.env.ASAAS_API_KEY;
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
@@ -82,6 +82,7 @@ export async function createAsaasPaymentAction(
     }
 
     const price = priceMap[plan][cycle];
+    const externalReference = JSON.stringify({ userId, plan, cycle });
     
     const today = new Date();
     let nextDueDate = new Date(today);
@@ -96,9 +97,9 @@ export async function createAsaasPaymentAction(
     
     const checkoutBody: any = {
       operationType: 'SUBSCRIPTION',
-      billingTypes,
+      billingTypes: [billingType],
       chargeTypes: ['RECURRENT'],
-      externalReference: userId, 
+      externalReference,
       customerData: {
         name,
         email,
@@ -116,7 +117,6 @@ export async function createAsaasPaymentAction(
       },
       items: [{
         name: `Plano ${plan.toUpperCase()} - ${cycle === 'annual' ? 'Anual' : 'Mensal'}`,
-        description: JSON.stringify({ plan, cycle }), // Simplified metadata
         value: price,
         quantity: 1,
       }],
@@ -148,8 +148,16 @@ export async function createAsaasPaymentAction(
          throw new Error('A API da Asaas não retornou um ID para a sessão de checkout.');
     }
 
+    // A URL de checkout é montada com o ID retornado.
     const checkoutUrl = `https://sandbox.asaas.com/checkoutSession/show?id=${checkoutData.id}`;
     
+    // Opcional: Salvar o checkout ID no perfil do usuário para referência futura, se necessário
+    const { firestore } = initializeFirebaseAdmin();
+    const userRef = firestore.collection('users').doc(userId);
+    await userRef.update({ 'subscription.asaasCheckoutId': checkoutData.id });
+    
+    console.log(`[Asaas Action] Checkout ID ${checkoutData.id} salvo para o usuário ${userId}.`);
+
     return { 
         checkoutUrl: checkoutUrl
     };

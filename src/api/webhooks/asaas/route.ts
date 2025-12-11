@@ -66,31 +66,26 @@ async function logWebhook(firestore: ReturnType<typeof getFirestore>, event: any
   }
 }
 
-// Simplified function to get user info from the webhook payload
-function findUserInfo(payload: any): { userId: string; plan: Plan; cycle: 'monthly' | 'annual' } | null {
+// Função simplificada para obter informações do usuário e do plano a partir do payload do webhook.
+function findUserInfo(eventPayload: any): { userId: string; plan: Plan; cycle: 'monthly' | 'annual' } | null {
     
-    const userId = payload?.externalReference;
-    if (!userId) {
-        console.error("[Webhook] ERRO: userId (externalReference) não encontrado no payload do pagamento.");
+    // O externalReference é a nossa fonte primária e única de verdade.
+    const externalRef = eventPayload?.externalReference;
+    
+    if (!externalRef) {
+        console.warn("[Webhook] externalReference não encontrado no payload do evento.");
         return null;
     }
 
     try {
-        // Find plan and cycle in the item's description
-        const itemDescription = payload?.items?.[0]?.description;
-        if (!itemDescription) {
-             console.error(`[Webhook] ERRO: 'items[0].description' não encontrado no payload para o userId ${userId}.`);
-            return null;
-        }
-
-        const { plan, cycle } = JSON.parse(itemDescription);
+        const { userId, plan, cycle } = JSON.parse(externalRef);
         
-        if (plan && cycle) {
-            console.log(`[Webhook] Informações encontradas: userId=${userId}, plan=${plan}, cycle=${cycle}`);
+        if (userId && plan && cycle) {
+            console.log(`[Webhook] Informações encontradas no externalReference: userId=${userId}, plan=${plan}, cycle=${cycle}`);
             return { userId, plan, cycle };
         }
     } catch (e) {
-        console.error(`[Webhook] ERRO: Falha ao parsear a descrição do item para o userId ${userId}.`, e);
+        console.error(`[Webhook] ERRO: Falha ao parsear o externalReference. Conteúdo: ${externalRef}`, e);
     }
 
     return null;
@@ -126,7 +121,7 @@ async function processPaymentConfirmation(userRef: FirebaseFirestore.DocumentRef
     'subscription.lastPaymentStatus': 'confirmed',
     'subscription.lastUpdated': Timestamp.now(),
     'subscription.trialEndsAt': null,
-    'subscription.paymentId': payment.customer,
+    'subscription.paymentId': payment.customer, // Salva o ID do cliente Asaas
   };
 
   if (payment.subscription) {
