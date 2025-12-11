@@ -130,7 +130,7 @@
             },
             "paymentId": {
               "type": "string",
-              "description": "The ID of the last payment or subscription from the payment provider."
+              "description": "The customer ID from the payment provider (e.g., 'cus_...')."
             }
           }
         }
@@ -202,6 +202,40 @@
         }
       },
       "required": ["receivedAt", "eventType", "payload"]
+    },
+    "ApiErrorLog": {
+      "title": "API Error Log",
+      "description": "Stores a record of errors that occur when communicating with external APIs (Instagram, TikTok).",
+      "type": "object",
+      "properties": {
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp when the error occurred."
+        },
+        "platform": {
+          "type": "string",
+          "enum": ["instagram", "tiktok"],
+          "description": "The external platform that was being accessed."
+        },
+        "endpoint": {
+          "type": "string",
+          "description": "The specific API endpoint that failed (e.g., 'profile', 'posts')."
+        },
+        "username": {
+          "type": "string",
+          "description": "The username that was being queried when the error occurred."
+        },
+        "errorMessage": {
+          "type": "string",
+          "description": "The error message returned by the API or caught by the system."
+        },
+        "rawError": {
+            "type": "string",
+            "description": "The stringified raw error object for detailed debugging."
+        }
+      },
+      "required": ["timestamp", "platform", "endpoint", "username", "errorMessage"]
     },
     "MetricSnapshot": {
         "title": "Metric Snapshot",
@@ -387,6 +421,10 @@
     "/webhookLogs/{logId}": {
       "schema": { "$ref": "#/entities/WebhookLog" },
       "description": "Logs all incoming webhook events from the payment gateway."
+    },
+    "/apiErrors/{errorId}": {
+      "schema": { "$ref": "#/entities/ApiErrorLog" },
+      "description": "Logs errors from external API calls for debugging."
     },
     "/users/{userId}/dailyUsage/{usageId}": {
         "schema": { "$ref": "#/entities/DailyUsage" },

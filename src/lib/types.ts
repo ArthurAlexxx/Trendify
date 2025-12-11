@@ -41,7 +41,7 @@ export interface UserProfile {
     cycle?: 'monthly' | 'annual';
     expiresAt?: Timestamp | null;
     trialEndsAt?: Timestamp | null; // Add trial period end date
-    paymentId?: string | null; // Customer ID from Asaas
+    paymentId?: string | null; // Customer ID from Asaas (cus_...)
     checkoutId?: string; // Last checkout session ID
     asaasSubscriptionId?: string; // Asaas Subscription ID (sub_...)
   }
