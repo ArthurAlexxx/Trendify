@@ -123,10 +123,20 @@ export async function createAsaasPaymentAction(
     };
 
     if (isRecurrent) {
+      const today = new Date();
+      let nextDueDate: Date;
+
+      if (cycle === 'annual') {
+        nextDueDate = new Date(today.setFullYear(today.getFullYear() + 1));
+      } else { // monthly
+        nextDueDate = new Date(today.setMonth(today.getMonth() + 1));
+      }
+
       checkoutBody.subscription = {
         cycle: cycle === 'annual' ? 'YEARLY' : 'MONTHLY',
         description: `Assinatura do plano ${plan.toUpperCase()} (${cycle === 'annual' ? 'Anual' : 'Mensal'}) na Trendify`,
         externalReference: JSON.stringify({ userId, plan, cycle }),
+        nextDueDate: nextDueDate.toISOString().split('T')[0], // Formato YYYY-MM-DD
       };
     } else {
         checkoutBody.externalReference = JSON.stringify({ userId, plan, cycle });
