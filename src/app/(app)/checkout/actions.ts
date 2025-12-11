@@ -97,12 +97,11 @@ export async function createAsaasPaymentAction(
     const isRecurrent = billingType === 'CREDIT_CARD';
 
     const checkoutBody: any = {
-      billingType,
-      chargeType: isRecurrent ? "RECURRENT" : "DETACHED",
+      billingTypes: [billingType],
+      chargeTypes: [isRecurrent ? "RECURRENT" : "DETACHED"],
       minutesToExpire: 60, 
       callback: {
         successUrl: `${appUrl}/dashboard?checkout=success`,
-        cancelUrl: `${appUrl}/subscribe`,
         autoRedirect: true,
       },
       items: [{
