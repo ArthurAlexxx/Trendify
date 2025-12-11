@@ -44,7 +44,7 @@ async function getAddressFromCEP(cep: string): Promise<{ address: string; provin
         if (!response.ok) {
             throw new Error('Não foi possível consultar o CEP.');
         }
-        const data = await response.json() as any;
+        const data: any = await response.json();
         if (data.erro) {
             throw new Error('CEP não encontrado.');
         }
@@ -97,7 +97,7 @@ export async function createAsaasPaymentAction(
     const isRecurrent = billingType === 'CREDIT_CARD';
 
     const checkoutBody: any = {
-      billingTypes: [billingType],
+      billingType,
       chargeType: isRecurrent ? "RECURRENT" : "DETACHED",
       minutesToExpire: 60, 
       callback: {
@@ -131,17 +131,19 @@ export async function createAsaasPaymentAction(
       let nextDueDate: Date;
 
       if (cycle === 'annual') {
-        nextDueDate = new Date(today.setFullYear(today.getFullYear() + 1));
+        nextDueDate = new Date(today);
+        nextDueDate.setFullYear(today.getFullYear() + 1);
       } else { // monthly
-        nextDueDate = new Date(today.setMonth(today.getMonth() + 1));
+        nextDueDate = new Date(today);
+        nextDueDate.setMonth(today.getMonth() + 1);
       }
 
       checkoutBody.subscription = {
         cycle: cycle === 'annual' ? 'YEARLY' : 'MONTHLY',
         description: `Assinatura do plano ${plan.toUpperCase()} (${cycle === 'annual' ? 'Anual' : 'Mensal'}) na Trendify`,
         nextDueDate: nextDueDate.toISOString().split('T')[0], // Formato YYYY-MM-DD
-        externalReference: externalReference,
       };
+      checkoutBody.externalReference = externalReference;
     } else {
         checkoutBody.externalReference = externalReference;
     }
