@@ -48,18 +48,15 @@ export async function createAsaasPaymentAction(
 
   const { name, cpfCnpj, email, phone, postalCode, addressNumber, plan, cycle, billingType, userId } = parsed.data;
   const apiKey = process.env.ASAAS_API_KEY;
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://trendify-beta.vercel.app';
   
   if (!apiKey) {
     return { error: 'Erro de configuração do servidor: ASAAS_API_KEY não encontrada.' };
   }
-   if (!appUrl) {
-    return { error: 'Erro de configuração do servidor: NEXT_PUBLIC_APP_URL não encontrada.' };
-  }
   
   try {
     // ETAPA 1: Criar ou obter o cliente na Asaas
-    const customerResponse = await fetch('https://www.asaas.com/api/v3/customers', {
+    const customerResponse = await fetch('https://api.asaas.com/v3/customers', {
         method: 'POST',
         headers: {
             'accept': 'application/json',
@@ -80,7 +77,7 @@ export async function createAsaasPaymentAction(
     let customerId = customerData.id;
     // Se o cliente já existe, busca o ID dele
     if (customerData.errors?.[0]?.code === 'invalid_customer') {
-        const searchResponse = await fetch(`https://www.asaas.com/api/v3/customers?cpfCnpj=${cpfCnpj}`, {
+        const searchResponse = await fetch(`https://api.asaas.com/v3/customers?cpfCnpj=${cpfCnpj}`, {
             headers: { 'access_token': apiKey },
         });
         const searchData = await searchResponse.json();
@@ -103,19 +100,12 @@ export async function createAsaasPaymentAction(
     const price = priceMap[plan][cycle];
     const planName = `${plan.toUpperCase()} - ${cycle === 'monthly' ? 'Mensal' : 'Anual'}`;
     const isRecurrent = billingType === 'CREDIT_CARD';
-    const today = new Date().toISOString().split('T')[0];
-
-    const externalReferencePayload = JSON.stringify({
-        userId,
-        plan,
-        cycle,
-    });
     
     const checkoutBody: any = {
         customer: customerId,
         billingType: billingType,
-        dueDate: today,
-        externalReference: externalReferencePayload, 
+        dueDate: new Date().toISOString().split('T')[0],
+        externalReference: userId, 
         value: price,
         description: `Assinatura do plano ${planName} na Trendify`,
         callback: {
@@ -135,7 +125,7 @@ export async function createAsaasPaymentAction(
         checkoutBody.dueDateLimitDays = 1; // Para PIX, mantém um prazo curto
     }
     
-    const checkoutResponse = await fetch('https://www.asaas.com/api/v3/payments', {
+    const checkoutResponse = await fetch('https://api.asaas.com/v3/payments', {
         method: 'POST',
         headers: {
             'accept': 'application/json',
