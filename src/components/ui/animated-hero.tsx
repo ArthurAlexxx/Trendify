@@ -67,7 +67,7 @@ function AnimatedHero() {
               <div className="flex gap-4 flex-col mt-6">
                  <h1 className="text-5xl md:text-6xl max-w-3xl tracking-tighter font-bold font-headline flex flex-wrap justify-center items-center">
                     <span className="text-foreground/90 mr-3">A plataforma para seu</span>
-                    <span className="relative inline-block text-left h-16 text-primary min-w-[300px]">
+                    <span className="relative inline-block text-center h-16 text-primary min-w-[300px]">
                       <span className="font-semibold bg-gradient-to-r from-purple-600 via-indigo-500 to-purple-600 text-gradient">
                         {currentTitle}
                       </span>
