@@ -105,11 +105,17 @@ export async function createAsaasPaymentAction(
     const isRecurrent = billingType === 'CREDIT_CARD';
     const today = new Date().toISOString().split('T')[0];
 
+    const externalReferencePayload = JSON.stringify({
+        userId,
+        plan,
+        cycle,
+    });
+    
     const checkoutBody: any = {
         customer: customerId,
         billingType: billingType,
         dueDate: today,
-        externalReference: userId, 
+        externalReference: externalReferencePayload, 
         value: price,
         description: `Assinatura do plano ${planName} na Trendify`,
         callback: {

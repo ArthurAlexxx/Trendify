@@ -50,7 +50,7 @@ async function logWebhook(firestore: ReturnType<typeof getFirestore>, event: any
 
     if (event.payment?.customer) {
         try {
-            const customerResponse = await fetch(`https://api.asaas.com/v3/customers/${event.payment.customer}`, {
+            const customerResponse = await fetch(`https://www.asaas.com/api/v3/customers/${event.payment.customer}`, {
                 headers: { 'access_token': process.env.ASAAS_API_KEY! }
             });
             if (customerResponse.ok) {
@@ -71,13 +71,36 @@ async function logWebhook(firestore: ReturnType<typeof getFirestore>, event: any
 }
 
 // Função para encontrar o userId usando diferentes métodos de fallback
-async function findUserId(firestore: ReturnType<typeof getFirestore>, payment: any): Promise<string | null> {
-    // 1. Tenta pelo externalReference (método principal)
+async function findUserId(firestore: ReturnType<typeof getFirestore>, payment: any): Promise<{ userId: string; plan: Plan; cycle: 'monthly' | 'annual' } | null> {
+    
+    // Tenta pelo externalReference (método principal)
     if (payment.externalReference) {
-        return payment.externalReference;
+        try {
+            const refData = JSON.parse(payment.externalReference);
+            if (refData.userId && refData.plan && refData.cycle) {
+                return {
+                    userId: refData.userId,
+                    plan: refData.plan,
+                    cycle: refData.cycle,
+                };
+            }
+        } catch(e) {
+            // If it fails to parse, it might be the old format (just userId)
+            if (typeof payment.externalReference === 'string') {
+                 const usersByRef = await firestore
+                    .collection('users')
+                    .where('subscription.paymentId', '==', payment.externalReference)
+                    .limit(1)
+                    .get();
+                if (!usersByRef.empty) {
+                    // This is a fallback and won't have plan/cycle info. It will fail gracefully later.
+                    return { userId: usersByRef.docs[0].id, plan: 'pro', cycle: 'monthly' };
+                }
+            }
+        }
     }
 
-    // 2. Fallback: Tenta pelo customerId
+    // Fallback: Tenta pelo customerId
     if (payment.customer) {
         const usersByCustomer = await firestore
           .collection('users')
@@ -85,19 +108,7 @@ async function findUserId(firestore: ReturnType<typeof getFirestore>, payment: a
           .limit(1)
           .get();
         if (!usersByCustomer.empty) {
-          return usersByCustomer.docs[0].id;
-        }
-    }
-
-    // 3. Fallback: Tenta pelo checkoutId
-    if (payment.checkoutSession) {
-        const usersByCheckout = await firestore
-          .collection('users')
-          .where('subscription.checkoutId', '==', payment.checkoutSession)
-          .limit(1)
-          .get();
-        if (!usersByCheckout.empty) {
-          return usersByCheckout.docs[0].id;
+          return { userId: usersByCustomer.docs[0].id, plan: 'pro', cycle: 'monthly' };
         }
     }
 
@@ -105,21 +116,11 @@ async function findUserId(firestore: ReturnType<typeof getFirestore>, payment: a
 }
 
 // Função para processar a confirmação de pagamento
-async function processPaymentConfirmation(userRef: FirebaseFirestore.DocumentReference, payment: any) {
+async function processPaymentConfirmation(userRef: FirebaseFirestore.DocumentReference, payment: any, plan: Plan, cycle: 'monthly' | 'annual') {
   const userDoc = await userRef.get();
   if (!userDoc.exists) {
     throw new Error(`Usuário ${userRef.id} não encontrado no Firestore.`);
   }
-
-  const planValue = payment.value;
-  let plan: Plan = 'pro';
-  let cycle: 'monthly' | 'annual' = 'monthly';
-
-  if (planValue === 399) { cycle = 'annual'; plan = 'pro'; }
-  else if (planValue === 499) { cycle = 'annual'; plan = 'premium'; }
-  else if (planValue === 49.99) { cycle = 'monthly'; plan = 'premium'; }
-  else if (planValue === 39.99) { cycle = 'monthly'; plan = 'pro'; }
-
 
   const now = new Date();
   const expiresAt = cycle === 'annual' 
@@ -188,7 +189,24 @@ export async function POST(req: NextRequest) {
   const payment = event.payment;
   const subscription = event.subscription;
   
-  const userIdFromEvent = payment?.externalReference || subscription?.externalReference;
+  let userIdFromEvent: string | null = null;
+
+  if (payment?.externalReference) {
+    try {
+      const refData = JSON.parse(payment.externalReference);
+      userIdFromEvent = refData.userId;
+    } catch {
+       userIdFromEvent = payment.externalReference;
+    }
+  } else if (subscription?.externalReference) {
+     try {
+      const refData = JSON.parse(subscription.externalReference);
+      userIdFromEvent = refData.userId;
+    } catch {
+       userIdFromEvent = subscription.externalReference;
+    }
+  }
+
 
   if (event.event === 'SUBSCRIPTION_CREATED' && subscription) {
       if (userIdFromEvent) {
@@ -204,20 +222,20 @@ export async function POST(req: NextRequest) {
        return NextResponse.json({ success: true, message: 'Evento recebido, mas sem dados de pagamento para processar agora.' });
   }
 
-  const userId = await findUserId(firestore, payment);
+  const userInfo = await findUserId(firestore, payment);
 
-  if (!userId) {
+  if (!userInfo) {
     console.warn('[Asaas Webhook] Received payment confirmation without a resolvable user ID.', payment);
     return NextResponse.json({ success: true, message: 'Event received, but could not resolve user ID.' });
   }
   
-  const userRef = firestore.collection('users').doc(userId);
+  const userRef = firestore.collection('users').doc(userInfo.userId);
 
   try {
     switch (event.event) {
       case 'PAYMENT_RECEIVED':
       case 'PAYMENT_CONFIRMED':
-        await processPaymentConfirmation(userRef, payment);
+        await processPaymentConfirmation(userRef, payment, userInfo.plan, userInfo.cycle);
         break;
       
       case 'PAYMENT_OVERDUE':
@@ -244,7 +262,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true });
 
   } catch (error: any) {
-    console.error(`[Asaas Webhook] CRITICAL: Falha ao processar evento para usuário ${userId}:`, error);
+    console.error(`[Asaas Webhook] CRITICAL: Falha ao processar evento para usuário ${userInfo.userId}:`, error);
     return NextResponse.json({ error: 'Falha ao processar o webhook.', details: error.message }, { status: 500 });
   }
 }
