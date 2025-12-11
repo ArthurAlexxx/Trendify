@@ -397,9 +397,9 @@ export default function DashboardPage() {
           <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
               <Tabs value={selectedPlatform} onValueChange={(value) => setSelectedPlatform(value as any)}>
                 <TabsList className="bg-muted p-1">
-                  <TabsTrigger value="total" className="text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary px-4 py-2 text-sm font-semibold">Total</TabsTrigger>
-                  <TabsTrigger value="instagram" className="text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary px-4 py-2 text-sm font-semibold">Instagram</TabsTrigger>
-                  <TabsTrigger value="tiktok" className="text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary px-4 py-2 text-sm font-semibold">TikTok</TabsTrigger>
+                  <TabsTrigger value="total" className="text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary px-6 py-2 text-sm font-semibold transition-colors hover:bg-primary/5">Total</TabsTrigger>
+                  <TabsTrigger value="instagram" className="text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary px-6 py-2 text-sm font-semibold transition-colors hover:bg-primary/5">Instagram</TabsTrigger>
+                  <TabsTrigger value="tiktok" className="text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary px-6 py-2 text-sm font-semibold transition-colors hover:bg-primary/5">TikTok</TabsTrigger>
                 </TabsList>
               </Tabs>
               {userProfile && 
