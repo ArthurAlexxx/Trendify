@@ -341,7 +341,7 @@ export default function LandingPage() {
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="relative">
+        <section className="relative overflow-hidden">
            <AnimatedHero />
         </section>
 
@@ -394,7 +394,7 @@ export default function LandingPage() {
                             Calculadora
                         </Button>
                        </div>
-                      <h2 className="text-4xl md:text-5xl font-bold font-headline tracking-tight mb-4">
+                      <h2 className="font-headline text-4xl md:text-5xl font-bold tracking-tight mb-4">
                         Calcule seu Potencial de Crescimento
                       </h2>
                       <p className="text-base text-muted-foreground">
@@ -540,7 +540,7 @@ export default function LandingPage() {
                     {results && !isCalculating && (
                       <div className="space-y-6">
                         <div className="text-center max-w-3xl mx-auto">
-                          <h2 className="text-3xl md:text-4xl font-bold font-headline tracking-tight mb-2">
+                          <h2 className="font-headline text-3xl md:text-4xl font-bold tracking-tight mb-2">
                             Sua projeção de crescimento está pronta!
                           </h2>
                           <p className="text-base text-muted-foreground">
@@ -780,7 +780,7 @@ export default function LandingPage() {
                         Preços
                     </Button>
                 </div>
-                <h2 className="text-4xl md:text-5xl font-bold font-headline tracking-tight mb-4">
+                <h2 className="font-headline text-4xl md:text-5xl font-bold tracking-tight mb-4">
                   Planos para cada fase da sua jornada
                 </h2>
                 <p className="text-base text-muted-foreground">
@@ -928,7 +928,7 @@ export default function LandingPage() {
                         FAQ
                     </Button>
                 </div>
-                <h2 className="text-4xl md:text-5xl font-bold font-headline tracking-tight mb-4">
+                <h2 className="font-headline text-4xl md:text-5xl font-bold tracking-tight mb-4">
                   Perguntas Frequentes
                 </h2>
                 <p className="text-base text-muted-foreground">
@@ -965,7 +965,7 @@ export default function LandingPage() {
                     viewport={{ once: true, amount: 0.5 }}
                     className="flex flex-col items-center"
                 >
-                    <h2 className="text-4xl md:text-5xl font-bold font-headline tracking-tight mb-4">
+                    <h2 className="font-headline text-4xl md:text-5xl font-bold tracking-tight mb-4">
                         Pronto para crescer?
                     </h2>
                     <p className="text-base text-primary-foreground/80 mb-8 max-w-xl mx-auto">
@@ -985,17 +985,36 @@ export default function LandingPage() {
         </section>
       </main>
 
-      <footer className="border-t border-border">
-        <div className="container py-8 text-center text-sm text-muted-foreground">
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-2 sm:gap-4">
-             <p>
-                &copy; {new Date().getFullYear()} trendify. Todos os direitos
-                reservados.
-              </p>
-             <Link href="/support" className="hover:text-primary transition-colors">
-                Suporte
-              </Link>
-          </div>
+      <footer className="border-t border-border/50 bg-background">
+        <div className="container py-12">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div className="col-span-1 md:col-span-2 space-y-4">
+                    <WordmarkIcon />
+                    <p className="text-sm text-muted-foreground max-w-sm">A plataforma com IA que transforma criadores de conteúdo em negócios de sucesso.</p>
+                     <Button asChild size="lg" className="h-11 text-base font-bold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-shadow">
+                        <Link href="/sign-up">Começar Grátis</Link>
+                    </Button>
+                </div>
+                <div className="col-span-1">
+                    <h4 className="font-semibold mb-3">Produto</h4>
+                    <ul className="space-y-2 text-sm">
+                        <li><a href="#beneficios" className="text-muted-foreground hover:text-primary">Benefícios</a></li>
+                        <li><a href="#calculadora" className="text-muted-foreground hover:text-primary">Calculadora</a></li>
+                        <li><a href="#precos" className="text-muted-foreground hover:text-primary">Preços</a></li>
+                    </ul>
+                </div>
+                 <div className="col-span-1">
+                    <h4 className="font-semibold mb-3">Legal</h4>
+                    <ul className="space-y-2 text-sm">
+                        <li><Link href="/terms-of-service" className="text-muted-foreground hover:text-primary">Termos de Serviço</Link></li>
+                        <li><Link href="/privacy-policy" className="text-muted-foreground hover:text-primary">Política de Privacidade</Link></li>
+                        <li><Link href="/support" className="text-muted-foreground hover:text-primary">Suporte</Link></li>
+                    </ul>
+                </div>
+            </div>
+             <div className="mt-12 pt-8 border-t border-border/50 text-center text-sm text-muted-foreground">
+                <p>&copy; {new Date().getFullYear()} Trendify. Todos os direitos reservados.</p>
+             </div>
         </div>
       </footer>
     </div>
