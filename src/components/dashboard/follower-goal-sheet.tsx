@@ -73,7 +73,10 @@ export function FollowerGoalSheet({ userProfile, children, isOpen, setIsOpen, is
     }, [userProfile, isOpen, form]);
 
     const onSubmit = (data: FormData) => {
-        if (!user) return;
+        if (!user || !firestore) {
+            notify({ title: 'Erro', description: 'Usuário não autenticado.', variant: 'destructive'});
+            return;
+        };
         startTransition(async () => {
             try {
                 await updateDoc(doc(firestore, "users", user.uid), {
