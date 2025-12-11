@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { PageHeader } from '@/components/page-header';
@@ -332,9 +333,9 @@ export default function IntegrationsPage() {
                   </Alert>
 
                   <Tabs defaultValue="instagram" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2 bg-muted p-2">
-                        <TabsTrigger value="instagram" className="text-foreground data-[state=active]:bg-zinc-800 data-[state=active]:text-white px-4 py-2 text-sm"><Instagram className="mr-2 h-4 w-4" /> Instagram</TabsTrigger>
-                        <TabsTrigger value="tiktok" className="text-foreground data-[state=active]:bg-zinc-800 data-[state=active]:text-white px-4 py-2 text-sm"><Film className="mr-2 h-4 w-4" /> TikTok</TabsTrigger>
+                    <TabsList className="grid w-full grid-cols-2 bg-muted p-1">
+                        <TabsTrigger value="instagram" className="text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary px-6 py-2 text-sm font-semibold transition-colors hover:bg-primary/5"><Instagram className="mr-2 h-4 w-4" /> Instagram</TabsTrigger>
+                        <TabsTrigger value="tiktok" className="text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary px-6 py-2 text-sm font-semibold transition-colors hover:bg-primary/5"><Film className="mr-2 h-4 w-4" /> TikTok</TabsTrigger>
                     </TabsList>
                     <TabsContent value="instagram" className="mt-4">
                         <Card className='border-0 shadow-none'>

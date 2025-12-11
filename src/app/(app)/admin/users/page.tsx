@@ -51,11 +51,11 @@ export default function AdminUsersPage() {
           </CardDescription>
            <div className="pt-4 flex justify-center">
              <Tabs value={planFilter} onValueChange={(value) => setPlanFilter(value as any)}>
-              <TabsList className="bg-muted p-2">
-                <TabsTrigger value="all" className="text-foreground data-[state=active]:bg-zinc-800 data-[state=active]:text-white px-4 py-2 text-sm">Todos</TabsTrigger>
-                <TabsTrigger value="free" className="text-foreground data-[state=active]:bg-zinc-800 data-[state=active]:text-white px-4 py-2 text-sm">Gratuito</TabsTrigger>
-                <TabsTrigger value="pro" className="text-foreground data-[state=active]:bg-zinc-800 data-[state=active]:text-white px-4 py-2 text-sm">Pro</TabsTrigger>
-                <TabsTrigger value="premium" className="text-foreground data-[state=active]:bg-zinc-800 data-[state=active]:text-white px-4 py-2 text-sm">Premium</TabsTrigger>
+              <TabsList className="bg-muted p-1">
+                <TabsTrigger value="all" className="text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary px-6 py-2 text-sm font-semibold transition-colors hover:bg-primary/5">Todos</TabsTrigger>
+                <TabsTrigger value="free" className="text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary px-6 py-2 text-sm font-semibold transition-colors hover:bg-primary/5">Gratuito</TabsTrigger>
+                <TabsTrigger value="pro" className="text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary px-6 py-2 text-sm font-semibold transition-colors hover:bg-primary/5">Pro</TabsTrigger>
+                <TabsTrigger value="premium" className="text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary px-6 py-2 text-sm font-semibold transition-colors hover:bg-primary/5">Premium</TabsTrigger>
               </TabsList>
             </Tabs>
            </div>

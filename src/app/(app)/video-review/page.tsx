@@ -347,9 +347,9 @@ function VideoReviewPageContent() {
         </div>
         
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 bg-muted p-2">
-            <TabsTrigger value="generate" className="text-foreground data-[state=active]:bg-zinc-800 data-[state=active]:text-white px-4 py-2 text-sm">Analisar Vídeo</TabsTrigger>
-            <TabsTrigger value="result" disabled={!file} className="text-foreground data-[state=active]:bg-zinc-800 data-[state=active]:text-white px-4 py-2 text-sm">
+        <TabsList className="grid w-full grid-cols-2 bg-muted p-1">
+            <TabsTrigger value="generate" className="text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary px-6 py-2 text-sm font-semibold transition-colors hover:bg-primary/5">Analisar Vídeo</TabsTrigger>
+            <TabsTrigger value="result" disabled={!file} className="text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary px-6 py-2 text-sm font-semibold transition-colors hover:bg-primary/5">
                 Resultado { (analysisStatus === 'analyzing' || analysisStatus === 'uploading') && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
             </TabsTrigger>
         </TabsList>
