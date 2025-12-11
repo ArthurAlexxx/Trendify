@@ -25,7 +25,7 @@ const formSchema = z.object({
   phone: z.string().min(10, 'O telefone é obrigatório.'),
   postalCode: z.string().min(8, 'O CEP é obrigatório.'),
   addressNumber: z.string().min(1, 'O número é obrigatório.'),
-  billingType: z.enum(['PIX', 'CREDIT_CARD']),
+  billingType: z.enum(['PIX', 'CREDIT_CARD', 'BOLETO']),
   plan: z.enum(['pro', 'premium']),
   cycle: z.enum(['monthly', 'annual']),
 });
@@ -80,10 +80,15 @@ export default function AdminCheckoutTestPage() {
     resetCheckoutState();
     startTransition(async () => {
       const result = await createAsaasPaymentAction({
-        ...values,
+        name: values.name,
+        email: values.email,
         cpfCnpj: values.cpfCnpj.replace(/\D/g, ''),
         phone: values.phone.replace(/\D/g, ''),
         postalCode: values.postalCode.replace(/\D/g, ''),
+        addressNumber: values.addressNumber,
+        plan: values.plan,
+        cycle: values.cycle,
+        billingTypes: [values.billingType],
         userId: user.uid,
       });
 
@@ -329,7 +334,8 @@ export default function AdminCheckoutTestPage() {
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="PIX">PIX</SelectItem>
-                        <SelectItem value="CREDIT_CARD">Cartão de Crédito (Recorrente)</SelectItem>
+                        <SelectItem value="CREDIT_CARD">Cartão de Crédito</SelectItem>
+                        <SelectItem value="BOLETO">Boleto</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -362,3 +368,5 @@ export default function AdminCheckoutTestPage() {
     </div>
   );
 }
+
+    
