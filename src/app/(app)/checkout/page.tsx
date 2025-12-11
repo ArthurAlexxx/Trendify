@@ -81,15 +81,16 @@ function CheckoutPageContent() {
     setError(null);
     startTransition(async () => {
       const result = await createAsaasPaymentAction({
-        ...values,
+        name: values.name,
+        email: user.email!,
         cpfCnpj: values.cpfCnpj.replace(/\D/g, ''),
         phone: values.phone.replace(/\D/g, ''),
         postalCode: values.postalCode.replace(/\D/g, ''),
-        email: user.email!,
+        addressNumber: values.addressNumber,
         plan: plan as 'pro' | 'premium',
         cycle: cycle as 'monthly' | 'annual',
-        userId: user.uid,
         billingTypes: [values.billingType],
+        userId: user.uid,
       });
 
       if (result.error) {
@@ -152,7 +153,7 @@ function CheckoutPageContent() {
                       <RadioGroup
                         onValueChange={field.onChange}
                         defaultValue={field.value}
-                        className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                        className="grid grid-cols-1 md:grid-cols-3 gap-4"
                       >
                         <FormItem className="flex-1">
                           <FormControl>
@@ -168,6 +169,14 @@ function CheckoutPageContent() {
                           </FormControl>
                           <Label htmlFor="pix" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer [&:has([data-state=checked])]:border-primary">
                             <Banknote className="mb-3 h-6 w-6" /> PIX
+                          </Label>
+                        </FormItem>
+                         <FormItem className="flex-1">
+                          <FormControl>
+                            <RadioGroupItem value="BOLETO" id="boleto" className="sr-only" />
+                          </FormControl>
+                          <Label htmlFor="boleto" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer [&:has([data-state=checked])]:border-primary">
+                            <Banknote className="mb-3 h-6 w-6" /> Boleto
                           </Label>
                         </FormItem>
                       </RadioGroup>
