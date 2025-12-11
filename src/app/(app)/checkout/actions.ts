@@ -48,10 +48,13 @@ export async function createAsaasPaymentAction(
 
   const { name, cpfCnpj, email, phone, postalCode, addressNumber, plan, cycle, billingType, userId } = parsed.data;
   const apiKey = process.env.ASAAS_API_KEY;
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://trendify-beta.vercel.app';
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
   
   if (!apiKey) {
     return { error: 'Erro de configuração do servidor: ASAAS_API_KEY não encontrada.' };
+  }
+   if (!appUrl) {
+    return { error: 'Erro de configuração do servidor: NEXT_PUBLIC_APP_URL não encontrada.' };
   }
   
   try {
@@ -105,7 +108,7 @@ export async function createAsaasPaymentAction(
     const checkoutBody: any = {
         customer: customerId,
         billingType: billingType,
-        dueDate: today, // Garante que a cobrança seja para hoje
+        dueDate: today,
         externalReference: userId, 
         value: price,
         description: `Assinatura do plano ${planName} na Trendify`,
