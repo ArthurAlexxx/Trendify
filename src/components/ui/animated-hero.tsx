@@ -106,16 +106,8 @@ function AnimatedHero() {
             {/* Image Content */}
             <div
                 ref={targetRef}
-                className="relative mt-12 lg:mt-0"
+                className="relative mt-12 lg:mt-0 hidden lg:block"
             >
-                <div
-                    className="absolute inset-0"
-                    style={{
-                        background: 'ellipse 70% 40% at 50% 50%',
-                        backgroundImage: 'radial-gradient(ellipse 80% 50% at 70% 50%, hsl(var(--primary) / 0.15) 0%, transparent 70%)',
-                    }}
-                    aria-hidden="true"
-                />
                 <motion.div
                     style={{ scale }}
                 >
