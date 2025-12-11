@@ -294,9 +294,9 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
             Performance de Posts
             </CardTitle>
             <div className="w-full pt-4 flex justify-center">
-            <TabsList className="grid w-full grid-cols-2 mx-auto max-w-sm bg-muted p-2">
-                <TabsTrigger value="evolution" className="text-foreground data-[state=active]:bg-zinc-800 data-[state=active]:text-white px-4 py-2 text-sm">Evolução</TabsTrigger>
-                <TabsTrigger value="my-posts" className="text-foreground data-[state=active]:bg-zinc-800 data-[state=active]:text-white px-4 py-2 text-sm">Meus Posts</TabsTrigger>
+             <TabsList className="bg-muted p-1">
+                <TabsTrigger value="evolution" className="text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary px-4 py-2 text-sm font-semibold">Evolução</TabsTrigger>
+                <TabsTrigger value="my-posts" className="text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary px-4 py-2 text-sm font-semibold">Meus Posts</TabsTrigger>
             </TabsList>
             </div>
         </CardHeader>

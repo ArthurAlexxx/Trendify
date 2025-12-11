@@ -167,10 +167,10 @@ export default function ActionHubCard({
       </CardHeader>
       <CardContent className="flex-1 flex flex-col">
         <Tabs defaultValue="salvos" className="w-full flex-1 flex flex-col">
-          <TabsList className="grid w-full grid-cols-3 bg-muted p-2">
-            <TabsTrigger value="salvos" className="text-foreground data-[state=active]:bg-zinc-800 data-[state=active]:text-white px-4 py-2 text-sm">Salvos</TabsTrigger>
-            <TabsTrigger value="calendario" className="text-foreground data-[state=active]:bg-zinc-800 data-[state=active]:text-white px-4 py-2 text-sm">Calendário</TabsTrigger>
-            <TabsTrigger value="concluidos" className="text-foreground data-[state=active]:bg-zinc-800 data-[state=active]:text-white px-4 py-2 text-sm">Concluídos</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 bg-muted p-1">
+            <TabsTrigger value="salvos" className="text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary px-4 py-2 text-sm font-semibold">Salvos</TabsTrigger>
+            <TabsTrigger value="calendario" className="text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary px-4 py-2 text-sm font-semibold">Calendário</TabsTrigger>
+            <TabsTrigger value="concluidos" className="text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary px-4 py-2 text-sm font-semibold">Concluídos</TabsTrigger>
           </TabsList>
           <div className="flex-1 mt-4">
             <TabsContent value="calendario" className="h-full">
