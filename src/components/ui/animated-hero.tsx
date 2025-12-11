@@ -37,7 +37,8 @@ function AnimatedHero() {
 
   return (
     <div className="w-full">
-      <div className="container relative pt-16 md:pt-32 grid lg:grid-cols-5 lg:gap-8 lg:items-center px-6">
+      <div className="container relative pt-16 md:pt-32 px-6">
+        <div className="grid lg:grid-cols-5 lg:gap-8 lg:items-center">
           {/* Text Content */}
           <div className="relative z-10 flex flex-col items-center lg:items-start text-center lg:text-left lg:col-span-2">
               <div>
@@ -47,33 +48,27 @@ function AnimatedHero() {
                   </Button>
               </div>
               <div className="flex gap-4 flex-col mt-6">
-                  <h1 className="text-5xl md:text-6xl max-w-3xl tracking-tighter font-bold font-headline">
-                  <span className="text-foreground/90">A plataforma para seu</span>
-                  <span className="relative flex w-full justify-center lg:justify-start overflow-hidden text-center md:pb-4 md:pt-1 text-primary">
-                       
-                      {titles.map((title, index) => (
-                      <motion.span
-                          key={index}
-                          className="absolute font-semibold bg-gradient-to-r from-purple-600 via-indigo-500 to-purple-600 text-gradient"
-                          initial={{ opacity: 0, y: "-100" }}
-                          transition={{ type: "spring", stiffness: 50 }}
-                          animate={
-                          titleNumber === index
-                              ? {
-                                  y: 0,
-                                  opacity: 1,
-                              }
-                              : {
-                                  y: titleNumber > index ? -150 : 150,
-                                  opacity: 0,
-                              }
-                          }
-                      >
-                          {title}
-                      </motion.span>
-                      ))}
-                  </span>
+                  <h1 className="text-5xl md:text-6xl max-w-3xl tracking-tighter font-bold font-headline flex flex-wrap justify-center lg:justify-start">
+                    <span className="text-foreground/90 mr-3">A plataforma para seu</span>
+                    <span className="relative inline-block overflow-hidden text-center h-16 text-primary">
+                        {titles.map((title, index) => (
+                        <motion.span
+                            key={index}
+                            className="absolute font-semibold bg-gradient-to-r from-purple-600 via-indigo-500 to-purple-600 text-gradient left-0 right-0"
+                            initial={{ opacity: 0, y: "100%" }}
+                            transition={{ type: "spring", stiffness: 50 }}
+                            animate={
+                            titleNumber === index
+                                ? { y: 0, opacity: 1 }
+                                : { y: titleNumber > index ? "-100%" : "100%", opacity: 0 }
+                            }
+                        >
+                            {title}
+                        </motion.span>
+                        ))}
+                    </span>
                   </h1>
+
 
                   <p className="text-lg md:text-xl leading-relaxed tracking-tight text-muted-foreground max-w-2xl">
                   A Trendify usa IA para transformar seus dados em um plano de
@@ -120,6 +115,7 @@ function AnimatedHero() {
                   />
               </motion.div>
           </div>
+        </div>
       </div>
     </div>
   );
