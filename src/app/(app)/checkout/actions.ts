@@ -167,7 +167,7 @@ export async function createAsaasPaymentAction(
          throw new Error('A API da Asaas não retornou um ID para a sessão de checkout.');
     }
 
-    const checkoutUrl = checkoutData.url;
+    const checkoutUrl = `https://sandbox.asaas.com/checkoutSession/show?id=${checkoutData.id}`;
     
     return { 
         checkoutUrl: checkoutUrl, 
