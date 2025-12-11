@@ -146,7 +146,7 @@ export default function AdminCheckoutTestPage() {
       <Card className="max-w-2xl mx-auto shadow-primary-lg">
         <CardHeader>
           <CardTitle>Simular Checkout Asaas</CardTitle>
-          <CardDescription>Insira os detalhes para criar um cliente e um link de pagamento no ambiente de sandbox.</CardDescription>
+          <CardDescription>Insira os detalhes para criar um cliente e um link de pagamento no ambiente de produção.</CardDescription>
         </CardHeader>
         <CardContent>
          {checkoutUrl ? (

@@ -50,7 +50,7 @@ async function logWebhook(firestore: ReturnType<typeof getFirestore>, event: any
 
     if (event.payment?.customer) {
         try {
-            const customerResponse = await fetch(`https://api-sandbox.asaas.com/v3/customers/${event.payment.customer}`, {
+            const customerResponse = await fetch(`https://api.asaas.com/v3/customers/${event.payment.customer}`, {
                 headers: { 'access_token': process.env.ASAAS_API_KEY! }
             });
             if (customerResponse.ok) {

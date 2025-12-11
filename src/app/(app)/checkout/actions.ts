@@ -55,7 +55,7 @@ export async function createAsaasPaymentAction(
   
   try {
     // ETAPA 1: Criar ou obter o cliente na Asaas
-    const customerResponse = await fetch('https://api-sandbox.asaas.com/v3/customers', {
+    const customerResponse = await fetch('https://api.asaas.com/v3/customers', {
         method: 'POST',
         headers: {
             'accept': 'application/json',
@@ -83,7 +83,7 @@ export async function createAsaasPaymentAction(
     let customerId = customerData.id;
     // Se o cliente já existe, busca o ID dele
     if (customerData.errors?.[0]?.code === 'invalid_customer') {
-        const searchResponse = await fetch(`https://api-sandbox.asaas.com/v3/customers?cpfCnpj=${cpfCnpj}`, {
+        const searchResponse = await fetch(`https://api.asaas.com/v3/customers?cpfCnpj=${cpfCnpj}`, {
             headers: { 'access_token': apiKey },
         });
         const searchData = await searchResponse.json();
@@ -140,7 +140,7 @@ export async function createAsaasPaymentAction(
         };
     }
     
-    const checkoutResponse = await fetch('https://api-sandbox.asaas.com/v3/checkouts', {
+    const checkoutResponse = await fetch('https://api.asaas.com/v3/checkouts', {
         method: 'POST',
         headers: {
             'accept': 'application/json',
@@ -167,7 +167,7 @@ export async function createAsaasPaymentAction(
         'subscription.checkoutId': checkoutData.id
     });
 
-    const checkoutUrl = `https://sandbox.asaas.com/checkoutSession/show?id=${checkoutData.id}`;
+    const checkoutUrl = `https://www.asaas.com/checkoutSession/show?id=${checkoutData.id}`;
     return { checkoutUrl: checkoutUrl };
 
   } catch (e: any) {
