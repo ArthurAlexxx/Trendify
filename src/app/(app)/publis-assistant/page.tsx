@@ -20,7 +20,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useNotification } from '@/hooks/use-notification';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Bot,
@@ -55,7 +56,6 @@ import { generatePubliProposalsAction, GeneratePubliProposalsOutput } from '@/ap
 import { useFirestore, useUser, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, addDoc, serverTimestamp, doc, setDoc, increment, getDoc, updateDoc, onSnapshot, query, orderBy, where, limit, Timestamp } from 'firebase/firestore';
 import { SavedIdeasSheet } from '@/components/saved-ideas-sheet';
-import { Textarea } from '@/components/ui/textarea';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -181,7 +181,7 @@ export default function PublisAssistantPage() {
 
 
 function PublisAssistantPageContent() {
-  const { notify } = useNotification();
+  const { toast } = useToast();
   const [isGenerating, startTransition] = useTransition();
   const [result, setResult] = useState<GeneratePubliProposalsOutput | null>(null);
   const [activeTab, setActiveTab] = useState("generate");
@@ -317,7 +317,7 @@ function PublisAssistantPageContent() {
       setViewingSavedItem(null);
       const actionResult = await generatePubliProposalsAction(null, formData);
       if(actionResult?.error) {
-          notify({
+          toast({
             title: 'Erro ao Gerar Propostas',
             description: actionResult.error,
             variant: 'destructive',
@@ -328,7 +328,7 @@ function PublisAssistantPageContent() {
         setActiveTab("result");
       }
     });
-  }, [startTransition, setActiveTab, notify]);
+  }, [startTransition, setActiveTab, toast]);
 
   useEffect(() => {
     if (result && user && firestore) {
@@ -349,7 +349,7 @@ function PublisAssistantPageContent() {
 
   const handleSave = (data: GeneratePubliProposalsOutput) => {
     if (!user || !firestore) {
-      notify({
+      toast({
         title: 'Erro',
         description: 'Você precisa estar logado para salvar.',
         variant: 'destructive',
@@ -382,7 +382,7 @@ function PublisAssistantPageContent() {
           aiResponseData: { ...data, formValues: form.getValues() },
         });
 
-        notify({
+        toast({
           title: 'Campanha Salva!',
           description: 'Sua campanha foi adicionada aos seus Itens Salvos.',
         });
@@ -392,7 +392,7 @@ function PublisAssistantPageContent() {
         setActiveTab("generate");
       } catch (error) {
         console.error('Failed to save idea:', error);
-        notify({
+        toast({
           title: 'Erro ao Salvar',
           description: 'Não foi possível salvar a campanha. Tente novamente.',
           variant: 'destructive',
@@ -406,7 +406,7 @@ function PublisAssistantPageContent() {
     setResult(null);
     setViewingSavedItem(null);
     setActiveTab("generate");
-    notify({
+    toast({
         title: 'Resultado Descartado',
         description: 'Você pode gerar uma nova campanha agora.',
     });

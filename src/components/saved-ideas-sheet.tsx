@@ -14,7 +14,7 @@ import { Badge } from './ui/badge';
 import { ScrollArea } from './ui/scroll-area';
 import React, { useState, useMemo } from 'react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter as AlertFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from './ui/alert-dialog';
-import { useNotification } from '@/hooks/use-notification';
+import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { VideoIdeasResultView } from '@/app/(app)/video-ideas/video-ideas-result-view';
 import { PublisAssistantResultView } from '@/app/(app)/publis-assistant/publis-assistant-result-view';
@@ -52,7 +52,7 @@ const renderContent = (idea: IdeiaSalva) => {
 export function SavedIdeasSheet({ children, idea }: { children: React.ReactNode, idea: IdeiaSalva | null }) {
   const { user } = useUser();
   const firestore = useFirestore();
-  const { notify } = useNotification();
+  const { toast } = useToast();
   const router = useRouter();
   const [isListSheetOpen, setIsListSheetOpen] = useState(false);
   const [ideaToDelete, setIdeaToDelete] = useState<IdeiaSalva | null>(null);
@@ -91,7 +91,7 @@ export function SavedIdeasSheet({ children, idea }: { children: React.ReactNode,
     
     try {
       await deleteDoc(doc(firestore, `users/${user.uid}/ideiasSalvas`, ideaToDelete.id));
-      notify({
+      toast({
         title: "Ideia Excluída",
         description: `"${ideaToDelete.titulo}" foi removido permanentemente.`,
       });
@@ -103,7 +103,7 @@ export function SavedIdeasSheet({ children, idea }: { children: React.ReactNode,
         setSelectedIdea(null);
       }
     } catch(e: any) {
-        notify({
+        toast({
           title: "Erro ao Excluir",
           description: e.message,
           variant: "destructive"

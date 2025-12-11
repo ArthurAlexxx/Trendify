@@ -20,7 +20,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useNotification } from '@/hooks/use-notification';
+import { useToast } from '@/hooks/use-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Bot, Loader2, Sparkles, Check, History, ClipboardList, BrainCircuit, Target, Eye, BarChart as BarChartIcon, Zap, AlertTriangle, Trophy, Save, Edit, Lightbulb, Trash2, PartyPopper, ArrowLeft } from 'lucide-react';
 import { useEffect, useTransition, useState, useCallback, useMemo } from 'react';
@@ -117,7 +117,7 @@ const analysisCriteria = [
 
 
 export default function GenerateWeeklyPlanPage() {
-  const { notify } = useNotification();
+  const { toast } = useToast();
   const [isGenerating, startTransition] = useTransition();
   const [result, setResult] = useState<GenerateWeeklyPlanOutput | null>(null);
   const [viewingSavedItem, setViewingSavedItem] = useState<IdeiaSalva | null>(null);
@@ -224,7 +224,7 @@ export default function GenerateWeeklyPlanPage() {
   
   const formAction = useCallback(async (formData: FormSchemaType) => {
     if (!user || !firestore) {
-      notify({ title: "Erro", description: "Usuário não autenticado.", variant: "destructive" });
+      toast({ title: "Erro", description: "Usuário não autenticado.", variant: "destructive" });
       return;
     }
     
@@ -233,7 +233,7 @@ export default function GenerateWeeklyPlanPage() {
         setViewingSavedItem(null);
         const actionResult = await generateWeeklyPlanAction(null, formData);
         if(actionResult?.error){
-            notify({
+            toast({
                 title: 'Erro ao Gerar Plano',
                 description: actionResult.error,
                 variant: 'destructive',
@@ -244,7 +244,7 @@ export default function GenerateWeeklyPlanPage() {
             setActiveTab("result");
         }
     });
-  }, [user, firestore, notify, startTransition]);
+  }, [user, firestore, toast, startTransition]);
   
   const handleActivatePlan = useCallback(async () => {
     if (!result || !user || !firestore) return;
@@ -292,7 +292,7 @@ export default function GenerateWeeklyPlanPage() {
         
         await batch.commit();
   
-        notify({
+        toast({
           title: 'Plano Ativado!',
           description: 'Seu novo plano semanal está visível no dashboard.',
         });
@@ -302,21 +302,21 @@ export default function GenerateWeeklyPlanPage() {
         setActiveTab('generate');
       } catch (e: any) {
         console.error('Erro ao salvar plano:', e);
-        notify({
+        toast({
           title: 'Erro ao Salvar Plano',
           description: `Não foi possível salvar os dados: ${e.message}`,
           variant: 'destructive',
         });
       }
     });
-  }, [result, user, firestore, notify, startSavingTransition, setActiveTab]);
+  }, [result, user, firestore, toast, startSavingTransition, setActiveTab]);
 
   const handleDiscard = () => {
     localStorage.removeItem(LOCAL_STORAGE_KEY);
     setResult(null);
     setViewingSavedItem(null);
     setActiveTab("generate");
-    notify({
+    toast({
         title: 'Resultado Descartado',
         description: 'Você pode gerar um novo plano agora.',
     });
@@ -375,7 +375,7 @@ export default function GenerateWeeklyPlanPage() {
     try {
       await updateDoc(planRef, { items: updatedItems });
     } catch (e: any) {
-      notify({ title: 'Erro ao atualizar tarefa', description: e.message, variant: 'destructive' });
+      toast({ title: 'Erro ao atualizar tarefa', description: e.message, variant: 'destructive' });
     }
   };
   

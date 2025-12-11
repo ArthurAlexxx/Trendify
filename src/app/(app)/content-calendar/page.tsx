@@ -75,7 +75,7 @@ import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useNotification } from '@/hooks/use-notification';
+import { useToast } from '@/hooks/use-toast';
 import { FullScreenCalendar } from '@/components/ui/fullscreen-calendar';
 import { Calendar } from '@/components/ui/calendar';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -104,7 +104,7 @@ export default function ContentCalendarPage() {
 
   const firestore = useFirestore();
   const { user } = useUser();
-  const { notify } = useNotification();
+  const { toast } = useToast();
   const searchParams = useSearchParams();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -247,7 +247,7 @@ export default function ContentCalendarPage() {
         // Update existing document
         const postRef = doc(firestore, `users/${user.uid}/conteudoAgendado`, editingPost.id);
         await updateDoc(postRef, payload);
-        notify({ title: 'Sucesso!', description: 'Seu agendamento foi atualizado.' });
+        toast({ title: 'Sucesso!', description: 'Seu agendamento foi atualizado.' });
 
       } else {
         // Create new document
@@ -255,14 +255,14 @@ export default function ContentCalendarPage() {
           collection(firestore, `users/${user.uid}/conteudoAgendado`),
           { ...payload, createdAt: serverTimestamp() }
         );
-        notify({ title: 'Sucesso!', description: 'Seu post foi agendado.' });
+        toast({ title: 'Sucesso!', description: 'Seu post foi agendado.' });
       }
       
       setIsModalOpen(false);
 
     } catch (error) {
       console.error('Error saving document: ', error);
-      notify({
+      toast({
         title: 'Erro',
         description: `Não foi possível salvar o agendamento.`,
         variant: 'destructive',
@@ -279,11 +279,11 @@ export default function ContentCalendarPage() {
         postId
       );
       await updateDoc(postRef, { status: 'Publicado' });
-      notify({ title: 'Sucesso!', description: 'Post marcado como publicado.' });
+      toast({ title: 'Sucesso!', description: 'Post marcado como publicado.' });
       setIsDetailSheetOpen(false);
     } catch (error: any) {
       console.error('Error updating document:', error);
-      notify({
+      toast({
         title: 'Erro',
         description: 'Não foi possível atualizar o post: ' + error.message,
         variant: 'destructive',
@@ -306,12 +306,12 @@ export default function ContentCalendarPage() {
         postToDelete
       );
       await deleteDoc(postRef);
-      notify({ title: 'Excluído!', description: 'O agendamento foi removido.' });
+      toast({ title: 'Excluído!', description: 'O agendamento foi removido.' });
       setIsDeleteSheetOpen(false);
       setPostToDelete(null);
     } catch (error: any) {
       console.error('Error deleting document:', error);
-      notify({
+      toast({
         title: 'Erro',
         description: 'Não foi possível excluir o post: ' + error.message,
         variant: 'destructive',

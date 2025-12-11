@@ -17,7 +17,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useState, useEffect, useTransition, useRef } from 'react';
-import { useNotification } from '@/hooks/use-notification';
+import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -44,7 +44,7 @@ export default function ProfilePage() {
   const { user } = useUser();
   const auth = useAuth();
   const firestore = useFirestore();
-  const { notify } = useNotification();
+  const { toast } = useToast();
   const [isSaving, startSavingTransition] = useTransition();
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -107,13 +107,13 @@ export default function ProfilePage() {
             });
         }
         
-        notify({
+        toast({
           title: 'Sucesso!',
           description: 'Seu perfil foi atualizado.',
         });
       } catch (error: any) {
         console.error('Error updating profile:', error);
-        notify({
+        toast({
           title: 'Erro ao Atualizar',
           description: 'Não foi possível atualizar seu perfil. ' + error.message,
         });
@@ -126,7 +126,7 @@ export default function ProfilePage() {
     if (!file || !user || !auth.currentUser) return;
 
     if (!file.type.startsWith('image/')) {
-        notify({ title: 'Arquivo inválido', description: 'Por favor, selecione um arquivo de imagem.'});
+        toast({ title: 'Arquivo inválido', description: 'Por favor, selecione um arquivo de imagem.'});
         return;
     }
 
@@ -146,7 +146,7 @@ export default function ProfilePage() {
         },
         (error) => {
             console.error('Upload error:', error);
-            notify({ title: 'Erro no Upload', description: 'Não foi possível enviar sua foto.'});
+            toast({ title: 'Erro no Upload', description: 'Não foi possível enviar sua foto.'});
             setUploadProgress(null);
         },
         async () => {
@@ -156,7 +156,7 @@ export default function ProfilePage() {
                 // Trigger form submission to save the new URL
                 onProfileSubmit(form.getValues());
             } catch (e: any) {
-                notify({ title: 'Erro ao Atualizar', description: `Não foi possível salvar a nova foto. ${e.message}` });
+                toast({ title: 'Erro ao Atualizar', description: `Não foi possível salvar a nova foto. ${e.message}` });
             } finally {
                 setUploadProgress(null);
             }

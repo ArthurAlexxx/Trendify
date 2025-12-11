@@ -34,7 +34,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useNotification } from "@/hooks/use-notification";
+import { useToast } from "@/hooks/use-toast";
 import { analyzeVideo } from "@/ai/flows/analyze-video-flow";
 import type { AnalyzeVideoOutput } from '@/lib/types';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -123,7 +123,7 @@ export default function VideoReviewPage() {
 function VideoReviewPageContent() {
   const [file, setFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { notify } = useNotification();
+  const { toast } = useToast();
 
   const [analysisStatus, setAnalysisStatus] = useState<AnalysisStatus>("idle");
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -181,14 +181,14 @@ function VideoReviewPageContent() {
   const handleFileSelect = (selectedFile: File | null) => {
     if (selectedFile) {
       if (!selectedFile.type.startsWith('video/')) {
-        notify({
+        toast({
           title: "Arquivo Inválido",
           description: "Por favor, selecione um arquivo de vídeo (MP4, MOV, etc.).",
         });
         return;
       }
       if (selectedFile.size > MAX_FILE_SIZE_BYTES) {
-        notify({
+        toast({
           title: "Arquivo Muito Grande",
           description: `O vídeo para análise deve ter no máximo ${MAX_FILE_SIZE_MB}MB.`,
         });
@@ -231,11 +231,11 @@ function VideoReviewPageContent() {
 
   const handleAnalyzeVideo = async () => {
     if (!file || !user || !firestore) {
-      notify({ title: "Faltam informações para iniciar a análise." });
+      toast({ title: "Faltam informações para iniciar a análise." });
       return;
     }
     if (hasReachedLimit) {
-      notify({ title: "Limite diário de análises atingido." });
+      toast({ title: "Limite diário de análises atingido." });
       return;
     }
     
@@ -289,10 +289,10 @@ function VideoReviewPageContent() {
                     } else {
                         await setDoc(usageDocRef, { date: todayStr, videoAnalyses: 1, geracoesAI: 0 });
                     }
-                    notify({ title: "Análise Concluída!", description: "Seu vídeo foi analisado e salvo no seu histórico." });
+                    toast({ title: "Análise Concluída!", description: "Seu vídeo foi analisado e salvo no seu histórico." });
                 } catch (saveError: any) {
                     console.error('Failed to save analysis:', saveError);
-                    notify({
+                    toast({
                         title: 'Análise Concluída (com um porém)',
                         description: 'Não foi possível salvar sua análise no histórico. Erro: ' + saveError.message,
                         duration: 7000,
@@ -345,8 +345,8 @@ function VideoReviewPageContent() {
         
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2 bg-muted p-1">
-            <TabsTrigger value="generate" className="text-muted-foreground data-[state=active]:bg-zinc-800 data-[state=active]:text-white px-6 py-2 text-sm font-semibold transition-colors hover:bg-primary/5">Analisar Vídeo</TabsTrigger>
-            <TabsTrigger value="result" disabled={!file} className="text-muted-foreground data-[state=active]:bg-zinc-800 data-[state=active]:text-white px-6 py-2 text-sm font-semibold transition-colors hover:bg-primary/5">
+            <TabsTrigger value="generate" className="text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary px-6 py-2 text-sm font-semibold transition-colors hover:bg-primary/5">Analisar Vídeo</TabsTrigger>
+            <TabsTrigger value="result" disabled={!file} className="text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary px-6 py-2 text-sm font-semibold transition-colors hover:bg-primary/5">
                 Resultado { (analysisStatus === 'analyzing' || analysisStatus === 'uploading') && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
             </TabsTrigger>
         </TabsList>

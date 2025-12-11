@@ -16,7 +16,7 @@ import { User as UserIcon, Instagram, Film, Search, Loader2, AlertTriangle, User
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useState, useEffect, useTransition } from 'react';
-import { useNotification } from '@/hooks/use-notification';
+import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -50,7 +50,7 @@ type SearchStatus = 'idle' | 'loading' | 'success' | 'error';
 export default function IntegrationsPage() {
   const { user } = useUser();
   const firestore = useFirestore();
-  const { notify } = useNotification();
+  const { toast } = useToast();
   const router = useRouter();
   
   const [instaStatus, setInstaStatus] = useState<SearchStatus>('idle');
@@ -115,7 +115,7 @@ export default function IntegrationsPage() {
   const handleInstagramSearch = async () => {
     const username = form.getValues('instagramHandle') || '';
     if (!username) {
-      notify({ title: 'Atenção', description: 'Por favor, insira um nome de usuário do Instagram.', variant: 'destructive'});
+      toast({ title: 'Atenção', description: 'Por favor, insira um nome de usuário do Instagram.', variant: 'destructive'});
       return;
     }
     setInstaStatus('loading');
@@ -180,7 +180,7 @@ export default function IntegrationsPage() {
         }
         
         setInstaStatus('success');
-        notify({
+        toast({
           title: 'Sucesso!',
           description: 'Sua conta do Instagram foi sincronizada.',
         });
@@ -188,7 +188,7 @@ export default function IntegrationsPage() {
     } catch (e: any) {
       setInstaError(e.message || 'Ocorreu um erro desconhecido.');
       setInstaStatus('error');
-      notify({
+      toast({
         title: 'Erro na Sincronização',
         description: e.message || 'Ocorreu um erro desconhecido.',
         variant: 'destructive',
@@ -199,7 +199,7 @@ export default function IntegrationsPage() {
     const handleTiktokSearch = async () => {
     const tiktokUsername = form.getValues('tiktokHandle') || '';
     if (!tiktokUsername) {
-      notify({ title: 'Atenção', description: 'Por favor, insira um nome de usuário do TikTok.', variant: 'destructive'});
+      toast({ title: 'Atenção', description: 'Por favor, insira um nome de usuário do TikTok.', variant: 'destructive'});
       return;
     }
     setTiktokStatus('loading');
@@ -265,7 +265,7 @@ export default function IntegrationsPage() {
           });
         }
         setTiktokStatus('success');
-        notify({
+        toast({
           title: 'Sucesso!',
           description: 'Sua conta do TikTok foi sincronizada.',
         });
@@ -273,7 +273,7 @@ export default function IntegrationsPage() {
     } catch (e: any) {
       setTiktokError(e.message || 'Ocorreu um erro desconhecido.');
       setTiktokStatus('error');
-      notify({
+      toast({
         title: 'Erro na Sincronização',
         description: e.message || 'Ocorreu um erro desconhecido.',
         variant: 'destructive',
