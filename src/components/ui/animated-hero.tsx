@@ -38,9 +38,9 @@ function AnimatedHero() {
   return (
     <div className="w-full">
       <div className="container mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pt-16 md:pt-32 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 pt-16 md:pt-32 items-center">
             {/* Text Content */}
-            <div className="flex flex-col items-center lg:items-start text-center lg:text-left">
+            <div className="flex flex-col items-center lg:items-start text-center lg:text-left lg:col-span-2">
                 <div>
                     <Button variant="outline" size="sm" className="gap-4 rounded-full bg-transparent text-primary hover:bg-primary/10 border-primary">
                     <Sparkles className="w-4 h-4 animate-pulse" />
@@ -106,7 +106,7 @@ function AnimatedHero() {
             {/* Image Content */}
             <section
                 ref={targetRef}
-                className="relative py-12 lg:block"
+                className="relative py-12 hidden lg:block lg:col-span-3"
             >
                 <div
                     className="absolute inset-0"
