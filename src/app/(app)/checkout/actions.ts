@@ -48,14 +48,11 @@ export async function createAsaasPaymentAction(
 
   const { name, cpfCnpj, email, phone, postalCode, addressNumber, plan, cycle, billingType, userId } = parsed.data;
   const apiKey = process.env.ASAAS_API_KEY;
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  // Use a Vercel URL in production, but provide a localhost fallback for local development.
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
   
   if (!apiKey) {
     return { error: 'Erro de configuração do servidor: ASAAS_API_KEY não encontrada.' };
-  }
-  
-  if (!appUrl) {
-    return { error: 'Erro de configuração do servidor: NEXT_PUBLIC_APP_URL não encontrada.' };
   }
   
   try {
@@ -105,6 +102,8 @@ export async function createAsaasPaymentAction(
     const planName = `${plan.toUpperCase()} - ${cycle === 'monthly' ? 'Mensal' : 'Anual'}`;
     const isRecurrent = billingType === 'CREDIT_CARD';
     
+    let endpoint = isRecurrent ? 'subscriptions' : 'payments';
+    
     const checkoutBody: any = {
         customer: customerId,
         billingType: billingType,
@@ -117,11 +116,8 @@ export async function createAsaasPaymentAction(
         },
         postalService: false,
     };
-    
-    let endpoint = 'payments';
 
     if (isRecurrent) {
-        endpoint = 'subscriptions';
         checkoutBody.cycle = cycle === 'annual' ? 'YEARLY' : 'MONTHLY';
     } else { // PIX
         checkoutBody.dueDate = new Date().toISOString().split('T')[0];
@@ -140,19 +136,23 @@ export async function createAsaasPaymentAction(
     const checkoutData = await checkoutResponse.json();
 
     if (!checkoutResponse.ok) {
-        console.error('[Asaas Action] Erro na resposta da API de checkout:', checkoutData);
+        console.error(`[Asaas Action] Erro na resposta da API de ${endpoint}:`, checkoutData);
         throw new Error(checkoutData.errors?.[0]?.description || 'Falha ao criar o link de checkout.');
     }
     
-    // Asaas retorna 'id' para assinatura e 'invoiceUrl' para pagamento único (PIX)
-    const finalCheckoutUrl = isRecurrent ? `https://sandbox.asaas.com/c/${checkoutData.id}` : checkoutData.invoiceUrl;
+    let finalCheckoutUrl;
+    if (isRecurrent) {
+        finalCheckoutUrl = `https://sandbox.asaas.com/c/${checkoutData.id}`;
+    } else {
+        finalCheckoutUrl = checkoutData.invoiceUrl; // For PIX
+    }
 
     if (!finalCheckoutUrl || !checkoutData.id) {
          console.error('[Asaas Action] Resposta da API de checkout não continha uma URL ou ID válido:', checkoutData);
-         throw new Error('Ocorreu um erro inesperado ao criar o link de checkout.');
+         throw new Error('Ocorreu um erro inesperado ao criar o link de pagamento.');
     }
 
-    // Salvar o ID da assinatura (se for recorrente) ou do pagamento
+    // Salvar o ID da assinatura (se for recorrente)
     if (isRecurrent) {
         await userRef.update({ 'subscription.asaasSubscriptionId': checkoutData.id });
     }
