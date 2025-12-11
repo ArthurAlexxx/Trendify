@@ -119,7 +119,7 @@ function AnimatedHero() {
                 <div className="container mx-auto">
                     <motion.div
                         style={{ scale }}
-                        className="relative w-full scale-125"
+                        className="relative w-full scale-150"
                     >
                         <Image
                         src="https://firebasestorage.googleapis.com/v0/b/studio-4233590611-a8ab0.firebasestorage.app/o/Sem%20nome%20(Quadro%20branco).png?alt=media&token=242aeba3-137e-4a70-b344-c81507275c68"
@@ -135,7 +135,7 @@ function AnimatedHero() {
         </div>
 
         {/* Social Proof Badges - This remains below the grid */}
-        <div className="flex flex-wrap items-center justify-center gap-3 mt-12 md:-mt-12 lg:mt-4 relative z-10">
+        <div className="flex flex-wrap items-center justify-center gap-3 mt-4 relative z-10">
             <div className="flex items-center gap-2 text-sm text-foreground bg-muted/50 border rounded-lg px-3 py-1.5">
             <Users className="h-4 w-4 text-primary" />
             <span className="font-semibold">+20 mil</span>
