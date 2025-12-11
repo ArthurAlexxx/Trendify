@@ -1,4 +1,3 @@
-
 'use client';
 import { useEffect, useMemo, useState, useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
@@ -119,7 +118,7 @@ function AnimatedHero() {
                 <div className="container mx-auto">
                     <motion.div
                         style={{ scale }}
-                        className="relative w-full"
+                        className="relative w-full lg:scale-125 lg:-mr-24"
                     >
                         <Image
                         src="https://firebasestorage.googleapis.com/v0/b/studio-4233590611-a8ab0.firebasestorage.app/o/Sem%20nome%20(Quadro%20branco).png?alt=media&token=242aeba3-137e-4a70-b344-c81507275c68"
@@ -131,27 +130,28 @@ function AnimatedHero() {
                         />
                     </motion.div>
                 </div>
+                 {/* Social Proof Badges */}
+                <div className="flex flex-wrap items-center justify-center gap-3 mt-4 relative z-10">
+                    <div className="flex items-center gap-2 text-sm text-foreground bg-muted/50 border rounded-lg px-3 py-1.5">
+                    <Users className="h-4 w-4 text-primary" />
+                    <span className="font-semibold">+20 mil</span>
+                    <span className="text-muted-foreground">criadores ativos</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-foreground bg-muted/50 border rounded-lg px-3 py-1.5">
+                    <Lightbulb className="h-4 w-4 text-primary" />
+                    <span className="font-semibold">+500 mil</span>
+                    <span className="text-muted-foreground">ideias geradas</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-foreground bg-muted/50 border rounded-lg px-3 py-1.5">
+                    <BarChartIcon className="h-4 w-4 text-primary" />
+                    <span className="font-semibold">+85%</span>
+                    <span className="text-muted-foreground">de crescimento médio</span>
+                    </div>
+                </div>
             </section>
         </div>
 
-        {/* Social Proof Badges - This remains below the grid */}
-        <div className="flex flex-wrap items-center justify-center gap-3 mt-4 relative z-10">
-            <div className="flex items-center gap-2 text-sm text-foreground bg-muted/50 border rounded-lg px-3 py-1.5">
-            <Users className="h-4 w-4 text-primary" />
-            <span className="font-semibold">+20 mil</span>
-            <span className="text-muted-foreground">criadores ativos</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-foreground bg-muted/50 border rounded-lg px-3 py-1.5">
-            <Lightbulb className="h-4 w-4 text-primary" />
-            <span className="font-semibold">+500 mil</span>
-            <span className="text-muted-foreground">ideias geradas</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-foreground bg-muted/50 border rounded-lg px-3 py-1.5">
-            <BarChartIcon className="h-4 w-4 text-primary" />
-            <span className="font-semibold">+85%</span>
-            <span className="text-muted-foreground">de crescimento médio</span>
-            </div>
-        </div>
+       
       </div>
     </div>
   );
