@@ -131,6 +131,10 @@
             "paymentId": {
               "type": "string",
               "description": "The customer ID from the payment provider (e.g., 'cus_...')."
+            },
+            "asaasSubscriptionId": {
+              "type": "string",
+              "description": "The ID of the active Asaas subscription object (sub_...)."
             }
           }
         }

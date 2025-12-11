@@ -66,13 +66,13 @@ async function logWebhook(firestore: ReturnType<typeof getFirestore>, event: any
   }
 }
 
-// Função para encontrar o userId usando diferentes métodos de fallback
-async function findUserInfo(firestore: ReturnType<typeof getFirestore>, payload: any): Promise<{ userId: string; plan?: Plan; cycle?: 'monthly' | 'annual' } | null> {
+// Função para encontrar o userId usando o externalReference
+async function findUserInfo(payload: any): Promise<{ userId: string; plan?: Plan; cycle?: 'monthly' | 'annual' } | null> {
     
-    const referenceObject = payload.subscription || payload.payment || payload;
+    const referenceObject = payload.subscription || payload.payment;
     
-    // Método 1: Tenta extrair do externalReference (o método preferido)
-    if (referenceObject.externalReference) {
+    // O método preferido e agora único para identificar a transação
+    if (referenceObject?.externalReference) {
         try {
             const externalRefData = JSON.parse(referenceObject.externalReference);
             if (externalRefData.userId && externalRefData.plan && externalRefData.cycle) {
@@ -84,33 +84,12 @@ async function findUserInfo(firestore: ReturnType<typeof getFirestore>, payload:
                 };
             }
         } catch(e) {
-             console.log("[Webhook] externalReference não é um JSON válido ou está incompleto. Tentando fallback.");
+             console.error("[Webhook] ERRO: externalReference não é um JSON válido ou está incompleto.", e);
         }
     }
 
-    // Identificar o userId através do customerId
-    let userId: string | null = null;
-    const customerId = referenceObject.customer;
-
-    if (customerId) {
-        const usersByCustomer = await firestore
-          .collection('users')
-          .where('subscription.paymentId', '==', customerId)
-          .limit(1)
-          .get();
-        if (!usersByCustomer.empty) {
-            userId = usersByCustomer.docs[0].id;
-            console.warn(`[Webhook] Fallback: Usuário encontrado pelo customerId: ${userId}.`);
-        }
-    }
-
-    if (!userId) {
-        console.error(`[Webhook] ERRO: Não foi possível resolver o usuário para o evento.`);
-        return null;
-    }
-    
-    console.error(`[Webhook] ERRO: Não foi possível determinar o plano e ciclo para o usuário ${userId}.`);
-    return { userId }; // Retorna apenas o userId se nada mais funcionar
+    console.error(`[Webhook] ERRO CRÍTICO: Não foi possível resolver o usuário para o evento pois 'externalReference' está ausente ou mal formatado.`);
+    return null;
 }
 
 // Função para processar a confirmação de pagamento
@@ -196,7 +175,7 @@ export async function POST(req: NextRequest) {
        return NextResponse.json({ success: true, message: 'Evento recebido, mas sem dados de pagamento ou assinatura para processar.' });
   }
   
-  const userInfo = await findUserInfo(firestore, paymentOrSubscription);
+  const userInfo = await findUserInfo(paymentOrSubscription);
 
   if (!userInfo || !userInfo.userId) {
     console.warn('[Asaas Webhook] Não foi possível resolver o ID do usuário para o evento:', paymentOrSubscription.id);

@@ -21,7 +21,7 @@ const CreatePaymentSchema = z.object({
   addressNumber: z.string().min(1, 'O número é obrigatório.'),
   plan: z.enum(['pro', 'premium']),
   cycle: z.enum(['monthly', 'annual']),
-  billingTypes: z.array(z.enum(['PIX', 'CREDIT_CARD', 'BOLETO'])),
+  billingTypes: z.array(z.enum(['PIX', 'CREDIT_CARD'])),
   userId: z.string().min(1, 'ID do usuário é obrigatório.'),
 });
 
@@ -36,7 +36,7 @@ interface ActionState {
 /**
  * Busca o endereço a partir do CEP usando a API ViaCEP.
  */
-async function getAddressFromCEP(cep: string): Promise<{ address: string; province: string; city: string; error?: string }> {
+async function getAddressFromCEP(cep: string): Promise<{ address: string; province: string; error?: string }> {
     try {
         const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
         if (!response.ok) {
@@ -49,13 +49,13 @@ async function getAddressFromCEP(cep: string): Promise<{ address: string; provin
         return {
             address: data.logradouro,
             province: data.bairro,
-            city: data.localidade,
         };
     } catch (e: any) {
         console.error(`[ViaCEP Error] ${e.message}`);
-        return { error: e.message, address: '', province: '', city: '' };
+        return { error: e.message, address: '', province: '' };
     }
 }
+
 
 /**
  * Cria um link de checkout na Asaas usando o endpoint /checkouts,
@@ -84,20 +84,18 @@ export async function createAsaasPaymentAction(
   }
   
   try {
-    const { address, province, city, error: cepError } = await getAddressFromCEP(postalCode);
-
+    const { address, province, error: cepError } = await getAddressFromCEP(postalCode);
     if (cepError) {
       return { error: `Erro no CEP: ${cepError}` };
     }
 
     const price = priceMap[plan][cycle];
-    
-    // Metadados para identificar a compra no webhook
     const externalReference = JSON.stringify({ userId, plan, cycle });
+    const isRecurrent = plan !== 'free'; // Assume any paid plan is a subscription
     
     const checkoutBody: any = {
-      operationType: 'SUBSCRIPTION',
-      customerData: {
+      operationType: isRecurrent ? 'SUBSCRIPTION' : 'PAYMENT',
+      customer: {
         name,
         email,
         cpfCnpj,
@@ -106,24 +104,30 @@ export async function createAsaasPaymentAction(
         address,
         addressNumber,
         province,
-        city,
       },
       billing: {
         billingTypes: billingTypes,
       },
       callback: {
         successUrl: `${appUrl}/dashboard?checkout=success`,
-        cancelUrl: `${appUrl}/dashboard?checkout=cancel`,
         autoRedirect: true,
       },
-      subscription: {
-        description: `Assinatura do plano ${plan.toUpperCase()} (${cycle === 'annual' ? 'Anual' : 'Mensal'}) na Trendify`,
-        cycle: cycle === 'annual' ? 'YEARLY' : 'MONTHLY',
+      items: [{
+        name: `Plano ${plan.toUpperCase()} - ${cycle === 'annual' ? 'Anual' : 'Mensal'}`,
         value: price,
-        externalReference: externalReference, // Adicionado aqui para assinaturas
-      },
-      externalReference: externalReference, 
+        quantity: 1,
+      }],
+      externalReference: externalReference, // For single payments
     };
+    
+    if (isRecurrent) {
+        checkoutBody.subscription = {
+            description: `Assinatura do plano ${plan.toUpperCase()} (${cycle === 'annual' ? 'Anual' : 'Mensal'}) na Trendify`,
+            cycle: cycle === 'annual' ? 'YEARLY' : 'MONTHLY',
+            value: price,
+            externalReference: externalReference,
+        };
+    }
     
     const checkoutResponse = await fetch('https://sandbox.asaas.com/api/v3/checkouts', {
         method: 'POST',

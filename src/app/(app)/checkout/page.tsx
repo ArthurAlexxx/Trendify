@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -32,7 +33,7 @@ const formSchema = z.object({
   phone: z.string().min(10, 'O telefone é obrigatório.'),
   postalCode: z.string().min(8, 'O CEP é obrigatório.'),
   addressNumber: z.string().min(1, 'O número é obrigatório.'),
-  billingType: z.enum(['PIX', 'CREDIT_CARD', 'BOLETO']),
+  billingType: z.enum(['PIX', 'CREDIT_CARD']),
 });
 
 type FormSchemaType = z.infer<typeof formSchema>;
@@ -152,7 +153,7 @@ function CheckoutPageContent() {
                       <RadioGroup
                         onValueChange={field.onChange}
                         defaultValue={field.value}
-                        className="grid grid-cols-1 md:grid-cols-3 gap-4"
+                        className="grid grid-cols-1 md:grid-cols-2 gap-4"
                       >
                         <FormItem className="flex-1">
                           <FormControl>
@@ -168,14 +169,6 @@ function CheckoutPageContent() {
                           </FormControl>
                           <Label htmlFor="pix" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer [&:has([data-state=checked])]:border-primary">
                             <Banknote className="mb-3 h-6 w-6" /> PIX
-                          </Label>
-                        </FormItem>
-                         <FormItem className="flex-1">
-                          <FormControl>
-                            <RadioGroupItem value="BOLETO" id="boleto" className="sr-only" />
-                          </FormControl>
-                          <Label htmlFor="boleto" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer [&:has([data-state=checked])]:border-primary">
-                            <Banknote className="mb-3 h-6 w-6" /> Boleto
                           </Label>
                         </FormItem>
                       </RadioGroup>
