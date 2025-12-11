@@ -24,7 +24,7 @@ import { Button } from '@/components/ui/button';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useToast } from '@/hooks/use-toast';
+import { useNotification } from '@/hooks/use-notification';
 import type { UserProfile } from '@/lib/types';
 import { Loader2, PartyPopper, Trophy } from 'lucide-react';
 import { useUser, useFirestore } from '@/firebase';
@@ -50,7 +50,7 @@ interface FollowerGoalSheetProps {
 export function FollowerGoalSheet({ userProfile, children, isOpen, setIsOpen, isGoalReached }: FollowerGoalSheetProps) {
     const { user } = useUser();
     const firestore = useFirestore();
-    const { toast } = useToast();
+    const { notify } = useNotification();
     const [isPending, startTransition] = useTransition();
     
     const form = useForm<FormData>({
@@ -81,10 +81,10 @@ export function FollowerGoalSheet({ userProfile, children, isOpen, setIsOpen, is
                     instagramFollowerGoal: data.instagramFollowerGoal,
                     tiktokFollowerGoal: data.tiktokFollowerGoal,
                 });
-                toast({ title: "Sucesso!", description: "Suas metas de seguidores foram atualizadas." });
+                notify({ title: "Sucesso!", description: "Suas metas de seguidores foram atualizadas." });
                 setIsOpen(false);
             } catch (e: any) {
-                toast({ title: "Erro", description: e.message, variant: "destructive" });
+                notify({ title: "Erro", description: e.message, variant: "destructive" });
             }
         });
     }

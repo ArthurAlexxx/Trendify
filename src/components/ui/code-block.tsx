@@ -1,10 +1,11 @@
+
 'use client';
 
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from './button';
 import { Check, Copy } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { useNotification } from '@/hooks/use-notification';
 
 interface CodeBlockProps extends React.HTMLAttributes<HTMLPreElement> {
   value: string;
@@ -12,13 +13,13 @@ interface CodeBlockProps extends React.HTMLAttributes<HTMLPreElement> {
 }
 
 export function CodeBlock({ value, language, className, ...props }: CodeBlockProps) {
-  const { toast } = useToast();
+  const { notify } = useNotification();
   const [hasCopied, setHasCopied] = useState(false);
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(value);
     setHasCopied(true);
-    toast({ title: 'Copiado!', description: 'O código foi copiado para a área de transferência.' });
+    notify({ title: 'Copiado!', description: 'O código foi copiado para a área de transferência.' });
     setTimeout(() => setHasCopied(false), 2000);
   };
 

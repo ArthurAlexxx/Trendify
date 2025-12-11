@@ -43,7 +43,7 @@ import { Separator } from './ui/separator';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useRef, useState } from 'react';
-import { useResponsiveToast } from '@/hooks/use-responsive-toast';
+import { useNotification } from '@/hooks/use-notification';
 import { getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/storage';
 import { initializeFirebase } from '@/firebase';
 import { doc, updateDoc, Timestamp } from 'firebase/firestore';
@@ -111,7 +111,7 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
   const { isAdmin, isLoading: isAdminLoading } = useAdmin();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { toast } = useResponsiveToast();
+  const { notify } = useNotification();
 
   const handleSignOut = () => {
     auth.signOut();
@@ -159,7 +159,7 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
     if (!file || !user || !auth.currentUser) return;
 
     if (!file.type.startsWith('image/')) {
-        toast({ title: 'Arquivo inválido', description: 'Por favor, selecione um arquivo de imagem.', variant: 'destructive'});
+        notify({ title: 'Arquivo inválido', description: 'Por favor, selecione um arquivo de imagem.', icon: <Upload className="h-5 w-5 text-destructive" />});
         return;
     }
 
@@ -174,7 +174,7 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
         (snapshot) => { /* Progress can be handled here if needed */ },
         (error) => {
             console.error('Upload error:', error);
-            toast({ title: 'Erro no Upload', description: 'Não foi possível enviar sua foto.', variant: 'destructive'});
+            notify({ title: 'Erro no Upload', description: 'Não foi possível enviar sua foto.', icon: <Upload className="h-5 w-5 text-destructive" />});
         },
         async () => {
             try {
@@ -186,9 +186,9 @@ export function AppSidebar({ isMobile = false, setIsMobileMenuOpen }: { isMobile
                 if (firestore) {
                     await updateDoc(doc(firestore, "users", user.uid), { photoURL: downloadURL });
                 }
-                toast({ title: 'Sucesso!', description: 'Sua foto de perfil foi atualizada.' });
+                notify({ title: 'Sucesso!', description: 'Sua foto de perfil foi atualizada.' });
             } catch (e: any) {
-                toast({ title: 'Erro ao Atualizar', description: `Não foi possível salvar a nova foto. ${e.message}`, variant: 'destructive' });
+                notify({ title: 'Erro ao Atualizar', description: `Não foi possível salvar a nova foto. ${e.message}`, icon: <Upload className="h-5 w-5 text-destructive" /> });
             }
         }
     );
