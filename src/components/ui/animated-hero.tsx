@@ -32,12 +32,12 @@ function AnimatedHero() {
     offset: ["start end", "end start"],
   });
 
-  const scale = useTransform(scrollYProgress, [0, 0.5], [1, 1.1]);
+  const scale = useTransform(scrollYProgress, [0, 0.5], [0.8, 1]);
 
 
   return (
     <div className="w-full">
-      <div className="container relative pt-24 md:pt-40 pb-16 md:pb-24 px-6 text-center">
+      <div className="container relative pt-32 md:pt-48 pb-16 md:pb-24 px-6 text-center">
         {/* Text Content */}
           <div className="relative z-10 flex flex-col items-center text-center">
               <div>
@@ -98,6 +98,7 @@ function AnimatedHero() {
 
           {/* Image Content */}
           <div ref={targetRef} className="relative mt-12">
+            <div className="absolute inset-0 -z-10 bg-gradient-radial from-primary/10 via-primary/5 to-transparent" />
             <motion.div style={{ scale }}>
                 <Image
                 src="https://firebasestorage.googleapis.com/v0/b/studio-4233590611-a8ab0.firebasestorage.app/o/Sem%20nome%20(Quadro%20branco)%20(2).png?alt=media&token=7f2fd083-8a2a-469b-a6df-8173e38b8a10"
