@@ -111,7 +111,7 @@ function AnimatedHero() {
           </div>
 
           {/* Image Content */}
-          <div ref={targetRef} className="relative mt-20 bg-gradient-to-r from-transparent via-primary/10 to-transparent [width:95%] mx-auto">
+          <div ref={targetRef} className="relative mt-20 bg-gradient-to-r from-transparent via-primary/30 to-transparent [width:95%] mx-auto">
             <motion.div style={{ scale, y }}>
                 <Image
                 src="https://firebasestorage.googleapis.com/v0/b/studio-4233590611-a8ab0.firebasestorage.app/o/Sem%20nome%20(Quadro%20branco)%20(2).png?alt=media&token=7f2fd083-8a2a-469b-a6df-8173e38b8a10"
