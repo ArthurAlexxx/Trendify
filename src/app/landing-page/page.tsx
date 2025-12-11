@@ -355,7 +355,7 @@ export default function LandingPage() {
                             Benefícios
                         </Button>
                     </div>
-					<h2 className="text-3xl font-bold tracking-wide text-balance md:text-4xl lg:text-5xl xl:font-extrabold">
+					<h2 className="font-headline text-3xl font-bold tracking-wide text-balance md:text-4xl lg:text-5xl xl:font-extrabold">
 						A plataforma completa para criadores
 					</h2>
 					<p className="text-muted-foreground mt-4 text-sm tracking-wide text-balance md:text-base">
