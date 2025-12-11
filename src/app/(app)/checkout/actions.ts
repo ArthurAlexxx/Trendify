@@ -54,6 +54,10 @@ export async function createAsaasPaymentAction(
     return { error: 'Erro de configuração do servidor: ASAAS_API_KEY não encontrada.' };
   }
   
+  if (!appUrl) {
+    return { error: 'Erro de configuração do servidor: NEXT_PUBLIC_APP_URL não encontrada.' };
+  }
+  
   try {
     // ETAPA 1: Criar ou obter o cliente na Asaas
     const customerResponse = await fetch('https://sandbox.asaas.com/api/v3/customers', {
@@ -119,10 +123,8 @@ export async function createAsaasPaymentAction(
     if (isRecurrent) {
         endpoint = 'subscriptions';
         checkoutBody.cycle = cycle === 'annual' ? 'YEARLY' : 'MONTHLY';
-        // Para cartão, a cobrança é imediata por padrão, não precisamos de 'dueDate'
     } else { // PIX
         checkoutBody.dueDate = new Date().toISOString().split('T')[0];
-        checkoutBody.dueDateLimitDays = 1; // Para PIX, mantém um prazo curto
     }
     
     const checkoutResponse = await fetch(`https://sandbox.asaas.com/api/v3/${endpoint}`, {
