@@ -37,7 +37,7 @@ function AnimatedHero() {
 
   return (
     <div className="w-full">
-      <div className="container relative pt-16 md:pt-32 px-6 text-center">
+      <div className="container relative pt-16 md:pt-32 pb-16 md:pb-24 px-6 text-center">
         {/* Text Content */}
           <div className="relative z-10 flex flex-col items-center text-center">
               <div>
@@ -97,7 +97,7 @@ function AnimatedHero() {
           </div>
 
           {/* Image Content */}
-          <div ref={targetRef} className="relative mt-12 lg:mt-20">
+          <div ref={targetRef} className="relative mt-12">
              <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-48 w-full bg-gradient-radial from-primary/20 to-transparent blur-3xl -z-10" />
               <motion.div
                   style={{ scale }}
@@ -107,7 +107,7 @@ function AnimatedHero() {
                   alt="Dashboard da Trendify mostrando métricas de crescimento"
                   width={1200}
                   height={750}
-                  className="w-full max-w-6xl mx-auto h-auto"
+                  className="w-full max-w-5xl mx-auto h-auto"
                   priority
                   />
               </motion.div>
