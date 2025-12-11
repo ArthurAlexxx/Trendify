@@ -10,38 +10,38 @@ import Image from "next/image";
 
 function AnimatedHero() {
   const [currentTitle, setCurrentTitle] = useState('');
-  const [titleIndex, setTitleIndex] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [loopNum, setLoopNum] = useState(0);
+  const [typingSpeed, setTypingSpeed] = useState(150);
+
   const titles = useMemo(
     () => ["crescimento", "roteiros", "ideias", "parcerias", "conteúdo"],
     []
   );
 
   useEffect(() => {
-    const typeSpeed = isDeleting ? 75 : 150;
-    const fullWord = titles[titleIndex];
-
     const handleTyping = () => {
-      if (isDeleting) {
-        if (currentTitle.length > 0) {
-          setCurrentTitle(currentTitle.slice(0, -1));
-        } else {
-          setIsDeleting(false);
-          setTitleIndex((prevIndex) => (prevIndex + 1) % titles.length);
-        }
-      } else {
-        if (currentTitle.length < fullWord.length) {
-          setCurrentTitle(fullWord.slice(0, currentTitle.length + 1));
-        } else {
-          // Pause before deleting
-          setTimeout(() => setIsDeleting(true), 1500);
-        }
+      const i = loopNum % titles.length;
+      const fullText = titles[i];
+
+      setCurrentTitle(
+        isDeleting
+          ? fullText.substring(0, currentTitle.length - 1)
+          : fullText.substring(0, currentTitle.length + 1)
+      );
+
+      if (!isDeleting && currentTitle === fullText) {
+        // Pause at end
+        setTimeout(() => setIsDeleting(true), 1500);
+      } else if (isDeleting && currentTitle === "") {
+        setIsDeleting(false);
+        setLoopNum(loopNum + 1);
       }
     };
 
-    const timeoutId = setTimeout(handleTyping, typeSpeed);
-    return () => clearTimeout(timeoutId);
-  }, [currentTitle, isDeleting, titleIndex, titles]);
+    const timer = setTimeout(handleTyping, typingSpeed);
+    return () => clearTimeout(timer);
+  }, [currentTitle, isDeleting, loopNum, titles, typingSpeed]);
 
 
   const targetRef = useRef<HTMLDivElement>(null);
@@ -50,7 +50,7 @@ function AnimatedHero() {
     offset: ["start end", "end start"],
   });
 
-  const scale = useTransform(scrollYProgress, [0, 0.5], [0.85, 1]);
+  const scale = useTransform(scrollYProgress, [0, 0.5], [0.8, 1]);
   const y = useTransform(scrollYProgress, [0, 0.5], ['40px', '0px']);
 
 
@@ -60,21 +60,23 @@ function AnimatedHero() {
         {/* Text Content */}
           <div className="relative z-10 flex flex-col items-center text-center">
               <div>
-                  <Button variant="outline" size="sm" className="gap-4 rounded-full bg-transparent text-primary hover:bg-primary/10 border-primary">
+                  <Button variant="outline" size="sm" className="gap-2 rounded-full bg-transparent text-primary hover:bg-primary/10 border-primary">
                   <Sparkles className="w-4 h-4 animate-pulse" />
                   Feito para criadores de conteúdo
                   </Button>
               </div>
               <div className="flex gap-4 flex-col mt-6">
-                 <h1 className="text-5xl md:text-6xl max-w-3xl tracking-tighter font-bold font-headline flex flex-wrap justify-center items-center">
-                    <span className="text-foreground/90 mr-3">A plataforma para seu</span>
-                    <span className="relative inline-block text-center h-16 text-primary min-w-[300px]">
-                      <span className="font-semibold bg-gradient-to-r from-purple-600 via-indigo-500 to-purple-600 text-gradient">
-                        {currentTitle}
-                      </span>
-                      <span className="animate-ping">|</span>
-                    </span>
-                  </h1>
+                 <div className="flex flex-wrap justify-center items-center">
+                    <h1 className="text-5xl md:text-6xl max-w-3xl tracking-tighter font-bold font-headline flex flex-wrap justify-center items-center">
+                        <span className="text-foreground/90 mr-3">A plataforma para seu</span>
+                         <span className="relative inline-block text-center h-16 text-primary min-w-[300px]">
+                          <span className="font-semibold bg-gradient-to-r from-purple-600 via-indigo-500 to-purple-600 text-gradient">
+                            {currentTitle}
+                          </span>
+                          <span className="animate-ping">|</span>
+                        </span>
+                    </h1>
+                 </div>
 
 
                   <p className="text-lg md:text-xl leading-relaxed tracking-tight text-muted-foreground max-w-2xl mx-auto">
@@ -106,7 +108,7 @@ function AnimatedHero() {
 
           {/* Image Content */}
           <div ref={targetRef} className="relative mt-20">
-            <div className="absolute inset-0 -z-10 bg-gradient-radial from-primary/10 via-primary/5 to-transparent" />
+            <div className="absolute inset-0 -z-10 bg-gradient-radial from-primary/20 via-primary/10 to-transparent" />
             <motion.div style={{ scale, y }}>
                 <Image
                 src="https://firebasestorage.googleapis.com/v0/b/studio-4233590611-a8ab0.firebasestorage.app/o/Sem%20nome%20(Quadro%20branco)%20(2).png?alt=media&token=7f2fd083-8a2a-469b-a6df-8173e38b8a10"
