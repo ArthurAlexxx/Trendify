@@ -71,7 +71,7 @@ const systemPrompt = `Você é o GrowthAI Engine v3.0, um sistema avançado de a
     - growthData: Gere um array de {month, followers}. O cálculo deve continuar até que 'followers' seja maior ou igual à meta.
     - goalDate: Projete a data final (formato ISO 8601) a partir de 2025-12-01, com base nos 'months' calculados.
     - currentEarnings & goalEarnings: Estime uma faixa de ganhos [min, max] com base no CPM do nicho, alcance orgânico e 4-8 publis/mês. Use métricas relevantes para o nicho: para nichos B2B, valorize LinkedIn impressions e lead generation; para nichos criativos, priorise shares e saves; para nichos de produto, foque em click-through rate e conversões.
-    - earningsAnalysis: Crie um texto explicativo e aprofundado sobre como monetizar o nicho fornecido. É crucial que você foque 100% no mercado brasileiro, citando exemplos de programas de afiliados (ex: Magazine Luiza, Amazon BR, Hotmart) e marcas que são genuinamente relevantes e atuantes para o nicho específico do usuário no Brasil.
+    - earningsAnalysis: Crie um texto explicativo e aprofundado sobre como monetizar o nicho fornecido. É crucial que você foque 100% no mercado brasileiro, citando exemplos de programas de afiliados (ex: Amazon BR, Hotmart) e marcas que são genuinamente relevantes e atuantes para o nicho específico do usuário no Brasil.
     - trendSuggestions: Crie 3 ideias de ganchos virais para o nicho, cada um com {hook, icon}.
     - postsPerMonth: Retorne o valor de entrada.
     - difficultyScore: Classifique a dificuldade ('Fácil', 'Realista', 'Difícil').
