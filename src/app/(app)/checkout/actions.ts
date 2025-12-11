@@ -81,7 +81,7 @@ export async function createAsaasPaymentAction(
   if (!apiKey) {
     return { error: 'Erro de configuração do servidor: ASAAS_API_KEY não encontrada.' };
   }
-   if (!appUrl) {
+   if (!appUrl && process.env.NODE_ENV === 'production') {
     return { error: 'Erro de configuração do servidor: NEXT_PUBLIC_APP_URL não encontrada.' };
   }
   
@@ -105,7 +105,7 @@ export async function createAsaasPaymentAction(
          const existingCustomerResponse = await fetch(`https://sandbox.asaas.com/api/v3/customers?cpfCnpj=${cpfCnpj}`, {
               headers: { 'access_token': apiKey }
           });
-          const existingCustomerData = await existingCustomerResponse.json();
+          const existingCustomerData: any = await existingCustomerResponse.json();
           if (existingCustomerData.data && existingCustomerData.data.length > 0) {
               customerId = existingCustomerData.data[0].id;
           } else {
@@ -136,8 +136,8 @@ export async function createAsaasPaymentAction(
 
     const checkoutBody: any = {
       customer: customerId,
-      billingTypes: [billingType],
-      chargeTypes: [isRecurrent ? "RECURRENT" : "DETACHED"],
+      billingType: [billingType],
+      chargeType: [isRecurrent ? "RECURRENT" : "DETACHED"],
       minutesToExpire: 60, 
       callback: {
         successUrl: `${appUrl}/dashboard?checkout=success`,
