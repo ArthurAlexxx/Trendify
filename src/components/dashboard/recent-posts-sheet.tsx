@@ -23,7 +23,7 @@ interface RecentPostsSheetProps {
   tiktokProfile: Partial<TikTokProfileData> | null;
   tiktokPosts: TikTokPost[] | null;
   isLoading: boolean;
-  formatNumber: (n: number) => string;
+  formatIntegerValue: (n: number | string) => string;
   onTikTokClick: (post: TikTokPost) => void;
   children: React.ReactNode;
 }
@@ -35,7 +35,7 @@ export function RecentPostsSheet({
     tiktokProfile,
     tiktokPosts,
     isLoading,
-    formatNumber,
+    formatIntegerValue,
     onTikTokClick,
 }: RecentPostsSheetProps) {
 
@@ -72,7 +72,7 @@ export function RecentPostsSheet({
                                 <Avatar className="h-5 w-5"><AvatarImage src={instaProfile.profilePicUrlHd} /></Avatar>
                                 Vídeos Recentes do Instagram
                             </h3>
-                            <InstagramProfileResults profile={instaProfile} posts={instaPosts} formatNumber={formatNumber} error={null} />
+                            <InstagramProfileResults profile={instaProfile} posts={instaPosts} formatIntegerValue={formatIntegerValue} error={null} />
                             </>
                         ) : (
                             <div className="text-center py-20">
@@ -88,7 +88,7 @@ export function RecentPostsSheet({
                             <Avatar className="h-5 w-5"><AvatarImage src={tiktokProfile.avatarUrl} /></Avatar>
                                 Vídeos Recentes do TikTok
                             </h3>
-                            <TikTokProfileResults profile={tiktokProfile} posts={tiktokPosts} formatNumber={formatNumber} onVideoClick={onTikTokClick} error={null} />
+                            <TikTokProfileResults profile={tiktokProfile} posts={tiktokPosts} formatIntegerValue={formatIntegerValue} onVideoClick={onTikTokClick} error={null} />
                             </>
                         ) : (
                             <div className="text-center py-20">
