@@ -47,7 +47,7 @@ function AnimatedHero() {
                   </Button>
               </div>
               <div className="flex gap-4 flex-col mt-6">
-                  <h1 className="text-5xl md:text-6xl max-w-3xl tracking-tighter font-bold font-headline flex flex-wrap justify-center">
+                  <h1 className="text-5xl md:text-6xl max-w-3xl tracking-tighter font-bold font-headline flex flex-wrap justify-center items-center">
                     <span className="text-foreground/90 mr-3">A plataforma para seu</span>
                     <span className="relative inline-block overflow-hidden text-center h-16 text-primary">
                         {titles.map((title, index) => (
@@ -97,7 +97,7 @@ function AnimatedHero() {
           </div>
 
           {/* Image Content */}
-          <div ref={targetRef} className="relative mt-12 lg:mt-0">
+          <div ref={targetRef} className="relative mt-12 lg:mt-20">
              <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-48 w-full bg-gradient-radial from-primary/20 to-transparent blur-3xl -z-10" />
               <motion.div
                   style={{ scale }}
@@ -107,7 +107,7 @@ function AnimatedHero() {
                   alt="Dashboard da Trendify mostrando métricas de crescimento"
                   width={1200}
                   height={750}
-                  className="w-full h-auto"
+                  className="w-full max-w-6xl mx-auto h-auto"
                   priority
                   />
               </motion.div>
