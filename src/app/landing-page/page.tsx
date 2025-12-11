@@ -341,7 +341,7 @@ export default function LandingPage() {
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="relative overflow-hidden">
+        <section className="relative">
            <AnimatedHero />
         </section>
 
@@ -590,7 +590,7 @@ export default function LandingPage() {
                                       <CardContent className="space-y-4 text-center p-4">
                                         {results.currentEarnings && (
                                           <div>
-                                            <p className="text-lg font-bold">
+                                            <p className="text-lg font-bold font-body">
                                               {formatCurrency(results.currentEarnings[0])} - {formatCurrency(results.currentEarnings[1])}
                                             </p>
                                             <p className="text-xs text-muted-foreground">(estimativa atual)</p>
@@ -598,7 +598,7 @@ export default function LandingPage() {
                                         )}
                                         {results.goalEarnings && (
                                            <div>
-                                            <p className="text-lg font-bold">
+                                            <p className="text-lg font-bold font-body">
                                               {formatCurrency(results.goalEarnings[0])} - {formatCurrency(results.goalEarnings[1])}
                                             </p>
                                             <p className="text-xs text-muted-foreground">(estimativa na meta)</p>
@@ -615,9 +615,9 @@ export default function LandingPage() {
                                     <Card className="rounded-2xl h-full border shadow-primary-lg">
                                       <CardHeader className="p-4"><CardTitle className="text-sm font-bold">Cenários de Aceleração</CardTitle></CardHeader>
                                       <CardContent className="grid grid-cols-3 gap-2 text-center p-4">
-                                          <div><p className="font-bold text-lg">{results.accelerationScenarios.maintain}</p><p className="text-xs text-muted-foreground">Meses (Ritmo Atual)</p></div>
-                                          <div><p className="font-bold text-lg">{results.accelerationScenarios.plus20}</p><p className="text-xs text-muted-foreground">Meses (+20% Posts)</p></div>
-                                          <div><p className="font-bold text-lg">{results.accelerationScenarios.plus40}</p><p className="text-xs text-muted-foreground">Meses (+40% Posts)</p></div>
+                                          <div><p className="font-bold text-lg font-body">{results.accelerationScenarios.maintain}</p><p className="text-xs text-muted-foreground">Meses (Ritmo Atual)</p></div>
+                                          <div><p className="font-bold text-lg font-body">{results.accelerationScenarios.plus20}</p><p className="text-xs text-muted-foreground">Meses (+20% Posts)</p></div>
+                                          <div><p className="font-bold text-lg font-body">{results.accelerationScenarios.plus40}</p><p className="text-xs text-muted-foreground">Meses (+40% Posts)</p></div>
                                       </CardContent>
                                     </Card>
                                     </div>
@@ -653,9 +653,9 @@ export default function LandingPage() {
                                 <Card className="rounded-2xl border shadow-primary-lg">
                                     <CardHeader className="p-4"><CardTitle className="text-sm font-bold">Cenários de Aceleração</CardTitle></CardHeader>
                                     <CardContent className="grid grid-cols-3 gap-2 text-center p-4">
-                                        <div><p className="font-bold text-lg">{results.accelerationScenarios.maintain}</p><p className="text-xs text-muted-foreground">Meses (Ritmo Atual)</p></div>
-                                        <div><p className="font-bold text-lg">{results.accelerationScenarios.plus20}</p><p className="text-xs text-muted-foreground">Meses (+20% Posts)</p></div>
-                                        <div><p className="font-bold text-lg">{results.accelerationScenarios.plus40}</p><p className="text-xs text-muted-foreground">Meses (+40% Posts)</p></div>
+                                        <div><p className="font-bold text-lg font-body">{results.accelerationScenarios.maintain}</p><p className="text-xs text-muted-foreground">Meses (Ritmo Atual)</p></div>
+                                        <div><p className="font-bold text-lg font-body">{results.accelerationScenarios.plus20}</p><p className="text-xs text-muted-foreground">Meses (+20% Posts)</p></div>
+                                        <div><p className="font-bold text-lg font-body">{results.accelerationScenarios.plus40}</p><p className="text-xs text-muted-foreground">Meses (+40% Posts)</p></div>
                                     </CardContent>
                                 </Card>
                                 )}
@@ -665,10 +665,10 @@ export default function LandingPage() {
                             <div className="space-y-6">
                                 <div className="grid grid-cols-2 gap-4">
                                     {results.months != null && (
-                                      <Card className="bg-primary/5 border-primary/20 text-center shadow-primary-lg"><CardContent className="p-4"><p className="text-xs text-muted-foreground">Tempo até a Meta</p><p className="text-lg font-bold">{results.months} meses</p></CardContent></Card>
+                                      <Card className="bg-primary/5 border-primary/20 text-center shadow-primary-lg"><CardContent className="p-4"><p className="text-xs text-muted-foreground">Tempo até a Meta</p><p className="text-lg font-bold font-body">{results.months} meses</p></CardContent></Card>
                                     )}
                                     {results.difficultyScore && (
-                                      <Card className="bg-primary/5 border-primary/20 text-center shadow-primary-lg"><CardContent className="p-4"><p className="text-xs text-muted-foreground">Nível da Meta</p><p className="text-lg font-bold">{results.difficultyScore}</p></CardContent></Card>
+                                      <Card className="bg-primary/5 border-primary/20 text-center shadow-primary-lg"><CardContent className="p-4"><p className="text-xs text-muted-foreground">Nível da Meta</p><p className="text-lg font-bold font-body">{results.difficultyScore}</p></CardContent></Card>
                                     )}
                                 </div>
                                  {(results.currentEarnings || results.goalEarnings) && (
@@ -680,7 +680,7 @@ export default function LandingPage() {
                                     </CardHeader>
                                     <CardContent className="p-4 pt-0">
                                       {results.currentEarnings && (
-                                        <p className="text-base font-semibold">
+                                        <p className="text-base font-semibold font-body">
                                           {formatCurrency(results.currentEarnings[0])} -{' '}
                                           {formatCurrency(results.currentEarnings[1])}
                                           <span className="text-xs font-normal text-muted-foreground ml-2">
@@ -689,7 +689,7 @@ export default function LandingPage() {
                                         </p>
                                       )}
                                       {results.goalEarnings && (
-                                        <p className="text-base font-semibold mt-1">
+                                        <p className="text-base font-semibold mt-1 font-body">
                                           {formatCurrency(results.goalEarnings[0])} -{' '}
                                           {formatCurrency(results.goalEarnings[1])}
                                           <span className="text-xs font-normal text-muted-foreground ml-2">
@@ -796,7 +796,7 @@ export default function LandingPage() {
                   <p className="text-muted-foreground mb-6 flex-grow text-sm">
                     Para quem está começando e quer testar a plataforma.
                   </p>
-                  <p className="text-4xl font-bold mb-6">
+                  <p className="text-4xl font-bold font-body mb-6">
                     R$0{' '}
                     <span className="text-base font-normal text-muted-foreground">
                       /para sempre
@@ -830,7 +830,7 @@ export default function LandingPage() {
                   <p className="text-muted-foreground mb-6 flex-grow text-sm">
                     Para criadores que levam o crescimento a sério e querem otimizar seu conteúdo.
                   </p>
-                  <p className="text-4xl font-bold mb-6">
+                  <p className="text-4xl font-bold font-body mb-6">
                     R$29{' '}
                     <span className="text-base font-normal text-muted-foreground">
                       /mês
@@ -876,7 +876,7 @@ export default function LandingPage() {
                   <p className="text-muted-foreground mb-6 flex-grow text-sm">
                     Acesso total para criadores que querem monetizar e profissionalizar sua carreira.
                   </p>
-                  <p className="text-4xl font-bold mb-6">
+                  <p className="text-4xl font-bold font-body mb-6">
                     R$39{' '}
                     <span className="text-base font-normal text-muted-foreground">
                       /mês

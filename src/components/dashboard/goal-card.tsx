@@ -31,7 +31,7 @@ export default function GoalCard({ isLoading, goalFollowers, currentFollowers, i
     return (
         <Card className="h-full shadow-primary-lg">
             <CardHeader>
-                <CardTitle className="text-center font-headline text-lg flex items-center justify-center gap-2">
+                <CardTitle className="text-center text-lg">
                     Meta de Seguidores
                 </CardTitle>
             </CardHeader>
@@ -61,7 +61,7 @@ export default function GoalCard({ isLoading, goalFollowers, currentFollowers, i
                                 </PieChart>
                             </ResponsiveContainer>
                             <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                <span className="text-3xl font-bold font-headline text-primary">
+                                <span className="text-3xl font-bold font-body text-primary">
                                     {followerGoalProgress.toFixed(0)}%
                                 </span>
                             </div>
@@ -71,7 +71,7 @@ export default function GoalCard({ isLoading, goalFollowers, currentFollowers, i
                             <Target className="h-12 w-12 text-muted-foreground" />
                         </div>
                     )}
-                    <p className="text-2xl font-bold font-headline mt-4">
+                    <p className="text-2xl font-bold font-body mt-4">
                         {formatMetricValue(currentFollowers)}
                     </p>
                     {goalFollowers > 0 ? (
