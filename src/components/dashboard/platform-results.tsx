@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import Image from 'next/image';
@@ -41,7 +42,7 @@ export function MetricCard({ icon: Icon, title, value, handle, isLoading }: { ic
     )
 }
 
-export function InstagramProfileResults({ profile, posts, error, formatNumber }: { profile: Partial<InstagramProfileData>, posts: InstagramPostData[] | null, error: string | null, formatNumber: (n: number) => string }) {
+export function InstagramProfileResults({ profile, posts, error, formatNumber }: { profile: Partial<InstagramProfileData>, posts: InstagramPostData[] | null, error: string | null, formatNumber: (n: any) => string }) {
     if (!profile) return null;
 
     const getPostName = (post: InstagramPostData) => {
@@ -89,7 +90,7 @@ export function InstagramProfileResults({ profile, posts, error, formatNumber }:
     );
 }
 
-export function TikTokProfileResults({ profile, posts, error, formatNumber, onVideoClick }: { profile: Partial<TikTokProfileData>, posts: TikTokPost[] | null, error: string | null, formatNumber: (n: number) => string, onVideoClick?: (post: TikTokPost) => void }) {
+export function TikTokProfileResults({ profile, posts, error, formatNumber, onVideoClick }: { profile: Partial<TikTokProfileData>, posts: TikTokPost[] | null, error: string | null, formatNumber: (n: any) => string, onVideoClick?: (post: TikTokPost) => void }) {
     if (!profile) return null;
     
     const getPostName = (post: TikTokPost) => {

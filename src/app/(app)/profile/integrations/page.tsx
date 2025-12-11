@@ -11,7 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
 import { User as UserIcon, Instagram, Film, Search, Loader2, AlertTriangle, Users, Heart, MessageSquare, Clapperboard, PlayCircle, Eye, Upload, Crown, Check, RefreshCw, Link2, ArrowLeft } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,7 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { doc, updateDoc, serverTimestamp, addDoc, collection, query, where, getDocs, Timestamp, writeBatch, setDoc } from 'firebase/firestore';
+import { doc, updateDoc, serverTimestamp, addDoc, collection, query, where, getDocs, Timestamp, writeBatch, setDoc, orderBy, limit } from 'firebase/firestore';
 import type { UserProfile, InstagramProfileData, InstagramPostData, TikTokProfileData, TikTokPost } from '@/lib/types';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -38,10 +38,6 @@ import { DialogContent } from '@radix-ui/react-dialog';
 const profileFormSchema = z.object({
   instagramHandle: z.string().optional(),
   tiktokHandle: z.string().optional(),
-  instagramProfile: z.custom<InstagramProfileData>().optional(),
-  instagramPosts: z.custom<InstagramPostData[]>().optional(),
-  tiktokProfile: z.custom<TikTokProfileData>().optional(),
-  tiktokPosts: z.custom<TikTokPost[]>().optional(),
 });
 
 type ProfileFormData = z.infer<typeof profileFormSchema>;
@@ -77,6 +73,19 @@ export default function IntegrationsPage() {
     },
   });
   
+  const instaPostsQuery = useMemoFirebase(
+      () => user && firestore ? query(collection(firestore, `users/${user.uid}/instagramPosts`), orderBy('fetchedAt', 'desc'), limit(10)) : null,
+      [user, firestore]
+  )
+  const { data: instaPosts, isLoading: isLoadingInstaPosts } = useCollection<InstagramPostData>(instaPostsQuery);
+
+  const tiktokPostsQuery = useMemoFirebase(
+      () => user && firestore ? query(collection(firestore, `users/${user.uid}/tiktokPosts`), orderBy('fetchedAt', 'desc'), limit(10)) : null,
+      [user, firestore]
+  )
+  const { data: tiktokPosts, isLoading: isLoadingTiktokPosts } = useCollection<TikTokPost>(tiktokPostsQuery);
+
+
   useEffect(() => {
     if (userProfile) {
       form.reset({
@@ -120,8 +129,6 @@ export default function IntegrationsPage() {
     }
     setInstaStatus('loading');
     setInstaError(null);
-    form.setValue('instagramProfile', undefined);
-    form.setValue('instagramPosts', undefined);
 
     const cleanedUsername = username.replace('@', '');
 
@@ -141,8 +148,6 @@ export default function IntegrationsPage() {
             fetchedAt: Timestamp.now(),
         }));
 
-        form.setValue('instagramProfile', profileResult);
-        form.setValue('instagramPosts', fullPostsData);
         form.setValue('instagramHandle', `@${profileResult.username}`);
         
         if (user && userProfileRef && firestore) {
@@ -205,8 +210,6 @@ export default function IntegrationsPage() {
     setTiktokStatus('loading');
     setTiktokError(null);
     setTiktokRawResponse(null);
-    form.setValue('tiktokProfile', undefined);
-    form.setValue('tiktokPosts', undefined);
 
     const cleanedUsername = tiktokUsername.replace('@', '');
 
@@ -225,9 +228,6 @@ export default function IntegrationsPage() {
             fetchedAt: Timestamp.now(),
         }));
 
-
-        form.setValue('tiktokProfile', profileResult);
-        form.setValue('tiktokPosts', fullPostsData);
         form.setValue('tiktokHandle', `@${profileResult.username}`);
        
         if (user && userProfileRef && firestore) {
@@ -288,9 +288,7 @@ export default function IntegrationsPage() {
     }
   };
 
-
-  const isLoading = isProfileLoading;
-
+  const isLoading = isProfileLoading || isLoadingInstaPosts || isLoadingTiktokPosts;
 
   return (
     <div className="space-y-8">
@@ -382,9 +380,20 @@ export default function IntegrationsPage() {
                             </p>
                             </CardContent>
                         </Card>
-                         {instaStatus === 'loading' && <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>}
-                         {instaStatus === 'error' && instaError && <Alert variant="destructive" className="mt-4"><AlertTriangle className="h-4 w-4" /><AlertTitle>Erro ao Buscar Perfil</AlertTitle><AlertDescription>{instaError}</AlertDescription></Alert>}
-                         {instaStatus === 'success' && <InstagramProfileResults profile={form.watch('instagramProfile')!} posts={form.watch('instagramPosts') ?? null} formatNumber={formatNumber} error={instaError} />}
+                        {isLoadingInstaPosts && <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>}
+                        {!isLoadingInstaPosts && userProfile?.instagramHandle && (
+                            <InstagramProfileResults 
+                                profile={{
+                                    username: userProfile.instagramHandle,
+                                    followersCount: userProfile.instagramFollowers,
+                                } as Partial<InstagramProfileData>}
+                                posts={instaPosts} 
+                                error={instaError}
+                                formatNumber={formatNumber}
+                            />
+                        )}
+                        {instaStatus === 'error' && instaError && <Alert variant="destructive" className="mt-4"><AlertTriangle className="h-4 w-4" /><AlertTitle>Erro ao Buscar Perfil</AlertTitle><AlertDescription>{instaError}</AlertDescription></Alert>}
+
                     </TabsContent>
                     <TabsContent value="tiktok" className="mt-4">
                         <Card className='border-0 shadow-none'>
@@ -431,13 +440,20 @@ export default function IntegrationsPage() {
                             </p>
                             </CardContent>
                         </Card>
-                         {tiktokStatus === 'loading' && <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>}
-                         {tiktokStatus === 'error' && tiktokError && <Alert variant="destructive" className="mt-4"><AlertTriangle className="h-4 w-4" /><AlertTitle>Erro ao Buscar Perfil</AlertTitle><AlertDescription>{tiktokError}</AlertDescription></Alert>}
-                         {tiktokStatus === 'success' && (
-                          <>
-                           <TikTokProfileResults profile={form.watch('tiktokProfile')!} posts={form.watch('tiktokPosts') ?? null} formatNumber={formatNumber} onVideoClick={handleTikTokClick} error={tiktokError} />
-                          </>
+                         {isLoadingTiktokPosts && <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>}
+                         {!isLoadingTiktokPosts && userProfile?.tiktokHandle && (
+                             <TikTokProfileResults 
+                                profile={{
+                                    username: userProfile.tiktokHandle,
+                                    followersCount: userProfile.tiktokFollowers,
+                                } as Partial<TikTokProfileData>}
+                                posts={tiktokPosts} 
+                                error={tiktokError}
+                                formatNumber={formatNumber}
+                                onVideoClick={handleTikTokClick}
+                            />
                          )}
+                         {tiktokStatus === 'error' && tiktokError && <Alert variant="destructive" className="mt-4"><AlertTriangle className="h-4 w-4" /><AlertTitle>Erro ao Buscar Perfil</AlertTitle><AlertDescription>{tiktokError}</AlertDescription></Alert>}
                     </TabsContent>
                   </Tabs>
                 </>
