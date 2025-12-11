@@ -396,10 +396,10 @@ export default function DashboardPage() {
         >
           <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
               <Tabs value={selectedPlatform} onValueChange={(value) => setSelectedPlatform(value as any)}>
-                <TabsList>
-                  <TabsTrigger value="total">Total</TabsTrigger>
-                  <TabsTrigger value="instagram">Instagram</TabsTrigger>
-                  <TabsTrigger value="tiktok">TikTok</TabsTrigger>
+                <TabsList className="bg-zinc-800 p-2">
+                  <TabsTrigger value="total" className="text-white data-[state=active]:bg-black px-4 py-2 text-sm">Total</TabsTrigger>
+                  <TabsTrigger value="instagram" className="text-white data-[state=active]:bg-black px-4 py-2 text-sm">Instagram</TabsTrigger>
+                  <TabsTrigger value="tiktok" className="text-white data-[state=active]:bg-black px-4 py-2 text-sm">TikTok</TabsTrigger>
                 </TabsList>
               </Tabs>
               {userProfile && 
