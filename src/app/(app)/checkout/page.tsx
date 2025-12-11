@@ -111,8 +111,8 @@ function CheckoutPageContent() {
   };
   
   const priceMap = {
-    pro: { monthly: 'R$39,99', annual: 'R$399' },
-    premium: { monthly: 'R$49,99', annual: 'R$499' },
+    pro: { monthly: 'R$29', annual: 'R$290' },
+    premium: { monthly: 'R$39', annual: 'R$390' },
   };
 
   const getPrice = () => {
@@ -288,3 +288,5 @@ export default function CheckoutPage() {
         </Suspense>
     )
 }
+
+    

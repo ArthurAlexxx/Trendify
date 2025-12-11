@@ -141,8 +141,8 @@ export async function changeUserRoleAction(
 // Mapeamento de planos e preços
 const priceMap: Record<Plan, Record<'monthly' | 'annual', number>> = {
     free: { monthly: 0, annual: 0 },
-    pro: { monthly: 39.99, annual: 399 },
-    premium: { monthly: 49.99, annual: 499 },
+    pro: { monthly: 29, annual: 290 },
+    premium: { monthly: 39, annual: 390 },
 };
 
 const CreatePaymentSchema = z.object({
@@ -353,3 +353,5 @@ export async function cancelAsaasCheckoutAction(
     return { error: e.message || 'Ocorreu um erro de comunicação com o provedor de pagamento.' };
   }
 }
+
+    
