@@ -74,24 +74,24 @@ async function logWebhook(firestore: ReturnType<typeof getFirestore>, event: any
 // Função para encontrar o userId usando diferentes métodos de fallback
 async function findUserInfo(firestore: ReturnType<typeof getFirestore>, payload: any): Promise<{ userId: string; plan?: Plan; cycle?: 'monthly' | 'annual' } | null> {
     
-    // Método 1: Tenta extrair do externalReference (pagamento único/PIX ou assinatura)
+    let externalRefData: { userId?: string; plan?: Plan; cycle?: 'monthly' | 'annual' } = {};
     if (payload.externalReference) {
         try {
-            const refData = JSON.parse(payload.externalReference);
-            if (refData.userId) {
-                console.log(`[Webhook] Informações encontradas no externalReference: userId=${refData.userId}`);
+            externalRefData = JSON.parse(payload.externalReference);
+            if (externalRefData.userId) {
+                console.log(`[Webhook] Informações encontradas no externalReference: userId=${externalRefData.userId}, plan=${externalRefData.plan}, cycle=${externalRefData.cycle}`);
                 return {
-                    userId: refData.userId,
-                    plan: refData.plan,
-                    cycle: refData.cycle,
+                    userId: externalRefData.userId,
+                    plan: externalRefData.plan,
+                    cycle: externalRefData.cycle,
                 };
             }
         } catch(e) {
-             console.log("[Webhook] externalReference não é um JSON. Tentando fallback.");
+             console.log("[Webhook] externalReference não é um JSON válido ou não contém userId. Tentando fallback.");
         }
     }
 
-    // Método 2: Tenta pelo customerId
+    // Método 2: Tenta pelo customerId (Fallback)
     if (payload.customer) {
         const usersByCustomer = await firestore
           .collection('users')
@@ -100,12 +100,13 @@ async function findUserInfo(firestore: ReturnType<typeof getFirestore>, payload:
           .get();
         if (!usersByCustomer.empty) {
             const userDoc = usersByCustomer.docs[0];
-            const userData = userDoc.data();
-            console.warn(`[Webhook] Fallback 1: Usuário encontrado pelo customerId: ${userDoc.id}.`);
-            // Se o plano não vier no webhook, tentamos pegar do documento
-            const plan = userData.subscription?.plan || 'pro'; 
-            const cycle = userData.subscription?.cycle || 'monthly';
-            return { userId: userDoc.id, plan, cycle };
+            console.warn(`[Webhook] Fallback: Usuário encontrado pelo customerId: ${userDoc.id}.`);
+            // Retorna o userId encontrado, mas os detalhes da transação (plan/cycle) virão do externalReference se disponíveis.
+            return { 
+                userId: userDoc.id, 
+                plan: externalRefData.plan, 
+                cycle: externalRefData.cycle 
+            };
         }
     }
     
@@ -212,7 +213,7 @@ export async function POST(req: NextRequest) {
       case 'PAYMENT_RECEIVED':
       case 'PAYMENT_CONFIRMED':
         if (!userInfo.plan || !userInfo.cycle) {
-             throw new Error('Plano e ciclo não encontrados nos metadados do pagamento.');
+             throw new Error(`Plano (${userInfo.plan}) ou ciclo (${userInfo.cycle}) não encontrados nos metadados do pagamento para o usuário ${userInfo.userId}.`);
         }
         await processPaymentConfirmation(userRef, event.payment, userInfo.plan, userInfo.cycle);
         break;
