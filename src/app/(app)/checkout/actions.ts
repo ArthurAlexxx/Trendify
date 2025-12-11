@@ -8,8 +8,8 @@ import { initializeFirebaseAdmin } from '@/firebase/admin';
 // Mapeamento de planos e preços
 const priceMap: Record<Plan, Record<'monthly' | 'annual', number>> = {
     free: { monthly: 0, annual: 0 },
-    pro: { monthly: 5, annual: 50 },
-    premium: { monthly: 5, annual: 90 },
+    pro: { monthly: 5, annual: 5 },
+    premium: { monthly: 5, annual: 5 },
 };
 
 const CreatePaymentSchema = z.object({
@@ -56,7 +56,7 @@ export async function createAsaasPaymentAction(
   
   try {
     // ETAPA 1: Criar ou obter o cliente na Asaas
-    const customerResponse = await fetch('https://www.asaas.com/api/v3/customers', {
+    const customerResponse = await fetch('https://api.asaas.com/v3/customers', {
         method: 'POST',
         headers: {
             'accept': 'application/json',
@@ -84,7 +84,7 @@ export async function createAsaasPaymentAction(
     let customerId = customerData.id;
     // Se o cliente já existe, busca o ID dele
     if (customerData.errors?.[0]?.code === 'invalid_customer') {
-        const searchResponse = await fetch(`https://www.asaas.com/api/v3/customers?cpfCnpj=${cpfCnpj}`, {
+        const searchResponse = await fetch(`https://api.asaas.com/v3/customers?cpfCnpj=${cpfCnpj}`, {
             headers: { 'access_token': apiKey },
         });
         const searchData = await searchResponse.json();
@@ -107,38 +107,27 @@ export async function createAsaasPaymentAction(
 
     const checkoutBody: any = {
         customer: customerId,
-        billingTypes: [billingType],
-        chargeTypes: [isRecurrent ? 'RECURRENT' : 'DETACHED'],
-        dueDateLimitDays: isRecurrent ? undefined : 1,
+        billingType: isRecurrent ? 'CREDIT_CARD' : billingType,
+        dueDateLimitDays: 1, // Para PIX
         externalReference: userId, 
-        webhookUrl: `${appUrl}/api/webhooks/asaas`,
+        value: price,
+        description: `Assinatura do plano ${planName} na Trendify`,
         callback: {
             successUrl: `${appUrl}/dashboard?checkout=success`,
             autoRedirect: true,
-            cancelUrl: `${appUrl}/dashboard?checkout=cancel`,
-            expiredUrl: `${appUrl}/dashboard?checkout=expired`,
         },
-        items: [{
-            name: planName,
-            description: `Assinatura do plano ${planName} na Trendify`,
-            value: price,
-            quantity: 1,
-            externalReference: userId, // Added for redundancy
-        }],
     };
     
     if (isRecurrent) {
-        const endDate = new Date();
-        endDate.setFullYear(endDate.getFullYear() + 5);
-
+        checkoutBody.operationType = 'SUBSCRIPTION';
         checkoutBody.subscription = {
             cycle: cycle === 'annual' ? 'YEARLY' : 'MONTHLY',
-            endDate: endDate.toISOString().split('T')[0],
-            externalReference: userId, // Ensure userId is also in the subscription object
         };
+    } else {
+        checkoutBody.operationType = 'PAYMENT';
     }
     
-    const checkoutResponse = await fetch('https://www.asaas.com/api/v3/checkouts', {
+    const checkoutResponse = await fetch('https://www.asaas.com/api/v3/payments', {
         method: 'POST',
         headers: {
             'accept': 'application/json',
@@ -165,8 +154,7 @@ export async function createAsaasPaymentAction(
         'subscription.checkoutId': checkoutData.id
     });
 
-    const checkoutUrl = `https://www.asaas.com/c/${checkoutData.id}`;
-    return { checkoutUrl: checkoutUrl, checkoutId: checkoutData.id };
+    return { checkoutUrl: checkoutData.invoiceUrl, checkoutId: checkoutData.id };
 
   } catch (e: any) {
     console.error('[Asaas Action] Erro no fluxo de criação de checkout:', e);

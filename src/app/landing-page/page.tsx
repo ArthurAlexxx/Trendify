@@ -64,7 +64,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import {
   GrowthCalculatorOutput,
   calculateGrowthAction,
-} from '@/app/(app)/landing-page/actions';
+} from './actions';
 import { useToast } from '@/hooks/use-toast';
 import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
 import { FeatureCard } from '@/components/ui/grid-feature-cards';
@@ -696,8 +696,7 @@ export default function LandingPage() {
                                     <CardContent className="p-4 pt-0">
                                       {results.currentEarnings && (
                                         <p className="text-base font-semibold font-body">
-                                          {formatCurrency(results.currentEarnings[0])} -{' '}
-                                          {formatCurrency(results.currentEarnings[1])}
+                                          {formatCurrency(results.currentEarnings[0])} - {formatCurrency(results.currentEarnings[1])}
                                           <span className="text-xs font-normal text-muted-foreground ml-2">
                                             (agora)
                                           </span>
@@ -705,8 +704,7 @@ export default function LandingPage() {
                                       )}
                                       {results.goalEarnings && (
                                         <p className="text-base font-semibold mt-1 font-body">
-                                          {formatCurrency(results.goalEarnings[0])} -{' '}
-                                          {formatCurrency(results.goalEarnings[1])}
+                                          {formatCurrency(results.goalEarnings[0])} - {formatCurrency(results.goalEarnings[1])}
                                           <span className="text-xs font-normal text-muted-foreground ml-2">
                                             (na meta)
                                           </span>
