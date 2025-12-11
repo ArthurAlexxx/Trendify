@@ -94,8 +94,8 @@ export async function createAsaasPaymentAction(
     const isRecurrent = true; // All paid plans are subscriptions
     
     const checkoutBody: any = {
-      operationType: 'SUBSCRIPTION',
-      customer: {
+      operationType: isRecurrent ? 'SUBSCRIPTION' : 'PAYMENT',
+      customerData: {
         name,
         email,
         cpfCnpj,
@@ -106,7 +106,7 @@ export async function createAsaasPaymentAction(
         province,
       },
       billingTypes: billingTypes,
-      chargeTypes: ["RECURRENT"], // CORREÇÃO: Adicionado o campo obrigatório 'chargeTypes'
+      chargeTypes: isRecurrent ? ["RECURRENT"] : ["DETACHED"],
       callback: {
         successUrl: `${appUrl}/dashboard?checkout=success`,
         autoRedirect: true,
@@ -120,9 +120,9 @@ export async function createAsaasPaymentAction(
           description: `Assinatura do plano ${plan.toUpperCase()} (${cycle === 'annual' ? 'Anual' : 'Mensal'}) na Trendify`,
           cycle: cycle === 'annual' ? 'YEARLY' : 'MONTHLY',
           value: price,
-          externalReference: externalReference, // Garantir que está aqui também
+          externalReference: externalReference, 
       },
-      externalReference: externalReference, // E aqui
+      externalReference: externalReference, 
     };
     
     const checkoutResponse = await fetch('https://sandbox.asaas.com/api/v3/checkouts', {
