@@ -111,7 +111,7 @@ function AnimatedHero() {
           </div>
 
           {/* Image Content */}
-          <div ref={targetRef} className="relative mt-20">
+          <div ref={targetRef} className="relative mt-20 hidden md:block">
              <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 z-0 flex items-center justify-center">
                 <div className="h-[500px] w-[95%] bg-gradient-radial from-primary/50 via-primary/20 to-transparent blur-3xl" />
             </div>
