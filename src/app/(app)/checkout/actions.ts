@@ -102,25 +102,38 @@ export async function createAsaasPaymentAction(
     const planName = `${plan.toUpperCase()} - ${cycle === 'monthly' ? 'Mensal' : 'Anual'}`;
     const isRecurrent = billingType === 'CREDIT_CARD';
     
-    let endpoint = isRecurrent ? 'subscriptions' : 'payments';
+    let endpoint = 'payments';
+    let checkoutBody: any;
     
-    const checkoutBody: any = {
-        customer: customerId,
-        billingType: billingType,
-        value: price,
-        description: `Assinatura do plano ${planName} na Trendify`,
-        externalReference: JSON.stringify({ userId, plan, cycle }), // Salva tudo que precisamos
-        callback: {
-            successUrl: `${appUrl}/dashboard?checkout=success`,
-            autoRedirect: true,
-        },
-        postalService: false,
-    };
-
     if (isRecurrent) {
-        checkoutBody.cycle = cycle === 'annual' ? 'YEARLY' : 'MONTHLY';
+        endpoint = 'paymentLinks';
+        checkoutBody = {
+            name: `Assinatura Plano ${planName}`,
+            description: `Acesso ao plano ${planName} da Trendify.`,
+            billingType: "CREDIT_CARD",
+            chargeType: "RECURRENT",
+            value: price,
+            cycle: cycle === 'annual' ? 'YEARLY' : 'MONTHLY',
+            callback: {
+                successUrl: `${appUrl}/dashboard?checkout=success`,
+                autoRedirect: true,
+            },
+            maxInstallmentCount: 1, // Assinatura não permite parcelamento da recorrência
+        };
     } else { // PIX
-        checkoutBody.dueDate = new Date().toISOString().split('T')[0];
+        endpoint = 'payments';
+        checkoutBody = {
+            customer: customerId,
+            billingType: "PIX",
+            value: price,
+            dueDate: new Date().toISOString().split('T')[0],
+            description: `Assinatura do plano ${planName} na Trendify`,
+            externalReference: JSON.stringify({ userId, plan, cycle }),
+            callback: {
+                successUrl: `${appUrl}/dashboard?checkout=success`,
+                autoRedirect: true,
+            },
+        };
     }
     
     const checkoutResponse = await fetch(`https://sandbox.asaas.com/api/v3/${endpoint}`, {
@@ -140,24 +153,14 @@ export async function createAsaasPaymentAction(
         throw new Error(checkoutData.errors?.[0]?.description || 'Falha ao criar o link de checkout.');
     }
     
-    let finalCheckoutUrl;
-    if (isRecurrent) {
-        finalCheckoutUrl = `https://sandbox.asaas.com/c/${checkoutData.id}`;
-    } else {
-        finalCheckoutUrl = checkoutData.invoiceUrl; // For PIX
-    }
+    // O webhook da Asaas cuidará de salvar o ID da assinatura quando o pagamento for confirmado.
+    // O externalReference no paymentLink não está disponível no webhook, então
+    // passamos os dados no PIX para confirmação imediata. Para cartão, o webhook de ASSINATURA virá com os dados.
 
-    if (!finalCheckoutUrl || !checkoutData.id) {
-         console.error('[Asaas Action] Resposta da API de checkout não continha uma URL ou ID válido:', checkoutData);
-         throw new Error('Ocorreu um erro inesperado ao criar o link de pagamento.');
-    }
-
-    // Salvar o ID da assinatura (se for recorrente)
-    if (isRecurrent) {
-        await userRef.update({ 'subscription.asaasSubscriptionId': checkoutData.id });
-    }
-
-    return { checkoutUrl: finalCheckoutUrl, checkoutId: checkoutData.id };
+    return { 
+        checkoutUrl: checkoutData.url || checkoutData.invoiceUrl, 
+        checkoutId: checkoutData.id 
+    };
 
   } catch (e: any) {
     console.error('[Asaas Action] Erro no fluxo de criação de checkout:', e);

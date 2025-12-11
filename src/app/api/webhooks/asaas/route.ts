@@ -43,13 +43,15 @@ async function logWebhook(firestore: ReturnType<typeof getFirestore>, event: any
       eventType: event.event || 'unknown',
       payload: event,
       isSuccess,
-      amount: event.payment?.value ? event.payment.value * 100 : null,
+      amount: event.payment?.value || event.subscription?.value || null,
       customerEmail: null, 
     };
+    
+    const customerId = event.payment?.customer || event.subscription?.customer;
 
-    if (event.payment?.customer) {
+    if (customerId) {
         try {
-            const customerResponse = await fetch(`https://www.asaas.com/api/v3/customers/${event.payment.customer}`, {
+            const customerResponse = await fetch(`https://sandbox.asaas.com/api/v3/customers/${customerId}`, {
                 headers: { 'access_token': process.env.ASAAS_API_KEY! }
             });
             if (customerResponse.ok) {
@@ -59,7 +61,7 @@ async function logWebhook(firestore: ReturnType<typeof getFirestore>, event: any
               }
             }
         } catch(e) {
-            console.warn(`[Asaas Webhook] Could not fetch customer details for ${event.payment.customer}`);
+            console.warn(`[Asaas Webhook] Could not fetch customer details for ${customerId}`);
         }
     }
 
@@ -70,14 +72,14 @@ async function logWebhook(firestore: ReturnType<typeof getFirestore>, event: any
 }
 
 // Função para encontrar o userId usando diferentes métodos de fallback
-async function findUserInfo(firestore: ReturnType<typeof getFirestore>, payment: any): Promise<{ userId: string; plan: Plan; cycle: 'monthly' | 'annual' } | null> {
+async function findUserInfo(firestore: ReturnType<typeof getFirestore>, payload: any): Promise<{ userId: string; plan?: Plan; cycle?: 'monthly' | 'annual' } | null> {
     
-    // Método 1: Tenta extrair do externalReference (formato JSON)
-    if (payment.externalReference) {
+    // Método 1: Tenta extrair do externalReference (pagamento único/PIX)
+    if (payload.externalReference) {
         try {
-            const refData = JSON.parse(payment.externalReference);
-            if (refData.userId && refData.plan && refData.cycle) {
-                console.log(`[Webhook] Informações encontradas no externalReference: userId=${refData.userId}, plan=${refData.plan}`);
+            const refData = JSON.parse(payload.externalReference);
+            if (refData.userId) {
+                console.log(`[Webhook] Informações encontradas no externalReference do pagamento: userId=${refData.userId}`);
                 return {
                     userId: refData.userId,
                     plan: refData.plan,
@@ -85,15 +87,15 @@ async function findUserInfo(firestore: ReturnType<typeof getFirestore>, payment:
                 };
             }
         } catch(e) {
-             console.log("[Webhook] externalReference não é um JSON. Tentando fallback.");
+             console.log("[Webhook] externalReference do pagamento não é um JSON. Tentando fallback.");
         }
     }
 
-    // Fallback 1: Tenta pelo ID do cliente
-    if (payment.customer) {
+    // Método 2: Tenta pelo customerId
+    if (payload.customer) {
         const usersByCustomer = await firestore
           .collection('users')
-          .where('subscription.paymentId', '==', payment.customer)
+          .where('subscription.paymentId', '==', payload.customer)
           .limit(1)
           .get();
         if (!usersByCustomer.empty) {
@@ -107,24 +109,7 @@ async function findUserInfo(firestore: ReturnType<typeof getFirestore>, payment:
         }
     }
     
-    // Fallback 2: Tenta pelo ID da assinatura
-     if (payment.subscription) {
-        const usersBySubscription = await firestore
-            .collection('users')
-            .where('subscription.asaasSubscriptionId', '==', payment.subscription)
-            .limit(1)
-            .get();
-        if (!usersBySubscription.empty) {
-            const userDoc = usersBySubscription.docs[0];
-            const userData = userDoc.data();
-            console.warn(`[Webhook] Fallback 2: Usuário encontrado pelo subscriptionId: ${userDoc.id}.`);
-             const plan = userData.subscription?.plan || 'pro';
-             const cycle = userData.subscription?.cycle || 'monthly';
-            return { userId: userDoc.id, plan, cycle };
-        }
-    }
-
-    console.error(`[Webhook] ERRO: Não foi possível resolver o usuário para o pagamento ${payment.id}`);
+    console.error(`[Webhook] ERRO: Não foi possível resolver o usuário para o evento.`);
     return null;
 }
 
@@ -161,6 +146,7 @@ async function processPaymentConfirmation(userRef: FirebaseFirestore.DocumentRef
     'subscription.trialEndsAt': null, // Finaliza o período de teste
   };
 
+  // Se o pagamento veio de uma assinatura, salvamos o ID dela.
   if (payment.subscription) {
       updatePayload['subscription.asaasSubscriptionId'] = payment.subscription;
   }
@@ -171,7 +157,7 @@ async function processPaymentConfirmation(userRef: FirebaseFirestore.DocumentRef
     paymentId: payment.id,
     amount: payment.value,
     status: payment.status,
-    paymentDate: Timestamp.fromDate(new Date(payment.paymentDate)),
+    paymentDate: payment.paymentDate ? Timestamp.fromDate(new Date(payment.paymentDate)) : Timestamp.now(),
     billingType: payment.billingType,
     invoiceUrl: payment.invoiceUrl,
     createdAt: Timestamp.now(),
@@ -204,17 +190,18 @@ export async function POST(req: NextRequest) {
 
   const isSuccessEvent = ['PAYMENT_CONFIRMED', 'PAYMENT_RECEIVED'].includes(event.event);
   await logWebhook(firestore, event, isSuccessEvent);
+  
+  const paymentOrSubscription = event.payment || event.subscription;
 
-  if (!event.payment) {
-       return NextResponse.json({ success: true, message: 'Evento recebido, mas sem dados de pagamento para processar.' });
+  if (!paymentOrSubscription) {
+       return NextResponse.json({ success: true, message: 'Evento recebido, mas sem dados de pagamento ou assinatura para processar.' });
   }
 
-  const payment = event.payment;
   
-  const userInfo = await findUserInfo(firestore, payment);
+  const userInfo = await findUserInfo(firestore, paymentOrSubscription);
 
   if (!userInfo) {
-    console.warn('[Asaas Webhook] Não foi possível resolver o ID do usuário para o pagamento:', payment);
+    console.warn('[Asaas Webhook] Não foi possível resolver o ID do usuário para o evento:', paymentOrSubscription.id);
     return NextResponse.json({ success: true, message: 'Evento recebido, mas não foi possível associar a um usuário.' });
   }
   
@@ -224,7 +211,10 @@ export async function POST(req: NextRequest) {
     switch (event.event) {
       case 'PAYMENT_RECEIVED':
       case 'PAYMENT_CONFIRMED':
-        await processPaymentConfirmation(userRef, payment, userInfo.plan, userInfo.cycle);
+        if (!userInfo.plan || !userInfo.cycle) {
+             throw new Error('Plano e ciclo não encontrados nos metadados do pagamento.');
+        }
+        await processPaymentConfirmation(userRef, event.payment, userInfo.plan, userInfo.cycle);
         break;
       
       case 'PAYMENT_OVERDUE':
