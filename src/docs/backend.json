@@ -102,7 +102,7 @@
         "lastTikTokSync": {
             "type": "string",
             "format": "date-time",
-            "description": "The timestamp of the last successful TikTok data sync."
+            "description": "The timestamp of the last TikTok data sync."
         },
         "subscription": {
           "type": "object",
@@ -130,11 +130,21 @@
             },
             "paymentId": {
               "type": "string",
-              "description": "The customer ID from the payment provider (e.g., 'cus_...')."
+              "description": "The ID of the last payment or subscription from the payment provider."
             },
-            "asaasSubscriptionId": {
+            "asaasCheckoutId": {
               "type": "string",
-              "description": "The ID of the active Asaas subscription object (sub_...)."
+              "description": "The temporary ID of the Asaas checkout session."
+            },
+            "pendingPlan": {
+              "type": "string",
+              "enum": ["pro", "premium"],
+              "description": "The plan selected during checkout, pending payment."
+            },
+            "pendingCycle": {
+              "type": "string",
+              "enum": ["monthly", "annual"],
+              "description": "The cycle selected during checkout, pending payment."
             }
           }
         }

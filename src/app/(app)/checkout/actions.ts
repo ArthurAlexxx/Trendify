@@ -4,8 +4,10 @@
 import { z } from 'zod';
 import type { Plan } from '@/lib/types';
 import fetch from 'node-fetch';
+import { initializeFirebaseAdmin } from '@/firebase/admin';
+import { doc, updateDoc } from 'firebase-admin/firestore';
 
-// Mapeamento de planos e preços
+
 const priceMap: Record<Plan, Record<'monthly' | 'annual', number>> = {
     free: { monthly: 0, annual: 0 },
     pro: { monthly: 50, annual: 500 },
@@ -33,9 +35,6 @@ interface ActionState {
   error?: string;
 }
 
-/**
- * Busca o endereço a partir do CEP usando a API ViaCEP.
- */
 async function getAddressFromCEP(cep: string): Promise<{ address: string; province: string; error?: string }> {
     try {
         const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
@@ -57,10 +56,6 @@ async function getAddressFromCEP(cep: string): Promise<{ address: string; provin
 }
 
 
-/**
- * Cria um link de checkout na Asaas usando o endpoint /checkouts,
- * enviando os dados do cliente diretamente.
- */
 export async function createAsaasPaymentAction(
   input: CreatePaymentInput
 ): Promise<ActionState> {
@@ -90,7 +85,7 @@ export async function createAsaasPaymentAction(
     }
 
     const price = priceMap[plan][cycle];
-    const externalReference = JSON.stringify({ userId, plan, cycle });
+    const isRecurrent = true;
     
     // Calculate the next due date
     const today = new Date();
@@ -116,8 +111,8 @@ export async function createAsaasPaymentAction(
         addressNumber,
         province,
       },
-      billingTypes: billingTypes,
-      chargeTypes: ["RECURRENT"],
+      billingTypes,
+      chargeTypes: ['RECURRENT'],
       callback: {
         successUrl: `${appUrl}/dashboard?checkout=success`,
         cancelUrl: `${appUrl}/subscribe?status=cancel`,
@@ -133,7 +128,6 @@ export async function createAsaasPaymentAction(
           cycle: cycle === 'annual' ? 'YEARLY' : 'MONTHLY',
           value: price,
           nextDueDate: nextDueDateFormatted,
-          externalReference: externalReference, 
       },
     };
     
@@ -157,8 +151,19 @@ export async function createAsaasPaymentAction(
     if (!checkoutData.id) {
          throw new Error('A API da Asaas não retornou um ID para a sessão de checkout.');
     }
+    
+    // --- Elo de Ligação: Salva o ID do checkout no perfil do usuário ---
+    const { firestore } = initializeFirebaseAdmin();
+    const userRef = doc(firestore, 'users', userId);
+    await updateDoc(userRef, {
+      'subscription.asaasCheckoutId': checkoutData.id,
+      'subscription.pendingPlan': plan,
+      'subscription.pendingCycle': cycle,
+    });
+    console.log(`[Asaas Action] Checkout ID ${checkoutData.id} salvo para o usuário ${userId}.`);
 
-    const checkoutUrl = `https://sandbox.asaas.com/checkoutSession/show?id=${checkoutData.id}`;
+
+    const checkoutUrl = checkoutData.link || `https://sandbox.asaas.com/checkoutSession/show?id=${checkoutData.id}`;
     
     return { 
         checkoutUrl: checkoutUrl, 
@@ -170,4 +175,3 @@ export async function createAsaasPaymentAction(
     return { error: e.message || 'Ocorreu um erro de comunicação com o provedor de pagamento.' };
   }
 }
-
