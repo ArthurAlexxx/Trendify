@@ -1,3 +1,5 @@
+
+
 'use client';
 
 import {
@@ -63,7 +65,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import {
   GrowthCalculatorOutput,
   calculateGrowthAction,
-} from '@/app/landing-page/actions';
+} from '@/app/(app)/landing-page/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
 import { FeatureCard } from '@/components/ui/grid-feature-cards';
@@ -362,14 +364,29 @@ export default function LandingPage() {
 					</p>
 				</AnimatedContainer>
 
-				<AnimatedContainer
-					delay={0.4}
-					className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3"
-				>
-					{features.map((feature, i) => (
-						<FeatureCard key={i} feature={feature} />
-					))}
-				</AnimatedContainer>
+				<AnimatedContainer delay={0.4}>
+                    {/* Mobile Carousel */}
+                    <div className="md:hidden">
+                        <Carousel className="w-full" opts={{ align: "start" }}>
+                            <CarouselContent className="-ml-4">
+                                {features.map((feature, i) => (
+                                    <CarouselItem key={i} className="pl-4 basis-[85%] sm:basis-1/2 pb-8">
+                                        <div className="p-1 h-full">
+                                          <FeatureCard feature={feature} className="h-full" />
+                                        </div>
+                                    </CarouselItem>
+                                ))}
+                            </CarouselContent>
+                        </Carousel>
+                    </div>
+
+                    {/* Desktop Grid */}
+                    <div className="hidden md:grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+                        {features.map((feature, i) => (
+                            <FeatureCard key={i} feature={feature} />
+                        ))}
+                    </div>
+                </AnimatedContainer>
 			</div>
 		</section>
 
@@ -441,7 +458,7 @@ export default function LandingPage() {
                                         type="text"
                                         value={field.value.toLocaleString('pt-BR')}
                                         onChange={(e) => {
-                                          const value = e.target.value.replace(/\\D/g, '');
+                                          const value = e.target.value.replace(/\D/g, '');
                                           const num = parseInt(value, 10);
                                           field.onChange(isNaN(num) ? 0 : num > 50000000 ? 50000000 : num);
                                         }}
@@ -465,7 +482,7 @@ export default function LandingPage() {
                                         type="text"
                                         value={field.value.toLocaleString('pt-BR')}
                                         onChange={(e) => {
-                                          const value = e.target.value.replace(/\\D/g, '');
+                                          const value = e.target.value.replace(/\D/g, '');
                                           const num = parseInt(value, 10);
                                           field.onChange(isNaN(num) ? 0 : num > 50000000 ? 50000000 : num);
                                         }}
@@ -1019,3 +1036,4 @@ export default function LandingPage() {
     </div>
   );
 }
+
