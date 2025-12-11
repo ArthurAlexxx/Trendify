@@ -256,6 +256,8 @@ function VideoReviewPageContent() {
         setAnalysisResult(result);
         setAnalysisStatus("success");
 
+        const currentAnalysisName = analysisName || file.name;
+
         // Start upload to Firebase Storage in the background for history
         const { firebaseApp } = initializeFirebase();
         const storage = getStorage(firebaseApp);
@@ -277,7 +279,7 @@ function VideoReviewPageContent() {
                         userId: user.uid,
                         videoUrl: downloadURL,
                         videoFileName: file.name,
-                        analysisName: analysisName || file.name,
+                        analysisName: currentAnalysisName,
                         analysisData: result,
                         createdAt: serverTimestamp(),
                     });
