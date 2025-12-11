@@ -8,8 +8,8 @@ import { initializeFirebaseAdmin } from '@/firebase/admin';
 // Mapeamento de planos e preços
 const priceMap: Record<Plan, Record<'monthly' | 'annual', number>> = {
     free: { monthly: 0, annual: 0 },
-    pro: { monthly: 5, annual: 5 },
-    premium: { monthly: 5, annual: 5 },
+    pro: { monthly: 5, annual: 50 },
+    premium: { monthly: 5, annual: 90 },
 };
 
 const CreatePaymentSchema = z.object({
@@ -29,6 +29,7 @@ type CreatePaymentInput = z.infer<typeof CreatePaymentSchema>;
 
 interface ActionState {
   checkoutUrl?: string;
+  checkoutId?: string;
   error?: string;
 }
 
@@ -55,7 +56,7 @@ export async function createAsaasPaymentAction(
   
   try {
     // ETAPA 1: Criar ou obter o cliente na Asaas
-    const customerResponse = await fetch('https://api.asaas.com/v3/customers', {
+    const customerResponse = await fetch('https://www.asaas.com/api/v3/customers', {
         method: 'POST',
         headers: {
             'accept': 'application/json',
@@ -83,7 +84,7 @@ export async function createAsaasPaymentAction(
     let customerId = customerData.id;
     // Se o cliente já existe, busca o ID dele
     if (customerData.errors?.[0]?.code === 'invalid_customer') {
-        const searchResponse = await fetch(`https://api.asaas.com/v3/customers?cpfCnpj=${cpfCnpj}`, {
+        const searchResponse = await fetch(`https://www.asaas.com/api/v3/customers?cpfCnpj=${cpfCnpj}`, {
             headers: { 'access_token': apiKey },
         });
         const searchData = await searchResponse.json();
@@ -122,25 +123,22 @@ export async function createAsaasPaymentAction(
             description: `Assinatura do plano ${planName} na Trendify`,
             value: price,
             quantity: 1,
+            externalReference: userId, // Added for redundancy
         }],
     };
     
     if (isRecurrent) {
-        const nextDueDate = new Date();
-        nextDueDate.setMonth(nextDueDate.getMonth() + 1);
-
         const endDate = new Date();
         endDate.setFullYear(endDate.getFullYear() + 5);
 
         checkoutBody.subscription = {
             cycle: cycle === 'annual' ? 'YEARLY' : 'MONTHLY',
-            nextDueDate: nextDueDate.toISOString().split('T')[0],
             endDate: endDate.toISOString().split('T')[0],
             externalReference: userId, // Ensure userId is also in the subscription object
         };
     }
     
-    const checkoutResponse = await fetch('https://api.asaas.com/v3/checkouts', {
+    const checkoutResponse = await fetch('https://www.asaas.com/api/v3/checkouts', {
         method: 'POST',
         headers: {
             'accept': 'application/json',
@@ -167,8 +165,8 @@ export async function createAsaasPaymentAction(
         'subscription.checkoutId': checkoutData.id
     });
 
-    const checkoutUrl = `https://www.asaas.com/checkoutSession/show?id=${checkoutData.id}`;
-    return { checkoutUrl: checkoutUrl };
+    const checkoutUrl = `https://www.asaas.com/c/${checkoutData.id}`;
+    return { checkoutUrl: checkoutUrl, checkoutId: checkoutData.id };
 
   } catch (e: any) {
     console.error('[Asaas Action] Erro no fluxo de criação de checkout:', e);

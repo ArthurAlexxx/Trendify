@@ -13,7 +13,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { createAsaasPaymentAction, cancelAsaasCheckoutAction } from '@/app/(app)/admin/actions';
+import { createAsaasPaymentAction } from '@/app/(app)/checkout/actions';
+import { cancelAsaasCheckoutAction } from '@/app/(app)/admin/actions';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
