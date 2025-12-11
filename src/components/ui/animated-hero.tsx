@@ -37,7 +37,7 @@ function AnimatedHero() {
 
   return (
     <div className="w-full">
-      <div className="container relative pt-16 md:pt-32 pb-16 md:pb-24 px-6 text-center">
+      <div className="container relative pt-24 md:pt-40 pb-16 md:pb-24 px-6 text-center">
         {/* Text Content */}
           <div className="relative z-10 flex flex-col items-center text-center">
               <div>
@@ -98,19 +98,16 @@ function AnimatedHero() {
 
           {/* Image Content */}
           <div ref={targetRef} className="relative mt-12">
-             <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-48 w-full bg-gradient-radial from-primary/20 to-transparent blur-3xl -z-10" />
-              <motion.div
-                  style={{ scale }}
-              >
-                  <Image
-                  src="https://firebasestorage.googleapis.com/v0/b/studio-4233590611-a8ab0.firebasestorage.app/o/Sem%20nome%20(Quadro%20branco)%20(2).png?alt=media&token=7f2fd083-8a2a-469b-a6df-8173e38b8a10"
-                  alt="Dashboard da Trendify mostrando métricas de crescimento"
-                  width={1200}
-                  height={750}
-                  className="w-full max-w-5xl mx-auto h-auto"
-                  priority
-                  />
-              </motion.div>
+            <motion.div style={{ scale }}>
+                <Image
+                src="https://firebasestorage.googleapis.com/v0/b/studio-4233590611-a8ab0.firebasestorage.app/o/Sem%20nome%20(Quadro%20branco)%20(2).png?alt=media&token=7f2fd083-8a2a-469b-a6df-8173e38b8a10"
+                alt="Dashboard da Trendify mostrando métricas de crescimento"
+                width={1200}
+                height={750}
+                className="w-full max-w-5xl mx-auto h-auto"
+                priority
+                />
+            </motion.div>
           </div>
         </div>
     </div>
