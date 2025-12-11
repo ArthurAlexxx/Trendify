@@ -84,7 +84,12 @@ async function getSubscriptionDetails(subscriptionId: string): Promise<{ plan: P
         }
         const subData: any = await response.json();
         
-        // Infer from description
+        // **CORREÇÃO**: Verifica se a descrição existe antes de usá-la
+        if (!subData.description) {
+            console.warn(`[Webhook Fallback] A assinatura ${subscriptionId} não possui uma descrição para inferir o plano.`);
+            return null;
+        }
+        
         const description = subData.description.toLowerCase();
         let plan: Plan | null = null;
         if (description.includes('pro')) plan = 'pro';
@@ -101,7 +106,7 @@ async function getSubscriptionDetails(subscriptionId: string): Promise<{ plan: P
         
         return null;
 
-    } catch (e) {
+    } catch (e: any) {
         console.error(`[Webhook Fallback] Erro ao buscar detalhes da assinatura ${subscriptionId}:`, e);
         return null;
     }
