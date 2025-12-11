@@ -236,9 +236,11 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                 <div className="aspect-[9/16] bg-muted">
                     <Image src={post.coverUrl || post.mediaUrl} alt={post.name} fill style={{ objectFit: 'cover' }} className="group-hover:scale-105 transition-transform duration-300" />
                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <PlayCircle className="h-10 w-10 text-white" />
-                     </div>
+                     {post.isVideo && (
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <PlayCircle className="h-10 w-10 text-white" />
+                        </div>
+                     )}
                 </div>
             </Card>
             <div className="mt-2 text-center text-xs text-muted-foreground grid grid-cols-3 gap-1">
