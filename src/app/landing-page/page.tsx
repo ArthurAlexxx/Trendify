@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { useUser } from '@/firebase';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -66,6 +66,7 @@ import {
 } from '@/app/landing-page/actions';
 import { useResponsiveToast } from '@/hooks/use-responsive-toast';
 import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
+import { FeatureCard } from '@/components/ui/grid-feature-cards';
 
 const features = [
   {
@@ -96,6 +97,12 @@ const features = [
     icon: DollarSign,
     title: 'Assistente de Publis',
     description: 'Crie roteiros e estratégias de conteúdo patrocinado (publis) que sejam autênticos e que convertam.',
+    plan: 'premium'
+  },
+  {
+    icon: LineChart,
+    title: 'Análise de Performance',
+    description: 'Acompanhe suas métricas e receba insights da IA para ajustar sua estratégia e acelerar seus resultados.',
     plan: 'premium'
   }
 ];
@@ -141,10 +148,36 @@ const WordmarkIcon = (props: React.ComponentProps<'a'>) => (
 );
 
 
+type ViewAnimationProps = {
+	delay?: number;
+	className?: React.ComponentProps<typeof motion.div>['className'];
+	children: React.ReactNode;
+};
+
+function AnimatedContainer({ className, delay = 0.1, children }: ViewAnimationProps) {
+	const shouldReduceMotion = useReducedMotion();
+
+	if (shouldReduceMotion) {
+		return <>{children}</>;
+	}
+
+	return (
+		<motion.div
+			initial={{ filter: 'blur(4px)', translateY: -8, opacity: 0 }}
+			whileInView={{ filter: 'blur(0px)', translateY: 0, opacity: 1 }}
+			viewport={{ once: true }}
+			transition={{ delay, duration: 0.8 }}
+			className={className}
+		>
+			{children}
+		</motion.div>
+	);
+}
+
+
 export default function LandingPage() {
   const { user } = useUser();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const scrolled = useScroll(10);
   
   const [isCalculating, setIsCalculating] = useState(false);
   const [results, setResults] = useState<GrowthCalculatorOutput | null>(null);
@@ -313,119 +346,26 @@ export default function LandingPage() {
 
         {/* Unified Benefits Section */}
         <section id="beneficios" className="py-20 sm:py-24">
-          <div className="container">
-            <div className="text-center">
-              <h2 className="text-3xl md:text-4xl font-bold font-headline tracking-tight mb-4">
-                A plataforma completa para criadores
-              </h2>
-              <p className="text-base text-muted-foreground mb-12 max-w-2xl mx-auto">
-                Da estratégia de conteúdo à monetização, a Trendify centraliza tudo que você precisa para crescer de forma inteligente.
-              </p>
-            </div>
-            {/* Mobile Carousel */}
-            <div className="lg:hidden">
-                <Carousel className="w-full" opts={{ align: "start" }}>
-                  <CarouselContent className="-ml-4">
-                    {features.map((feature, index) => (
-                      <CarouselItem key={feature.title} className="pl-4 basis-[90%] md:basis-1/2 pb-12">
-                         <motion.div 
-                            className="p-1 h-full"
-                            whileHover={{ scale: 1.03 }}
-                            whileTap={{ scale: 0.98 }}
-                         >
-                          <Card className="text-left h-full bg-card/50 rounded-2xl border shadow-primary-lg p-6">
-                            <div className='flex flex-col h-full'>
-                              <div className='flex items-center justify-between mb-4'>
-                                <div className="bg-primary/10 text-primary p-3 rounded-lg">
-                                  <feature.icon className="h-6 w-6" />
-                                </div>
-                                {feature.plan && (
-                                  <Badge variant={feature.plan === 'premium' ? 'default' : 'secondary'} className={cn(feature.plan === 'premium' && 'bg-yellow-400/20 text-yellow-600 border-yellow-400/30')}>
-                                    {feature.plan === 'premium' ? 'Premium' : 'Pro'}
-                                  </Badge>
-                                )}
-                              </div>
-                              <h3 className="font-bold text-base mb-2 text-foreground">
-                                {feature.title}
-                              </h3>
-                              <p className="text-sm text-muted-foreground flex-grow">
-                                {feature.description}
-                              </p>
-                            </div>
-                          </Card>
-                         </motion.div>
-                    </CarouselItem>
-                    ))}
-                  </CarouselContent>
-                </Carousel>
-            </div>
-            {/* Desktop Grid */}
-            <div className="hidden lg:block">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {features.slice(0, 3).map((feature) => (
-                  <motion.div
-                    key={feature.title}
-                    whileHover={{ scale: 1.03, y: -5 }}
-                    whileTap={{ scale: 0.98 }}
-                    transition={{ type: "spring", stiffness: 300 }}
-                    className="h-full"
-                  >
-                    <Card className="text-left h-full bg-card/50 rounded-2xl shadow-primary-lg p-6 flex flex-col">
-                      <div className='flex items-center justify-between mb-4'>
-                        <div className="bg-primary/10 text-primary p-3 rounded-lg">
-                          <feature.icon className="h-6 w-6" />
-                        </div>
-                        {feature.plan && (
-                          <Badge variant={feature.plan === 'premium' ? 'default' : 'secondary'} className={cn(feature.plan === 'premium' && 'bg-yellow-400/20 text-yellow-600 border-yellow-400/30')}>
-                            {feature.plan === 'premium' ? 'Premium' : 'Pro'}
-                          </Badge>
-                        )}
-                      </div>
-                      <h3 className="font-bold text-base mb-2 text-foreground">
-                        {feature.title}
-                      </h3>
-                      <p className="text-sm text-muted-foreground flex-grow">
-                        {feature.description}
-                      </p>
-                    </Card>
-                  </motion.div>
-                ))}
-              </div>
-              <div className="mt-6 flex justify-center">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full lg:w-2/3">
-                    {features.slice(3).map((feature) => (
-                    <motion.div
-                        key={feature.title}
-                        whileHover={{ scale: 1.03, y: -5 }}
-                        whileTap={{ scale: 0.98 }}
-                        transition={{ type: "spring", stiffness: 300 }}
-                        className="h-full"
-                    >
-                        <Card className="text-left h-full bg-card/50 rounded-2xl shadow-primary-lg p-6 flex flex-col">
-                        <div className='flex items-center justify-between mb-4'>
-                            <div className="bg-primary/10 text-primary p-3 rounded-lg">
-                            <feature.icon className="h-6 w-6" />
-                            </div>
-                            {feature.plan && (
-                            <Badge variant={feature.plan === 'premium' ? 'default' : 'secondary'} className={cn(feature.plan === 'premium' && 'bg-yellow-400/20 text-yellow-600 border-yellow-400/30')}>
-                                {feature.plan === 'premium' ? 'Premium' : 'Pro'}
-                            </Badge>
-                            )}
-                        </div>
-                        <h3 className="font-bold text-base mb-2 text-foreground">
-                            {feature.title}
-                        </h3>
-                        <p className="text-sm text-muted-foreground flex-grow">
-                            {feature.description}
-                        </p>
-                        </Card>
-                    </motion.div>
-                    ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+			<div className="container w-full max-w-6xl space-y-8 px-4">
+				<AnimatedContainer className="mx-auto max-w-3xl text-center">
+					<h2 className="text-3xl font-bold tracking-wide text-balance md:text-4xl lg:text-5xl xl:font-extrabold">
+						A plataforma completa para criadores
+					</h2>
+					<p className="text-muted-foreground mt-4 text-sm tracking-wide text-balance md:text-base">
+						Da estratégia de conteúdo à monetização, a Trendify centraliza tudo que você precisa para crescer de forma inteligente.
+					</p>
+				</AnimatedContainer>
+
+				<AnimatedContainer
+					delay={0.4}
+					className="grid grid-cols-1 divide-x divide-y divide-dashed border border-dashed sm:grid-cols-2 md:grid-cols-3"
+				>
+					{features.map((feature, i) => (
+						<FeatureCard key={i} feature={feature} />
+					))}
+				</AnimatedContainer>
+			</div>
+		</section>
 
         {/* Calculator Section */}
         <section id="calculadora" className="py-20 sm:py-24 bg-muted/30">
