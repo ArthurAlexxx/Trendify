@@ -7,7 +7,7 @@ import { FirebaseApp } from 'firebase/app';
 import { Firestore, doc, getDoc, setDoc, serverTimestamp, updateDoc, Timestamp } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged, getRedirectResult } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
-import { useToast } from '@/hooks/use-toast';
+import { useNotification } from '@/hooks/use-notification';
 import { differenceInDays } from 'date-fns';
 
 interface FirebaseProviderProps {
@@ -123,7 +123,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   firestore,
   auth,
 }) => {
-  const { toast } = useToast();
+  const { notify } = useNotification();
   const [userAuthState, setUserAuthState] = useState<UserAuthState>({
     user: null,
     isUserLoading: true, // Start loading until first auth event is fully processed
@@ -167,12 +167,12 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     getRedirectResult(auth).catch((error) => {
       if (error.code !== 'auth/no-redirect-operation') {
         console.error("FirebaseProvider: Google redirect result error:", error);
-        toast({ title: 'Erro no Login', description: 'Não foi possível completar o login com Google.', variant: 'destructive' });
+        notify({ title: 'Erro no Login', description: 'Não foi possível completar o login com Google.', variant: 'destructive' });
       }
     });
 
     return () => unsubscribe(); // Cleanup subscription on unmount
-  }, [auth, firestore, toast]);
+  }, [auth, firestore, notify]);
 
   // Memoize the context value
   const contextValue = useMemo((): FirebaseContextState => {
