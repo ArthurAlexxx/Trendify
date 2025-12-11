@@ -33,7 +33,7 @@ const formSchema = z.object({
   phone: z.string().min(10, 'O telefone é obrigatório.'),
   postalCode: z.string().min(8, 'O CEP é obrigatório.'),
   addressNumber: z.string().min(1, 'O número é obrigatório.'),
-  billingType: z.enum(['PIX', 'CREDIT_CARD']),
+  billingType: z.enum(['PIX', 'CREDIT_CARD', 'BOLETO']),
 });
 
 type FormSchemaType = z.infer<typeof formSchema>;
@@ -58,7 +58,7 @@ function CheckoutPageContent() {
       phone: '',
       postalCode: '',
       addressNumber: '',
-      billingType: 'PIX',
+      billingType: 'CREDIT_CARD',
     },
   });
   
@@ -89,6 +89,7 @@ function CheckoutPageContent() {
         plan: plan as 'pro' | 'premium',
         cycle: cycle as 'monthly' | 'annual',
         userId: user.uid,
+        billingTypes: [values.billingType],
       });
 
       if (result.error) {
@@ -100,7 +101,7 @@ function CheckoutPageContent() {
         });
       } else if (result.checkoutUrl) {
         // Redireciona para a URL de pagamento da Asaas
-        router.push(result.checkoutUrl);
+        window.location.href = result.checkoutUrl;
       } else {
         setError('Ocorreu um erro inesperado ao gerar o link de pagamento.');
          toast({
@@ -113,8 +114,8 @@ function CheckoutPageContent() {
   };
   
   const priceMap = {
-    pro: { monthly: 'R$5', annual: 'R$50' },
-    premium: { monthly: 'R$5', annual: 'R$90' },
+    pro: { monthly: 'R$50', annual: 'R$500' },
+    premium: { monthly: 'R$90', annual: 'R$900' },
   };
 
   const getPrice = () => {
@@ -155,18 +156,18 @@ function CheckoutPageContent() {
                       >
                         <FormItem className="flex-1">
                           <FormControl>
-                            <RadioGroupItem value="PIX" id="pix" className="sr-only" />
-                          </FormControl>
-                          <Label htmlFor="pix" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer [&:has([data-state=checked])]:border-primary">
-                            <Banknote className="mb-3 h-6 w-6" /> PIX
-                          </Label>
-                        </FormItem>
-                         <FormItem className="flex-1">
-                          <FormControl>
                             <RadioGroupItem value="CREDIT_CARD" id="cc" className="sr-only" />
                           </FormControl>
                           <Label htmlFor="cc" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer [&:has([data-state=checked])]:border-primary">
                             <CreditCard className="mb-3 h-6 w-6" /> Cartão
+                          </Label>
+                        </FormItem>
+                         <FormItem className="flex-1">
+                          <FormControl>
+                            <RadioGroupItem value="PIX" id="pix" className="sr-only" />
+                          </FormControl>
+                          <Label htmlFor="pix" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer [&:has([data-state=checked])]:border-primary">
+                            <Banknote className="mb-3 h-6 w-6" /> PIX
                           </Label>
                         </FormItem>
                       </RadioGroup>

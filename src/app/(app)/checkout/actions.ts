@@ -21,7 +21,7 @@ const CreatePaymentSchema = z.object({
   addressNumber: z.string().min(1, 'O número é obrigatório.'),
   plan: z.enum(['pro', 'premium']),
   cycle: z.enum(['monthly', 'annual']),
-  billingType: z.enum(['PIX', 'CREDIT_CARD', 'BOLETO']),
+  billingTypes: z.array(z.enum(['PIX', 'CREDIT_CARD', 'BOLETO'])),
   userId: z.string().min(1, 'ID do usuário é obrigatório.'),
 });
 
@@ -71,7 +71,7 @@ export async function createAsaasPaymentAction(
     return { error: `Dados inválidos: ${errorMessages}` };
   }
 
-  const { name, cpfCnpj, email, phone, postalCode, addressNumber, plan, cycle, billingType, userId } = parsed.data;
+  const { name, cpfCnpj, email, phone, postalCode, addressNumber, plan, cycle, billingTypes, userId } = parsed.data;
   
   const apiKey = process.env.ASAAS_API_KEY;
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
@@ -94,6 +94,7 @@ export async function createAsaasPaymentAction(
     
     // Metadados para identificar a compra no webhook
     const externalReference = JSON.stringify({ userId, plan, cycle });
+    const isRecurrent = billingTypes.includes('CREDIT_CARD');
 
     const checkoutBody: any = {
       operationType: 'SUBSCRIPTION',
@@ -106,9 +107,10 @@ export async function createAsaasPaymentAction(
         address,
         addressNumber,
         province,
+        city,
       },
       billing: {
-        billingType: billingType,
+        billingTypes: billingTypes,
       },
       callback: {
         successUrl: `${appUrl}/dashboard?checkout=success`,
@@ -147,7 +149,7 @@ export async function createAsaasPaymentAction(
          throw new Error('A API da Asaas não retornou um ID para a sessão de checkout.');
     }
 
-    const checkoutUrl = `https://sandbox.asaas.com/checkout/${checkoutData.id}`;
+    const checkoutUrl = `https://sandbox.asaas.com/checkoutSession/show?id=${checkoutData.id}`;
     
     return { 
         checkoutUrl: checkoutUrl, 
