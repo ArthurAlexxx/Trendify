@@ -38,9 +38,9 @@ function AnimatedHero() {
   return (
     <div className="w-full">
       <div className="container mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 pt-16 md:pt-32 items-center">
+        <div className="relative pt-16 md:pt-32">
             {/* Text Content */}
-            <div className="flex flex-col items-center lg:items-start text-center lg:text-left lg:col-span-2">
+            <div className="flex flex-col items-center lg:items-start text-center lg:text-left lg:w-1/2">
                 <div>
                     <Button variant="outline" size="sm" className="gap-4 rounded-full bg-transparent text-primary hover:bg-primary/10 border-primary">
                     <Sparkles className="w-4 h-4 animate-pulse" />
@@ -104,37 +104,33 @@ function AnimatedHero() {
             </div>
 
             {/* Image Content */}
-            <section
+            <div
                 ref={targetRef}
-                className="relative py-12 hidden lg:block lg:col-span-3"
+                className="absolute top-0 right-0 h-full w-full -z-10 hidden lg:block"
             >
                 <div
                     className="absolute inset-0"
                     style={{
                         background: 'ellipse 70% 40% at 50% 50%',
-                        backgroundImage: 'radial-gradient(ellipse 70% 40% at 50% 50%, hsl(var(--primary) / 0.25) 0%, transparent 70%)',
+                        backgroundImage: 'radial-gradient(ellipse 80% 50% at 70% 50%, hsl(var(--primary) / 0.15) 0%, transparent 70%)',
                     }}
                     aria-hidden="true"
                 />
-                <div className="container mx-auto">
-                    <motion.div
-                        style={{ scale }}
-                        className="relative w-full"
-                    >
-                        <Image
-                        src="https://firebasestorage.googleapis.com/v0/b/studio-4233590611-a8ab0.firebasestorage.app/o/Sem%20nome%20(Quadro%20branco).png?alt=media&token=242aeba3-137e-4a70-b344-c81507275c68"
-                        alt="Dashboard da Trendify mostrando métricas de crescimento"
-                        width={1200}
-                        height={750}
-                        className="w-full h-auto"
-                        priority
-                        />
-                    </motion.div>
-                </div>
-            </section>
+                <motion.div
+                    style={{ scale }}
+                    className="absolute top-1/2 -translate-y-1/2 right-0 w-4/5 translate-x-1/4"
+                >
+                    <Image
+                    src="https://firebasestorage.googleapis.com/v0/b/studio-4233590611-a8ab0.firebasestorage.app/o/Sem%20nome%20(Quadro%20branco).png?alt=media&token=242aeba3-137e-4a70-b344-c81507275c68"
+                    alt="Dashboard da Trendify mostrando métricas de crescimento"
+                    width={1200}
+                    height={750}
+                    className="w-full h-auto"
+                    priority
+                    />
+                </motion.div>
+            </div>
         </div>
-
-       
       </div>
     </div>
   );
