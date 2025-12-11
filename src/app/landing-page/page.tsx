@@ -21,6 +21,7 @@ import {
   AlertTriangle,
   DollarSign,
   Users,
+  HelpCircle,
 } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { useUser } from '@/firebase';
@@ -348,6 +349,12 @@ export default function LandingPage() {
         <section id="beneficios" className="py-20 sm:py-24">
 			<div className="container w-full max-w-6xl space-y-8 px-4">
 				<AnimatedContainer className="mx-auto max-w-3xl text-center">
+                    <div className="flex justify-center mb-6">
+                        <Button variant="outline" size="sm" className="gap-2 rounded-full bg-transparent text-primary hover:bg-primary/10 border-primary">
+                            <Sparkles className="w-4 h-4" />
+                            Benefícios
+                        </Button>
+                    </div>
 					<h2 className="text-3xl font-bold tracking-wide text-balance md:text-4xl lg:text-5xl xl:font-extrabold">
 						A plataforma completa para criadores
 					</h2>
@@ -381,6 +388,12 @@ export default function LandingPage() {
                     transition={{ duration: 0.3 }}
                   >
                     <div className="text-center max-w-3xl mx-auto mb-12">
+                       <div className="flex justify-center mb-6">
+                         <Button variant="outline" size="sm" className="gap-2 rounded-full bg-transparent text-primary hover:bg-primary/10 border-primary">
+                            <BarChartIcon className="w-4 h-4" />
+                            Calculadora
+                        </Button>
+                       </div>
                       <h2 className="text-4xl md:text-5xl font-bold font-headline tracking-tight mb-4">
                         Calcule seu Potencial de Crescimento
                       </h2>
@@ -761,6 +774,12 @@ export default function LandingPage() {
           <AnimatedContainer>
             <div className="container">
               <div className="text-center max-w-2xl mx-auto mb-12">
+                <div className="flex justify-center mb-6">
+                    <Button variant="outline" size="sm" className="gap-2 rounded-full bg-transparent text-primary hover:bg-primary/10 border-primary">
+                        <Crown className="w-4 h-4" />
+                        Preços
+                    </Button>
+                </div>
                 <h2 className="text-4xl md:text-5xl font-bold font-headline tracking-tight mb-4">
                   Planos para cada fase da sua jornada
                 </h2>
@@ -903,6 +922,12 @@ export default function LandingPage() {
           <AnimatedContainer>
             <div className="container max-w-3xl mx-auto">
               <div className="text-center mb-12">
+                 <div className="flex justify-center mb-6">
+                    <Button variant="outline" size="sm" className="gap-2 rounded-full bg-transparent text-primary hover:bg-primary/10 border-primary">
+                        <HelpCircle className="w-4 h-4" />
+                        FAQ
+                    </Button>
+                </div>
                 <h2 className="text-4xl md:text-5xl font-bold font-headline tracking-tight mb-4">
                   Perguntas Frequentes
                 </h2>
