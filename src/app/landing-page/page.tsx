@@ -106,7 +106,7 @@ const features = [
     description: 'Acompanhe suas métricas e receba insights da IA para ajustar sua estratégia e acelerar seus resultados.',
     plan: 'premium'
   }
-];
+] as const;
 
 const faqItems = [
   {
@@ -341,7 +341,7 @@ export default function LandingPage() {
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="relative overflow-hidden">
+        <section className="relative">
            <AnimatedHero />
         </section>
 
