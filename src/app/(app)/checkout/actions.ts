@@ -106,19 +106,15 @@ export async function createAsaasPaymentAction(
     let checkoutBody: any;
     
     if (isRecurrent) {
-        endpoint = 'paymentLinks';
+        endpoint = 'subscriptions';
         checkoutBody = {
-            name: `Assinatura Plano ${planName}`,
-            description: `Acesso ao plano ${planName} da Trendify.`,
+            customer: customerId,
             billingType: "CREDIT_CARD",
-            chargeType: "RECURRENT",
+            nextDueDate: new Date().toISOString().split('T')[0],
             value: price,
             cycle: cycle === 'annual' ? 'YEARLY' : 'MONTHLY',
-            callback: {
-                successUrl: `${appUrl}/dashboard?checkout=success`,
-                autoRedirect: true,
-            },
-            maxInstallmentCount: 1, // Assinatura não permite parcelamento da recorrência
+            description: `Assinatura Plano ${planName} da Trendify.`,
+            externalReference: JSON.stringify({ userId, plan, cycle }),
         };
     } else { // PIX
         endpoint = 'payments';
@@ -167,3 +163,4 @@ export async function createAsaasPaymentAction(
     return { error: e.message || 'Ocorreu um erro de comunicação com o provedor de pagamento.' };
   }
 }
+

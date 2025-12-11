@@ -74,12 +74,12 @@ async function logWebhook(firestore: ReturnType<typeof getFirestore>, event: any
 // Função para encontrar o userId usando diferentes métodos de fallback
 async function findUserInfo(firestore: ReturnType<typeof getFirestore>, payload: any): Promise<{ userId: string; plan?: Plan; cycle?: 'monthly' | 'annual' } | null> {
     
-    // Método 1: Tenta extrair do externalReference (pagamento único/PIX)
+    // Método 1: Tenta extrair do externalReference (pagamento único/PIX ou assinatura)
     if (payload.externalReference) {
         try {
             const refData = JSON.parse(payload.externalReference);
             if (refData.userId) {
-                console.log(`[Webhook] Informações encontradas no externalReference do pagamento: userId=${refData.userId}`);
+                console.log(`[Webhook] Informações encontradas no externalReference: userId=${refData.userId}`);
                 return {
                     userId: refData.userId,
                     plan: refData.plan,
@@ -87,7 +87,7 @@ async function findUserInfo(firestore: ReturnType<typeof getFirestore>, payload:
                 };
             }
         } catch(e) {
-             console.log("[Webhook] externalReference do pagamento não é um JSON. Tentando fallback.");
+             console.log("[Webhook] externalReference não é um JSON. Tentando fallback.");
         }
     }
 
