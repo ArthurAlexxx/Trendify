@@ -122,8 +122,9 @@ export async function createAsaasPaymentAction(
         complement: '',
         province, // Bairro obtido do CEP
       },
-      externalReference: JSON.stringify({ userId, plan, cycle }),
     };
+    
+    const externalReference = JSON.stringify({ userId, plan, cycle });
 
     if (isRecurrent) {
       const today = new Date();
@@ -139,7 +140,10 @@ export async function createAsaasPaymentAction(
         cycle: cycle === 'annual' ? 'YEARLY' : 'MONTHLY',
         description: `Assinatura do plano ${plan.toUpperCase()} (${cycle === 'annual' ? 'Anual' : 'Mensal'}) na Trendify`,
         nextDueDate: nextDueDate.toISOString().split('T')[0], // Formato YYYY-MM-DD
+        externalReference: externalReference,
       };
+    } else {
+        checkoutBody.externalReference = externalReference;
     }
 
     const checkoutResponse = await fetch('https://sandbox.asaas.com/api/v3/checkouts', {
@@ -152,7 +156,7 @@ export async function createAsaasPaymentAction(
         body: JSON.stringify(checkoutBody)
     });
     
-    const checkoutData = await checkoutResponse.json();
+    const checkoutData: any = await checkoutResponse.json();
 
     if (!checkoutResponse.ok) {
         console.error(`[Asaas Action] Erro na resposta da API de checkout:`, checkoutData);
