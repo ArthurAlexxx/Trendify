@@ -66,30 +66,86 @@ async function logWebhook(firestore: ReturnType<typeof getFirestore>, event: any
   }
 }
 
-// Função simplificada para obter informações do usuário e do plano a partir do payload do webhook.
-function findUserInfo(eventPayload: any): { userId: string; plan: Plan; cycle: 'monthly' | 'annual' } | null {
+// Função simplificada para obter informações do usuário a partir do payload do webhook.
+async function findUserInfo(firestore: ReturnType<typeof getFirestore>, eventPayload: any): Promise<{ userId: string; plan: Plan; cycle: 'monthly' | 'annual' } | null> {
     
-    // O externalReference é a nossa fonte primária e única de verdade.
+    // Método 1: externalReference (o mais confiável)
     const externalRef = eventPayload?.externalReference;
-    
-    if (!externalRef) {
-        console.warn("[Webhook] externalReference não encontrado no payload do evento.");
-        return null;
-    }
-
-    try {
-        const { userId, plan, cycle } = JSON.parse(externalRef);
-        
-        if (userId && plan && cycle) {
-            console.log(`[Webhook] Informações encontradas no externalReference: userId=${userId}, plan=${plan}, cycle=${cycle}`);
-            return { userId, plan, cycle };
+    if (externalRef) {
+        try {
+            const { userId, plan, cycle } = JSON.parse(externalRef);
+            if (userId && plan && cycle) {
+                console.log(`[Webhook] Informações encontradas no externalReference: userId=${userId}, plan=${plan}, cycle=${cycle}`);
+                return { userId, plan, cycle };
+            }
+        } catch (e) {
+            console.warn(`[Webhook] externalReference não é um JSON válido: ${externalRef}. Tentando outros métodos.`);
         }
-    } catch (e) {
-        console.error(`[Webhook] ERRO: Falha ao parsear o externalReference. Conteúdo: ${externalRef}`, e);
     }
 
+    // Método 2: Buscar pelo checkoutSession ID
+    const checkoutId = eventPayload?.checkoutSession;
+    if (checkoutId) {
+        const usersByCheckout = await firestore
+          .collection('users')
+          .where('subscription.asaasCheckoutId', '==', checkoutId)
+          .limit(1)
+          .get();
+
+        if (!usersByCheckout.empty) {
+            const userId = usersByCheckout.docs[0].id;
+            const userData = usersByCheckout.docs[0].data();
+            console.log(`[Webhook] Fallback: Usuário encontrado pelo checkoutId: ${userId}`);
+
+            // Precisamos do plano e ciclo, vamos buscar na assinatura
+            const subscriptionId = eventPayload.subscription;
+            if (subscriptionId) {
+                try {
+                    const subDetails = await getSubscriptionDetails(subscriptionId);
+                    if (subDetails) {
+                        return { userId, ...subDetails };
+                    }
+                } catch(e) { console.error(e) }
+            }
+        }
+    }
+
+    console.error("[Webhook] ERRO: Não foi possível resolver o usuário para o evento.", eventPayload);
     return null;
 }
+
+async function getSubscriptionDetails(subscriptionId: string): Promise<{ plan: Plan; cycle: 'monthly' | 'annual' } | null> {
+    try {
+        const response = await fetch(`https://sandbox.asaas.com/api/v3/subscriptions/${subscriptionId}`, {
+             headers: { 'access_token': process.env.ASAAS_API_KEY! }
+        });
+        if (!response.ok) {
+            console.error(`[Webhook Fallback] Falha ao buscar detalhes da assinatura ${subscriptionId}.`);
+            return null;
+        }
+        const subData: any = await response.json();
+        
+        const externalRef = subData.externalReference;
+         if (externalRef) {
+            try {
+                const { plan, cycle } = JSON.parse(externalRef);
+                if (plan && cycle) {
+                    console.log(`[Webhook Fallback] Detalhes da assinatura ${subscriptionId} obtidos do externalReference: plan=${plan}, cycle=${cycle}`);
+                    return { plan, cycle };
+                }
+            } catch (e) {
+                 console.warn(`[Webhook Fallback] externalReference da assinatura ${subscriptionId} não é um JSON válido.`);
+            }
+        }
+        
+        return null;
+
+    } catch (e: any) {
+        console.error(`[Webhook Fallback] Erro ao buscar detalhes da assinatura ${subscriptionId}:`, e);
+        return null;
+    }
+}
+
 
 // Função para processar a confirmação de pagamento
 async function processPaymentConfirmation(userRef: FirebaseFirestore.DocumentReference, payment: any, plan: Plan, cycle: 'monthly' | 'annual') {
@@ -121,7 +177,7 @@ async function processPaymentConfirmation(userRef: FirebaseFirestore.DocumentRef
     'subscription.lastPaymentStatus': 'confirmed',
     'subscription.lastUpdated': Timestamp.now(),
     'subscription.trialEndsAt': null,
-    'subscription.paymentId': payment.customer, // Salva o ID do cliente Asaas
+    'subscription.paymentId': payment.customer,
   };
 
   if (payment.subscription) {
@@ -174,7 +230,7 @@ export async function POST(req: NextRequest) {
        return NextResponse.json({ success: true, message: 'Evento recebido, mas sem dados de pagamento para processar.' });
   }
   
-  const userInfo = findUserInfo(mainPaymentEntity);
+  const userInfo = await findUserInfo(firestore, mainPaymentEntity);
 
   if (!userInfo || !userInfo.userId || !userInfo.plan || !userInfo.cycle) {
     console.warn('[Asaas Webhook] Não foi possível resolver as informações do usuário a partir do payload.');
