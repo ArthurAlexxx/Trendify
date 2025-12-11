@@ -32,15 +32,15 @@ function AnimatedHero() {
     offset: ["start end", "end start"],
   });
 
-  const scale = useTransform(scrollYProgress, [0, 0.5], [0.8, 1]);
+  const scale = useTransform(scrollYProgress, [0, 0.5], [1, 1.1]);
 
 
   return (
     <div className="w-full">
       <div className="container mx-auto">
-        <div className="relative pt-16 md:pt-32">
+        <div className="relative pt-16 md:pt-32 grid lg:grid-cols-2 lg:gap-8 lg:items-center">
             {/* Text Content */}
-            <div className="relative z-10 flex flex-col items-center lg:items-start text-center lg:text-left lg:w-1/2">
+            <div className="relative z-10 flex flex-col items-center lg:items-start text-center lg:text-left">
                 <div>
                     <Button variant="outline" size="sm" className="gap-4 rounded-full bg-transparent text-primary hover:bg-primary/10 border-primary">
                     <Sparkles className="w-4 h-4 animate-pulse" />
@@ -106,7 +106,7 @@ function AnimatedHero() {
             {/* Image Content */}
             <div
                 ref={targetRef}
-                className="absolute top-0 right-0 h-full w-full hidden lg:block"
+                className="relative mt-12 lg:mt-0"
             >
                 <div
                     className="absolute inset-0"
@@ -118,7 +118,6 @@ function AnimatedHero() {
                 />
                 <motion.div
                     style={{ scale }}
-                    className="absolute top-1/2 -translate-y-1/2 right-0 w-4/5 translate-x-1/4"
                 >
                     <Image
                     src="https://firebasestorage.googleapis.com/v0/b/studio-4233590611-a8ab0.firebasestorage.app/o/Sem%20nome%20(Quadro%20branco).png?alt=media&token=242aeba3-137e-4a70-b344-c81507275c68"
