@@ -91,10 +91,10 @@ export async function createAsaasPaymentAction(
 
     const price = priceMap[plan][cycle];
     const externalReference = JSON.stringify({ userId, plan, cycle });
-    const isRecurrent = true;
+    const isRecurrent = true; // All paid plans are subscriptions
     
     const checkoutBody: any = {
-      operationType: isRecurrent ? 'SUBSCRIPTION' : 'PAYMENT',
+      operationType: 'SUBSCRIPTION',
       customer: {
         name,
         email,
@@ -106,6 +106,7 @@ export async function createAsaasPaymentAction(
         province,
       },
       billingTypes: billingTypes,
+      chargeTypes: ["RECURRENT"], // CORREÇÃO: Adicionado o campo obrigatório 'chargeTypes'
       callback: {
         successUrl: `${appUrl}/dashboard?checkout=success`,
         autoRedirect: true,
@@ -115,19 +116,14 @@ export async function createAsaasPaymentAction(
         value: price,
         quantity: 1,
       }],
+      subscription: {
+          description: `Assinatura do plano ${plan.toUpperCase()} (${cycle === 'annual' ? 'Anual' : 'Mensal'}) na Trendify`,
+          cycle: cycle === 'annual' ? 'YEARLY' : 'MONTHLY',
+          value: price,
+          externalReference: externalReference, // Garantir que está aqui também
+      },
+      externalReference: externalReference, // E aqui
     };
-    
-    if (isRecurrent) {
-        checkoutBody.subscription = {
-            description: `Assinatura do plano ${plan.toUpperCase()} (${cycle === 'annual' ? 'Anual' : 'Mensal'}) na Trendify`,
-            cycle: cycle === 'annual' ? 'YEARLY' : 'MONTHLY',
-            value: price,
-            externalReference: externalReference,
-        };
-        checkoutBody.externalReference = externalReference;
-    } else {
-        checkoutBody.externalReference = externalReference;
-    }
     
     const checkoutResponse = await fetch('https://sandbox.asaas.com/api/v3/checkouts', {
         method: 'POST',
