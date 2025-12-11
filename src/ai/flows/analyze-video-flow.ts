@@ -5,7 +5,7 @@
  *
  * - analyzeVideo - Uma função que lida com o processo de análise de vídeo.
  */
-import type { AnalyzeVideoInput, AnalyzeVideoOutput } from '@/lib/types';
+import type { AnalyzeVideoOutput } from '@/lib/types';
 import { AnalyzeVideoOutputSchema } from '@/lib/types';
 import { genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/google-genai';
@@ -71,5 +71,3 @@ Analise o vídeo e retorne um objeto JSON com a sua avaliação, seguindo estrit
     
     return validatedOutput;
 }
-
-    

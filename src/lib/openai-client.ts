@@ -16,14 +16,12 @@ interface CallOpenAIParams<T extends z.ZodType<any, any, any>> {
   prompt: string;
   jsonSchema: T;
   promptData: Record<string, any>;
-  videoUrl?: string;
-  videoMimeType?: string;
 }
 
 export async function callOpenAI<T extends z.ZodType<any, any, any>>(
   params: CallOpenAIParams<T>
 ): Promise<z.infer<T>> {
-  const { prompt, jsonSchema, promptData, videoUrl, videoMimeType } = params;
+  const { prompt, jsonSchema, promptData } = params;
 
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
@@ -41,15 +39,6 @@ export async function callOpenAI<T extends z.ZodType<any, any, any>>(
 
   // Monta o conteúdo do usuário
   const userContent: any[] = [{ type: 'text', text: processedPrompt }];
-  if (videoUrl) {
-    // Adiciona a URL do vídeo diretamente, usando o tipo 'image_url' como instruído para o gpt-4o
-    userContent.push({
-      type: "image_url",
-      image_url: {
-        url: videoUrl,
-      },
-    });
-  }
   
   const body = {
     model: 'gpt-4o',
