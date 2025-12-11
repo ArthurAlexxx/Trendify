@@ -162,7 +162,7 @@ export async function cancelAsaasCheckoutAction(
   }
 
   try {
-    const response = await fetch(`https://www.asaas.com/api/v3/checkouts/${checkoutId}/cancel`, {
+    const response = await fetch(`https://sandbox.asaas.com/api/v3/checkouts/${checkoutId}/cancel`, {
       method: 'POST',
       headers: {
         'accept': 'application/json',

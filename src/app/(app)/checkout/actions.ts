@@ -8,8 +8,8 @@ import { initializeFirebaseAdmin } from '@/firebase/admin';
 // Mapeamento de planos e preços
 const priceMap: Record<Plan, Record<'monthly' | 'annual', number>> = {
     free: { monthly: 0, annual: 0 },
-    pro: { monthly: 5, annual: 5 },
-    premium: { monthly: 5, annual: 5 },
+    pro: { monthly: 5, annual: 50 },
+    premium: { monthly: 5, annual: 90 },
 };
 
 const CreatePaymentSchema = z.object({
@@ -56,7 +56,7 @@ export async function createAsaasPaymentAction(
   
   try {
     // ETAPA 1: Criar ou obter o cliente na Asaas
-    const customerResponse = await fetch('https://www.asaas.com/api/v3/customers', {
+    const customerResponse = await fetch('https://sandbox.asaas.com/api/v3/customers', {
         method: 'POST',
         headers: {
             'accept': 'application/json',
@@ -77,7 +77,7 @@ export async function createAsaasPaymentAction(
     let customerId = customerData.id;
     // Se o cliente já existe, busca o ID dele
     if (customerData.errors?.[0]?.code === 'invalid_customer' || customerResponse.status === 400) {
-        const searchResponse = await fetch(`https://www.asaas.com/api/v3/customers?cpfCnpj=${cpfCnpj}`, {
+        const searchResponse = await fetch(`https://sandbox.asaas.com/api/v3/customers?cpfCnpj=${cpfCnpj}`, {
             headers: { 'access_token': apiKey },
         });
         const searchData = await searchResponse.json();
@@ -125,7 +125,7 @@ export async function createAsaasPaymentAction(
         checkoutBody.dueDateLimitDays = 1; // Para PIX, mantém um prazo curto
     }
     
-    const checkoutResponse = await fetch(`https://www.asaas.com/api/v3/${endpoint}`, {
+    const checkoutResponse = await fetch(`https://sandbox.asaas.com/api/v3/${endpoint}`, {
         method: 'POST',
         headers: {
             'accept': 'application/json',
@@ -143,7 +143,7 @@ export async function createAsaasPaymentAction(
     }
     
     // Asaas retorna 'id' para assinatura e 'invoiceUrl' para pagamento único (PIX)
-    const finalCheckoutUrl = isRecurrent ? `https://www.asaas.com/c/${checkoutData.id}` : checkoutData.invoiceUrl;
+    const finalCheckoutUrl = isRecurrent ? `https://sandbox.asaas.com/c/${checkoutData.id}` : checkoutData.invoiceUrl;
 
     if (!finalCheckoutUrl || !checkoutData.id) {
          console.error('[Asaas Action] Resposta da API de checkout não continha uma URL ou ID válido:', checkoutData);
