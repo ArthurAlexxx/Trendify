@@ -5,8 +5,6 @@ import { z } from 'zod';
 import type { Plan } from '@/lib/types';
 import fetch from 'node-fetch';
 import { initializeFirebaseAdmin } from '@/firebase/admin';
-import { doc, updateDoc } from 'firebase-admin/firestore';
-
 
 const priceMap: Record<Plan, Record<'monthly' | 'annual', number>> = {
     free: { monthly: 0, annual: 0 },
@@ -87,7 +85,6 @@ export async function createAsaasPaymentAction(
     const price = priceMap[plan][cycle];
     const isRecurrent = true;
     
-    // Calculate the next due date
     const today = new Date();
     let nextDueDate = new Date(today);
 
@@ -101,6 +98,8 @@ export async function createAsaasPaymentAction(
     
     const checkoutBody: any = {
       operationType: 'SUBSCRIPTION',
+      billingTypes,
+      chargeTypes: ['RECURRENT'],
       customerData: {
         name,
         email,
@@ -111,8 +110,6 @@ export async function createAsaasPaymentAction(
         addressNumber,
         province,
       },
-      billingTypes,
-      chargeTypes: ['RECURRENT'],
       callback: {
         successUrl: `${appUrl}/dashboard?checkout=success`,
         cancelUrl: `${appUrl}/subscribe?status=cancel`,
@@ -152,18 +149,19 @@ export async function createAsaasPaymentAction(
          throw new Error('A API da Asaas não retornou um ID para a sessão de checkout.');
     }
     
-    // --- Elo de Ligação: Salva o ID do checkout no perfil do usuário ---
     const { firestore } = initializeFirebaseAdmin();
-    const userRef = doc(firestore, 'users', userId);
-    await updateDoc(userRef, {
-      'subscription.asaasCheckoutId': checkoutData.id,
-      'subscription.pendingPlan': plan,
-      'subscription.pendingCycle': cycle,
+    const userRef = firestore.doc(`users/${userId}`);
+
+    await userRef.update({
+        'subscription.asaasCheckoutId': checkoutData.id,
+        'subscription.pendingPlan': plan,
+        'subscription.pendingCycle': cycle,
     });
+    
     console.log(`[Asaas Action] Checkout ID ${checkoutData.id} salvo para o usuário ${userId}.`);
 
 
-    const checkoutUrl = checkoutData.link || `https://sandbox.asaas.com/checkoutSession/show?id=${checkoutData.id}`;
+    const checkoutUrl = `https://sandbox.asaas.com/checkoutSession/show?id=${checkoutData.id}`;
     
     return { 
         checkoutUrl: checkoutUrl, 
