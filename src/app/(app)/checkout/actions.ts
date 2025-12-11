@@ -8,8 +8,8 @@ import fetch from 'node-fetch';
 // Mapeamento de planos e preços
 const priceMap: Record<Plan, Record<'monthly' | 'annual', number>> = {
     free: { monthly: 0, annual: 0 },
-    pro: { monthly: 5, annual: 50 },
-    premium: { monthly: 5, annual: 90 },
+    pro: { monthly: 50, annual: 500 },
+    premium: { monthly: 90, annual: 900 },
 };
 
 const CreatePaymentSchema = z.object({
