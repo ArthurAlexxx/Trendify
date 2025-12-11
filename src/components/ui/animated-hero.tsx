@@ -55,7 +55,7 @@ function AnimatedHero() {
 
   return (
     <div className="w-full">
-      <div className="relative pt-32 md:pt-48 pb-16 md:pb-24 px-6 text-center">
+      <div className="relative pt-32 pb-24 px-6 text-center">
         {/* Text Content */}
           <div className="relative z-10 flex flex-col items-center text-center">
               <div>
@@ -104,7 +104,7 @@ function AnimatedHero() {
           </div>
 
           {/* Image Content */}
-          <div ref={targetRef} className="relative mt-12">
+          <div ref={targetRef} className="relative mt-20">
             <div className="absolute inset-0 -z-10 bg-gradient-radial from-primary/10 via-primary/5 to-transparent" />
             <motion.div style={{ scale }}>
                 <Image
