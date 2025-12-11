@@ -60,14 +60,14 @@ Analise os seguintes dados e gere um dashboard de inteligência. Seja específic
 - Objetivo Atual: {{objective}}
 - Dados de Métricas (array ordenado do mais recente para o mais antigo): {{{json metricSnapshots}}}
 
-Para cada campo do JSON, siga estas diretrizes:
+Para cada campo do JSON, siga as diretrizes:
 - insights: Gere 3 insights criativos e acionáveis, diretamente derivados da análise dos números em 'metricSnapshots'. Ex: "Seus views aumentaram 20%, mas os comentários caíram. Isso sugere que seu conteúdo está alcançando mais gente, mas o novo formato pode ser menos conversacional."
 - trendAnalysis: Analise as métricas e liste quais estão subindo e quais estão caindo. Se nada mudou, retorne arrays vazios.
 - predictiveForecast: Com base na tendência de crescimento de seguidores nos dados, faça uma previsão numérica para os próximos 7 e 30 dias.
 - riskAlerts: Com base nos dados, liste 2-3 riscos. Ex: "A queda de 15% nos likes pode indicar uma saturação do formato atual."
 - recommendedActions: Dê 2-3 recomendações estratégicas para acelerar, baseadas diretamente nos pontos fracos e fortes dos dados.
 - bestPostTime: Sugira horários baseados no comportamento do público-alvo do nicho, não apenas em dados gerais. Nichos B2B performam melhor em horário comercial; nichos de entretenimento à noite.
-- contentOpportunities: Com base nas métricas, liste 2-3 oportunidades de conteúdo. Ex: "Seus vídeos com mais likes são os de 'unboxing'. Considere criar uma série semanal sobre isso."`;
+- contentOpportunities: Com base nos dados, liste 2-3 oportunidades de conteúdo. Ex: "Seus vídeos com mais likes são os de 'unboxing'. Considere criar uma série semanal sobre isso."`;
 
 
 /**
@@ -77,9 +77,9 @@ Para cada campo do JSON, siga estas diretrizes:
  */
 export async function generateDashboardInsights(
   input: z.infer<typeof GenerateDashboardInsightsInputSchema>
-): Promise<DashboardInsightsOutput> {
+): Promise<{data?: DashboardInsightsOutput, error?: string}> {
    if (input.metricSnapshots.length < 2) {
-    throw new Error("Dados insuficientes para gerar uma análise. Colete dados por mais alguns dias.");
+    return { error: "Dados insuficientes para gerar uma análise. Colete dados por mais alguns dias."};
   }
   
   try {
@@ -88,12 +88,12 @@ export async function generateDashboardInsights(
         jsonSchema: GenerateDashboardInsightsOutputSchema,
         promptData: input,
      });
-     return result;
+     return { data: result };
   } catch (error) {
     console.error('Error in generateDashboardInsights:', error);
     const errorMessage =
       error instanceof Error ? error.message : 'Erro desconhecido.';
-    throw new Error(`Falha ao gerar insights com a IA: ${errorMessage}`);
+    return { error: `Falha ao gerar insights com a IA: ${errorMessage}` };
   }
 }
 

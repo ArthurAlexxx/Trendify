@@ -1,4 +1,5 @@
 
+
 'use client';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -61,6 +62,7 @@ import ActionHubCard from '@/components/dashboard/action-hub-card';
 import PerformanceAnalysisCard from '@/app/(app)/dashboard/performance-analysis-card';
 import EvolutionChartCard from '@/app/(app)/dashboard/evolution-chart-card';
 import EngagementMetricsCard from '@/app/(app)/dashboard/engagement-metrics-card';
+import { cn } from '@/lib/utils';
 
 function DashboardSkeleton() {
   return (
@@ -216,7 +218,7 @@ export default function DashboardPage() {
         description: `Ideia marcada como ${!ideia.concluido ? 'concluída' : 'pendente'}.`,
       });
     } catch (e: any) {
-      notify({ title: 'Erro ao atualizar ideia', description: e.message });
+      notify({ title: 'Erro ao atualizar ideia', description: e.message, variant: 'destructive' });
     }
   };
 
@@ -227,7 +229,7 @@ export default function DashboardPage() {
         await updateDoc(postRef, { status: 'Publicado' });
         notify({ title: 'Sucesso!', description: 'Post marcado como publicado.' });
     } catch (e: any) {
-        notify({ title: 'Erro ao atualizar post', description: e.message });
+        notify({ title: 'Erro ao atualizar post', description: e.message, variant: 'destructive' });
     }
   };
 
@@ -242,7 +244,7 @@ export default function DashboardPage() {
     try {
       await updateDoc(planRef, { items: updatedItems });
     } catch (e: any) {
-      notify({ title: 'Erro ao atualizar tarefa', description: e.message });
+      notify({ title: 'Erro ao atualizar tarefa', description: e.message, variant: 'destructive' });
     }
   };
 
@@ -279,6 +281,7 @@ export default function DashboardPage() {
       notify({
         title: "Dados Insuficientes",
         description: "Sincronize suas métricas por pelo menos 2 dias para gerar insights.",
+        variant: 'destructive'
       });
       return;
     }
@@ -286,6 +289,7 @@ export default function DashboardPage() {
        notify({
         title: "Perfil Incompleto",
         description: "Por favor, defina seu nicho e sua meta de seguidores no seu perfil.",
+        variant: 'destructive'
       });
       return;
     }
@@ -313,9 +317,13 @@ export default function DashboardPage() {
         niche: userProfile.niche,
         objective: `Atingir a meta de ${userProfile.totalFollowerGoal} seguidores.`,
       });
-      setInsights(result);
+      if (result.error) {
+          throw new Error(result.error);
+      }
+      setInsights(result.data || null);
+      notify({title: "Sucesso!", description: "Sua análise de desempenho está pronta."})
     } catch (e: any) {
-      notify({ title: "Erro ao Gerar Insights", description: e.message });
+      notify({ title: "Erro ao Gerar Insights", description: e.message, variant: 'destructive' });
     } finally {
       setIsGeneratingInsights(false);
     }
@@ -393,10 +401,10 @@ export default function DashboardPage() {
         >
           <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
               <Tabs value={selectedPlatform} onValueChange={(value) => setSelectedPlatform(value as any)}>
-                <TabsList className="bg-muted p-2">
-                  <TabsTrigger value="total" className="text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary px-6 py-2 text-sm font-semibold transition-colors hover:bg-primary/5">Total</TabsTrigger>
-                  <TabsTrigger value="instagram" className="text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary px-6 py-2 text-sm font-semibold transition-colors hover:bg-primary/5">Instagram</TabsTrigger>
-                  <TabsTrigger value="tiktok" className="text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary px-6 py-2 text-sm font-semibold transition-colors hover:bg-primary/5">TikTok</TabsTrigger>
+                <TabsList className="bg-muted p-1 h-auto">
+                  <TabsTrigger value="total" className={cn("text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary px-6 py-2 text-sm font-semibold transition-colors hover:bg-primary/5")}>Total</TabsTrigger>
+                  <TabsTrigger value="instagram" className={cn("text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary px-6 py-2 text-sm font-semibold transition-colors hover:bg-primary/5")}>Instagram</TabsTrigger>
+                  <TabsTrigger value="tiktok" className={cn("text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary px-6 py-2 text-sm font-semibold transition-colors hover:bg-primary/5")}>TikTok</TabsTrigger>
                 </TabsList>
               </Tabs>
               {userProfile && 

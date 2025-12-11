@@ -115,7 +115,7 @@ export default function IntegrationsPage() {
   const handleInstagramSearch = async () => {
     const username = form.getValues('instagramHandle') || '';
     if (!username) {
-      notify({ title: 'Atenção', description: 'Por favor, insira um nome de usuário do Instagram.'});
+      notify({ title: 'Atenção', description: 'Por favor, insira um nome de usuário do Instagram.', variant: 'destructive'});
       return;
     }
     setInstaStatus('loading');
@@ -191,6 +191,7 @@ export default function IntegrationsPage() {
       notify({
         title: 'Erro na Sincronização',
         description: e.message || 'Ocorreu um erro desconhecido.',
+        variant: 'destructive',
       });
     }
   };
@@ -198,7 +199,7 @@ export default function IntegrationsPage() {
     const handleTiktokSearch = async () => {
     const tiktokUsername = form.getValues('tiktokHandle') || '';
     if (!tiktokUsername) {
-      notify({ title: 'Atenção', description: 'Por favor, insira um nome de usuário do TikTok.'});
+      notify({ title: 'Atenção', description: 'Por favor, insira um nome de usuário do TikTok.', variant: 'destructive'});
       return;
     }
     setTiktokStatus('loading');
@@ -275,6 +276,7 @@ export default function IntegrationsPage() {
       notify({
         title: 'Erro na Sincronização',
         description: e.message || 'Ocorreu um erro desconhecido.',
+        variant: 'destructive',
       });
     }
   };

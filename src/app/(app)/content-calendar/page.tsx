@@ -265,6 +265,7 @@ export default function ContentCalendarPage() {
       notify({
         title: 'Erro',
         description: `Não foi possível salvar o agendamento.`,
+        variant: 'destructive',
       });
     }
   }
@@ -280,11 +281,12 @@ export default function ContentCalendarPage() {
       await updateDoc(postRef, { status: 'Publicado' });
       notify({ title: 'Sucesso!', description: 'Post marcado como publicado.' });
       setIsDetailSheetOpen(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating document:', error);
       notify({
         title: 'Erro',
-        description: 'Não foi possível atualizar o post.',
+        description: 'Não foi possível atualizar o post: ' + error.message,
+        variant: 'destructive',
       });
     }
   };
@@ -307,11 +309,12 @@ export default function ContentCalendarPage() {
       notify({ title: 'Excluído!', description: 'O agendamento foi removido.' });
       setIsDeleteSheetOpen(false);
       setPostToDelete(null);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting document:', error);
       notify({
         title: 'Erro',
-        description: 'Não foi possível excluir o post.',
+        description: 'Não foi possível excluir o post: ' + error.message,
+        variant: 'destructive',
       });
     }
   };
