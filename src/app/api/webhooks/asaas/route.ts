@@ -93,8 +93,11 @@ async function findUserId(firestore: ReturnType<typeof getFirestore>, payment: a
                     .limit(1)
                     .get();
                 if (!usersByRef.empty) {
-                    // This is a fallback and won't have plan/cycle info. It will fail gracefully later.
-                    return { userId: usersByRef.docs[0].id, plan: 'pro', cycle: 'monthly' };
+                    const userData = usersByRef.docs[0].data();
+                    // This is a fallback but tries to get plan/cycle from the user's doc
+                    const plan = userData.subscription?.plan || 'pro';
+                    const cycle = userData.subscription?.cycle || 'monthly';
+                    return { userId: usersByRef.docs[0].id, plan, cycle };
                 }
             }
         }
@@ -108,7 +111,10 @@ async function findUserId(firestore: ReturnType<typeof getFirestore>, payment: a
           .limit(1)
           .get();
         if (!usersByCustomer.empty) {
-          return { userId: usersByCustomer.docs[0].id, plan: 'pro', cycle: 'monthly' };
+            const userData = usersByCustomer.docs[0].data();
+            const plan = userData.subscription?.plan || 'pro';
+            const cycle = userData.subscription?.cycle || 'monthly';
+            return { userId: usersByCustomer.docs[0].id, plan, cycle };
         }
     }
 
@@ -122,16 +128,25 @@ async function processPaymentConfirmation(userRef: FirebaseFirestore.DocumentRef
     throw new Error(`Usuário ${userRef.id} não encontrado no Firestore.`);
   }
 
+  const userData = userDoc.data();
   const now = new Date();
-  const expiresAt = cycle === 'annual' 
-    ? new Date(now.setFullYear(now.getFullYear() + 1))
-    : new Date(now.setMonth(now.getMonth() + 1));
+  
+  // Determine the base date for renewal. If subscription is active and expires in the future, use that. Otherwise, use today.
+  const currentExpiresAt = userData?.subscription?.expiresAt?.toDate();
+  const renewalBaseDate = (currentExpiresAt && currentExpiresAt > now) ? currentExpiresAt : now;
+
+  let newExpiresAt: Date;
+  if (cycle === 'annual') {
+    newExpiresAt = new Date(renewalBaseDate.setFullYear(renewalBaseDate.getFullYear() + 1));
+  } else { // monthly
+    newExpiresAt = new Date(renewalBaseDate.setMonth(renewalBaseDate.getMonth() + 1));
+  }
 
   const updatePayload: any = {
     'subscription.plan': plan,
     'subscription.status': 'active',
     'subscription.cycle': cycle,
-    'subscription.expiresAt': Timestamp.fromDate(expiresAt),
+    'subscription.expiresAt': Timestamp.fromDate(newExpiresAt),
     'subscription.lastPaymentStatus': 'confirmed',
     'subscription.lastUpdated': Timestamp.now(),
     'subscription.trialEndsAt': null, // Finaliza o período de teste
@@ -142,7 +157,6 @@ async function processPaymentConfirmation(userRef: FirebaseFirestore.DocumentRef
   }
   
   await userRef.update(updatePayload);
-
 
   await userRef.collection('paymentHistory').doc(payment.id).set({
     paymentId: payment.id,
@@ -190,21 +204,20 @@ export async function POST(req: NextRequest) {
   const subscription = event.subscription;
   
   let userIdFromEvent: string | null = null;
+  let planFromEvent: Plan | null = null;
+  let cycleFromEvent: 'monthly' | 'annual' | null = null;
 
-  if (payment?.externalReference) {
-    try {
-      const refData = JSON.parse(payment.externalReference);
-      userIdFromEvent = refData.userId;
-    } catch {
-       userIdFromEvent = payment.externalReference;
-    }
-  } else if (subscription?.externalReference) {
-     try {
-      const refData = JSON.parse(subscription.externalReference);
-      userIdFromEvent = refData.userId;
-    } catch {
-       userIdFromEvent = subscription.externalReference;
-    }
+  const refSource = payment?.externalReference ? payment : (subscription?.externalReference ? subscription : null);
+
+  if(refSource?.externalReference) {
+      try {
+        const refData = JSON.parse(refSource.externalReference);
+        userIdFromEvent = refData.userId;
+        planFromEvent = refData.plan;
+        cycleFromEvent = refData.cycle;
+      } catch {
+         userIdFromEvent = refSource.externalReference;
+      }
   }
 
 
@@ -222,7 +235,11 @@ export async function POST(req: NextRequest) {
        return NextResponse.json({ success: true, message: 'Evento recebido, mas sem dados de pagamento para processar agora.' });
   }
 
-  const userInfo = await findUserId(firestore, payment);
+  // Use the new structured reference if available, otherwise fallback
+  const userInfo = (userIdFromEvent && planFromEvent && cycleFromEvent) 
+    ? { userId: userIdFromEvent, plan: planFromEvent, cycle: cycleFromEvent }
+    : await findUserId(firestore, payment);
+
 
   if (!userInfo) {
     console.warn('[Asaas Webhook] Received payment confirmation without a resolvable user ID.', payment);
