@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -111,8 +112,8 @@ function CheckoutPageContent() {
   };
   
   const priceMap = {
-    pro: { monthly: 'R$29', annual: 'R$290' },
-    premium: { monthly: 'R$39', annual: 'R$390' },
+    pro: { monthly: 'R$5', annual: 'R$5' },
+    premium: { monthly: 'R$5', annual: 'R$5' },
   };
 
   const getPrice = () => {
@@ -288,5 +289,3 @@ export default function CheckoutPage() {
         </Suspense>
     )
 }
-
-    
