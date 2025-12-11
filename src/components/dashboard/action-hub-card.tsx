@@ -167,10 +167,10 @@ export default function ActionHubCard({
       </CardHeader>
       <CardContent className="flex-1 flex flex-col">
         <Tabs defaultValue="salvos" className="w-full flex-1 flex flex-col">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="salvos">Salvos</TabsTrigger>
-            <TabsTrigger value="calendario">Calendário</TabsTrigger>
-            <TabsTrigger value="concluidos">Concluídos</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 bg-muted p-2">
+            <TabsTrigger value="salvos" className="text-foreground data-[state=active]:bg-zinc-800 data-[state=active]:text-white px-4 py-2 text-sm">Salvos</TabsTrigger>
+            <TabsTrigger value="calendario" className="text-foreground data-[state=active]:bg-zinc-800 data-[state=active]:text-white px-4 py-2 text-sm">Calendário</TabsTrigger>
+            <TabsTrigger value="concluidos" className="text-foreground data-[state=active]:bg-zinc-800 data-[state=active]:text-white px-4 py-2 text-sm">Concluídos</TabsTrigger>
           </TabsList>
           <div className="flex-1 mt-4">
             <TabsContent value="calendario" className="h-full">

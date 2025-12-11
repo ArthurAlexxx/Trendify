@@ -456,13 +456,13 @@ export default function VideoIdeasPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="generate">Gerar Nova Ideia</TabsTrigger>
-          <TabsTrigger value="result" disabled={!result && !isGenerating}>
+        <TabsList className="grid w-full grid-cols-3 bg-muted p-2">
+          <TabsTrigger value="generate" className="text-foreground data-[state=active]:bg-zinc-800 data-[state=active]:text-white px-4 py-2 text-sm">Gerar Nova Ideia</TabsTrigger>
+          <TabsTrigger value="result" disabled={!result && !isGenerating} className="text-foreground data-[state=active]:bg-zinc-800 data-[state=active]:text-white px-4 py-2 text-sm">
             Resultado
             {isGenerating && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
           </TabsTrigger>
-           <TabsTrigger value="saved" disabled={!videoIdeas || videoIdeas.length === 0}>
+           <TabsTrigger value="saved" disabled={!videoIdeas || videoIdeas.length === 0} className="text-foreground data-[state=active]:bg-zinc-800 data-[state=active]:text-white px-4 py-2 text-sm">
             Salvos
             {isLoadingSaved && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
           </TabsTrigger>
@@ -617,7 +617,7 @@ export default function VideoIdeasPage() {
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => setSavedIdeasPage(prev => Math.min(prev + 1, totalSavedPages))}
+                                    onClick={() => setSavedIdeasPage(prev => Math.min(totalSavedPages, p + 1))}
                                     disabled={savedIdeasPage === totalSavedPages}
                                 >
                                     Próxima

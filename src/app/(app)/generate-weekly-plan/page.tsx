@@ -436,13 +436,13 @@ export default function GenerateWeeklyPlanPage() {
       </div>
 
        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="generate">Gerar Novo Plano</TabsTrigger>
-          <TabsTrigger value="result" disabled={!result}>
+        <TabsList className="grid w-full grid-cols-3 bg-muted p-2">
+          <TabsTrigger value="generate" className="text-foreground data-[state=active]:bg-zinc-800 data-[state=active]:text-white px-4 py-2 text-sm">Gerar Novo Plano</TabsTrigger>
+          <TabsTrigger value="result" disabled={!result} className="text-foreground data-[state=active]:bg-zinc-800 data-[state=active]:text-white px-4 py-2 text-sm">
             Resultado
             {isGenerating && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
           </TabsTrigger>
-           <TabsTrigger value="activePlan" disabled={!activePlan && !isLoadingActivePlan}>
+           <TabsTrigger value="activePlan" disabled={!activePlan && !isLoadingActivePlan} className="text-foreground data-[state=active]:bg-zinc-800 data-[state=active]:text-white px-4 py-2 text-sm">
             Plano Ativo
             {isLoadingActivePlan && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
           </TabsTrigger>

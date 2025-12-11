@@ -45,17 +45,17 @@ export default function AdminUsersPage() {
 
       <Card className="shadow-primary-lg">
         <CardHeader>
-          <CardTitle className="text-center">Lista de Usuários</CardTitle>
+          <CardTitle className="text-center font-headline text-lg">Lista de Usuários</CardTitle>
            <CardDescription className="text-center">
             Use os filtros abaixo para segmentar os usuários por plano.
           </CardDescription>
            <div className="pt-4 flex justify-center">
              <Tabs value={planFilter} onValueChange={(value) => setPlanFilter(value as any)}>
-              <TabsList>
-                <TabsTrigger value="all">Todos</TabsTrigger>
-                <TabsTrigger value="free">Gratuito</TabsTrigger>
-                <TabsTrigger value="pro">Pro</TabsTrigger>
-                <TabsTrigger value="premium">Premium</TabsTrigger>
+              <TabsList className="bg-muted p-2">
+                <TabsTrigger value="all" className="text-foreground data-[state=active]:bg-zinc-800 data-[state=active]:text-white px-4 py-2 text-sm">Todos</TabsTrigger>
+                <TabsTrigger value="free" className="text-foreground data-[state=active]:bg-zinc-800 data-[state=active]:text-white px-4 py-2 text-sm">Gratuito</TabsTrigger>
+                <TabsTrigger value="pro" className="text-foreground data-[state=active]:bg-zinc-800 data-[state=active]:text-white px-4 py-2 text-sm">Pro</TabsTrigger>
+                <TabsTrigger value="premium" className="text-foreground data-[state=active]:bg-zinc-800 data-[state=active]:text-white px-4 py-2 text-sm">Premium</TabsTrigger>
               </TabsList>
             </Tabs>
            </div>
