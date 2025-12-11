@@ -94,7 +94,7 @@ export async function createAsaasPaymentAction(
     const isRecurrent = true; // All paid plans are subscriptions
     
     const checkoutBody: any = {
-      operationType: isRecurrent ? 'SUBSCRIPTION' : 'PAYMENT',
+      operationType: 'SUBSCRIPTION',
       customerData: {
         name,
         email,
@@ -106,9 +106,10 @@ export async function createAsaasPaymentAction(
         province,
       },
       billingTypes: billingTypes,
-      chargeTypes: isRecurrent ? ["RECURRENT"] : ["DETACHED"],
+      chargeTypes: ["RECURRENT"],
       callback: {
         successUrl: `${appUrl}/dashboard?checkout=success`,
+        cancelUrl: `${appUrl}/subscribe?status=cancel`,
         autoRedirect: true,
       },
       items: [{
@@ -122,7 +123,6 @@ export async function createAsaasPaymentAction(
           value: price,
           externalReference: externalReference, 
       },
-      externalReference: externalReference, 
     };
     
     const checkoutResponse = await fetch('https://sandbox.asaas.com/api/v3/checkouts', {
