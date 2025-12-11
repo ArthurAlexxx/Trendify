@@ -85,7 +85,6 @@ const adminMenuItems: {
             { href: '/admin/users', icon: User, label: 'Usuários' },
             { href: '/admin/financial', icon: DollarSign, label: 'Financeiro' },
             { href: '/admin/usage', icon: Activity, label: 'Uso da IA' },
-            { href: '/admin/checkout', icon: CreditCard, label: 'Checkout de Teste' },
         ]
     }
 ];
