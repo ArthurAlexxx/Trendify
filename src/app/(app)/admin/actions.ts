@@ -257,15 +257,11 @@ export async function createAsaasPaymentAction(
     };
 
     if (isRecurrent) {
-        const nextDueDate = new Date();
-        nextDueDate.setMonth(nextDueDate.getMonth() + 1);
-
         const endDate = new Date();
         endDate.setFullYear(endDate.getFullYear() + 5); // 5 years from now
 
         checkoutBody.subscription = {
             cycle: cycle === 'annual' ? 'YEARLY' : 'MONTHLY',
-            nextDueDate: nextDueDate.toISOString().split('T')[0], // YYYY-MM-DD
             endDate: endDate.toISOString().split('T')[0], // YYYY-MM-DD
         };
     }
