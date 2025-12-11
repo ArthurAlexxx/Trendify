@@ -82,9 +82,6 @@ export async function createAsaasPaymentAction(
     }
 
     const price = priceMap[plan][cycle];
-    // Este objeto JSON será enviado no `externalReference` e recuperado no webhook.
-    const externalReferenceData = JSON.stringify({ userId, plan, cycle });
-    const isRecurrent = true;
     
     const today = new Date();
     let nextDueDate = new Date(today);
@@ -101,7 +98,7 @@ export async function createAsaasPaymentAction(
       operationType: 'SUBSCRIPTION',
       billingTypes,
       chargeTypes: ['RECURRENT'],
-      externalReference: externalReferenceData, // Adicionado no nível raiz
+      externalReference: userId, 
       customerData: {
         name,
         email,
@@ -111,7 +108,6 @@ export async function createAsaasPaymentAction(
         address,
         addressNumber,
         province,
-        externalReference: externalReferenceData, // Adicionado também nos dados do cliente
       },
       callback: {
         successUrl: `${appUrl}/dashboard?checkout=success`,
@@ -120,11 +116,11 @@ export async function createAsaasPaymentAction(
       },
       items: [{
         name: `Plano ${plan.toUpperCase()} - ${cycle === 'annual' ? 'Anual' : 'Mensal'}`,
+        description: JSON.stringify({ plan, cycle }), // Simplified metadata
         value: price,
         quantity: 1,
       }],
       subscription: {
-          description: `Assinatura do plano ${plan.toUpperCase()} (${cycle === 'annual' ? 'Anual' : 'Mensal'}) na Trendify`,
           cycle: cycle === 'annual' ? 'YEARLY' : 'MONTHLY',
           value: price,
           nextDueDate: nextDueDateFormatted,
@@ -151,9 +147,6 @@ export async function createAsaasPaymentAction(
     if (!checkoutData.id) {
          throw new Error('A API da Asaas não retornou um ID para a sessão de checkout.');
     }
-    
-    // A etapa de salvar o ID no Firestore foi removida para simplificar.
-    // A confiança agora está no externalReference que será retornado pelo webhook.
 
     const checkoutUrl = `https://sandbox.asaas.com/checkoutSession/show?id=${checkoutData.id}`;
     

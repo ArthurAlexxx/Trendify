@@ -66,39 +66,33 @@ async function logWebhook(firestore: ReturnType<typeof getFirestore>, event: any
   }
 }
 
-// Função SIMPLIFICADA para encontrar o userId usando apenas o externalReference
-async function findUserInfo(payload: any): Promise<{ userId: string; plan: Plan; cycle: 'monthly' | 'annual' } | null> {
+// Simplified function to get user info from the webhook payload
+function findUserInfo(payload: any): { userId: string; plan: Plan; cycle: 'monthly' | 'annual' } | null {
     
-    // Método 1: Tenta extrair do externalReference do pagamento (o mais comum)
-    const externalRef = payload?.externalReference;
-    
-    if (externalRef) {
-        try {
-            const data = JSON.parse(externalRef);
-            if (data.userId && data.plan && data.cycle) {
-                console.log(`[Webhook] Informações encontradas no externalReference: userId=${data.userId}, plan=${data.plan}, cycle=${data.cycle}`);
-                return data;
-            }
-        } catch(e) {
-             console.log("[Webhook] externalReference não é um JSON válido ou está incompleto.", externalRef);
-        }
-    }
-    
-    // Se o externalReference do pagamento falhar, tente o do cliente (menos comum, mas um fallback)
-    if (payload.customer?.externalReference) {
-        try {
-            const data = JSON.parse(payload.customer.externalReference);
-            if (data.userId && data.plan && data.cycle) {
-                console.log(`[Webhook] Fallback: Informações encontradas no customer.externalReference: userId=${data.userId}`);
-                return data;
-            }
-        } catch (e) {
-            console.log("[Webhook] customer.externalReference não é um JSON válido ou está incompleto.");
-        }
+    const userId = payload?.externalReference;
+    if (!userId) {
+        console.error("[Webhook] ERRO: userId (externalReference) não encontrado no payload do pagamento.");
+        return null;
     }
 
+    try {
+        // Find plan and cycle in the item's description
+        const itemDescription = payload?.items?.[0]?.description;
+        if (!itemDescription) {
+             console.error(`[Webhook] ERRO: 'items[0].description' não encontrado no payload para o userId ${userId}.`);
+            return null;
+        }
 
-    console.error(`[Webhook] ERRO CRÍTICO: Não foi possível encontrar o externalReference com os dados necessários no payload do webhook.`);
+        const { plan, cycle } = JSON.parse(itemDescription);
+        
+        if (plan && cycle) {
+            console.log(`[Webhook] Informações encontradas: userId=${userId}, plan=${plan}, cycle=${cycle}`);
+            return { userId, plan, cycle };
+        }
+    } catch (e) {
+        console.error(`[Webhook] ERRO: Falha ao parsear a descrição do item para o userId ${userId}.`, e);
+    }
+
     return null;
 }
 
@@ -179,16 +173,16 @@ export async function POST(req: NextRequest) {
   const isSuccessEvent = ['PAYMENT_CONFIRMED', 'PAYMENT_RECEIVED'].includes(event.event);
   await logWebhook(firestore, event, isSuccessEvent);
   
-  const mainEntity = event.payment || event.subscription;
+  const mainPaymentEntity = event.payment;
   
-  if (!mainEntity) {
-       return NextResponse.json({ success: true, message: 'Evento recebido, mas sem dados de pagamento ou assinatura para processar.' });
+  if (!mainPaymentEntity) {
+       return NextResponse.json({ success: true, message: 'Evento recebido, mas sem dados de pagamento para processar.' });
   }
   
-  const userInfo = await findUserInfo(mainEntity);
+  const userInfo = findUserInfo(mainPaymentEntity);
 
   if (!userInfo || !userInfo.userId || !userInfo.plan || !userInfo.cycle) {
-    console.warn('[Asaas Webhook] Não foi possível resolver as informações do usuário a partir do externalReference.');
+    console.warn('[Asaas Webhook] Não foi possível resolver as informações do usuário a partir do payload.');
     return NextResponse.json({ success: true, message: 'Evento recebido, mas não foi possível associar a um usuário ou plano.' });
   }
   
