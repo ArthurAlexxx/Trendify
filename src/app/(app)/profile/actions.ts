@@ -3,6 +3,26 @@
 
 import { z } from 'zod';
 import type { InstagramProfileData, InstagramPostData, TikTokProfileData, TikTokPost } from '@/lib/types';
+import { initializeFirebaseAdmin } from '@/firebase/admin';
+import { FieldValue } from 'firebase-admin/firestore';
+
+
+// --- Error Logging ---
+async function logApiError(platform: 'instagram' | 'tiktok', endpoint: string, username: string, error: any) {
+  try {
+    const { firestore } = initializeFirebaseAdmin();
+    await firestore.collection('apiErrors').add({
+      platform,
+      endpoint,
+      username,
+      errorMessage: error.message || 'Erro desconhecido',
+      rawError: JSON.stringify(error, Object.getOwnPropertyNames(error)),
+      timestamp: FieldValue.serverTimestamp(),
+    });
+  } catch (logError) {
+    console.error(`[CRITICAL] Falha ao registrar log de erro da API:`, logError);
+  }
+}
 
 
 // --- Instagram Schemas (New: instagram-looter2) ---
@@ -204,6 +224,7 @@ export async function getInstagramProfile(username: string): Promise<InstagramPr
         };
     } catch (e: any) {
         console.error(`[ACTION ERROR - getInstagramProfile] ${e.message}`);
+        await logApiError('instagram', 'profile', username, e);
         if (e.issues) {
              throw new Error(`Falha na validação dos dados do perfil: ${e.issues.map((issue: any) => `${issue.path.join('.')} - ${issue.message}`).join(', ')}`);
         }
@@ -239,6 +260,7 @@ export async function getInstagramPosts(username: string): Promise<Omit<Instagra
         }));
     } catch (e: any) {
         console.error(`[ACTION ERROR - getInstagramPosts] ${e.message}`);
+        await logApiError('instagram', 'posts', username, e);
         if (e.issues) {
              const errorDetails = e.issues.map((issue: any) => `${issue.path.join('.')} - ${issue.message}`).join(', ');
              throw new Error(`Falha na validação dos dados dos posts do Instagram: ${errorDetails}`);
@@ -281,6 +303,7 @@ export async function getTikTokProfile(username: string): Promise<TikTokProfileD
       };
   } catch (e: any) {
       console.error(`[ACTION ERROR - getTikTokProfile]`, e);
+      await logApiError('tiktok', 'profile', username, e);
       if (e.issues) {
           throw new Error(`Falha na validação dos dados do perfil do TikTok: ${e.issues.map((issue: any) => `${issue.path.join('.')} - ${issue.message}`).join(', ')}`);
       }
@@ -311,6 +334,7 @@ export async function getTikTokPosts(username: string): Promise<Omit<TikTokPost,
 
     } catch (e: any) {
         console.error(`[ACTION ERROR - getTikTokPosts] ${e.message}`);
+        await logApiError('tiktok', 'posts', username, e);
         if (e.issues) {
              const errorDetails = e.issues.map((issue: any) => `${issue.path.join('.')} - ${issue.message}`).join(', ');
              throw new Error(`Falha na validação dos dados dos posts do TikTok: ${errorDetails}`);
@@ -318,3 +342,5 @@ export async function getTikTokPosts(username: string): Promise<Omit<TikTokPost,
         throw e;
     }
 }
+
+    
