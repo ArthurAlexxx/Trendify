@@ -37,10 +37,9 @@ function AnimatedHero() {
 
   return (
     <div className="w-full">
-      <div className="container relative pt-16 md:pt-32 px-6">
-        <div className="grid lg:grid-cols-5 lg:gap-8 lg:items-center">
-          {/* Text Content */}
-          <div className="relative z-10 flex flex-col items-center lg:items-start text-center lg:text-left lg:col-span-2">
+      <div className="container relative pt-16 md:pt-32 px-6 text-center">
+        {/* Text Content */}
+          <div className="relative z-10 flex flex-col items-center text-center">
               <div>
                   <Button variant="outline" size="sm" className="gap-4 rounded-full bg-transparent text-primary hover:bg-primary/10 border-primary">
                   <Sparkles className="w-4 h-4 animate-pulse" />
@@ -48,7 +47,7 @@ function AnimatedHero() {
                   </Button>
               </div>
               <div className="flex gap-4 flex-col mt-6">
-                  <h1 className="text-5xl md:text-6xl max-w-3xl tracking-tighter font-bold font-headline flex flex-wrap justify-center lg:justify-start">
+                  <h1 className="text-5xl md:text-6xl max-w-3xl tracking-tighter font-bold font-headline flex flex-wrap justify-center">
                     <span className="text-foreground/90 mr-3">A plataforma para seu</span>
                     <span className="relative inline-block overflow-hidden text-center h-16 text-primary">
                         {titles.map((title, index) => (
@@ -70,12 +69,12 @@ function AnimatedHero() {
                   </h1>
 
 
-                  <p className="text-lg md:text-xl leading-relaxed tracking-tight text-muted-foreground max-w-2xl">
+                  <p className="text-lg md:text-xl leading-relaxed tracking-tight text-muted-foreground max-w-2xl mx-auto">
                   A Trendify usa IA para transformar seus dados em um plano de
                   ação claro, ajudando você a crescer e monetizar seu conteúdo.
                   </p>
               </div>
-              <div className="flex flex-col sm:flex-row gap-3 w-full max-w-sm sm:max-w-none sm:justify-center lg:justify-start mt-8">
+              <div className="flex flex-col sm:flex-row gap-3 w-full max-w-sm sm:max-w-none justify-center mt-8">
                   <Link
                       href="/sign-up"
                       className={cn(
@@ -98,15 +97,13 @@ function AnimatedHero() {
           </div>
 
           {/* Image Content */}
-          <div
-              ref={targetRef}
-              className="relative mt-12 lg:mt-0 lg:col-span-3"
-          >
+          <div ref={targetRef} className="relative mt-12 lg:mt-0">
+             <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-48 w-full bg-gradient-radial from-primary/20 to-transparent blur-3xl -z-10" />
               <motion.div
                   style={{ scale }}
               >
                   <Image
-                  src="https://firebasestorage.googleapis.com/v0/b/studio-4233590611-a8ab0.firebasestorage.app/o/Sem%20nome%20(Quadro%20branco).png?alt=media&token=242aeba3-137e-4a70-b344-c81507275c68"
+                  src="https://firebasestorage.googleapis.com/v0/b/studio-4233590611-a8ab0.firebasestorage.app/o/Sem%20nome%20(Quadro%20branco)%20(2).png?alt=media&token=7f2fd083-8a2a-469b-a6df-8173e38b8a10"
                   alt="Dashboard da Trendify mostrando métricas de crescimento"
                   width={1200}
                   height={750}
@@ -116,7 +113,6 @@ function AnimatedHero() {
               </motion.div>
           </div>
         </div>
-      </div>
     </div>
   );
 }
