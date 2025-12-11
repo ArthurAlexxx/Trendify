@@ -65,7 +65,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import {
   GrowthCalculatorOutput,
   calculateGrowthAction,
-} from '@/app/landing-page/actions';
+} from '@/app/(app)/landing-page/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
 import { FeatureCard } from '@/components/ui/grid-feature-cards';
@@ -1021,3 +1021,4 @@ export default function LandingPage() {
     </div>
   );
 }
+
