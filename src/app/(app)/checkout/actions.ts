@@ -91,13 +91,12 @@ export async function createAsaasPaymentAction(
     }
 
     const price = priceMap[plan][cycle];
-    const planName = `Plano ${plan.toUpperCase()} - ${cycle === 'monthly' ? 'Mensal' : 'Anual'}`;
-    const isRecurrent = billingType === 'CREDIT_CARD';
     
     // Metadados para identificar a compra no webhook
     const externalReference = JSON.stringify({ userId, plan, cycle });
 
     const checkoutBody: any = {
+      operationType: 'SUBSCRIPTION',
       customerData: {
         name,
         email,
@@ -107,44 +106,25 @@ export async function createAsaasPaymentAction(
         address,
         addressNumber,
         province,
-        city
       },
-      billingTypes: [billingType],
-      chargeTypes: [isRecurrent ? "RECURRENT" : "DETACHED"],
-      minutesToExpire: 60, 
+      billing: {
+        billingType: billingType,
+      },
       callback: {
         successUrl: `${appUrl}/dashboard?checkout=success`,
         cancelUrl: `${appUrl}/dashboard?checkout=cancel`,
-        expiredUrl: `${appUrl}/dashboard?checkout=expired`,
         autoRedirect: true,
       },
-      items: [{
-        name: planName,
-        description: `Acesso ao ${planName} da Trendify.`,
-        quantity: 1,
-        value: price,
-      }],
-      externalReference: externalReference, // Enviando os metadados
-    };
-
-    if (isRecurrent) {
-      const today = new Date();
-      let nextDueDate: Date;
-
-      if (cycle === 'annual') {
-        nextDueDate = new Date(today);
-        nextDueDate.setFullYear(today.getFullYear() + 1);
-      } else { // monthly
-        nextDueDate = new Date(today);
-        nextDueDate.setMonth(today.getMonth() + 1);
-      }
-
-      checkoutBody.subscription = {
-        cycle: cycle === 'annual' ? 'YEARLY' : 'MONTHLY',
+      subscription: {
         description: `Assinatura do plano ${plan.toUpperCase()} (${cycle === 'annual' ? 'Anual' : 'Mensal'}) na Trendify`,
-        nextDueDate: nextDueDate.toISOString().split('T')[0],
-      };
-    }
+        cycle: cycle === 'annual' ? 'YEARLY' : 'MONTHLY',
+        value: price,
+        // Adicionando metadados aqui também, para garantir que venham no evento de assinatura
+        externalReference: externalReference, 
+      },
+      // E mantendo aqui para o evento de pagamento
+      externalReference: externalReference, 
+    };
     
     const checkoutResponse = await fetch('https://sandbox.asaas.com/api/v3/checkouts', {
         method: 'POST',
@@ -167,7 +147,7 @@ export async function createAsaasPaymentAction(
          throw new Error('A API da Asaas não retornou um ID para a sessão de checkout.');
     }
 
-    const checkoutUrl = `https://sandbox.asaas.com/checkoutSession/show?id=${checkoutData.id}`;
+    const checkoutUrl = `https://sandbox.asaas.com/checkout/${checkoutData.id}`;
     
     return { 
         checkoutUrl: checkoutUrl, 
