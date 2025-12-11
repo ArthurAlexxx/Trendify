@@ -19,8 +19,8 @@ export default {
     extend: {
       fontFamily: {
         body: ['Inter', 'sans-serif'],
-        headline: ['Satoshi', 'sans-serif'],
-        manrope: ['Manrope', 'sans-serif'],
+        headline: ['"Playfair Display"', 'serif'],
+        lora: ['Lora', 'serif'],
         code: ['monospace'],
       },
       colors: {
