@@ -40,7 +40,7 @@ function AnimatedHero() {
       <div className="container mx-auto">
         <div className="relative pt-16 md:pt-32">
             {/* Text Content */}
-            <div className="flex flex-col items-center lg:items-start text-center lg:text-left lg:w-1/2">
+            <div className="relative z-10 flex flex-col items-center lg:items-start text-center lg:text-left lg:w-1/2">
                 <div>
                     <Button variant="outline" size="sm" className="gap-4 rounded-full bg-transparent text-primary hover:bg-primary/10 border-primary">
                     <Sparkles className="w-4 h-4 animate-pulse" />
@@ -106,7 +106,7 @@ function AnimatedHero() {
             {/* Image Content */}
             <div
                 ref={targetRef}
-                className="absolute top-0 right-0 h-full w-full -z-10 hidden lg:block"
+                className="absolute top-0 right-0 h-full w-full hidden lg:block"
             >
                 <div
                     className="absolute inset-0"
