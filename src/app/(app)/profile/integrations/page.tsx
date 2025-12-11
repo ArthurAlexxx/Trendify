@@ -31,8 +31,7 @@ import Link from 'next/link';
 import { InstagramProfileResults, TikTokProfileResults } from '@/components/dashboard/platform-results';
 import { useRouter } from 'next/navigation';
 import { CodeBlock } from '@/components/ui/code-block';
-import { Dialog } from '@/components/ui/dialog';
-import { DialogContent } from '@radix-ui/react-dialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 
 const profileFormSchema = z.object({
