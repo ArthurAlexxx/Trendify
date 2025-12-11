@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
-import { User as UserIcon, Instagram, Film, Search, Loader2, AlertTriangle, Users, Heart, MessageSquare, Clapperboard, PlayCircle, Eye, Upload, Crown, Check, RefreshCw, Link2, ArrowLeft } from 'lucide-react';
+import { Instagram, Film, Loader2, AlertTriangle, RefreshCw, ArrowLeft } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useState, useEffect, useTransition } from 'react';
@@ -20,8 +20,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { doc, updateDoc, serverTimestamp, addDoc, collection, query, where, getDocs, Timestamp, writeBatch, setDoc, orderBy, limit } from 'firebase/firestore';
-import type { UserProfile, InstagramProfileData, InstagramPostData, TikTokProfileData, TikTokPost } from '@/lib/types';
+import { doc, updateDoc, serverTimestamp, collection, query, orderBy, limit, writeBatch, getDocs, setDoc, Timestamp } from 'firebase/firestore';
+import type { UserProfile, InstagramPostData, TikTokPost } from '@/lib/types';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
@@ -29,10 +29,7 @@ import { getInstagramProfile, getTikTokProfile, getInstagramPosts, getTikTokPost
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Link from 'next/link';
 import { InstagramProfileResults, TikTokProfileResults } from '@/components/dashboard/platform-results';
-import { useRouter } from 'next/navigation';
-import { CodeBlock } from '@/components/ui/code-block';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-
 
 const profileFormSchema = z.object({
   instagramHandle: z.string().optional(),
@@ -46,14 +43,12 @@ export default function IntegrationsPage() {
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
-  const router = useRouter();
   
   const [instaStatus, setInstaStatus] = useState<SearchStatus>('idle');
   const [instaError, setInstaError] = useState<string | null>(null);
 
   const [tiktokStatus, setTiktokStatus] = useState<SearchStatus>('idle');
   const [tiktokError, setTiktokError] = useState<string | null>(null);
-  const [tiktokRawResponse, setTiktokRawResponse] = useState<string | null>(null);
   const [showTikTokModal, setShowTikTokModal] = useState(false);
   const [currentTikTokUrl, setCurrentTikTokUrl] = useState('');
 
@@ -100,6 +95,18 @@ export default function IntegrationsPage() {
     if (num >= 1000) return num.toLocaleString('pt-BR');
     return String(num);
   };
+  
+  const formatIntegerValue = (value?: string | number): string => {
+    const parseMetric = (val?: string | number): number => {
+        if (typeof val === 'number') return val;
+        if (!val || typeof val !== 'string') return 0;
+        const cleanedValue = val.replace(/\./g, '').replace(',', '.');
+        const num = parseFloat(cleanedValue.replace(/K/gi, 'e3').replace(/M/gi, 'e6'));
+        return isNaN(num) ? 0 : num;
+    }
+    const num = parseMetric(value);
+    return Math.round(num).toLocaleString('pt-BR');
+  };
 
   const updateOrCreateMetricSnapshot = async (platform: 'instagram' | 'tiktok', data: any) => {
     if (!user || !firestore) return;
@@ -142,11 +149,6 @@ export default function IntegrationsPage() {
        const averageLikes = postsResult.length > 0 ? postsResult.reduce((acc, p) => acc + p.likes, 0) / postsResult.length : 0;
        const averageComments = postsResult.length > 0 ? postsResult.reduce((acc, p) => acc + p.comments, 0) / postsResult.length : 0;
 
-       const fullPostsData: InstagramPostData[] = postsResult.map(p => ({
-            ...p,
-            fetchedAt: Timestamp.now(),
-        }));
-
         form.setValue('instagramHandle', `@${profileResult.username}`);
         
         if (user && userProfileRef && firestore) {
@@ -157,9 +159,9 @@ export default function IntegrationsPage() {
              bio: userProfile?.bio || profileResult.biography,
              photoURL: userProfile?.photoURL || profileResult.profilePicUrlHd,
              instagramFollowers: formatNumber(profileResult.followersCount),
-             instagramAverageViews: formatNumber(Math.round(averageViews)),
-             instagramAverageLikes: formatNumber(Math.round(averageLikes)),
-             instagramAverageComments: formatNumber(Math.round(averageComments)),
+             instagramAverageViews: formatIntegerValue(averageViews),
+             instagramAverageLikes: formatIntegerValue(averageLikes),
+             instagramAverageComments: formatIntegerValue(averageComments),
              lastInstagramSync: serverTimestamp(),
           };
           batch.update(userProfileRef, dataToSave as any);
@@ -168,9 +170,9 @@ export default function IntegrationsPage() {
           const oldPostsSnap = await getDocs(postsCollectionRef);
           oldPostsSnap.forEach(doc => batch.delete(doc.ref));
           
-          fullPostsData.forEach(post => {
+          postsResult.forEach(post => {
             const postRef = doc(postsCollectionRef, post.id);
-            batch.set(postRef, post);
+            batch.set(postRef, { ...post, fetchedAt: serverTimestamp() });
           });
           
           await batch.commit();
@@ -208,7 +210,6 @@ export default function IntegrationsPage() {
     }
     setTiktokStatus('loading');
     setTiktokError(null);
-    setTiktokRawResponse(null);
 
     const cleanedUsername = tiktokUsername.replace('@', '');
 
@@ -222,11 +223,6 @@ export default function IntegrationsPage() {
         const averageComments = postsResult.length > 0 ? postsResult.reduce((acc, p) => acc + p.comments, 0) / postsResult.length : 0;
         const averageViews = postsResult.length > 0 ? postsResult.reduce((acc, p) => acc + p.views, 0) / postsResult.length : 0;
         
-        const fullPostsData: TikTokPost[] = postsResult.map(p => ({
-            ...p,
-            fetchedAt: Timestamp.now(),
-        }));
-
         form.setValue('tiktokHandle', `@${profileResult.username}`);
        
         if (user && userProfileRef && firestore) {
@@ -236,9 +232,9 @@ export default function IntegrationsPage() {
              photoURL: userProfile?.photoURL || profileResult.avatarUrl,
              bio: userProfile?.bio || profileResult.bio,
              tiktokFollowers: formatNumber(profileResult.followersCount),
-             tiktokAverageLikes: formatNumber(Math.round(averageLikes)),
-             tiktokAverageComments: formatNumber(Math.round(averageComments)),
-             tiktokAverageViews: formatNumber(Math.round(averageViews)),
+             tiktokAverageLikes: formatIntegerValue(averageLikes),
+             tiktokAverageComments: formatIntegerValue(averageComments),
+             tiktokAverageViews: formatIntegerValue(averageViews),
              lastTikTokSync: serverTimestamp(),
           };
 
@@ -249,9 +245,9 @@ export default function IntegrationsPage() {
           const oldPostsSnap = await getDocs(postsCollectionRef);
           oldPostsSnap.forEach(doc => batch.delete(doc.ref));
 
-          fullPostsData.forEach(post => {
+          postsResult.forEach(post => {
             const postRef = doc(postsCollectionRef, post.id);
-            batch.set(postRef, post);
+            batch.set(postRef, { ...post, fetchedAt: serverTimestamp() });
           });
 
           await batch.commit();
@@ -315,150 +311,127 @@ export default function IntegrationsPage() {
         </Button>
       </PageHeader>
           
-          <Card className="rounded-2xl border-0">
-            <CardContent className="pt-6 space-y-6">
-                {isLoading ? (
-                    <Skeleton className="h-64 w-full" />
-                ) : (
-                <>
-                 <Alert>
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle>Importante!</AlertTitle>
-                    <AlertDescription>
-                        Para a integração funcionar, sua conta do Instagram deve ser {'"Comercial"'} ou {'"Criador de Conteúdo"'}. A do TikTok deve ser pública.
-                    </AlertDescription>
-                  </Alert>
+      <Tabs defaultValue="instagram" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 bg-muted p-1">
+            <TabsTrigger value="instagram" className="text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary px-6 py-2 text-sm font-semibold transition-colors hover:bg-primary/5"><Instagram className="mr-2 h-4 w-4" /> Instagram</TabsTrigger>
+            <TabsTrigger value="tiktok" className="text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary px-6 py-2 text-sm font-semibold transition-colors hover:bg-primary/5"><Film className="mr-2 h-4 w-4" /> TikTok</TabsTrigger>
+        </TabsList>
+        <TabsContent value="instagram" className="mt-4">
+            <Card className='border-0 shadow-none'>
+                <CardContent className="p-4 bg-muted/50 rounded-lg">
+                <div className="flex flex-col sm:flex-row items-end gap-4">
+                    <div className="flex-1 w-full">
+                    <Label htmlFor="instagramHandleApi">Usuário do Instagram</Label>
+                    <Input
+                        id="instagramHandleApi"
+                        placeholder="@seu_usuario"
+                        {...form.register('instagramHandle')}
+                        className="h-11 mt-1"
+                    />
+                    </div>
+                    <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button
+                            type="button"
+                            disabled={instaStatus === 'loading' || !form.watch('instagramHandle')}
+                            className="w-full sm:w-auto"
+                        >
+                            {
+                                instaStatus === 'loading' ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Buscando...</> :
+                                <><RefreshCw className="mr-2 h-4 w-4" />Sincronizar</>
+                                }
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                        <AlertDialogTitle>Confirmação de Busca</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Você confirma que tem permissão para buscar os dados do perfil <strong>@{form.watch('instagramHandle')?.replace('@', '')}</strong>?
+                        </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleInstagramSearch}>Sim, confirmar e buscar</AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                    </AlertDialog>
+                </div>
+                <p className='text-xs text-muted-foreground mt-2'>
+                    Sua conta do Instagram deve ser 'Comercial' ou 'Criador de Conteúdo' para a integração funcionar.
+                </p>
+                </CardContent>
+            </Card>
+            {isLoading ? <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div> :
+            userProfile?.instagramHandle ? (
+                <InstagramProfileResults
+                    profile={userProfile}
+                    posts={instaPosts} 
+                    error={instaError}
+                    formatIntegerValue={formatIntegerValue}
+                />
+            ) : null }
+            {instaStatus === 'error' && instaError && <Alert variant="destructive" className="mt-4"><AlertTriangle className="h-4 w-4" /><AlertTitle>Erro ao Buscar Perfil</AlertTitle><AlertDescription>{instaError}</AlertDescription></Alert>}
 
-                  <Tabs defaultValue="instagram" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2 bg-muted p-1">
-                        <TabsTrigger value="instagram" className="text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary px-6 py-2 text-sm font-semibold transition-colors hover:bg-primary/5"><Instagram className="mr-2 h-4 w-4" /> Instagram</TabsTrigger>
-                        <TabsTrigger value="tiktok" className="text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary px-6 py-2 text-sm font-semibold transition-colors hover:bg-primary/5"><Film className="mr-2 h-4 w-4" /> TikTok</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="instagram" className="mt-4">
-                        <Card className='border-0 shadow-none'>
-                            <CardContent className="p-4 bg-muted/50 rounded-lg">
-                            <div className="flex flex-col sm:flex-row items-end gap-4">
-                                <div className="flex-1 w-full">
-                                <Label htmlFor="instagramHandleApi">Usuário do Instagram</Label>
-                                <Input
-                                    id="instagramHandleApi"
-                                    placeholder="@seu_usuario"
-                                    {...form.register('instagramHandle')}
-                                    className="h-11 mt-1"
-                                />
-                                </div>
-                                <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                    <Button
-                                        type="button"
-                                        disabled={instaStatus === 'loading' || !form.watch('instagramHandle')}
-                                        className="w-full sm:w-auto"
-                                    >
-                                        {
-                                         instaStatus === 'loading' ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Buscando...</> :
-                                         <><RefreshCw className="mr-2 h-4 w-4" />Sincronizar</>
-                                         }
-                                    </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                    <AlertDialogTitle>Confirmação de Busca</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                        Você confirma que tem permissão para buscar os dados do perfil <strong>@{form.watch('instagramHandle')?.replace('@', '')}</strong>?
-                                    </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                    <AlertDialogAction onClick={handleInstagramSearch}>Sim, confirmar e buscar</AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                                </AlertDialog>
-                            </div>
-                            <p className='text-xs text-muted-foreground mt-2'>
-                                Isso irá buscar seus dados públicos e métricas de posts recentes.
-                            </p>
-                            </CardContent>
-                        </Card>
-                        {isLoadingInstaPosts && <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>}
-                        {!isLoadingInstaPosts && userProfile?.instagramHandle && (
-                            <InstagramProfileResults 
-                                profile={{
-                                    username: userProfile.instagramHandle,
-                                    followersCount: userProfile.instagramFollowers,
-                                } as Partial<InstagramProfileData>}
-                                posts={instaPosts} 
-                                error={instaError}
-                                formatNumber={formatNumber}
-                            />
-                        )}
-                        {instaStatus === 'error' && instaError && <Alert variant="destructive" className="mt-4"><AlertTriangle className="h-4 w-4" /><AlertTitle>Erro ao Buscar Perfil</AlertTitle><AlertDescription>{instaError}</AlertDescription></Alert>}
-
-                    </TabsContent>
-                    <TabsContent value="tiktok" className="mt-4">
-                        <Card className='border-0 shadow-none'>
-                            <CardContent className="p-4 bg-muted/50 rounded-lg">
-                            <div className="flex flex-col sm:flex-row items-end gap-4">
-                                <div className="flex-1 w-full">
-                                <Label htmlFor="tiktokHandleApi">Usuário do TikTok</Label>
-                                <Input
-                                    id="tiktokHandleApi"
-                                    placeholder="@seu_usuario"
-                                    {...form.register('tiktokHandle')}
-                                    className="h-11 mt-1"
-                                />
-                                </div>
-                                <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                     <Button
-                                        type="button"
-                                        disabled={tiktokStatus === 'loading' || !form.watch('tiktokHandle')}
-                                        className="w-full sm:w-auto"
-                                    >
-                                        {
-                                         tiktokStatus === 'loading' ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Buscando...</> :
-                                         <><RefreshCw className="mr-2 h-4 w-4" />Sincronizar</>
-                                         }
-                                    </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                    <AlertDialogTitle>Confirmação de Busca</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                        Você confirma que tem permissão para buscar os dados do perfil <strong>@{form.watch('tiktokHandle')?.replace('@', '')}</strong>?
-                                    </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                    <AlertDialogAction onClick={handleTiktokSearch}>Sim, confirmar e buscar</AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                                </AlertDialog>
-                            </div>
-                            <p className='text-xs text-muted-foreground mt-2'>
-                                Isso irá buscar seus dados públicos e métricas de vídeos recentes.
-                            </p>
-                            </CardContent>
-                        </Card>
-                         {isLoadingTiktokPosts && <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>}
-                         {!isLoadingTiktokPosts && userProfile?.tiktokHandle && (
-                             <TikTokProfileResults 
-                                profile={{
-                                    username: userProfile.tiktokHandle,
-                                    followersCount: userProfile.tiktokFollowers,
-                                } as Partial<TikTokProfileData>}
-                                posts={tiktokPosts} 
-                                error={tiktokError}
-                                formatNumber={formatNumber}
-                                onVideoClick={handleTikTokClick}
-                            />
-                         )}
-                         {tiktokStatus === 'error' && tiktokError && <Alert variant="destructive" className="mt-4"><AlertTriangle className="h-4 w-4" /><AlertTitle>Erro ao Buscar Perfil</AlertTitle><AlertDescription>{tiktokError}</AlertDescription></Alert>}
-                    </TabsContent>
-                  </Tabs>
-                </>
-                )}
-            </CardContent>
-          </Card>
+        </TabsContent>
+        <TabsContent value="tiktok" className="mt-4">
+            <Card className='border-0 shadow-none'>
+                <CardContent className="p-4 bg-muted/50 rounded-lg">
+                <div className="flex flex-col sm:flex-row items-end gap-4">
+                    <div className="flex-1 w-full">
+                    <Label htmlFor="tiktokHandleApi">Usuário do TikTok</Label>
+                    <Input
+                        id="tiktokHandleApi"
+                        placeholder="@seu_usuario"
+                        {...form.register('tiktokHandle')}
+                        className="h-11 mt-1"
+                    />
+                    </div>
+                    <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                            <Button
+                            type="button"
+                            disabled={tiktokStatus === 'loading' || !form.watch('tiktokHandle')}
+                            className="w-full sm:w-auto"
+                        >
+                            {
+                                tiktokStatus === 'loading' ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Buscando...</> :
+                                <><RefreshCw className="mr-2 h-4 w-4" />Sincronizar</>
+                                }
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                        <AlertDialogTitle>Confirmação de Busca</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Você confirma que tem permissão para buscar os dados do perfil <strong>@{form.watch('tiktokHandle')?.replace('@', '')}</strong>?
+                        </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleTiktokSearch}>Sim, confirmar e buscar</AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                    </AlertDialog>
+                </div>
+                <p className='text-xs text-muted-foreground mt-2'>
+                    Sua conta do TikTok deve ser pública para a integração funcionar.
+                </p>
+                </CardContent>
+            </Card>
+                {isLoading ? <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div> :
+                userProfile?.tiktokHandle ? (
+                    <TikTokProfileResults 
+                    profile={userProfile}
+                    posts={tiktokPosts} 
+                    error={tiktokError}
+                    formatIntegerValue={formatIntegerValue}
+                    onVideoClick={handleTikTokClick}
+                />
+                ) : null }
+                {tiktokStatus === 'error' && tiktokError && <Alert variant="destructive" className="mt-4"><AlertTriangle className="h-4 w-4" /><AlertTitle>Erro ao Buscar Perfil</AlertTitle><AlertDescription>{tiktokError}</AlertDescription></Alert>}
+        </TabsContent>
+        </Tabs>
     </div>
   );
 }
+

@@ -49,7 +49,11 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: '**.tiktokcdn.com',
+        hostname: 'p16-sign-va.tiktokcdn.com',
+      },
+       {
+        protocol: 'https',
+        hostname: 'p19-sign-va.tiktokcdn.com',
       },
       {
         protocol: 'https',
@@ -60,5 +64,3 @@ const nextConfig = {
 };
 
 module.exports = nextConfig;
-
-    
