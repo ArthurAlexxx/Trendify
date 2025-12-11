@@ -16,7 +16,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useNotification } from '@/hooks/use-notification';
+import { useToast } from '@/hooks/use-toast';
 import { Loader2, ArrowUpRight, ArrowLeft, MailCheck } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/firebase';
@@ -27,7 +27,7 @@ const formSchema = z.object({
 });
 
 export default function ForgotPasswordPage() {
-  const { notify } = useNotification();
+  const { toast } = useToast();
   const auth = useAuth();
   const [isPending, setIsPending] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -47,7 +47,8 @@ export default function ForgotPasswordPage() {
       setIsSuccess(true);
     } catch (error: any) {
       console.error(error);
-      notify({
+      toast({
+        variant: 'destructive',
         title: 'Erro ao Enviar E-mail',
         description:
           error.code === 'auth/user-not-found'

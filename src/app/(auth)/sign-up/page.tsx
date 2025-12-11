@@ -16,7 +16,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useNotification } from '@/hooks/use-notification';
+import { useToast } from '@/hooks/use-toast';
 import { Loader2, ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/firebase';
@@ -40,7 +40,7 @@ const GoogleIcon = () => (
 
 
 export default function SignUpPage() {
-  const { notify } = useNotification();
+  const { toast } = useToast();
   const auth = useAuth();
   const [isPending, setIsPending] = useState(false);
   
@@ -70,7 +70,8 @@ export default function SignUpPage() {
       // FirebaseProvider will handle profile creation and AuthLayout will redirect.
     } catch (error: any) {
       console.error('Sign up error:', error.code, error.message);
-      notify({
+      toast({
+        variant: 'destructive',
         title: 'Erro no cadastro',
         description:
           error.code === 'auth/email-already-in-use'
@@ -91,7 +92,8 @@ export default function SignUpPage() {
     } catch (error: any) {
       // Handle errors here, such as user closing the popup.
        if (error.code !== 'auth/popup-closed-by-user') {
-        notify({
+        toast({
+            variant: 'destructive',
             title: 'Erro no Cadastro com Google',
             description: 'Não foi possível completar o cadastro. Tente novamente.',
         });

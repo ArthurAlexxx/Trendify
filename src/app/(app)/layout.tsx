@@ -9,8 +9,8 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import React from 'react';
 import { AppSidebar } from '@/components/app-sidebar';
-import { useNotification } from '@/hooks/use-notification';
 import { cn } from '@/lib/utils';
+import { Toaster } from '@/components/ui/toaster';
 
 function AppLayoutContent({ children }: { children: React.ReactNode }) {
   const { user, isUserLoading } = useUser();
@@ -77,7 +77,6 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
 }
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-    const { NotificationContainer } = useNotification();
     return (
         <Suspense fallback={
              <div className="flex h-screen w-full items-center justify-center bg-background">
@@ -87,7 +86,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <AppLayoutContent>
                 {children}
             </AppLayoutContent>
-            <NotificationContainer />
+            <Toaster />
         </Suspense>
     )
 }

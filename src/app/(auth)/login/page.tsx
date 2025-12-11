@@ -16,7 +16,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useNotification } from '@/hooks/use-notification';
+import { useToast } from '@/hooks/use-toast';
 import { Loader2, ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/firebase';
@@ -39,7 +39,7 @@ const GoogleIcon = () => (
 
 
 export default function LoginPage() {
-  const { notify } = useNotification();
+  const { toast } = useToast();
   const auth = useAuth();
   const [isPending, setIsPending] = useState(false);
   
@@ -58,7 +58,8 @@ export default function LoginPage() {
       // If login is successful, AuthLayout will handle the redirect.
     } catch (error: any) {
       console.error(error);
-      notify({
+      toast({
+        variant: 'destructive',
         title: 'Erro no login',
         description:
           error.code === 'auth/invalid-credential'
@@ -79,7 +80,8 @@ export default function LoginPage() {
     } catch (error: any) {
       // Handle errors here, such as user closing the popup.
       if (error.code !== 'auth/popup-closed-by-user') {
-        notify({
+        toast({
+            variant: 'destructive',
             title: 'Erro no Login com Google',
             description: 'Não foi possível completar o login. Tente novamente.',
         });

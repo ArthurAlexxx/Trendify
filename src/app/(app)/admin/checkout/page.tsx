@@ -1,10 +1,11 @@
+
 'use client';
 
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { useNotification } from '@/hooks/use-notification';
+import { useToast } from '@/hooks/use-toast';
 import { CreditCard, Loader2, AlertTriangle, ExternalLink, XCircle, CheckCircle, RefreshCw, Info } from 'lucide-react';
 import { useState, useTransition, useEffect } from 'react';
 import { useUser, useFirestore } from '@/firebase';
@@ -35,7 +36,7 @@ export default function AdminCheckoutTestPage() {
   const firestore = useFirestore();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const { notify } = useNotification();
+  const { toast } = useToast();
   
   const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
   const [checkoutId, setCheckoutId] = useState<string | null>(null);
@@ -88,7 +89,7 @@ export default function AdminCheckoutTestPage() {
       if (result.error) {
         setError(result.error);
       } else if (result.checkoutUrl && result.checkoutId) {
-         notify({
+         toast({
             title: "Checkout Gerado!",
             description: `Link de pagamento criado com sucesso.`,
          });
@@ -106,12 +107,13 @@ export default function AdminCheckoutTestPage() {
     startCancellingTransition(async () => {
       const result = await cancelAsaasCheckoutAction({ checkoutId });
       if (result.error) {
-        notify({
+        toast({
+            variant: 'destructive',
             title: 'Erro ao Cancelar',
             description: result.error,
         });
       } else {
-        notify({
+        toast({
             title: 'Sucesso!',
             description: 'O checkout foi cancelado.',
         });

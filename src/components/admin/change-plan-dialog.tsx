@@ -30,7 +30,7 @@ import { Button } from '@/components/ui/button';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useNotification } from '@/hooks/use-notification';
+import { useToast } from '@/hooks/use-toast';
 import type { UserProfile } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
 import { changeUserPlanAction } from '@/app/(app)/admin/actions';
@@ -53,7 +53,7 @@ interface ChangePlanDialogProps {
 }
 
 export function ChangePlanDialog({ isOpen, setIsOpen, user, children }: ChangePlanDialogProps) {
-  const { notify } = useNotification();
+  const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
   const { user: adminUser } = useUser();
 
@@ -78,7 +78,7 @@ export function ChangePlanDialog({ isOpen, setIsOpen, user, children }: ChangePl
 
   async function onSubmit(values: FormData) {
     if (!adminUser) {
-        notify({ title: "Erro de Autenticação", description: "Administrador não está logado." });
+        toast({ variant: 'destructive', title: "Erro de Autenticação", description: "Administrador não está logado." });
         return;
     }
     
@@ -91,13 +91,14 @@ export function ChangePlanDialog({ isOpen, setIsOpen, user, children }: ChangePl
       });
 
       if (result.success) {
-        notify({
+        toast({
           title: 'Sucesso!',
           description: `O plano de ${user.displayName} foi alterado para ${values.newPlan.toUpperCase()}.`,
         });
         setIsOpen(false);
       } else {
-        notify({
+        toast({
+          variant: 'destructive',
           title: 'Erro ao Alterar Plano',
           description: result.error,
         });
