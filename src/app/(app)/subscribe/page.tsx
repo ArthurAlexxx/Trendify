@@ -93,7 +93,7 @@ export default function SubscribePage() {
                         <Star className="w-5 h-5 text-primary" />
                         Pro
                     </CardTitle>
-                    <p className="text-3xl font-bold">R$5<span className="text-base font-normal text-muted-foreground">/mês</span></p>
+                    <p className="text-3xl font-bold">R$50<span className="text-base font-normal text-muted-foreground">/mês</span></p>
                 </CardHeader>
                 <CardContent className='flex-grow'>
                     <ul className="space-y-3 text-sm text-foreground">
@@ -116,7 +116,7 @@ export default function SubscribePage() {
                         <Crown className="w-5 h-5 text-yellow-400 fill-yellow-400" />
                         Premium
                     </CardTitle>
-                    <p className="text-3xl font-bold">R$5<span className="text-base font-normal text-muted-foreground">/mês</span></p>
+                    <p className="text-3xl font-bold">R$90<span className="text-base font-normal text-muted-foreground">/mês</span></p>
                 </CardHeader>
                 <CardContent className='flex-grow'>
                     <ul className="space-y-3 text-sm text-foreground">

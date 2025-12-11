@@ -3,9 +3,7 @@
 
 import { z } from 'zod';
 import type { Plan } from '@/lib/types';
-import { initializeFirebaseAdmin } from '@/firebase/admin';
 import fetch from 'node-fetch';
-
 
 // Mapeamento de planos e preços
 const priceMap: Record<Plan, Record<'monthly' | 'annual', number>> = {
@@ -59,9 +57,9 @@ async function getAddressFromCEP(cep: string): Promise<{ address: string; provin
     }
 }
 
-
 /**
- * Cria um link de checkout na Asaas usando o endpoint /checkouts.
+ * Cria um link de checkout na Asaas usando o endpoint /checkouts,
+ * enviando os dados do cliente diretamente.
  */
 export async function createAsaasPaymentAction(
   input: CreatePaymentInput
@@ -86,72 +84,32 @@ export async function createAsaasPaymentAction(
   }
   
   try {
-     const { address, province, city, error: cepError } = await getAddressFromCEP(postalCode);
+    const { address, province, city, error: cepError } = await getAddressFromCEP(postalCode);
 
     if (cepError) {
       return { error: `Erro no CEP: ${cepError}` };
     }
 
-    // 1. Criar ou buscar o cliente na Asaas
-     const customerPayload = { name, cpfCnpj, email, phone, postalCode, address, addressNumber, province };
-    
-    let customerId;
-    const findCustomerResponse = await fetch(`https://sandbox.asaas.com/api/v3/customers?cpfCnpj=${cpfCnpj}`, {
-      headers: { 'access_token': apiKey }
-    });
-    
-    const findCustomerData: any = await findCustomerResponse.json();
-
-    if (findCustomerData.data && findCustomerData.data.length > 0) {
-      // Cliente existe, vamos atualizá-lo para garantir que o endereço está correto
-      customerId = findCustomerData.data[0].id;
-      await fetch(`https://sandbox.asaas.com/api/v3/customers/${customerId}`, {
-          method: 'POST', // Asaas usa POST para atualização também
-          headers: {
-            'accept': 'application/json',
-            'content-type': 'application/json',
-            'access_token': apiKey,
-          },
-          body: JSON.stringify(customerPayload)
-      });
-
-    } else {
-      // Cliente não existe, vamos criar um novo
-       const createCustomerResponse = await fetch('https://sandbox.asaas.com/api/v3/customers', {
-            method: 'POST',
-            headers: {
-                'accept': 'application/json',
-                'content-type': 'application/json',
-                'access_token': apiKey,
-            },
-            body: JSON.stringify(customerPayload)
-        });
-
-        const createCustomerData: any = await createCustomerResponse.json();
-
-        if (!createCustomerResponse.ok || createCustomerData.errors) {
-            console.error('[Asaas Action] Erro ao criar cliente:', createCustomerData);
-            throw new Error(createCustomerData.errors?.[0]?.description || 'Falha ao criar o cliente.');
-        }
-        customerId = createCustomerData.id;
-    }
-
-
-    // 2. Salvar o customerId no Firestore
-    const { firestore } = initializeFirebaseAdmin();
-    const userRef = firestore.doc(`users/${userId}`);
-    await userRef.update({ 'subscription.paymentId': customerId });
-
-
-    // 3. Criar o checkout
     const price = priceMap[plan][cycle];
     const planName = `Plano ${plan.toUpperCase()} - ${cycle === 'monthly' ? 'Mensal' : 'Anual'}`;
     const isRecurrent = billingType === 'CREDIT_CARD';
+    
+    // Metadados para identificar a compra no webhook
+    const externalReference = JSON.stringify({ userId, plan, cycle });
 
     const checkoutBody: any = {
-      customer: customerId,
-      billingTypes: [billingType],
-      chargeTypes: [isRecurrent ? "RECURRENT" : "DETACHED"],
+      customerData: {
+        name,
+        email,
+        cpfCnpj,
+        phone,
+        postalCode,
+        address,
+        addressNumber,
+        province,
+      },
+      billingType: billingType,
+      chargeType: isRecurrent ? "RECURRENT" : "DETACHED",
       minutesToExpire: 60, 
       callback: {
         successUrl: `${appUrl}/dashboard?checkout=success`,
@@ -165,9 +123,8 @@ export async function createAsaasPaymentAction(
         quantity: 1,
         value: price,
       }],
+      externalReference: externalReference, // Enviando os metadados
     };
-    
-    const externalReference = JSON.stringify({ userId, plan, cycle });
 
     if (isRecurrent) {
       const today = new Date();
@@ -188,8 +145,6 @@ export async function createAsaasPaymentAction(
       };
     }
     
-    checkoutBody.externalReference = externalReference;
-
     const checkoutResponse = await fetch('https://sandbox.asaas.com/api/v3/checkouts', {
         method: 'POST',
         headers: {
@@ -211,7 +166,7 @@ export async function createAsaasPaymentAction(
          throw new Error('A API da Asaas não retornou um ID para a sessão de checkout.');
     }
 
-    const checkoutUrl = `https://sandbox.asaas.com/checkoutSession/show?id=${checkoutData.id}`;
+    const checkoutUrl = checkoutData.url;
     
     return { 
         checkoutUrl: checkoutUrl, 

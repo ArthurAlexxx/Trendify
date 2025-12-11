@@ -99,7 +99,8 @@ function CheckoutPageContent() {
           variant: 'destructive',
         });
       } else if (result.checkoutUrl) {
-        window.location.href = result.checkoutUrl;
+        // Redireciona para a URL de pagamento da Asaas
+        router.push(result.checkoutUrl);
       } else {
         setError('Ocorreu um erro inesperado ao gerar o link de pagamento.');
          toast({
@@ -112,8 +113,8 @@ function CheckoutPageContent() {
   };
   
   const priceMap = {
-    pro: { monthly: 'R$5', annual: 'R$5' },
-    premium: { monthly: 'R$5', annual: 'R$5' },
+    pro: { monthly: 'R$5', annual: 'R$50' },
+    premium: { monthly: 'R$5', annual: 'R$90' },
   };
 
   const getPrice = () => {

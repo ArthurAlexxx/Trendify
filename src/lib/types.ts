@@ -40,10 +40,11 @@ export interface UserProfile {
     plan: Plan;
     cycle?: 'monthly' | 'annual';
     expiresAt?: Timestamp | null;
-    trialEndsAt?: Timestamp | null; // Add trial period end date
-    paymentId?: string | null; // Customer ID from Asaas (cus_...)
-    checkoutId?: string; // Last checkout session ID
-    asaasSubscriptionId?: string; // Asaas Subscription ID (sub_...)
+    trialEndsAt?: Timestamp | null;
+    paymentId?: string | null;
+    asaasSubscriptionId?: string | null; // Asaas Subscription ID (sub_...)
+    lastPaymentStatus?: 'confirmed' | 'overdue' | 'refunded';
+    lastUpdated?: Timestamp;
   }
 }
 
