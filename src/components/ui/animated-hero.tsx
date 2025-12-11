@@ -112,8 +112,8 @@ function AnimatedHero() {
 
           {/* Image Content */}
           <div ref={targetRef} className="relative mt-20">
-             <div className="absolute inset-0 z-0 flex items-center justify-center">
-                <div className="h-full w-full bg-gradient-radial from-primary/30 via-primary/15 to-transparent blur-3xl [mask-image:radial-gradient(ellipse_at_center,black_50%,transparent_100%)]" />
+             <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 z-0 flex items-center justify-center">
+                <div className="h-[500px] w-[95%] bg-gradient-radial from-primary/50 via-primary/20 to-transparent blur-3xl" />
             </div>
             <motion.div style={{ scale, y }} className="relative z-10">
                 <Image
