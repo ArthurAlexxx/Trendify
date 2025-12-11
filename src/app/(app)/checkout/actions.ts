@@ -86,6 +86,12 @@ export async function createAsaasPaymentAction(
   }
   
   try {
+     const { address, province, city, error: cepError } = await getAddressFromCEP(postalCode);
+
+    if (cepError) {
+      return { error: `Erro no CEP: ${cepError}` };
+    }
+
     // 1. Criar ou buscar o cliente na Asaas
     const customerResponse = await fetch('https://sandbox.asaas.com/api/v3/customers', {
       method: 'POST',
@@ -94,14 +100,14 @@ export async function createAsaasPaymentAction(
         'content-type': 'application/json',
         'access_token': apiKey,
       },
-      body: JSON.stringify({ name, cpfCnpj, email, phone })
+      body: JSON.stringify({ name, cpfCnpj, email, phone, postalCode, address, addressNumber, province })
     });
 
     const customerData: any = await customerResponse.json();
     let customerId = customerData.id;
 
     if (!customerResponse.ok) {
-      if (customerData.errors?.some((e: any) => e.code === 'invalid_cpfCnpj')) {
+      if (customerData.errors?.some((e: any) => e.code === 'invalid_cpfCnpj' || e.code === 'customer_already_registered')) {
          const existingCustomerResponse = await fetch(`https://sandbox.asaas.com/api/v3/customers?cpfCnpj=${cpfCnpj}`, {
               headers: { 'access_token': apiKey }
           });
@@ -124,20 +130,14 @@ export async function createAsaasPaymentAction(
 
 
     // 3. Criar o checkout
-    const { address, province, city, error: cepError } = await getAddressFromCEP(postalCode);
-
-    if (cepError) {
-      return { error: `Erro no CEP: ${cepError}` };
-    }
-
     const price = priceMap[plan][cycle];
     const planName = `Plano ${plan.toUpperCase()} - ${cycle === 'monthly' ? 'Mensal' : 'Anual'}`;
     const isRecurrent = billingType === 'CREDIT_CARD';
 
     const checkoutBody: any = {
       customer: customerId,
-      billingTypes: [billingType],
-      chargeTypes: [isRecurrent ? "RECURRENT" : "DETACHED"],
+      billingType: billingType,
+      chargeType: isRecurrent ? "RECURRENT" : "DETACHED",
       minutesToExpire: 60, 
       callback: {
         successUrl: `${appUrl}/dashboard?checkout=success`,
@@ -209,3 +209,4 @@ export async function createAsaasPaymentAction(
     return { error: e.message || 'Ocorreu um erro de comunicação com o provedor de pagamento.' };
   }
 }
+
