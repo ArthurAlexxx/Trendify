@@ -21,7 +21,7 @@ const CreatePaymentSchema = z.object({
   addressNumber: z.string().min(1, 'O número é obrigatório.'),
   plan: z.enum(['pro', 'premium']),
   cycle: z.enum(['monthly', 'annual']),
-  billingType: z.enum(['PIX', 'CREDIT_CARD']),
+  billingType: z.enum(['PIX', 'CREDIT_CARD', 'BOLETO']),
   userId: z.string().min(1, 'ID do usuário é obrigatório.'),
 });
 
@@ -107,6 +107,7 @@ export async function createAsaasPaymentAction(
         address,
         addressNumber,
         province,
+        city
       },
       billingTypes: [billingType],
       chargeType: isRecurrent ? "RECURRENT" : "DETACHED",
