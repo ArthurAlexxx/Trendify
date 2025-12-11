@@ -93,35 +93,49 @@ export async function createAsaasPaymentAction(
     }
 
     // 1. Criar ou buscar o cliente na Asaas
-    const customerResponse = await fetch('https://sandbox.asaas.com/api/v3/customers', {
-      method: 'POST',
-      headers: {
-        'accept': 'application/json',
-        'content-type': 'application/json',
-        'access_token': apiKey,
-      },
-      body: JSON.stringify({ name, cpfCnpj, email, phone, postalCode, address, addressNumber, province })
+     const customerPayload = { name, cpfCnpj, email, phone, postalCode, address, addressNumber, province };
+    
+    let customerId;
+    const findCustomerResponse = await fetch(`https://sandbox.asaas.com/api/v3/customers?cpfCnpj=${cpfCnpj}`, {
+      headers: { 'access_token': apiKey }
     });
+    
+    const findCustomerData: any = await findCustomerResponse.json();
 
-    const customerData: any = await customerResponse.json();
-    let customerId = customerData.id;
+    if (findCustomerData.data && findCustomerData.data.length > 0) {
+      // Cliente existe, vamos atualizá-lo para garantir que o endereço está correto
+      customerId = findCustomerData.data[0].id;
+      await fetch(`https://sandbox.asaas.com/api/v3/customers/${customerId}`, {
+          method: 'POST', // Asaas usa POST para atualização também
+          headers: {
+            'accept': 'application/json',
+            'content-type': 'application/json',
+            'access_token': apiKey,
+          },
+          body: JSON.stringify(customerPayload)
+      });
 
-    if (!customerResponse.ok) {
-      if (customerData.errors?.some((e: any) => e.code === 'invalid_cpfCnpj' || e.code === 'customer_already_registered')) {
-         const existingCustomerResponse = await fetch(`https://sandbox.asaas.com/api/v3/customers?cpfCnpj=${cpfCnpj}`, {
-              headers: { 'access_token': apiKey }
-          });
-          const existingCustomerData: any = await existingCustomerResponse.json();
-          if (existingCustomerData.data && existingCustomerData.data.length > 0) {
-              customerId = existingCustomerData.data[0].id;
-          } else {
-              throw new Error('CPF/CNPJ já cadastrado, mas não foi possível encontrar o cliente.');
-          }
-      } else {
-        console.error('[Asaas Action] Erro ao criar cliente:', customerData);
-        throw new Error(customerData.errors?.[0]?.description || 'Falha ao criar ou buscar cliente.');
-      }
+    } else {
+      // Cliente não existe, vamos criar um novo
+       const createCustomerResponse = await fetch('https://sandbox.asaas.com/api/v3/customers', {
+            method: 'POST',
+            headers: {
+                'accept': 'application/json',
+                'content-type': 'application/json',
+                'access_token': apiKey,
+            },
+            body: JSON.stringify(customerPayload)
+        });
+
+        const createCustomerData: any = await createCustomerResponse.json();
+
+        if (!createCustomerResponse.ok || createCustomerData.errors) {
+            console.error('[Asaas Action] Erro ao criar cliente:', createCustomerData);
+            throw new Error(createCustomerData.errors?.[0]?.description || 'Falha ao criar o cliente.');
+        }
+        customerId = createCustomerData.id;
     }
+
 
     // 2. Salvar o customerId no Firestore
     const { firestore } = initializeFirebaseAdmin();
