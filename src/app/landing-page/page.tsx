@@ -313,7 +313,7 @@ export default function LandingPage() {
 
         {/* Unified Benefits Section */}
         <section id="beneficios" className="py-20 sm:py-24">
-          <div className="container text-center">
+          <div className="text-center px-6">
             <h2 className="text-3xl md:text-4xl font-bold font-headline tracking-tight mb-4">
               A plataforma completa para criadores
             </h2>
@@ -427,7 +427,7 @@ export default function LandingPage() {
 
         {/* Calculator Section */}
         <section id="calculadora" className="py-20 sm:py-24 bg-muted/30">
-          <div className="container">
+          <div className="px-6">
             <AnimatePresence mode="wait">
               {step === 0 ? (
                 <motion.div
@@ -814,7 +814,7 @@ export default function LandingPage() {
 
         {/* Pricing Section */}
         <section id="precos" className="py-20 sm:py-24 bg-background">
-          <div className="container">
+          <div className="px-6">
             <div className="text-center max-w-2xl mx-auto mb-12">
               <h2 className="text-4xl md:text-5xl font-bold font-headline tracking-tight mb-4">
                 Planos para cada fase da sua jornada
