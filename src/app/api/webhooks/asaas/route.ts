@@ -19,7 +19,7 @@ function verifyAccessToken(req: NextRequest): boolean {
       console.error("[Asaas Webhook] Erro: Token de acesso ausente no cabeçalho 'asaas-access-token'.");
       return false;
   }
-
+  
   // Comparação segura contra "timing attacks"
   if (receivedToken.length !== webhookToken.length) {
       console.error("[Asaas Webhook] Erro: O comprimento do token recebido não corresponde ao esperado.");
@@ -99,9 +99,9 @@ async function findUserInfo(firestore: ReturnType<typeof getFirestore>, payment:
         if (!usersByCustomer.empty) {
             const userDoc = usersByCustomer.docs[0];
             const userData = userDoc.data();
-            console.warn(`[Webhook] Fallback 1: Usuário encontrado pelo customerId: ${userDoc.id}. Usando plano/ciclo do documento.`);
-            // Adivinhar o plano pelo valor é frágil, então pegamos do documento do usuário se possível
-            const plan = userData.subscription?.plan || 'pro';
+            console.warn(`[Webhook] Fallback 1: Usuário encontrado pelo customerId: ${userDoc.id}.`);
+            // Se o plano não vier no webhook, tentamos pegar do documento
+            const plan = userData.subscription?.plan || 'pro'; 
             const cycle = userData.subscription?.cycle || 'monthly';
             return { userId: userDoc.id, plan, cycle };
         }
@@ -117,9 +117,9 @@ async function findUserInfo(firestore: ReturnType<typeof getFirestore>, payment:
         if (!usersBySubscription.empty) {
             const userDoc = usersBySubscription.docs[0];
             const userData = userDoc.data();
-            console.warn(`[Webhook] Fallback 2: Usuário encontrado pelo subscriptionId: ${userDoc.id}. Usando plano/ciclo do documento.`);
-            const plan = userData.subscription?.plan || 'pro';
-            const cycle = userData.subscription?.cycle || 'monthly';
+            console.warn(`[Webhook] Fallback 2: Usuário encontrado pelo subscriptionId: ${userDoc.id}.`);
+             const plan = userData.subscription?.plan || 'pro';
+             const cycle = userData.subscription?.cycle || 'monthly';
             return { userId: userDoc.id, plan, cycle };
         }
     }
@@ -144,9 +144,11 @@ async function processPaymentConfirmation(userRef: FirebaseFirestore.DocumentRef
 
   let newExpiresAt: Date;
   if (cycle === 'annual') {
-    newExpiresAt = new Date(renewalBaseDate.setFullYear(renewalBaseDate.getFullYear() + 1));
+    newExpiresAt = new Date(renewalBaseDate);
+    newExpiresAt.setFullYear(newExpiresAt.getFullYear() + 1);
   } else { // monthly
-    newExpiresAt = new Date(renewalBaseDate.setMonth(renewalBaseDate.getMonth() + 1));
+    newExpiresAt = new Date(renewalBaseDate);
+    newExpiresAt.setMonth(newExpiresAt.getMonth() + 1);
   }
 
   const updatePayload: any = {

@@ -48,7 +48,7 @@ export async function createAsaasPaymentAction(
 
   const { name, cpfCnpj, email, phone, postalCode, addressNumber, plan, cycle, billingType, userId } = parsed.data;
   const apiKey = process.env.ASAAS_API_KEY;
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://trendify-beta.vercel.app';
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
   
   if (!apiKey) {
     return { error: 'Erro de configuração do servidor: ASAAS_API_KEY não encontrada.' };
@@ -76,7 +76,7 @@ export async function createAsaasPaymentAction(
 
     let customerId = customerData.id;
     // Se o cliente já existe, busca o ID dele
-    if (customerData.errors?.[0]?.code === 'invalid_customer') {
+    if (customerData.errors?.[0]?.code === 'invalid_customer' || customerResponse.status === 400) {
         const searchResponse = await fetch(`https://www.asaas.com/api/v3/customers?cpfCnpj=${cpfCnpj}`, {
             headers: { 'access_token': apiKey },
         });
@@ -142,7 +142,8 @@ export async function createAsaasPaymentAction(
         throw new Error(checkoutData.errors?.[0]?.description || 'Falha ao criar o link de checkout.');
     }
     
-    const finalCheckoutUrl = isRecurrent ? (checkoutData.checkoutUrl || `https://www.asaas.com/c/${checkoutData.id}`) : checkoutData.invoiceUrl;
+    // Asaas retorna 'id' para assinatura e 'invoiceUrl' para pagamento único (PIX)
+    const finalCheckoutUrl = isRecurrent ? `https://www.asaas.com/c/${checkoutData.id}` : checkoutData.invoiceUrl;
 
     if (!finalCheckoutUrl || !checkoutData.id) {
          console.error('[Asaas Action] Resposta da API de checkout não continha uma URL ou ID válido:', checkoutData);
@@ -150,8 +151,9 @@ export async function createAsaasPaymentAction(
     }
 
     // Salvar o ID da assinatura (se for recorrente) ou do pagamento
-    const idField = isRecurrent ? 'subscription.asaasSubscriptionId' : 'subscription.checkoutId';
-    await userRef.update({ [idField]: checkoutData.id });
+    if (isRecurrent) {
+        await userRef.update({ 'subscription.asaasSubscriptionId': checkoutData.id });
+    }
 
     return { checkoutUrl: finalCheckoutUrl, checkoutId: checkoutData.id };
 
