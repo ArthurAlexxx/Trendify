@@ -145,9 +145,9 @@ export async function cancelAsaasSubscriptionAction(
         'access_token': apiKey,
       },
     });
-
+    
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = await response.json().catch(() => ({ errors: [{ description: "Resposta de erro inválida da API." }] }));
       if (response.status === 404) {
          console.warn(`[cancelAsaas] Tentativa de cancelar assinatura não encontrada na Asaas: ${asaasSubscriptionId}`);
       } else {
