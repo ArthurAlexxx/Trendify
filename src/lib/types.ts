@@ -23,6 +23,13 @@ export interface UserProfile {
   niche?: string;
   bio?: string;
   audience?: string;
+
+  // Novos campos de contato e endereço
+  cpfCnpj?: string;
+  phone?: string;
+  postalCode?: string;
+  addressNumber?: string;
+
   instagramHandle?: string;
   instagramFollowers?: string;
   instagramAverageViews?: string;
@@ -42,6 +49,7 @@ export interface UserProfile {
     expiresAt?: Timestamp | null;
     trialEndsAt?: Timestamp | null;
     paymentId?: string | null;
+    asaasCheckoutId?: string; // ID do checkout gerado
     asaasSubscriptionId?: string | null; // Asaas Subscription ID (sub_...)
     lastPaymentStatus?: 'confirmed' | 'overdue' | 'refunded';
     lastUpdated?: Timestamp;

@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -6,7 +7,7 @@ import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Suspense, useState, useTransition, useEffect } from 'react';
 import { Loader2, CheckCircle, AlertTriangle, CreditCard, ExternalLink, ShieldCheck, Banknote, Webcam } from 'lucide-react';
-import { useUser, useFirestore } from '@/firebase';
+import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -26,6 +27,7 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import type { UserProfile } from '@/lib/types';
 
 const formSchema = z.object({
   name: z.string().min(3, 'O nome completo é obrigatório.'),
@@ -50,10 +52,16 @@ function CheckoutPageContent() {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
+  const userProfileRef = useMemoFirebase(
+    () => (user && firestore ? doc(firestore, `users/${user.uid}`) : null),
+    [user, firestore]
+  );
+  const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userProfileRef);
+
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: user?.displayName || '',
+      name: '',
       cpfCnpj: '',
       phone: '',
       postalCode: '',
@@ -63,10 +71,17 @@ function CheckoutPageContent() {
   });
   
   useEffect(() => {
-    if(user?.displayName) {
-        form.setValue('name', user.displayName);
+    if(userProfile) {
+        form.reset({
+            name: userProfile.displayName || '',
+            cpfCnpj: userProfile.cpfCnpj || '',
+            phone: userProfile.phone || '',
+            postalCode: userProfile.postalCode || '',
+            addressNumber: userProfile.addressNumber || '',
+            billingType: 'CREDIT_CARD',
+        });
     }
-  }, [user, form]);
+  }, [userProfile, form]);
 
   const onSubmit = (values: FormSchemaType) => {
     if (!user?.email || !user.uid || !firestore) {
@@ -89,7 +104,7 @@ function CheckoutPageContent() {
         addressNumber: values.addressNumber,
         plan: plan as 'pro' | 'premium',
         cycle: cycle as 'monthly' | 'annual',
-        billingTypes: [values.billingType],
+        billingType: values.billingType,
         userId: user.uid,
       });
 
@@ -269,8 +284,8 @@ function CheckoutPageContent() {
                 </Alert>
                )}
 
-              <Button type="submit" disabled={isPending} className="w-full h-11">
-                {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ExternalLink className="mr-2 h-4 w-4" />}
+              <Button type="submit" disabled={isPending || isProfileLoading} className="w-full h-11">
+                {isPending || isProfileLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ExternalLink className="mr-2 h-4 w-4" />}
                 Ir para o Pagamento
               </Button>
             </form>

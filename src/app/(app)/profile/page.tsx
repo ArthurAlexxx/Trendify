@@ -29,12 +29,17 @@ import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/
 import { Progress } from '@/components/ui/progress';
 import Link from 'next/link';
 import { initializeFirebase } from '@/firebase';
+import { Separator } from '@/components/ui/separator';
 
 
 const profileFormSchema = z.object({
   displayName: z.string().min(2, 'O nome deve ter pelo menos 2 caracteres.'),
   photoURL: z.string().url().optional().nullable(),
   niche: z.string().optional(),
+  cpfCnpj: z.string().optional(),
+  phone: z.string().optional(),
+  postalCode: z.string().optional(),
+  addressNumber: z.string().optional(),
 });
 
 type ProfileFormData = z.infer<typeof profileFormSchema>;
@@ -61,6 +66,10 @@ export default function ProfilePage() {
       displayName: '',
       photoURL: null,
       niche: '',
+      cpfCnpj: '',
+      phone: '',
+      postalCode: '',
+      addressNumber: '',
     },
   });
   
@@ -70,6 +79,10 @@ export default function ProfilePage() {
         displayName: userProfile.displayName || '',
         photoURL: userProfile.photoURL || null,
         niche: userProfile.niche || '',
+        cpfCnpj: userProfile.cpfCnpj || '',
+        phone: userProfile.phone || '',
+        postalCode: userProfile.postalCode || '',
+        addressNumber: userProfile.addressNumber || '',
       });
     } else if (user) {
         form.reset({
@@ -88,6 +101,10 @@ export default function ProfilePage() {
             displayName: values.displayName,
             photoURL: values.photoURL,
             niche: values.niche,
+            cpfCnpj: values.cpfCnpj,
+            phone: values.phone,
+            postalCode: values.postalCode,
+            addressNumber: values.addressNumber,
         };
 
         // Firestore does not accept 'undefined' values.
@@ -180,7 +197,7 @@ export default function ProfilePage() {
                 Seu Perfil
               </CardTitle>
               <CardDescription>
-                Essas informações serão usadas pela IA para criar estratégias.
+                Essas informações serão usadas pela IA para criar estratégias e preencher formulários para você.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -231,6 +248,33 @@ export default function ProfilePage() {
                       className="h-11"
                     />
                   </div>
+                  
+                  <Separator />
+                  
+                   <div className="space-y-4">
+                     <h4 className="font-semibold text-foreground">Informações de Contato e Endereço</h4>
+                      <div className="grid sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="cpfCnpj">CPF/CNPJ</Label>
+                            <Input id="cpfCnpj" placeholder="Seu CPF ou CNPJ" {...form.register('cpfCnpj')} className="h-11" />
+                        </div>
+                         <div className="space-y-2">
+                            <Label htmlFor="phone">Telefone</Label>
+                            <Input id="phone" placeholder="(XX) XXXXX-XXXX" {...form.register('phone')} className="h-11" />
+                        </div>
+                      </div>
+                       <div className="grid sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="postalCode">CEP</Label>
+                            <Input id="postalCode" placeholder="00000-000" {...form.register('postalCode')} className="h-11" />
+                        </div>
+                         <div className="space-y-2">
+                            <Label htmlFor="addressNumber">Número</Label>
+                            <Input id="addressNumber" placeholder="123" {...form.register('addressNumber')} className="h-11" />
+                        </div>
+                      </div>
+                   </div>
+
 
                 <div className="flex justify-end pt-2">
                   <Button type="submit" disabled={isSaving || isProfileLoading} className="w-full sm:w-auto">
