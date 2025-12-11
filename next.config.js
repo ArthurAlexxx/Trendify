@@ -49,11 +49,19 @@ const nextConfig = {
       },
       {
         protocol: 'https',
+        hostname: '**.tiktokcdn.com',
+      },
+       {
+        protocol: 'https',
         hostname: 'p16-sign-va.tiktokcdn.com',
       },
        {
         protocol: 'https',
         hostname: 'p19-sign-va.tiktokcdn.com',
+      },
+       {
+        protocol: 'https',
+        hostname: 'p77-sign-sg.tiktokcdn.com',
       },
       {
         protocol: 'https',
