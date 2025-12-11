@@ -20,6 +20,7 @@ function AnimatedHero() {
   );
 
   useEffect(() => {
+    let timer: NodeJS.Timeout;
     const handleTyping = () => {
       const i = loopNum % titles.length;
       const fullText = titles[i];
@@ -30,16 +31,19 @@ function AnimatedHero() {
           : fullText.substring(0, currentTitle.length + 1)
       );
 
+      setTypingSpeed(isDeleting ? 80 : 150);
+
       if (!isDeleting && currentTitle === fullText) {
         // Pause at end
-        setTimeout(() => setIsDeleting(true), 1500);
+        timer = setTimeout(() => setIsDeleting(true), 1500);
       } else if (isDeleting && currentTitle === "") {
         setIsDeleting(false);
         setLoopNum(loopNum + 1);
       }
     };
 
-    const timer = setTimeout(handleTyping, typingSpeed);
+    timer = setTimeout(handleTyping, typingSpeed);
+
     return () => clearTimeout(timer);
   }, [currentTitle, isDeleting, loopNum, titles, typingSpeed]);
 
@@ -50,18 +54,18 @@ function AnimatedHero() {
     offset: ["start end", "end start"],
   });
 
-  const scale = useTransform(scrollYProgress, [0, 0.5], [0.8, 1]);
+  const scale = useTransform(scrollYProgress, [0, 0.5], [0.85, 1]);
   const y = useTransform(scrollYProgress, [0, 0.5], ['40px', '0px']);
 
 
   return (
     <div className="w-full">
-      <div className="relative pt-32 pb-24 px-6 text-center">
+      <div className="relative pt-32 pb-16 md:pb-24 px-6 text-center">
         {/* Text Content */}
           <div className="relative z-10 flex flex-col items-center text-center">
               <div>
                   <Button variant="outline" size="sm" className="gap-2 rounded-full bg-transparent text-primary hover:bg-primary/10 border-primary">
-                  <Sparkles className="w-4 h-4 animate-pulse" />
+                  <Sparkles className="w-4 h-4" />
                   Feito para criadores de conteúdo
                   </Button>
               </div>
@@ -108,7 +112,7 @@ function AnimatedHero() {
 
           {/* Image Content */}
           <div ref={targetRef} className="relative mt-20">
-            <div className="absolute inset-0 -z-10 bg-gradient-radial from-primary/20 via-primary/10 to-transparent" />
+            <div className="absolute inset-0 -z-10 bg-gradient-radial from-primary/30 via-primary/15 to-transparent py-24" />
             <motion.div style={{ scale, y }}>
                 <Image
                 src="https://firebasestorage.googleapis.com/v0/b/studio-4233590611-a8ab0.firebasestorage.app/o/Sem%20nome%20(Quadro%20branco)%20(2).png?alt=media&token=7f2fd083-8a2a-469b-a6df-8173e38b8a10"
