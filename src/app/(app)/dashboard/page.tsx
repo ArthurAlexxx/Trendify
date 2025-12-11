@@ -35,7 +35,7 @@ import type {
   PlanoSemanal,
 } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useToast } from '@/hooks/use-toast';
+import { useNotification } from '@/hooks/use-notification';
 import { useUser, useFirestore, useCollection, useDoc, useMemoFirebase } from '@/firebase';
 import { collection, doc, query, orderBy, limit, updateDoc, where, serverTimestamp, getDocs, setDoc, collectionGroup, Timestamp } from 'firebase/firestore';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -81,21 +81,20 @@ function DashboardSkeleton() {
 
 function CheckoutStatusHandler() {
     const searchParams = useSearchParams();
-    const { toast } = useToast();
+    const { notify } = useNotification();
     const [hasShownToast, setHasShownToast] = useState(false);
 
     useEffect(() => {
         const checkoutStatus = searchParams.get('checkout');
         if (checkoutStatus === 'success' && !hasShownToast) {
-            toast({
+            notify({
                 title: "Pagamento Aprovado!",
                 description: "Seu plano foi atualizado. Bem-vindo(a) à experiência completa!",
                 icon: <CheckCircle className="h-5 w-5 text-green-500" />,
-                duration: 8000,
             });
             setHasShownToast(true);
         }
-    }, [searchParams, toast, hasShownToast]);
+    }, [searchParams, notify, hasShownToast]);
 
     return null;
 }
@@ -104,7 +103,7 @@ function CheckoutStatusHandler() {
 export default function DashboardPage() {
   const { user, auth } = useUser();
   const firestore = useFirestore();
-  const { toast } = useToast();
+  const { notify } = useNotification();
   const [selectedPlatform, setSelectedPlatform] = useState<'total' | 'instagram' | 'tiktok'>('total');
   
   const [isGoalSheetOpen, setIsGoalSheetOpen] = useState(false);
@@ -212,12 +211,12 @@ export default function DashboardPage() {
         concluido: !ideia.concluido,
         completedAt: !ideia.concluido ? serverTimestamp() : null,
       });
-      toast({
+      notify({
         title: 'Sucesso!',
         description: `Ideia marcada como ${!ideia.concluido ? 'concluída' : 'pendente'}.`,
       });
     } catch (e: any) {
-      toast({ title: 'Erro ao atualizar ideia', description: e.message, variant: 'destructive' });
+      notify({ title: 'Erro ao atualizar ideia', description: e.message });
     }
   };
 
@@ -226,9 +225,9 @@ export default function DashboardPage() {
     const postRef = doc(firestore, `users/${user.uid}/conteudoAgendado`, postId);
     try {
         await updateDoc(postRef, { status: 'Publicado' });
-        toast({ title: 'Sucesso!', description: 'Post marcado como publicado.' });
+        notify({ title: 'Sucesso!', description: 'Post marcado como publicado.' });
     } catch (e: any) {
-        toast({ title: 'Erro ao atualizar post', description: e.message, variant: 'destructive' });
+        notify({ title: 'Erro ao atualizar post', description: e.message });
     }
   };
 
@@ -243,7 +242,7 @@ export default function DashboardPage() {
     try {
       await updateDoc(planRef, { items: updatedItems });
     } catch (e: any) {
-      toast({ title: 'Erro ao atualizar tarefa', description: e.message, variant: 'destructive' });
+      notify({ title: 'Erro ao atualizar tarefa', description: e.message });
     }
   };
 
@@ -270,25 +269,23 @@ export default function DashboardPage() {
 
   const handleGenerateInsights = useCallback(async () => {
     if (!isPremium) {
-      toast({
+      notify({
         title: "Funcionalidade Premium",
         description: "A análise de desempenho com IA está disponível no plano Premium.",
       });
       return;
     }
     if (!metricSnapshots || metricSnapshots.length < 2) {
-      toast({
+      notify({
         title: "Dados Insuficientes",
         description: "Sincronize suas métricas por pelo menos 2 dias para gerar insights.",
-        variant: "destructive"
       });
       return;
     }
     if (!userProfile?.niche || !userProfile?.totalFollowerGoal) {
-       toast({
+       notify({
         title: "Perfil Incompleto",
         description: "Por favor, defina seu nicho e sua meta de seguidores no seu perfil.",
-        variant: "destructive"
       });
       return;
     }
@@ -318,11 +315,11 @@ export default function DashboardPage() {
       });
       setInsights(result);
     } catch (e: any) {
-      toast({ title: "Erro ao Gerar Insights", description: e.message, variant: "destructive" });
+      notify({ title: "Erro ao Gerar Insights", description: e.message });
     } finally {
       setIsGeneratingInsights(false);
     }
-  }, [isPremium, metricSnapshots, userProfile, parseMetric, toast]);
+  }, [isPremium, metricSnapshots, userProfile, parseMetric, notify]);
 
   const { currentFollowers, goalFollowers, isGoalReached } = useMemo(() => {
     if (!userProfile) return { currentFollowers: 0, goalFollowers: 0, isGoalReached: false };
@@ -396,7 +393,7 @@ export default function DashboardPage() {
         >
           <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
               <Tabs value={selectedPlatform} onValueChange={(value) => setSelectedPlatform(value as any)}>
-                <TabsList className="bg-muted p-1">
+                <TabsList className="bg-muted p-2">
                   <TabsTrigger value="total" className="text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary px-6 py-2 text-sm font-semibold transition-colors hover:bg-primary/5">Total</TabsTrigger>
                   <TabsTrigger value="instagram" className="text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary px-6 py-2 text-sm font-semibold transition-colors hover:bg-primary/5">Instagram</TabsTrigger>
                   <TabsTrigger value="tiktok" className="text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary px-6 py-2 text-sm font-semibold transition-colors hover:bg-primary/5">TikTok</TabsTrigger>

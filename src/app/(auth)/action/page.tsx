@@ -19,7 +19,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useResponsiveToast } from '@/hooks/use-responsive-toast';
+import { useNotification } from '@/hooks/use-notification';
 
 type ActionCodeMode = 'resetPassword' | 'verifyEmail' | 'recoverEmail' | null;
 type ViewState = 'loading' | 'invalid' | 'form' | 'success';
@@ -39,7 +39,7 @@ function AuthActionHandler() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const auth = useAuth();
-  const { toast } = useResponsiveToast();
+  const { notify } = useNotification();
 
   const mode = searchParams.get('mode') as ActionCodeMode;
   const actionCode = searchParams.get('oobCode');
@@ -95,7 +95,7 @@ function AuthActionHandler() {
     };
 
     handleAction();
-  }, [mode, actionCode, auth, router, toast]);
+  }, [mode, actionCode, auth, router, notify]);
 
   async function handlePasswordReset(values: z.infer<typeof passwordFormSchema>) {
     if (!actionCode) return;
@@ -105,10 +105,9 @@ function AuthActionHandler() {
       setSuccessMessage('Sua senha foi redefinida com sucesso!');
       setViewState('success');
     } catch (error: any) {
-       toast({
+       notify({
         title: 'Erro ao Redefinir Senha',
         description: 'Ocorreu um erro. O link pode ter expirado. Tente novamente.',
-        variant: 'destructive',
       });
        setIsSubmitting(false);
     }

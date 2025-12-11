@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import React from 'react';
 import { AppSidebar } from '@/components/app-sidebar';
-import { useResponsiveToast } from '@/hooks/use-responsive-toast';
+import { useNotification } from '@/hooks/use-notification';
 import { cn } from '@/lib/utils';
 
 function AppLayoutContent({ children }: { children: React.ReactNode }) {
@@ -77,7 +77,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
 }
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-    const { ToastContainer } = useResponsiveToast();
+    const { NotificationContainer } = useNotification();
     return (
         <Suspense fallback={
              <div className="flex h-screen w-full items-center justify-center bg-background">
@@ -87,9 +87,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <AppLayoutContent>
                 {children}
             </AppLayoutContent>
-            <ToastContainer />
+            <NotificationContainer />
         </Suspense>
     )
 }
-
-    

@@ -16,7 +16,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useResponsiveToast } from '@/hooks/use-responsive-toast';
+import { useNotification } from '@/hooks/use-notification';
 import { Loader2, ArrowUpRight, ArrowLeft, MailCheck } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/firebase';
@@ -27,7 +27,7 @@ const formSchema = z.object({
 });
 
 export default function ForgotPasswordPage() {
-  const { toast } = useResponsiveToast();
+  const { notify } = useNotification();
   const auth = useAuth();
   const [isPending, setIsPending] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -47,13 +47,12 @@ export default function ForgotPasswordPage() {
       setIsSuccess(true);
     } catch (error: any) {
       console.error(error);
-      toast({
+      notify({
         title: 'Erro ao Enviar E-mail',
         description:
           error.code === 'auth/user-not-found'
             ? 'Nenhuma conta encontrada com este e-mail.'
             : 'Ocorreu um erro. Tente novamente.',
-        variant: 'destructive',
       });
     } finally {
       setIsPending(false);

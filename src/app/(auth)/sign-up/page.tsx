@@ -16,7 +16,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useResponsiveToast } from '@/hooks/use-responsive-toast';
+import { useNotification } from '@/hooks/use-notification';
 import { Loader2, ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/firebase';
@@ -40,7 +40,7 @@ const GoogleIcon = () => (
 
 
 export default function SignUpPage() {
-  const { toast } = useResponsiveToast();
+  const { notify } = useNotification();
   const auth = useAuth();
   const [isPending, setIsPending] = useState(false);
   
@@ -70,13 +70,12 @@ export default function SignUpPage() {
       // FirebaseProvider will handle profile creation and AuthLayout will redirect.
     } catch (error: any) {
       console.error('Sign up error:', error.code, error.message);
-      toast({
+      notify({
         title: 'Erro no cadastro',
         description:
           error.code === 'auth/email-already-in-use'
             ? 'Este e-mail já está em uso.'
             : 'Ocorreu um erro ao criar sua conta. Tente novamente.',
-        variant: 'destructive',
       });
       setIsPending(false);
     }
@@ -92,10 +91,9 @@ export default function SignUpPage() {
     } catch (error: any) {
       // Handle errors here, such as user closing the popup.
        if (error.code !== 'auth/popup-closed-by-user') {
-        toast({
+        notify({
             title: 'Erro no Cadastro com Google',
             description: 'Não foi possível completar o cadastro. Tente novamente.',
-            variant: 'destructive'
         });
       }
       console.error("Google Sign-Up error:", error.code);

@@ -22,7 +22,7 @@ import { useState, useTransition } from 'react';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '../ui/sheet';
 import { changeUserRoleAction } from '@/app/(app)/admin/actions';
 import { useUser } from '@/firebase';
-import { useResponsiveToast } from '@/hooks/use-responsive-toast';
+import { useNotification } from '@/hooks/use-notification';
 import { cn } from '@/lib/utils';
 
 interface UserTableProps {
@@ -43,7 +43,7 @@ export function UserTable({ data }: UserTableProps) {
   const [isRoleSheetOpen, setIsRoleSheetOpen] = useState(false);
   const [isRoleTransitioning, startRoleTransition] = useTransition();
   const { user: adminUser } = useUser();
-  const { toast } = useResponsiveToast();
+  const { notify } = useNotification();
 
   const handleOpenPlanSheet = (user: UserProfile) => {
     setSelectedUser(user);
@@ -57,7 +57,7 @@ export function UserTable({ data }: UserTableProps) {
 
   const handlePromoteToAdmin = () => {
     if (!adminUser || !selectedUser) {
-        toast({ title: "Erro", description: "Ação não permitida.", variant: "destructive" });
+        notify({ title: "Erro", description: "Ação não permitida." });
         return;
     }
     startRoleTransition(async () => {
@@ -68,10 +68,10 @@ export function UserTable({ data }: UserTableProps) {
         });
 
         if (result.success) {
-            toast({ title: 'Sucesso!', description: `${selectedUser.displayName} agora é um administrador.` });
+            notify({ title: 'Sucesso!', description: `${selectedUser.displayName} agora é um administrador.` });
             setIsRoleSheetOpen(false);
         } else {
-            toast({ title: 'Erro', description: result.error, variant: 'destructive' });
+            notify({ title: 'Erro', description: result.error });
         }
     });
   }
