@@ -37,7 +37,7 @@ function AnimatedHero() {
 
   return (
     <div className="w-full">
-      <div className="container relative pt-32 md:pt-48 pb-16 md:pb-24 px-6 text-center">
+      <div className="relative pt-32 md:pt-48 pb-16 md:pb-24 px-6 text-center">
         {/* Text Content */}
           <div className="relative z-10 flex flex-col items-center text-center">
               <div>
