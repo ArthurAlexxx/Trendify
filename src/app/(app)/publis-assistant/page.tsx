@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useResponsiveToast } from '@/hooks/use-responsive-toast';
+import { useNotification } from '@/hooks/use-notification';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Bot,
@@ -181,7 +181,7 @@ export default function PublisAssistantPage() {
 
 
 function PublisAssistantPageContent() {
-  const { toast } = useResponsiveToast();
+  const { notify } = useNotification();
   const [isGenerating, startTransition] = useTransition();
   const [result, setResult] = useState<GeneratePubliProposalsOutput | null>(null);
   const [activeTab, setActiveTab] = useState("generate");
@@ -317,7 +317,7 @@ function PublisAssistantPageContent() {
       setViewingSavedItem(null);
       const actionResult = await generatePubliProposalsAction(null, formData);
       if(actionResult?.error) {
-          toast({
+          notify({
             title: 'Erro ao Gerar Propostas',
             description: actionResult.error,
             variant: 'destructive',
@@ -328,7 +328,7 @@ function PublisAssistantPageContent() {
         setActiveTab("result");
       }
     });
-  }, [startTransition, setActiveTab, toast]);
+  }, [startTransition, setActiveTab, notify]);
 
   useEffect(() => {
     if (result && user && firestore) {
@@ -349,7 +349,7 @@ function PublisAssistantPageContent() {
 
   const handleSave = (data: GeneratePubliProposalsOutput) => {
     if (!user || !firestore) {
-      toast({
+      notify({
         title: 'Erro',
         description: 'Você precisa estar logado para salvar.',
         variant: 'destructive',
@@ -382,7 +382,7 @@ function PublisAssistantPageContent() {
           aiResponseData: { ...data, formValues: form.getValues() },
         });
 
-        toast({
+        notify({
           title: 'Campanha Salva!',
           description: 'Sua campanha foi adicionada aos seus Itens Salvos.',
         });
@@ -392,7 +392,7 @@ function PublisAssistantPageContent() {
         setActiveTab("generate");
       } catch (error) {
         console.error('Failed to save idea:', error);
-        toast({
+        notify({
           title: 'Erro ao Salvar',
           description: 'Não foi possível salvar a campanha. Tente novamente.',
           variant: 'destructive',
@@ -406,7 +406,7 @@ function PublisAssistantPageContent() {
     setResult(null);
     setViewingSavedItem(null);
     setActiveTab("generate");
-    toast({
+    notify({
         title: 'Resultado Descartado',
         description: 'Você pode gerar uma nova campanha agora.',
     });

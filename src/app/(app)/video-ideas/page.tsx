@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useResponsiveToast } from '@/hooks/use-responsive-toast';
+import { useNotification } from '@/hooks/use-notification';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Camera,
@@ -122,7 +122,7 @@ const ITEMS_PER_PAGE = 5;
 
 
 export default function VideoIdeasPage() {
-  const { toast } = useResponsiveToast();
+  const { notify } = useNotification();
   const [isGenerating, startTransition] = useTransition();
   const [result, setResult] = useState<GenerateVideoIdeasOutput | null>(null);
   const [viewingSavedItem, setViewingSavedItem] = useState<IdeiaSalva | null>(null);
@@ -259,7 +259,7 @@ export default function VideoIdeasPage() {
       setViewingSavedItem(null);
       const actionResult = await generateVideoIdeasAction(null, formData);
        if (actionResult?.error) {
-           toast({
+           notify({
                 title: 'Erro ao Gerar Ideias',
                 description: actionResult.error,
                 variant: 'destructive',
@@ -270,7 +270,7 @@ export default function VideoIdeasPage() {
         setActiveTab("result");
       }
     });
-  }, [startTransition, setActiveTab, toast]);
+  }, [startTransition, setActiveTab, notify]);
   
   const completedIdeasQuery = useMemoFirebase(
     () =>
@@ -316,7 +316,7 @@ export default function VideoIdeasPage() {
 
   const handleSave = (data: GenerateVideoIdeasOutput) => {
     if (!user || !firestore) {
-      toast({
+      notify({
         title: 'Erro',
         description: 'Você precisa estar logado para salvar.',
         variant: 'destructive',
@@ -340,7 +340,7 @@ export default function VideoIdeasPage() {
           aiResponseData: { ...data, formValues: form.getValues() },
         });
 
-        toast({
+        notify({
           title: 'Ideia Salva!',
           description: 'Sua ideia foi guardada nos seus Itens Salvos.',
         });
@@ -350,7 +350,7 @@ export default function VideoIdeasPage() {
         setActiveTab('generate');
       } catch (error) {
         console.error('Failed to save idea:', error);
-        toast({
+        notify({
           title: 'Erro ao Salvar',
           description: 'Não foi possível salvar a ideia. Tente novamente.',
           variant: 'destructive',
@@ -364,7 +364,7 @@ export default function VideoIdeasPage() {
     setResult(null);
     setViewingSavedItem(null);
     setActiveTab("generate");
-    toast({
+    notify({
         title: 'Resultado Descartado',
         description: 'Você pode gerar uma nova ideia agora.',
     });
@@ -380,7 +380,7 @@ export default function VideoIdeasPage() {
 
     try {
         await deleteDoc(doc(firestore, `users/${user.uid}/ideiasSalvas`, ideaToDelete.id));
-        toast({
+        notify({
             title: "Ideia Excluída",
             description: `"${ideaToDelete.titulo}" foi removido permanentemente.`,
         });
@@ -392,7 +392,7 @@ export default function VideoIdeasPage() {
         }
         setIdeaToDelete(null);
     } catch (e: any) {
-        toast({
+        notify({
             title: "Erro ao Excluir",
             description: e.message,
             variant: "destructive"

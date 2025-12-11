@@ -10,7 +10,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { ScrollArea } from './ui/scroll-area';
 import React, { useState, useMemo } from 'react';
-import { useResponsiveToast } from '@/hooks/use-responsive-toast';
+import { useNotification } from '@/hooks/use-notification';
 import {
   Sheet,
   SheetContent,
@@ -26,7 +26,7 @@ import { Input } from './ui/input';
 export function PreviousPlansSheet() {
   const { user } = useUser();
   const firestore = useFirestore();
-  const { toast } = useResponsiveToast();
+  const { notify } = useNotification();
   const router = useRouter();
   const [isListSheetOpen, setIsListSheetOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -55,7 +55,7 @@ export function PreviousPlansSheet() {
 
   const handleReactivatePlan = async (planToReactivate: IdeiaSalva) => {
     if (!firestore || !user || !planToReactivate.aiResponseData) {
-      toast({
+      notify({
         title: 'Erro',
         description: 'Não foi possível reativar o plano. Dados incompletos.',
         variant: 'destructive',
@@ -107,7 +107,7 @@ export function PreviousPlansSheet() {
       // 4. Commit all operations
       await batch.commit();
       
-      toast({
+      notify({
         title: 'Plano Reativado!',
         description: 'O plano selecionado é agora o seu plano ativo.',
       });
@@ -116,7 +116,7 @@ export function PreviousPlansSheet() {
 
     } catch (e: any) {
       console.error("Error reactivating plan:", e);
-      toast({
+      notify({
         title: 'Erro ao Reativar',
         description: `Ocorreu um erro: ${e.message}`,
         variant: 'destructive',

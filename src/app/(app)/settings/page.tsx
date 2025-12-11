@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { PageHeader } from '@/components/page-header';
@@ -26,7 +27,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { useState, useTransition } from 'react';
-import { useResponsiveToast } from '@/hooks/use-responsive-toast';
+import { useNotification } from '@/hooks/use-notification';
 import { doc, updateDoc } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/types';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -46,7 +47,7 @@ export default function SettingsPage() {
   const auth = useAuth();
   const firestore = useFirestore();
   const router = useRouter();
-  const { toast } = useResponsiveToast();
+  const { notify } = useNotification();
   const [isCancelling, startCancellingTransition] = useTransition();
   const [isReactivating, startReactivatingTransition] = useTransition();
 
@@ -65,7 +66,7 @@ export default function SettingsPage() {
 
   const handleCancelSubscription = () => {
     if (!user || !userProfile?.subscription?.asaasSubscriptionId) {
-       toast({ title: "Erro", description: "Não foi possível encontrar o ID da sua assinatura para o cancelamento.", variant: "destructive" });
+       notify({ title: "Erro", description: "Não foi possível encontrar o ID da sua assinatura para o cancelamento.", variant: "destructive" });
        return;
     };
     
@@ -78,12 +79,12 @@ export default function SettingsPage() {
         });
 
         if (result.success) {
-            toast({
+            notify({
                 title: 'Assinatura Cancelada',
                 description: 'Sua assinatura foi cancelada. Seu acesso continuará até o final do período de faturamento.',
             });
         } else {
-             toast({
+             notify({
                 title: 'Erro ao Cancelar',
                 description: result.error || 'Não foi possível cancelar sua assinatura. Tente novamente.',
                 variant: 'destructive',
@@ -94,7 +95,7 @@ export default function SettingsPage() {
 
   const handleReactivateSubscription = () => {
     if (!user || !subscription?.asaasSubscriptionId) {
-      toast({ title: 'Erro', description: 'Não foi possível encontrar o ID da sua assinatura para reativar.', variant: 'destructive'});
+      notify({ title: 'Erro', description: 'Não foi possível encontrar o ID da sua assinatura para reativar.', variant: 'destructive'});
       return;
     }
     const subscriptionId = subscription.asaasSubscriptionId;
@@ -105,9 +106,9 @@ export default function SettingsPage() {
         asaasSubscriptionId: subscriptionId,
       });
       if (result.success) {
-        toast({ title: 'Sucesso!', description: 'Sua assinatura foi reativada e as cobranças serão retomadas.' });
+        notify({ title: 'Sucesso!', description: 'Sua assinatura foi reativada e as cobranças serão retomadas.' });
       } else {
-        toast({ title: 'Erro ao reativar', description: result.error, variant: 'destructive' });
+        notify({ title: 'Erro ao reativar', description: result.error, variant: 'destructive' });
       }
     });
   };
@@ -131,9 +132,9 @@ export default function SettingsPage() {
       }
 
       if (result?.success) {
-        toast({ title: 'Sucesso!', description: 'As métricas foram resetadas.' });
+        notify({ title: 'Sucesso!', description: 'As métricas foram resetadas.' });
       } else {
-        toast({ title: 'Erro', description: result?.error || "Ocorreu um erro.", variant: 'destructive' });
+        notify({ title: 'Erro', description: result?.error || "Ocorreu um erro.", variant: 'destructive' });
       }
       setConfirmationInput('');
       setResetType(null);

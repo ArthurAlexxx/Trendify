@@ -46,7 +46,7 @@ import {
   getAiCareerPackageAction,
   AiCareerPackageOutput,
 } from '@/app/(app)/media-kit/actions';
-import { useResponsiveToast } from '@/hooks/use-responsive-toast';
+import { useNotification } from '@/hooks/use-notification';
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
 import { collection, addDoc, serverTimestamp, doc, updateDoc, onSnapshot, getDoc, setDoc, increment, query, where, orderBy, limit, Timestamp } from 'firebase/firestore';
 import { SavedIdeasSheet } from '@/components/saved-ideas-sheet';
@@ -152,7 +152,7 @@ export default function MediaKitPage() {
 
 
 function MediaKitPageContent() {
-  const { toast } = useResponsiveToast();
+  const { notify } = useNotification();
   const [isGenerating, startTransition] = useTransition();
   const [result, setResult] = useState<AiCareerPackageOutput | null>(null);
   const [activeTab, setActiveTab] = useState("generate");
@@ -268,7 +268,7 @@ function MediaKitPageContent() {
       setViewingSavedItem(null);
       const actionResult = await getAiCareerPackageAction(null, formData);
       if(actionResult?.error) {
-          toast({
+          notify({
             title: 'Erro',
             description: actionResult.error,
             variant: 'destructive',
@@ -279,7 +279,7 @@ function MediaKitPageContent() {
         setActiveTab("result");
       }
     });
-  }, [startTransition, setActiveTab, toast]);
+  }, [startTransition, setActiveTab, notify]);
 
    useEffect(() => {
     if (userProfile) {
@@ -351,7 +351,7 @@ function MediaKitPageContent() {
 
   const handleSave = (data: AiCareerPackageOutput) => {
     if (!user || !firestore) {
-      toast({
+      notify({
         title: 'Erro',
         description: 'Você precisa estar logado para salvar.',
         variant: 'destructive',
@@ -382,7 +382,7 @@ function MediaKitPageContent() {
           aiResponseData: { ...data, formValues: { ...form.getValues() } },
         });
 
-        toast({
+        notify({
           title: 'Pacote Salvo!',
           description: 'Seu pacote de prospecção foi guardado nos Itens Salvos.',
         });
@@ -392,7 +392,7 @@ function MediaKitPageContent() {
         setActiveTab("generate");
       } catch (error) {
         console.error('Failed to save idea:', error);
-        toast({
+        notify({
           title: 'Erro ao Salvar',
           description: 'Não foi possível salvar o pacote. Tente novamente.',
           variant: 'destructive',
@@ -406,7 +406,7 @@ function MediaKitPageContent() {
     setResult(null);
     setViewingSavedItem(null);
     setActiveTab("generate");
-    toast({
+    notify({
         title: 'Resultado Descartado',
         description: 'Você pode gerar um novo pacote agora.',
     });

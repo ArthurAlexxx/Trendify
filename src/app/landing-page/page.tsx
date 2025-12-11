@@ -65,7 +65,7 @@ import {
   GrowthCalculatorOutput,
   calculateGrowthAction,
 } from '@/app/landing-page/actions';
-import { useResponsiveToast } from '@/hooks/use-responsive-toast';
+import { useNotification } from '@/hooks/use-notification';
 import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
 import { FeatureCard } from '@/components/ui/grid-feature-cards';
 
@@ -183,7 +183,7 @@ export default function LandingPage() {
   const [isCalculating, setIsCalculating] = useState(false);
   const [results, setResults] = useState<GrowthCalculatorOutput | null>(null);
   const [step, setStep] = useState(0); // 0: form, 1: results
-  const { toast } = useResponsiveToast();
+  const { notify } = useNotification();
 
   const navLinks = [
       { href: '#beneficios', text: 'Benefícios' },
@@ -208,14 +208,14 @@ export default function LandingPage() {
     try {
       const result = await calculateGrowthAction(null, data);
       if (result.error) {
-        toast({ title: "Erro ao Calcular", description: result.error, variant: 'destructive'});
+        notify({ title: "Erro ao Calcular", description: result.error, variant: 'destructive'});
         setIsCalculating(false);
       } else if (result.data) {
         setResults(result.data);
         setStep(1); // Move to results view
       }
     } catch (e) {
-      toast({ title: "Erro Inesperado", description: "Ocorreu um erro. Tente novamente.", variant: 'destructive'});
+      notify({ title: "Erro Inesperado", description: "Ocorreu um erro. Tente novamente.", variant: 'destructive'});
     } finally {
       setIsCalculating(false);
     }
