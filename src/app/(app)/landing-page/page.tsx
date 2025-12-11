@@ -443,7 +443,7 @@ export default function LandingPage() {
                                         type="text"
                                         value={field.value.toLocaleString('pt-BR')}
                                         onChange={(e) => {
-                                          const value = e.target.value.replace(/\\D/g, '');
+                                          const value = e.target.value.replace(/\D/g, '');
                                           const num = parseInt(value, 10);
                                           field.onChange(isNaN(num) ? 0 : num > 50000000 ? 50000000 : num);
                                         }}
@@ -467,7 +467,7 @@ export default function LandingPage() {
                                         type="text"
                                         value={field.value.toLocaleString('pt-BR')}
                                         onChange={(e) => {
-                                          const value = e.target.value.replace(/\\D/g, '');
+                                          const value = e.target.value.replace(/\D/g, '');
                                           const num = parseInt(value, 10);
                                           field.onChange(isNaN(num) ? 0 : num > 50000000 ? 50000000 : num);
                                         }}
@@ -1021,4 +1021,3 @@ export default function LandingPage() {
     </div>
   );
 }
-

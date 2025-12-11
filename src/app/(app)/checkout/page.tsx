@@ -92,10 +92,20 @@ function CheckoutPageContent() {
 
       if (result.error) {
         setError(result.error);
+        toast({
+          title: 'Erro ao Criar Pagamento',
+          description: result.error,
+          variant: 'destructive',
+        });
       } else if (result.checkoutUrl) {
         window.location.href = result.checkoutUrl;
       } else {
         setError('Ocorreu um erro inesperado ao gerar o link de pagamento.');
+         toast({
+          title: 'Erro Inesperado',
+          description: 'Não foi possível gerar o link de pagamento. Tente novamente.',
+          variant: 'destructive',
+        });
       }
     });
   };
