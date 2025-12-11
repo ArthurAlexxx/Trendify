@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { initializeFirebaseAdmin } from '@/firebase/admin';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import type { Plan } from '@/lib/types';
+import fetch from 'node-fetch';
+
 
 // Função para verificar o token de acesso (segurança)
 function verifyAccessToken(req: NextRequest): boolean {
@@ -55,7 +57,7 @@ async function logWebhook(firestore: ReturnType<typeof getFirestore>, event: any
                 headers: { 'access_token': process.env.ASAAS_API_KEY! }
             });
             if (customerResponse.ok) {
-              const customerData = await customerResponse.json();
+              const customerData: any = await customerResponse.json();
               if (customerData.email) {
                   logData.customerEmail = customerData.email;
               }
@@ -71,14 +73,49 @@ async function logWebhook(firestore: ReturnType<typeof getFirestore>, event: any
   }
 }
 
+async function getSubscriptionDetails(subscriptionId: string): Promise<{ plan: Plan; cycle: 'monthly' | 'annual' } | null> {
+    try {
+        const response = await fetch(`https://sandbox.asaas.com/api/v3/subscriptions/${subscriptionId}`, {
+             headers: { 'access_token': process.env.ASAAS_API_KEY! }
+        });
+        if (!response.ok) {
+            console.error(`[Webhook Fallback] Falha ao buscar detalhes da assinatura ${subscriptionId}.`);
+            return null;
+        }
+        const subData: any = await response.json();
+        
+        // Infer from description
+        const description = subData.description.toLowerCase();
+        let plan: Plan | null = null;
+        if (description.includes('pro')) plan = 'pro';
+        if (description.includes('premium')) plan = 'premium';
+        
+        let cycle: 'monthly' | 'annual' | null = null;
+        if (subData.cycle === 'MONTHLY') cycle = 'monthly';
+        if (subData.cycle === 'YEARLY') cycle = 'annual';
+        
+        if (plan && cycle) {
+            console.log(`[Webhook Fallback] Detalhes inferidos da assinatura ${subscriptionId}: plan=${plan}, cycle=${cycle}`);
+            return { plan, cycle };
+        }
+        
+        return null;
+
+    } catch (e) {
+        console.error(`[Webhook Fallback] Erro ao buscar detalhes da assinatura ${subscriptionId}:`, e);
+        return null;
+    }
+}
+
+
 // Função para encontrar o userId usando diferentes métodos de fallback
 async function findUserInfo(firestore: ReturnType<typeof getFirestore>, payload: any): Promise<{ userId: string; plan?: Plan; cycle?: 'monthly' | 'annual' } | null> {
     
-    let externalRefData: { userId?: string; plan?: Plan; cycle?: 'monthly' | 'annual' } = {};
+    // Método 1: Tenta extrair do externalReference (o método preferido)
     if (payload.externalReference) {
         try {
-            externalRefData = JSON.parse(payload.externalReference);
-            if (externalRefData.userId) {
+            const externalRefData = JSON.parse(payload.externalReference);
+            if (externalRefData.userId && externalRefData.plan && externalRefData.cycle) {
                 console.log(`[Webhook] Informações encontradas no externalReference: userId=${externalRefData.userId}, plan=${externalRefData.plan}, cycle=${externalRefData.cycle}`);
                 return {
                     userId: externalRefData.userId,
@@ -87,11 +124,12 @@ async function findUserInfo(firestore: ReturnType<typeof getFirestore>, payload:
                 };
             }
         } catch(e) {
-             console.log("[Webhook] externalReference não é um JSON válido ou não contém userId. Tentando fallback.");
+             console.log("[Webhook] externalReference não é um JSON válido ou está incompleto. Tentando fallback.");
         }
     }
 
-    // Método 2: Tenta pelo customerId (Fallback)
+    // Identificar o userId através do customerId
+    let userId: string | null = null;
     if (payload.customer) {
         const usersByCustomer = await firestore
           .collection('users')
@@ -99,19 +137,27 @@ async function findUserInfo(firestore: ReturnType<typeof getFirestore>, payload:
           .limit(1)
           .get();
         if (!usersByCustomer.empty) {
-            const userDoc = usersByCustomer.docs[0];
-            console.warn(`[Webhook] Fallback: Usuário encontrado pelo customerId: ${userDoc.id}.`);
-            // Retorna o userId encontrado, mas os detalhes da transação (plan/cycle) virão do externalReference se disponíveis.
-            return { 
-                userId: userDoc.id, 
-                plan: externalRefData.plan, 
-                cycle: externalRefData.cycle 
-            };
+            userId = usersByCustomer.docs[0].id;
+            console.warn(`[Webhook] Fallback: Usuário encontrado pelo customerId: ${userId}.`);
         }
     }
+
+    if (!userId) {
+        console.error(`[Webhook] ERRO: Não foi possível resolver o usuário para o evento.`);
+        return null;
+    }
     
-    console.error(`[Webhook] ERRO: Não foi possível resolver o usuário para o evento.`);
-    return null;
+    // Se o userId foi encontrado, mas o plano/ciclo não veio do externalReference,
+    // tentamos o fallback de buscar a assinatura.
+    if (payload.subscription) {
+        const subDetails = await getSubscriptionDetails(payload.subscription);
+        if (subDetails) {
+            return { userId, ...subDetails };
+        }
+    }
+
+    console.error(`[Webhook] ERRO: Não foi possível determinar o plano e ciclo para o usuário ${userId}.`);
+    return { userId }; // Retorna apenas o userId se nada mais funcionar
 }
 
 // Função para processar a confirmação de pagamento
