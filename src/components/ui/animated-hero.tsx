@@ -9,22 +9,40 @@ import { cn } from "@/lib/utils";
 import Image from "next/image";
 
 function AnimatedHero() {
-  const [titleNumber, setTitleNumber] = useState(0);
+  const [currentTitle, setCurrentTitle] = useState('');
+  const [titleIndex, setTitleIndex] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
   const titles = useMemo(
     () => ["crescimento", "roteiros", "ideias", "parcerias", "conteúdo"],
     []
   );
 
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      if (titleNumber === titles.length - 1) {
-        setTitleNumber(0);
+    const typeSpeed = isDeleting ? 75 : 150;
+    const fullWord = titles[titleIndex];
+
+    const handleTyping = () => {
+      if (isDeleting) {
+        if (currentTitle.length > 0) {
+          setCurrentTitle(currentTitle.slice(0, -1));
+        } else {
+          setIsDeleting(false);
+          setTitleIndex((prevIndex) => (prevIndex + 1) % titles.length);
+        }
       } else {
-        setTitleNumber(titleNumber + 1);
+        if (currentTitle.length < fullWord.length) {
+          setCurrentTitle(fullWord.slice(0, currentTitle.length + 1));
+        } else {
+          // Pause before deleting
+          setTimeout(() => setIsDeleting(true), 1500);
+        }
       }
-    }, 2000);
+    };
+
+    const timeoutId = setTimeout(handleTyping, typeSpeed);
     return () => clearTimeout(timeoutId);
-  }, [titleNumber, titles]);
+  }, [currentTitle, isDeleting, titleIndex, titles]);
+
 
   const targetRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
@@ -47,24 +65,13 @@ function AnimatedHero() {
                   </Button>
               </div>
               <div className="flex gap-4 flex-col mt-6">
-                  <h1 className="text-5xl md:text-6xl max-w-3xl tracking-tighter font-bold font-headline flex flex-wrap justify-center items-center">
+                 <h1 className="text-5xl md:text-6xl max-w-3xl tracking-tighter font-bold font-headline flex flex-wrap justify-center items-center">
                     <span className="text-foreground/90 mr-3">A plataforma para seu</span>
-                    <span className="relative inline-block overflow-hidden text-center h-16 text-primary">
-                        {titles.map((title, index) => (
-                        <motion.span
-                            key={index}
-                            className="absolute font-semibold bg-gradient-to-r from-purple-600 via-indigo-500 to-purple-600 text-gradient left-0 right-0"
-                            initial={{ opacity: 0, y: "100%" }}
-                            transition={{ type: "spring", stiffness: 50 }}
-                            animate={
-                            titleNumber === index
-                                ? { y: 0, opacity: 1 }
-                                : { y: titleNumber > index ? "-100%" : "100%", opacity: 0 }
-                            }
-                        >
-                            {title}
-                        </motion.span>
-                        ))}
+                    <span className="relative inline-block text-left h-16 text-primary min-w-[300px]">
+                      <span className="font-semibold bg-gradient-to-r from-purple-600 via-indigo-500 to-purple-600 text-gradient">
+                        {currentTitle}
+                      </span>
+                      <span className="animate-ping">|</span>
                     </span>
                   </h1>
 

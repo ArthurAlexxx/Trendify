@@ -17,7 +17,7 @@ type FeatureCardPorps = React.ComponentProps<typeof Card> & {
 
 export function FeatureCard({ feature, className, ...props }: FeatureCardPorps) {
 	return (
-		<Card className={cn('relative overflow-hidden p-8', className)} {...props}>
+		<Card className={cn('relative overflow-hidden p-8 shadow-primary-lg', className)} {...props}>
 			<feature.icon className="text-primary size-6" strokeWidth={1.5} aria-hidden />
 			<h3 className="mt-6 text-sm font-semibold md:text-base">{feature.title}</h3>
 			<p className="text-muted-foreground relative z-20 mt-2 text-xs font-light">{feature.description}</p>
