@@ -24,6 +24,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { doc, updateDoc } from 'firebase/firestore';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
 
 const formSchema = z.object({
   name: z.string().min(3, 'O nome completo é obrigatório.'),
@@ -43,6 +44,7 @@ function CheckoutPageContent() {
   const cycle = searchParams.get('cycle');
   const { user } = useUser();
   const firestore = useFirestore();
+  const { toast } = useToast();
   
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -99,8 +101,8 @@ function CheckoutPageContent() {
   };
   
   const priceMap = {
-    pro: { monthly: 'R$29', annual: 'R$299' },
-    premium: { monthly: 'R$39', annual: 'R$399' },
+    pro: { monthly: 'R$39,99', annual: 'R$399' },
+    premium: { monthly: 'R$49,99', annual: 'R$499' },
   };
 
   const getPrice = () => {

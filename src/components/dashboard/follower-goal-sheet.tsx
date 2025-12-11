@@ -24,7 +24,7 @@ import { Button } from '@/components/ui/button';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useNotification } from '@/hooks/use-notification';
+import { useToast } from '@/hooks/use-toast';
 import type { UserProfile } from '@/lib/types';
 import { Loader2, PartyPopper, Trophy } from 'lucide-react';
 import { useUser, useFirestore } from '@/firebase';
@@ -50,7 +50,7 @@ interface FollowerGoalSheetProps {
 export function FollowerGoalSheet({ userProfile, children, isOpen, setIsOpen, isGoalReached }: FollowerGoalSheetProps) {
     const { user } = useUser();
     const firestore = useFirestore();
-    const { notify } = useNotification();
+    const { toast } = useToast();
     const [isPending, startTransition] = useTransition();
     
     const form = useForm<FormData>({
@@ -74,7 +74,7 @@ export function FollowerGoalSheet({ userProfile, children, isOpen, setIsOpen, is
 
     const onSubmit = (data: FormData) => {
         if (!user || !firestore) {
-            notify({ title: 'Erro', description: 'Usuário não autenticado.', variant: 'destructive'});
+            toast({ title: 'Erro', description: 'Usuário não autenticado.', variant: 'destructive'});
             return;
         };
         startTransition(async () => {
@@ -84,10 +84,10 @@ export function FollowerGoalSheet({ userProfile, children, isOpen, setIsOpen, is
                     instagramFollowerGoal: data.instagramFollowerGoal,
                     tiktokFollowerGoal: data.tiktokFollowerGoal,
                 });
-                notify({ title: "Sucesso!", description: "Suas metas de seguidores foram atualizadas." });
+                toast({ title: "Sucesso!", description: "Suas metas de seguidores foram atualizadas." });
                 setIsOpen(false);
             } catch (e: any) {
-                notify({ title: "Erro", description: e.message, variant: "destructive" });
+                toast({ title: "Erro", description: e.message, variant: "destructive" });
             }
         });
     }
