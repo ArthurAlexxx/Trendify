@@ -186,7 +186,7 @@ async function fetchData(url: string, options: RequestInit) {
     if (data.message && (data.message.includes("Couldn't find user") || data.message.includes("User not found"))) throw new Error("Usuário não encontrado. Verifique o nome de usuário e tente novamente.");
     if (data.error) throw new Error(data.error);
     if (data.status_code !== 0 && data.status_msg) throw new Error(`A API do TikTok retornou um erro: ${data.status_msg}`);
-    if (data.status === 'fail' || (data.data && data.data.user === null)) throw new Error("Usuário não encontrado ou perfil indisponível.");
+    if (data.status === 'fail' || (data.data && data.data.user === null) || data.videos === null || data.user === null) throw new Error("Usuário não encontrado ou perfil indisponível.");
 
 
     return data;
@@ -292,6 +292,10 @@ export async function getTikTokProfile(username: string): Promise<TikTokProfileD
         throw new Error("Este perfil é privado. A integração funciona apenas com perfis públicos.");
       }
 
+      if (!parsed.data.user_id || !parsed.data.username) {
+        throw new Error("A resposta da API não retornou as informações de ID e nome de usuário do TikTok.");
+      }
+
       return {
           id: parsed.data.user_id!,
           username: parsed.data.username!,
@@ -345,5 +349,7 @@ export async function getTikTokPosts(username: string): Promise<Omit<TikTokPost,
         throw e;
     }
 }
+
+    
 
     
