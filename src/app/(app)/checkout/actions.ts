@@ -91,7 +91,18 @@ export async function createAsaasPaymentAction(
 
     const price = priceMap[plan][cycle];
     const externalReference = JSON.stringify({ userId, plan, cycle });
-    const isRecurrent = true; // All paid plans are subscriptions
+    
+    // Calculate the next due date
+    const today = new Date();
+    let nextDueDate = new Date(today);
+
+    if (cycle === 'annual') {
+        nextDueDate.setFullYear(nextDueDate.getFullYear() + 1);
+    } else { // monthly
+        nextDueDate.setMonth(nextDueDate.getMonth() + 1);
+    }
+    const nextDueDateFormatted = nextDueDate.toISOString().split('T')[0];
+
     
     const checkoutBody: any = {
       operationType: 'SUBSCRIPTION',
@@ -121,6 +132,7 @@ export async function createAsaasPaymentAction(
           description: `Assinatura do plano ${plan.toUpperCase()} (${cycle === 'annual' ? 'Anual' : 'Mensal'}) na Trendify`,
           cycle: cycle === 'annual' ? 'YEARLY' : 'MONTHLY',
           value: price,
+          nextDueDate: nextDueDateFormatted,
           externalReference: externalReference, 
       },
     };
@@ -158,3 +170,4 @@ export async function createAsaasPaymentAction(
     return { error: e.message || 'Ocorreu um erro de comunicação com o provedor de pagamento.' };
   }
 }
+
