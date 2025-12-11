@@ -94,8 +94,7 @@ export async function createAsaasPaymentAction(
     
     // Metadados para identificar a compra no webhook
     const externalReference = JSON.stringify({ userId, plan, cycle });
-    const isRecurrent = billingTypes.includes('CREDIT_CARD');
-
+    
     const checkoutBody: any = {
       operationType: 'SUBSCRIPTION',
       customerData: {
@@ -121,10 +120,8 @@ export async function createAsaasPaymentAction(
         description: `Assinatura do plano ${plan.toUpperCase()} (${cycle === 'annual' ? 'Anual' : 'Mensal'}) na Trendify`,
         cycle: cycle === 'annual' ? 'YEARLY' : 'MONTHLY',
         value: price,
-        // Adicionando metadados aqui também, para garantir que venham no evento de assinatura
-        externalReference: externalReference, 
+        externalReference: externalReference, // Adicionado aqui para assinaturas
       },
-      // E mantendo aqui para o evento de pagamento
       externalReference: externalReference, 
     };
     
