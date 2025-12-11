@@ -10,6 +10,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import React from 'react';
 import { AppSidebar } from '@/components/app-sidebar';
 import { useResponsiveToast } from '@/hooks/use-responsive-toast';
+import { cn } from '@/lib/utils';
 
 function AppLayoutContent({ children }: { children: React.ReactNode }) {
   const { user, isUserLoading } = useUser();
@@ -49,7 +50,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-screen w-full bg-muted/30">
+    <div className={cn("flex min-h-screen w-full bg-muted/30 font-body")}>
       <AppSidebar isMobile={false} setIsMobileMenuOpen={setIsMobileMenuOpen} />
       <div className="flex flex-col flex-1 w-full md:pl-64">
         <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/95 px-4 backdrop-blur-sm sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 md:hidden">
