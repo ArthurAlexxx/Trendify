@@ -29,7 +29,6 @@ type CreatePaymentInput = z.infer<typeof CreatePaymentSchema>;
 
 interface ActionState {
   checkoutUrl?: string;
-  checkoutId?: string;
   error?: string;
 }
 
@@ -83,6 +82,8 @@ export async function createAsaasPaymentAction(
     }
 
     const price = priceMap[plan][cycle];
+    // Este objeto JSON será enviado no `externalReference` e recuperado no webhook.
+    const externalReferenceData = JSON.stringify({ userId, plan, cycle });
     const isRecurrent = true;
     
     const today = new Date();
@@ -90,7 +91,7 @@ export async function createAsaasPaymentAction(
 
     if (cycle === 'annual') {
         nextDueDate.setFullYear(nextDueDate.getFullYear() + 1);
-    } else { // monthly
+    } else {
         nextDueDate.setMonth(nextDueDate.getMonth() + 1);
     }
     const nextDueDateFormatted = nextDueDate.toISOString().split('T')[0];
@@ -100,6 +101,7 @@ export async function createAsaasPaymentAction(
       operationType: 'SUBSCRIPTION',
       billingTypes,
       chargeTypes: ['RECURRENT'],
+      externalReference: externalReferenceData, // Adicionado no nível raiz
       customerData: {
         name,
         email,
@@ -109,6 +111,7 @@ export async function createAsaasPaymentAction(
         address,
         addressNumber,
         province,
+        externalReference: externalReferenceData, // Adicionado também nos dados do cliente
       },
       callback: {
         successUrl: `${appUrl}/dashboard?checkout=success`,
@@ -149,23 +152,13 @@ export async function createAsaasPaymentAction(
          throw new Error('A API da Asaas não retornou um ID para a sessão de checkout.');
     }
     
-    const { firestore } = initializeFirebaseAdmin();
-    const userRef = firestore.doc(`users/${userId}`);
-
-    await userRef.update({
-        'subscription.asaasCheckoutId': checkoutData.id,
-        'subscription.pendingPlan': plan,
-        'subscription.pendingCycle': cycle,
-    });
-    
-    console.log(`[Asaas Action] Checkout ID ${checkoutData.id} salvo para o usuário ${userId}.`);
-
+    // A etapa de salvar o ID no Firestore foi removida para simplificar.
+    // A confiança agora está no externalReference que será retornado pelo webhook.
 
     const checkoutUrl = `https://sandbox.asaas.com/checkoutSession/show?id=${checkoutData.id}`;
     
     return { 
-        checkoutUrl: checkoutUrl, 
-        checkoutId: checkoutData.id 
+        checkoutUrl: checkoutUrl
     };
 
   } catch (e: any) {

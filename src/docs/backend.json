@@ -131,20 +131,6 @@
             "paymentId": {
               "type": "string",
               "description": "The ID of the last payment or subscription from the payment provider."
-            },
-            "asaasCheckoutId": {
-              "type": "string",
-              "description": "The temporary ID of the Asaas checkout session."
-            },
-            "pendingPlan": {
-              "type": "string",
-              "enum": ["pro", "premium"],
-              "description": "The plan selected during checkout, pending payment."
-            },
-            "pendingCycle": {
-              "type": "string",
-              "enum": ["monthly", "annual"],
-              "description": "The cycle selected during checkout, pending payment."
             }
           }
         }

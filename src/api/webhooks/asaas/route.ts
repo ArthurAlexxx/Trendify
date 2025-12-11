@@ -66,53 +66,39 @@ async function logWebhook(firestore: ReturnType<typeof getFirestore>, event: any
   }
 }
 
-// Função para encontrar o userId e os detalhes do plano
-async function findUserInfo(firestore: ReturnType<typeof getFirestore>, eventPayload: any): Promise<{ userId: string; plan?: Plan; cycle?: 'monthly' | 'annual' } | null> {
+// Função SIMPLIFICADA para encontrar o userId usando apenas o externalReference
+async function findUserInfo(payload: any): Promise<{ userId: string; plan: Plan; cycle: 'monthly' | 'annual' } | null> {
     
-    const checkoutId = eventPayload?.checkoutSession;
-
-    if (checkoutId) {
-        console.log(`[Webhook] Procurando usuário pelo checkoutId: ${checkoutId}`);
-        const usersRef = firestore.collection('users');
-        const q = usersRef.where('subscription.asaasCheckoutId', '==', checkoutId).limit(1);
-        const querySnapshot = await q.get();
-
-        if (!querySnapshot.empty) {
-            const userDoc = querySnapshot.docs[0];
-            const userData = userDoc.data();
-            const plan = userData.subscription?.pendingPlan;
-            const cycle = userData.subscription?.pendingCycle;
-
-            if (plan && cycle) {
-                 console.log(`[Webhook] Usuário ${userDoc.id} encontrado via checkoutId com plano ${plan} e ciclo ${cycle}.`);
-                 return { userId: userDoc.id, plan, cycle };
+    // Método 1: Tenta extrair do externalReference do pagamento (o mais comum)
+    const externalRef = payload?.externalReference;
+    
+    if (externalRef) {
+        try {
+            const data = JSON.parse(externalRef);
+            if (data.userId && data.plan && data.cycle) {
+                console.log(`[Webhook] Informações encontradas no externalReference: userId=${data.userId}, plan=${data.plan}, cycle=${data.cycle}`);
+                return data;
             }
-            console.warn(`[Webhook] Usuário ${userDoc.id} encontrado via checkoutId, mas sem plano/ciclo pendente.`);
-            return { userId: userDoc.id };
+        } catch(e) {
+             console.log("[Webhook] externalReference não é um JSON válido ou está incompleto.", externalRef);
         }
     }
     
-    // Fallback para customerId se o checkoutId falhar
-    const customerId = eventPayload?.customer;
-    if (customerId) {
-        console.warn(`[Webhook] Fallback: Procurando usuário pelo customerId: ${customerId}`);
-        const usersRef = firestore.collection('users');
-        const q = usersRef.where('subscription.paymentId', '==', customerId).limit(1);
-        const querySnapshot = await q.get();
-
-        if (!querySnapshot.empty) {
-            const userDoc = querySnapshot.docs[0];
-            const userData = userDoc.data();
-             return { 
-                userId: userDoc.id, 
-                plan: userData.subscription?.plan, // Usa o plano já salvo
-                cycle: userData.subscription?.cycle,
-            };
+    // Se o externalReference do pagamento falhar, tente o do cliente (menos comum, mas um fallback)
+    if (payload.customer?.externalReference) {
+        try {
+            const data = JSON.parse(payload.customer.externalReference);
+            if (data.userId && data.plan && data.cycle) {
+                console.log(`[Webhook] Fallback: Informações encontradas no customer.externalReference: userId=${data.userId}`);
+                return data;
+            }
+        } catch (e) {
+            console.log("[Webhook] customer.externalReference não é um JSON válido ou está incompleto.");
         }
     }
 
 
-    console.error(`[Webhook] ERRO CRÍTICO: Não foi possível resolver o usuário para o evento.`);
+    console.error(`[Webhook] ERRO CRÍTICO: Não foi possível encontrar o externalReference com os dados necessários no payload do webhook.`);
     return null;
 }
 
@@ -147,9 +133,6 @@ async function processPaymentConfirmation(userRef: FirebaseFirestore.DocumentRef
     'subscription.lastUpdated': Timestamp.now(),
     'subscription.trialEndsAt': null,
     'subscription.paymentId': payment.customer,
-    'subscription.asaasCheckoutId': null, // Limpa o ID de checkout após o uso
-    'subscription.pendingPlan': null,
-    'subscription.pendingCycle': null,
   };
 
   if (payment.subscription) {
@@ -196,18 +179,17 @@ export async function POST(req: NextRequest) {
   const isSuccessEvent = ['PAYMENT_CONFIRMED', 'PAYMENT_RECEIVED'].includes(event.event);
   await logWebhook(firestore, event, isSuccessEvent);
   
-  if (!event.payment && !event.subscription) {
+  const mainEntity = event.payment || event.subscription;
+  
+  if (!mainEntity) {
        return NextResponse.json({ success: true, message: 'Evento recebido, mas sem dados de pagamento ou assinatura para processar.' });
   }
   
-  // A entidade principal pode ser `payment` ou `subscription` dependendo do evento.
-  const mainEntity = event.payment || event.subscription;
-  
-  const userInfo = await findUserInfo(firestore, mainEntity);
+  const userInfo = await findUserInfo(mainEntity);
 
-  if (!userInfo || !userInfo.userId) {
-    console.warn('[Asaas Webhook] Não foi possível resolver o ID do usuário para o evento:', (mainEntity.id));
-    return NextResponse.json({ success: true, message: 'Evento recebido, mas não foi possível associar a um usuário.' });
+  if (!userInfo || !userInfo.userId || !userInfo.plan || !userInfo.cycle) {
+    console.warn('[Asaas Webhook] Não foi possível resolver as informações do usuário a partir do externalReference.');
+    return NextResponse.json({ success: true, message: 'Evento recebido, mas não foi possível associar a um usuário ou plano.' });
   }
   
   const userRef = firestore.collection('users').doc(userInfo.userId);
@@ -216,9 +198,6 @@ export async function POST(req: NextRequest) {
     switch (event.event) {
       case 'PAYMENT_RECEIVED':
       case 'PAYMENT_CONFIRMED':
-        if (!userInfo.plan || !userInfo.cycle) {
-             throw new Error(`Plano (${userInfo.plan}) ou ciclo (${userInfo.cycle}) não encontrados para o usuário ${userInfo.userId}.`);
-        }
         await processPaymentConfirmation(userRef, event.payment, userInfo.plan, userInfo.cycle);
         break;
       
