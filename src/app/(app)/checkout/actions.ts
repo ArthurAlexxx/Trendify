@@ -150,8 +150,8 @@ export async function createAsaasPaymentAction(
 
     const checkoutBody: any = {
       customer: customerId,
-      billingType: billingType,
-      chargeType: isRecurrent ? "RECURRENT" : "DETACHED",
+      billingTypes: [billingType],
+      chargeTypes: [isRecurrent ? "RECURRENT" : "DETACHED"],
       minutesToExpire: 60, 
       callback: {
         successUrl: `${appUrl}/dashboard?checkout=success`,
@@ -223,4 +223,3 @@ export async function createAsaasPaymentAction(
     return { error: e.message || 'Ocorreu um erro de comunicação com o provedor de pagamento.' };
   }
 }
-
