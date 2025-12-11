@@ -14,8 +14,8 @@ const priceMap: Record<Plan, Record<'monthly' | 'annual', number>> = {
 
 const CreatePaymentSchema = z.object({
   name: z.string().min(3, 'O nome é obrigatório.'),
-  cpfCnpj: z.string().min(11, 'O CPF/CNPJ é obrigatório.'),
   email: z.string().email('O e-mail é inválido.'),
+  cpfCnpj: z.string().min(11, 'O CPF/CNPJ é obrigatório.'),
   phone: z.string().min(10, 'O telefone é obrigatório.'),
   postalCode: z.string().min(8, 'O CEP é obrigatório.'),
   addressNumber: z.string().min(1, 'O número é obrigatório.'),
@@ -108,7 +108,7 @@ export async function createAsaasPaymentAction(
         addressNumber,
         province,
       },
-      billingType: billingType,
+      billingTypes: [billingType],
       chargeType: isRecurrent ? "RECURRENT" : "DETACHED",
       minutesToExpire: 60, 
       callback: {
