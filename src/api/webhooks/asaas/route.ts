@@ -225,5 +225,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Falha ao processar o webhook.', details: error.message }, { status: 500 });
   }
 }
-
-    
