@@ -31,30 +31,32 @@ interface CheckoutActionState {
 
 
 // --- Função para criar ou encontrar cliente na Asaas ---
-async function findOrCreateAsaasCustomer(apiUrl: string, apiKey: string, customerData: { name: string, email: string, cpfCnpj: string, phone: string, postalCode: string, addressNumber: string }): Promise<string> {
+async function findOrCreateAsaasCustomer(apiKey: string, customerData: { name: string, email: string, cpfCnpj: string, phone: string, postalCode: string, addressNumber: string }): Promise<string> {
+    const apiUrl = 'https://api.asaas.com/v3';
+    
     // Tenta criar um novo cliente. Se já existir (pelo CPF/CNPJ), a Asaas retornará o cliente existente.
     const createResponse = await fetch(`${apiUrl}/customers`, {
         method: 'POST',
         headers: { 'accept': 'application/json', 'content-type': 'application/json', 'access_token': apiKey },
-        body: JSON.stringify(customerData),
+        body: JSON.stringify({
+            name: customerData.name,
+            email: customerData.email,
+            cpfCnpj: customerData.cpfCnpj,
+            phone: customerData.phone,
+            postalCode: customerData.postalCode,
+            addressNumber: customerData.addressNumber,
+            // Não é necessário enviar address, city, etc., pois o Asaas preenche via CEP.
+        }),
     });
 
-    if (!createResponse.ok) {
-        const errorText = await createResponse.text();
-        let errorData;
-        try {
-            errorData = JSON.parse(errorText);
-        } catch(e) {
-            console.error(`[Asaas Customer Action] Erro na API ao criar/buscar cliente. Resposta não é um JSON válido:`, errorText);
-            throw new Error('Falha ao registrar cliente: A resposta do gateway de pagamento foi inesperada.');
-        }
+    const createData: any = await createResponse.json();
 
-        console.error(`[Asaas Customer Action] Erro na API ao criar/buscar cliente:`, errorData);
-        throw new Error(errorData.errors?.[0]?.description || 'Falha ao registrar cliente no gateway de pagamento.');
+    if (!createResponse.ok) {
+        console.error(`[Asaas Customer Action] Erro na API ao criar cliente:`, createData);
+        throw new Error(createData.errors?.[0]?.description || 'Falha ao registrar cliente no gateway de pagamento.');
     }
     
-    const createData: any = await createResponse.json();
-    console.log(`[Asaas Customer] Novo cliente criado ou existente retornado: ${createData.id}`);
+    console.log(`[Asaas Customer] Cliente criado ou existente retornado: ${createData.id}`);
     return createData.id;
 }
 
@@ -80,7 +82,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
   } = parsed.data;
 
   const apiKey = process.env.ASAAS_API_KEY;
-  const apiUrl = "https://api.asaas.com/api/v3";
+  const apiUrl = "https://api.asaas.com/v3";
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
   
   if (!apiKey || !appUrl) return { error: 'Erro de configuração do servidor: Chaves de API ou URL da aplicação ausentes.' };
@@ -89,7 +91,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
     const { firestore } = initializeFirebaseAdmin();
     
     // 1. Criar ou encontrar cliente na Asaas
-    const asaasCustomerId = await findOrCreateAsaasCustomer(apiUrl, apiKey, { name, email, cpfCnpj, phone, postalCode, addressNumber });
+    const asaasCustomerId = await findOrCreateAsaasCustomer(apiKey, { name, email, cpfCnpj, phone, postalCode, addressNumber });
     
     const price = priceMap[plan][cycle];
     
@@ -145,8 +147,8 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
         throw new Error(checkoutData.errors?.[0]?.description || 'Falha ao criar checkout na Asaas.');
     }
     
-    if (!checkoutData.id) {
-         console.error('[Asaas Checkout Action] Resposta da API não continha ID de checkout:', checkoutData);
+    if (!checkoutData.id || !checkoutData.url) {
+         console.error('[Asaas Checkout Action] Resposta da API não continha ID ou URL de checkout:', checkoutData);
          throw new Error('API da Asaas não retornou os dados necessários.');
     }
 
