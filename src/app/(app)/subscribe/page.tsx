@@ -57,7 +57,7 @@ export default function SubscribePage() {
         return (
             <>
                 {isCurrentMonthly ? (
-                    <Button className="w-full" disabled>
+                     <Button className="w-full" disabled>
                         <CheckCircle className="mr-2 h-4 w-4" /> Seu Plano Atual
                     </Button>
                 ) : (

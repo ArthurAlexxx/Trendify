@@ -33,7 +33,7 @@ interface CheckoutActionState {
 // --- Função para criar ou encontrar cliente na Asaas ---
 async function findOrCreateAsaasCustomer(apiKey: string, customerData: { name: string, email: string, cpfCnpj: string, phone: string, postalCode: string, addressNumber: string }): Promise<string> {
     // Tenta encontrar o cliente pelo CPF/CNPJ primeiro
-    const searchResponse = await fetch(`https://sandbox.asaas.com/api/v3/customers?cpfCnpj=${customerData.cpfCnpj}`, {
+    const searchResponse = await fetch(`https://api.asaas.com/v3/customers?cpfCnpj=${customerData.cpfCnpj}`, {
         headers: { 'accept': 'application/json', 'access_token': apiKey },
     });
     const searchData: any = await searchResponse.json();
@@ -45,7 +45,7 @@ async function findOrCreateAsaasCustomer(apiKey: string, customerData: { name: s
     
     // Se não encontrar, cria um novo cliente
     console.log(`[Asaas Customer] Cliente não encontrado. Criando novo cliente...`);
-    const createResponse = await fetch('https://sandbox.asaas.com/api/v3/customers', {
+    const createResponse = await fetch('https://api.asaas.com/v3/customers', {
         method: 'POST',
         headers: { 'accept': 'application/json', 'content-type': 'application/json', 'access_token': apiKey },
         body: JSON.stringify(customerData),
@@ -135,7 +135,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
         }
     }
     
-    const checkoutResponse = await fetch('https://sandbox.asaas.com/api/v3/checkouts', {
+    const checkoutResponse = await fetch('https://api.asaas.com/v3/checkouts', {
         method: 'POST',
         headers: { 'accept': 'application/json', 'content-type': 'application/json', 'access_token': apiKey },
         body: JSON.stringify(checkoutBody)
@@ -174,7 +174,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
         addressNumber,
     });
     
-    const finalCheckoutUrl = `https://sandbox.asaas.com/checkoutSession/show/${checkoutData.id}`;
+    const finalCheckoutUrl = `https://www.asaas.com/c/${checkoutData.id}`;
 
     return { checkoutUrl: finalCheckoutUrl };
 

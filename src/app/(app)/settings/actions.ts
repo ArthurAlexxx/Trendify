@@ -135,7 +135,7 @@ export async function cancelAsaasSubscriptionAction(
 
   try {
     // Step 1: Cancel subscription on Asaas
-    const response = await fetch(`https://sandbox.asaas.com/api/v3/subscriptions/${asaasSubscriptionId}`, {
+    const response = await fetch(`https://api.asaas.com/v3/subscriptions/${asaasSubscriptionId}`, {
       method: 'DELETE',
       headers: {
         'accept': 'application/json',
