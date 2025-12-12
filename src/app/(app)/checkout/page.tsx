@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Suspense, useState, useTransition, useEffect, useMemo } from 'react';
-import { Loader2, User, CreditCard, ExternalLink, Banknote, ClipboardCheck } from 'lucide-react';
+import { Loader2, User, CreditCard, ExternalLink, Banknote, ClipboardCheck, Home, Hash } from 'lucide-react';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -28,6 +28,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import type { UserProfile } from '@/lib/types';
 import { AnimatePresence, motion } from 'framer-motion';
+import { Separator } from '@/components/ui/separator';
 
 const CheckoutFormSchema = z.object({
   name: z.string().min(3, 'O nome completo é obrigatório.'),
@@ -128,82 +129,123 @@ function CheckoutPageContent() {
       });
   }
   
-  const priceMap = {
-    pro: { monthly: 'R$50', annual: 'R$500' },
-    premium: { monthly: 'R$90', annual: 'R$900' },
+  const priceMap: Record<NonNullable<typeof plan>, Record<NonNullable<typeof cycle>, number>> = {
+    pro: { monthly: 29.99, annual: 299.90 },
+    premium: { monthly: 39.99, annual: 399.90 },
   };
 
   const getPrice = () => {
-      if (plan && cycle) {
-          return priceMap[plan][cycle];
-      }
-      return 'R$0';
-  }
+    if (plan && cycle) {
+      return priceMap[plan][cycle];
+    }
+    return 0;
+  };
+
+  const FADE_IN_VARIANTS = {
+    hidden: { opacity: 0, y: 10 },
+    show: { opacity: 1, y: 0, transition: { type: "spring" } },
+  };
 
   return (
-    <div className="space-y-8">
-      <PageHeader
-        title="Finalizar Assinatura"
-        description="Estamos quase lá! Preencha seus dados para ir para o pagamento."
-      />
-      <Card className="max-w-2xl mx-auto border-0 rounded-2xl shadow-primary-lg overflow-hidden">
-        <CardHeader>
-          <div className="text-center">
-            <p className="text-muted-foreground">Você está assinando</p>
-            <h2 className="text-2xl font-bold font-headline">Plano {plan} <span className="capitalize">({cycle === 'monthly' ? 'Mensal' : 'Anual'})</span></h2>
-            <p className="text-3xl font-bold mt-2">{getPrice()}</p>
-          </div>
-        </CardHeader>
-        <CardContent>
-            <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleCreateCheckout)} className="space-y-6">
-                <h4 className="font-semibold pt-4 flex items-center gap-2"><User className="h-5 w-5 text-primary"/> Dados do Pagador</h4>
-                <div className="space-y-2">
-                    <FormField control={form.control} name="name" render={({ field }) => ( <FormItem><FormLabel>Nome Completo</FormLabel><FormControl><Input placeholder="Seu nome completo" {...field} className="h-11" /></FormControl><FormMessage /></FormItem> )} />
-                </div>
-                <div className="grid sm:grid-cols-2 gap-4">
-                    <FormField control={form.control} name="cpfCnpj" render={({ field }) => ( <FormItem><FormLabel>CPF ou CNPJ</FormLabel><FormControl><Input placeholder="000.000.000-00" {...field} className="h-11" /></FormControl><FormMessage /></FormItem> )} />
-                    <FormField control={form.control} name="phone" render={({ field }) => ( <FormItem><FormLabel>Telefone</FormLabel><FormControl><Input placeholder="(47) 99999-9999" {...field} className="h-11" /></FormControl><FormMessage /></FormItem> )} />
-                </div>
-                <div className="grid sm:grid-cols-2 gap-4">
-                    <FormField control={form.control} name="postalCode" render={({ field }) => ( <FormItem><FormLabel>CEP</FormLabel><FormControl><Input placeholder="00000-000" {...field} className="h-11" /></FormControl><FormMessage /></FormItem> )} />
-                    <FormField control={form.control} name="addressNumber" render={({ field }) => ( <FormItem><FormLabel>Número</FormLabel><FormControl><Input placeholder="123" {...field} className="h-11" /></FormControl><FormMessage /></FormItem> )} />
-                </div>
-                
-                 <h4 className="font-semibold pt-4 flex items-center gap-2"><CreditCard className="h-5 w-5 text-primary"/> Forma de Pagamento</h4>
-                 <FormField
-                    control={form.control}
-                    name="billingType"
-                    render={({ field }) => (
-                    <FormItem className="space-y-3">
-                        <FormControl>
-                        <RadioGroup onValueChange={field.onChange} value={field.value} className="grid grid-cols-2 gap-4">
-                            <FormItem><FormControl><RadioGroupItem value="CREDIT_CARD" id="cc" className="sr-only" /></FormControl><Label htmlFor="cc" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer [&:has([data-state=checked])]:border-primary"><CreditCard className="mb-3 h-6 w-6" /> Cartão de Crédito</Label></FormItem>
-                            <FormItem>
-                              <FormControl>
-                                <RadioGroupItem value="PIX" id="pix" className="sr-only" />
-                              </FormControl>
-                              <Label htmlFor="pix" className={`flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer [&:has([data-state=checked])]:border-primary`}>
-                                <Banknote className="mb-3 h-6 w-6" /> PIX
-                              </Label>
-                            </FormItem>
-                        </RadioGroup>
-                        </FormControl>
-                        <FormMessage />
-                    </FormItem>
-                    )}
-                />
+    <motion.div
+      initial="hidden"
+      animate="show"
+      viewport={{ once: true }}
+      variants={{
+        hidden: {},
+        show: { transition: { staggerChildren: 0.1 } },
+      }}
+      className="space-y-8"
+    >
+      <motion.div variants={FADE_IN_VARIANTS}>
+        <PageHeader
+          title="Finalizar Assinatura"
+          description="Estamos quase lá! Preencha seus dados para ir para o pagamento."
+        />
+      </motion.div>
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
+        <motion.div variants={FADE_IN_VARIANTS} className="lg:col-span-3">
+          <Card className="border-0 rounded-2xl shadow-primary-lg overflow-hidden">
+            <CardContent className="p-6">
+                <Form {...form}>
+                <form onSubmit={form.handleSubmit(handleCreateCheckout)} className="space-y-8">
+                    
+                    <div className="space-y-4">
+                        <h3 className="font-semibold text-lg flex items-center gap-2 text-foreground"><User className="h-5 w-5 text-primary"/> Seus Dados</h3>
+                        <div className="space-y-2">
+                            <FormField control={form.control} name="name" render={({ field }) => ( <FormItem><FormLabel>Nome Completo</FormLabel><FormControl><Input placeholder="Seu nome completo" {...field} className="h-11" /></FormControl><FormMessage /></FormItem> )} />
+                        </div>
+                        <div className="grid sm:grid-cols-2 gap-4">
+                            <FormField control={form.control} name="cpfCnpj" render={({ field }) => ( <FormItem><FormLabel>CPF ou CNPJ</FormLabel><FormControl><Input placeholder="000.000.000-00" {...field} className="h-11" /></FormControl><FormMessage /></FormItem> )} />
+                            <FormField control={form.control} name="phone" render={({ field }) => ( <FormItem><FormLabel>Telefone</FormLabel><FormControl><Input placeholder="(47) 99999-9999" {...field} className="h-11" /></FormControl><FormMessage /></FormItem> )} />
+                        </div>
+                    </div>
 
-                {error && <Alert variant="destructive"><AlertDescription>{error}</AlertDescription></Alert>}
-                <Button type="submit" disabled={isPending || isProfileLoading} className="w-full h-12 text-base">
-                    {isPending || isProfileLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ExternalLink className="mr-2 h-4 w-4" />}
-                    Ir para o Pagamento
-                </Button>
-            </form>
-            </Form>
-        </CardContent>
-      </Card>
-    </div>
+                    <div className="space-y-4">
+                        <h3 className="font-semibold text-lg flex items-center gap-2 text-foreground"><Home className="h-5 w-5 text-primary"/> Endereço de Cobrança</h3>
+                        <div className="grid sm:grid-cols-2 gap-4">
+                            <FormField control={form.control} name="postalCode" render={({ field }) => ( <FormItem><FormLabel>CEP</FormLabel><FormControl><Input placeholder="00000-000" {...field} className="h-11" /></FormControl><FormMessage /></FormItem> )} />
+                            <FormField control={form.control} name="addressNumber" render={({ field }) => ( <FormItem><FormLabel>Número</FormLabel><FormControl><Input placeholder="123" {...field} className="h-11" /></FormControl><FormMessage /></FormItem> )} />
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
+                        <h3 className="font-semibold text-lg flex items-center gap-2 text-foreground"><CreditCard className="h-5 w-5 text-primary"/> Forma de Pagamento</h3>
+                        <FormField
+                            control={form.control}
+                            name="billingType"
+                            render={({ field }) => (
+                            <FormItem className="space-y-3">
+                                <FormControl>
+                                <RadioGroup onValueChange={field.onChange} value={field.value} className="grid grid-cols-2 gap-4">
+                                    <FormItem><FormControl><RadioGroupItem value="CREDIT_CARD" id="cc" className="sr-only" /></FormControl><Label htmlFor="cc" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer [&:has([data-state=checked])]:border-primary"><CreditCard className="mb-3 h-6 w-6" /> Cartão de Crédito</Label></FormItem>
+                                    <FormItem>
+                                    <FormControl>
+                                        <RadioGroupItem value="PIX" id="pix" className="sr-only" />
+                                    </FormControl>
+                                    <Label htmlFor="pix" className={`flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer [&:has([data-state=checked])]:border-primary`}>
+                                        <Banknote className="mb-3 h-6 w-6" /> PIX
+                                    </Label>
+                                    </FormItem>
+                                </RadioGroup>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                    </div>
+                </form>
+                </Form>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div variants={FADE_IN_VARIANTS} className="lg:col-span-2">
+            <Card className="rounded-2xl border-0 shadow-primary-lg sticky top-24">
+                <CardHeader>
+                    <CardTitle className="font-headline text-lg text-center">Resumo do Pedido</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="p-4 bg-muted/50 rounded-lg border">
+                        <p className="text-sm text-muted-foreground">Plano</p>
+                        <p className="font-semibold text-foreground">Plano {plan} <span className="capitalize">({cycle === 'monthly' ? 'Mensal' : 'Anual'})</span></p>
+                    </div>
+                     <Separator />
+                     <div className="flex justify-between items-center text-lg">
+                        <span className="font-semibold">Total</span>
+                        <span className="font-bold font-headline">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(getPrice())}</span>
+                     </div>
+                     {error && <Alert variant="destructive" className="text-xs"><AlertDescription>{error}</AlertDescription></Alert>}
+                     <Button onClick={form.handleSubmit(handleCreateCheckout)} disabled={isPending || isProfileLoading} className="w-full h-12 text-base">
+                        {isPending || isProfileLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ExternalLink className="mr-2 h-4 w-4" />}
+                        Ir para o Pagamento
+                    </Button>
+                    <p className="text-xs text-muted-foreground text-center">Ao continuar, você concorda com nossos <Link href="/terms-of-service" className="underline hover:text-primary">Termos de Serviço</Link>.</p>
+                </CardContent>
+            </Card>
+        </motion.div>
+      </div>
+    </motion.div>
   )
 }
 
