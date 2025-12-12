@@ -127,23 +127,28 @@ export async function createAsaasCheckoutAction(input: CreateCheckoutInput): Pro
     const checkoutBody: any = {
       customer: customerId,
       billingTypes: [billingType],
-      chargeType: "RECURRENT",
+      chargeTypes: ["RECURRENT"],
       callback: {
         successUrl: `${appUrl}/dashboard?checkout=success`,
         autoRedirect: true,
         cancelUrl: `${appUrl}/subscribe?status=cancel`,
+        expiredUrl: `${appUrl}/subscribe?status=expired`,
       },
       subscription: {
         cycle: cycle === 'annual' ? 'YEARLY' : 'MONTHLY',
         nextDueDate: nextDueDate.toISOString().split('T')[0],
         value: price,
         description: `Assinatura ${plan.toUpperCase()} (${cycle === 'annual' ? 'Anual' : 'Mensal'}) - Trendify`,
+        // Passando o externalReference dentro da assinatura para ter o contexto no webhook
         externalReference: JSON.stringify({ userId, plan, cycle }),
       },
       items: [{
         name: `Plano ${plan.toUpperCase()} - ${cycle === 'annual' ? 'Anual' : 'Mensal'}`,
         value: price,
         quantity: 1,
+        // Adicionando um placeholder, já que a API parece exigir, mas não temos uma imagem real.
+        // Este é um PNG transparente 1x1 em base64.
+        imageBase64: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
       }]
     };
     
@@ -178,3 +183,5 @@ export async function createAsaasCheckoutAction(input: CreateCheckoutInput): Pro
     return { error: e.message || 'Ocorreu um erro de comunicação com o provedor de pagamento.' };
   }
 }
+
+    
