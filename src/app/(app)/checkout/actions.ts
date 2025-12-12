@@ -32,27 +32,30 @@ interface CheckoutActionState {
 
 // --- Função para criar ou encontrar cliente na Asaas ---
 async function findOrCreateAsaasCustomer(apiUrl: string, apiKey: string, customerData: { name: string, email: string, cpfCnpj: string, phone: string, postalCode: string, addressNumber: string }): Promise<string> {
-    // Tenta encontrar o cliente pelo CPF/CNPJ primeiro
-    const searchResponse = await fetch(`${apiUrl}/customers?cpfCnpj=${customerData.cpfCnpj}`, {
-        headers: { 'accept': 'application/json', 'access_token': apiKey },
-    });
-
-    if (!searchResponse.ok) {
-        const errorText = await searchResponse.text();
-        console.error(`[Asaas Customer Action] Erro na API ao buscar cliente:`, errorText);
-        throw new Error('Falha ao buscar cliente na Asaas.');
+    try {
+        // Tenta encontrar o cliente pelo CPF/CNPJ primeiro
+        const searchResponse = await fetch(`${apiUrl}/customers?cpfCnpj=${customerData.cpfCnpj}`, {
+            headers: { 'accept': 'application/json', 'access_token': apiKey },
+        });
+        
+        if (searchResponse.ok) {
+            const searchData: any = await searchResponse.json();
+            if (searchData.data && searchData.data.length > 0) {
+                console.log(`[Asaas Customer] Cliente encontrado por CPF/CNPJ: ${searchData.data[0].id}`);
+                return searchData.data[0].id;
+            }
+        } else {
+             // Se a busca falhar (ex: 404), não é um erro fatal. Logamos e continuamos para a criação.
+             const errorText = await searchResponse.text();
+             console.warn(`[Asaas Customer Action] API retornou ${searchResponse.status} ao buscar cliente. Prosseguindo para criação. Detalhes:`, errorText);
+        }
+    } catch(e) {
+        // Se a requisição fetch falhar, logamos e continuamos para a criação.
+        console.warn('[Asaas Customer Action] Erro na requisição de busca de cliente. Prosseguindo para criação.', e);
     }
     
-    const searchData: any = await searchResponse.json();
-
-
-    if (searchData.data && searchData.data.length > 0) {
-        console.log(`[Asaas Customer] Cliente encontrado: ${searchData.data[0].id}`);
-        return searchData.data[0].id;
-    }
-    
-    // Se não encontrar, cria um novo cliente
-    console.log(`[Asaas Customer] Cliente não encontrado. Criando novo cliente...`);
+    // Se não encontrar ou se a busca falhar, cria um novo cliente
+    console.log(`[Asaas Customer] Cliente não encontrado. Tentando criar novo cliente...`);
     const createResponse = await fetch(`${apiUrl}/customers`, {
         method: 'POST',
         headers: { 'accept': 'application/json', 'content-type': 'application/json', 'access_token': apiKey },
@@ -62,11 +65,11 @@ async function findOrCreateAsaasCustomer(apiUrl: string, apiKey: string, custome
     const createData: any = await createResponse.json();
 
     if (!createResponse.ok) {
-        console.error(`[Asaas Customer Action] Erro na API ao criar cliente:`, createData);
-        throw new Error(createData.errors?.[0]?.description || 'Falha ao criar cliente na Asaas.');
+        console.error(`[Asaas Customer Action] Erro na API ao criar/buscar cliente:`, createData);
+        throw new Error(createData.errors?.[0]?.description || 'Falha ao registrar cliente no gateway de pagamento.');
     }
     
-    console.log(`[Asaas Customer] Novo cliente criado: ${createData.id}`);
+    console.log(`[Asaas Customer] Novo cliente criado ou existente retornado: ${createData.id}`);
     return createData.id;
 }
 
@@ -92,7 +95,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
   } = parsed.data;
 
   const apiKey = process.env.ASAAS_API_KEY;
-  const apiUrl = "https://api.asaas.com/api/v3";
+  const apiUrl = process.env.ASAAS_API_URL || "https://api.asaas.com/api/v3";
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
   
   if (!apiKey || !appUrl) return { error: 'Erro de configuração do servidor: Chaves de API ou URL da aplicação ausentes.' };
@@ -183,7 +186,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
         addressNumber,
     });
     
-    const finalCheckoutUrl = `https://www.asaas.com/checkout/${checkoutData.id}`;
+    const finalCheckoutUrl = checkoutData.url;
 
     return { checkoutUrl: finalCheckoutUrl };
 
