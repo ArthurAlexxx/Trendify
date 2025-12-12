@@ -199,12 +199,12 @@ function CheckoutPageContent() {
                             <FormItem className="space-y-3">
                                 <FormControl>
                                 <RadioGroup onValueChange={field.onChange} value={field.value} className="grid grid-cols-2 gap-4">
-                                    <FormItem><FormControl><RadioGroupItem value="CREDIT_CARD" id="cc" className="sr-only" /></FormControl><Label htmlFor="cc" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-primary/10 transition-colors cursor-pointer [&:has([data-state=checked])]:border-primary"><CreditCard className="mb-3 h-6 w-6" /> Cartão de Crédito</Label></FormItem>
+                                    <FormItem><FormControl><RadioGroupItem value="CREDIT_CARD" id="cc" className="sr-only" /></FormControl><Label htmlFor="cc" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-primary/10 transition-colors cursor-pointer [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:bg-primary/10"><CreditCard className="mb-3 h-6 w-6" /> Cartão de Crédito</Label></FormItem>
                                     <FormItem>
                                     <FormControl>
                                         <RadioGroupItem value="PIX" id="pix" className="sr-only" />
                                     </FormControl>
-                                    <Label htmlFor="pix" className={`flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-primary/10 transition-colors cursor-pointer [&:has([data-state=checked])]:border-primary`}>
+                                    <Label htmlFor="pix" className={`flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-primary/10 transition-colors cursor-pointer [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:bg-primary/10`}>
                                         <Banknote className="mb-3 h-6 w-6" /> PIX
                                     </Label>
                                     </FormItem>
