@@ -89,9 +89,17 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
     
     const price = priceMap[plan][cycle];
     
+    // Definindo chargeTypes com base na seleção do usuário
+    let chargeTypes: ('DETACHED' | 'RECURRENT')[] = ['DETACHED'];
+    if (cycle === 'annual' && billingType === 'CREDIT_CARD') {
+        chargeTypes = ['RECURRENT'];
+    }
+
+    const itemName = `Plano ${plan.charAt(0).toUpperCase() + plan.slice(1)} (${cycle === 'annual' ? 'Anual' : 'Mensal'})`;
+    
     const checkoutBody: any = {
-      billingType, // PIX ou CREDIT_CARD
-      chargeType: cycle === 'annual' && billingType === 'CREDIT_CARD' ? 'RECURRENT' : 'DETACHED',
+      billingTypes: [billingType],
+      chargeTypes: chargeTypes,
       minutesToExpire: 60,
       callback: {
         successUrl: `${appUrl}/dashboard?checkout=success`,
@@ -111,14 +119,16 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
       },
       items: [
         {
-            name: `Plano ${plan.charAt(0).toUpperCase() + plan.slice(1)} (${cycle === 'annual' ? 'Anual' : 'Mensal'})`,
+            name: itemName,
+            description: `Acesso ao ${itemName} da Trendify`, // Adicionando descrição obrigatória
             value: price,
             quantity: 1,
         }
       ],
     };
 
-    if (cycle === 'annual' && billingType === 'CREDIT_CARD') {
+    // Adiciona o objeto de assinatura apenas para pagamentos recorrentes com cartão
+    if (chargeTypes.includes('RECURRENT')) {
         const nextDueDate = new Date();
         nextDueDate.setFullYear(nextDueDate.getFullYear() + 1);
         checkoutBody.subscription = {
@@ -152,7 +162,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
       plan,
       cycle,
       createdAt: Timestamp.now(),
-      asaasSubscriptionId: checkoutData.subscription?.id, // Pode ser nulo para PIX
+      asaasSubscriptionId: checkoutData.subscription?.id || null, // Pode ser nulo
       asaasCustomerId: checkoutData.customer,
       source: 'checkout-session'
     });
