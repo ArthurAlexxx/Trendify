@@ -31,7 +31,7 @@ interface CheckoutActionState {
 
 
 // --- Função para criar ou encontrar cliente na Asaas ---
-async function findOrCreateAsaasCustomer(apiKey: string, customerData: { name: string, email: string, cpfCnpj: string }): Promise<string> {
+async function findOrCreateAsaasCustomer(apiKey: string, customerData: { name: string, email: string, cpfCnpj: string, phone: string, postalCode: string, addressNumber: string }): Promise<string> {
     // Tenta encontrar o cliente pelo CPF/CNPJ primeiro
     const searchResponse = await fetch(`https://sandbox.asaas.com/api/v3/customers?cpfCnpj=${customerData.cpfCnpj}`, {
         headers: { 'accept': 'application/json', 'access_token': apiKey },
@@ -92,7 +92,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
     const { firestore } = initializeFirebaseAdmin();
     
     // 1. Criar ou encontrar cliente na Asaas
-    const asaasCustomerId = await findOrCreateAsaasCustomer(apiKey, { name, email, cpfCnpj });
+    const asaasCustomerId = await findOrCreateAsaasCustomer(apiKey, { name, email, cpfCnpj, phone, postalCode, addressNumber });
     
     const price = priceMap[plan][cycle];
     
@@ -102,8 +102,8 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
     
     const checkoutBody: any = {
       customer: asaasCustomerId,
-      billingType: billingType,
-      chargeType: isRecurrent ? 'RECURRENT' : 'DETACHED',
+      billingTypes: [billingType], // Corrigido para ser um array
+      chargeTypes: [isRecurrent ? 'RECURRENT' : 'DETACHED'], // Corrigido para ser um array
       minutesToExpire: 60,
       callback: {
         successUrl: `${appUrl}/dashboard?checkout=success`,
@@ -159,7 +159,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
       userId,
       plan,
       cycle,
-      asaasCustomerId, // Salva o customer ID para referência futura
+      asaasCustomerId,
       asaasSubscriptionId: checkoutData.subscription?.id || null,
       createdAt: Timestamp.now(),
       source: 'checkout-session'
