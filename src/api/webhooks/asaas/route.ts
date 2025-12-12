@@ -70,6 +70,7 @@ async function logWebhook(firestore: ReturnType<typeof getFirestore>, event: any
 async function findUserInfo(firestore: ReturnType<typeof getFirestore>, payment: any): Promise<{ userId: string; plan: Plan; cycle: 'monthly' | 'annual' } | null> {
     
     // 1. Tenta via checkoutSession (pagamentos iniciais)
+    // O checkoutSession é o ID do checkout gerado na primeira compra.
     if (payment.checkoutSession) {
         const doc = await firestore.collection('asaasCheckouts').doc(payment.checkoutSession).get();
         if (doc.exists) {
@@ -96,7 +97,7 @@ async function findUserInfo(firestore: ReturnType<typeof getFirestore>, payment:
         }
     }
 
-    console.error(`[Webhook] ERRO: Não foi possível resolver o usuário para o evento.`);
+    console.error(`[Webhook] ERROR: Could not resolve user for event.`);
     return null;
 }
 
@@ -159,14 +160,14 @@ export async function POST(req: NextRequest) {
   let rawBody;
   
   if (!verifyAccessToken(req)) {
-      console.error('[Asaas Webhook] Token de acesso inválido ou ausente.');
-      return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
+      console.error('[Asaas Webhook] Invalid or missing access token.');
+      return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
   }
 
   try {
     rawBody = await req.text();
   } catch (error) {
-     return NextResponse.json({ error: 'Falha ao ler o corpo da requisição.' }, { status: 400 });
+     return NextResponse.json({ error: 'Failed to read request body.' }, { status: 400 });
   }
 
   let event;
@@ -182,15 +183,15 @@ export async function POST(req: NextRequest) {
   
   // Apenas processa eventos de pagamento. Outros são logados e ignorados.
   if (!event.payment) {
-       return NextResponse.json({ success: true, message: 'Evento recebido, mas não é um evento de pagamento. Nenhuma ação necessária.' });
+       return NextResponse.json({ success: true, message: 'Event received, but not a payment event. No action needed.' });
   }
   
   // Passa o payload de pagamento para encontrar o usuário
   const userInfo = await findUserInfo(firestore, event.payment);
 
   if (!userInfo || !userInfo.userId || !userInfo.plan || !userInfo.cycle) {
-    console.warn('[Asaas Webhook] Não foi possível resolver as informações do usuário a partir do payload de pagamento.');
-    return NextResponse.json({ success: true, message: 'Evento recebido, mas não foi possível associar a um usuário.' });
+    console.warn('[Asaas Webhook] Could not resolve user info from payment payload.');
+    return NextResponse.json({ success: true, message: 'Event received, but could not associate with a user.' });
   }
   
   const userRef = firestore.collection('users').doc(userInfo.userId);
@@ -218,13 +219,13 @@ export async function POST(req: NextRequest) {
         });
         break;
       default:
-        console.log(`[Asaas Webhook] Evento não relacionado à atualização de status: ${event.event}`);
+        console.log(`[Asaas Webhook] Unhandled event type: ${event.event}`);
     }
 
     return NextResponse.json({ success: true });
 
   } catch (error: any) {
-    console.error(`[Asaas Webhook] CRÍTICO: Falha ao processar evento para usuário ${userInfo.userId}:`, error);
-    return NextResponse.json({ error: 'Falha ao processar o webhook.', details: error.message }, { status: 500 });
+    console.error(`[Asaas Webhook] CRITICAL: Failed to process event for user ${userInfo.userId}:`, error);
+    return NextResponse.json({ error: 'Failed to process webhook.', details: error.message }, { status: 500 });
   }
 }

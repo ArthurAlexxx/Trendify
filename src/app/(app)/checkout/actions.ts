@@ -89,9 +89,8 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
     
     const price = priceMap[plan][cycle];
     
-    // Definindo chargeTypes com base na seleção do usuário
     let chargeTypes: ('DETACHED' | 'RECURRENT')[] = ['DETACHED'];
-    if (cycle === 'annual' && billingType === 'CREDIT_CARD') {
+    if (billingType === 'CREDIT_CARD') { // Recorrência só com Cartão de Crédito
         chargeTypes = ['RECURRENT'];
     }
 
@@ -127,12 +126,16 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
       ],
     };
 
-    // Adiciona o objeto de assinatura apenas para pagamentos recorrentes com cartão
     if (chargeTypes.includes('RECURRENT')) {
         const nextDueDate = new Date();
-        nextDueDate.setFullYear(nextDueDate.getFullYear() + 1);
+        if (cycle === 'annual') {
+            nextDueDate.setFullYear(nextDueDate.getFullYear() + 1);
+        } else {
+            nextDueDate.setMonth(nextDueDate.getMonth() + 1);
+        }
+        
         checkoutBody.subscription = {
-          cycle: 'YEARLY',
+          cycle: cycle === 'annual' ? 'YEARLY' : 'MONTHLY',
           nextDueDate: nextDueDate.toISOString().split('T')[0],
         }
     }
@@ -150,8 +153,9 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
         throw new Error(checkoutData.errors?.[0]?.description || 'Falha ao criar checkout na Asaas.');
     }
     
-    if (!checkoutData.id || !checkoutData.customer) {
-         console.error('[Asaas Checkout Action] Resposta da API não continha ID de checkout ou ID de cliente:', checkoutData);
+    // Corrigido: Não depender mais de checkoutData.customer. Apenas o ID do checkout é necessário.
+    if (!checkoutData.id) {
+         console.error('[Asaas Checkout Action] Resposta da API não continha ID de checkout:', checkoutData);
          throw new Error('API da Asaas não retornou os dados necessários.');
     }
 
@@ -163,7 +167,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
       cycle,
       createdAt: Timestamp.now(),
       asaasSubscriptionId: checkoutData.subscription?.id || null, // Pode ser nulo
-      asaasCustomerId: checkoutData.customer,
+      asaasCustomerId: checkoutData.customer, // Salva mesmo que seja nulo, para fallback
       source: 'checkout-session'
     });
 
