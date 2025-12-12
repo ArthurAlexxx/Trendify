@@ -207,8 +207,8 @@ function CheckoutPageContent() {
                                         </FormControl>
                                         <Label 
                                             htmlFor="cc" 
-                                            className={cn("flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-primary/10 transition-colors cursor-pointer",
-                                                field.value === 'CREDIT_CARD' && "border-primary bg-primary/10"
+                                            className={cn("flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 transition-colors cursor-pointer",
+                                                field.value === 'CREDIT_CARD' && "border-primary"
                                             )}
                                         >
                                             <CreditCard className="mb-3 h-6 w-6" /> Cartão de Crédito
@@ -220,8 +220,8 @@ function CheckoutPageContent() {
                                         </FormControl>
                                         <Label 
                                             htmlFor="pix" 
-                                            className={cn("flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-primary/10 transition-colors cursor-pointer",
-                                                field.value === 'PIX' && "border-primary bg-primary/10"
+                                            className={cn("flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 transition-colors cursor-pointer",
+                                                field.value === 'PIX' && "border-primary"
                                             )}
                                         >
                                             <Banknote className="mb-3 h-6 w-6" /> PIX
