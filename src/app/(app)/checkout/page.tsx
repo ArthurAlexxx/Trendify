@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -204,7 +205,7 @@ function CheckoutPageContent() {
                                     <FormControl>
                                         <RadioGroupItem value="PIX" id="pix" className="sr-only" />
                                     </FormControl>
-                                    <Label htmlFor="pix" className={`flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-primary/10 transition-colors cursor-pointer [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:bg-primary/10`}>
+                                    <Label htmlFor="pix" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-primary/10 transition-colors cursor-pointer [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:bg-primary/10">
                                         <Banknote className="mb-3 h-6 w-6" /> PIX
                                     </Label>
                                     </FormItem>
