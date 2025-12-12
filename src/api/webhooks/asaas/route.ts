@@ -71,7 +71,7 @@ async function findUserInfo(payload: any): Promise<{ userId: string; plan: Plan;
     
     if (payload.externalReference) {
         try {
-            const { userId, plan, cycle } = JSON.parse(payload.externalReference);
+            const [userId, plan, cycle] = payload.externalReference.split('|');
             if (userId && plan && cycle) {
                 console.log(`[Webhook] Informações encontradas no externalReference: userId=${userId}, plan=${plan}, cycle=${cycle}`);
                 return { userId, plan, cycle };

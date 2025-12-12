@@ -95,21 +95,16 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
     }
     
     // Estrutura o externalReference com todos os dados necessários.
-    const externalReferencePayload = JSON.stringify({
-        userId,
-        plan,
-        cycle,
-    });
+    const externalReferencePayload = [userId, plan, cycle].join('|');
 
     const checkoutBody: any = {
       billingTypes: [billingType],
       chargeTypes: ["RECURRENT"],
-      externalReference: externalReferencePayload, // Envia todos os dados aqui.
+      externalReference: externalReferencePayload,
       callback: {
         successUrl: `${appUrl}/dashboard?checkout=success`,
         autoRedirect: true,
         cancelUrl: `${appUrl}/subscribe?status=cancel`,
-        expiredUrl: `${appUrl}/subscribe?status=expired`,
       },
       customerData: {
           name,
