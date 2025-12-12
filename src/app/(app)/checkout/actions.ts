@@ -126,8 +126,8 @@ export async function createAsaasCheckoutAction(input: CreateCheckoutInput): Pro
 
     const checkoutBody: any = {
       customer: customerId,
-      billingType,
-      chargeType: "RECURRENT", // Asaas espera 'chargeType' no singular para checkout de assinatura
+      billingTypes: [billingType], // CORREÇÃO: Campo no plural e como array
+      chargeType: "RECURRENT",
       callback: {
         successUrl: `${appUrl}/dashboard?checkout=success`,
         autoRedirect: true,
@@ -138,7 +138,7 @@ export async function createAsaasCheckoutAction(input: CreateCheckoutInput): Pro
         nextDueDate: nextDueDate.toISOString().split('T')[0],
         value: price,
         description: `Assinatura ${plan.toUpperCase()} (${cycle === 'annual' ? 'Anual' : 'Mensal'}) - Trendify`,
-        externalReference: JSON.stringify({ userId, plan, cycle }), // Mover para cá
+        externalReference: JSON.stringify({ userId, plan, cycle }),
       },
       items: [{
         name: `Plano ${plan.toUpperCase()} - ${cycle === 'annual' ? 'Anual' : 'Mensal'}`,
