@@ -69,7 +69,7 @@ async function logWebhook(firestore: ReturnType<typeof getFirestore>, event: any
 // Função para encontrar o userId usando o mapeamento do checkoutSession
 async function findUserInfo(firestore: ReturnType<typeof getFirestore>, payload: any): Promise<{ userId: string; plan: Plan; cycle: 'monthly' | 'annual' } | null> {
     
-    // O checkoutSession pode estar no nível raiz do payload (se for um objeto de assinatura) ou aninhado (se for um objeto de pagamento)
+    // A Asaas envia o checkoutSession aninhado no objeto 'payment'
     const checkoutSessionId = payload.checkoutSession;
 
     if (!checkoutSessionId) {
@@ -178,19 +178,17 @@ export async function POST(req: NextRequest) {
   const isSuccessEvent = ['PAYMENT_CONFIRMED', 'PAYMENT_RECEIVED', 'SUBSCRIPTION_CREATED'].includes(event.event);
   await logWebhook(firestore, event, isSuccessEvent);
   
-  // CORREÇÃO: Determina qual objeto contém os dados relevantes (pagamento ou assinatura)
-  const mainPayload = event.payment || event.subscription;
-  
-  if (!mainPayload) {
-       return NextResponse.json({ success: true, message: 'Evento recebido, mas sem dados de pagamento ou assinatura para processar.' });
+  // Apenas processa eventos de pagamento. Outros são logados e ignorados.
+  if (!event.payment) {
+       return NextResponse.json({ success: true, message: 'Evento recebido, mas não é um evento de pagamento. Nenhuma ação necessária.' });
   }
   
-  // Passa o payload correto para encontrar o usuário
-  const userInfo = await findUserInfo(firestore, mainPayload);
+  // Passa o payload de pagamento para encontrar o usuário
+  const userInfo = await findUserInfo(firestore, event.payment);
 
   if (!userInfo || !userInfo.userId || !userInfo.plan || !userInfo.cycle) {
-    console.warn('[Asaas Webhook] Não foi possível resolver as informações do usuário a partir do payload.');
-    return NextResponse.json({ success: true, message: 'Evento recebido, mas não foi possível associar a um usuário ou plano.' });
+    console.warn('[Asaas Webhook] Não foi possível resolver as informações do usuário a partir do payload de pagamento.');
+    return NextResponse.json({ success: true, message: 'Evento de pagamento recebido, mas não foi possível associar a um usuário ou plano.' });
   }
   
   const userRef = firestore.collection('users').doc(userInfo.userId);
@@ -203,10 +201,7 @@ export async function POST(req: NextRequest) {
         await processPaymentConfirmation(userRef, event.payment, userInfo.plan, userInfo.cycle);
         break;
       
-      // Embora o SUBSCRIPTION_CREATED não confirme o pagamento, ele pode ser usado para configurar o usuário
-      // se a lógica for adaptada. Por enquanto, focamos nos eventos de pagamento.
-      // A lógica atual já cobre o cenário de `PAYMENT_CONFIRMED` que vem após a criação.
-
+      // Outros eventos relacionados ao pagamento podem ser tratados aqui
       case 'PAYMENT_OVERDUE':
         await userRef.update({
           'subscription.status': 'inactive',
@@ -223,7 +218,7 @@ export async function POST(req: NextRequest) {
         });
         break;
       default:
-        console.log(`[Asaas Webhook] Evento não tratado ou já processado por outro evento: ${event.event}`);
+        console.log(`[Asaas Webhook] Evento não relacionado à atualização de status ou já processado: ${event.event}`);
     }
 
     return NextResponse.json({ success: true });
