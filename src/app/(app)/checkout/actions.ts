@@ -32,7 +32,7 @@ interface CheckoutActionState {
 
 // --- Função para criar ou encontrar cliente na Asaas ---
 async function findOrCreateAsaasCustomer(apiKey: string, customerData: { name: string, email: string, cpfCnpj: string, phone: string, postalCode: string, addressNumber: string }): Promise<string> {
-    const apiUrl = 'https://www.asaas.com/api/v3';
+    const apiUrl = 'https://api.asaas.com/v3';
     
     // Tenta criar um novo cliente. Se já existir (pelo CPF/CNPJ), a Asaas retornará o cliente existente.
     const createResponse = await fetch(`${apiUrl}/customers`, {
@@ -81,8 +81,8 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
   } = parsed.data;
 
   const apiKey = process.env.ASAAS_API_KEY;
-  const apiUrl = "https://www.asaas.com/api/v3";
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
+  const apiUrl = "https://www.asaas.com/v3";
   
   if (!apiKey || !appUrl) return { error: 'Erro de configuração do servidor: Chaves de API ou URL da aplicação ausentes.' };
 
@@ -100,9 +100,9 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
     
     const checkoutBody: any = {
       customer: asaasCustomerId,
-      billingType: billingType,
+      billingTypes: [billingType], // Corrigido para ser um array
       value: price,
-      dueDate: new Date().toISOString().split('T')[0], // Para cobranças imediatas (PIX)
+      dueDate: new Date().toISOString().split('T')[0],
       description: `Assinatura ${itemName}`,
       externalReference: userId,
       callback: {
@@ -110,16 +110,13 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
         autoRedirect: true,
       },
     };
-    
-    let finalCheckoutUrl: string;
 
     if (isRecurrent) {
-        checkoutBody.chargeType = 'RECURRENT';
+        checkoutBody.chargeType = 'RECURRENT'; // Mantido como string, pois é singular na API
         checkoutBody.cycle = cycle === 'annual' ? 'YEARLY' : 'MONTHLY';
-        // A data da primeira cobrança é hoje para processamento imediato.
-        checkoutBody.nextDueDate = new Date().toISOString().split('T')[0];
+        checkoutBody.nextDueDate = new Date().toISOString().split('T')[0]; // Cobrança imediata
     } else { // PIX
-        checkoutBody.chargeType = 'DETACHED';
+        checkoutBody.chargeType = 'DETACHED'; // Mantido como string, pois é singular na API
         checkoutBody.items = [
           {
               name: itemName,
@@ -169,7 +166,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
         addressNumber,
     });
     
-    finalCheckoutUrl = checkoutData.link;
+    const finalCheckoutUrl = checkoutData.link;
 
     return { checkoutUrl: finalCheckoutUrl };
 
