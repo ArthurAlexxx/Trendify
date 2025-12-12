@@ -126,7 +126,7 @@ export async function createAsaasCheckoutAction(input: CreateCheckoutInput): Pro
 
     const checkoutBody: any = {
       customer: customerId,
-      billingTypes: [billingType], // CORREÇÃO: Campo no plural e como array
+      billingTypes: [billingType],
       chargeType: "RECURRENT",
       callback: {
         successUrl: `${appUrl}/dashboard?checkout=success`,
