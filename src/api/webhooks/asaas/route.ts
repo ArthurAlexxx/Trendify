@@ -66,62 +66,34 @@ async function logWebhook(firestore: ReturnType<typeof getFirestore>, event: any
   }
 }
 
-// Função para encontrar o userId usando diferentes métodos de fallback
+// Função para encontrar o userId usando o checkoutSessionId.
 async function findUserInfo(firestore: ReturnType<typeof getFirestore>, payload: any): Promise<{ userId: string; plan: Plan; cycle: 'monthly' | 'annual' } | null> {
     
-    // Método 1: Tenta resolver via checkoutSession ID (ideal para o primeiro pagamento)
+    // O método primário e único para encontrar os dados da compra.
     const checkoutSessionId = payload.checkoutSession;
-    if (checkoutSessionId) {
-        console.log(`[Webhook] Procurando dados para checkoutSessionId: ${checkoutSessionId}`);
-        const checkoutRef = firestore.collection('asaasCheckouts').doc(checkoutSessionId);
-        const checkoutDoc = await checkoutRef.get();
 
-        if (checkoutDoc.exists) {
-            const checkoutData = checkoutDoc.data();
-            if (checkoutData && checkoutData.userId && checkoutData.plan && checkoutData.cycle) {
-                console.log(`[Webhook] Informações encontradas no Firestore via checkoutSession: userId=${checkoutData.userId}`);
-                return {
-                    userId: checkoutData.userId,
-                    plan: checkoutData.plan,
-                    cycle: checkoutData.cycle
-                };
-            }
+    if (!checkoutSessionId) {
+        console.warn(`[Webhook] Nenhum checkoutSessionId encontrado no payload do evento.`);
+        return null;
+    }
+
+    console.log(`[Webhook] Procurando dados para checkoutSessionId: ${checkoutSessionId}`);
+    const checkoutRef = firestore.collection('asaasCheckouts').doc(checkoutSessionId);
+    const checkoutDoc = await checkoutRef.get();
+
+    if (checkoutDoc.exists) {
+        const checkoutData = checkoutDoc.data();
+        if (checkoutData && checkoutData.userId && checkoutData.plan && checkoutData.cycle) {
+            console.log(`[Webhook] Informações encontradas no Firestore via checkoutSession: userId=${checkoutData.userId}`);
+            return {
+                userId: checkoutData.userId,
+                plan: checkoutData.plan,
+                cycle: checkoutData.cycle
+            };
         }
     }
-
-    // Fallback: Se não houver checkoutSession, tenta encontrar o usuário pelo ID da assinatura ou do cliente
-    let userId: string | null = null;
-    let userPlan: Plan | null = null;
-    let userCycle: 'monthly' | 'annual' | null = null;
-
-    const findUserQuery = async (field: string, value: string) => {
-        const usersCollection = firestore.collection('users');
-        const querySnapshot = await usersCollection.where(field, '==', value).limit(1).get();
-        if (!querySnapshot.empty) {
-            const userDoc = querySnapshot.docs[0];
-            const userData = userDoc.data();
-            userId = userDoc.id;
-            userPlan = userData.subscription?.plan;
-            userCycle = userData.subscription?.cycle;
-        }
-    };
     
-    // Tentativa 2: Buscar pelo ID da assinatura (para renovações)
-    if (payload.subscription) {
-         await findUserQuery('subscription.asaasSubscriptionId', payload.subscription);
-    }
-    
-    // Tentativa 3: Buscar pelo ID do cliente (fallback final)
-    if (!userId && payload.customer) {
-        await findUserQuery('subscription.paymentId', payload.customer);
-    }
-
-    if (userId && userPlan && userCycle) {
-        console.log(`[Webhook] Informações encontradas via fallback: userId=${userId}, plan=${userPlan}, cycle=${userCycle}`);
-        return { userId, plan: userPlan, cycle: userCycle };
-    }
-
-    console.error(`[Webhook] ERRO: Não foi possível resolver o usuário para o evento.`);
+    console.error(`[Webhook] ERRO: O documento para o checkoutSessionId '${checkoutSessionId}' não foi encontrado no Firestore.`);
     return null;
 }
 
