@@ -45,7 +45,6 @@ async function findOrCreateAsaasCustomer(apiKey: string, customerData: { name: s
             phone: customerData.phone,
             postalCode: customerData.postalCode,
             addressNumber: customerData.addressNumber,
-            // Não é necessário enviar address, city, etc., pois o Asaas preenche via CEP.
         }),
     });
 
@@ -147,7 +146,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
         throw new Error(checkoutData.errors?.[0]?.description || 'Falha ao criar checkout na Asaas.');
     }
     
-    if (!checkoutData.id || !checkoutData.url) {
+    if (!checkoutData.id || !checkoutData.link) {
          console.error('[Asaas Checkout Action] Resposta da API não continha ID ou URL de checkout:', checkoutData);
          throw new Error('API da Asaas não retornou os dados necessários.');
     }
@@ -173,7 +172,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
         addressNumber,
     });
     
-    const finalCheckoutUrl = checkoutData.url;
+    const finalCheckoutUrl = checkoutData.link;
 
     return { checkoutUrl: finalCheckoutUrl };
 
