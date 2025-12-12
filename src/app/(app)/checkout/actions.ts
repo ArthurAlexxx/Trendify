@@ -32,43 +32,28 @@ interface CheckoutActionState {
 
 // --- Função para criar ou encontrar cliente na Asaas ---
 async function findOrCreateAsaasCustomer(apiUrl: string, apiKey: string, customerData: { name: string, email: string, cpfCnpj: string, phone: string, postalCode: string, addressNumber: string }): Promise<string> {
-    try {
-        // Tenta encontrar o cliente pelo CPF/CNPJ primeiro
-        const searchResponse = await fetch(`${apiUrl}/customers?cpfCnpj=${customerData.cpfCnpj}`, {
-            headers: { 'accept': 'application/json', 'access_token': apiKey },
-        });
-        
-        if (searchResponse.ok) {
-            const searchData: any = await searchResponse.json();
-            if (searchData.data && searchData.data.length > 0) {
-                console.log(`[Asaas Customer] Cliente encontrado por CPF/CNPJ: ${searchData.data[0].id}`);
-                return searchData.data[0].id;
-            }
-        } else {
-             // Se a busca falhar (ex: 404), não é um erro fatal. Logamos e continuamos para a criação.
-             const errorText = await searchResponse.text();
-             console.warn(`[Asaas Customer Action] API retornou ${searchResponse.status} ao buscar cliente. Prosseguindo para criação. Detalhes:`, errorText);
-        }
-    } catch(e) {
-        // Se a requisição fetch falhar, logamos e continuamos para a criação.
-        console.warn('[Asaas Customer Action] Erro na requisição de busca de cliente. Prosseguindo para criação.', e);
-    }
-    
-    // Se não encontrar ou se a busca falhar, cria um novo cliente
-    console.log(`[Asaas Customer] Cliente não encontrado. Tentando criar novo cliente...`);
+    // Tenta criar um novo cliente. Se já existir (pelo CPF/CNPJ), a Asaas retornará o cliente existente.
     const createResponse = await fetch(`${apiUrl}/customers`, {
         method: 'POST',
         headers: { 'accept': 'application/json', 'content-type': 'application/json', 'access_token': apiKey },
         body: JSON.stringify(customerData),
     });
 
-    const createData: any = await createResponse.json();
-
     if (!createResponse.ok) {
-        console.error(`[Asaas Customer Action] Erro na API ao criar/buscar cliente:`, createData);
-        throw new Error(createData.errors?.[0]?.description || 'Falha ao registrar cliente no gateway de pagamento.');
+        const errorText = await createResponse.text();
+        let errorData;
+        try {
+            errorData = JSON.parse(errorText);
+        } catch(e) {
+            console.error(`[Asaas Customer Action] Erro na API ao criar/buscar cliente. Resposta não é um JSON válido:`, errorText);
+            throw new Error('Falha ao registrar cliente: A resposta do gateway de pagamento foi inesperada.');
+        }
+
+        console.error(`[Asaas Customer Action] Erro na API ao criar/buscar cliente:`, errorData);
+        throw new Error(errorData.errors?.[0]?.description || 'Falha ao registrar cliente no gateway de pagamento.');
     }
     
+    const createData: any = await createResponse.json();
     console.log(`[Asaas Customer] Novo cliente criado ou existente retornado: ${createData.id}`);
     return createData.id;
 }
