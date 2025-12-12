@@ -40,7 +40,7 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
-import { resetLastSyncAction, resetAllMetricsAction, cancelAsaasSubscriptionAction, reactivateAsaasSubscriptionAction } from './actions';
+import { resetLastSyncAction, resetAllMetricsAction, cancelAsaasSubscriptionAction } from './actions';
 
 export default function SettingsPage() {
   const { user } = useUser();
@@ -49,7 +49,6 @@ export default function SettingsPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isCancelling, startCancellingTransition] = useTransition();
-  const [isReactivating, startReactivatingTransition] = useTransition();
 
   const [confirmationInput, setConfirmationInput] = useState('');
   const [resetType, setResetType] = useState<'lastSync' | 'all' | null>(null);
@@ -92,26 +91,6 @@ export default function SettingsPage() {
         }
     });
 };
-
-  const handleReactivateSubscription = () => {
-    if (!user || !subscription?.asaasSubscriptionId) {
-      toast({ title: 'Erro', description: 'Não foi possível encontrar o ID da sua assinatura para reativar.', variant: 'destructive'});
-      return;
-    }
-    const subscriptionId = subscription.asaasSubscriptionId;
-
-    startReactivatingTransition(async () => {
-      const result = await reactivateAsaasSubscriptionAction({
-        userId: user.uid,
-        asaasSubscriptionId: subscriptionId,
-      });
-      if (result.success) {
-        toast({ title: 'Sucesso!', description: 'Sua assinatura foi reativada e as cobranças serão retomadas.' });
-      } else {
-        toast({ title: 'Erro ao reativar', description: result.error, variant: 'destructive' });
-      }
-    });
-  };
 
   const getPlanName = (plan: 'free' | 'pro' | 'premium') => {
     switch(plan) {
@@ -225,30 +204,6 @@ export default function SettingsPage() {
                             </AlertDialog>
                         ) : null}
 
-                         {subscription.status === 'inactive' && subscription.asaasSubscriptionId && !isTrialActive ? (
-                             <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                     <Button disabled={isReactivating} className="w-full sm:w-auto">
-                                        {isReactivating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <PlayCircle className="mr-2 h-4 w-4" />}
-                                        Reativar Assinatura
-                                    </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>Reativar Assinatura?</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                           Ao reativar, as cobranças recorrentes serão retomadas a partir de amanhã.
-                                        </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                        <AlertDialogCancel>Voltar</AlertDialogCancel>
-                                        <AlertDialogAction onClick={handleReactivateSubscription}>
-                                            Sim, reativar
-                                        </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
-                         ): null}
                     </div>
                 </div>
             ) : null}
