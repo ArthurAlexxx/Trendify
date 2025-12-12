@@ -93,10 +93,18 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
     } else {
       nextDueDate.setMonth(nextDueDate.getMonth() + 1);
     }
+    
+    // Estrutura o externalReference com todos os dados necessários.
+    const externalReferencePayload = JSON.stringify({
+        userId,
+        plan,
+        cycle,
+    });
 
     const checkoutBody: any = {
       billingTypes: [billingType],
       chargeTypes: ["RECURRENT"],
+      externalReference: externalReferencePayload, // Envia todos os dados aqui.
       callback: {
         successUrl: `${appUrl}/dashboard?checkout=success`,
         autoRedirect: true,
@@ -112,14 +120,13 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
           address: addressDetails.address,
           addressNumber,
           province: addressDetails.province,
-          city: addressDetails.city
+          city: addressDetails.city,
       },
       subscription: {
         cycle: cycle === 'annual' ? 'YEARLY' : 'MONTHLY',
         nextDueDate: nextDueDate.toISOString().split('T')[0],
         value: price,
-        description: `Assinatura ${plan.toUpperCase()} (${cycle === 'annual' ? 'Anual' : 'Mensal'}) - Trendify`,
-        externalReference: JSON.stringify({ userId, plan, cycle }), // Manter aqui para o webhook
+        description: `Plano ${plan.toUpperCase()}`,
       },
       items: [{
         name: `Plano ${plan.toUpperCase()}`,
