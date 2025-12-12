@@ -52,6 +52,38 @@ async function getAddressFromCep(cep: string): Promise<{ address: string; provin
     }
 }
 
+// --- Função para criar ou encontrar cliente na Asaas ---
+async function findOrCreateAsaasCustomer(apiKey: string, customerData: { name: string, email: string, cpfCnpj: string }): Promise<string> {
+    // Tenta encontrar o cliente pelo CPF/CNPJ primeiro
+    const searchResponse = await fetch(`https://sandbox.asaas.com/api/v3/customers?cpfCnpj=${customerData.cpfCnpj}`, {
+        headers: { 'accept': 'application/json', 'access_token': apiKey },
+    });
+    const searchData: any = await searchResponse.json();
+
+    if (searchData.data && searchData.data.length > 0) {
+        console.log(`[Asaas Customer] Cliente encontrado: ${searchData.data[0].id}`);
+        return searchData.data[0].id;
+    }
+    
+    // Se não encontrar, cria um novo cliente
+    console.log(`[Asaas Customer] Cliente não encontrado. Criando novo cliente...`);
+    const createResponse = await fetch('https://sandbox.asaas.com/api/v3/customers', {
+        method: 'POST',
+        headers: { 'accept': 'application/json', 'content-type': 'application/json', 'access_token': apiKey },
+        body: JSON.stringify(customerData),
+    });
+
+    const createData: any = await createResponse.json();
+
+    if (!createResponse.ok) {
+        console.error(`[Asaas Customer Action] Erro na API ao criar cliente:`, createData);
+        throw new Error(createData.errors?.[0]?.description || 'Falha ao criar cliente na Asaas.');
+    }
+    
+    console.log(`[Asaas Customer] Novo cliente criado: ${createData.id}`);
+    return createData.id;
+}
+
 
 // --- Ação Principal de Checkout ---
 
@@ -86,6 +118,9 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
     if (addressDetails.error) {
         return { error: addressDetails.error };
     }
+
+    // 2. Criar ou encontrar cliente na Asaas
+    const asaasCustomerId = await findOrCreateAsaasCustomer(apiKey, { name, email, cpfCnpj });
     
     const price = priceMap[plan][cycle];
     
@@ -97,24 +132,15 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
     const itemName = `Plano ${plan.charAt(0).toUpperCase() + plan.slice(1)} (${cycle === 'annual' ? 'Anual' : 'Mensal'})`;
     
     const checkoutBody: any = {
-      billingTypes: [billingType],
-      chargeTypes: chargeTypes,
+      customer: asaasCustomerId, // Usa o ID do cliente criado/encontrado
+      billingType: billingType,
+      chargeType: chargeTypes.includes('RECURRENT') ? 'RECURRENT' : 'DETACHED',
       minutesToExpire: 60,
       callback: {
         successUrl: `${appUrl}/dashboard?checkout=success`,
         autoRedirect: true,
         cancelUrl: `${appUrl}/subscribe?status=cancelled`,
         expiredUrl: `${appUrl}/subscribe?status=expired`,
-      },
-      customerData: { 
-          name,
-          email,
-          cpfCnpj,
-          phone,
-          postalCode,
-          address: addressDetails.address,
-          addressNumber,
-          province: addressDetails.province,
       },
       items: [
         {
@@ -153,25 +179,24 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
         throw new Error(checkoutData.errors?.[0]?.description || 'Falha ao criar checkout na Asaas.');
     }
     
-    // Corrigido: Não depender mais de checkoutData.customer. Apenas o ID do checkout é necessário.
     if (!checkoutData.id) {
          console.error('[Asaas Checkout Action] Resposta da API não continha ID de checkout:', checkoutData);
          throw new Error('API da Asaas não retornou os dados necessários.');
     }
 
-    // 2. Salvar o mapeamento da sessão de checkout no Firestore
+    // 3. Salvar o mapeamento da sessão de checkout no Firestore
     const checkoutRef = firestore.collection('asaasCheckouts').doc(checkoutData.id);
     await checkoutRef.set({
       userId,
       plan,
       cycle,
+      asaasCustomerId, // Salva o customer ID para referência futura
+      asaasSubscriptionId: checkoutData.subscription?.id || null,
       createdAt: Timestamp.now(),
-      asaasSubscriptionId: checkoutData.subscription?.id || null, // Pode ser nulo
-      asaasCustomerId: checkoutData.customer, // Salva mesmo que seja nulo, para fallback
       source: 'checkout-session'
     });
 
-    // 3. Salvar os dados de endereço preenchidos no perfil do usuário para uso futuro
+    // 4. Salvar os dados de endereço preenchidos no perfil do usuário para uso futuro
     const userRef = firestore.collection('users').doc(userId);
     await userRef.update({
         cpfCnpj,
