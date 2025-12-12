@@ -41,25 +41,20 @@ export default function SubscribePage() {
     const { subscription, isLoading } = useSubscription();
 
     const renderPlanButtons = (plan: 'pro' | 'premium') => {
-        const isCurrentPlanActive = subscription?.plan === plan && subscription?.status === 'active';
+        // Verifica se o plano e ciclo ATUAL do usuário correspondem ao botão que está sendo renderizado.
+        const isCurrentMonthly = subscription?.plan === plan && subscription?.cycle === 'monthly' && subscription?.status === 'active';
+        const isCurrentAnnual = subscription?.plan === plan && subscription?.cycle === 'annual' && subscription?.status === 'active';
 
-        // --- Monthly Button Logic ---
-        const isCurrentMonthly = isCurrentPlanActive && subscription?.cycle === 'monthly';
+        // Lógica de texto para o botão mensal
         let monthlyCta = "Assinar Mensal";
         if (subscription?.plan === 'pro' && plan === 'premium') {
           monthlyCta = "Fazer Upgrade (Mensal)";
-        } else if (subscription?.plan !== 'free' && !isCurrentMonthly) {
-          monthlyCta = "Mudar para Mensal";
         }
 
-
-        // --- Annual Button Logic ---
-        const isCurrentAnnual = isCurrentPlanActive && subscription?.cycle === 'annual';
+        // Lógica de texto para o botão anual
         let annualCta = "Assinar Anual";
          if (subscription?.plan === 'pro' && plan === 'premium') {
           annualCta = "Fazer Upgrade (Anual)";
-        } else if (subscription?.plan !== 'free' && !isCurrentAnnual) {
-           annualCta = "Mudar para Anual";
         }
         
         return (
