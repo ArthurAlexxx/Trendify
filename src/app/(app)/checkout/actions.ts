@@ -30,31 +30,6 @@ interface CheckoutActionState {
 }
 
 
-// --- Função para buscar endereço pelo CEP ---
-async function getAddressFromCep(cep: string): Promise<{ address: string; province: string; city: { ibgeCode: string, name: string }; error?: string }> {
-    try {
-        const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-        if (!response.ok) {
-            return { error: "Consulta de CEP falhou.", address: "", province: "", city: { ibgeCode: "", name: "" } };
-        }
-        const data: any = await response.json();
-        if (data.erro) {
-            return { error: "CEP não encontrado.", address: "", province: "", city: { ibgeCode: "", name: "" } };
-        }
-        return {
-            address: data.logradouro || "",
-            province: data.bairro || "",
-            city: {
-                ibgeCode: data.ibge,
-                name: `${data.localidade} - ${data.uf}`
-            },
-        };
-    } catch (e) {
-        console.error("Erro ao buscar CEP:", e);
-        return { error: "Falha na comunicação com serviço de CEP.", address: "", province: "", city: { ibgeCode: "", name: "" } };
-    }
-}
-
 // --- Função para criar ou encontrar cliente na Asaas ---
 async function findOrCreateAsaasCustomer(apiKey: string, customerData: { name: string, email: string, cpfCnpj: string }): Promise<string> {
     // Tenta encontrar o cliente pelo CPF/CNPJ primeiro
@@ -116,13 +91,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
   try {
     const { firestore } = initializeFirebaseAdmin();
     
-    // 1. Enriquecer endereço com ViaCEP
-    const addressDetails = await getAddressFromCep(postalCode);
-    if (addressDetails.error) {
-        return { error: addressDetails.error };
-    }
-
-    // 2. Criar ou encontrar cliente na Asaas
+    // 1. Criar ou encontrar cliente na Asaas
     const asaasCustomerId = await findOrCreateAsaasCustomer(apiKey, { name, email, cpfCnpj });
     
     const price = priceMap[plan][cycle];
@@ -133,8 +102,8 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
     
     const checkoutBody: any = {
       customer: asaasCustomerId,
-      billingType: billingType,
-      chargeType: isRecurrent ? 'RECURRENT' : 'DETACHED',
+      billingTypes: [billingType],
+      chargeTypes: [isRecurrent ? 'RECURRENT' : 'DETACHED'],
       minutesToExpire: 60,
       callback: {
         successUrl: `${appUrl}/dashboard?checkout=success`,
@@ -203,9 +172,6 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
         phone,
         postalCode,
         addressNumber,
-        address: addressDetails.address,
-        province: addressDetails.province,
-        city: addressDetails.city.name,
     });
     
     const finalCheckoutUrl = `https://sandbox.asaas.com/checkoutSession/show/${checkoutData.id}`;
