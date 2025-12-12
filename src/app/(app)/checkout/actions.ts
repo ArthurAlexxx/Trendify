@@ -64,8 +64,8 @@ async function findOrCreateAsaasCustomer(apiKey: string, customerData: { name: s
 
 const priceMap: Record<Plan, Record<'monthly' | 'annual', number>> = {
     free: { monthly: 0, annual: 0 },
-    pro: { monthly: 5.00, annual: 5.00 },
-    premium: { monthly: 5.00, annual: 5.00 },
+    pro: { monthly: 29.99, annual: 299.99 },
+    premium: { monthly: 39.99, annual: 399.99 },
 };
 
 export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promise<CheckoutActionState> {
