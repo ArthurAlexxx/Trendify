@@ -43,7 +43,7 @@ async function getAddressFromCep(cep: string): Promise<{ address: string; provin
         return {
             address: data.logradouro || "",
             province: data.bairro || "",
-            city: data.localidade || "",
+            city: data.localidade + ' - ' + data.uf || "",
         };
     } catch (e) {
         console.error("Erro ao buscar CEP:", e);
@@ -145,7 +145,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
         throw new Error(checkoutData.errors?.[0]?.description || 'Falha ao criar o checkout.');
     }
     
-    if (!checkoutData.url) {
+    if (!checkoutData.link) {
          console.error('[Asaas Checkout Action] Resposta da API não continha URL:', checkoutData);
          throw new Error('A API da Asaas não retornou uma URL de checkout.');
     }
@@ -157,9 +157,13 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
         phone,
         postalCode,
         addressNumber,
+        // Salva também os dados obtidos do ViaCEP para consistência
+        address: addressDetails.address,
+        province: addressDetails.province,
+        city: addressDetails.city,
     });
     
-    return { checkoutUrl: checkoutData.url };
+    return { checkoutUrl: checkoutData.link };
 
   } catch (e: any) {
     console.error('[Asaas Checkout Action] Erro no fluxo:', e);
