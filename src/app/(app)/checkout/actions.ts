@@ -122,7 +122,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
     };
 
     if (isRecurrent) {
-        checkoutBody.chargeType = 'RECURRENT';
+        checkoutBody.chargeTypes = ['RECURRENT'];
         checkoutBody.subscription = {
             cycle: cycle === 'annual' ? 'YEARLY' : 'MONTHLY',
             value: price,
@@ -130,7 +130,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
             nextDueDate: new Date().toISOString().split('T')[0],
         };
     } else { // PIX
-        checkoutBody.chargeType = 'DETACHED';
+        checkoutBody.chargeTypes = ['DETACHED'];
     }
     
     const checkoutResponse = await fetch(`${apiUrl}/checkouts`, {
