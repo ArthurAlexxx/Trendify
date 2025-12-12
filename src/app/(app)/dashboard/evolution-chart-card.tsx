@@ -243,7 +243,7 @@ export default function EvolutionChartCard({ isLoading, metricSnapshots, instaPo
                      )}
                 </div>
             </Card>
-            <div className="mt-2 text-center text-xs text-muted-foreground grid grid-cols-3 gap-1">
+            <div className="mt-2 text-xs text-muted-foreground grid grid-cols-3 gap-1">
                 <div className="flex items-center justify-center gap-1">
                     <Eye className="h-3 w-3" />
                     <span>{formatIntegerValue(post.views)}</span>
