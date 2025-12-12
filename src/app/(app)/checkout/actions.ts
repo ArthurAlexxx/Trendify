@@ -100,7 +100,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
     
     const checkoutBody: any = {
       customer: asaasCustomerId,
-      billingType: billingType, // Mantido como string, pois a API aceita um valor aqui, embora o plural seja esperado em outro lugar
+      billingTypes: [billingType], // Corrigido para ser um array
       value: price,
       dueDate: new Date().toISOString().split('T')[0],
       description: `Assinatura ${itemName}`,
@@ -122,11 +122,11 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
     };
 
     if (isRecurrent) {
-        checkoutBody.chargeType = 'RECURRENT'; 
+        checkoutBody.chargeTypes = ['RECURRENT']; // Corrigido para ser um array
         checkoutBody.cycle = cycle === 'annual' ? 'YEARLY' : 'MONTHLY';
         checkoutBody.nextDueDate = new Date().toISOString().split('T')[0]; // Cobrança imediata
     } else { // PIX
-        checkoutBody.chargeType = 'DETACHED'; 
+        checkoutBody.chargeTypes = ['DETACHED']; // Corrigido para ser um array
     }
     
     const checkoutResponse = await fetch(`${apiUrl}/checkouts`, {
