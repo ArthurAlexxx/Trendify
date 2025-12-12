@@ -31,24 +31,27 @@ interface CheckoutActionState {
 
 
 // --- Função para buscar endereço pelo CEP ---
-async function getAddressFromCep(cep: string): Promise<{ address: string; province: string; city: string; error?: string }> {
+async function getAddressFromCep(cep: string): Promise<{ address: string; province: string; city: { ibgeCode: string, name: string }; error?: string }> {
     try {
         const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
         if (!response.ok) {
-            return { error: "Consulta de CEP falhou.", address: "", province: "", city: "" };
+            return { error: "Consulta de CEP falhou.", address: "", province: "", city: { ibgeCode: "", name: "" } };
         }
         const data: any = await response.json();
         if (data.erro) {
-            return { error: "CEP não encontrado.", address: "", province: "", city: "" };
+            return { error: "CEP não encontrado.", address: "", province: "", city: { ibgeCode: "", name: "" } };
         }
         return {
             address: data.logradouro || "",
             province: data.bairro || "",
-            city: data.localidade + ' - ' + data.uf || "",
+            city: {
+                ibgeCode: data.ibge,
+                name: `${data.localidade} - ${data.uf}`
+            },
         };
     } catch (e) {
         console.error("Erro ao buscar CEP:", e);
-        return { error: "Falha na comunicação com serviço de CEP.", address: "", province: "", city: "" };
+        return { error: "Falha na comunicação com serviço de CEP.", address: "", province: "", city: { ibgeCode: "", name: "" } };
     }
 }
 
@@ -124,17 +127,14 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
     
     const price = priceMap[plan][cycle];
     
-    let chargeTypes: ('DETACHED' | 'RECURRENT')[] = ['DETACHED'];
-    if (billingType === 'CREDIT_CARD') { // Recorrência só com Cartão de Crédito
-        chargeTypes = ['RECURRENT'];
-    }
+    const isRecurrent = billingType === 'CREDIT_CARD';
 
     const itemName = `Plano ${plan.charAt(0).toUpperCase() + plan.slice(1)} (${cycle === 'annual' ? 'Anual' : 'Mensal'})`;
     
     const checkoutBody: any = {
-      customer: asaasCustomerId, // Usa o ID do cliente criado/encontrado
+      customer: asaasCustomerId,
       billingType: billingType,
-      chargeType: chargeTypes.includes('RECURRENT') ? 'RECURRENT' : 'DETACHED',
+      chargeType: isRecurrent ? 'RECURRENT' : 'DETACHED',
       minutesToExpire: 60,
       callback: {
         successUrl: `${appUrl}/dashboard?checkout=success`,
@@ -151,8 +151,8 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
         }
       ],
     };
-
-    if (chargeTypes.includes('RECURRENT')) {
+    
+    if (isRecurrent) {
         const nextDueDate = new Date();
         if (cycle === 'annual') {
             nextDueDate.setFullYear(nextDueDate.getFullYear() + 1);
@@ -205,10 +205,12 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
         addressNumber,
         address: addressDetails.address,
         province: addressDetails.province,
-        city: addressDetails.city,
+        city: addressDetails.city.name,
     });
     
-    return { checkoutUrl: checkoutData.url };
+    const finalCheckoutUrl = `https://sandbox.asaas.com/checkoutSession/show/${checkoutData.id}`;
+
+    return { checkoutUrl: finalCheckoutUrl };
 
   } catch (e: any) {
     console.error('[Asaas Checkout Action] Erro no fluxo:', e);
