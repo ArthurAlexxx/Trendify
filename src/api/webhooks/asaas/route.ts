@@ -70,7 +70,7 @@ async function logWebhook(firestore: ReturnType<typeof getFirestore>, event: any
 async function findUserInfo(firestore: ReturnType<typeof getFirestore>, payload: any): Promise<{ userId: string; plan: Plan; cycle: 'monthly' | 'annual' } | null> {
     
     // O método primário e único para encontrar os dados da compra.
-    const checkoutSessionId = payload.checkoutSession;
+    const checkoutSessionId = payload?.checkoutSession;
 
     if (!checkoutSessionId) {
         console.warn(`[Webhook] Nenhum checkoutSessionId encontrado no payload do evento.`);

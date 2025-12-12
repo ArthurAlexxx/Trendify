@@ -74,7 +74,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
   } = parsed.data;
 
   // Validação para PIX em pagamentos recorrentes
-  if (billingType === 'PIX') {
+  if (billingType === 'PIX' && (cycle === 'monthly' || cycle === 'annual')) {
     return { error: "PIX não é suportado para assinaturas recorrentes. Por favor, escolha Cartão de Crédito." };
   }
 
@@ -94,22 +94,16 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
     
     const price = priceMap[plan][cycle];
     const nextDueDate = new Date();
-    if (cycle === 'annual') {
-      nextDueDate.setFullYear(nextDueDate.getFullYear() + 1);
-    } else {
-      nextDueDate.setMonth(nextDueDate.getMonth() + 1);
-    }
+    nextDueDate.setDate(nextDueDate.getDate() + 2); // Ajusta a data de vencimento para D+2
     
     const checkoutBody: any = {
-      billingTypes: [billingType],
-      chargeTypes: ["RECURRENT"],
+      billingType,
+      chargeType: "RECURRENT", // Corrigido para chargeType no singular
       callback: {
         successUrl: `${appUrl}/dashboard?checkout=success`,
         autoRedirect: true,
-        cancelUrl: `${appUrl}/subscribe?status=cancel`,
-        expiredUrl: `${appUrl}/subscribe?status=expired`
       },
-      customerData: {
+      customer: {
           name,
           email,
           cpfCnpj,
@@ -118,18 +112,13 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
           address: addressDetails.address,
           addressNumber,
           province: addressDetails.province,
-          city: addressDetails.city,
       },
       subscription: {
         cycle: cycle === 'annual' ? 'YEARLY' : 'MONTHLY',
+        description: `Assinatura Plano ${plan} (${cycle})`,
         nextDueDate: nextDueDate.toISOString().split('T')[0],
-      },
-      items: [{
-        name: `Plano ${plan.toUpperCase()}`,
         value: price,
-        quantity: 1,
-        imageBase64: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
-      }]
+      },
     };
     
     console.log('[Asaas Checkout Action] Corpo da requisição de checkout:', JSON.stringify(checkoutBody, null, 2));
@@ -180,5 +169,3 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
     return { error: e.message || 'Ocorreu um erro de comunicação com o provedor de pagamento.' };
   }
 }
-
-    
