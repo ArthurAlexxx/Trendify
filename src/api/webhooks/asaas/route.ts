@@ -66,40 +66,65 @@ async function logWebhook(firestore: ReturnType<typeof getFirestore>, event: any
   }
 }
 
-// Função para encontrar o userId usando o mapeamento do checkoutSession
+// Função para encontrar o userId usando diferentes métodos de fallback
 async function findUserInfo(firestore: ReturnType<typeof getFirestore>, payload: any): Promise<{ userId: string; plan: Plan; cycle: 'monthly' | 'annual' } | null> {
     
-    // A Asaas envia o checkoutSession aninhado no objeto 'payment'
+    // Método 1: Tenta resolver via checkoutSession ID (ideal para o primeiro pagamento)
     const checkoutSessionId = payload.checkoutSession;
+    if (checkoutSessionId) {
+        console.log(`[Webhook] Procurando dados para checkoutSessionId: ${checkoutSessionId}`);
+        const checkoutRef = firestore.collection('asaasCheckouts').doc(checkoutSessionId);
+        const checkoutDoc = await checkoutRef.get();
 
-    if (!checkoutSessionId) {
-        console.warn("[Webhook] O payload do pagamento não continha um checkoutSession ID.");
-        return null;
+        if (checkoutDoc.exists) {
+            const checkoutData = checkoutDoc.data();
+            if (checkoutData && checkoutData.userId && checkoutData.plan && checkoutData.cycle) {
+                console.log(`[Webhook] Informações encontradas no Firestore via checkoutSession: userId=${checkoutData.userId}`);
+                return {
+                    userId: checkoutData.userId,
+                    plan: checkoutData.plan,
+                    cycle: checkoutData.cycle
+                };
+            }
+        }
+    }
+
+    // Fallback: Se não houver checkoutSession, tenta encontrar o usuário pelo ID da assinatura ou do cliente
+    let userId: string | null = null;
+    let userPlan: Plan | null = null;
+    let userCycle: 'monthly' | 'annual' | null = null;
+
+    const findUserQuery = async (field: string, value: string) => {
+        const usersCollection = firestore.collection('users');
+        const querySnapshot = await usersCollection.where(field, '==', value).limit(1).get();
+        if (!querySnapshot.empty) {
+            const userDoc = querySnapshot.docs[0];
+            const userData = userDoc.data();
+            userId = userDoc.id;
+            userPlan = userData.subscription?.plan;
+            userCycle = userData.subscription?.cycle;
+        }
+    };
+    
+    // Tentativa 2: Buscar pelo ID da assinatura (para renovações)
+    if (payload.subscription) {
+         await findUserQuery('subscription.asaasSubscriptionId', payload.subscription);
     }
     
-    console.log(`[Webhook] Procurando dados para checkoutSessionId: ${checkoutSessionId}`);
-    
-    const checkoutRef = firestore.collection('asaasCheckouts').doc(checkoutSessionId);
-    const checkoutDoc = await checkoutRef.get();
-
-    if (!checkoutDoc.exists) {
-        console.error(`[Webhook] ERRO: Nenhum documento de checkout encontrado para o ID ${checkoutSessionId}.`);
-        return null;
+    // Tentativa 3: Buscar pelo ID do cliente (fallback final)
+    if (!userId && payload.customer) {
+        await findUserQuery('subscription.paymentId', payload.customer);
     }
 
-    const checkoutData = checkoutDoc.data();
-    if (checkoutData && checkoutData.userId && checkoutData.plan && checkoutData.cycle) {
-        console.log(`[Webhook] Informações encontradas no Firestore: userId=${checkoutData.userId}, plan=${checkoutData.plan}, cycle=${checkoutData.cycle}`);
-        return {
-            userId: checkoutData.userId,
-            plan: checkoutData.plan,
-            cycle: checkoutData.cycle
-        };
+    if (userId && userPlan && userCycle) {
+        console.log(`[Webhook] Informações encontradas via fallback: userId=${userId}, plan=${userPlan}, cycle=${userCycle}`);
+        return { userId, plan: userPlan, cycle: userCycle };
     }
 
-    console.error("[Webhook] ERRO: Documento do checkout encontrado, mas os dados estão incompletos.");
+    console.error(`[Webhook] ERRO: Não foi possível resolver o usuário para o evento.`);
     return null;
 }
+
 
 // Função para processar a confirmação de pagamento
 async function processPaymentConfirmation(userRef: FirebaseFirestore.DocumentReference, payment: any, plan: Plan, cycle: 'monthly' | 'annual') {
@@ -175,7 +200,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON body.' }, { status: 400 });
   }
 
-  const isSuccessEvent = ['PAYMENT_CONFIRMED', 'PAYMENT_RECEIVED', 'SUBSCRIPTION_CREATED'].includes(event.event);
+  const isSuccessEvent = ['PAYMENT_CONFIRMED', 'PAYMENT_RECEIVED'].includes(event.event);
   await logWebhook(firestore, event, isSuccessEvent);
   
   // Apenas processa eventos de pagamento. Outros são logados e ignorados.
