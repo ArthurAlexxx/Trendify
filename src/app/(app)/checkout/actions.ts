@@ -100,7 +100,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
     
     const checkoutBody: any = {
       customer: asaasCustomerId,
-      billingType,
+      billingTypes: [billingType],
       value: price,
       dueDate: new Date().toISOString().split('T')[0],
       description: `Assinatura ${itemName}`,
@@ -127,7 +127,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
             cycle: cycle === 'annual' ? 'YEARLY' : 'MONTHLY',
             value: price,
             description: `Assinatura ${itemName}`,
-            nextDueDate: new Date().toISOString().split('T')[0], // Cobrança imediata
+            nextDueDate: new Date().toISOString().split('T')[0],
         };
     } else { // PIX
         checkoutBody.chargeType = 'DETACHED';
@@ -146,7 +146,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
         throw new Error(checkoutData.errors?.[0]?.description || 'Falha ao criar checkout na Asaas.');
     }
     
-    if (!checkoutData.id || !checkoutData.url) {
+    if (!checkoutData.id || !checkoutData.link) {
          console.error('[Asaas Checkout Action] Resposta da API não continha ID ou URL de checkout:', checkoutData);
          throw new Error('API da Asaas não retornou os dados necessários.');
     }
@@ -172,7 +172,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
         addressNumber,
     });
     
-    const finalCheckoutUrl = checkoutData.url;
+    const finalCheckoutUrl = checkoutData.link;
 
     return { checkoutUrl: finalCheckoutUrl };
 
