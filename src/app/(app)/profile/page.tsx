@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { PageHeader } from '@/components/page-header';
@@ -133,6 +132,7 @@ export default function ProfilePage() {
         toast({
           title: 'Erro ao Atualizar',
           description: 'Não foi possível atualizar seu perfil. ' + error.message,
+          variant: 'destructive',
         });
       }
     });
@@ -143,7 +143,7 @@ export default function ProfilePage() {
     if (!file || !user || !auth.currentUser) return;
 
     if (!file.type.startsWith('image/')) {
-        toast({ title: 'Arquivo inválido', description: 'Por favor, selecione um arquivo de imagem.'});
+        toast({ title: 'Arquivo inválido', description: 'Por favor, selecione um arquivo de imagem.', variant: 'destructive'});
         return;
     }
 
@@ -163,7 +163,7 @@ export default function ProfilePage() {
         },
         (error) => {
             console.error('Upload error:', error);
-            toast({ title: 'Erro no Upload', description: 'Não foi possível enviar sua foto.'});
+            toast({ title: 'Erro no Upload', description: 'Não foi possível enviar sua foto.', variant: 'destructive'});
             setUploadProgress(null);
         },
         async () => {
@@ -173,7 +173,7 @@ export default function ProfilePage() {
                 // Trigger form submission to save the new URL
                 onProfileSubmit(form.getValues());
             } catch (e: any) {
-                toast({ title: 'Erro ao Atualizar', description: `Não foi possível salvar a nova foto. ${e.message}` });
+                toast({ title: 'Erro ao Atualizar', description: `Não foi possível salvar a nova foto. ${e.message}`, variant: 'destructive' });
             } finally {
                 setUploadProgress(null);
             }

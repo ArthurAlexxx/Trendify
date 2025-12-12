@@ -6,80 +6,53 @@ import type { Plan } from '@/lib/types';
 import fetch from 'node-fetch';
 import { initializeFirebaseAdmin } from '@/firebase/admin';
 
-// ---== ETAPA 1: CRIAR CLIENTE ==---
+// --- Esquema de Validação para o Formulário ---
 
-const CreateCustomerSchema = z.object({
+const CheckoutFormSchema = z.object({
   name: z.string().min(3, 'O nome é obrigatório.'),
   email: z.string().email('O e-mail é inválido.'),
   cpfCnpj: z.string().min(11, 'O CPF ou CNPJ é obrigatório.'),
   phone: z.string().min(10, 'O telefone é obrigatório.'),
   postalCode: z.string().min(8, 'O CEP é obrigatório.'),
   addressNumber: z.string().min(1, 'O número é obrigatório.'),
+  plan: z.enum(['pro', 'premium']),
+  cycle: z.enum(['monthly', 'annual']),
+  billingType: z.enum(['PIX', 'CREDIT_CARD']),
   userId: z.string().min(1, 'ID do usuário é obrigatório.'),
 });
 
-type CreateCustomerInput = z.infer<typeof CreateCustomerSchema>;
+type CheckoutFormInput = z.infer<typeof CheckoutFormSchema>;
 
-interface CustomerActionState {
-  customerId?: string;
+interface CheckoutActionState {
+  checkoutUrl?: string;
   error?: string;
 }
 
-export async function createAsaasCustomerAction(input: CreateCustomerInput): Promise<CustomerActionState> {
-  const parsed = CreateCustomerSchema.safeParse(input);
-  if (!parsed.success) {
-    const errorMessages = parsed.error.issues.map(issue => issue.message).join(' ');
-    return { error: `Dados inválidos: ${errorMessages}` };
-  }
 
-  const { name, cpfCnpj, email, phone, postalCode, addressNumber, userId } = parsed.data;
-  const apiKey = process.env.ASAAS_API_KEY;
-
-  if (!apiKey) return { error: 'Erro de configuração do servidor: ASAAS_API_KEY não encontrada.' };
-  
-  try {
-    const { firestore } = initializeFirebaseAdmin();
-    
-    // Sempre cria um novo cliente na Asaas a cada transação.
-    console.log(`[Asaas Action] Criando um novo cliente na Asaas para o usuário ${userId}...`);
-    const customerBody = { name, email, cpfCnpj, phone, postalCode, addressNumber };
-    
-    const customerResponse = await fetch('https://sandbox.asaas.com/api/v3/customers', {
-        method: 'POST',
-        headers: { 'accept': 'application/json', 'content-type': 'application/json', 'access_token': apiKey },
-        body: JSON.stringify(customerBody)
-    });
-    
-    const customerData: any = await customerResponse.json();
-
-    if (!customerResponse.ok || customerData.errors) {
-        console.error("[Asaas Customer Action] Erro da API ao criar cliente:", customerData.errors);
-        throw new Error(customerData.errors?.[0]?.description || 'Falha ao criar o cliente no gateway de pagamento.');
+// --- Função para buscar endereço pelo CEP ---
+async function getAddressFromCep(cep: string): Promise<{ address: string; province: string; city: string; error?: string }> {
+    try {
+        const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+        if (!response.ok) {
+            return { error: "Não foi possível consultar o CEP.", address: "", province: "", city: "" };
+        }
+        const data: any = await response.json();
+        if (data.erro) {
+            return { error: "CEP não encontrado.", address: "", province: "", city: "" };
+        }
+        return {
+            address: data.logradouro || "",
+            province: data.bairro || "",
+            city: data.localidade || "",
+        };
+    } catch (e) {
+        console.error("Erro ao buscar CEP:", e);
+        return { error: "Falha ao comunicar com o serviço de CEP.", address: "", province: "", city: "" };
     }
-    
-    const customerId = customerData.id;
-    console.log(`[Asaas Action] Novo cliente Asaas criado com sucesso: ${customerId}`);
-    
-    // Salva/Atualiza o ID do cliente e os dados de endereço no perfil do usuário no Firestore
-    const userRef = firestore.collection('users').doc(userId);
-    await userRef.update({
-        'subscription.paymentId': customerId, // Salva o ID do cliente mais recente
-        cpfCnpj: cpfCnpj,
-        phone: phone,
-        postalCode: postalCode,
-        addressNumber: addressNumber,
-    });
-
-    return { customerId };
-
-  } catch (e: any) {
-    console.error('[Asaas Customer Action] Erro no fluxo:', e);
-    return { error: e.message || 'Ocorreu um erro ao interagir com o gateway de pagamento.' };
-  }
 }
 
 
-// ---== ETAPA 2: CRIAR CHECKOUT ==---
+// --- Ação Principal de Checkout ---
 
 const priceMap: Record<Plan, Record<'monthly' | 'annual', number>> = {
     free: { monthly: 0, annual: 0 },
@@ -87,26 +60,18 @@ const priceMap: Record<Plan, Record<'monthly' | 'annual', number>> = {
     premium: { monthly: 90, annual: 900 },
 };
 
-const CreateCheckoutSchema = z.object({
-  customerId: z.string().min(1, 'ID do cliente é obrigatório.'),
-  plan: z.enum(['pro', 'premium']),
-  cycle: z.enum(['monthly', 'annual']),
-  billingType: z.enum(['PIX', 'CREDIT_CARD']),
-  userId: z.string().min(1, 'ID do usuário é obrigatório.'),
-});
+export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promise<CheckoutActionState> {
+  const parsed = CheckoutFormSchema.safeParse(input);
+  if (!parsed.success) {
+      const errorMessages = parsed.error.issues.map(issue => issue.message).join(' ');
+      return { error: `Dados inválidos: ${errorMessages}` };
+  }
 
-type CreateCheckoutInput = z.infer<typeof CreateCheckoutSchema>;
+  const {
+      userId, name, email, cpfCnpj, phone, postalCode, addressNumber,
+      plan, cycle, billingType
+  } = parsed.data;
 
-interface CheckoutActionState {
-  checkoutUrl?: string;
-  error?: string;
-}
-
-export async function createAsaasCheckoutAction(input: CreateCheckoutInput): Promise<CheckoutActionState> {
-  const parsed = CreateCheckoutSchema.safeParse(input);
-  if (!parsed.success) return { error: 'Dados para o checkout inválidos.' };
-
-  const { customerId, plan, cycle, billingType, userId } = parsed.data;
   const apiKey = process.env.ASAAS_API_KEY;
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
   
@@ -115,8 +80,13 @@ export async function createAsaasCheckoutAction(input: CreateCheckoutInput): Pro
   try {
     const { firestore } = initializeFirebaseAdmin();
     
-    const price = priceMap[plan][cycle];
+    // 1. Enriquecer endereço com ViaCEP
+    const addressDetails = await getAddressFromCep(postalCode);
+    if (addressDetails.error) {
+        return { error: addressDetails.error };
+    }
     
+    const price = priceMap[plan][cycle];
     const nextDueDate = new Date();
     if (cycle === 'annual') {
       nextDueDate.setFullYear(nextDueDate.getFullYear() + 1);
@@ -125,7 +95,6 @@ export async function createAsaasCheckoutAction(input: CreateCheckoutInput): Pro
     }
 
     const checkoutBody: any = {
-      customer: customerId,
       billingTypes: [billingType],
       chargeTypes: ["RECURRENT"],
       callback: {
@@ -134,26 +103,33 @@ export async function createAsaasCheckoutAction(input: CreateCheckoutInput): Pro
         cancelUrl: `${appUrl}/subscribe?status=cancel`,
         expiredUrl: `${appUrl}/subscribe?status=expired`,
       },
+      customerData: {
+          name,
+          email,
+          cpfCnpj,
+          phone,
+          postalCode,
+          address: addressDetails.address,
+          addressNumber,
+          province: addressDetails.province,
+          city: addressDetails.city
+      },
       subscription: {
         cycle: cycle === 'annual' ? 'YEARLY' : 'MONTHLY',
         nextDueDate: nextDueDate.toISOString().split('T')[0],
         value: price,
         description: `Assinatura ${plan.toUpperCase()} (${cycle === 'annual' ? 'Anual' : 'Mensal'}) - Trendify`,
-        // Passando o externalReference dentro da assinatura para ter o contexto no webhook
-        externalReference: JSON.stringify({ userId, plan, cycle }),
+        externalReference: JSON.stringify({ userId, plan, cycle }), // Manter aqui para o webhook
       },
       items: [{
-        name: `Plano ${plan.toUpperCase()} - ${cycle === 'annual' ? 'Anual' : 'Mensal'}`,
+        name: `Plano ${plan.toUpperCase()}`,
         value: price,
         quantity: 1,
-        // Adicionando um placeholder, já que a API parece exigir, mas não temos uma imagem real.
-        // Este é um PNG transparente 1x1 em base64.
+        // PNG transparente 1x1 em base64 como placeholder obrigatório
         imageBase64: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
       }]
     };
     
-    console.log("[Asaas Checkout Action] Corpo da requisição de checkout:", JSON.stringify(checkoutBody, null, 2));
-
     const checkoutResponse = await fetch('https://sandbox.asaas.com/api/v3/checkouts', {
         method: 'POST',
         headers: { 'accept': 'application/json', 'content-type': 'application/json', 'access_token': apiKey },
@@ -172,9 +148,14 @@ export async function createAsaasCheckoutAction(input: CreateCheckoutInput): Pro
          throw new Error('A API da Asaas não retornou uma URL de checkout.');
     }
 
-    // Salva o checkoutId para referência no webhook
-    await firestore.collection('users').doc(userId).update({ 'subscription.asaasCheckoutId': checkoutData.id });
-    console.log(`[Asaas Action] Checkout ID ${checkoutData.id} salvo para o usuário ${userId}.`);
+    // 2. Salvar os dados de endereço preenchidos no perfil do usuário para uso futuro
+    const userRef = firestore.collection('users').doc(userId);
+    await userRef.update({
+        cpfCnpj,
+        phone,
+        postalCode,
+        addressNumber,
+    });
     
     return { checkoutUrl: checkoutData.url };
 
@@ -183,5 +164,3 @@ export async function createAsaasCheckoutAction(input: CreateCheckoutInput): Pro
     return { error: e.message || 'Ocorreu um erro de comunicação com o provedor de pagamento.' };
   }
 }
-
-    
