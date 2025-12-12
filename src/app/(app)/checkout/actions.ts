@@ -92,13 +92,15 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
     nextDueDate.setDate(nextDueDate.getDate() + 2); // Ajusta a data de vencimento para D+2
     
     const checkoutBody: any = {
-      billingTypes: [billingType], // Alterado para array
-      chargeTypes: ["RECURRENT"],    // Alterado para array
+      billingTypes: [billingType],
+      chargeType: "RECURRENT", // Alterado para chargeType singular conforme exemplos de recorrência
       callback: {
         successUrl: `${appUrl}/dashboard?checkout=success`,
+        cancelUrl: `${appUrl}/subscribe`,
+        expiredUrl: `${appUrl}/subscribe?status=expired`,
         autoRedirect: true,
       },
-      customerData: { // Alterado de 'customer' para 'customerData'
+      customerData: { 
           name,
           email,
           cpfCnpj,
@@ -116,17 +118,18 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
             quantity: 1,
         }
       ],
-      subscription: {
-        cycle: cycle === 'annual' ? 'YEARLY' : 'MONTHLY',
-        nextDueDate: nextDueDate.toISOString().split('T')[0],
-      },
     };
 
-     // Remove 'subscription' para pagamentos únicos com PIX
-    if (billingType === 'PIX') {
-      delete checkoutBody.subscription;
-      checkoutBody.chargeTypes = ['DETACHED']; // Pagamento único
+    // Para pagamentos recorrentes (assinaturas), o objeto 'subscription' é necessário
+    if (billingType === 'CREDIT_CARD') {
+        checkoutBody.subscription = {
+          cycle: cycle === 'annual' ? 'YEARLY' : 'MONTHLY',
+          nextDueDate: nextDueDate.toISOString().split('T')[0],
+        }
+    } else { // PIX
+      checkoutBody.chargeType = 'DETACHED'; // Pagamento único com PIX
     }
+
     
     const checkoutResponse = await fetch('https://sandbox.asaas.com/api/v3/checkouts', {
         method: 'POST',
@@ -141,9 +144,9 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
         throw new Error(checkoutData.errors?.[0]?.description || 'Falha ao criar checkout na Asaas.');
     }
     
-    if (!checkoutData.link) {
-         console.error('[Asaas Checkout Action] Resposta da API não continha URL:', checkoutData);
-         throw new Error('API da Asaas não retornou URL de checkout.');
+    if (!checkoutData.id) {
+         console.error('[Asaas Checkout Action] Resposta da API não continha ID de checkout:', checkoutData);
+         throw new Error('API da Asaas não retornou ID de checkout.');
     }
 
     // 2. Salvar o mapeamento da sessão de checkout no Firestore
@@ -154,7 +157,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
       cycle,
       createdAt: Timestamp.now(),
       asaasSubscriptionId: checkoutData.subscription?.id,
-      asaasCustomerId: checkoutData.customerData?.id,
+      asaasCustomerId: checkoutData.customer,
       source: 'checkout-session'
     });
 
@@ -170,7 +173,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
         city: addressDetails.city,
     });
     
-    return { checkoutUrl: checkoutData.link };
+    return { checkoutUrl: checkoutData.url };
 
   } catch (e: any) {
     console.error('[Asaas Checkout Action] Erro no fluxo:', e);
