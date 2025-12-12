@@ -32,27 +32,10 @@ interface CheckoutActionState {
 
 // --- Função para criar ou encontrar cliente na Asaas ---
 async function findOrCreateAsaasCustomer(apiKey: string, customerData: { name: string, email: string, cpfCnpj: string, phone: string, postalCode: string, addressNumber: string }): Promise<string> {
-<<<<<<< HEAD
-    // Tenta encontrar o cliente pelo CPF/CNPJ primeiro
-    const searchResponse = await fetch(`https://api.asaas.com/v3/customers?cpfCnpj=${customerData.cpfCnpj}`, {
-        headers: { 'accept': 'application/json', 'access_token': apiKey },
-    });
-    const searchData: any = await searchResponse.json();
-
-    if (searchData.data && searchData.data.length > 0) {
-        console.log(`[Asaas Customer] Cliente encontrado: ${searchData.data[0].id}`);
-        return searchData.data[0].id;
-    }
-    
-    // Se não encontrar, cria um novo cliente
-    console.log(`[Asaas Customer] Cliente não encontrado. Criando novo cliente...`);
-    const createResponse = await fetch('https://api.asaas.com/v3/customers', {
-=======
     const apiUrl = 'https://api.asaas.com/v3';
     
     // Tenta criar um novo cliente. Se já existir (pelo CPF/CNPJ), a Asaas retornará o cliente existente.
     const createResponse = await fetch(`${apiUrl}/customers`, {
->>>>>>> 10aba7a01d00769ac12456cadd28deead474d4f2
         method: 'POST',
         headers: { 'accept': 'application/json', 'content-type': 'application/json', 'access_token': apiKey },
         body: JSON.stringify({
@@ -151,11 +134,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
         }
     }
     
-<<<<<<< HEAD
-    const checkoutResponse = await fetch('https://api.asaas.com/v3/checkouts', {
-=======
     const checkoutResponse = await fetch(`${apiUrl}/checkouts`, {
->>>>>>> 10aba7a01d00769ac12456cadd28deead474d4f2
         method: 'POST',
         headers: { 'accept': 'application/json', 'content-type': 'application/json', 'access_token': apiKey },
         body: JSON.stringify(checkoutBody)
@@ -194,11 +173,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
         addressNumber,
     });
     
-<<<<<<< HEAD
-    const finalCheckoutUrl = `https://www.asaas.com/c/${checkoutData.id}`;
-=======
     const finalCheckoutUrl = checkoutData.url;
->>>>>>> 10aba7a01d00769ac12456cadd28deead474d4f2
 
     return { checkoutUrl: finalCheckoutUrl };
 
