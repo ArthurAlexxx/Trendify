@@ -88,15 +88,15 @@ function CheckoutPageContent() {
             phone: userProfile.phone || '',
             postalCode: userProfile.postalCode || '',
             addressNumber: userProfile.addressNumber || '',
-            billingType: isPixDisabled ? 'CREDIT_CARD' : 'CREDIT_CARD',
+            billingType: 'CREDIT_CARD',
         });
     } else if (user) {
         form.reset({
             name: user.displayName || '',
-            billingType: isPixDisabled ? 'CREDIT_CARD' : 'CREDIT_CARD',
+            billingType: 'CREDIT_CARD',
         });
     }
-  }, [userProfile, user, form, isPixDisabled]);
+  }, [userProfile, user, form]);
 
 
   useEffect(() => {
@@ -203,10 +203,10 @@ function CheckoutPageContent() {
                         </RadioGroup>
                         </FormControl>
                         <FormMessage />
-                         {isPixDisabled && selectedBillingType === 'PIX' && (
-                          <Alert variant="destructive" className="text-xs">
+                         {isPixDisabled && (
+                          <Alert variant="destructive" className="text-xs mt-2">
                             <AlertDescription>
-                              O pagamento com PIX não é suportado para assinaturas anuais recorrentes. Por favor, selecione Cartão de Crédito.
+                              O pagamento com PIX não é suportado para assinaturas anuais. Por favor, selecione Cartão de Crédito.
                             </AlertDescription>
                           </Alert>
                         )}

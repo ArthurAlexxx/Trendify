@@ -93,12 +93,13 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
     
     const checkoutBody: any = {
       billingTypes: [billingType],
-      chargeTypes: billingType === 'CREDIT_CARD' ? ['RECURRENT'] : ['DETACHED'],
+      chargeTypes: billingType === 'CREDIT_CARD' && cycle === 'annual' ? ['RECURRENT'] : ['DETACHED'],
+      minutesToExpire: 60, // Válido por 1 hora
       callback: {
         successUrl: `${appUrl}/dashboard?checkout=success`,
+        autoRedirect: true,
         cancelUrl: `${appUrl}/subscribe?status=cancelled`,
         expiredUrl: `${appUrl}/subscribe?status=expired`,
-        autoRedirect: true,
       },
       customerData: { 
           name,
@@ -113,17 +114,17 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
       },
       items: [
         {
-            name: `Plano ${plan.charAt(0).toUpperCase() + plan.slice(1)}`,
+            name: `Plano ${plan.charAt(0).toUpperCase() + plan.slice(1)} (${cycle === 'annual' ? 'Anual' : 'Mensal'})`,
             value: price,
             quantity: 1,
         }
       ],
     };
 
-    // Para pagamentos recorrentes (assinaturas), o objeto 'subscription' é necessário
-    if (billingType === 'CREDIT_CARD') {
+    // Para pagamentos recorrentes (assinaturas anuais), o objeto 'subscription' é necessário
+    if (billingType === 'CREDIT_CARD' && cycle === 'annual') {
         checkoutBody.subscription = {
-          cycle: cycle === 'annual' ? 'YEARLY' : 'MONTHLY',
+          cycle: 'YEARLY',
           nextDueDate: nextDueDate.toISOString().split('T')[0],
         }
     }
