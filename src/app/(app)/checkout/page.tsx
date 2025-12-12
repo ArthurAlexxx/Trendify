@@ -75,11 +75,6 @@ function CheckoutPageContent() {
 
   const selectedBillingType = form.watch('billingType');
 
-  // Determina se a opção PIX deve ser desabilitada
-  const isPixDisabled = useMemo(() => {
-    return cycle === 'annual';
-  }, [cycle]);
-
   useEffect(() => {
     if(userProfile) {
         form.reset({
@@ -97,14 +92,6 @@ function CheckoutPageContent() {
         });
     }
   }, [userProfile, user, form]);
-
-
-  useEffect(() => {
-    // Se PIX estiver desabilitado e selecionado, muda para Cartão de Crédito
-    if (isPixDisabled && form.getValues('billingType') === 'PIX') {
-      form.setValue('billingType', 'CREDIT_CARD');
-    }
-  }, [isPixDisabled, form]);
 
 
   useEffect(() => {
@@ -191,31 +178,24 @@ function CheckoutPageContent() {
                     <FormItem className="space-y-3">
                         <FormControl>
                         <RadioGroup onValueChange={field.onChange} value={field.value} className="grid grid-cols-2 gap-4">
-                            <FormItem><FormControl><RadioGroupItem value="CREDIT_CARD" id="cc" className="sr-only" /></FormControl><Label htmlFor="cc" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer [&:has([data-state=checked])]:border-primary"><CreditCard className="mb-3 h-6 w-6" /> Cartão</Label></FormItem>
+                            <FormItem><FormControl><RadioGroupItem value="CREDIT_CARD" id="cc" className="sr-only" /></FormControl><Label htmlFor="cc" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer [&:has([data-state=checked])]:border-primary"><CreditCard className="mb-3 h-6 w-6" /> Cartão de Crédito</Label></FormItem>
                             <FormItem>
                               <FormControl>
-                                <RadioGroupItem value="PIX" id="pix" className="sr-only" disabled={isPixDisabled} />
+                                <RadioGroupItem value="PIX" id="pix" className="sr-only" />
                               </FormControl>
-                              <Label htmlFor="pix" className={`flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground ${isPixDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} [&:has([data-state=checked])]:border-primary`}>
+                              <Label htmlFor="pix" className={`flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer [&:has([data-state=checked])]:border-primary`}>
                                 <Banknote className="mb-3 h-6 w-6" /> PIX
                               </Label>
                             </FormItem>
                         </RadioGroup>
                         </FormControl>
                         <FormMessage />
-                         {isPixDisabled && (
-                          <Alert variant="destructive" className="text-xs mt-2">
-                            <AlertDescription>
-                              O pagamento com PIX não é suportado para assinaturas anuais. Por favor, selecione Cartão de Crédito.
-                            </AlertDescription>
-                          </Alert>
-                        )}
                     </FormItem>
                     )}
                 />
 
                 {error && <Alert variant="destructive"><AlertDescription>{error}</AlertDescription></Alert>}
-                <Button type="submit" disabled={isPending || isProfileLoading || (isPixDisabled && selectedBillingType === 'PIX')} className="w-full h-12 text-base">
+                <Button type="submit" disabled={isPending || isProfileLoading} className="w-full h-12 text-base">
                     {isPending || isProfileLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ExternalLink className="mr-2 h-4 w-4" />}
                     Ir para o Pagamento
                 </Button>
