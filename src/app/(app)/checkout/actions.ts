@@ -98,7 +98,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
     
     const checkoutBody: any = {
       billingType,
-      chargeType: "RECURRENT", // Corrigido para chargeType no singular
+      chargeType: "RECURRENT",
       callback: {
         successUrl: `${appUrl}/dashboard?checkout=success`,
         autoRedirect: true,
@@ -113,11 +113,16 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
           addressNumber,
           province: addressDetails.province,
       },
+      items: [
+        {
+            name: `Plano ${plan.charAt(0).toUpperCase() + plan.slice(1)}`,
+            value: price,
+            quantity: 1,
+        }
+      ],
       subscription: {
         cycle: cycle === 'annual' ? 'YEARLY' : 'MONTHLY',
-        description: `Assinatura Plano ${plan} (${cycle})`,
         nextDueDate: nextDueDate.toISOString().split('T')[0],
-        value: price,
       },
     };
     
@@ -148,6 +153,9 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
       plan,
       cycle,
       createdAt: Timestamp.now(),
+      asaasSubscriptionId: checkoutData.subscription?.id,
+      asaasCustomerId: checkoutData.customerData?.id,
+      source: 'checkout-session'
     });
 
     // 3. Salvar os dados de endereço preenchidos no perfil do usuário para uso futuro

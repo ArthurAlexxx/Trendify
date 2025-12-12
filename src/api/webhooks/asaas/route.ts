@@ -66,34 +66,37 @@ async function logWebhook(firestore: ReturnType<typeof getFirestore>, event: any
   }
 }
 
-// Função para encontrar o userId usando o checkoutSessionId.
-async function findUserInfo(firestore: ReturnType<typeof getFirestore>, payload: any): Promise<{ userId: string; plan: Plan; cycle: 'monthly' | 'annual' } | null> {
+// Função para encontrar o userId usando diferentes métodos de fallback
+async function findUserInfo(firestore: ReturnType<typeof getFirestore>, payment: any): Promise<{ userId: string; plan: Plan; cycle: 'monthly' | 'annual' } | null> {
     
-    // O método primário e único para encontrar os dados da compra.
-    const checkoutSessionId = payload?.checkoutSession;
-
-    if (!checkoutSessionId) {
-        console.warn(`[Webhook] Nenhum checkoutSessionId encontrado no payload do evento.`);
-        return null;
-    }
-
-    console.log(`[Webhook] Procurando dados para checkoutSessionId: ${checkoutSessionId}`);
-    const checkoutRef = firestore.collection('asaasCheckouts').doc(checkoutSessionId);
-    const checkoutDoc = await checkoutRef.get();
-
-    if (checkoutDoc.exists) {
-        const checkoutData = checkoutDoc.data();
-        if (checkoutData && checkoutData.userId && checkoutData.plan && checkoutData.cycle) {
-            console.log(`[Webhook] Informações encontradas no Firestore via checkoutSession: userId=${checkoutData.userId}`);
-            return {
-                userId: checkoutData.userId,
-                plan: checkoutData.plan,
-                cycle: checkoutData.cycle
-            };
+    // 1. Tenta via checkoutSession (quando existir — pagamentos iniciais)
+    if (payment.checkoutSession) {
+        const doc = await firestore.collection('asaasCheckouts').doc(payment.checkoutSession).get();
+        if (doc.exists) {
+            console.log(`[Webhook] User found by checkoutSession: ${doc.id}`);
+            return doc.data() as { userId: string; plan: Plan; cycle: 'monthly' | 'annual' };
         }
     }
-    
-    console.error(`[Webhook] ERRO: O documento para o checkoutSessionId '${checkoutSessionId}' não foi encontrado no Firestore.`);
+
+    // 2. Tenta via subscriptionId (pagamentos recorrentes)
+    if (payment.subscription) {
+        const snap = await firestore.collection('asaasCheckouts').where('asaasSubscriptionId', '==', payment.subscription).limit(1).get();
+        if (!snap.empty) {
+            console.log(`[Webhook] User found by asaasSubscriptionId: ${payment.subscription}`);
+            return snap.docs[0].data() as { userId: string; plan: Plan; cycle: 'monthly' | 'annual' };
+        }
+    }
+
+    // 3. Tenta via customerId (caso extremo)
+    if (payment.customer) {
+        const snap = await firestore.collection('asaasCheckouts').where('asaasCustomerId', '==', payment.customer).limit(1).get();
+        if (!snap.empty) {
+            console.log(`[Webhook] User found by asaasCustomerId: ${payment.customer}`);
+            return snap.docs[0].data() as { userId: string; plan: Plan; cycle: 'monthly' | 'annual' };
+        }
+    }
+
+    console.error(`[Webhook] ERRO: Não foi possível resolver o usuário para o evento.`);
     return null;
 }
 
@@ -185,7 +188,7 @@ export async function POST(req: NextRequest) {
 
   if (!userInfo || !userInfo.userId || !userInfo.plan || !userInfo.cycle) {
     console.warn('[Asaas Webhook] Não foi possível resolver as informações do usuário a partir do payload de pagamento.');
-    return NextResponse.json({ success: true, message: 'Evento de pagamento recebido, mas não foi possível associar a um usuário ou plano.' });
+    return NextResponse.json({ success: true, message: 'Evento recebido, mas não foi possível associar a um usuário ou plano.' });
   }
   
   const userRef = firestore.collection('users').doc(userInfo.userId);

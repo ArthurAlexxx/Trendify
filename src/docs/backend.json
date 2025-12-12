@@ -177,7 +177,10 @@
             "userId": { "type": "string", "description": "The Firestore user ID." },
             "plan": { "type": "string", "enum": ["pro", "premium"], "description": "The plan being purchased." },
             "cycle": { "type": "string", "enum": ["monthly", "annual"], "description": "The billing cycle." },
-            "createdAt": { "type": "string", "format": "date-time", "description": "The timestamp when the checkout was created." }
+            "createdAt": { "type": "string", "format": "date-time", "description": "The timestamp when the checkout was created." },
+            "asaasSubscriptionId": { "type": "string", "description": "The subscription ID from Asaas." },
+            "asaasCustomerId": { "type": "string", "description": "The customer ID from Asaas." },
+            "source": { "type": "string", "description": "The source of the checkout creation."}
         },
         "required": ["userId", "plan", "cycle", "createdAt"]
     },
@@ -500,5 +503,3 @@
     }
   }
 }
-
-    
