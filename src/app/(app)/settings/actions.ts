@@ -22,7 +22,7 @@ export async function resetLastSyncAction(
 ): Promise<ActionState> {
   const parsed = resetSchema.safeParse(input);
   if (!parsed.success) {
-    return { error: 'ID do usuário inválido.' };
+    return { error: 'ID de usuário inválido.' };
   }
 
   const { userId } = parsed.data;
@@ -48,13 +48,10 @@ export async function resetLastSyncAction(
 
     await userRef.update(updatePayload);
 
-    // Optional: Delete recent posts if needed, but for now just resetting metrics.
-    // This keeps the user connected but ready for a fresh sync.
-
     return { success: true };
   } catch (e: any) {
     console.error('[resetLastSyncAction] Error:', e);
-    return { error: e.message || 'Ocorreu um erro desconhecido.' };
+    return { error: e.message || 'Erro desconhecido ao resetar sincronização.' };
   }
 }
 
@@ -66,7 +63,7 @@ export async function resetAllMetricsAction(
 ): Promise<ActionState> {
   const parsed = resetSchema.safeParse(input);
   if (!parsed.success) {
-    return { error: 'ID do usuário inválido.' };
+    return { error: 'ID de usuário inválido.' };
   }
 
   const { userId } = parsed.data;
@@ -109,13 +106,13 @@ export async function resetAllMetricsAction(
     return { success: true };
   } catch (e: any) {
     console.error('[resetAllMetricsAction] Error:', e);
-    return { error: e.message || 'Ocorreu um erro desconhecido.' };
+    return { error: e.message || 'Erro desconhecido ao resetar métricas.' };
   }
 }
 
 const subscriptionActionSchema = z.object({
-  userId: z.string().min(1, 'O ID do usuário é obrigatório.'),
-  asaasSubscriptionId: z.string().min(1, 'O ID da assinatura Asaas é obrigatório.'),
+  userId: z.string().min(1, 'ID de usuário obrigatório.'),
+  asaasSubscriptionId: z.string().min(1, 'ID da assinatura Asaas obrigatório.'),
 });
 
 /**
@@ -126,14 +123,14 @@ export async function cancelAsaasSubscriptionAction(
 ): Promise<ActionState> {
   const parsed = subscriptionActionSchema.safeParse(input);
   if (!parsed.success) {
-    return { error: 'Dados inválidos.' };
+    return { error: 'Dados de cancelamento inválidos.' };
   }
 
   const { userId, asaasSubscriptionId } = parsed.data;
   const apiKey = process.env.ASAAS_API_KEY;
 
   if (!apiKey) {
-    return { error: 'Erro de configuração do servidor: ASAAS_API_KEY não encontrada.' };
+    return { error: 'Erro de configuração do servidor: ASAAS_API_KEY ausente.' };
   }
 
   try {
@@ -152,7 +149,7 @@ export async function cancelAsaasSubscriptionAction(
          console.warn(`[cancelAsaas] Tentativa de cancelar assinatura não encontrada na Asaas: ${asaasSubscriptionId}`);
       } else {
         console.error(`[cancelAsaas] Erro ao cancelar assinatura ${asaasSubscriptionId}:`, errorData);
-        throw new Error(errorData.errors?.[0]?.description || 'Falha ao cancelar a assinatura no gateway de pagamento.');
+        throw new Error(errorData.errors?.[0]?.description || 'Falha ao cancelar assinatura no gateway.');
       }
     }
     
@@ -169,8 +166,8 @@ export async function cancelAsaasSubscriptionAction(
     return { success: true };
 
   } catch (e: any) {
-    console.error(`[cancelAsaasSubscriptionAction] Erro no fluxo para ${userId}:`, e);
-    return { error: e.message || 'Ocorreu um erro de comunicação com o provedor de pagamento.' };
+    console.error(`[cancelAsaasSubscriptionAction] Erro para ${userId}:`, e);
+    return { error: e.message || 'Erro de comunicação com o provedor de pagamento.' };
   }
 }
 
@@ -183,14 +180,14 @@ export async function reactivateAsaasSubscriptionAction(
 ): Promise<ActionState> {
   const parsed = subscriptionActionSchema.safeParse(input);
   if (!parsed.success) {
-    return { error: 'Dados inválidos para reativação.' };
+    return { error: 'Dados de reativação inválidos.' };
   }
 
   const { userId, asaasSubscriptionId } = parsed.data;
   const apiKey = process.env.ASAAS_API_KEY;
 
   if (!apiKey) {
-    return { error: 'Erro de configuração do servidor: ASAAS_API_KEY não encontrada.' };
+    return { error: 'Erro de configuração do servidor: ASAAS_API_KEY ausente.' };
   }
   
   try {
@@ -215,7 +212,7 @@ export async function reactivateAsaasSubscriptionAction(
     if (!response.ok) {
       const errorData = await response.json();
       console.error(`[reactivateAsaas] Erro ao reativar assinatura ${asaasSubscriptionId}:`, errorData);
-      throw new Error(errorData.errors?.[0]?.description || 'Falha ao reativar a assinatura no gateway de pagamento.');
+      throw new Error(errorData.errors?.[0]?.description || 'Falha ao reativar assinatura no gateway.');
     }
     
     // Step 2: Update user's status in Firestore
@@ -226,7 +223,7 @@ export async function reactivateAsaasSubscriptionAction(
     return { success: true };
 
   } catch (e: any) {
-    console.error(`[reactivateAsaasSubscriptionAction] Erro no fluxo para ${userId}:`, e);
-    return { error: e.message || 'Ocorreu um erro de comunicação com o provedor de pagamento.' };
+    console.error(`[reactivateAsaasSubscriptionAction] Erro para ${userId}:`, e);
+    return { error: e.message || 'Erro de comunicação com o provedor de pagamento.' };
   }
 }

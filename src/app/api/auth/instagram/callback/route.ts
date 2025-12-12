@@ -8,8 +8,8 @@ async function exchangeCodeForToken(code: string, redirectUri: string) {
     const appSecret = process.env.META_APP_SECRET;
 
     if (!appId || !appSecret) {
-        console.error("[exchangeCodeForToken] ERRO: Credenciais do aplicativo Meta não configuradas.");
-        throw new Error("Credenciais do aplicativo Meta não configuradas no servidor.");
+        console.error("[exchangeCodeForToken] ERROR: Meta App credentials not configured.");
+        throw new Error("Server configuration error: Meta App credentials missing.");
     }
 
     const url = new URL('https://graph.facebook.com/v19.0/oauth/access_token');
@@ -18,15 +18,15 @@ async function exchangeCodeForToken(code: string, redirectUri: string) {
     url.searchParams.set('client_secret', appSecret);
     url.searchParams.set('code', code);
     
-    console.log(`[exchangeCodeForToken] Fazendo requisição para obter token de curta duração.`);
+    console.log(`[exchangeCodeForToken] Requesting short-lived token.`);
     const response = await fetch(url.toString());
     const data = await response.json();
 
     if (data.error) {
-        console.error("[exchangeCodeForToken] Erro da API do Facebook ao trocar código:", data.error);
-        throw new Error(data.error.message || "Erro desconhecido ao obter token de acesso.");
+        console.error("[exchangeCodeForToken] Facebook API error during code exchange:", data.error);
+        throw new Error(data.error.message || "Failed to get access token.");
     }
-    console.log("[exchangeCodeForToken] Token de curta duração obtido com sucesso.");
+    console.log("[exchangeCodeForToken] Short-lived token obtained successfully.");
     return { accessToken: data.access_token };
 }
 
@@ -35,8 +35,8 @@ async function getLongLivedAccessToken(shortLivedToken: string): Promise<string>
     const appSecret = process.env.META_APP_SECRET;
 
     if (!appId || !appSecret) {
-        console.error("[getLongLivedAccessToken] ERRO: Credenciais do aplicativo Meta não configuradas.");
-        throw new Error("Credenciais do aplicativo Meta não configuradas no servidor.");
+        console.error("[getLongLivedAccessToken] ERROR: Meta App credentials not configured.");
+        throw new Error("Server configuration error: Meta App credentials missing.");
     }
 
     const url = new URL('https://graph.facebook.com/v19.0/oauth/access_token');
@@ -45,20 +45,20 @@ async function getLongLivedAccessToken(shortLivedToken: string): Promise<string>
     url.searchParams.set('client_secret', appSecret);
     url.searchParams.set('fb_exchange_token', shortLivedToken);
 
-    console.log(`[getLongLivedAccessToken] Fazendo requisição para obter token de longa duração.`);
+    console.log(`[getLongLivedAccessToken] Requesting long-lived token.`);
     const response = await fetch(url.toString());
     const data = await response.json();
 
     if (data.error) {
-        console.error("[getLongLivedAccessToken] Erro da API do Facebook ao obter token de longa duração:", data.error);
-        throw new Error(data.error.message || "Erro ao obter token de longa duração.");
+        console.error("[getLongLivedAccessToken] Facebook API error getting long-lived token:", data.error);
+        throw new Error(data.error.message || "Failed to get long-lived token.");
     }
-    console.log("[getLongLivedAccessToken] Token de longa duração obtido com sucesso.");
+    console.log("[getLongLivedAccessToken] Long-lived token obtained successfully.");
     return data.access_token;
 }
 
 async function getInstagramAccountInfo(accessToken: string) {
-    console.log(`[getInstagramAccountInfo] Buscando informações da conta do Instagram.`);
+    console.log(`[getInstagramAccountInfo] Fetching Instagram account info.`);
     
     const fields = 'id,username,account_type,followers_count,media_count,profile_picture_url,biography';
     const url = new URL(`https://graph.instagram.com/me`);
@@ -69,22 +69,22 @@ async function getInstagramAccountInfo(accessToken: string) {
     const data = await response.json();
 
     if (data.error) {
-        console.error("[getInstagramAccountInfo] Erro ao buscar dados da conta do Instagram:", data.error);
-        throw new Error(data.error?.message || "Falha ao buscar dados da conta do Instagram.");
+        console.error("[getInstagramAccountInfo] Error fetching Instagram account data:", data.error);
+        throw new Error(data.error?.message || "Failed to fetch Instagram account data.");
     }
     
     if (data.account_type !== 'BUSINESS' && data.account_type !== 'MEDIA_CREATOR') {
-        throw new Error(`A conta do Instagram '${data.username}' precisa ser do tipo 'Comercial' ou 'Criador de Conteúdo' para usar a integração.`);
+        throw new Error(`Instagram account '${data.username}' must be a 'Business' or 'Creator' account.`);
     }
     
-    console.log(`[getInstagramAccountInfo] Informações da conta obtidas:`, data);
+    console.log(`[getInstagramAccountInfo] Account info obtained:`, data);
     return data;
 }
 
 // --- Rota da API (GET) ---
 
 export async function GET(req: NextRequest) {
-    console.log('[API Callback] Nova requisição GET recebida.');
+    console.log('[API Callback] New GET request received.');
     const url = new URL(req.url);
     const code = url.searchParams.get('code');
     const stateFromUrlStr = url.searchParams.get('state');
@@ -96,23 +96,23 @@ export async function GET(req: NextRequest) {
     const stateFromCookieStr = cookieStore.get('csrf_state')?.value;
     
     if (error) {
-        console.warn(`[API Callback] Erro recebido do Facebook: ${error} - ${errorDescription}`);
+        console.warn(`[API Callback] Error received from Facebook: ${error} - ${errorDescription}`);
         settingsUrl.searchParams.set('error', error);
         if (errorDescription) settingsUrl.searchParams.set('error_description', errorDescription);
         return NextResponse.redirect(settingsUrl);
     }
     
     if (!code) {
-        console.error(`[API Callback] ERRO: Código de autorização não encontrado na URL.`);
+        console.error(`[API Callback] ERROR: Authorization code not found in URL.`);
         settingsUrl.searchParams.set('error', 'authorization_code_missing');
-        settingsUrl.searchParams.set('error_description', 'Código de autorização não encontrado.');
+        settingsUrl.searchParams.set('error_description', 'Authorization code not found.');
         return NextResponse.redirect(settingsUrl);
     }
 
      if (!stateFromUrlStr || !stateFromCookieStr) {
-        console.error('[API Callback] ERRO: State da URL ou do cookie não encontrado.');
+        console.error('[API Callback] ERROR: URL state or cookie state not found.');
         settingsUrl.searchParams.set('error', 'state_missing');
-        settingsUrl.searchParams.set('error_description', 'Parâmetro state de validação não encontrado.');
+        settingsUrl.searchParams.set('error_description', 'Validation state parameter not found.');
         return NextResponse.redirect(settingsUrl);
     }
 
@@ -121,15 +121,15 @@ export async function GET(req: NextRequest) {
         const stateFromCookie = JSON.parse(stateFromCookieStr);
 
         if (stateFromUrl.csrf !== stateFromCookie.csrf) {
-            const errorMsg = 'Falha na validação CSRF (state mismatch). A requisição não é confiável.';
-            console.error(`[API Callback] ERRO: ${errorMsg}`);
+            const errorMsg = 'CSRF validation failed (state mismatch). Request is not trusted.';
+            console.error(`[API Callback] ERROR: ${errorMsg}`);
             settingsUrl.searchParams.set('error', 'csrf_validation_failed');
             settingsUrl.searchParams.set('error_description', errorMsg);
             return NextResponse.redirect(settingsUrl);
         }
         
         const uid = stateFromCookie.uid;
-        console.log(`[API Callback] Validação de estado e CSRF bem-sucedida para o UID: ${uid}`);
+        console.log(`[API Callback] State and CSRF validation successful for UID: ${uid}`);
         cookieStore.delete('csrf_state');
 
         const redirectUri = `${req.nextUrl.origin}/api/auth/instagram/callback`;
@@ -164,14 +164,14 @@ export async function GET(req: NextRequest) {
             averageComments: null,
         });
 
-        console.log(`[API Callback] SUCESSO: Dados do Instagram para o UID ${uid} foram atualizados no Firestore.`);
+        console.log(`[API Callback] SUCCESS: Instagram data for UID ${uid} updated in Firestore.`);
         settingsUrl.searchParams.set('instagram_connected', 'true');
         return NextResponse.redirect(settingsUrl);
 
     } catch (e: any) {
-        console.error("[API Callback] Erro no fluxo de callback do Instagram:", e);
+        console.error("[API Callback] Error in Instagram callback flow:", e);
         settingsUrl.searchParams.set('error', 'instagram_flow_failed');
-        settingsUrl.searchParams.set('error_description', e.message || 'Erro desconhecido durante a conexão com o Instagram.');
+        settingsUrl.searchParams.set('error_description', e.message || 'Unknown error during Instagram connection.');
         return NextResponse.redirect(settingsUrl);
     }
 }

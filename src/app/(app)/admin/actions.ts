@@ -58,7 +58,7 @@ export async function changeUserPlanAction(
 ): Promise<ActionState> {
   const parsed = changePlanSchema.safeParse(input);
   if (!parsed.success) {
-    return { error: 'Dados inválidos.' };
+    return { error: 'Dados de entrada inválidos.' };
   }
 
   const { targetUserId, newPlan, newCycle, adminUserId } = parsed.data;
@@ -69,7 +69,7 @@ export async function changeUserPlanAction(
     // Verify if the calling user is an admin
     const isCallerAdmin = await verifyAdminStatus(auth, firestore, adminUserId);
     if (!isCallerAdmin) {
-      return { error: 'Permissão negada. Apenas administradores podem alterar planos.' };
+      return { error: 'Acesso negado: Ação restrita a administradores.' };
     }
     
     const userRef = firestore.collection('users').doc(targetUserId);
@@ -102,7 +102,7 @@ export async function changeUserPlanAction(
     return { success: true };
   } catch (e: any) {
     console.error('[changeUserPlanAction] Error:', e);
-    return { error: e.message || 'Ocorreu um erro desconhecido ao alterar o plano.' };
+    return { error: e.message || 'Erro desconhecido ao alterar o plano.' };
   }
 }
 
@@ -115,7 +115,7 @@ export async function changeUserRoleAction(
 ): Promise<ActionState> {
   const parsed = changeRoleSchema.safeParse(input);
   if (!parsed.success) {
-    return { error: 'Dados da requisição inválidos.' };
+    return { error: 'Dados de entrada inválidos.' };
   }
 
   const { targetUserId, newRole, adminUserId } = parsed.data;
@@ -125,7 +125,7 @@ export async function changeUserRoleAction(
 
     const isCallerAdmin = await verifyAdminStatus(auth, firestore, adminUserId);
     if (!isCallerAdmin) {
-      return { error: 'Permissão negada. Apenas administradores podem alterar cargos.' };
+      return { error: 'Acesso negado: Ação restrita a administradores.' };
     }
 
     const userRef = firestore.collection('users').doc(targetUserId);
@@ -134,6 +134,6 @@ export async function changeUserRoleAction(
     return { success: true };
   } catch (e: any) {
     console.error('[changeUserRoleAction] Error:', e);
-    return { error: e.message || 'Ocorreu um erro desconhecido ao alterar o cargo.' };
+    return { error: e.message || 'Erro desconhecido ao alterar o cargo.' };
   }
 }

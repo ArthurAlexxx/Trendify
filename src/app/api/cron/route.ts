@@ -12,7 +12,7 @@ import type { ConteudoAgendado } from '@/lib/types';
  */
 async function getScheduledContentForTomorrow(firestore: ReturnType<typeof getFirestore>) {
     if (!firestore) {
-        throw new Error("O Firestore não está inicializado.");
+        throw new Error("Firestore not initialized.");
     }
     
     const now = new Date();
@@ -50,7 +50,7 @@ async function getScheduledContentForTomorrow(firestore: ReturnType<typeof getFi
  */
 async function getUserEmail(firestore: ReturnType<typeof getFirestore>, userId: string): Promise<string | null> {
     if (!firestore) {
-        throw new Error("O Firestore não está inicializado.");
+        throw new Error("Firestore not initialized.");
     }
 
     const userDoc = await firestore.collection('users').doc(userId).get();
@@ -68,13 +68,13 @@ export async function GET(req: NextRequest) {
     const cronSecret = process.env.CRON_SECRET;
 
     if (!cronSecret) {
-        console.error('[Cron Job] CRÍTICO: CRON_SECRET não está definida nas variáveis de ambiente.');
-        return NextResponse.json({ error: 'Erro de configuração interna.' }, { status: 500 });
+        console.error('[Cron Job] CRITICAL: CRON_SECRET not defined in environment variables.');
+        return NextResponse.json({ error: 'Internal configuration error.' }, { status: 500 });
     }
 
     if (authHeader !== `Bearer ${cronSecret}`) {
-        console.warn('[Cron Job] Tentativa de acesso não autorizada.');
-        return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+        console.warn('[Cron Job] Unauthorized access attempt.');
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // 2. Lógica do Cron Job
@@ -82,20 +82,20 @@ export async function GET(req: NextRequest) {
     try {
         firestore = initializeFirebaseAdmin().firestore;
     } catch (e: any) {
-        console.error('CRÍTICO: Falha ao inicializar o Firebase Admin na rota do cron.', e.message);
-        return NextResponse.json({ error: 'Erro Interno do Servidor: Não foi possível conectar ao banco de dados.' }, { status: 500 });
+        console.error('CRITICAL: Failed to initialize Firebase Admin in cron route.', e.message);
+        return NextResponse.json({ error: 'Internal Server Error: Could not connect to database.' }, { status: 500 });
     }
 
     const webhookUrl = process.env.N8N_WEBHOOK_URL;
     if (!webhookUrl) {
-        console.error('[Cron Job] N8N_WEBHOOK_URL não está definida.');
-        return NextResponse.json({ error: 'URL do Webhook não configurada' }, { status: 500 });
+        console.error('[Cron Job] N8N_WEBHOOK_URL not defined.');
+        return NextResponse.json({ error: 'Webhook URL not configured' }, { status: 500 });
     }
 
     try {
         const tasks = await getScheduledContentForTomorrow(firestore);
         if (tasks.length === 0) {
-            return NextResponse.json({ message: 'Nenhuma tarefa agendada para amanhã.' });
+            return NextResponse.json({ message: 'No tasks scheduled for tomorrow.' });
         }
         
         const enrichedTasks = (await Promise.all(tasks.map(async (task: ConteudoAgendado) => {
@@ -114,7 +114,7 @@ export async function GET(req: NextRequest) {
         
 
         if (enrichedTasks.length === 0) {
-            return NextResponse.json({ message: 'Nenhuma tarefa com usuário válido encontrada para amanhã.' });
+            return NextResponse.json({ message: 'No tasks found with valid user for tomorrow.' });
         }
 
         const n8nResponse = await fetch(webhookUrl, {
@@ -125,18 +125,18 @@ export async function GET(req: NextRequest) {
 
         if (!n8nResponse.ok) {
             const errorBody = await n8nResponse.text();
-            console.error(`[Cron Job] Erro ao enviar dados para o n8n: Status ${n8nResponse.status}`, errorBody);
-            throw new Error(`Webhook do n8n falhou com status ${n8nResponse.status}`);
+            console.error(`[Cron Job] Error sending data to n8n: Status ${n8nResponse.status}`, errorBody);
+            throw new Error(`n8n webhook failed with status ${n8nResponse.status}`);
         }
 
         return NextResponse.json({ 
-            message: `Enviados ${enrichedTasks.length} jobs de e-mail para o n8n com sucesso.`,
+            message: `Successfully sent ${enrichedTasks.length} email jobs to n8n.`,
         });
 
     } catch (error: any) {
-        const errorMessage = error.details || error.message || 'Erro desconhecido no Firestore.';
-        console.error(`[Cron Job] Erro durante a execução: ${errorMessage}`, error);
+        const errorMessage = error.details || error.message || 'Unknown Firestore error.';
+        console.error(`[Cron Job] Execution error: ${errorMessage}`, error);
         
-        return NextResponse.json({ error: 'Erro Interno do Servidor: ' + errorMessage }, { status: 500 });
+        return NextResponse.json({ error: 'Internal Server Error: ' + errorMessage }, { status: 500 });
     }
 }

@@ -35,7 +35,7 @@ async function getAddressFromCep(cep: string): Promise<{ address: string; provin
     try {
         const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
         if (!response.ok) {
-            return { error: "Não foi possível consultar o CEP.", address: "", province: "", city: "" };
+            return { error: "Consulta de CEP falhou.", address: "", province: "", city: "" };
         }
         const data: any = await response.json();
         if (data.erro) {
@@ -48,7 +48,7 @@ async function getAddressFromCep(cep: string): Promise<{ address: string; provin
         };
     } catch (e) {
         console.error("Erro ao buscar CEP:", e);
-        return { error: "Falha ao comunicar com o serviço de CEP.", address: "", province: "", city: "" };
+        return { error: "Falha na comunicação com serviço de CEP.", address: "", province: "", city: "" };
     }
 }
 
@@ -65,7 +65,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
   const parsed = CheckoutFormSchema.safeParse(input);
   if (!parsed.success) {
       const errorMessages = parsed.error.issues.map(issue => issue.message).join(' ');
-      return { error: `Dados inválidos: ${errorMessages}` };
+      return { error: `Dados de checkout inválidos: ${errorMessages}` };
   }
 
   const {
@@ -74,14 +74,15 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
   } = parsed.data;
 
   // Validação para PIX em pagamentos recorrentes
-  if (billingType === 'PIX' && (cycle === 'monthly' || cycle === 'annual')) {
-    return { error: "PIX não é suportado para assinaturas recorrentes. Por favor, escolha Cartão de Crédito." };
+  if (billingType === 'PIX' && cycle !== 'monthly') {
+    return { error: "PIX não é suportado para assinaturas recorrentes. Use cartão de crédito." };
   }
+
 
   const apiKey = process.env.ASAAS_API_KEY;
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
   
-  if (!apiKey || !appUrl) return { error: 'Erro de configuração do servidor.' };
+  if (!apiKey || !appUrl) return { error: 'Erro de configuração do servidor: Chaves de API ou URL da aplicação ausentes.' };
 
   try {
     const { firestore } = initializeFirebaseAdmin();
@@ -126,8 +127,6 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
       },
     };
     
-    console.log('[Asaas Checkout Action] Corpo da requisição de checkout:', JSON.stringify(checkoutBody, null, 2));
-
     const checkoutResponse = await fetch('https://sandbox.asaas.com/api/v3/checkouts', {
         method: 'POST',
         headers: { 'accept': 'application/json', 'content-type': 'application/json', 'access_token': apiKey },
@@ -138,12 +137,12 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
 
     if (!checkoutResponse.ok) {
         console.error(`[Asaas Checkout Action] Erro na API:`, checkoutData);
-        throw new Error(checkoutData.errors?.[0]?.description || 'Falha ao criar o checkout.');
+        throw new Error(checkoutData.errors?.[0]?.description || 'Falha ao criar checkout na Asaas.');
     }
     
     if (!checkoutData.link) {
          console.error('[Asaas Checkout Action] Resposta da API não continha URL:', checkoutData);
-         throw new Error('A API da Asaas não retornou uma URL de checkout.');
+         throw new Error('API da Asaas não retornou URL de checkout.');
     }
 
     // 2. Salvar o mapeamento da sessão de checkout no Firestore
@@ -174,6 +173,6 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
 
   } catch (e: any) {
     console.error('[Asaas Checkout Action] Erro no fluxo:', e);
-    return { error: e.message || 'Ocorreu um erro de comunicação com o provedor de pagamento.' };
+    return { error: e.message || 'Erro de comunicação com o provedor de pagamento.' };
   }
 }
