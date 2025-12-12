@@ -82,7 +82,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
 
   const apiKey = process.env.ASAAS_API_KEY;
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
-  const apiUrl = "https://www.asaas.com/v3";
+  const apiUrl = "https://api.asaas.com/v3";
   
   if (!apiKey || !appUrl) return { error: 'Erro de configuração do servidor: Chaves de API ou URL da aplicação ausentes.' };
 
@@ -100,31 +100,33 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
     
     const checkoutBody: any = {
       customer: asaasCustomerId,
-      billingTypes: [billingType], // Corrigido para ser um array
+      billingType: billingType, // Mantido como string, pois a API aceita um valor aqui, embora o plural seja esperado em outro lugar
       value: price,
       dueDate: new Date().toISOString().split('T')[0],
       description: `Assinatura ${itemName}`,
       externalReference: userId,
       callback: {
         successUrl: `${appUrl}/checkout/success`,
+        cancelUrl: `${appUrl}/subscribe?status=cancelled`,
+        expiredUrl: `${appUrl}/subscribe?status=expired`,
         autoRedirect: true,
       },
+      items: [
+        {
+            name: itemName,
+            description: `Acesso ao ${itemName} da Trendify`,
+            value: price,
+            quantity: 1,
+        }
+      ]
     };
 
     if (isRecurrent) {
-        checkoutBody.chargeType = 'RECURRENT'; // Mantido como string, pois é singular na API
+        checkoutBody.chargeType = 'RECURRENT'; 
         checkoutBody.cycle = cycle === 'annual' ? 'YEARLY' : 'MONTHLY';
         checkoutBody.nextDueDate = new Date().toISOString().split('T')[0]; // Cobrança imediata
     } else { // PIX
-        checkoutBody.chargeType = 'DETACHED'; // Mantido como string, pois é singular na API
-        checkoutBody.items = [
-          {
-              name: itemName,
-              description: `Acesso ao ${itemName} da Trendify`,
-              value: price,
-              quantity: 1,
-          }
-        ];
+        checkoutBody.chargeType = 'DETACHED'; 
     }
     
     const checkoutResponse = await fetch(`${apiUrl}/checkouts`, {
