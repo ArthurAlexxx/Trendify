@@ -41,34 +41,44 @@ export default function SubscribePage() {
     const { subscription, isLoading } = useSubscription();
 
     const renderPlanButtons = (plan: 'pro' | 'premium') => {
-        // Verifica se o plano e ciclo ATUAL do usuário correspondem ao botão que está sendo renderizado.
-        const isCurrentMonthly = subscription?.plan === plan && subscription?.cycle === 'monthly' && subscription?.status === 'active';
-        const isCurrentAnnual = subscription?.plan === plan && subscription?.cycle === 'annual' && subscription?.status === 'active';
+        const isCurrentMonthly = subscription?.plan === plan && subscription?.cycle === 'monthly' && subscription.status === 'active';
+        const isCurrentAnnual = subscription?.plan === plan && subscription?.cycle === 'annual' && subscription.status === 'active';
 
-        // Lógica de texto para o botão mensal
         let monthlyCta = "Assinar Mensal";
         if (subscription?.plan === 'pro' && plan === 'premium') {
-          monthlyCta = "Fazer Upgrade (Mensal)";
+            monthlyCta = "Fazer Upgrade (Mensal)";
         }
 
-        // Lógica de texto para o botão anual
         let annualCta = "Assinar Anual";
-         if (subscription?.plan === 'pro' && plan === 'premium') {
-          annualCta = "Fazer Upgrade (Anual)";
+        if (subscription?.plan === 'pro' && plan === 'premium') {
+            annualCta = "Fazer Upgrade (Anual)";
         }
         
         return (
             <>
-                <Button asChild className="w-full" disabled={isCurrentMonthly}>
-                    <Link href={`/checkout?plan=${plan}&cycle=monthly`}>
-                         {isCurrentMonthly ? <><CheckCircle className="mr-2 h-4 w-4" /> Seu Plano Atual</> : monthlyCta}
-                    </Link>
-                </Button>
-                 <Button asChild className="w-full" variant="outline" disabled={isCurrentAnnual}>
-                    <Link href={`/checkout?plan=${plan}&cycle=annual`}>
-                         {isCurrentAnnual ? <><CheckCircle className="mr-2 h-4 w-4" /> Seu Plano Atual</> : `${annualCta} (economize 2 meses)`}
-                    </Link>
-                </Button>
+                {isCurrentMonthly ? (
+                    <Button className="w-full" disabled>
+                        <CheckCircle className="mr-2 h-4 w-4" /> Seu Plano Atual
+                    </Button>
+                ) : (
+                    <Button asChild className="w-full">
+                        <Link href={`/checkout?plan=${plan}&cycle=monthly`}>
+                            {monthlyCta}
+                        </Link>
+                    </Button>
+                )}
+
+                {isCurrentAnnual ? (
+                    <Button className="w-full" variant="outline" disabled>
+                        <CheckCircle className="mr-2 h-4 w-4" /> Seu Plano Atual
+                    </Button>
+                ) : (
+                    <Button asChild className="w-full" variant="outline">
+                        <Link href={`/checkout?plan=${plan}&cycle=annual`}>
+                            {`${annualCta} (economize 2 meses)`}
+                        </Link>
+                    </Button>
+                )}
             </>
         )
     }
