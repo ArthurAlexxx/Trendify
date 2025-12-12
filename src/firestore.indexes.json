@@ -24,17 +24,35 @@
           "order": "ASCENDING"
         },
         {
-          "fieldPath": "completedAt",
+          "fieldPath": "createdAt",
           "order": "DESCENDING"
         }
       ]
     },
     {
       "collectionGroup": "ideiasSalvas",
-      "queryScope": "COLLECTION_GROUP",
+      "queryScope": "COLLECTION",
       "fields": [
         {
+          "fieldPath": "origem",
+          "order": "ASCENDING"
+        },
+        {
           "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "ideiasSalvas",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "concluido",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "completedAt",
           "order": "DESCENDING"
         }
       ]
@@ -67,20 +85,14 @@
       "collectionGroup": "asaasCheckouts",
       "queryScope": "COLLECTION",
       "fields": [
-        {
-          "fieldPath": "asaasSubscriptionId",
-          "order": "ASCENDING"
-        }
+        { "fieldPath": "asaasSubscriptionId", "order": "ASCENDING" }
       ]
     },
     {
       "collectionGroup": "asaasCheckouts",
       "queryScope": "COLLECTION",
       "fields": [
-        {
-          "fieldPath": "asaasCustomerId",
-          "order": "ASCENDING"
-        }
+        { "fieldPath": "asaasCustomerId", "order": "ASCENDING" }
       ]
     }
   ],

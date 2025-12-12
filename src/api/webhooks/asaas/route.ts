@@ -11,14 +11,14 @@ function verifyAccessToken(req: NextRequest): boolean {
   const webhookToken = process.env.ASAAS_WEBHOOK_SECRET;
 
   if (!webhookToken) {
-    console.error("[Asaas Webhook] ERRO CRÍTICO: ASAAS_WEBHOOK_SECRET não está configurada.");
+    console.error("[Asaas Webhook] CRITICAL: ASAAS_WEBHOOK_SECRET not configured.");
     return false;
   }
   
   const receivedToken = req.headers.get('asaas-access-token');
 
   if (!receivedToken) {
-      console.error("[Asaas Webhook] Erro: Token de acesso ausente no cabeçalho 'asaas-access-token'.");
+      console.error("[Asaas Webhook] Error: Missing 'asaas-access-token' header.");
       return false;
   }
   
@@ -26,7 +26,7 @@ function verifyAccessToken(req: NextRequest): boolean {
       return true;
   }
   
-  console.error("[Asaas Webhook] Erro: O token recebido é inválido.");
+  console.error("[Asaas Webhook] Error: Invalid token received.");
   return false;
 }
 
@@ -69,7 +69,7 @@ async function logWebhook(firestore: ReturnType<typeof getFirestore>, event: any
 // Função para encontrar o userId usando diferentes métodos de fallback
 async function findUserInfo(firestore: ReturnType<typeof getFirestore>, payment: any): Promise<{ userId: string; plan: Plan; cycle: 'monthly' | 'annual' } | null> {
     
-    // 1. Tenta via checkoutSession (quando existir — pagamentos iniciais)
+    // 1. Tenta via checkoutSession (pagamentos iniciais)
     if (payment.checkoutSession) {
         const doc = await firestore.collection('asaasCheckouts').doc(payment.checkoutSession).get();
         if (doc.exists) {
@@ -105,7 +105,7 @@ async function findUserInfo(firestore: ReturnType<typeof getFirestore>, payment:
 async function processPaymentConfirmation(userRef: FirebaseFirestore.DocumentReference, payment: any, plan: Plan, cycle: 'monthly' | 'annual') {
   const userDoc = await userRef.get();
   if (!userDoc.exists) {
-    throw new Error(`Usuário ${userRef.id} não encontrado no Firestore.`);
+    throw new Error(`User ${userRef.id} not found in Firestore.`);
   }
 
   const userData = userDoc.data();
@@ -130,16 +130,18 @@ async function processPaymentConfirmation(userRef: FirebaseFirestore.DocumentRef
     'subscription.expiresAt': Timestamp.fromDate(newExpiresAt),
     'subscription.lastPaymentStatus': 'confirmed',
     'subscription.lastUpdated': Timestamp.now(),
-    'subscription.trialEndsAt': null,
+    'subscription.trialEndsAt': null, // Clear trial info on first payment
     'subscription.paymentId': payment.customer,
   };
 
+  // Only update asaasSubscriptionId if it's a subscription payment
   if (payment.subscription) {
       updatePayload['subscription.asaasSubscriptionId'] = payment.subscription;
   }
   
   await userRef.update(updatePayload);
 
+  // Record payment history
   await userRef.collection('paymentHistory').doc(payment.id).set({
     paymentId: payment.id,
     amount: payment.value,
@@ -188,7 +190,7 @@ export async function POST(req: NextRequest) {
 
   if (!userInfo || !userInfo.userId || !userInfo.plan || !userInfo.cycle) {
     console.warn('[Asaas Webhook] Não foi possível resolver as informações do usuário a partir do payload de pagamento.');
-    return NextResponse.json({ success: true, message: 'Evento recebido, mas não foi possível associar a um usuário ou plano.' });
+    return NextResponse.json({ success: true, message: 'Evento recebido, mas não foi possível associar a um usuário.' });
   }
   
   const userRef = firestore.collection('users').doc(userInfo.userId);
@@ -197,11 +199,9 @@ export async function POST(req: NextRequest) {
     switch (event.event) {
       case 'PAYMENT_RECEIVED':
       case 'PAYMENT_CONFIRMED':
-        // No evento de pagamento, o objeto `payment` está garantido
         await processPaymentConfirmation(userRef, event.payment, userInfo.plan, userInfo.cycle);
         break;
       
-      // Outros eventos relacionados ao pagamento podem ser tratados aqui
       case 'PAYMENT_OVERDUE':
         await userRef.update({
           'subscription.status': 'inactive',
@@ -218,7 +218,7 @@ export async function POST(req: NextRequest) {
         });
         break;
       default:
-        console.log(`[Asaas Webhook] Evento não relacionado à atualização de status ou já processado: ${event.event}`);
+        console.log(`[Asaas Webhook] Evento não relacionado à atualização de status: ${event.event}`);
     }
 
     return NextResponse.json({ success: true });
