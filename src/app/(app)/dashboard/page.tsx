@@ -81,25 +81,6 @@ function DashboardSkeleton() {
   );
 }
 
-function CheckoutStatusHandler() {
-    const searchParams = useSearchParams();
-    const { toast } = useToast();
-    const [hasShownToast, setHasShownToast] = useState(false);
-
-    useEffect(() => {
-        const checkoutStatus = searchParams.get('checkout');
-        if (checkoutStatus === 'success' && !hasShownToast) {
-            toast({
-                title: "Pagamento Aprovado!",
-                description: "Seu plano foi atualizado. Bem-vindo(a) à experiência completa!",
-            });
-            setHasShownToast(true);
-        }
-    }, [searchParams, toast, hasShownToast]);
-
-    return null;
-}
-
 
 export default function DashboardPage() {
   const { user, auth } = useUser();
@@ -408,9 +389,6 @@ export default function DashboardPage() {
   
   return (
     <>
-      <Suspense fallback={null}>
-        <CheckoutStatusHandler />
-      </Suspense>
       <div className="space-y-8">
         <PageHeader
           title={`Bem-vindo(a), ${userProfile?.displayName?.split(' ')[0] || 'Criador'}!`}

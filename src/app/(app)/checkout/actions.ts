@@ -67,8 +67,8 @@ async function findOrCreateAsaasCustomer(apiKey: string, customerData: { name: s
 
 const priceMap: Record<Plan, Record<'monthly' | 'annual', number>> = {
     free: { monthly: 0, annual: 0 },
-    pro: { monthly: 29.99, annual: 299.90 },
-    premium: { monthly: 39.99, annual: 399.90 },
+    pro: { monthly: 29.90, annual: 299.90 },
+    premium: { monthly: 39.90, annual: 399.90 },
 };
 
 export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promise<CheckoutActionState> {
@@ -106,7 +106,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
       chargeTypes: [isRecurrent ? 'RECURRENT' : 'DETACHED'],
       minutesToExpire: 60,
       callback: {
-        successUrl: `${appUrl}/dashboard?checkout=success`,
+        successUrl: `${appUrl}/checkout/success`,
         autoRedirect: true,
         cancelUrl: `${appUrl}/subscribe?status=cancelled`,
         expiredUrl: `${appUrl}/subscribe?status=expired`,
