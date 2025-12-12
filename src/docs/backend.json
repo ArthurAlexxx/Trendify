@@ -104,6 +104,34 @@
             "format": "date-time",
             "description": "The timestamp of the last TikTok data sync."
         },
+        "cpfCnpj": {
+            "type": "string",
+            "description": "User's CPF or CNPJ for billing."
+        },
+        "phone": {
+            "type": "string",
+            "description": "User's phone number for billing."
+        },
+        "postalCode": {
+            "type": "string",
+            "description": "User's postal code (CEP) for billing."
+        },
+        "addressNumber": {
+            "type": "string",
+            "description": "User's address number for billing."
+        },
+        "address": {
+            "type": "string",
+            "description": "User's street address for billing."
+        },
+        "province": {
+            "type": "string",
+            "description": "User's neighborhood/province for billing."
+        },
+        "city": {
+            "type": "string",
+            "description": "User's city and state for billing."
+        },
         "subscription": {
           "type": "object",
           "description": "User's subscription status.",
@@ -130,12 +158,28 @@
             },
             "paymentId": {
               "type": "string",
-              "description": "The ID of the last payment or subscription from the payment provider."
+              "description": "The ID of the customer from the payment provider (e.g., cus_...)."
+            },
+            "asaasSubscriptionId": {
+                "type": "string",
+                "description": "The ID of the subscription object on Asaas (e.g., sub_...)."
             }
           }
         }
       },
       "required": ["displayName", "email", "createdAt"]
+    },
+    "AsaasCheckout": {
+        "title": "Asaas Checkout Session",
+        "description": "Stores a temporary mapping between a checkout session ID and user/plan data.",
+        "type": "object",
+        "properties": {
+            "userId": { "type": "string", "description": "The Firestore user ID." },
+            "plan": { "type": "string", "enum": ["pro", "premium"], "description": "The plan being purchased." },
+            "cycle": { "type": "string", "enum": ["monthly", "annual"], "description": "The billing cycle." },
+            "createdAt": { "type": "string", "format": "date-time", "description": "The timestamp when the checkout was created." }
+        },
+        "required": ["userId", "plan", "cycle", "createdAt"]
     },
     "InstagramPost": {
       "title": "Instagram Post",
@@ -422,6 +466,10 @@
       "schema": { "$ref": "#/entities/WebhookLog" },
       "description": "Logs all incoming webhook events from the payment gateway."
     },
+    "/asaasCheckouts/{checkoutId}": {
+      "schema": { "$ref": "#/entities/AsaasCheckout" },
+      "description": "Stores a temporary mapping of Asaas checkout sessions to user data."
+    },
     "/apiErrors/{errorId}": {
       "schema": { "$ref": "#/entities/ApiErrorLog" },
       "description": "Logs errors from external API calls for debugging."
@@ -452,3 +500,5 @@
     }
   }
 }
+
+    

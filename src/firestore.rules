@@ -33,6 +33,12 @@ service cloud.firestore {
       allow read, list: if request.auth != null && isAdmin();
       allow create: if true;
     }
+
+    // Asaas Checkouts (server-side actions can write, no client access)
+    match /asaasCheckouts/{checkoutId} {
+        allow read, write: if false; // Deny all client-side access
+    }
   }
 }
 
+    

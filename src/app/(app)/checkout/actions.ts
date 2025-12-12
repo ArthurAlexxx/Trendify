@@ -5,6 +5,7 @@ import { z } from 'zod';
 import type { Plan } from '@/lib/types';
 import fetch from 'node-fetch';
 import { initializeFirebaseAdmin } from '@/firebase/admin';
+import { Timestamp } from 'firebase-admin/firestore';
 
 // --- Esquema de Validação para o Formulário ---
 
@@ -99,16 +100,14 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
       nextDueDate.setMonth(nextDueDate.getMonth() + 1);
     }
     
-    const externalReferencePayload = [userId, plan, cycle].join('|');
-
     const checkoutBody: any = {
       billingTypes: [billingType],
       chargeTypes: ["RECURRENT"],
-      externalReference: externalReferencePayload,
       callback: {
         successUrl: `${appUrl}/dashboard?checkout=success`,
         autoRedirect: true,
         cancelUrl: `${appUrl}/subscribe?status=cancel`,
+        expiredUrl: `${appUrl}/subscribe?status=expired`
       },
       customerData: {
           name,
@@ -129,7 +128,6 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
         name: `Plano ${plan.toUpperCase()}`,
         value: price,
         quantity: 1,
-        // PNG transparente 1x1 em base64 como placeholder obrigatório
         imageBase64: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
       }]
     };
@@ -154,7 +152,16 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
          throw new Error('A API da Asaas não retornou uma URL de checkout.');
     }
 
-    // 2. Salvar os dados de endereço preenchidos no perfil do usuário para uso futuro
+    // 2. Salvar o mapeamento da sessão de checkout no Firestore
+    const checkoutRef = firestore.collection('asaasCheckouts').doc(checkoutData.id);
+    await checkoutRef.set({
+      userId,
+      plan,
+      cycle,
+      createdAt: Timestamp.now(),
+    });
+
+    // 3. Salvar os dados de endereço preenchidos no perfil do usuário para uso futuro
     const userRef = firestore.collection('users').doc(userId);
     await userRef.update({
         cpfCnpj,
@@ -173,3 +180,5 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
     return { error: e.message || 'Ocorreu um erro de comunicação com o provedor de pagamento.' };
   }
 }
+
+    

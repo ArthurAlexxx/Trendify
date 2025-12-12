@@ -66,23 +66,37 @@ async function logWebhook(firestore: ReturnType<typeof getFirestore>, event: any
   }
 }
 
-// Função para encontrar o userId usando o externalReference
-async function findUserInfo(payload: any): Promise<{ userId: string; plan: Plan; cycle: 'monthly' | 'annual' } | null> {
+// Função para encontrar o userId usando o mapeamento do checkoutSession
+async function findUserInfo(firestore: ReturnType<typeof getFirestore>, payload: any): Promise<{ userId: string; plan: Plan; cycle: 'monthly' | 'annual' } | null> {
     
-    if (payload.externalReference) {
-        try {
-            const [userId, plan, cycle] = payload.externalReference.split('|');
-            if (userId && plan && cycle) {
-                console.log(`[Webhook] Informações encontradas no externalReference: userId=${userId}, plan=${plan}, cycle=${cycle}`);
-                return { userId, plan, cycle };
-            }
-        } catch(e) {
-             console.error("[Webhook] Erro ao parsear externalReference:", e);
-             return null;
-        }
+    const checkoutSessionId = payload.checkoutSession;
+
+    if (!checkoutSessionId) {
+        console.warn("[Webhook] O payload do pagamento não continha um checkoutSession ID.");
+        return null;
+    }
+    
+    console.log(`[Webhook] Procurando dados para checkoutSessionId: ${checkoutSessionId}`);
+    
+    const checkoutRef = firestore.collection('asaasCheckouts').doc(checkoutSessionId);
+    const checkoutDoc = await checkoutRef.get();
+
+    if (!checkoutDoc.exists) {
+        console.error(`[Webhook] ERRO: Nenhum documento de checkout encontrado para o ID ${checkoutSessionId}.`);
+        return null;
     }
 
-    console.error("[Webhook] ERRO: externalReference não encontrado ou inválido no payload do evento.");
+    const checkoutData = checkoutDoc.data();
+    if (checkoutData && checkoutData.userId && checkoutData.plan && checkoutData.cycle) {
+        console.log(`[Webhook] Informações encontradas no Firestore: userId=${checkoutData.userId}, plan=${checkoutData.plan}, cycle=${checkoutData.cycle}`);
+        return {
+            userId: checkoutData.userId,
+            plan: checkoutData.plan,
+            cycle: checkoutData.cycle
+        };
+    }
+
+    console.error("[Webhook] ERRO: Documento do checkout encontrado, mas os dados estão incompletos.");
     return null;
 }
 
@@ -169,7 +183,7 @@ export async function POST(req: NextRequest) {
        return NextResponse.json({ success: true, message: 'Evento recebido, mas sem dados de pagamento para processar.' });
   }
   
-  const userInfo = await findUserInfo(mainPaymentEntity);
+  const userInfo = await findUserInfo(firestore, mainPaymentEntity);
 
   if (!userInfo || !userInfo.userId || !userInfo.plan || !userInfo.cycle) {
     console.warn('[Asaas Webhook] Não foi possível resolver as informações do usuário a partir do payload.');
@@ -211,3 +225,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Falha ao processar o webhook.', details: error.message }, { status: 500 });
   }
 }
+
+    
