@@ -102,8 +102,8 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
     
     const checkoutBody: any = {
       customer: asaasCustomerId,
-      billingTypes: [billingType],
-      chargeTypes: [isRecurrent ? 'RECURRENT' : 'DETACHED'],
+      billingType: billingType,
+      chargeType: isRecurrent ? 'RECURRENT' : 'DETACHED',
       minutesToExpire: 60,
       callback: {
         successUrl: `${appUrl}/dashboard?checkout=success`,
