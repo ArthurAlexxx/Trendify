@@ -100,7 +100,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
     
     const checkoutBody: any = {
       customer: asaasCustomerId,
-      billingTypes: [billingType], // Corrigido para ser um array
+      billingType,
       value: price,
       dueDate: new Date().toISOString().split('T')[0],
       description: `Assinatura ${itemName}`,
@@ -122,11 +122,15 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
     };
 
     if (isRecurrent) {
-        checkoutBody.chargeTypes = ['RECURRENT']; // Corrigido para ser um array
-        checkoutBody.cycle = cycle === 'annual' ? 'YEARLY' : 'MONTHLY';
-        checkoutBody.nextDueDate = new Date().toISOString().split('T')[0]; // Cobrança imediata
+        checkoutBody.chargeType = 'RECURRENT';
+        checkoutBody.subscription = {
+            cycle: cycle === 'annual' ? 'YEARLY' : 'MONTHLY',
+            value: price,
+            description: `Assinatura ${itemName}`,
+            nextDueDate: new Date().toISOString().split('T')[0], // Cobrança imediata
+        };
     } else { // PIX
-        checkoutBody.chargeTypes = ['DETACHED']; // Corrigido para ser um array
+        checkoutBody.chargeType = 'DETACHED';
     }
     
     const checkoutResponse = await fetch(`${apiUrl}/checkouts`, {
@@ -142,7 +146,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
         throw new Error(checkoutData.errors?.[0]?.description || 'Falha ao criar checkout na Asaas.');
     }
     
-    if (!checkoutData.id || !checkoutData.link) {
+    if (!checkoutData.id || !checkoutData.url) {
          console.error('[Asaas Checkout Action] Resposta da API não continha ID ou URL de checkout:', checkoutData);
          throw new Error('API da Asaas não retornou os dados necessários.');
     }
@@ -168,7 +172,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
         addressNumber,
     });
     
-    const finalCheckoutUrl = checkoutData.link;
+    const finalCheckoutUrl = checkoutData.url;
 
     return { checkoutUrl: finalCheckoutUrl };
 
