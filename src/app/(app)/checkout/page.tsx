@@ -133,8 +133,8 @@ function CheckoutPageContent() {
   }
   
   const priceMap: Record<NonNullable<typeof plan>, Record<NonNullable<typeof cycle>, number>> = {
-    pro: { monthly: 29.99, annual: 299.90 },
-    premium: { monthly: 39.99, annual: 399.90 },
+    pro: { monthly: 5.00, annual: 5.00 },
+    premium: { monthly: 5.00, annual: 5.00 },
   };
 
   const getPrice = () => {
@@ -208,7 +208,7 @@ function CheckoutPageContent() {
                                         <Label 
                                             htmlFor="cc" 
                                             className={cn("flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 transition-colors cursor-pointer",
-                                                field.value === 'CREDIT_CARD' && "border-primary"
+                                                field.value === 'CREDIT_CARD' && "border-primary bg-primary/10"
                                             )}
                                         >
                                             <CreditCard className="mb-3 h-6 w-6" /> Cartão de Crédito
@@ -221,7 +221,7 @@ function CheckoutPageContent() {
                                         <Label 
                                             htmlFor="pix" 
                                             className={cn("flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 transition-colors cursor-pointer",
-                                                field.value === 'PIX' && "border-primary"
+                                                field.value === 'PIX' && "border-primary bg-primary/10"
                                             )}
                                         >
                                             <Banknote className="mb-3 h-6 w-6" /> PIX

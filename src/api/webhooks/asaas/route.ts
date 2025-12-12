@@ -33,6 +33,7 @@ function verifyAccessToken(req: NextRequest): boolean {
 
 async function logWebhook(firestore: ReturnType<typeof getFirestore>, event: any, isSuccess: boolean) {
   try {
+    const apiUrl = 'https://api.asaas.com/api/v3';
     const logData = {
       receivedAt: Timestamp.now(),
       eventType: event.event || 'unknown',
@@ -46,7 +47,11 @@ async function logWebhook(firestore: ReturnType<typeof getFirestore>, event: any
 
     if (customerId) {
         try {
+<<<<<<< HEAD
             const customerResponse = await fetch(`https://api.asaas.com/v3/customers/${customerId}`, {
+=======
+            const customerResponse = await fetch(`${apiUrl}/customers/${customerId}`, {
+>>>>>>> 10aba7a01d00769ac12456cadd28deead474d4f2
                 headers: { 'access_token': process.env.ASAAS_API_KEY! }
             });
             if (customerResponse.ok) {

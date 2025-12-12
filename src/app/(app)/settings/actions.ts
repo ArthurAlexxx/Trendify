@@ -128,6 +128,8 @@ export async function cancelAsaasSubscriptionAction(
 
   const { userId, asaasSubscriptionId } = parsed.data;
   const apiKey = process.env.ASAAS_API_KEY;
+  const apiUrl = 'https://api.asaas.com/api/v3';
+
 
   if (!apiKey) {
     return { error: 'Erro de configuração do servidor: ASAAS_API_KEY ausente.' };
@@ -135,7 +137,11 @@ export async function cancelAsaasSubscriptionAction(
 
   try {
     // Step 1: Cancel subscription on Asaas
+<<<<<<< HEAD
     const response = await fetch(`https://api.asaas.com/v3/subscriptions/${asaasSubscriptionId}`, {
+=======
+    const response = await fetch(`${apiUrl}/subscriptions/${asaasSubscriptionId}`, {
+>>>>>>> 10aba7a01d00769ac12456cadd28deead474d4f2
       method: 'DELETE',
       headers: {
         'accept': 'application/json',

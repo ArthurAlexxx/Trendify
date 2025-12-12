@@ -32,6 +32,7 @@ interface CheckoutActionState {
 
 // --- Função para criar ou encontrar cliente na Asaas ---
 async function findOrCreateAsaasCustomer(apiKey: string, customerData: { name: string, email: string, cpfCnpj: string, phone: string, postalCode: string, addressNumber: string }): Promise<string> {
+<<<<<<< HEAD
     // Tenta encontrar o cliente pelo CPF/CNPJ primeiro
     const searchResponse = await fetch(`https://api.asaas.com/v3/customers?cpfCnpj=${customerData.cpfCnpj}`, {
         headers: { 'accept': 'application/json', 'access_token': apiKey },
@@ -46,19 +47,33 @@ async function findOrCreateAsaasCustomer(apiKey: string, customerData: { name: s
     // Se não encontrar, cria um novo cliente
     console.log(`[Asaas Customer] Cliente não encontrado. Criando novo cliente...`);
     const createResponse = await fetch('https://api.asaas.com/v3/customers', {
+=======
+    const apiUrl = 'https://api.asaas.com/v3';
+    
+    // Tenta criar um novo cliente. Se já existir (pelo CPF/CNPJ), a Asaas retornará o cliente existente.
+    const createResponse = await fetch(`${apiUrl}/customers`, {
+>>>>>>> 10aba7a01d00769ac12456cadd28deead474d4f2
         method: 'POST',
         headers: { 'accept': 'application/json', 'content-type': 'application/json', 'access_token': apiKey },
-        body: JSON.stringify(customerData),
+        body: JSON.stringify({
+            name: customerData.name,
+            email: customerData.email,
+            cpfCnpj: customerData.cpfCnpj,
+            phone: customerData.phone,
+            postalCode: customerData.postalCode,
+            addressNumber: customerData.addressNumber,
+            // Não é necessário enviar address, city, etc., pois o Asaas preenche via CEP.
+        }),
     });
 
     const createData: any = await createResponse.json();
 
     if (!createResponse.ok) {
         console.error(`[Asaas Customer Action] Erro na API ao criar cliente:`, createData);
-        throw new Error(createData.errors?.[0]?.description || 'Falha ao criar cliente na Asaas.');
+        throw new Error(createData.errors?.[0]?.description || 'Falha ao registrar cliente no gateway de pagamento.');
     }
     
-    console.log(`[Asaas Customer] Novo cliente criado: ${createData.id}`);
+    console.log(`[Asaas Customer] Cliente criado ou existente retornado: ${createData.id}`);
     return createData.id;
 }
 
@@ -84,6 +99,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
   } = parsed.data;
 
   const apiKey = process.env.ASAAS_API_KEY;
+  const apiUrl = "https://api.asaas.com/v3";
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
   
   if (!apiKey || !appUrl) return { error: 'Erro de configuração do servidor: Chaves de API ou URL da aplicação ausentes.' };
@@ -135,7 +151,11 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
         }
     }
     
+<<<<<<< HEAD
     const checkoutResponse = await fetch('https://api.asaas.com/v3/checkouts', {
+=======
+    const checkoutResponse = await fetch(`${apiUrl}/checkouts`, {
+>>>>>>> 10aba7a01d00769ac12456cadd28deead474d4f2
         method: 'POST',
         headers: { 'accept': 'application/json', 'content-type': 'application/json', 'access_token': apiKey },
         body: JSON.stringify(checkoutBody)
@@ -148,8 +168,8 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
         throw new Error(checkoutData.errors?.[0]?.description || 'Falha ao criar checkout na Asaas.');
     }
     
-    if (!checkoutData.id) {
-         console.error('[Asaas Checkout Action] Resposta da API não continha ID de checkout:', checkoutData);
+    if (!checkoutData.id || !checkoutData.url) {
+         console.error('[Asaas Checkout Action] Resposta da API não continha ID ou URL de checkout:', checkoutData);
          throw new Error('API da Asaas não retornou os dados necessários.');
     }
 
@@ -174,7 +194,11 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
         addressNumber,
     });
     
+<<<<<<< HEAD
     const finalCheckoutUrl = `https://www.asaas.com/c/${checkoutData.id}`;
+=======
+    const finalCheckoutUrl = checkoutData.url;
+>>>>>>> 10aba7a01d00769ac12456cadd28deead474d4f2
 
     return { checkoutUrl: finalCheckoutUrl };
 
