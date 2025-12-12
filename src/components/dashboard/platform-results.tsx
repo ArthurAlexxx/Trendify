@@ -64,21 +64,26 @@ export function InstagramProfileResults({ profile, posts, error, formatIntegerVa
                         <CardTitle>Seus últimos 10 posts</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                             {posts.slice(0, 10).map((post) => (
-                                <Link key={post.id} href={`https://www.instagram.com/p/${post.shortcode}`} target="_blank" rel="noopener noreferrer">
-                                    <Card className="overflow-hidden group cursor-pointer relative">
-                                        <div className="relative aspect-[9/16]">
-                                            <Image src={post.mediaUrl} alt={post.caption || 'Instagram Post'} fill style={{ objectFit: 'cover' }} />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <div className="text-white text-xs flex items-center gap-2">
-                                                    <div className="flex items-center gap-1"><Heart className="h-3 w-3" /> {formatIntegerValue(post.likes)}</div>
-                                                    <div className="flex items-center gap-1"><MessageSquare className="h-3 w-3" /> {formatIntegerValue(post.comments)}</div>
-                                                </div>
+                                <div key={post.id}>
+                                    <Link href={`https://www.instagram.com/p/${post.shortcode}`} target="_blank" rel="noopener noreferrer">
+                                        <Card className="overflow-hidden group cursor-pointer relative">
+                                            <div className="relative aspect-[9/16]">
+                                                <Image src={post.mediaUrl} alt={post.caption || 'Instagram Post'} fill style={{ objectFit: 'cover' }} />
+                                                 {post.is_video && (
+                                                    <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <PlayCircle className="h-10 w-10 text-white" />
+                                                    </div>
+                                                 )}
                                             </div>
-                                        </div>
-                                    </Card>
-                                </Link>
+                                        </Card>
+                                    </Link>
+                                    <div className="mt-2 text-xs text-muted-foreground grid grid-cols-2 gap-1">
+                                        <div className="flex items-center justify-center gap-1"><Heart className="h-3 w-3" /> {formatIntegerValue(post.likes)}</div>
+                                        <div className="flex items-center justify-center gap-1"><MessageSquare className="h-3 w-3" /> {formatIntegerValue(post.comments)}</div>
+                                    </div>
+                                </div>
                             ))}
                         </div>
                     </CardContent>
@@ -116,23 +121,24 @@ export function TikTokProfileResults({ profile, posts, error, formatIntegerValue
                         <CardTitle>Seus últimos 10 vídeos</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                             {posts.slice(0, 10).map((post) => (
-                                <div key={post.id} onClick={() => onVideoClick?.(post)} className="cursor-pointer">
-                                    <Card className="overflow-hidden group relative">
-                                        <div className="relative aspect-[9/16]">
-                                            <Image src={post.coverUrl} alt={post.description || 'TikTok Video'} fill style={{ objectFit: 'cover' }} />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <PlayCircle className="h-10 w-10 text-white" />
-                                            </div>
-                                            <div className="absolute bottom-0 left-0 right-0 p-2 text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <div className="flex items-center gap-2">
-                                                    <div className="flex items-center gap-1"><Eye className="h-3 w-3" /> {formatIntegerValue(post.views)}</div>
-                                                    <div className="flex items-center gap-1"><Heart className="h-3 w-3" /> {formatIntegerValue(post.likes)}</div>
+                                <div key={post.id}>
+                                    <div onClick={() => onVideoClick?.(post)} className="cursor-pointer">
+                                        <Card className="overflow-hidden group relative">
+                                            <div className="relative aspect-[9/16]">
+                                                <Image src={post.coverUrl} alt={post.description || 'TikTok Video'} fill style={{ objectFit: 'cover' }} />
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <PlayCircle className="h-10 w-10 text-white" />
                                                 </div>
                                             </div>
-                                        </div>
-                                    </Card>
+                                        </Card>
+                                    </div>
+                                    <div className="mt-2 text-xs text-muted-foreground grid grid-cols-3 gap-1 text-center">
+                                        <div className="flex items-center justify-center gap-1"><Eye className="h-3 w-3" /> {formatIntegerValue(post.views)}</div>
+                                        <div className="flex items-center justify-center gap-1"><Heart className="h-3 w-3" /> {formatIntegerValue(post.likes)}</div>
+                                        <div className="flex items-center justify-center gap-1"><MessageSquare className="h-3 w-3" /> {formatIntegerValue(post.comments)}</div>
+                                    </div>
                                 </div>
                             ))}
                         </div>
