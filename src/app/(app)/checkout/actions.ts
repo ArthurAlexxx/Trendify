@@ -31,9 +31,9 @@ interface CheckoutActionState {
 
 
 // --- Função para criar ou encontrar cliente na Asaas ---
-async function findOrCreateAsaasCustomer(apiKey: string, customerData: { name: string, email: string, cpfCnpj: string, phone: string, postalCode: string, addressNumber: string }): Promise<string> {
+async function findOrCreateAsaasCustomer(apiUrl: string, apiKey: string, customerData: { name: string, email: string, cpfCnpj: string, phone: string, postalCode: string, addressNumber: string }): Promise<string> {
     // Tenta encontrar o cliente pelo CPF/CNPJ primeiro
-    const searchResponse = await fetch(`https://sandbox.asaas.com/api/v3/customers?cpfCnpj=${customerData.cpfCnpj}`, {
+    const searchResponse = await fetch(`${apiUrl}/customers?cpfCnpj=${customerData.cpfCnpj}`, {
         headers: { 'accept': 'application/json', 'access_token': apiKey },
     });
     const searchData: any = await searchResponse.json();
@@ -45,7 +45,7 @@ async function findOrCreateAsaasCustomer(apiKey: string, customerData: { name: s
     
     // Se não encontrar, cria um novo cliente
     console.log(`[Asaas Customer] Cliente não encontrado. Criando novo cliente...`);
-    const createResponse = await fetch('https://sandbox.asaas.com/api/v3/customers', {
+    const createResponse = await fetch(`${apiUrl}/customers`, {
         method: 'POST',
         headers: { 'accept': 'application/json', 'content-type': 'application/json', 'access_token': apiKey },
         body: JSON.stringify(customerData),
@@ -84,6 +84,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
   } = parsed.data;
 
   const apiKey = process.env.ASAAS_API_KEY;
+  const apiUrl = process.env.ASAAS_API_URL || 'https://sandbox.asaas.com/api/v3';
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
   
   if (!apiKey || !appUrl) return { error: 'Erro de configuração do servidor: Chaves de API ou URL da aplicação ausentes.' };
@@ -92,7 +93,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
     const { firestore } = initializeFirebaseAdmin();
     
     // 1. Criar ou encontrar cliente na Asaas
-    const asaasCustomerId = await findOrCreateAsaasCustomer(apiKey, { name, email, cpfCnpj, phone, postalCode, addressNumber });
+    const asaasCustomerId = await findOrCreateAsaasCustomer(apiUrl, apiKey, { name, email, cpfCnpj, phone, postalCode, addressNumber });
     
     const price = priceMap[plan][cycle];
     
@@ -135,7 +136,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
         }
     }
     
-    const checkoutResponse = await fetch('https://sandbox.asaas.com/api/v3/checkouts', {
+    const checkoutResponse = await fetch(`${apiUrl}/checkouts`, {
         method: 'POST',
         headers: { 'accept': 'application/json', 'content-type': 'application/json', 'access_token': apiKey },
         body: JSON.stringify(checkoutBody)
@@ -174,7 +175,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
         addressNumber,
     });
     
-    const finalCheckoutUrl = `https://sandbox.asaas.com/checkoutSession/show/${checkoutData.id}`;
+    const finalCheckoutUrl = `${apiUrl.replace('/api/v3', '')}/checkoutSession/show/${checkoutData.id}`;
 
     return { checkoutUrl: finalCheckoutUrl };
 
