@@ -114,9 +114,6 @@ export async function createAsaasCheckoutAction(input: CreateCheckoutInput): Pro
 
   try {
     const { firestore } = initializeFirebaseAdmin();
-    const userDoc = await firestore.collection('users').doc(userId).get();
-    const userData = userDoc.data();
-    if (!userData) throw new Error("Usuário não encontrado.");
     
     const price = priceMap[plan][cycle];
     
@@ -129,9 +126,8 @@ export async function createAsaasCheckoutAction(input: CreateCheckoutInput): Pro
 
     const checkoutBody: any = {
       customer: customerId,
-      billingTypes: [billingType],
-      chargeTypes: ["RECURRENT"],
-      externalReference: JSON.stringify({ userId, plan, cycle }),
+      billingType,
+      chargeType: "RECURRENT", // Asaas espera 'chargeType' no singular para checkout de assinatura
       callback: {
         successUrl: `${appUrl}/dashboard?checkout=success`,
         autoRedirect: true,
@@ -142,6 +138,7 @@ export async function createAsaasCheckoutAction(input: CreateCheckoutInput): Pro
         nextDueDate: nextDueDate.toISOString().split('T')[0],
         value: price,
         description: `Assinatura ${plan.toUpperCase()} (${cycle === 'annual' ? 'Anual' : 'Mensal'}) - Trendify`,
+        externalReference: JSON.stringify({ userId, plan, cycle }), // Mover para cá
       },
       items: [{
         name: `Plano ${plan.toUpperCase()} - ${cycle === 'annual' ? 'Anual' : 'Mensal'}`,
@@ -166,6 +163,7 @@ export async function createAsaasCheckoutAction(input: CreateCheckoutInput): Pro
     }
     
     if (!checkoutData.url) {
+         console.error('[Asaas Checkout Action] Resposta da API não continha URL:', checkoutData);
          throw new Error('A API da Asaas não retornou uma URL de checkout.');
     }
 
