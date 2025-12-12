@@ -73,12 +73,6 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
       plan, cycle, billingType
   } = parsed.data;
 
-  // Validação para PIX em pagamentos recorrentes
-  if (billingType === 'PIX' && cycle !== 'monthly') {
-    return { error: "PIX não é suportado para assinaturas recorrentes. Use cartão de crédito." };
-  }
-
-
   const apiKey = process.env.ASAAS_API_KEY;
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
   
@@ -98,13 +92,13 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
     nextDueDate.setDate(nextDueDate.getDate() + 2); // Ajusta a data de vencimento para D+2
     
     const checkoutBody: any = {
-      billingType,
-      chargeType: "RECURRENT",
+      billingTypes: [billingType], // Alterado para array
+      chargeTypes: ["RECURRENT"],    // Alterado para array
       callback: {
         successUrl: `${appUrl}/dashboard?checkout=success`,
         autoRedirect: true,
       },
-      customer: {
+      customerData: { // Alterado de 'customer' para 'customerData'
           name,
           email,
           cpfCnpj,
@@ -113,6 +107,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
           address: addressDetails.address,
           addressNumber,
           province: addressDetails.province,
+          city: addressDetails.city
       },
       items: [
         {
@@ -126,6 +121,12 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
         nextDueDate: nextDueDate.toISOString().split('T')[0],
       },
     };
+
+     // Remove 'subscription' para pagamentos únicos com PIX
+    if (billingType === 'PIX') {
+      delete checkoutBody.subscription;
+      checkoutBody.chargeTypes = ['DETACHED']; // Pagamento único
+    }
     
     const checkoutResponse = await fetch('https://sandbox.asaas.com/api/v3/checkouts', {
         method: 'POST',

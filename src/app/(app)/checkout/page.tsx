@@ -4,7 +4,7 @@
 import { useSearchParams, useRouter } from 'next/navigation';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Suspense, useState, useTransition, useEffect } from 'react';
+import { Suspense, useState, useTransition, useEffect, useMemo } from 'react';
 import { Loader2, User, CreditCard, ExternalLink, Banknote, ClipboardCheck } from 'lucide-react';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { useForm } from 'react-hook-form';
@@ -73,6 +73,13 @@ function CheckoutPageContent() {
     },
   });
 
+  const selectedBillingType = form.watch('billingType');
+
+  // Determina se a opção PIX deve ser desabilitada
+  const isPixDisabled = useMemo(() => {
+    return cycle === 'annual';
+  }, [cycle]);
+
   useEffect(() => {
     if(userProfile) {
         form.reset({
@@ -81,15 +88,24 @@ function CheckoutPageContent() {
             phone: userProfile.phone || '',
             postalCode: userProfile.postalCode || '',
             addressNumber: userProfile.addressNumber || '',
-            billingType: 'CREDIT_CARD',
+            billingType: isPixDisabled ? 'CREDIT_CARD' : 'CREDIT_CARD',
         });
     } else if (user) {
         form.reset({
             name: user.displayName || '',
-            billingType: 'CREDIT_CARD',
+            billingType: isPixDisabled ? 'CREDIT_CARD' : 'CREDIT_CARD',
         });
     }
-  }, [userProfile, user, form]);
+  }, [userProfile, user, form, isPixDisabled]);
+
+
+  useEffect(() => {
+    // Se PIX estiver desabilitado e selecionado, muda para Cartão de Crédito
+    if (isPixDisabled && form.getValues('billingType') === 'PIX') {
+      form.setValue('billingType', 'CREDIT_CARD');
+    }
+  }, [isPixDisabled, form]);
+
 
   useEffect(() => {
     if (!plan || !cycle) {
@@ -147,7 +163,7 @@ function CheckoutPageContent() {
         <CardHeader>
           <div className="text-center">
             <p className="text-muted-foreground">Você está assinando</p>
-            <h2 className="text-2xl font-bold font-headline">Plano {plan} <span className="capitalize">({cycle})</span></h2>
+            <h2 className="text-2xl font-bold font-headline">Plano {plan} <span className="capitalize">({cycle === 'monthly' ? 'Mensal' : 'Anual'})</span></h2>
             <p className="text-3xl font-bold mt-2">{getPrice()}</p>
           </div>
         </CardHeader>
@@ -174,18 +190,32 @@ function CheckoutPageContent() {
                     render={({ field }) => (
                     <FormItem className="space-y-3">
                         <FormControl>
-                        <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="grid grid-cols-2 gap-4">
+                        <RadioGroup onValueChange={field.onChange} value={field.value} className="grid grid-cols-2 gap-4">
                             <FormItem><FormControl><RadioGroupItem value="CREDIT_CARD" id="cc" className="sr-only" /></FormControl><Label htmlFor="cc" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer [&:has([data-state=checked])]:border-primary"><CreditCard className="mb-3 h-6 w-6" /> Cartão</Label></FormItem>
-                            <FormItem><FormControl><RadioGroupItem value="PIX" id="pix" className="sr-only" /></FormControl><Label htmlFor="pix" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer [&:has([data-state=checked])]:border-primary"><Banknote className="mb-3 h-6 w-6" /> PIX</Label></FormItem>
+                            <FormItem>
+                              <FormControl>
+                                <RadioGroupItem value="PIX" id="pix" className="sr-only" disabled={isPixDisabled} />
+                              </FormControl>
+                              <Label htmlFor="pix" className={`flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground ${isPixDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} [&:has([data-state=checked])]:border-primary`}>
+                                <Banknote className="mb-3 h-6 w-6" /> PIX
+                              </Label>
+                            </FormItem>
                         </RadioGroup>
                         </FormControl>
                         <FormMessage />
+                         {isPixDisabled && selectedBillingType === 'PIX' && (
+                          <Alert variant="destructive" className="text-xs">
+                            <AlertDescription>
+                              O pagamento com PIX não é suportado para assinaturas anuais recorrentes. Por favor, selecione Cartão de Crédito.
+                            </AlertDescription>
+                          </Alert>
+                        )}
                     </FormItem>
                     )}
                 />
 
                 {error && <Alert variant="destructive"><AlertDescription>{error}</AlertDescription></Alert>}
-                <Button type="submit" disabled={isPending || isProfileLoading} className="w-full h-12 text-base">
+                <Button type="submit" disabled={isPending || isProfileLoading || (isPixDisabled && selectedBillingType === 'PIX')} className="w-full h-12 text-base">
                     {isPending || isProfileLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ExternalLink className="mr-2 h-4 w-4" />}
                     Ir para o Pagamento
                 </Button>
