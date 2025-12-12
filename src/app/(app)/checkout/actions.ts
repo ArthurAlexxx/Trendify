@@ -32,7 +32,7 @@ interface CheckoutActionState {
 
 // --- Função para criar ou encontrar cliente na Asaas ---
 async function findOrCreateAsaasCustomer(apiKey: string, customerData: { name: string, email: string, cpfCnpj: string, phone: string, postalCode: string, addressNumber: string }): Promise<string> {
-    const apiUrl = 'https://api.asaas.com/v3';
+    const apiUrl = 'https://www.asaas.com/api/v3';
     
     // Tenta criar um novo cliente. Se já existir (pelo CPF/CNPJ), a Asaas retornará o cliente existente.
     const createResponse = await fetch(`${apiUrl}/customers`, {
@@ -81,7 +81,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
   } = parsed.data;
 
   const apiKey = process.env.ASAAS_API_KEY;
-  const apiUrl = "https://api.asaas.com/v3";
+  const apiUrl = "https://www.asaas.com/api/v3";
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
   
   if (!apiKey || !appUrl) return { error: 'Erro de configuração do servidor: Chaves de API ou URL da aplicação ausentes.' };
@@ -100,37 +100,34 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
     
     const checkoutBody: any = {
       customer: asaasCustomerId,
-      billingTypes: [billingType],
-      chargeTypes: [isRecurrent ? 'RECURRENT' : 'DETACHED'],
-      minutesToExpire: 60,
+      billingType: billingType,
+      value: price,
+      dueDate: new Date().toISOString().split('T')[0], // Para cobranças imediatas (PIX)
+      description: `Assinatura ${itemName}`,
+      externalReference: userId,
       callback: {
         successUrl: `${appUrl}/checkout/success`,
         autoRedirect: true,
-        cancelUrl: `${appUrl}/subscribe?status=cancelled`,
-        expiredUrl: `${appUrl}/subscribe?status=expired`,
       },
-      items: [
-        {
-            name: itemName,
-            description: `Acesso ao ${itemName} da Trendify`,
-            value: price,
-            quantity: 1,
-        }
-      ],
     };
     
+    let finalCheckoutUrl: string;
+
     if (isRecurrent) {
-        const nextDueDate = new Date();
-        if (cycle === 'annual') {
-            nextDueDate.setFullYear(nextDueDate.getFullYear() + 1);
-        } else {
-            nextDueDate.setMonth(nextDueDate.getMonth() + 1);
-        }
-        
-        checkoutBody.subscription = {
-          cycle: cycle === 'annual' ? 'YEARLY' : 'MONTHLY',
-          nextDueDate: nextDueDate.toISOString().split('T')[0],
-        }
+        checkoutBody.chargeType = 'RECURRENT';
+        checkoutBody.cycle = cycle === 'annual' ? 'YEARLY' : 'MONTHLY';
+        // A data da primeira cobrança é hoje para processamento imediato.
+        checkoutBody.nextDueDate = new Date().toISOString().split('T')[0];
+    } else { // PIX
+        checkoutBody.chargeType = 'DETACHED';
+        checkoutBody.items = [
+          {
+              name: itemName,
+              description: `Acesso ao ${itemName} da Trendify`,
+              value: price,
+              quantity: 1,
+          }
+        ];
     }
     
     const checkoutResponse = await fetch(`${apiUrl}/checkouts`, {
@@ -172,7 +169,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
         addressNumber,
     });
     
-    const finalCheckoutUrl = checkoutData.link;
+    finalCheckoutUrl = checkoutData.link;
 
     return { checkoutUrl: finalCheckoutUrl };
 
