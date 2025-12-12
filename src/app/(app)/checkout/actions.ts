@@ -107,7 +107,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
         cancelUrl: `${appUrl}/subscribe?status=cancelled`,
         expiredUrl: `${appUrl}/subscribe?status=expired`,
       },
-      customer: { 
+      customerData: { 
           name,
           email,
           cpfCnpj,
@@ -120,7 +120,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
       items: [
         {
             name: itemName,
-            description: `Acesso ao ${itemName} da Trendify`, // Adicionando descrição obrigatória
+            description: `Acesso ao ${itemName} da Trendify`,
             value: price,
             quantity: 1,
         }
