@@ -29,6 +29,7 @@ import { useToast } from '@/hooks/use-toast';
 import type { UserProfile } from '@/lib/types';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Separator } from '@/components/ui/separator';
+import Link from 'next/link';
 
 const CheckoutFormSchema = z.object({
   name: z.string().min(3, 'O nome completo é obrigatório.'),
