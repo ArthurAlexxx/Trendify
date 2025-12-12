@@ -93,10 +93,10 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
     
     const checkoutBody: any = {
       billingTypes: [billingType],
-      chargeType: "RECURRENT", // Alterado para chargeType singular conforme exemplos de recorrência
+      chargeTypes: billingType === 'CREDIT_CARD' ? ['RECURRENT'] : ['DETACHED'],
       callback: {
         successUrl: `${appUrl}/dashboard?checkout=success`,
-        cancelUrl: `${appUrl}/subscribe`,
+        cancelUrl: `${appUrl}/subscribe?status=cancelled`,
         expiredUrl: `${appUrl}/subscribe?status=expired`,
         autoRedirect: true,
       },
@@ -126,10 +126,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
           cycle: cycle === 'annual' ? 'YEARLY' : 'MONTHLY',
           nextDueDate: nextDueDate.toISOString().split('T')[0],
         }
-    } else { // PIX
-      checkoutBody.chargeType = 'DETACHED'; // Pagamento único com PIX
     }
-
     
     const checkoutResponse = await fetch('https://sandbox.asaas.com/api/v3/checkouts', {
         method: 'POST',
