@@ -36,7 +36,15 @@ async function findOrCreateAsaasCustomer(apiUrl: string, apiKey: string, custome
     const searchResponse = await fetch(`${apiUrl}/customers?cpfCnpj=${customerData.cpfCnpj}`, {
         headers: { 'accept': 'application/json', 'access_token': apiKey },
     });
+
+    if (!searchResponse.ok) {
+        const errorText = await searchResponse.text();
+        console.error(`[Asaas Customer Action] Erro na API ao buscar cliente:`, errorText);
+        throw new Error('Falha ao buscar cliente na Asaas.');
+    }
+    
     const searchData: any = await searchResponse.json();
+
 
     if (searchData.data && searchData.data.length > 0) {
         console.log(`[Asaas Customer] Cliente encontrado: ${searchData.data[0].id}`);
@@ -84,7 +92,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
   } = parsed.data;
 
   const apiKey = process.env.ASAAS_API_KEY;
-  const apiUrl = process.env.ASAAS_API_URL || 'https://api.asaas.com/api/v3';
+  const apiUrl = "https://api.asaas.com/api/v3";
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
   
   if (!apiKey || !appUrl) return { error: 'Erro de configuração do servidor: Chaves de API ou URL da aplicação ausentes.' };
@@ -175,7 +183,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
         addressNumber,
     });
     
-    const finalCheckoutUrl = `${apiUrl.replace('/api/v3', '')}/checkoutSession/show/${checkoutData.id}`;
+    const finalCheckoutUrl = `https://www.asaas.com/checkout/${checkoutData.id}`;
 
     return { checkoutUrl: finalCheckoutUrl };
 
