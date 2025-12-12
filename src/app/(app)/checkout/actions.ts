@@ -72,6 +72,11 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
       plan, cycle, billingType
   } = parsed.data;
 
+  // Validação para PIX em pagamentos recorrentes
+  if (billingType === 'PIX') {
+    return { error: "PIX não é suportado para assinaturas recorrentes. Por favor, escolha Cartão de Crédito." };
+  }
+
   const apiKey = process.env.ASAAS_API_KEY;
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
   
@@ -94,7 +99,6 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
       nextDueDate.setMonth(nextDueDate.getMonth() + 1);
     }
     
-    // Estrutura o externalReference com todos os dados necessários.
     const externalReferencePayload = [userId, plan, cycle].join('|');
 
     const checkoutBody: any = {
@@ -120,8 +124,6 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
       subscription: {
         cycle: cycle === 'annual' ? 'YEARLY' : 'MONTHLY',
         nextDueDate: nextDueDate.toISOString().split('T')[0],
-        value: price,
-        description: `Plano ${plan.toUpperCase()}`,
       },
       items: [{
         name: `Plano ${plan.toUpperCase()}`,
@@ -132,6 +134,8 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
       }]
     };
     
+    console.log('[Asaas Checkout Action] Corpo da requisição de checkout:', JSON.stringify(checkoutBody, null, 2));
+
     const checkoutResponse = await fetch('https://sandbox.asaas.com/api/v3/checkouts', {
         method: 'POST',
         headers: { 'accept': 'application/json', 'content-type': 'application/json', 'access_token': apiKey },
@@ -157,7 +161,6 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
         phone,
         postalCode,
         addressNumber,
-        // Salva também os dados obtidos do ViaCEP para consistência
         address: addressDetails.address,
         province: addressDetails.province,
         city: addressDetails.city,
