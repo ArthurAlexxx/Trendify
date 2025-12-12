@@ -128,7 +128,7 @@ export async function cancelAsaasSubscriptionAction(
 
   const { userId, asaasSubscriptionId } = parsed.data;
   const apiKey = process.env.ASAAS_API_KEY;
-  const apiUrl = process.env.ASAAS_API_URL || 'https://sandbox.asaas.com/api/v3';
+  const apiUrl = process.env.ASAAS_API_URL || 'https://api.asaas.com/api/v3';
 
 
   if (!apiKey) {

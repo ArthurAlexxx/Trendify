@@ -84,7 +84,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
   } = parsed.data;
 
   const apiKey = process.env.ASAAS_API_KEY;
-  const apiUrl = process.env.ASAAS_API_URL || 'https://sandbox.asaas.com/api/v3';
+  const apiUrl = process.env.ASAAS_API_URL || 'https://api.asaas.com/api/v3';
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
   
   if (!apiKey || !appUrl) return { error: 'Erro de configuração do servidor: Chaves de API ou URL da aplicação ausentes.' };

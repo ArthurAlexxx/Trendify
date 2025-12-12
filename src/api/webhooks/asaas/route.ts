@@ -33,7 +33,7 @@ function verifyAccessToken(req: NextRequest): boolean {
 
 async function logWebhook(firestore: ReturnType<typeof getFirestore>, event: any, isSuccess: boolean) {
   try {
-    const apiUrl = process.env.ASAAS_API_URL || 'https://sandbox.asaas.com/api/v3';
+    const apiUrl = process.env.ASAAS_API_URL || 'https://api.asaas.com/api/v3';
     const logData = {
       receivedAt: Timestamp.now(),
       eventType: event.event || 'unknown',
