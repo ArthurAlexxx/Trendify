@@ -129,12 +129,9 @@ export async function createAsaasCheckoutAction(input: CreateCheckoutInput): Pro
 
     const checkoutBody: any = {
       customer: customerId,
-      billingTypes: [billingType], // Corrigido para plural e array
+      billingTypes: [billingType],
       chargeTypes: ["RECURRENT"],
-      dueDate: new Date().toISOString().split('T')[0], // A primeira cobrança é hoje
-      value: price,
-      description: `Assinatura ${plan.toUpperCase()} (${cycle === 'annual' ? 'Anual' : 'Mensal'}) - Trendify`,
-      externalReference: JSON.stringify({ userId, plan, cycle }), // Enviando metadados
+      externalReference: JSON.stringify({ userId, plan, cycle }),
       callback: {
         successUrl: `${appUrl}/dashboard?checkout=success`,
         autoRedirect: true,
@@ -143,6 +140,8 @@ export async function createAsaasCheckoutAction(input: CreateCheckoutInput): Pro
       subscription: {
         cycle: cycle === 'annual' ? 'YEARLY' : 'MONTHLY',
         nextDueDate: nextDueDate.toISOString().split('T')[0],
+        value: price,
+        description: `Assinatura ${plan.toUpperCase()} (${cycle === 'annual' ? 'Anual' : 'Mensal'}) - Trendify`,
       },
       items: [{
         name: `Plano ${plan.toUpperCase()} - ${cycle === 'annual' ? 'Anual' : 'Mensal'}`,
