@@ -48,7 +48,7 @@ export default function SubscribePage() {
         let monthlyCta = "Assinar Mensal";
         if (subscription?.plan === 'pro' && plan === 'premium') {
           monthlyCta = "Fazer Upgrade (Mensal)";
-        } else if (subscription?.plan !== 'free') {
+        } else if (subscription?.plan !== 'free' && !isCurrentMonthly) {
           monthlyCta = "Mudar para Mensal";
         }
 
@@ -58,7 +58,7 @@ export default function SubscribePage() {
         let annualCta = "Assinar Anual";
          if (subscription?.plan === 'pro' && plan === 'premium') {
           annualCta = "Fazer Upgrade (Anual)";
-        } else if (subscription?.plan !== 'free') {
+        } else if (subscription?.plan !== 'free' && !isCurrentAnnual) {
            annualCta = "Mudar para Anual";
         }
         
@@ -98,7 +98,7 @@ export default function SubscribePage() {
                         <Star className="w-5 h-5 text-primary" />
                         Pro
                     </CardTitle>
-                    <p className="text-3xl font-bold">R$50<span className="text-base font-normal text-muted-foreground">/mês</span></p>
+                    <p className="text-3xl font-bold">R$29,99<span className="text-base font-normal text-muted-foreground">/mês</span></p>
                 </CardHeader>
                 <CardContent className='flex-grow'>
                     <ul className="space-y-3 text-sm text-foreground">
@@ -121,7 +121,7 @@ export default function SubscribePage() {
                         <Crown className="w-5 h-5 text-yellow-400 fill-yellow-400" />
                         Premium
                     </CardTitle>
-                    <p className="text-3xl font-bold">R$90<span className="text-base font-normal text-muted-foreground">/mês</span></p>
+                    <p className="text-3xl font-bold">R$39,99<span className="text-base font-normal text-muted-foreground">/mês</span></p>
                 </CardHeader>
                 <CardContent className='flex-grow'>
                     <ul className="space-y-3 text-sm text-foreground">

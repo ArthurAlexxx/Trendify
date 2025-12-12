@@ -844,7 +844,7 @@ export default function LandingPage() {
                     Para criadores que levam o crescimento a sério e querem otimizar seu conteúdo.
                   </p>
                   <p className="text-4xl font-bold font-body mb-6">
-                    R$5{' '}
+                    R$29,99{' '}
                     <span className="text-base font-normal text-muted-foreground">
                       /mês
                     </span>
@@ -890,7 +890,7 @@ export default function LandingPage() {
                     Acesso total para criadores que querem monetizar e profissionalizar sua carreira.
                   </p>
                   <p className="text-4xl font-bold font-body mb-6">
-                    R$5{' '}
+                    R$39,99{' '}
                     <span className="text-base font-normal text-muted-foreground">
                       /mês
                     </span>

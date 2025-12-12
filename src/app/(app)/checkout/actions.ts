@@ -67,8 +67,8 @@ async function findOrCreateAsaasCustomer(apiKey: string, customerData: { name: s
 
 const priceMap: Record<Plan, Record<'monthly' | 'annual', number>> = {
     free: { monthly: 0, annual: 0 },
-    pro: { monthly: 50, annual: 500 },
-    premium: { monthly: 90, annual: 900 },
+    pro: { monthly: 29.99, annual: 299.90 },
+    premium: { monthly: 39.99, annual: 399.90 },
 };
 
 export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promise<CheckoutActionState> {
@@ -102,8 +102,8 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
     
     const checkoutBody: any = {
       customer: asaasCustomerId,
-      billingTypes: [billingType], // Corrigido para ser um array
-      chargeTypes: [isRecurrent ? 'RECURRENT' : 'DETACHED'], // Corrigido para ser um array
+      billingTypes: [billingType],
+      chargeTypes: [isRecurrent ? 'RECURRENT' : 'DETACHED'],
       minutesToExpire: 60,
       callback: {
         successUrl: `${appUrl}/dashboard?checkout=success`,
