@@ -32,7 +32,7 @@ interface CheckoutActionState {
 
 // --- Função para criar ou encontrar cliente na Asaas ---
 async function findOrCreateAsaasCustomer(apiKey: string, customerData: { name: string, email: string, cpfCnpj: string, phone: string, postalCode: string, addressNumber: string }): Promise<string> {
-    const apiUrl = 'https://api.asaas.com/v3';
+    const apiUrl = process.env.ASAAS_API_URL || 'https://api.asaas.com/v3';
     
     // Tenta criar um novo cliente. Se já existir (pelo CPF/CNPJ), a Asaas retornará o cliente existente.
     const createResponse = await fetch(`${apiUrl}/customers`, {
@@ -64,8 +64,8 @@ async function findOrCreateAsaasCustomer(apiKey: string, customerData: { name: s
 
 const priceMap: Record<Plan, Record<'monthly' | 'annual', number>> = {
     free: { monthly: 0, annual: 0 },
-    pro: { monthly: 29.99, annual: 299.99 },
-    premium: { monthly: 39.99, annual: 399.99 },
+    pro: { monthly: 29.99, annual: 299.90 },
+    premium: { monthly: 39.99, annual: 399.90 },
 };
 
 export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promise<CheckoutActionState> {
@@ -82,7 +82,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
 
   const apiKey = process.env.ASAAS_API_KEY;
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
-  const apiUrl = "https://api.asaas.com/v3";
+  const apiUrl = process.env.ASAAS_API_URL || "https://api.asaas.com/v3";
   
   if (!apiKey || !appUrl) return { error: 'Erro de configuração do servidor: Chaves de API ou URL da aplicação ausentes.' };
 
@@ -107,9 +107,9 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
       externalReference: userId,
       callback: {
         successUrl: `${appUrl}/checkout/success`,
+        autoRedirect: true,
         cancelUrl: `${appUrl}/subscribe?status=cancelled`,
         expiredUrl: `${appUrl}/subscribe?status=expired`,
-        autoRedirect: true,
       },
       items: [
         {
@@ -122,15 +122,14 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
     };
 
     if (isRecurrent) {
-        checkoutBody.chargeTypes = ['RECURRENT'];
+        checkoutBody.chargeType = 'RECURRENT';
         checkoutBody.subscription = {
             cycle: cycle === 'annual' ? 'YEARLY' : 'MONTHLY',
-            value: price,
             description: `Assinatura ${itemName}`,
             nextDueDate: new Date().toISOString().split('T')[0],
         };
     } else { // PIX
-        checkoutBody.chargeTypes = ['DETACHED'];
+        checkoutBody.chargeType = 'DETACHED';
     }
     
     const checkoutResponse = await fetch(`${apiUrl}/checkouts`, {
