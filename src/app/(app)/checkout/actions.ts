@@ -100,7 +100,7 @@ export async function createAsaasCheckoutAction(input: CheckoutFormInput): Promi
     
     const checkoutBody: any = {
       customer: asaasCustomerId,
-      billingTypes: [billingType],
+      billingType: billingType,
       value: price,
       dueDate: new Date().toISOString().split('T')[0],
       description: `Assinatura ${itemName}`,
