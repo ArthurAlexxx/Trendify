@@ -220,15 +220,6 @@ function VideoReviewPageContent() {
     resetAnalysisState();
   };
   
-  const fileToDataUri = (file: File): Promise<string> => {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-  }
-
   const handleAnalyzeVideo = async () => {
     if (!file || !user || !firestore) {
       toast({ title: "Faltam informações para iniciar a análise." });
@@ -238,75 +229,72 @@ function VideoReviewPageContent() {
       toast({ title: "Limite diário de análises atingido." });
       return;
     }
-    
-    setAnalysisStatus("analyzing");
+
+    setAnalysisStatus("uploading");
     setAnalysisError("");
     setAnalysisResult(null);
     setUploadProgress(0);
-    setActiveTab("result");
+    
+    const { firebaseApp } = initializeFirebase();
+    const storage = getStorage(firebaseApp);
+    const storagePath = `video-reviews/${user.uid}/${Date.now()}-${file.name}`;
+    const storageRef = ref(storage, storagePath);
+    const uploadTask = uploadBytesResumable(storageRef, file);
 
-    try {
-        const videoDataUri = await fileToDataUri(file);
-        
-        const result = await analyzeVideo({
-            videoDataUri: videoDataUri,
-            prompt: "Faça uma análise completa deste vídeo para um criador de conteúdo.",
-        });
-
-        setAnalysisResult(result);
-        setAnalysisStatus("success");
-
-        const currentAnalysisName = analysisName || file.name;
-
-        // Start upload to Firebase Storage in the background for history
-        const { firebaseApp } = initializeFirebase();
-        const storage = getStorage(firebaseApp);
-        const storagePath = `video-reviews/${user.uid}/${Date.now()}-${file.name}`;
-        const storageRef = ref(storage, storagePath);
-        const uploadTask = uploadBytesResumable(storageRef, file);
-
-        uploadTask.on(
-            'state_changed',
-            null, // No need to track progress for background upload
-            (error) => {
-                console.error("Background upload error:", error);
-                // Optionally notify user that history save failed
-            },
-            async () => { // Upload success
-                const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                 try {
-                    await addDoc(collection(firestore, `users/${user.uid}/analisesVideo`), {
-                        userId: user.uid,
-                        videoUrl: downloadURL,
-                        videoFileName: file.name,
-                        analysisName: currentAnalysisName,
-                        analysisData: result,
-                        createdAt: serverTimestamp(),
-                    });
-
-                    const usageDocRef = doc(firestore, `users/${user.uid}/dailyUsage/${todayStr}`);
-                    const usageDoc = await getDoc(usageDocRef);
-                    if (usageDoc.exists()) {
-                        await updateDoc(usageDocRef, { videoAnalyses: increment(1) });
-                    } else {
-                        await setDoc(usageDocRef, { date: todayStr, videoAnalyses: 1, geracoesAI: 0 });
-                    }
-                    toast({ title: "Análise Concluída!", description: "Seu vídeo foi analisado e salvo no seu histórico." });
-                } catch (saveError: any) {
-                    console.error('Failed to save analysis:', saveError);
-                    toast({
-                        title: 'Análise Concluída (com um porém)',
-                        description: 'Não foi possível salvar sua análise no histórico. Erro: ' + saveError.message,
-                        duration: 7000,
-                    });
-                }
-            }
-        );
-
-    } catch (e: any) {
-        setAnalysisError(e.message || "Ocorreu um erro desconhecido na análise.");
+    uploadTask.on(
+      'state_changed',
+      (snapshot) => {
+        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        setUploadProgress(progress);
+      },
+      (error) => {
+        console.error("Upload error:", error);
+        setAnalysisError("Falha no upload do vídeo: " + error.message);
         setAnalysisStatus("error");
-    }
+      },
+      async () => {
+        try {
+          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+          setAnalysisStatus("analyzing");
+          setActiveTab("result");
+          
+          const result = await analyzeVideo({
+              videoUrl: downloadURL,
+              prompt: "Faça uma análise completa deste vídeo para um criador de conteúdo.",
+          });
+
+          setAnalysisResult(result);
+          setAnalysisStatus("success");
+
+          const currentAnalysisName = analysisName || file.name;
+
+          await addDoc(collection(firestore, `users/${user.uid}/analisesVideo`), {
+              userId: user.uid,
+              videoUrl: downloadURL,
+              videoFileName: file.name,
+              analysisName: currentAnalysisName,
+              analysisData: result,
+              createdAt: serverTimestamp(),
+          });
+          
+          const usageDocRef = doc(firestore, `users/${user.uid}/dailyUsage/${todayStr}`);
+          const usageDoc = await getDoc(usageDocRef);
+          if (usageDoc.exists()) {
+              await updateDoc(usageDocRef, { videoAnalyses: increment(1) });
+          } else {
+              await setDoc(usageDocRef, { date: todayStr, videoAnalyses: 1, geracoesAI: 0 });
+          }
+          
+          toast({ title: "Análise Concluída!", description: "Seu vídeo foi analisado e salvo no seu histórico." });
+
+        } catch (e: any) {
+          console.error('Error during analysis or saving:', e);
+          setAnalysisError(e.message || "Ocorreu um erro desconhecido na análise.");
+          setAnalysisStatus("error");
+          setActiveTab("result");
+        }
+      }
+    );
   };
 
   const getNoteParts = (geralText: string | undefined): { note: string, description: string } => {

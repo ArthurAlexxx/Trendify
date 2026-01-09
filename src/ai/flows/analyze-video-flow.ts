@@ -15,7 +15,7 @@ import { z } from 'zod';
 const GEMINI_MODEL = 'googleai/gemini-2.5-flash';
 
 
-export async function analyzeVideo(input: { videoDataUri: string, prompt: string }): Promise<AnalyzeVideoOutput> {
+export async function analyzeVideo(input: { videoUrl: string, prompt: string }): Promise<AnalyzeVideoOutput> {
     
     // A inicialização do Genkit é feita aqui dentro para cumprir as regras do 'use server'.
     const ai = genkit({
@@ -44,7 +44,7 @@ Instrução do Usuário: ${input.prompt}
 
 Analise o vídeo e retorne um objeto JSON com a sua avaliação, seguindo estritamente o schema de output definido.` 
             },
-            { media: { url: input.videoDataUri } }
+            { media: { url: input.videoUrl } }
         ],
         output: {
             schema: AnalyzeVideoOutputSchema,
