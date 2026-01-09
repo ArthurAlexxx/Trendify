@@ -1,0 +1,22 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Permite que qualquer usuário autenticado leia e escreva na pasta 'profile-pictures'
+    match /profile-pictures/{userId}/{allPaths=**} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Permite que um usuário autenticado escreva na sua própria pasta de 'video-reviews'
+    // e permite que qualquer um leia os vídeos (se necessário para exibição pública).
+    match /video-reviews/{userId}/{videoId} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Regra geral: Nega todas as outras leituras e escritas
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
