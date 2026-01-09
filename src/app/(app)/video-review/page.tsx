@@ -239,11 +239,11 @@ function VideoReviewPageContent() {
       return;
     }
     
-    setActiveTab("result");
     setAnalysisStatus("analyzing");
     setAnalysisError("");
     setAnalysisResult(null);
     setUploadProgress(0);
+    setActiveTab("result");
 
     try {
         const videoDataUri = await fileToDataUri(file);
@@ -255,7 +255,6 @@ function VideoReviewPageContent() {
 
         setAnalysisResult(result);
         setAnalysisStatus("success");
-        setActiveTab("result"); // Explicitly switch to result tab
 
         const currentAnalysisName = analysisName || file.name;
 
