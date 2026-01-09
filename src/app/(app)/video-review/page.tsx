@@ -255,6 +255,7 @@ function VideoReviewPageContent() {
 
         setAnalysisResult(result);
         setAnalysisStatus("success");
+        setActiveTab("result"); // Explicitly switch to result tab
 
         const currentAnalysisName = analysisName || file.name;
 
@@ -321,8 +322,6 @@ function VideoReviewPageContent() {
     }
     return { note: '-', description: geralText };
   };
-
-  const { note: numericNote, description: noteDescription } = getNoteParts(analysisResult?.geral);
 
   const analysisCriteria = [
     { icon: Eye, title: "Retenção e Gancho", description: "Avaliamos os 3 primeiros segundos para ver se o gancho é forte o suficiente para parar a rolagem." },
