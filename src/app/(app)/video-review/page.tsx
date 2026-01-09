@@ -330,6 +330,8 @@ function VideoReviewPageContent() {
     { icon: BarChartIcon, title: "Potencial de Viralização", description: "Com base em todos os fatores, atribuímos uma nota e um checklist de melhorias para seu vídeo." }
   ];
   
+  const { note: numericNote, description: noteDescription } = getNoteParts(analysisResult?.geral);
+
   return (
     <div className="space-y-8">
         <PageHeader title="Diagnóstico de Vídeo" description="Receba uma análise do potencial de viralização e um plano de ação para seu vídeo." />
