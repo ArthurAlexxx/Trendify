@@ -9,6 +9,7 @@ export const metadata: Metadata = {
     default: 'Trendify',
   },
   description: 'Ferramentas com IA para ajudar criadores a crescer e monetizar.',
+  manifest: '/manifest.json',
 };
 
 export default function RootLayout({

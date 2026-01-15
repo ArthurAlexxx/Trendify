@@ -1,0 +1,17 @@
+{
+  "name": "Trendify",
+  "short_name": "Trendify",
+  "description": "Ferramentas com IA para ajudar criadores a crescer e monetizar.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F9FAFB",
+  "theme_color": "#7C3AED",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
